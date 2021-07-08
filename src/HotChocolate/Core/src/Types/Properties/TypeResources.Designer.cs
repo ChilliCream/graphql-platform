@@ -1274,5 +1274,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed", resourceCulture);
             }
         }
+        
+        internal static string SchemaBuilderExtensions_AddResolverConfig_ContextInvalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolverConfig_ContextInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddResolver_EmptyCooridnates {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCooridnates", resourceCulture);
+            }
+        }
     }
 }

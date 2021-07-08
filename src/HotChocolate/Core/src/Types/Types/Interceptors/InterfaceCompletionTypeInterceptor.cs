@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Interceptors
 {
     internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
     {

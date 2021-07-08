@@ -27,12 +27,12 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
         {
-            if (!contextData.TryGetKey(WellKnownContextData.EventMessage, out var message))
+            if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message) ||
+                message is null)
             {
                 throw new InvalidOperationException(
                     EventMessageParameterExpressionBuilder_MessageNotFound);
             }
-
             return message;
         }
     }

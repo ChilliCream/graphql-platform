@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Interceptors;
 
 #nullable enable
 
@@ -15,15 +18,73 @@ namespace HotChocolate
             NameString fieldName,
             FieldResolverDelegate resolver)
         {
+            return AddResolverConfig(
+                builder,
+                new FieldCoordinate(typeName, fieldName),
+                resolver,
+                null);
+        }
+
+        private static ISchemaBuilder AddResolverConfig(
+            ISchemaBuilder builder,
+            FieldCoordinate field,
+            FieldResolverDelegate resolver,
+            Type? resultType)
+        {
+            List<FieldResolverConfig>? configs = null;
+
+            builder.SetContextData(
+                nameof(FieldResolverConfig),
+                current =>
+                {
+                    if (current is null)
+                    {
+                        configs = new() { new(field, resolver, null, resultType) };
+                        return configs;
+                    }
+
+                    if (current is List<FieldResolverConfig> list)
+                    {
+                        list.Add(new(field, resolver, null, resultType));
+                        return list;
+                    }
+
+                    throw new NotSupportedException(
+                        TypeResources.SchemaBuilderExtensions_AddResolverConfig_ContextInvalid);
+                });
+
+            if (configs is not null)
+            {
+                builder.TryAddTypeInterceptor(new ResolverTypeInterceptor(configs));
+            }
+
+            return builder;
+        }
+
+        public static ISchemaBuilder AddResolver(
+            this ISchemaBuilder builder,
+            FieldCoordinate field,
+            FieldResolverDelegate resolver,
+            Type? resultType = null)
+        {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            // return builder.AddResolver(
-            //     new FieldResolver(typeName, fieldName, resolver));
+            if (!field.HasValue)
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_AddResolver_EmptyCooridnates,
+                    nameof(builder));
+            }
 
-            throw new NotImplementedException();
+            if (resolver is null)
+            {
+                throw new ArgumentNullException(nameof(resolver));
+            }
+
+            return AddResolverConfig(builder, field, resolver, resultType);
         }
 
         // AddResolver(IResolverContext)
@@ -127,7 +188,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => new ValueTask<object?>(resolver()));
+                _ => new ValueTask<object?>(resolver()));
         }
 
         public static ISchemaBuilder AddResolver(
@@ -146,7 +207,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName, ctx => resolver());
+            return AddResolverInternal(builder, typeName, fieldName, _ => resolver());
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -166,7 +227,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => new ValueTask<object?>(resolver()));
+                _ => new ValueTask<object?>(resolver()));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -189,7 +250,7 @@ namespace HotChocolate
                 builder,
                 typeName,
                 fieldName,
-                async ctx => await resolver().ConfigureAwait(false));
+                async _ => await resolver().ConfigureAwait(false));
         }
 
         // Resolver(IResolverContext, CancellationToken)
@@ -271,7 +332,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => new ValueTask<object?>(constantResult));
+                _ => new ValueTask<object?>(constantResult));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -286,7 +347,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => new ValueTask<object?>(constantResult));
+                _ => new ValueTask<object?>(constantResult));
         }
     }
 }

@@ -38,6 +38,16 @@ namespace Microsoft.Extensions.DependencyInjection
             Expression<Func<IResolverContext, T>> expression,
             Func<ParameterInfo, bool>? canHandle = null)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (expression is null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
             if (canHandle is null)
             {
                 builder.RequestExecutorBuilder.Services.AddParameterExpressionBuilder(
@@ -68,6 +78,11 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IResolverCompilerBuilder AddService<TService>(
             this IResolverCompilerBuilder builder)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             builder.RequestExecutorBuilder.Services
                 .TryAddParameterExpressionBuilder<
                     CustomServiceParameterExpressionBuilder<TService>>();

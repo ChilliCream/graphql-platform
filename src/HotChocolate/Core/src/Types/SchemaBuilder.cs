@@ -9,6 +9,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
@@ -186,7 +187,11 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder BindClrType(Type runtimeType, Type schemaType)
+        [Obsolete]
+        public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
+            => BindRuntimeType(clrType, schemaType);
+
+        public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
         {
             if (runtimeType is null)
             {
@@ -213,25 +218,25 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddType(INamedType type)
+        public ISchemaBuilder AddType(INamedType namedType)
         {
-            if (type is null)
+            if (namedType is null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(namedType));
             }
 
-            _types.Add(_ => TypeReference.Create(type));
+            _types.Add(_ => TypeReference.Create(namedType));
             return this;
         }
 
-        public ISchemaBuilder AddType(INamedTypeExtension type)
+        public ISchemaBuilder AddType(INamedTypeExtension typeExtension)
         {
-            if (type is null)
+            if (typeExtension is null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(typeExtension));
             }
 
-            _types.Add(_ => TypeReference.Create(type));
+            _types.Add(_ => TypeReference.Create(typeExtension));
             return this;
         }
 
@@ -247,34 +252,34 @@ namespace HotChocolate
         }
 
         public ISchemaBuilder AddRootType(
-            Type type,
+            Type rootType,
             OperationType operation)
         {
-            if (type is null)
+            if (rootType is null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(rootType));
             }
 
-            if (!type.IsClass)
+            if (!rootType.IsClass)
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_RootType_MustBeClass,
-                    nameof(type));
+                    nameof(rootType));
             }
 
-            if (type.IsNonGenericSchemaType())
+            if (rootType.IsNonGenericSchemaType())
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_RootType_NonGenericType,
-                    nameof(type));
+                    nameof(rootType));
             }
 
-            if (type.IsSchemaType()
-                && !typeof(ObjectType).IsAssignableFrom(type))
+            if (rootType.IsSchemaType()
+                && !typeof(ObjectType).IsAssignableFrom(rootType))
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_RootType_MustBeObjectType,
-                    nameof(type));
+                    nameof(rootType));
             }
 
             if (_operations.ContainsKey(operation))
@@ -286,18 +291,18 @@ namespace HotChocolate
                     nameof(operation));
             }
 
-            _operations.Add(operation, ti => ti.GetTypeRef(type, TypeContext.Output));
-            _types.Add(ti => ti.GetTypeRef(type, TypeContext.Output));
+            _operations.Add(operation, ti => ti.GetTypeRef(rootType, TypeContext.Output));
+            _types.Add(ti => ti.GetTypeRef(rootType, TypeContext.Output));
             return this;
         }
 
         public ISchemaBuilder AddRootType(
-            ObjectType type,
+            ObjectType rootType,
             OperationType operation)
         {
-            if (type is null)
+            if (rootType is null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(rootType));
             }
 
             if (_operations.ContainsKey(operation))
@@ -309,7 +314,7 @@ namespace HotChocolate
                     nameof(operation));
             }
 
-            SchemaTypeReference reference = TypeReference.Create(type);
+            SchemaTypeReference reference = TypeReference.Create(rootType);
             _operations.Add(operation, _ => reference);
             _types.Add(_ => reference);
             return this;
@@ -366,7 +371,7 @@ namespace HotChocolate
 
         public ISchemaBuilder SetContextData(string key, Func<object, object> update)
         {
-            _contextData.TryGetValue(key, out object value);
+            _contextData.TryGetValue(key, out var value);
             _contextData[key] = update(value);
             return this;
         }

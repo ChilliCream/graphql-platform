@@ -22,6 +22,16 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IResolverCompilerBuilder> configure)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure is null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             configure(new DefaultResolverCompilerBuilder(builder));
             return builder;
         }

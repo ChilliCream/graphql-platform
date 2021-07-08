@@ -677,7 +677,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
+            return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
         }
     }
 }

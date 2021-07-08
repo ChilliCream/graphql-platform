@@ -145,7 +145,7 @@ namespace HotChocolate.Execution
 
         private IRequestExecutor CreateExecutor()
         {
-            string schema = @"
+            var schema = @"
                 type Query {
                     foo: Foo
                 }
@@ -166,30 +166,20 @@ namespace HotChocolate.Execution
                 }
                 ";
 
-            return Schema.Create(schema, c =>
-            {
-                c.BindResolver(ctx => new object())
-                    .To("Query", "foo");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nullable_list_nullable_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nonnull_list_nullable_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nullable_list_nonnull_element");
-                c.BindResolver(ctx => new[] { new object() })
-                    .To("Foo", "nonnull_list_nonnull_element");
-                c.BindResolver(ctx => new object())
-                    .To("Foo", "nonnull_prop");
-                c.BindResolver(ctx => new object())
-                    .To("Foo", "nullable_prop");
-                c.BindResolver(ctx => ctx.GetGlobalValue<string>("a"))
-                    .To("Bar", "a");
-                c.BindResolver(ctx => ctx.GetGlobalValue<string>("b"))
-                    .To("Bar", "b");
-                c.BindResolver(ctx => ErrorBuilder.New()
-                    .SetMessage("ERROR").Build())
-                    .To("Bar", "c");
-            }).MakeExecutable();
+            return SchemaBuilder.New()
+                .AddDocumentFromString(schema)
+                .AddResolver("Query.foo", _ => new(new object()))
+                .AddResolver("Foo.nullable_list_nullable_element", _ => new(new[] { new object() }))
+                .AddResolver("Foo.nonnull_list_nullable_element", _ => new(new[] { new object() }))
+                .AddResolver("Foo.nullable_list_nonnull_element", _ => new(new[] { new object() }))
+                .AddResolver("Foo.nonnull_list_nonnull_element", _ => new(new[] { new object() }))
+                .AddResolver("Foo.nonnull_prop", _ => new(new object()))
+                .AddResolver("Foo.nullable_prop", _ => new(new object()))
+                .AddResolver("Bar.a", c => new(c.GetGlobalValue<string>("a")))
+                .AddResolver("Bar.b", c => new(c.GetGlobalValue<string>("b")))
+                .AddResolver("Bar.c", _ => throw new GraphQLException("ERROR"))
+                .Create()
+                .MakeExecutable();
         }
     }
 }

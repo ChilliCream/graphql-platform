@@ -1,7 +1,10 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 #nullable enable
@@ -41,6 +44,56 @@ namespace HotChocolate.Resolvers
                         .AddProperty("someState", new SayHelloState("Hello"))
                         .Create())
                 .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public void AddParameterEnsureBuilderIsNotNull()
+        {
+            void Configure()
+                => default(IResolverCompilerBuilder)!
+                    .AddParameter(ctx => ctx.Document);
+
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void AddParameterEnsureExpressionIsNotNull()
+        {
+            var mock = new Mock<IResolverCompilerBuilder>();
+
+            void Configure()
+                => mock.Object.AddParameter<string>(null!);
+
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void AddServiceEnsureBuilderIsNotNull()
+        {
+            void Configure()
+                => default(IResolverCompilerBuilder)!
+                    .AddService<SayHelloService>();
+
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void EnsureRequestExecutorBuilderIsNotNull()
+        {
+            void Configure()
+                => default(IRequestExecutorBuilder)!.ConfigureResolverCompiler(_ => { });
+
+            Assert.Throws<ArgumentNullException>(Configure);
+        }
+
+        [Fact]
+        public void EnsureConfigureIsNotNull()
+        {
+            var mock = new Mock<IRequestExecutorBuilder>();
+
+            void Configure() => mock.Object.ConfigureResolverCompiler(null!);
+
+            Assert.Throws<ArgumentNullException>(Configure);
         }
 
         public class SayHelloService
