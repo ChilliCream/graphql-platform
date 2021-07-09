@@ -350,6 +350,33 @@ services
 
 Hot Chocolate will correctly instantiate the service, depending on its lifetime. A scoped service for example is only instantiated once per request and this instance is injected into all resolvers used during the request.
 
+## Constructor Injection
+
+Of course we can also inject services into the constructor of our types.
+
+```csharp
+public class Query
+{
+    private readonly UserService _userService;
+
+    public Query(UserService userService)
+    {
+        _userService = userService;
+    }
+
+     public List<User> GetUsers()
+        => _userService.GetUsers();
+}
+```
+
+It's important to note that the service lifetime of types is singleton per default for performance reasons.
+
+**This means one instance per injected service is kept around and used for the entire lifetime of the GraphQL server, regardless of the original lifetime of the service.**
+
+If we depend on truly transient or scoped services, we need to inject them directly into the dependent methods as described [above](#injecting-services).
+
+[Learn more about service lifetimes in ASP.NET Core](https://docs.microsoft.com/dotnet/core/extensions/dependency-injection#service-lifetimes)
+
 ## IHttpContextAccessor
 
 The [IHttpContextAccessor](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.ihttpcontextaccessor) allows us to access the [HttpContext](https://docs.microsoft.com/dotnet/api/microsoft.aspnetcore.http.httpcontext) of the current request from within our resolvers. This is useful, if we for example need to set a header or cookie.
