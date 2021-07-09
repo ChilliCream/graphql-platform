@@ -182,8 +182,9 @@ const IndexPage: FunctionComponent = () => {
             <SectionTitle centerAlways>From our Blog</SectionTitle>
             <Articles>
               {edges.map(({ node }) => {
-                const featuredImage = node?.frontmatter!.featuredImage
-                  ?.childImageSharp?.gatsbyImageData;
+                const featuredImage =
+                  node?.frontmatter!.featuredImage?.childImageSharp
+                    ?.gatsbyImageData;
 
                 return (
                   <Article key={`article-${node.id}`}>
@@ -379,13 +380,13 @@ const Slideshow = styled(Carousel)`
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: #fff;
+        background-color: var(--text-color-contrast);
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: #fff;
+          background-color: var(--text-color-contrast);
           opacity: 1;
 
           &:hover {
@@ -446,7 +447,7 @@ const SlideContent = styled.div`
     left: 20%;
     display: flex;
     flex-direction: column;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 20px;
     background-color: rgba(0, 0, 0, 0.6);
   }
@@ -477,7 +478,7 @@ const SlideTitle = styled.h2`
     margin-bottom: 10px;
     font-size: 1.667em;
     text-align: initial;
-    color: #fff;
+    color: var(--text-color-contrast);
   }
 `;
 
@@ -486,7 +487,7 @@ const SlideDescription = styled.p`
   flex: 0 0 auto;
   margin-bottom: 0;
   font-size: 1.111em;
-  color: #fff;
+  color: var(--text-color-contrast);
 
   @media only screen and (min-width: 768px) {
     display: initial;
@@ -511,7 +512,7 @@ const Article = styled.li`
   display: flex;
   margin: 20px 0 0;
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
   > a {
@@ -519,7 +520,7 @@ const Article = styled.li`
   }
 
   > a > .gatsby-image-wrapper {
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
   }
 
   @media only screen and (min-width: 820px) {
@@ -533,7 +534,7 @@ const ArticleMetadata = styled.div`
   align-items: center;
   margin: 15px 20px 7px;
   font-size: 0.778em;
-  color: #667;
+  color: var(--text-color);
 `;
 
 const ArticleTitle = styled.h1`
@@ -555,11 +556,11 @@ const Logo = styled.div<{ width?: number }>`
   width: ${({ width }) => width || 160}px;
 
   > a > svg {
-    fill: #667;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
 
     &:hover {
-      fill: #333;
+      fill: var(--heading-text-color);
     }
   }
 `;
