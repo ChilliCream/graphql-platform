@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { Link } from "../misc/link";
 
@@ -7,9 +7,7 @@ interface BlogArticleTagsProperties {
   tags: string[];
 }
 
-export const BlogArticleTags: FunctionComponent<BlogArticleTagsProperties> = ({
-  tags,
-}) => {
+export const BlogArticleTags: FC<BlogArticleTagsProperties> = ({ tags }) => {
   return (
     <>
       {tags.length > 0 && (

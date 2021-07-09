@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { GetBlogArticlesByTagQuery } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
@@ -12,7 +12,7 @@ interface BlogTagTemplateProperties {
   data: GetBlogArticlesByTagQuery;
 }
 
-const BlogTagTemplate: FunctionComponent<BlogTagTemplateProperties> = ({
+const BlogTagTemplate: FC<BlogTagTemplateProperties> = ({
   pageContext: { tag },
   data: { allMdx },
 }) => {

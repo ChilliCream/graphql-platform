@@ -1,11 +1,6 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
@@ -44,10 +39,7 @@ interface DocPageProperties {
   readonly originPath: string;
 }
 
-export const DocPage: FunctionComponent<DocPageProperties> = ({
-  data,
-  originPath,
-}) => {
+export const DocPage: FC<DocPageProperties> = ({ data, originPath }) => {
   const dispatch = useDispatch();
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -363,9 +355,7 @@ interface DocumentationNotesProperties {
   readonly product: ProductInformation;
 }
 
-const DocumentationNotes: FunctionComponent<DocumentationNotesProperties> = ({
-  product,
-}) => {
+const DocumentationNotes: FC<DocumentationNotesProperties> = ({ product }) => {
   if (product.version === "") {
     return null;
   }

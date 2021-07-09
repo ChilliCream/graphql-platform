@@ -1,8 +1,8 @@
 import algoliasearch from "algoliasearch/lite";
 import React, {
   createRef,
+  FC,
   FocusEvent,
-  FunctionComponent,
   RefObject,
   useCallback,
   useEffect,
@@ -28,7 +28,7 @@ interface SearchProperties {
   siteUrl: string;
 }
 
-export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
+export const Search: FC<SearchProperties> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
   const query = useSelector<State, string>((state) => state.common.searchQuery);

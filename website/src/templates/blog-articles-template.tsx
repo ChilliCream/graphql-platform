@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { GetBlogArticlesQuery } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
@@ -10,7 +10,7 @@ interface BlogArticlesTemplateProperties {
   data: GetBlogArticlesQuery;
 }
 
-const BlogArticlesTemplate: FunctionComponent<BlogArticlesTemplateProperties> = ({
+const BlogArticlesTemplate: FC<BlogArticlesTemplateProperties> = ({
   pageContext: { currentPage, numPages },
   data: { allMdx },
 }) => {

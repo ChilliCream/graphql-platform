@@ -1,6 +1,6 @@
 import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../articles/article-elements";
@@ -15,7 +15,7 @@ interface BlogArticlesProperties {
   totalPages?: number;
 }
 
-export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
+export const BlogArticles: FC<BlogArticlesProperties> = ({
   currentPage,
   data: { edges },
   totalPages,

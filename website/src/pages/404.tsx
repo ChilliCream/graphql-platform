@@ -1,9 +1,9 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-const NotFoundPage: FunctionComponent = () => (
+const NotFoundPage: FC = () => (
   <Layout>
     <SEO title="404: Not found" />
     <Container>

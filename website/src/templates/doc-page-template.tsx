@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { DocPageFragment } from "../../graphql-types";
 import { DocPage } from "../components/doc-page/doc-page";
 import { SEO } from "../components/misc/seo";
@@ -10,7 +10,7 @@ interface DocPageTemplateProperties {
   pageContext: { originPath: string };
 }
 
-const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
+const DocPageTemplate: FC<DocPageTemplateProperties> = ({
   data,
   pageContext,
 }) => {

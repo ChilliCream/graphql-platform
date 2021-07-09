@@ -1,7 +1,7 @@
 import { graphql } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
 import { Article } from "../articles/article";
@@ -19,9 +19,7 @@ interface BlogArticleProperties {
   data: BlogArticleFragment;
 }
 
-export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
-  data,
-}) => {
+export const BlogArticle: FC<BlogArticleProperties> = ({ data }) => {
   const { mdx } = data;
   const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;
@@ -29,8 +27,8 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   const existingTags: string[] = frontmatter!.tags!
     ? (frontmatter!.tags!.filter((tag) => tag && tag.length > 0) as string[])
     : [];
-  const featuredImage = frontmatter!.featuredImage?.childImageSharp
-    ?.gatsbyImageData;
+  const featuredImage =
+    frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
   return (
     <Container>

@@ -1,5 +1,5 @@
 import { Link } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
 interface PaginationProperties {
@@ -8,7 +8,7 @@ interface PaginationProperties {
   totalPages: number;
 }
 
-export const Pagination: FunctionComponent<PaginationProperties> = ({
+export const Pagination: FC<PaginationProperties> = ({
   currentPage,
   linkPrefix,
   totalPages,

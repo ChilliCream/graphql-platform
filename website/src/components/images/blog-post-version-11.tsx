@@ -1,10 +1,10 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetBlogPostVersion11ImageQuery } from "../../../graphql-types";
 
-export const BlogPostVersion11: FunctionComponent = () => {
+export const BlogPostVersion11: FC = () => {
   const data = useStaticQuery<GetBlogPostVersion11ImageQuery>(graphql`
     query getBlogPostVersion11Image {
       file(

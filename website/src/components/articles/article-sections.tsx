@@ -1,6 +1,6 @@
 import { graphql, Link } from "gatsby";
 import GithubSlugger from "github-slugger";
-import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
@@ -16,9 +16,7 @@ interface ArticleSectionsProperties {
   readonly data: ArticleSectionsFragment;
 }
 
-export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
-  data,
-}) => {
+export const ArticleSections: FC<ArticleSectionsProperties> = ({ data }) => {
   const dispatch = useDispatch();
 
   const tocItems = useMemo(
@@ -52,7 +50,7 @@ interface TableOfContentProps {
   readonly activeHeadingLink?: string;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+const TableOfContent: FC<TableOfContentProps> = ({
   items,
   activeHeadingLink,
 }) => {

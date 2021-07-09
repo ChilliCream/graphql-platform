@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleMetadataFragment } from "../../../graphql-types";
 import { Link } from "../misc/link";
@@ -8,7 +8,7 @@ interface BlogArticleMetadataProperties {
   data: BlogArticleMetadataFragment;
 }
 
-export const BlogArticleMetadata: FunctionComponent<BlogArticleMetadataProperties> = ({
+export const BlogArticleMetadata: FC<BlogArticleMetadataProperties> = ({
   data: { fields, frontmatter },
 }) => {
   return (

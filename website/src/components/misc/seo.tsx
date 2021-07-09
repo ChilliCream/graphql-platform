@@ -6,7 +6,7 @@
  */
 
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { Helmet } from "react-helmet";
 
 interface SEOProperties {
@@ -18,7 +18,7 @@ interface SEOProperties {
   title: string;
 }
 
-export const SEO: FunctionComponent<SEOProperties> = ({
+export const SEO: FC<SEOProperties> = ({
   description,
   imageUrl,
   isArticle,

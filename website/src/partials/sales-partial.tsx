@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FC, useState } from "react";
 import styled from "styled-components";
 import { SalesCard } from "../components/support/sales-card";
 import { SalesCardPerk } from "../components/support/sales-card-perk";
@@ -8,7 +8,7 @@ import { IsMobile, IsPhablet, IsSmallDesktop } from "../shared-style";
 type Cycle = "monthly" | "biannually" | "annually";
 type Plan = "Basic" | "Enterprise";
 
-export const SalesPartial: FunctionComponent = () => {
+export const SalesPartial: FC = () => {
   const [cycle, setCycle] = useState<Cycle>("annually");
 
   const planPrices: Record<Plan, Record<Cycle, number>> = {

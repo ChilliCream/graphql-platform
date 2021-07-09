@@ -1,6 +1,5 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
-
 import TimesIconSvg from "../../images/times.svg";
 
 interface DocPagePaneHeaderProperties {
@@ -9,7 +8,7 @@ interface DocPagePaneHeaderProperties {
   onClose: () => void;
 }
 
-export const DocPagePaneHeader: FunctionComponent<DocPagePaneHeaderProperties> = ({
+export const DocPagePaneHeader: FC<DocPagePaneHeaderProperties> = ({
   showWhenScreenWidthIsSmallerThan,
   title,
   onClose,

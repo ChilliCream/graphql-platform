@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { HotChocolate } from "../components/images/hot-chocolate";
 import { Link } from "../components/misc/link";
@@ -14,7 +14,7 @@ import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import UnderConstructionSvg from "../images/under-construction.svg";
 
-const PlatformPage: FunctionComponent = () => {
+const PlatformPage: FC = () => {
   return (
     <Layout>
       <SEO title="Platform" />
