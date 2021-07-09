@@ -15,13 +15,11 @@ namespace HotChocolate.Stitching.Delegation
         public void CreateVariableValue()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String a: String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String a: String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ObjectType).Returns(
