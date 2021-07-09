@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
@@ -21,6 +23,9 @@ namespace HotChocolate.Resolvers
 {
     public class ResolverCompilerTests
     {
+        private readonly IParameterExpressionBuilder[] _empty =
+            Array.Empty<IParameterExpressionBuilder>();
+
         [Fact]
         public async Task Compile_TaskObjMethod_NoParams_SourceResolver()
         {
@@ -29,7 +34,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -47,7 +52,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -65,7 +70,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -84,7 +89,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -102,7 +107,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -120,7 +125,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -139,7 +144,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringValueNodeResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -159,7 +164,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.OptionalStringResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -179,7 +184,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("ObjectTaskStringProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -197,7 +202,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("StringTaskResolverProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -215,7 +220,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("StringProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -233,7 +238,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectTaskResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -252,7 +257,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -271,7 +276,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringTaskResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -291,7 +296,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ObjectResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -310,7 +315,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolver))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -329,7 +334,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.StringResolverWithArg))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -349,7 +354,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("ObjectTaskStringProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -368,7 +373,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("StringTaskResolverProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -387,7 +392,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetProperty("StringProp")!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver =
                 compiler.CompileResolve(member, typeof(Entity), type).Resolver!;
 
@@ -406,7 +411,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithCancellationToken))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -425,7 +430,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithResolverContext))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -443,7 +448,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSelection))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -465,7 +470,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithSelection))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
             PureFieldDelegate pure = compiler.CompileResolve(member, type).PureResolver!;
 
@@ -491,7 +496,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithFieldSyntax))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
             PureFieldDelegate pure = compiler.CompileResolve(member, type).PureResolver!;
 
@@ -526,7 +531,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithObjectType))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -551,7 +556,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithOperationDefinition))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -580,7 +585,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithObjectField))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -610,7 +615,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithOutputField))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -640,7 +645,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithDocument))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -660,7 +665,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithSchema))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -684,7 +689,7 @@ namespace HotChocolate.Resolvers
             MemberInfo member = type.GetMethod(nameof(Resolvers.ResolverWithService))!;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -704,7 +709,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -724,7 +729,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?> { { "foo", "bar" } };
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -744,7 +749,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -764,7 +769,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -784,7 +789,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -804,7 +809,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -824,7 +829,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -847,7 +852,7 @@ namespace HotChocolate.Resolvers
             var contextData = new Dictionary<string, object?>();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -870,7 +875,7 @@ namespace HotChocolate.Resolvers
                 .ToImmutableDictionary();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -892,7 +897,7 @@ namespace HotChocolate.Resolvers
                 .ToImmutableDictionary();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -913,7 +918,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -935,7 +940,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -957,7 +962,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -979,7 +984,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1001,7 +1006,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1027,7 +1032,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1052,7 +1057,7 @@ namespace HotChocolate.Resolvers
                 .ToImmutableDictionary();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1073,7 +1078,7 @@ namespace HotChocolate.Resolvers
                 .ToImmutableDictionary();
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1094,7 +1099,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1115,7 +1120,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1136,7 +1141,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1158,7 +1163,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1184,7 +1189,7 @@ namespace HotChocolate.Resolvers
                 ImmutableDictionary<string, object?>.Empty;
 
             // act
-            var compiler = new DefaultResolverCompiler(new IParameterExpressionBuilder[0]);
+            var compiler = new DefaultResolverCompiler(_empty);
             FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
@@ -1199,29 +1204,72 @@ namespace HotChocolate.Resolvers
             Assert.Equal("abc", resolverContext.LocalContextData["foo"]);
         }
 
+        [Fact]
         public async Task Compile_GetClaimsPrincipal()
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember =
-                type.GetMethod(nameof(Resolvers.GetClaimsPrincipal));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
-            var contextData = new Dictionary<string, object>
+            MemberInfo member = type.GetMethod(nameof(Resolvers.GetClaimsPrincipal))!;
+
+            var contextData = new Dictionary<string, object?>
             {
                 { nameof(ClaimsPrincipal), new ClaimsPrincipal() }
             };
 
             // act
-            FieldResolver resolver = ResolverCompiler.Resolve.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompiler(_empty);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
             context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
             context.Setup(t => t.ContextData).Returns(contextData);
-            var value = await resolver.Resolver(context.Object);
+            var value = await resolver(context.Object);
             Assert.True(Assert.IsType<bool>(value));
+        }
+
+        [Fact]
+        public async Task Compile_GetClaimsPrincipal_ClaimsNotExists()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo member = type.GetMethod(nameof(Resolvers.GetClaimsPrincipal))!;
+
+            var contextData = new Dictionary<string, object?>();
+
+            // act
+            var compiler = new DefaultResolverCompiler(_empty);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            async Task Execute() => await resolver(context!.Object);
+            Exception ex = await Assert.ThrowsAsync<ArgumentException>(Execute);
+            ex.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Compile_GetNullableClaimsPrincipal_ClaimsNotExists()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo member = type.GetMethod(nameof(Resolvers.GetNullableClaimsPrincipal))!;
+
+            var contextData = new Dictionary<string, object?>();
+
+            // act
+            var compiler = new DefaultResolverCompiler(_empty);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            async Task Execute() => await resolver(context!.Object);
+            Exception ex = await Assert.ThrowsAsync<ArgumentException>(Execute);
+            ex.Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1229,23 +1277,18 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo resolverMember = type.GetMethod(nameof(Resolvers.ResolverWithPath));
-            var resolverDescriptor = new ResolverDescriptor(
-                type,
-                new FieldMember("A", "b", resolverMember!));
+            MemberInfo member = type.GetMethod(nameof(Resolvers.GetNullableClaimsPrincipal))!;
 
             // act
-            var compiler = new ResolveCompiler();
-            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+            var compiler = new DefaultResolverCompiler(_empty);
+            FieldResolverDelegate resolver = compiler.CompileResolve(member, type).Resolver!;
 
             // assert
             var context = new Mock<IResolverContext>();
-            context.Setup(t => t.Parent<Resolvers>())
-                .Returns(new Resolvers());
-            context.SetupGet(t => t.Path)
-                .Returns(Path.New("FOO"));
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.SetupGet(t => t.Path).Returns(Path.New("FOO"));
 
-            var result = (bool)(await resolver.Resolver(context.Object))!;
+            var result = (bool)(await resolver(context.Object))!;
             Assert.True(result);
         }
 
@@ -1293,6 +1336,15 @@ namespace HotChocolate.Resolvers
             public string ResolverWithCancellationToken(
                 CancellationToken cancellationToken) =>
                 "cancel";
+
+            public bool GetClaimsPrincipal(ClaimsPrincipal claims)
+                => claims != null!;
+
+            public bool GetNullableClaimsPrincipal(ClaimsPrincipal? claims)
+                => claims != null!;
+
+            public bool GetNullableClaimsPrincipal(Path path)
+                => path != null!;
 
             public bool ResolverWithResolverContext(
                 IResolverContext context) =>
@@ -1350,15 +1402,13 @@ namespace HotChocolate.Resolvers
                 [GlobalState]
                 string foo = "abc") => foo;
 
-            public string GetGlobalStateWithDefault(
+            public string? GetGlobalStateWithDefault(
                 [GlobalState]
                 string? foo = default) => foo;
 
-#nullable enable
             public string GetGlobalStateNullable(
                 [GlobalState]
                 string? foo) => foo!;
-#nullable disable
 
             public string SetGlobalStateGeneric(
                 [GlobalState]
@@ -1388,15 +1438,13 @@ namespace HotChocolate.Resolvers
                 [ScopedState]
                 string foo = "abc") => foo;
 
-            public string GetScopedStateWithDefault(
+            public string? GetScopedStateWithDefault(
                 [ScopedState]
-                string foo = default) => foo;
+                string? foo = default) => foo;
 
-#nullable enable
-            public string GetScopedStateNullable(
+            public string? GetScopedStateNullable(
                 [ScopedState]
                 string? foo) => foo!;
-#nullable disable
 
             public string SetScopedStateGeneric(
                 [ScopedState]
@@ -1426,9 +1474,9 @@ namespace HotChocolate.Resolvers
                 [LocalState]
                 string foo = "abc") => foo;
 
-            public string GetLocalStateWithDefault(
+            public string? GetLocalStateWithDefault(
                 [LocalState]
-                string foo = default) => foo;
+                string? foo = default) => foo;
 
             public string SetLocalStateGeneric(
                 [LocalState]
