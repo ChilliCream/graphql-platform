@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Interceptors
 
                 if (_members.Count > 0)
                 {
-                    IResolverCompilerService resolverCompiler =
+                    IResolverCompiler resolverCompiler =
                         completionContext.DescriptorContext.ResolverCompiler;
 
                     foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)

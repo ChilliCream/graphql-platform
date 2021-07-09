@@ -10,7 +10,7 @@ namespace HotChocolate.Resolvers
     /// <summary>
     /// This services provides access to the internal resolver compiler.
     /// </summary>
-    public interface IResolverCompilerService : IDisposable
+    public interface IResolverCompiler : IDisposable
     {
         /// <summary>
         /// Compiles a resolver from a member selector.

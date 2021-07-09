@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers
     /// <summary>
     /// This class provides some helper methods to compile resolvers for dynamic schemas.
     /// </summary>
-    internal sealed class DefaultResolverCompilerService : IResolverCompilerService
+    internal sealed class DefaultResolverCompiler : IResolverCompiler
     {
         private static readonly ParameterExpression _context =
             Parameter(typeof(IResolverContext), "context");
@@ -35,7 +35,7 @@ namespace HotChocolate.Resolvers
         private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
         private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
 
-        public DefaultResolverCompilerService(
+        public DefaultResolverCompiler(
             IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
         {
             // explicit internal expression builders will be added first.

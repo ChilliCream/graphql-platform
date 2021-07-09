@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Descriptors
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
             TypeInterceptor = typeInterceptor;
-            ResolverCompiler = new DefaultResolverCompilerService(
+            ResolverCompiler = new DefaultResolverCompiler(
                 services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
             schema.Completed += OnSchemaOnCompleted;
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Descriptors
         public TypeInterceptor TypeInterceptor { get; }
 
         /// <inheritdoc />
-        public IResolverCompilerService ResolverCompiler { get; }
+        public IResolverCompiler ResolverCompiler { get; }
 
         /// <inheritdoc />
         public IDictionary<string, object?> ContextData { get; }

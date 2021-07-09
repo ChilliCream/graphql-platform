@@ -287,7 +287,7 @@ namespace HotChocolate.Types
         public void CreateDirectiveType()
         {
             // arrange
-            string schemaSdl = "directive @foo(a:String) on QUERY";
+            var schemaSdl = "directive @foo(a:String) on QUERY";
 
             // act
             var schema = Schema.Create(

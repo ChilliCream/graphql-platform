@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Descriptors
         /// <summary>
         /// Gets the resolver compiler.
         /// </summary>
-        IResolverCompilerService ResolverCompiler { get; }
+        IResolverCompiler ResolverCompiler { get; }
 
         /// <summary>
         /// Gets a custom convention.
