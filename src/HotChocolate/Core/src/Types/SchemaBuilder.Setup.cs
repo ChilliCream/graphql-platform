@@ -55,10 +55,8 @@ namespace HotChocolate
 
                     context.SchemaInterceptor.OnBeforeCreate(context, builder);
 
-                    IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
-
                     IReadOnlyList<ITypeReference> typeReferences =
-                        CreateTypeReferences(builder, context, bindingLookup);
+                        CreateTypeReferences(builder, context);
 
                     TypeRegistry typeRegistry =
                         InitializeTypes(
@@ -99,8 +97,7 @@ namespace HotChocolate
 
             private static IReadOnlyList<ITypeReference> CreateTypeReferences(
                 SchemaBuilder builder,
-                IDescriptorContext context,
-                IBindingLookup bindingLookup)
+                IDescriptorContext context)
             {
                 var types = new List<ITypeReference>();
 
@@ -111,12 +108,7 @@ namespace HotChocolate
 
                 if (builder._documents.Count > 0)
                 {
-                    types.AddRange(
-                        ParseDocuments(
-                            builder,
-                            context.Services,
-                            context.Options,
-                            bindingLookup));
+                    types.AddRange(ParseDocuments(builder, context));
                 }
 
                 types.Add(builder._schema is null
@@ -128,18 +120,16 @@ namespace HotChocolate
 
             private static IEnumerable<ITypeReference> ParseDocuments(
                 SchemaBuilder builder,
-                IServiceProvider services,
-                IReadOnlySchemaOptions options,
-                IBindingLookup bindingLookup)
+                IDescriptorContext context)
             {
                 var types = new List<ITypeReference>();
 
                 foreach (LoadSchemaDocument fetchSchema in builder._documents)
                 {
-                    DocumentNode schemaDocument = fetchSchema(services);
+                    DocumentNode schemaDocument = fetchSchema(context.Services);
                     schemaDocument = schemaDocument.RemoveBuiltInTypes();
 
-                    var visitorContext = new SchemaSyntaxVisitorContext(bindingLookup, options);
+                    var visitorContext = new SchemaSyntaxVisitorContext(context);
                     var visitor = new SchemaSyntaxVisitor();
                     visitor.Visit(schemaDocument, visitorContext);
 
@@ -184,7 +174,7 @@ namespace HotChocolate
             private static void RegisterOperationName(
                 SchemaBuilder builder,
                 OperationType operation,
-                string typeName)
+                string? typeName)
             {
                 if (!builder._operations.ContainsKey(operation)
                     && !string.IsNullOrEmpty(typeName))

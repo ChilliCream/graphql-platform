@@ -250,7 +250,6 @@ namespace HotChocolate.Types
                 CompleteInterfaces(
                     context,
                     interfaces,
-                    RuntimeType,
                     implements,
                     this,
                     SyntaxNode);

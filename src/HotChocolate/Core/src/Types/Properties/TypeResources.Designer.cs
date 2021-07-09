@@ -1248,24 +1248,6 @@ namespace HotChocolate.Properties {
         internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
             get {
                 return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
-                }
-        }
-
-        internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
-            get {
-                return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
-            }
-        }
-        
-        internal static string ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist {
-            get {
-                return ResourceManager.GetString("ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist", resourceCulture);
-            }
-        }
-        
-        internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
-            get {
-                return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
             }
         }
         
@@ -1302,6 +1284,30 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_AddResolver_EmptyCooridnates {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCooridnates", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
+            }
+        }
+        
+        internal static string ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound {
+            get {
+                return ResourceManager.GetString("ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound", resourceCulture);
             }
         }
     }

@@ -37,6 +37,21 @@ namespace HotChocolate.Configuration
                 .OfType<T>()
                 .Distinct();
 
+        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+        {
+            if (typeRef is null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
+            if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+            {
+                return namedTypeRef;
+            }
+
+            throw new NotSupportedException();
+        }
+
         public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
         {
             if (typeRef is null)

@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Configuration;
-using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -122,8 +121,6 @@ namespace HotChocolate
         ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation);
 
         ISchemaBuilder AddDirectiveType(DirectiveType type);
-
-        ISchemaBuilder AddBinding(IBindingInfo binding);
 
         ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);
 

@@ -753,4 +753,7 @@ Type: `{0}`</value>
   <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
   </data>
+  <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
+    <value>Could not resolve the claims principal.</value>
+  </data>
 </root>

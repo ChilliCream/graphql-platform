@@ -6,7 +6,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
-using HotChocolate.Configuration.Bindings;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Interceptors;
@@ -32,7 +31,6 @@ namespace HotChocolate
             typeof(InterfaceCompletionTypeInterceptor),
             typeof(CostTypeInterceptor)
         };
-        private readonly IBindingCompiler _bindingCompiler = new BindingCompiler();
         private SchemaOptions _options = new();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
@@ -317,31 +315,6 @@ namespace HotChocolate
             SchemaTypeReference reference = TypeReference.Create(rootType);
             _operations.Add(operation, _ => reference);
             _types.Add(_ => reference);
-            return this;
-        }
-
-        public ISchemaBuilder AddBinding(IBindingInfo binding)
-        {
-            if (binding is null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
-            if (!binding.IsValid())
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Binding_Invalid,
-                    nameof(binding));
-            }
-
-            if (!_bindingCompiler.CanHandle(binding))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Binding_CannotBeHandled,
-                    nameof(binding));
-            }
-
-            _bindingCompiler.AddBinding(binding);
             return this;
         }
 

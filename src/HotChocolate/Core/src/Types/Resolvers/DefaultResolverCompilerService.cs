@@ -69,6 +69,8 @@ namespace HotChocolate.Resolvers
             list.Add(new ObjectTypeParameterExpressionBuilder());
             list.Add(new OperationParameterExpressionBuilder());
             list.Add(new FieldParameterExpressionBuilder());
+            list.Add(new ClaimsPrincipalParameterExpressionBuilder());
+            list.Add(new PathParameterExpressionBuilder());
 
             // last we qdd the implicit argument expression builder which represents our default
             // expression builder and will compile all that is left to GraphQL field arguments.

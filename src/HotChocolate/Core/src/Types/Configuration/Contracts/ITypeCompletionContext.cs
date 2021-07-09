@@ -75,6 +75,17 @@ namespace HotChocolate.Configuration
         T GetType<T>(ITypeReference typeRef) where T : IType;
 
         /// <summary>
+        /// Rewrites a type reference to a named type reference.
+        /// </summary>
+        /// <param name="typeRef">
+        /// A reference to a type.
+        /// </param>
+        /// <returns>
+        /// Returns a direct reference to a named type.
+        /// </returns>
+        ITypeReference GetNamedTypeReference(ITypeReference typeRef);
+
+        /// <summary>
         /// Gets all registered types of <typeparamref name="T"/>.
         /// </summary>
         IEnumerable<T> GetTypes<T>() where T : IType;

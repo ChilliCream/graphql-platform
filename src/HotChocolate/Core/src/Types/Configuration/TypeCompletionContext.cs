@@ -98,6 +98,9 @@ namespace HotChocolate.Configuration
             return type;
         }
 
+        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+            => _typeReferenceResolver.GetNamedTypeReference(typeRef);
+
         public bool TryGetDirectiveType(
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType directiveType) =>
