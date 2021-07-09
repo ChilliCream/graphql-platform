@@ -24,13 +24,13 @@ import {
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-interface NavigationContainerProperties {
+interface NavigationContainerProps {
   basePath: string;
   selectedPath: string;
   items: Item[];
 }
 
-const NavigationContainer: FC<NavigationContainerProperties> = ({
+const NavigationContainer: FC<NavigationContainerProps> = ({
   items: rawItems,
   basePath,
   selectedPath,
@@ -111,14 +111,14 @@ const NavigationContainer: FC<NavigationContainerProperties> = ({
   );
 };
 
-interface DocPageNavigationProperties {
+interface DocPageNavigationProps {
   data: DocPageNavigationFragment;
   selectedPath: string;
   selectedProduct: string;
   selectedVersion: string;
 }
 
-export const DocPageNavigation: FC<DocPageNavigationProperties> = ({
+export const DocPageNavigation: FC<DocPageNavigationProps> = ({
   data,
   selectedPath,
   selectedProduct,
@@ -422,11 +422,11 @@ const ProductVersionDialog = styled.div<{ open: boolean }>`
   }
 `;
 
-interface LinkProperties {
+interface LinkProps {
   readonly active: boolean;
 }
 
-const ProductLink = styled(Link)<LinkProperties>`
+const ProductLink = styled(Link)<LinkProps>`
   flex: 0 0 auto;
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);

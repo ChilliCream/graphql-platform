@@ -4,13 +4,13 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import { ArticleCommentsFragment } from "../../../graphql-types";
 
-interface ArticleCommentsProperties {
+interface ArticleCommentsProps {
   data: ArticleCommentsFragment;
   path: string;
   title: string;
 }
 
-export const ArticleComments: FC<ArticleCommentsProperties> = ({
+export const ArticleComments: FC<ArticleCommentsProps> = ({
   data,
   path,
   title,

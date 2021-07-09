@@ -4,11 +4,11 @@ import styled from "styled-components";
 import { BlogArticleMetadataFragment } from "../../../graphql-types";
 import { Link } from "../misc/link";
 
-interface BlogArticleMetadataProperties {
+interface BlogArticleMetadataProps {
   data: BlogArticleMetadataFragment;
 }
 
-export const BlogArticleMetadata: FC<BlogArticleMetadataProperties> = ({
+export const BlogArticleMetadata: FC<BlogArticleMetadataProps> = ({
   data: { fields, frontmatter },
 }) => {
   return (

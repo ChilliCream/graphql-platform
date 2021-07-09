@@ -5,12 +5,12 @@ import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticles } from "../components/widgets/blog-articles";
 
-interface BlogArticlesTemplateProperties {
+interface BlogArticlesTemplateProps {
   pageContext: BlogArticlesTemplatePageContext;
   data: GetBlogArticlesQuery;
 }
 
-const BlogArticlesTemplate: FC<BlogArticlesTemplateProperties> = ({
+const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
   pageContext: { currentPage, numPages },
   data: { allMdx },
 }) => {

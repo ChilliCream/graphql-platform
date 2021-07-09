@@ -34,12 +34,12 @@ import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
-interface DocPageProperties {
+interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
 
-export const DocPage: FC<DocPageProperties> = ({ data, originPath }) => {
+export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const dispatch = useDispatch();
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -351,11 +351,11 @@ const OutdatedDocumentationWarning = styled.div`
   }
 `;
 
-interface DocumentationNotesProperties {
+interface DocumentationNotesProps {
   readonly product: ProductInformation;
 }
 
-const DocumentationNotes: FC<DocumentationNotesProperties> = ({ product }) => {
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
   if (product.version === "") {
     return null;
   }

@@ -7,12 +7,12 @@ import SlackIconSvg from "../../images/slack.svg";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
-interface DocPageCommunityProperties {
+interface DocPageCommunityProps {
   data: DocPageCommunityFragment;
   originPath: string;
 }
 
-export const DocPageCommunity: FC<DocPageCommunityProperties> = ({
+export const DocPageCommunity: FC<DocPageCommunityProps> = ({
   data,
   originPath,
 }) => {

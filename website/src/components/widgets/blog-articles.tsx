@@ -9,13 +9,13 @@ import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
-interface BlogArticlesProperties {
+interface BlogArticlesProps {
   currentPage?: number;
   data: BlogArticlesFragment;
   totalPages?: number;
 }
 
-export const BlogArticles: FC<BlogArticlesProperties> = ({
+export const BlogArticles: FC<BlogArticlesProps> = ({
   currentPage,
   data: { edges },
   totalPages,

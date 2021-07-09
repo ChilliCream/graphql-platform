@@ -15,11 +15,11 @@ import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
 
-interface BlogArticleProperties {
+interface BlogArticleProps {
   data: BlogArticleFragment;
 }
 
-export const BlogArticle: FC<BlogArticleProperties> = ({ data }) => {
+export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
   const { mdx } = data;
   const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;

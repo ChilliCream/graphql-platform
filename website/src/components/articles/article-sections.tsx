@@ -12,11 +12,11 @@ import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProperties {
+interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
-export const ArticleSections: FC<ArticleSectionsProperties> = ({ data }) => {
+export const ArticleSections: FC<ArticleSectionsProps> = ({ data }) => {
   const dispatch = useDispatch();
 
   const tocItems = useMemo(
@@ -122,11 +122,11 @@ const TocLink = styled((props) => <Link {...props} />)`
   }
 `;
 
-interface TocListItemProperties {
+interface TocListItemProps {
   readonly active: boolean;
 }
 
-const TocListItem = styled.li<TocListItemProperties>`
+const TocListItem = styled.li<TocListItemProps>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;

@@ -3,11 +3,11 @@ import React, { FC } from "react";
 import styled from "styled-components";
 import { Link } from "../misc/link";
 
-interface BlogArticleTagsProperties {
+interface BlogArticleTagsProps {
   tags: string[];
 }
 
-export const BlogArticleTags: FC<BlogArticleTagsProperties> = ({ tags }) => {
+export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
   return (
     <>
       {tags.length > 0 && (

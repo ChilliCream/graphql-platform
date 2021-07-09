@@ -5,11 +5,11 @@ import { BlogArticle } from "../components/blog-article/blog-article";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-interface BlogArticleTemplateProperties {
+interface BlogArticleTemplateProps {
   data: BlogArticleFragment;
 }
 
-const BlogArticleTemplate: FC<BlogArticleTemplateProperties> = ({ data }) => {
+const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
   return (
     <Layout>
       <SEO
