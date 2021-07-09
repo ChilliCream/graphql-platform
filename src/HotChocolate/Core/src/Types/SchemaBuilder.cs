@@ -36,6 +36,8 @@ namespace HotChocolate
         private IServiceProvider _services;
         private CreateRef _schema;
 
+        public IDictionary<string, object?> ContextData => _contextData;
+
         public ISchemaBuilder SetSchema(Type type)
         {
             if (type is null)

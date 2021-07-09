@@ -64,5 +64,11 @@ namespace HotChocolate
         /// Includes the query plan into the response.
         /// </summary>
         public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
+
+        public const string ResolverConfigs = "HotChocolate.Types.ResolverConfigs";
+
+        public const string ResolverTypes = "HotChocolate.Types.ResolverTypes";
+
+        public const string RuntimeTypes = "HotChocolate.Types.RuntimeTypes";
     }
 }

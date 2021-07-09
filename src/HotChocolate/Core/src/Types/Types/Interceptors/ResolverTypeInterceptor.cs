@@ -15,22 +15,53 @@ namespace HotChocolate.Types.Interceptors
     internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
         private readonly Dictionary<NameString, ObjectFieldDefinition> _fields = new();
-        private readonly Dictionary<NameString, Type> _runtimeTypes = new();
         private readonly Dictionary<FieldCoordinate, MemberInfo> _members = new();
-        private readonly Dictionary<NameString, List<Type>> _resolverTypes;
+        private readonly ILookup<NameString, Type> _resolverTypes;
         private readonly List<FieldResolverConfig> _fieldResolvers;
+        private readonly List<ObjectTypeDefinition> _typeDefinitions = new();
+        private readonly Dictionary<NameString, Type> _runtimeTypes;
         private ILookup<NameString, FieldResolverConfig> _configs = default!;
+        private bool _initialized;
 
         public ResolverTypeInterceptor(
             List<FieldResolverConfig> fieldResolvers,
-            Dictionary<NameString, List<Type>> resolverTypes)
+            List<(NameString, Type)> resolverTypes,
+            Dictionary<NameString, Type> runtimeTypes)
         {
             _fieldResolvers = fieldResolvers;
-            _resolverTypes = resolverTypes;
+            _resolverTypes = resolverTypes.ToLookup(t => t.Item1, t => t.Item2);
+            _runtimeTypes = runtimeTypes;
         }
 
-        public override bool CanHandle(ITypeSystemObjectContext context)
-            => _fieldResolvers.Count > 0;
+        public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public override void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (definition is ITypeDefinition typeDefinition &&
+                _runtimeTypes.TryGetValue(typeDefinition.Name, out Type? type))
+            {
+                typeDefinition.RuntimeType = type;
+            }
+        }
+
+        public override void OnAfterCompleteName(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (definition is ObjectTypeDefinition typeDefinition)
+            {
+                _typeDefinitions.Add(typeDefinition);
+
+                CollectResolverMembers(
+                    completionContext.TypeInspector,
+                    completionContext.DescriptorContext.Naming,
+                    definition.Name);
+            }
+        }
 
         public override void OnAfterCompleteTypeNames()
         {
@@ -42,11 +73,17 @@ namespace HotChocolate.Types.Interceptors
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
+            if (!_initialized)
+            {
+                TryResolveRuntimeType(completionContext, _typeDefinitions);
+                _initialized = true;
+            }
+
             if (completionContext.Type is ObjectType type &&
-                definition is ObjectTypeDefinition typeDefinition &&
+                definition is ObjectTypeDefinition objectTypeDefinition &&
                 _configs.Contains(type.Name))
             {
-                foreach (ObjectFieldDefinition field in typeDefinition.Fields)
+                foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
                 {
                     _fields[field.Name] = field;
                 }
@@ -59,7 +96,34 @@ namespace HotChocolate.Types.Interceptors
                     }
                 }
 
+                if (_members.Count > 0)
+                {
+                    IResolverCompilerService resolverCompiler =
+                        completionContext.DescriptorContext.ResolverCompiler;
+
+                    foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
+                    {
+                        if (field.Resolver is null &&
+                            field.PureResolver is null &&
+                            _members.TryGetValue(new(type.Name, field.Name), out var member))
+                        {
+                            field.ResolverMember = member;
+
+                            field.Resolvers = resolverCompiler.CompileResolve(
+                                member,
+                                objectTypeDefinition.RuntimeType,
+                                member.ReflectedType);
+                        }
+                    }
+                }
+
                 _fields.Clear();
+            }
+
+            if (definition is EnumTypeDefinition enumTypeDefinition &&
+                enumTypeDefinition.RuntimeType != typeof(object))
+            {
+
             }
         }
 
@@ -68,16 +132,13 @@ namespace HotChocolate.Types.Interceptors
             INamingConventions naming,
             NameString typeName)
         {
-            if (_resolverTypes.TryGetValue(typeName, out List<Type>? resolverTypes))
+            foreach (var resolverType in _resolverTypes[typeName])
             {
-                foreach (var resolverType in resolverTypes)
+                foreach (var member in typeInspector.GetMembers(resolverType, false))
                 {
-                    foreach (var member in typeInspector.GetMembers(resolverType, false))
-                    {
-                        NameString fieldName = naming.GetMemberName(member, MemberKind.ObjectField);
-                        var field = new FieldCoordinate(typeName, fieldName);
-                        _members[field] = member;
-                    }
+                    NameString fieldName = naming.GetMemberName(member, MemberKind.ObjectField);
+                    var field = new FieldCoordinate(typeName, fieldName);
+                    _members[field] = member;
                 }
             }
         }
@@ -93,10 +154,6 @@ namespace HotChocolate.Types.Interceptors
                 if (typeDefinition.RuntimeType == typeof(object))
                 {
                     missingRuntimeType.Add(typeDefinition);
-                }
-                else
-                {
-                    _runtimeTypes[typeDefinition.Name] = typeDefinition.RuntimeType;
                 }
             }
 

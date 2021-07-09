@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
@@ -31,34 +32,48 @@ namespace HotChocolate
             FieldResolverDelegate resolver,
             Type? resultType)
         {
-            List<FieldResolverConfig>? configs = null;
+            InitializeResolverTypeInterceptor(builder);
 
-            builder.SetContextData(
-                nameof(FieldResolverConfig),
-                current =>
-                {
-                    if (current is null)
-                    {
-                        configs = new() { new(field, resolver, null, resultType) };
-                        return configs;
-                    }
-
-                    if (current is List<FieldResolverConfig> list)
-                    {
-                        list.Add(new(field, resolver, null, resultType));
-                        return list;
-                    }
-
-                    throw new NotSupportedException(
-                        TypeResources.SchemaBuilderExtensions_AddResolverConfig_ContextInvalid);
-                });
-
-            if (configs is not null)
+            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
+                o is List<FieldResolverConfig> resolverConfigs)
             {
-                builder.TryAddTypeInterceptor(new ResolverTypeInterceptor(configs));
+                resolverConfigs.Add(new(field, resolver, null, resultType));
             }
 
             return builder;
+        }
+
+        private static ISchemaBuilder AddResolverType(
+            ISchemaBuilder builder,
+            NameString typeName,
+            Type resolverType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
+                o is List<(NameString, Type)> resolverTypes)
+            {
+                resolverTypes.Add((typeName, resolverType));
+            }
+
+            return builder;
+        }
+
+        private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
+        {
+            if (builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+            {
+                var resolverConfigs = new List<FieldResolverConfig>();
+                var resolverTypes = new List<(NameString, Type)>();
+                var runtimeTypes = new Dictionary<NameString, Type>();
+
+                builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
+                builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
+                builder.ContextData.Add(WellKnownContextData.ResolverConfigs, runtimeTypes);
+
+                builder.TryAddTypeInterceptor(
+                    new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
+            }
         }
 
         public static ISchemaBuilder AddResolver(
@@ -349,5 +364,73 @@ namespace HotChocolate
             return AddResolverInternal(builder, typeName, fieldName,
                 _ => new ValueTask<object?>(constantResult));
         }
+
+        public static ISchemaBuilder AddResolver(
+            this ISchemaBuilder builder,
+            Type resolverType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (resolverType is null)
+            {
+                throw new ArgumentNullException(nameof(resolverType));
+            }
+
+            if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true })
+            {
+                if (typeName is { IsEmpty: true } or null)
+                {
+                    typeName = resolverType.IsDefined(typeof(GraphQLNameAttribute))
+                        ? resolverType.GetCustomAttribute<GraphQLNameAttribute>().Name
+                        : resolverType.Name;
+                }
+
+                AddResolverType(builder, typeName.Value, resolverType);
+
+
+                return builder;
+            }
+
+            throw new ArgumentException(
+                "The resolver type needs to be a public non-abstract non-static class.",
+                nameof(resolverType));
+        }
+
+        public static ISchemaBuilder AddResolver<T>(
+            this ISchemaBuilder builder,
+            NameString? typeName = null)
+            => AddResolver(builder, typeof(T), typeName);
+
+        public static ISchemaBuilder AddResolvers(this ISchemaBuilder builder, Type resolverType)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (resolverType is { IsClass: true } or { IsInterface: true })
+            {
+                foreach (var property in resolverType.GetProperties())
+                {
+                    AddResolverType(builder, property.Name, property.PropertyType);
+                }
+
+                return builder;
+            }
+
+            throw new ArgumentException(
+                "The resolver type needs to be a class or interface",
+                nameof(resolverType));
+        }
+
+        public static ISchemaBuilder AddResolvers<T>(this ISchemaBuilder builder)
+            => AddResolvers(builder, typeof(T));
+
+        public static ISchemaBuilder AddResolvers<T>(this ISchemaBuilder builder, T root)
+            => AddResolvers(builder, typeof(T));
     }
 }

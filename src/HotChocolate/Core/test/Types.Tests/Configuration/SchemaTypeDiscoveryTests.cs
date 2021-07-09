@@ -4,7 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Discovery
+namespace HotChocolate.Configuration
 {
     public class SchemaTypeDiscoveryTests
     {
@@ -13,27 +13,15 @@ namespace HotChocolate.Discovery
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryFieldArgument>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryFieldArgument>()
+                .Create();
 
             // assert
-            INamedOutputType foo =
-                schema.GetType<INamedOutputType>("Foo");
-            Assert.NotNull(foo);
-
-            INamedOutputType bar =
-                schema.GetType<INamedOutputType>("Bar");
-            Assert.NotNull(foo);
-
-            INamedInputType fooInput =
-                schema.GetType<INamedInputType>("FooInput");
-            Assert.NotNull(fooInput);
-
-            INamedInputType barInput =
-                schema.GetType<INamedInputType>("BarInput");
-            Assert.NotNull(barInput);
+            Assert.NotNull(schema.GetType<INamedOutputType>("Foo"));
+            Assert.NotNull(schema.GetType<INamedOutputType>("Bar"));
+            Assert.NotNull(schema.GetType<INamedInputType>("FooInput"));
+            Assert.NotNull(schema.GetType<INamedInputType>("BarInput"));
         }
 
         [Fact]
@@ -41,22 +29,18 @@ namespace HotChocolate.Discovery
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryField>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryField>()
+                .Create();
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("QueryField");
             Assert.NotNull(query);
-            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
+            Assert.Collection(
+                query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
-
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
-
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+            Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+            Assert.NotNull(schema.GetType<ObjectType>("Bar"));
         }
 
         [Fact]
@@ -64,22 +48,18 @@ namespace HotChocolate.Discovery
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryProperty>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryProperty>()
+                .Create();
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("QueryProperty");
             Assert.NotNull(query);
-            Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
+            Assert.Collection(
+                query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
-
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
-
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+            Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+            Assert.NotNull(schema.GetType<ObjectType>("Bar"));
         }
 
         [Fact]
@@ -87,22 +67,17 @@ namespace HotChocolate.Discovery
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryMethodVoid>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryMethodVoid>()
+                .Create();
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("QueryMethodVoid");
             Assert.NotNull(query);
             Assert.Collection(query.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
-
-            ObjectType foo = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(foo);
-
-            ObjectType bar = schema.GetType<ObjectType>("Bar");
-            Assert.NotNull(foo);
+            Assert.NotNull(schema.GetType<ObjectType>("Foo"));
+            Assert.NotNull(schema.GetType<ObjectType>("Bar"));
         }
 
         [Fact]
@@ -110,11 +85,10 @@ namespace HotChocolate.Discovery
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterType<FooBar>();
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddType<FooBar>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType fooBar = schema.GetType<EnumType>("FooBar");
@@ -206,11 +180,9 @@ namespace HotChocolate.Discovery
             Bar
         }
 
-        public class ByteArrayType
-            : ScalarType
+        public class ByteArrayType : ScalarType
         {
-            public ByteArrayType()
-                : base("ByteArray", BindingBehavior.Implicit)
+            public ByteArrayType() : base("ByteArray", BindingBehavior.Implicit)
             {
             }
 
@@ -246,14 +218,12 @@ namespace HotChocolate.Discovery
                 throw new NotSupportedException();
             }
 
-            public override bool TryDeserialize(
-                object resultValue, out object runtimeValue)
+            public override bool TryDeserialize(object resultValue, out object runtimeValue)
             {
                 throw new NotSupportedException();
             }
 
-            public override bool TrySerialize(
-                object runtimeValue, out object resultValue)
+            public override bool TrySerialize(object runtimeValue, out object resultValue)
             {
                 throw new NotSupportedException();
             }

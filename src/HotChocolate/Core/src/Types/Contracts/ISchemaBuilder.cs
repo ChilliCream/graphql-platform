@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -15,6 +16,8 @@ namespace HotChocolate
 
     public interface ISchemaBuilder
     {
+        IDictionary<string, object?> ContextData { get; }
+
         ISchemaBuilder SetSchema(Type type);
 
         ISchemaBuilder SetSchema(ISchema schema);

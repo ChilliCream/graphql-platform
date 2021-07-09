@@ -8,13 +8,11 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
-using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 

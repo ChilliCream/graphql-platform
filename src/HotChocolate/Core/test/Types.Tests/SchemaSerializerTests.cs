@@ -38,8 +38,7 @@ namespace HotChocolate
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo: String }")
+                .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar")
                 .Create();
 
@@ -115,18 +114,14 @@ namespace HotChocolate
         public void SerializeSchemaWithDirective()
         {
             // arrange
-            var source = FileResource.Open("serialize_schema.graphql");
-            ISchema schema = Schema.Create(
-                source,
-                c =>
-                {
-                    c.RegisterQueryType<Query>();
-                    c.Use(next => next);
-                    c.RegisterDirective(new DirectiveType(t =>
-                        t.Name("upper")
-                            .Location(DirectiveLocation.FieldDefinition)));
-                });
-
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("serialize_schema.graphql"))
+                .AddResolver<Query>()
+                .Use(next => next)
+                .AddDirectiveType(new DirectiveType(t => t
+                    .Name("upper")
+                    .Location(DirectiveLocation.FieldDefinition)))
+                .Create();
 
             // act
             var serializedSchema = schema.ToString();
@@ -139,13 +134,10 @@ namespace HotChocolate
         public void SerializeSchemaWithMutationWithoutSubscription()
         {
             // arrange
-            var source = FileResource.Open("serialize_schema_with_mutation.graphql");
-            ISchema schema = Schema.Create(
-                source,
-                c =>
-                {
-                    c.Use(next => next);
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
+                .Use(next => next)
+                .Create();
 
             // act
             var serializedSchema = schema.ToString();

@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Configuration
+namespace HotChocolate.Configuration
 {
     public class MiddlewareConfigurationTests
     {

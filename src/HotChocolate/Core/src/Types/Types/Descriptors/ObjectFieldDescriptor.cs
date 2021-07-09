@@ -248,7 +248,7 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
-            Type resultType) =>
+            Type? resultType) =>
             Resolve(fieldResolver, resultType);
 
         /// <inheritdoc />
