@@ -27,7 +27,7 @@ type Address {
 
 type Order {
   OrderId: Int! @key
-##  CustomerId: Int! @foreignKey(to: "Customer")
+  CustomerId: Int! @foreignKey(to: "Customer")
   Customer: Customer!
   Products: [Product!]!
 ##    @manyToMany(
