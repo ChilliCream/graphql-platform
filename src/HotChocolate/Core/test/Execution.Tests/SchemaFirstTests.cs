@@ -65,19 +65,18 @@ namespace HotChocolate.Execution
         public async Task EnumAsOutputType()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    enumValue: FooEnum
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        enumValue: FooEnum
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-
-                c => c.BindType<EnumQuery>().To("Query"));
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .Create();
 
             // act
             IExecutionResult result =
@@ -93,19 +92,18 @@ namespace HotChocolate.Execution
         public async Task EnumAsInputType()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    setEnumValue(value:FooEnum) : String
-                }
+            var schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        setEnumValue(value:FooEnum) : String
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-
-                c => c.BindType<EnumQuery>().To("Query"));
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .Create();
 
             // act
             IExecutionResult result =
