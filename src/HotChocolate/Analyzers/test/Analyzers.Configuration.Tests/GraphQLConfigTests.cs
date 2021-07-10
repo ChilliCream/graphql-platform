@@ -35,6 +35,27 @@ namespace Analyzers.Tests
             // assert
             config.MatchSnapshot();
         }
+
+        [Fact]
+        public void ParseEFCoreSettings()
+        {
+            // arrange
+            const string json = @"{
+                ""schema"": ""schema.graphql"",
+                ""documents"": ""**/*.graphql"",
+                ""extensions"": {
+                    ""ef"": {
+                        ""namespace"": ""Foo.Bar""
+                    }
+                }
+            }";
+
+            // act
+            var config = GraphQLConfig.FromJson(json);
+
+            // assert
+            config.MatchSnapshot();
+        }
     }
 }
 

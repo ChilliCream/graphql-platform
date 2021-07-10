@@ -3,11 +3,10 @@
   "Documents": "**/*.graphql",
   "Location": null,
   "Extensions": {
-    "Neo4J": {
-      "Name": "Neo4J",
-      "DatabaseName": "abc",
+    "Neo4J": null,
+    "EF": {
+      "Name": "EFCore",
       "Namespace": "Foo.Bar"
-    },
-    "EF": null
+    }
   }
 }
