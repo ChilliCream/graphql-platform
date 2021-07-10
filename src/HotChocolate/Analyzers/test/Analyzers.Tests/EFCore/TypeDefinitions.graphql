@@ -52,3 +52,5 @@ type Product {
     )
   IsFeatured: Boolean
 }
+
+

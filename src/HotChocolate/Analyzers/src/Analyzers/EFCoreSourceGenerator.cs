@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
 using HotChocolate.Analyzers.Types;
+using HotChocolate.Analyzers.Types.EFCore;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
@@ -19,7 +20,7 @@ namespace HotChocolate.Analyzers
     {
         public void Initialize(GeneratorInitializationContext context)
         {
-            
+
         }
 
         public void Execute(GeneratorExecutionContext context)
@@ -71,17 +72,32 @@ namespace HotChocolate.Analyzers
         {
             TypeNameDirective? typeNameDirective =
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
-            string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var modelName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var modelConfigurerName = $"{modelName}Configurer";
 
             ClassDeclarationSyntax modelDeclaration =
-                ClassDeclaration(typeName)
+                ClassDeclaration(modelName)
+                    .AddGeneratedAttribute()
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword))
-                    .AddGeneratedAttribute();
+                        Token(SyntaxKind.PartialKeyword));
+
+            ClassDeclarationSyntax modelConfigurerDeclaration =
+                ClassDeclaration(modelConfigurerName)
+                    .AddGeneratedAttribute()
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword))
+                    .WithBaseList(GetModelConfigurerBaseList(modelName))
+                    .WithMembers(GetModelConfigurerConfigureMethod(modelName));
+
+            foreach (IEntityFrameworkDirective directive in objectType.Directives
+                .OfType<IEntityFrameworkDirective>())
+            {
+
+            }
 
             foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
-            {               
+            {
                 modelDeclaration =
                     modelDeclaration.AddProperty(
                         field.GetPropertyName(),
@@ -90,17 +106,86 @@ namespace HotChocolate.Analyzers
                         setable: true);
             }
 
+            // Generate model and model configurer classes
+            context.AddClass(@namespace, modelName, modelDeclaration, _emptyUsings);
+            //context.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
+        }
+
+        private static readonly SyntaxList<UsingDirectiveSyntax> _emptyUsings = new();
+
+        private static readonly QualifiedNameSyntax _msEfCoreQualifiedName = 
+            QualifiedName(
+                IdentifierName("Microsoft"),
+                IdentifierName("EntityFrameworkCore"));
+
+        private static readonly SyntaxList<UsingDirectiveSyntax> _modelConfigurerUsings = new()
+        {
+            UsingDirective(_msEfCoreQualifiedName),
+            UsingDirective(
+                QualifiedName(
+                    QualifiedName(
+                        _msEfCoreQualifiedName,
+                        IdentifierName("Metadata")),
+                    IdentifierName("Builders")))
+        };
+
+        private static BaseListSyntax GetModelConfigurerBaseList(string modelTypeName) =>
+            BaseList(
+                SingletonSeparatedList<BaseTypeSyntax>(
+                    SimpleBaseType(
+                        GenericName(
+                            Identifier("IEntityTypeConfiguration"))
+                        .WithTypeArgumentList(
+                            TypeArgumentList(
+                                SingletonSeparatedList<TypeSyntax>(
+                                    IdentifierName(modelTypeName)))))));
+
+        private static SyntaxList<MemberDeclarationSyntax> GetModelConfigurerConfigureMethod(string modelTypeName) =>
+            SingletonList<MemberDeclarationSyntax>(
+                MethodDeclaration(
+                    PredefinedType(
+                        Token(SyntaxKind.VoidKeyword)),
+                    Identifier("Configure"))
+                .WithModifiers(
+                    TokenList(
+                        Token(SyntaxKind.PublicKeyword)))
+                .WithParameterList(
+                    ParameterList(
+                        SingletonSeparatedList<ParameterSyntax>(
+                            Parameter(
+                                Identifier("builder"))
+                            .WithType(
+                                GenericName(
+                                    Identifier("EntityTypeBuilder"))
+                                .WithTypeArgumentList(
+                                    TypeArgumentList(
+                                        SingletonSeparatedList<TypeSyntax>(
+                                            IdentifierName(modelTypeName))))))))
+                .WithBody(
+                    Block()));
+    }
+
+    public static class ExtensionsToRefactorElsewhere
+    {
+        public static void AddClass(
+            this GeneratorExecutionContext context,
+            string @namespace,
+            string className,
+            ClassDeclarationSyntax classDeclaration,
+            SyntaxList<UsingDirectiveSyntax> usings)
+        {
             NamespaceDeclarationSyntax namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(@namespace))
-                    .AddMembers(modelDeclaration);
+                    .AddMembers(classDeclaration);
 
             CompilationUnitSyntax compilationUnit =
                 CompilationUnit()
-                    .AddMembers(namespaceDeclaration);
+                    .AddMembers(namespaceDeclaration)
+                    .WithUsings(usings);
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            context.AddSource(@namespace + $".{typeName}.cs", compilationUnit.ToFullString());
+            context.AddSource(@namespace + $".{className}.cs", compilationUnit.ToFullString());
         }
     }
 }

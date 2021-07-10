@@ -2,9 +2,14 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Analyzers.Types.EFCore
 {
-    public class KeyDirective
+    public class KeyDirective : IEntityFrameworkDirective
     {
         public string? Name { get; set; }
+
+        public object AsConfiguration()
+        {
+            return null!;
+        }
     }
 
     public class KeyDirectiveType : DirectiveType<KeyDirective>
