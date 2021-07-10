@@ -4,7 +4,7 @@
   "extensions": {
     "ef": {
       "databaseName": "StarWars",
-      "namespace": "StarWarsClient2"
+      "namespace": "StarWarsClient.EF"
     }
   }
 }
