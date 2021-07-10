@@ -41,6 +41,7 @@ namespace HotChocolate.Analyzers.Types
             schemaBuilder.AddDirectiveType<IndexDirectiveType>();
             schemaBuilder.AddDirectiveType<OneToOneDirectiveType>();
             schemaBuilder.AddDirectiveType<OneToManyDirectiveType>();
+            schemaBuilder.AddDirectiveType<ManyToManyDirectiveType>();
 
             schemaBuilder.AddDirectiveType<FilterableDirectiveType>();
             schemaBuilder.AddDirectiveType<FilteringDirectiveType>();

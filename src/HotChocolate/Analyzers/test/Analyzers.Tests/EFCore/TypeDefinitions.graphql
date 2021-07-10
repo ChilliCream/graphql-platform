@@ -30,11 +30,11 @@ type Order {
   CustomerId: Int! @foreignKey(to: "Customer")
   Customer: Customer!
   Products: [Product!]!
-##    @manyToMany(
-##      joinTable: "ProductOrders"
-##      foreignKey: "OrderId"
-##      inverseField: "Orders"
-##    )
+    @manyToMany(
+      joinTable: "ProductOrders"
+      foreignKey: "OrderId"
+      inverseField: "Orders"
+    )
   OrderDate: DateTime
   TotalValue: Float!
 }
@@ -46,10 +46,10 @@ type Product {
   Sku: String
   Price: Float
   Orders: [Order!]!
-#    @manyToMany(
-#      joinTable: "ProductOrders"
-#      foreignKey: "ProductId"
-#      inverseField: "Products"
-#    )
+    @manyToMany(
+      joinTable: "ProductOrders"
+      foreignKey: "ProductId"
+      inverseField: "Products"
+    )
   IsFeatured: Boolean
 }
