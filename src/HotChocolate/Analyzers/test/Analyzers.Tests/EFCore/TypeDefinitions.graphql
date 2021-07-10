@@ -3,8 +3,8 @@ type Customer {
   FirstName: String! @index
   LastName: String! @index
   User: User @oneToOne(foreignKey: "CustomerId", inverseField: "Customer")
-  #ShippingAddresses: [Address]
-  #Orders: [Order] #@oneToMany(foreignKey: "CustomerId")
+  ShippingAddresses: [Address!]!
+  Orders: [Order!]! #@oneToMany(foreignKey: "CustomerId")
 }
 
 type User @table(name: "ChilliCreamUsers") {
@@ -29,14 +29,14 @@ type Order {
   OrderId: Int! @key
 ##  CustomerId: Int! @foreignKey(to: "Customer")
   Customer: Customer!
-  Products: [Product]
+  Products: [Product!]!
 ##    @manyToMany(
 ##      joinTable: "ProductOrders"
 ##      foreignKey: "OrderId"
 ##      inverseField: "Orders"
 ##    )
   OrderDate: DateTime
-#  TotalValue: Float!
+  TotalValue: Float!
 }
 
 type Product {
@@ -44,8 +44,8 @@ type Product {
   Name: String!
   Description: String
   Sku: String
-#  Price: Float
-#  Orders: [Order]
+  Price: Float
+  Orders: [Order!]!
 #    @manyToMany(
 #      joinTable: "ProductOrders"
 #      foreignKey: "ProductId"
