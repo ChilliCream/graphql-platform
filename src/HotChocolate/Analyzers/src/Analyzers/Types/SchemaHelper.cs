@@ -37,6 +37,7 @@ namespace HotChocolate.Analyzers.Types
 
             schemaBuilder.AddDirectiveType<TableDirectiveType>();
             schemaBuilder.AddDirectiveType<KeyDirectiveType>();
+            schemaBuilder.AddDirectiveType<ForeignKeyDirectiveType>();
             schemaBuilder.AddDirectiveType<IndexDirectiveType>();
             schemaBuilder.AddDirectiveType<OneToOneDirectiveType>();
             schemaBuilder.AddDirectiveType<OneToManyDirectiveType>();

@@ -13,8 +13,8 @@ type User @table(name: "ChilliCreamUsers") {
   Email: String! @index
   CreatedAt: DateTime
   ModifiedAt: DateTime
-##  CustomerId: Int @foreignKey(to: "Customer")
-##  Customer: Customer
+  CustomerId: Int @foreignKey(to: "Customer")
+  Customer: Customer
 }
 
 type Address {
