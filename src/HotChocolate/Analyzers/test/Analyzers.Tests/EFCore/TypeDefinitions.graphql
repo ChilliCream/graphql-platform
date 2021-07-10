@@ -4,7 +4,7 @@ type Customer {
   LastName: String! @index
   User: User @oneToOne(foreignKey: "CustomerId", inverseField: "Customer")
   ShippingAddresses: [Address!]!
-  Orders: [Order!]! #@oneToMany(foreignKey: "CustomerId")
+  Orders: [Order!]! @oneToMany(foreignKey: "CustomerId")
 }
 
 type User @table(name: "ChilliCreamUsers") {

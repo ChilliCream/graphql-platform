@@ -12,7 +12,7 @@ namespace HotChocolate.Analyzers.Types.EFCore
         protected override void Configure(IDirectiveTypeDescriptor<KeyDirective> descriptor)
         {
             descriptor
-                .Name("key")
+                .Name("key") // TODO: Wouldn't this be implied?
                 .Location(DirectiveLocation.FieldDefinition);
 
             descriptor
