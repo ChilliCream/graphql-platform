@@ -17,8 +17,7 @@ type User @table(name: "ChilliCreamUsers") {
   Customer: Customer
 }
 
-type Address {
-##@json {
+type Address @json {
   Street: String!
   City: String!
   State: String!

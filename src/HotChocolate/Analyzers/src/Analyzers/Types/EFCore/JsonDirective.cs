@@ -1,0 +1,39 @@
+using HotChocolate.Types;
+
+namespace HotChocolate.Analyzers.Types.EFCore
+{
+    public class JsonDirective
+    {
+
+    }
+
+    public class JsonDirectiveType : DirectiveType<JsonDirective>
+    {
+        protected override void Configure(IDirectiveTypeDescriptor<JsonDirective> descriptor)
+        {
+            descriptor
+                .Name("json")
+
+                // TODO: What does this do exactly? Instruct that it's a nested document on a record in a JSON typed col?
+                // The example we have is actually quite interesting too given that it's plural (Customer.ShipppingAddresses)
+                //.Description("...")
+
+                // TODO: Would we want to support this on a field too?
+                // In fact, perhaps on a field is the only way we'd want to support it.
+                /*
+                 * 
+                 * type Customer {
+                 *  ShippingAddresses: [Address!]! @json // nested in col
+                 * }
+                 * 
+                 * type Address { ... }
+                 * 
+                 * type Store {
+                 *  Address: Address! @manyToOne(...) // e.g. link to a real table
+                 * }
+                 */
+                .Location(DirectiveLocation.Object);
+
+        }
+    }
+}
