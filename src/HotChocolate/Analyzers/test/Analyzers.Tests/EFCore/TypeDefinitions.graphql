@@ -7,8 +7,8 @@ type Customer {
   #Orders: [Order] #@oneToMany(foreignKey: "CustomerId")
 }
 
-type User {
-#@table(name: "ChilliCreamUsers") {
+type User @table(name: "xyz")
+{
   UserId: Int! @key
   Username: String! @index
   Email: String! @index
