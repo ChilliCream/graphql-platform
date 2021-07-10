@@ -65,6 +65,26 @@ public class AuthorType : ObjectType<Author>
 
 The `descriptor` gives us the ability to configure the object type. We will cover how to use it in the following chapters.
 
+Since there could be multiple types inheriting from `ObjectType<Author>`, but differing in their name and fields, it is not certain which of these types should be used when we return an `Author` CLR type from one of our resolvers.
+
+**Therefore it's important to note that Code-first object types are not automatically inferred. They need to be explicitly specified or registered.**
+
+We can either [explicitly specify the type on a per-resolver basis](#explicit-types) or we can register the type once globally:
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddType<AuthorType>();
+    }
+}
+```
+
+In the above example every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
+
 We can also create schema object types without a backing POCO.
 
 ```csharp
@@ -189,7 +209,9 @@ public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        descriptor.Field(f => f.Title);
+        descriptor.bindfieldsexplicitly();
+
+        descriptor.field(f => f.title);
     }
 }
 ```
@@ -253,7 +275,7 @@ type BookAuthor {
 
 # Explicit types
 
-Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
+Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though. For example when we are working with custom scalars or Code-first types in general.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
