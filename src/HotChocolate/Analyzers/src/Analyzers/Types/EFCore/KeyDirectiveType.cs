@@ -13,7 +13,7 @@ namespace HotChocolate.Analyzers.Types.EFCore
             descriptor
                 .Argument(t => t.Name)
                 .Description("The name to use for the primary key in the database schema.")
-                .Type<NonNullType<StringType>>();
+                .Type<NonNullType<StringType>>(); // TODO: Wouldn't this be implied?
         }
     }
 }
