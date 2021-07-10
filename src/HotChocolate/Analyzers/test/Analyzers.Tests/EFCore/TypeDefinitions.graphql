@@ -1,5 +1,5 @@
 type Customer {
-  Id: Int! #@key(name: "PK_CustomerId") @autoIncrement
+  Id: Int! @key(name: "PK_CustomerId")# @autoIncrement
   FirstName: String! #@index
   LastName: String! #@index
   #User: User #@oneToOne(foreignKey: "CustomerId", inverseField: "Customer")

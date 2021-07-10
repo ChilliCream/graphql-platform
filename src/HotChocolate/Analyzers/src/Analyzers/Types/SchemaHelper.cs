@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Analyzers.Types.EFCore;
 using HotChocolate.Analyzers.Types.Neo4J;
 using HotChocolate.Language;
 
@@ -34,6 +35,7 @@ namespace HotChocolate.Analyzers.Types
         {
             var schemaBuilder = new SchemaBuilder();
 
+            schemaBuilder.AddDirectiveType<KeyDirectiveType>();
             schemaBuilder.AddDirectiveType<FilterableDirectiveType>();
             schemaBuilder.AddDirectiveType<FilteringDirectiveType>();
             schemaBuilder.AddDirectiveType<SortableDirectiveType>();

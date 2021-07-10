@@ -60,7 +60,7 @@ namespace HotChocolate.Analyzers
                 .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
                 .ToList())
             {
-                GenerateModel(context, settings.Namespace, objectType);
+                GenerateModel(context, settings.Namespace, objectType); // TODO: There's a warning here about namespace being nullable, but it's cuz the setting type has it nullable. What should it be? Neo4J generator does ! which seems wrong
             }
         }
 
