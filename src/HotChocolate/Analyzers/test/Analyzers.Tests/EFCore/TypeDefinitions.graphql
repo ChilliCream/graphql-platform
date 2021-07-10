@@ -2,9 +2,20 @@ type Customer {
   Id: Int! @key(name: "PK_CustomerId")# @autoIncrement
   FirstName: String! @index
   LastName: String! @index
-  #User: User #@oneToOne(foreignKey: "CustomerId", inverseField: "Customer")
+  User: User @oneToOne(foreignKey: "CustomerId", inverseField: "Customer")
   #ShippingAddresses: [Address]
   #Orders: [Order] #@oneToMany(foreignKey: "CustomerId")
+}
+
+type User {
+#@table(name: "ChilliCreamUsers") {
+  UserId: Int! @key
+  Username: String! @index
+  Email: String! @index
+  CreatedAt: DateTime
+  ModifiedAt: DateTime
+##  CustomerId: Int @foreignKey(to: "Customer")
+##  Customer: Customer
 }
 
 #type Address @json {
@@ -13,7 +24,7 @@ type Customer {
 #  State: String!
 #  Country: String!
 #}
-#
+
 #type Order {
 #  OrderId: Int! @key
 #  CustomerId: Int! @foreignKey(to: "Customer")
@@ -27,7 +38,7 @@ type Customer {
 #  OrderDate: DateTime
 #  TotalValue: Float!
 #}
-#
+
 #type Product {
 #  ProductId: Int! @key
 #  Name: String!
@@ -41,14 +52,4 @@ type Customer {
 #      inverseField: "Products"
 #    )
 #  IsFeatured: Boolean
-#}
-#
-#type User @table(name: "ChilliCreamUsers") {
-#  UserId: Int! @key
-#  Username: String! @index
-#  Email: String! @index
-#  CreatedAt: DateTime
-#  ModifiedAt: DateTime
-#  CustomerId: Int @foreignKey(to: "Customer")
-#  Customer: Customer
 #}
