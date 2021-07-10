@@ -54,14 +54,12 @@ namespace HotChocolate.Execution
         public void ExecDirectiveOrderIsSignificant()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                "type Query { a: String }",
-                c =>
-                {
-                    c.RegisterDirective<UpperCaseDirectiveType>();
-                    c.RegisterDirective<LowerCaseDirectiveType>();
-                    c.BindResolver(() => "hello").To("Query", "a");
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String }")
+                .AddDirectiveType<UpperCaseDirectiveType>()
+                .AddDirectiveType<LowerCaseDirectiveType>()
+                .AddResolver("Query", "a", () => "hello")
+                .Create();
 
             // act
             IExecutionResult result =
@@ -73,18 +71,15 @@ namespace HotChocolate.Execution
         }
 
         public static ISchema CreateSchema()
-        {
-            return Schema.Create(c =>
-            {
-                c.RegisterDirective<ResolveDirective>();
-                c.RegisterDirective<ADirectiveType>();
-                c.RegisterDirective<BDirectiveType>();
-                c.RegisterDirective<CDirectiveType>();
-                c.RegisterDirective<UpperCaseDirectiveType>();
-                c.RegisterQueryType<Query>();
-                c.RegisterType<PersonType>();
-            });
-        }
+            => SchemaBuilder.New()
+                .AddDirectiveType<ResolveDirective>()
+                .AddDirectiveType<ADirectiveType>()
+                .AddDirectiveType<BDirectiveType>()
+                .AddDirectiveType<CDirectiveType>()
+                .AddDirectiveType<UpperCaseDirectiveType>()
+                .AddType<Query>()
+                .AddType<PersonType>()
+                .Create();
 
         public class Query
         {
@@ -99,8 +94,7 @@ namespace HotChocolate.Execution
             public string Country { get; set; } = "Country";
         }
 
-        public class PersonType
-            : ObjectType<Person>
+        public class PersonType : ObjectType<Person>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Person> descriptor)
@@ -112,11 +106,9 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class ADirectiveType
-            : DirectiveType<ADirective>
+        public class ADirectiveType : DirectiveType<ADirective>
         {
-            protected override void Configure(
-                IDirectiveTypeDescriptor<ADirective> descriptor)
+            protected override void Configure(IDirectiveTypeDescriptor<ADirective> descriptor)
             {
                 descriptor.Name("a");
                 descriptor.Location(DirectiveLocation.Object);
@@ -124,9 +116,7 @@ namespace HotChocolate.Execution
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Use(next => context =>
                 {
-                    string s = context.Directive
-                        .ToObject<ADirective>()
-                        .Append;
+                    var s = context.Directive.ToObject<ADirective>().Append;
                     context.Result = context.Result + s;
                     return next.Invoke(context);
                 });
@@ -146,9 +136,7 @@ namespace HotChocolate.Execution
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Use(next => context =>
                 {
-                    string s = context.Directive
-                        .ToObject<BDirective>()
-                        .Append;
+                    var s = context.Directive.ToObject<BDirective>().Append;
                     context.Result = context.Result + s;
                     return next.Invoke(context);
                 });
@@ -163,26 +151,22 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("c");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context =>
+                descriptor.Use(_ => context =>
                 {
-                    string s = context.Directive
-                        .ToObject<CDirective>()
-                        .Append;
-                    context.Result = context.Result + s;
-                    return default(ValueTask);
+                    var s = context.Directive.ToObject<CDirective>().Append;
+                    context.Result += s;
+                    return default;
                 });
             }
         }
 
-        public class UpperCaseDirectiveType
-           : DirectiveType
+        public class UpperCaseDirectiveType : DirectiveType
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("upper");
-                descriptor.Location(DirectiveLocation.Field
-                    | DirectiveLocation.FieldDefinition);
+                descriptor.Location(DirectiveLocation.Field | DirectiveLocation.FieldDefinition);
                 descriptor.Use(next => async context =>
                 {
                     await next(context);
@@ -200,8 +184,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public class LowerCaseDirectiveType
-           : DirectiveType
+        public class LowerCaseDirectiveType : DirectiveType
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor descriptor)
@@ -231,18 +214,15 @@ namespace HotChocolate.Execution
             public string Append { get; set; }
         }
 
-        public class BDirective
-            : ADirective
+        public class BDirective : ADirective
         {
         }
 
-        public class CDirective
-            : ADirective
+        public class CDirective : ADirective
         {
         }
 
-        public sealed class ResolveDirective
-            : DirectiveType<Resolve>
+        public sealed class ResolveDirective : DirectiveType<Resolve>
         {
             protected override void Configure(IDirectiveTypeDescriptor<Resolve> descriptor)
             {

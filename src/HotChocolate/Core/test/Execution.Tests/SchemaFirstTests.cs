@@ -10,13 +10,14 @@ namespace HotChocolate.Execution
         public async Task BindObjectTypeImplicit()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    test: String
-                    testProp: String
-                }",
-                c => c.BindType<Query>());
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        test: String
+                        testProp: String
+                    }")
+                .AddResolver<Query>()
+                .Create();
 
             // act
             IExecutionResult result =
@@ -32,9 +33,9 @@ namespace HotChocolate.Execution
         public async Task BindInputTypeImplicit()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                schema {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"schema {
                     query: FooQuery
                 }
 
@@ -45,12 +46,10 @@ namespace HotChocolate.Execution
                 input Bar
                 {
                     baz: String
-                }",
-                c =>
-                {
-                    c.BindType<FooQuery>();
-                    c.BindType<Bar>();
-                });
+                }")
+                .AddResolver<FooQuery>()
+                .AddResolver<Bar>()
+                .Create();
 
             // act
             IExecutionResult result =
