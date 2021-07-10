@@ -15,7 +15,7 @@ namespace HotChocolate.Analyzers.Diagnostics
             new DiagnosticDescriptor(
                 id: ErrorCodes.DependencyMissing,
                 title: "Dependency Missing",
-                messageFormat: "The package reference `{0}` is missing.\r\n`dotnet add package {0}`",
+                messageFormat: "The package reference `{0}` is missing. Run `dotnet add package {0}`.",
                 category: ErrorCategory,
                 DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
