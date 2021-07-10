@@ -7,8 +7,7 @@ type Customer {
   #Orders: [Order] #@oneToMany(foreignKey: "CustomerId")
 }
 
-type User @table(name: "xyz")
-{
+type User @table(name: "ChilliCreamUsers") {
   UserId: Int! @key
   Username: String! @index
   Email: String! @index
@@ -18,32 +17,33 @@ type User @table(name: "xyz")
 ##  Customer: Customer
 }
 
-#type Address @json {
-#  Street: String!
-#  City: String!
-#  State: String!
-#  Country: String!
-#}
+type Address {
+##@json {
+  Street: String!
+  City: String!
+  State: String!
+  Country: String!
+}
 
-#type Order {
-#  OrderId: Int! @key
-#  CustomerId: Int! @foreignKey(to: "Customer")
-#  Customer: Customer!
-#  Products: [Product]
-#    @manyToMany(
-#      joinTable: "ProductOrders"
-#      foreignKey: "OrderId"
-#      inverseField: "Orders"
-#    )
-#  OrderDate: DateTime
+type Order {
+  OrderId: Int! @key
+##  CustomerId: Int! @foreignKey(to: "Customer")
+  Customer: Customer!
+  Products: [Product]
+##    @manyToMany(
+##      joinTable: "ProductOrders"
+##      foreignKey: "OrderId"
+##      inverseField: "Orders"
+##    )
+  OrderDate: DateTime
 #  TotalValue: Float!
-#}
+}
 
-#type Product {
-#  ProductId: Int! @key
-#  Name: String!
-#  Description: String
-#  Sku: String
+type Product {
+  ProductId: Int! @key
+  Name: String!
+  Description: String
+  Sku: String
 #  Price: Float
 #  Orders: [Order]
 #    @manyToMany(
@@ -51,5 +51,5 @@ type User @table(name: "xyz")
 #      foreignKey: "ProductId"
 #      inverseField: "Products"
 #    )
-#  IsFeatured: Boolean
-#}
+  IsFeatured: Boolean
+}
