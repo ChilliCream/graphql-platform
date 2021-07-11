@@ -778,7 +778,7 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-               .AddResolvers((FieldResolver)null);
+               .AddRootResolver((FieldResolver)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -801,7 +801,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(queryType)
-                .AddResolvers(resolverDescriptor)
+                .AddRootResolver(resolverDescriptor)
                 .Create();
 
             // assert

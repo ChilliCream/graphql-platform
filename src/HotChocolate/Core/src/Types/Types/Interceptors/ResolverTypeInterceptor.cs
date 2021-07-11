@@ -16,11 +16,13 @@ namespace HotChocolate.Types.Interceptors
     {
         private readonly Dictionary<NameString, ObjectFieldDefinition> _fields = new();
         private readonly Dictionary<FieldCoordinate, MemberInfo> _members = new();
-        private readonly ILookup<NameString, Type> _resolverTypes;
+        private readonly Dictionary<NameString, ObjectTypeDefinition> _typeDefinitions = new();
         private readonly List<FieldResolverConfig> _fieldResolvers;
-        private readonly List<ObjectTypeDefinition> _typeDefinitions = new();
+        private readonly List<(NameString, Type)> _resolverTypeList;
         private readonly Dictionary<NameString, Type> _runtimeTypes;
+        private ILookup<NameString, Type> _resolverTypes = default!;
         private ILookup<NameString, FieldResolverConfig> _configs = default!;
+        private ITypeSystemObjectContext _context = default!;
         private bool _initialized;
 
         public ResolverTypeInterceptor(
@@ -29,11 +31,21 @@ namespace HotChocolate.Types.Interceptors
             Dictionary<NameString, Type> runtimeTypes)
         {
             _fieldResolvers = fieldResolvers;
-            _resolverTypes = resolverTypes.ToLookup(t => t.Item1, t => t.Item2);
+            _resolverTypeList = resolverTypes;
             _runtimeTypes = runtimeTypes;
         }
 
-        public override bool CanHandle(ITypeSystemObjectContext context) => true;
+        public override bool CanHandle(ITypeSystemObjectContext context)
+        {
+            _context = context;
+            return true;
+        }
+
+        public override void OnBeforeDiscoverTypes()
+        {
+            _resolverTypes = _resolverTypeList.ToLookup(t => t.Item1, t => t.Item2);
+            _configs = _fieldResolvers.ToLookup(t => t.Field.TypeName);
+        }
 
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
@@ -52,20 +64,22 @@ namespace HotChocolate.Types.Interceptors
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            if (definition is ObjectTypeDefinition typeDefinition)
+            if (completionContext.Type is ObjectType objectType &&
+                definition is ObjectTypeDefinition objectTypeDef)
             {
-                _typeDefinitions.Add(typeDefinition);
-
-                CollectResolverMembers(
-                    completionContext.TypeInspector,
-                    completionContext.DescriptorContext.Naming,
-                    definition.Name);
+                _typeDefinitions.Add(objectType.Name, objectTypeDef);
             }
         }
 
         public override void OnAfterCompleteTypeNames()
         {
-            _configs = _fieldResolvers.ToLookup(t => t.Field.TypeName);
+            foreach (ObjectTypeDefinition objectTypeDef in _typeDefinitions.Values)
+            {
+                CollectResolverMembers(
+                    _context.TypeInspector,
+                    _context.DescriptorContext.Naming,
+                    objectTypeDef.Name);
+            }
         }
 
         public override void OnBeforeCompleteType(
@@ -75,25 +89,29 @@ namespace HotChocolate.Types.Interceptors
         {
             if (!_initialized)
             {
-                TryResolveRuntimeType(completionContext, _typeDefinitions);
+                TryResolveRuntimeType(completionContext, _typeDefinitions.Values);
                 _initialized = true;
             }
 
             if (completionContext.Type is ObjectType type &&
-                definition is ObjectTypeDefinition objectTypeDefinition &&
-                _configs.Contains(type.Name))
+                definition is ObjectTypeDefinition objectTypeDefinition)
             {
-                foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
+                if (_configs.Contains(type.Name))
                 {
-                    _fields[field.Name] = field;
-                }
-
-                foreach (FieldResolverConfig config in _configs[type.Name])
-                {
-                    if (_fields.TryGetValue(config.Field.FieldName, out var field))
+                    foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
                     {
-                        field.Resolvers = config.ToFieldResolverDelegates();
+                        _fields[field.Name] = field;
                     }
+
+                    foreach (FieldResolverConfig config in _configs[type.Name])
+                    {
+                        if (_fields.TryGetValue(config.Field.FieldName, out var field))
+                        {
+                            field.Resolvers = config.ToFieldResolverDelegates();
+                        }
+                    }
+
+                    _fields.Clear();
                 }
 
                 if (_members.Count > 0)
@@ -117,7 +135,6 @@ namespace HotChocolate.Types.Interceptors
                     }
                 }
 
-                _fields.Clear();
             }
 
             if (definition is EnumTypeDefinition enumTypeDefinition &&
@@ -132,13 +149,16 @@ namespace HotChocolate.Types.Interceptors
             INamingConventions naming,
             NameString typeName)
         {
-            foreach (var resolverType in _resolverTypes[typeName])
+            if (_resolverTypes.Contains(typeName))
             {
-                foreach (var member in typeInspector.GetMembers(resolverType, false))
+                foreach (var resolverType in _resolverTypes[typeName])
                 {
-                    NameString fieldName = naming.GetMemberName(member, MemberKind.ObjectField);
-                    var field = new FieldCoordinate(typeName, fieldName);
-                    _members[field] = member;
+                    foreach (var member in typeInspector.GetMembers(resolverType, false))
+                    {
+                        NameString fieldName = naming.GetMemberName(member, MemberKind.ObjectField);
+                        var field = new FieldCoordinate(typeName, fieldName);
+                        _members[field] = member;
+                    }
                 }
             }
         }

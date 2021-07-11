@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
         public async Task EnumAsInputType()
         {
             // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"type Query {
                         setEnumValue(value:FooEnum) : String
@@ -119,26 +119,23 @@ namespace HotChocolate.Execution
         public async Task InputObjectWithEnum()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    enumInInputObject(payload:Payload) : String
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        enumInInputObject(payload:Payload) : String
+                    }
 
-                input Payload {
-                    value: FooEnum
-                }
+                    input Payload {
+                        value: FooEnum
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-                c =>
-                {
-                    c.BindType<EnumQuery>().To("Query");
-                    c.BindType<Payload>();
-                });
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .AddResolver<Payload>()
+                .Create();
 
             // act
             IExecutionResult result =

@@ -270,5 +270,35 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantValue));
         }
+
+        public static IRequestExecutorBuilder AddResolver<TResolver>(
+            this IRequestExecutorBuilder builder,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.ConfigureSchema(b => b.AddResolver<TResolver>(typeName));
+        }
+
+        public static IRequestExecutorBuilder AddResolver(
+            this IRequestExecutorBuilder builder,
+            Type resolverType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (resolverType is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.ConfigureSchema(b => b.AddResolver(resolverType, typeName));
+        }
     }
 }

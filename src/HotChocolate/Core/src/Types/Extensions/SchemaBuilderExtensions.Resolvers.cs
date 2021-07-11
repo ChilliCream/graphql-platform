@@ -50,7 +50,7 @@ namespace HotChocolate
         {
             InitializeResolverTypeInterceptor(builder);
 
-            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
+            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
                 o is List<(NameString, Type)> resolverTypes)
             {
                 resolverTypes.Add((typeName, resolverType));
@@ -61,7 +61,7 @@ namespace HotChocolate
 
         private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
         {
-            if (builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+            if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
             {
                 var resolverConfigs = new List<FieldResolverConfig>();
                 var resolverTypes = new List<(NameString, Type)>();
@@ -69,7 +69,7 @@ namespace HotChocolate
 
                 builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
                 builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
-                builder.ContextData.Add(WellKnownContextData.ResolverConfigs, runtimeTypes);
+                builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
 
                 builder.TryAddTypeInterceptor(
                     new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
@@ -380,12 +380,13 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolverType));
             }
 
-            if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true })
+            if (resolverType is { IsClass: true, IsAbstract: false, IsPublic: true } or
+                { IsClass: true, IsAbstract: false, IsNestedPublic: true })
             {
                 if (typeName is { IsEmpty: true } or null)
                 {
                     typeName = resolverType.IsDefined(typeof(GraphQLNameAttribute))
-                        ? resolverType.GetCustomAttribute<GraphQLNameAttribute>().Name
+                        ? resolverType.GetCustomAttribute<GraphQLNameAttribute>()!.Name
                         : resolverType.Name;
                 }
 
@@ -405,7 +406,7 @@ namespace HotChocolate
             NameString? typeName = null)
             => AddResolver(builder, typeof(T), typeName);
 
-        public static ISchemaBuilder AddResolvers(this ISchemaBuilder builder, Type resolverType)
+        public static ISchemaBuilder AddRootResolver(this ISchemaBuilder builder, Type resolverType)
         {
             if (builder is null)
             {
@@ -427,10 +428,24 @@ namespace HotChocolate
                 nameof(resolverType));
         }
 
-        public static ISchemaBuilder AddResolvers<T>(this ISchemaBuilder builder)
-            => AddResolvers(builder, typeof(T));
+        public static ISchemaBuilder AddRootResolver<T>(this ISchemaBuilder builder)
+            => AddRootResolver(builder, typeof(T));
 
-        public static ISchemaBuilder AddResolvers<T>(this ISchemaBuilder builder, T root)
-            => AddResolvers(builder, typeof(T));
+        public static ISchemaBuilder AddRootResolver<T>(this ISchemaBuilder builder, T root)
+            where T : class
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (root is null)
+            {
+                throw new ArgumentNullException(nameof(root));
+            }
+
+            builder.SetContextData(WellKnownContextData.RootInstance, root);
+            return AddRootResolver(builder, typeof(T));
+        }
     }
 }

@@ -97,7 +97,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .AddResolvers(new { Query = new Query() })
+                .AddRootResolver(new { Query = new Query() })
                 .Create();
 
             // assert

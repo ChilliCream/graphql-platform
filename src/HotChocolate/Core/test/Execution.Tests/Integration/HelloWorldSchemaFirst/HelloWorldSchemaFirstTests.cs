@@ -55,8 +55,8 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
                             hello: String
                             world: String
                         }")
-                    .AddResolver<QueryA>()
-                    .AddResolver<QueryB>())
+                    .AddResolver<QueryA>("Query")
+                    .AddResolver<QueryB>("Query"))
                 .MatchSnapshotAsync();
         }
 
