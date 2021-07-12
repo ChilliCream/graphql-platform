@@ -682,22 +682,23 @@ namespace HotChocolate
 
         public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
             this ISchemaBuilder builder,
-            NameString typeName)
+            NameString? typeName = null)
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            typeName.EnsureNotEmpty(nameof(typeName));
+            typeName ??= typeof(TRuntimeType).Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
 
-            return BindRuntimeTypeInternal(builder, typeName, typeof(TRuntimeType));
+            return BindRuntimeTypeInternal(builder, typeName.Value, typeof(TRuntimeType));
         }
 
         public static ISchemaBuilder BindRuntimeType(
             this ISchemaBuilder builder,
             Type runtimeType,
-            NameString typeName)
+            NameString? typeName = null)
         {
             if (builder is null)
             {
@@ -709,9 +710,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(runtimeType));
             }
 
-            typeName.EnsureNotEmpty(nameof(typeName));
+            typeName ??= runtimeType.Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
 
-            return BindRuntimeTypeInternal(builder, typeName, runtimeType);
+            return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
         }
     }
 }
