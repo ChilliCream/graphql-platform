@@ -79,14 +79,12 @@ namespace HotChocolate.Types
         public void GenericEnumType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
-                    .DependsOn(typeof(StringType))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("StringEnum");
@@ -97,39 +95,30 @@ namespace HotChocolate.Types
         public void EnumType_WithDirectives()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.Enum)));
-
-                c.RegisterType(new EnumType<Foo>(d => d
-                    .Directive(new DirectiveNode("bar"))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Location(DirectiveLocation.Enum)))
+                .AddEnumType(d => d.Directive(new DirectiveNode("bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
-            Assert.Collection(type.Directives,
-                t => Assert.Equal("bar", t.Type.Name));
+            Assert.Collection(type.Directives, t => Assert.Equal("bar", t.Type.Name));
         }
 
         [Fact]
         public void EnumType_WithDirectivesT()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType<Bar>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.Enum)));
-
-                c.RegisterType(new EnumType<Foo>(d => d
-                    .Directive<Bar>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Location(DirectiveLocation.Enum)))
+                .AddEnumType(d => d.Directive<Bar>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -141,11 +130,10 @@ namespace HotChocolate.Types
         public void ImplicitEnumType_DetectEnumValues()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>());
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Foo>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -160,15 +148,14 @@ namespace HotChocolate.Types
         public void ExplicitEnumType_OnlyContainDeclaredValues()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>(d =>
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Foo>(d =>
                 {
                     d.BindValues(BindingBehavior.Explicit);
                     d.Value(Foo.Bar1);
-                }));
-                c.Options.StrictValidation = false;
-            });
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -183,20 +170,19 @@ namespace HotChocolate.Types
         public void ExplicitEnumType_OnlyContainDeclaredValues_2()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>(d =>
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Foo>(d =>
                 {
                     d.BindValuesImplicitly().BindValuesExplicitly();
                     d.Value(Foo.Bar1);
-                }));
-                c.Options.StrictValidation = false;
-            });
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out var value));
             Assert.Equal(Foo.Bar1, value);
             Assert.False(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Null(value);
@@ -206,14 +192,13 @@ namespace HotChocolate.Types
         public void ImplicitEnumType_OnlyBar1HasCustomName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>(d =>
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<Foo>(d =>
                 {
                     d.Value(Foo.Bar1).Name("FOOBAR");
-                }));
-                c.Options.StrictValidation = false;
-            });
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -237,7 +222,7 @@ namespace HotChocolate.Types
         public void EnumType_WithNoValues()
         {
             // act
-            void Action() => Schema.Create(c => { c.RegisterType<EnumType>(); });
+            void Action() => SchemaBuilder.New().AddType<EnumType>().Create();
 
             // assert
             Assert.Throws<SchemaException>(Action);
@@ -247,11 +232,10 @@ namespace HotChocolate.Types
         public void EnsureEnumTypeKindIsCorrect()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>());
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddType<EnumType<Foo>>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -307,19 +291,17 @@ namespace HotChocolate.Types
         public void EnumValue_WithDirectives()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType(d => d
+            var schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.EnumValue)));
-
-                c.RegisterType(new EnumType(d => d
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive(new DirectiveNode("bar"))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Directive(new DirectiveNode("bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
