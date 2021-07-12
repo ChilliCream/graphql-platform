@@ -9,8 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class EnumTypeTests
-        : TypeTestBase
+    public class EnumTypeTests : TypeTestBase
     {
         [Fact]
         public void EnumType_DynamicName()
@@ -64,14 +63,12 @@ namespace HotChocolate.Types
         public void GenericEnumType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<Foo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
-                    .DependsOn<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("StringEnum");

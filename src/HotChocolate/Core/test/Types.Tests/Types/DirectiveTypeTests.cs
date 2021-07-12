@@ -9,13 +9,8 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class DirectiveTypeTests
-        : TypeTestBase
+    public class DirectiveTypeTests : TypeTestBase
     {
-        public DirectiveTypeTests()
-        {
-        }
-
         [Fact]
         public void ConfigureTypedDirectiveWithResolver()
         {
@@ -117,7 +112,7 @@ namespace HotChocolate.Types
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
                 t.Directive("foo", new ArgumentNode("a", "2"));
-                t.Field("foo").Resolver(() => "baz");
+                t.Field("foo").Resolve(() => "baz");
             });
 
             // act
