@@ -12,6 +12,10 @@ namespace HotChocolate.Types
     public class DirectiveTypeTests
         : TypeTestBase
     {
+        public DirectiveTypeTests()
+        {
+        }
+
         [Fact]
         public void ConfigureTypedDirectiveWithResolver()
         {
@@ -67,7 +71,7 @@ namespace HotChocolate.Types
             var directiveType = new DirectiveType(t => t
                 .Name("Foo")
                 .Location(DirectiveLocation.Field)
-                .Use(next => context => default(ValueTask)));
+                .Use(_ => _ => default));
 
             // act
             directiveType = CreateDirective(directiveType);
@@ -82,21 +86,20 @@ namespace HotChocolate.Types
         public void ConfigureIsNull()
         {
             // act
-            Action a = () => new DirectiveType(null);
+            void Action() => new DirectiveType(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public void NoName()
         {
             // act
-            Action a = () =>
-                CreateDirective(new DirectiveType(d => { }));
+            void Action() => CreateDirective(new DirectiveType(_ => { }));
 
             // assert
-            Assert.Throws<SchemaException>(a);
+            Assert.Throws<SchemaException>(Action);
         }
 
         [Fact]
@@ -118,16 +121,14 @@ namespace HotChocolate.Types
             });
 
             // act
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .AddDirectiveType(directiveType)
+                .Create();
 
             // assert
-            IDirectiveCollection collection =
-                schema.GetType<ObjectType>("Bar").Directives;
-            Assert.Collection(collection,
+            Assert.Collection(
+                schema.GetType<ObjectType>("Bar").Directives,
                 t =>
                 {
                     Assert.Equal("foo", t.Name);
@@ -149,7 +150,7 @@ namespace HotChocolate.Types
                     .Repeatable()
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => default(ValueTask))
+                    .Use(_ => _ => default)
                     .Argument("a").Type<StringType>());
 
 
@@ -157,16 +158,14 @@ namespace HotChocolate.Types
             {
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
-                t.Field("foo").Resolver(() => "baz")
-                    .Directive("foo", new ArgumentNode("a", "2"));
+                t.Field("foo").Resolve(() => "baz").Directive("foo", new ArgumentNode("a", "2"));
             });
 
             // act
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .AddDirectiveType(directiveType)
+                .Create();
 
             // assert
             IReadOnlyCollection<IDirective> collection =
@@ -200,18 +199,18 @@ namespace HotChocolate.Types
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
                 t.Directive("foo", new ArgumentNode("a", "2"));
-                t.Field("foo").Resolver(() => "baz");
+                t.Field("foo").Resolve(() => "baz");
             });
 
             // act
-            Action a = () => Schema.Create(t =>
-             {
-                 t.RegisterDirective(directiveType);
-                 t.RegisterQueryType(objectType);
-             });
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .AddDirectiveType(directiveType)
+                    .Create();
 
             // assert
-            SchemaException exception = Assert.Throws<SchemaException>(a);
+            SchemaException exception = Assert.Throws<SchemaException>(Action);
             Assert.Collection(exception.Errors,
                 t =>
                 {
@@ -230,7 +229,7 @@ namespace HotChocolate.Types
                 t => t.Name("foo")
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Use(next => context => default(ValueTask))
+                    .Use(_ => _ => default)
                     .Argument("a").Type<StringType>());
 
 
@@ -243,11 +242,10 @@ namespace HotChocolate.Types
             });
 
             // act
-            var schema = Schema.Create(t =>
-            {
-                t.RegisterDirective(directiveType);
-                t.RegisterQueryType(objectType);
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .AddDirectiveType(directiveType)
+                .Create();
 
             // assert
             IReadOnlyCollection<IDirective> collection =
@@ -279,17 +277,15 @@ namespace HotChocolate.Types
         public void Ignore_ExpressionIsNull_ArgumentNullException()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective2> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective2>(
                     DescriptorContext.Create());
 
             // act
-            Action action = () =>
-                DirectiveTypeDescriptorExtensions
-                    .Ignore(descriptor, null);
+            void Action() => descriptor.Ignore(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -303,7 +299,7 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
@@ -325,11 +321,11 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use(next => context => default(ValueTask))))
+                    .Use(_ => _ => default)))
                 .Create();
 
             // assert
@@ -349,7 +345,7 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
@@ -358,8 +354,7 @@ namespace HotChocolate.Types
 
             // assert
             DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
+            Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
         }
 
         [Fact]
@@ -373,17 +368,16 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use((sp, next) => new DirectiveMiddleware(next))))
+                    .Use((_, next) => new DirectiveMiddleware(next))))
                 .Create();
 
             // assert
             DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
+            Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
         }
 
         [Fact]
@@ -391,21 +385,20 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType(c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                    .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d.Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(null)))
+                    .Create();
 
             // assert
-            Assert.Throws<SchemaException>(action);
+            Assert.Throws<SchemaException>(Action);
         }
 
         [Fact]
@@ -419,17 +412,16 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use(next => context => default(ValueTask))))
+                    .Use(_ => _ => default)))
                 .Create();
 
             // assert
             DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
+            Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
         }
 
         [Fact]
@@ -443,7 +435,7 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
@@ -452,8 +444,7 @@ namespace HotChocolate.Types
 
             // assert
             DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
+            Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
         }
 
         [Fact]
@@ -467,17 +458,16 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
-                    .Use((sp, next) => new DirectiveMiddleware(next))))
+                    .Use((_, next) => new DirectiveMiddleware(next))))
                 .Create();
 
             // assert
             DirectiveType directive = schema.GetDirectiveType("foo");
-            Assert.Collection(directive.MiddlewareComponents,
-                t => Assert.NotNull(t));
+            Assert.Collection(directive.MiddlewareComponents, Assert.NotNull);
         }
 
         [Fact]
@@ -485,21 +475,20 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType(c => c
-                    .Name("Query")
-                    .Directive("foo")
-                    .Field("foo")
-                    .Type<StringType>()
-                    .Resolver("bar"))
-                .AddDirectiveType(new DirectiveType(d => d
-                    .Name("foo")
-                    .Location(DirectiveLocation.Object)
-                    .Use(null)))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType(c => c.Name("Query")
+                        .Directive("foo")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar"))
+                    .AddDirectiveType(new DirectiveType(d => d.Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(null)))
+                    .Create();
 
             // assert
-            Assert.Throws<SchemaException>(action);
+            Assert.Throws<SchemaException>(Action);
         }
 
         [Fact]
@@ -513,7 +502,7 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddDirectiveType(new DirectiveType<DirectiveWithDefaults>(d => d
                     .Name("foo")
                     .Location(DirectiveLocation.Object)
@@ -524,8 +513,7 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
-        public class CustomDirectiveType
-            : DirectiveType<CustomDirective>
+        public class CustomDirectiveType : DirectiveType<CustomDirective>
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor<CustomDirective> descriptor)
@@ -533,12 +521,11 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => default(ValueTask));
+                descriptor.Use(_ => _ => default);
             }
         }
 
-        public class Custom2DirectiveType
-            : DirectiveType<CustomDirective>
+        public class Custom2DirectiveType : DirectiveType<CustomDirective>
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor<CustomDirective> descriptor)
@@ -546,14 +533,14 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Use(next => context => default(ValueTask));
+                descriptor.Use(_ => _ => default);
                 descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
             }
         }
 
         public class DirectiveMiddleware
         {
-            private FieldDelegate _next;
+            private readonly FieldDelegate _next;
 
             public DirectiveMiddleware(FieldDelegate next)
             {
