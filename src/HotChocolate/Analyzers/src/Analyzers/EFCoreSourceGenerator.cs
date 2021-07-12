@@ -108,7 +108,7 @@ namespace HotChocolate.Analyzers
 
             // Generate model and model configurer classes
             context.AddClass(@namespace, modelName, modelDeclaration, _emptyUsings);
-            //context.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
+            context.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
         }
 
         private static readonly SyntaxList<UsingDirectiveSyntax> _emptyUsings = new();
