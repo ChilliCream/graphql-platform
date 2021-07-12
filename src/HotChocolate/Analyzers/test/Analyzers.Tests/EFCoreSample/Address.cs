@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Analyzers.Configuration.EFCoreSample
+namespace HotChocolate.Analyzers.EFCoreSample
 {
     public class Address
     {

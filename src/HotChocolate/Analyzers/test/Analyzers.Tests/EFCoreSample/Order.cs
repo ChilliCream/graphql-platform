@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Analyzers.Configuration.EFCoreSample
+namespace HotChocolate.Analyzers.EFCoreSample
 {
     public class Order
     {

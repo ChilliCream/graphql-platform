@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace HotChocolate.Analyzers.Configuration.EFCoreSample
+namespace HotChocolate.Analyzers.EFCoreSample
 {
     public class CustomerConfigurer : IEntityTypeConfiguration<Customer>
     {

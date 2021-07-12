@@ -111,14 +111,14 @@ namespace HotChocolate.Analyzers
             context.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
         }
 
-        private static readonly SyntaxList<UsingDirectiveSyntax> _emptyUsings = new();
+        private static readonly UsingDirectiveSyntax[] _emptyUsings = Array.Empty<UsingDirectiveSyntax>();
 
         private static readonly QualifiedNameSyntax _msEfCoreQualifiedName = 
             QualifiedName(
                 IdentifierName("Microsoft"),
                 IdentifierName("EntityFrameworkCore"));
 
-        private static readonly SyntaxList<UsingDirectiveSyntax> _modelConfigurerUsings = new()
+        private static readonly UsingDirectiveSyntax[] _modelConfigurerUsings = new[]
         {
             UsingDirective(_msEfCoreQualifiedName),
             UsingDirective(
@@ -172,7 +172,7 @@ namespace HotChocolate.Analyzers
             string @namespace,
             string className,
             ClassDeclarationSyntax classDeclaration,
-            SyntaxList<UsingDirectiveSyntax> usings)
+            UsingDirectiveSyntax[] usings)
         {
             NamespaceDeclarationSyntax namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(@namespace))
@@ -181,9 +181,8 @@ namespace HotChocolate.Analyzers
             CompilationUnitSyntax compilationUnit =
                 CompilationUnit()
                     .AddMembers(namespaceDeclaration)
-                    .WithUsings(usings);
-
-            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+                    .AddUsings(usings)
+                    .NormalizeWhitespace(elasticTrivia: true);
 
             context.AddSource(@namespace + $".{className}.cs", compilationUnit.ToFullString());
         }
