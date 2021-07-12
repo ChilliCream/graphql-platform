@@ -3,7 +3,7 @@ const { getCacheKey } = require("../shared");
 
 module.exports = async ({ markdownAST, markdownNode, cache, getNode }) => {
   // if there's no slug, it is not a markdown file we're interested in
-  if (!markdownNode.fields?.slug) {
+  if (!markdownNode.fields || !markdownNode.fields.slug) {
     return markdownAST;
   }
 
