@@ -27,7 +27,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             Expression<Func<IPureResolverContext, bool, ClaimsPrincipal?>> lambda =
                 (ctx, nullable) => GetClaimsPrincipal(ctx, nullable);
 
-            return Convert(Invoke(lambda, context, nullableParameter), typeof(object));
+            return Invoke(lambda, context, nullableParameter);
         }
 
         private static ClaimsPrincipal? GetClaimsPrincipal(

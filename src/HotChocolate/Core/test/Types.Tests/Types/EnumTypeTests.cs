@@ -291,7 +291,7 @@ namespace HotChocolate.Types
         public void EnumValue_WithDirectives()
         {
             // act
-            var schema = SchemaBuilder
+            ISchema schema = SchemaBuilder
                 .New()
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
@@ -314,19 +314,17 @@ namespace HotChocolate.Types
         public void EnumValue_WithDirectivesNameArgs()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType(d => d
+            ISchema schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.EnumValue)));
-
-                c.RegisterType(new EnumType(d => d
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive("bar", Array.Empty<ArgumentNode>())));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Directive("bar", Array.Empty<ArgumentNode>()))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -339,19 +337,17 @@ namespace HotChocolate.Types
         public void Serialize_EnumValue_WithDirectives()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType(d => d
+            ISchema schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.EnumValue)));
-
-                c.RegisterType(new EnumType(d => d
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive(new DirectiveNode("bar"))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Directive(new DirectiveNode("bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -361,19 +357,17 @@ namespace HotChocolate.Types
         public void EnumValue_WithDirectivesT()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType<Bar>(d => d
+            ISchema schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.EnumValue)));
-
-                c.RegisterType(new EnumType(d => d
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive<Bar>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Directive<Bar>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -386,19 +380,17 @@ namespace HotChocolate.Types
         public void EnumValue_WithDirectivesTInstance()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterDirective(new DirectiveType<Bar>(d => d
+            ISchema schema = SchemaBuilder
+                .New()
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
                     .Name("bar")
-                    .Location(DirectiveLocation.EnumValue)));
-
-                c.RegisterType(new EnumType(d => d
+                    .Location(DirectiveLocation.EnumValue)))
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("baz")
-                    .Directive(new Bar())));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Directive(new Bar()))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
@@ -411,16 +403,15 @@ namespace HotChocolate.Types
         public void EnumValue_SetContextData()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType(d => d
+            ISchema schema = SchemaBuilder
+                .New()
+                .AddEnumType(d => d
                     .Name("Foo")
                     .Value("bar")
                     .Extend()
-                    .OnBeforeCreate(def => def.ContextData["baz"] = "qux")));
-
-                c.Options.StrictValidation = false;
-            });
+                    .OnBeforeCreate(def => def.ContextData["baz"] = "qux"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");

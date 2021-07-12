@@ -47,8 +47,8 @@ namespace HotChocolate.Types.Interceptors
             _configs = _fieldResolvers.ToLookup(t => t.Field.TypeName);
         }
 
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
+        public override void OnAfterCompleteName(
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -57,13 +57,7 @@ namespace HotChocolate.Types.Interceptors
             {
                 typeDefinition.RuntimeType = type;
             }
-        }
 
-        public override void OnAfterCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
             if (completionContext.Type is ObjectType objectType &&
                 definition is ObjectTypeDefinition objectTypeDef)
             {

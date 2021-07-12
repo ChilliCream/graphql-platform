@@ -1277,7 +1277,7 @@ namespace HotChocolate.Resolvers
         {
             // arrange
             Type type = typeof(Resolvers);
-            MemberInfo member = type.GetMethod(nameof(Resolvers.GetNullableClaimsPrincipal))!;
+            MemberInfo member = type.GetMethod(nameof(Resolvers.GetPath))!;
 
             // act
             var compiler = new DefaultResolverCompiler(_empty);
@@ -1343,7 +1343,7 @@ namespace HotChocolate.Resolvers
             public bool GetNullableClaimsPrincipal(ClaimsPrincipal? claims)
                 => claims != null!;
 
-            public bool GetNullableClaimsPrincipal(Path path)
+            public bool GetPath(Path path)
                 => path != null!;
 
             public bool ResolverWithResolverContext(
