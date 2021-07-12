@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             Name = name;
             Description = description;
-            RuntimeType = runtimeType;
+            RuntimeType = runtimeType ?? typeof(object);
             IsRepeatable = isRepeatable;
         }
 

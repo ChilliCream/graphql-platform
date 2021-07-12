@@ -98,12 +98,18 @@ namespace HotChocolate.Types.Factories
                 node.Description?.Value,
                 isRepeatable: node.IsRepeatable);
 
+            if (context.Options.DefaultDirectiveVisibility is DirectiveVisibility.Public)
+            {
+                typeDefinition.IsPublic = true;
+            }
+
             if (preserveSyntaxNodes)
             {
                 typeDefinition.SyntaxNode = node;
             }
 
             DeclareArguments(typeDefinition, node.Arguments, preserveSyntaxNodes);
+            DeclareLocations(typeDefinition, node);
 
             return DirectiveType.CreateUnsafe(typeDefinition);
         }
