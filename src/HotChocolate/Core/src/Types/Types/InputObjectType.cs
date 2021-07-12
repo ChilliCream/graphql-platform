@@ -55,12 +55,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public virtual bool IsInstanceOfType(object? value)
         {
-            if (value is null)
-            {
-                return true;
-            }
-
-            return RuntimeType.IsInstanceOfType(value);
+            return value is null || RuntimeType.IsInstanceOfType(value);
         }
 
         /// <inheritdoc />

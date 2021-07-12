@@ -437,28 +437,23 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                InterfaceTypeDescriptorExtensions
-                    .Ignore<IFoo>(null, t => t.Bar);
+            void Action() => InterfaceTypeDescriptorExtensions.Ignore<IFoo>(null, t => t.Bar);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public void Ignore_ExpressionIsNull_ArgumentNullException()
         {
             // arrange
-            InterfaceTypeDescriptor<IFoo> descriptor =
-                InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
+            var descriptor = InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
 
             // act
-            Action action = () =>
-                InterfaceTypeDescriptorExtensions
-                    .Ignore(descriptor, null);
+            void Action() => descriptor.Ignore(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -471,7 +466,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<IFoo>(d => d
                     .Ignore(t => t.Bar)))
                 .ModifyOptions(o => o.StrictValidation = false)
@@ -491,7 +486,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<FooObsolete>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
@@ -507,7 +502,7 @@ namespace HotChocolate.Types
                 .AddQueryType(c => c.Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new InterfaceType<FooDeprecated>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
@@ -546,20 +541,13 @@ namespace HotChocolate.Types
             int Qux(string a);
         }
 
-        public class FooImpl
-            : IFoo
+        public class FooImpl : IFoo
         {
-            public bool Bar => throw new System.NotImplementedException();
+            public bool Bar => throw new NotImplementedException();
 
-            public string Baz()
-            {
-                throw new System.NotImplementedException();
-            }
+            public string Baz() => throw new NotImplementedException();
 
-            public int Qux(string a)
-            {
-                throw new System.NotImplementedException();
-            }
+            public int Qux(string a) => throw new NotImplementedException();
         }
 
         public class FooDirectiveType
@@ -568,8 +556,9 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
-                descriptor.Name("foo");
-                descriptor.Location(DirectiveLocation.Interface)
+                descriptor
+                    .Name("foo")
+                    .Location(DirectiveLocation.Interface)
                     .Location(DirectiveLocation.FieldDefinition);
             }
         }
@@ -602,17 +591,17 @@ namespace HotChocolate.Types
         [InterfaceType]
         public class Fruit
         {
-            public string Taste { get; } = "Sweet";
+            public string Taste => "Sweet";
         }
 
         public class Orange : Fruit
         {
-            public string Color { get; } = "Orange";
+            public string Color => "Orange";
         }
 
         public class Pineapple : Fruit
         {
-            public string Shape { get; } = "Strange";
+            public string Shape => "Strange";
         }
 
         public class PetQuery
@@ -628,13 +617,11 @@ namespace HotChocolate.Types
 
         public class Canina : Pet
         {
-
         }
 
         [ObjectType]
         public class Dog : Canina
         {
-
         }
     }
 }
