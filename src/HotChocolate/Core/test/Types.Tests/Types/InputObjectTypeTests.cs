@@ -23,16 +23,14 @@ namespace HotChocolate.Types
         public void InputObjectType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InputObjectType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
@@ -43,16 +41,14 @@ namespace HotChocolate.Types
         public void InputObjectType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InputObjectType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
@@ -63,14 +59,12 @@ namespace HotChocolate.Types
         public void GenericInputObjectType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InputObjectType<SimpleInput>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<SimpleInput>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
@@ -81,14 +75,12 @@ namespace HotChocolate.Types
         public void GenericInputObjectType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InputObjectType<SimpleInput>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<SimpleInput>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
@@ -132,7 +124,7 @@ namespace HotChocolate.Types
         public void ParseLiteral()
         {
             // arrange
-            Schema schema = Create();
+            ISchema schema = Create();
             InputObjectType inputObjectType = schema.GetType<InputObjectType>("Object1");
             ObjectValueNode literal = CreateObjectLiteral();
 
@@ -148,7 +140,7 @@ namespace HotChocolate.Types
         public void EnsureInputObjectTypeKindIsCorrect()
         {
             // arrange
-            Schema schema = Create();
+            ISchema schema = Create();
             InputObjectType inputObjectType =
                 schema.GetType<InputObjectType>("Object1");
 
@@ -168,8 +160,7 @@ namespace HotChocolate.Types
                 d => d.Directive("foo").Field(f => f.Id).Directive("foo"));
 
             // assert
-            fooType = CreateType(fooType,
-                b => b.AddDirectiveType<FooDirectiveType>());
+            fooType = CreateType(fooType, b => b.AddDirectiveType<FooDirectiveType>());
 
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
@@ -365,26 +356,24 @@ namespace HotChocolate.Types
             });
         }
 
-        public Schema Create()
+        public ISchema Create()
         {
-            return Schema.Create(c =>
-            {
-                c.Options.StrictValidation = false;
-
-                c.RegisterType(new InputObjectType<SerializationInputObject1>(d =>
+            return SchemaBuilder.New()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .AddInputObjectType<SerializationInputObject1>(d =>
                 {
                     d.Name("Object1");
                     d.Field(t => t.Foo).Type<InputObjectType<SerializationInputObject2>>();
                     d.Field(t => t.Bar).Type<StringType>();
-                }));
-
-                c.RegisterType(new InputObjectType<SerializationInputObject2>(d =>
+                })
+                .AddInputObjectType<SerializationInputObject2>(d =>
                 {
                     d.Name("Object2");
                     d.Field(t => t.FooList)
                         .Type<NonNullType<ListType<InputObjectType<SerializationInputObject1>>>>();
-                }));
-            });
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
         }
 
         [Fact]
