@@ -15,16 +15,14 @@ namespace HotChocolate.Types
         public void InterfaceType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -35,16 +33,14 @@ namespace HotChocolate.Types
         public void InterfaceType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Field("bar")
-                    .Type<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -55,14 +51,12 @@ namespace HotChocolate.Types
         public void GenericInterfaceType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType<IFoo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType<IFoo>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -73,14 +67,12 @@ namespace HotChocolate.Types
         public void GenericInterfaceType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new InterfaceType<IFoo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddInterfaceType<IFoo>(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
@@ -124,11 +116,10 @@ namespace HotChocolate.Types
         public void InferSchemaInterfaceTypeFromClrInterface()
         {
             // arrange && act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType<IFoo>();
-                c.RegisterQueryType<FooImpl>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddType<IType>()
+                .AddQueryType<FooImpl>()
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("FooImpl");
@@ -165,7 +156,7 @@ namespace HotChocolate.Types
 
 
         [Fact]
-        public void UnignoreFieldsFromClrInterface()
+        public void UnIgnoreFieldsFromClrInterface()
         {
             // arrange
             // act

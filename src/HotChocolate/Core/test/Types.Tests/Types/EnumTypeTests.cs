@@ -16,15 +16,13 @@ namespace HotChocolate.Types
         public void EnumType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
                     .DependsOn<StringType>()
-                    .Value("BAR")));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Value("BAR"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("StringEnum");
@@ -35,12 +33,10 @@ namespace HotChocolate.Types
         public void EnumType_GraphQLDescriptionAttribute()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType<DescriptionTestEnum>());
-
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType<DescriptionTestEnum>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("DescriptionTestEnum");
@@ -51,15 +47,13 @@ namespace HotChocolate.Types
         public void EnumType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new EnumType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
                     .DependsOn(typeof(StringType))
-                    .Value("BAR")));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Value("BAR"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("StringEnum");

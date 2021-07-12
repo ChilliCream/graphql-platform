@@ -18,7 +18,7 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD
                 }";
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD_MORNING
                 }";
@@ -70,11 +70,11 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD_MORNING
                 }
-                
+
                 extend enum Greetings {
                     GOOD_EVENING
                 }";
@@ -84,7 +84,7 @@ namespace HotChocolate.Types.SDL
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
                 .BindComplexType<Query>()
-                .BindEnumType<Greetings>(c => 
+                .BindEnumType<Greetings>(c =>
                 {
                     c.Value(Greetings.GoodMorning);
                     c.Value(Greetings.GoodEvening);
@@ -101,12 +101,12 @@ namespace HotChocolate.Types.SDL
         {
             // arrange
             Snapshot.FullName();
-            
+
             var sdl =
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD
                 }";
@@ -132,7 +132,7 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD_MORNING
                 }";
@@ -158,11 +158,11 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD_MORNING
                 }
-                
+
                 extend enum Greetings {
                     GOOD_EVENING
                 }";
@@ -173,7 +173,7 @@ namespace HotChocolate.Types.SDL
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
                 .BindComplexType<Query>()
-                .BindEnumType<Greetings>(c => 
+                .BindEnumType<Greetings>(c =>
                 {
                     c.Value(Greetings.GoodMorning);
                     c.Value(Greetings.GoodEvening);
@@ -195,7 +195,7 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(greetings: Greetings): Greetings
                 }
-                
+
                 enum Greetings {
                     GOOD_MORNING
                 }";
@@ -205,8 +205,8 @@ namespace HotChocolate.Types.SDL
            await new ServiceCollection()
                 .AddGraphQL()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
-                .BindEnumType<Greetings>()
+                .AddResolver<Query>()
+                .BindRuntimeType<Greetings>()
                 .ExecuteRequestAsync($"{{ hello(greetings: \"{value}\") }}")
                 .MatchSnapshotAsync();
         }

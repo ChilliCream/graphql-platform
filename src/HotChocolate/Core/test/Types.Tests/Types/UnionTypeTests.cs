@@ -10,16 +10,14 @@ namespace HotChocolate.Types
         public void UnionType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new UnionType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Type<FooType>()
-                    .Type<BarType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<BarType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             UnionType type = schema.GetType<UnionType>("StringFoo");
@@ -30,16 +28,14 @@ namespace HotChocolate.Types
         public void UnionType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new UnionType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Type<FooType>()
-                    .Type<BarType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Type<BarType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             UnionType type = schema.GetType<UnionType>("StringFoo");
@@ -50,17 +46,14 @@ namespace HotChocolate.Types
         public void GenericUnionType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new UnionType<IFooOrBar>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()));
-
-                c.RegisterType(new FooType());
-                c.RegisterType(new BarType());
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .AddType<FooType>()
+                .AddType<BarType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             UnionType type = schema.GetType<UnionType>("StringFoo");
@@ -71,17 +64,14 @@ namespace HotChocolate.Types
         public void GenericUnionType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new UnionType<IFooOrBar>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))));
-
-                c.RegisterType(new FooType());
-                c.RegisterType(new BarType());
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .AddType<FooType>()
+                .AddType<BarType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             UnionType type = schema.GetType<UnionType>("StringFoo");
@@ -215,35 +205,29 @@ namespace HotChocolate.Types
             Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
-        public class FooType
-            : ObjectType<Foo>
+        public class FooType : ObjectType<Foo>
         {
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        public class BarType : ObjectType<Bar>
         {
         }
 
-        public class BazType
-            : ObjectType<Baz>
+        public class BazType : ObjectType<Baz>
         {
         }
 
-        public class Foo
-            : IFooOrBar
+        public class Foo : IFooOrBar
         {
             public string FooField { get; set; }
         }
 
-        public class Bar
-            : IFooOrBar
+        public class Bar : IFooOrBar
         {
             public string BarField { get; set; }
         }
 
-        public class Baz
-            : IFooOrBar
+        public class Baz : IFooOrBar
         {
             public string BazField { get; set; }
         }

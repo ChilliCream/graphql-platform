@@ -1549,6 +1549,44 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, schemaType));
         }
 
+        public static IRequestExecutorBuilder BindRuntimeType<TRuntimeType>(
+            this IRequestExecutorBuilder builder,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            typeName ??= typeof(TRuntimeType).Name;
+
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return builder.ConfigureSchema(b => b.BindRuntimeType<TRuntimeType>(typeName.Value));
+        }
+
+        public static IRequestExecutorBuilder BindRuntimeType(
+            this IRequestExecutorBuilder builder,
+            Type runtimeType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName ??= runtimeType.Name;
+
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return builder.ConfigureSchema(b => b.BindRuntimeType(runtimeType, typeName.Value));
+        }
+
         public static IRequestExecutorBuilder AddExportDirectiveType(
             this IRequestExecutorBuilder builder) =>
             builder.AddDirectiveType<ExportDirectiveType>();

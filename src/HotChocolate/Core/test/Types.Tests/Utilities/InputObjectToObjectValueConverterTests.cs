@@ -12,12 +12,10 @@ namespace HotChocolate.Utilities
         public void Convert_InputObject_ObjectValue()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<InputObjectType<Foo>>()
+                .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -42,12 +40,10 @@ namespace HotChocolate.Utilities
         public void Convert_InputObjectWithNullField_ObjectValue()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<InputObjectType<Foo>>()
+                .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -72,12 +68,10 @@ namespace HotChocolate.Utilities
         public void Convert_InputObjectWithNullElement_ObjectValue()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                c =>
-                {
-                    c.RegisterQueryType<DummyQuery>();
-                    c.RegisterType<InputObjectType<Foo>>();
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<InputObjectType<Foo>>()
+                .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 

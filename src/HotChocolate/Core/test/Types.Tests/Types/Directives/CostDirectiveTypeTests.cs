@@ -4,8 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class CostDirectiveTypeTests
-        : TypeTestBase
+    public class CostDirectiveTypeTests : TypeTestBase
     {
         [Fact]
         public void AnnotateCostToObjectFieldCodeFirst()
