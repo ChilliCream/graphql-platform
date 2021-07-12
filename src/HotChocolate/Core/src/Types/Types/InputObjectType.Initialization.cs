@@ -73,16 +73,25 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override InputObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = InputObjectTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected override void OnRegisterDependencies(

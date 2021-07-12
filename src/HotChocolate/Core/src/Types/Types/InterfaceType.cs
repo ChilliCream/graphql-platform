@@ -197,16 +197,25 @@ namespace HotChocolate.Types
             object resolverResult) =>
             ResolveConcreteType(context, resolverResult);
 
-        protected override InterfaceTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                InterfaceTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = InterfaceTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor)

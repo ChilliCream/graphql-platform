@@ -68,11 +68,10 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
                 "{ hello(a: \"foo_\") }",
                 c => c
                     .AddDocumentFromString(
-                        @"
-                        type Query {
+                        @"type Query {
                             hello(a: String!): String
                         }")
-                    .AddResolver<QueryC>())
+                    .AddResolver<QueryC>("Query"))
                 .MatchSnapshotAsync();
         }
 

@@ -58,16 +58,23 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Interface;
 
-        protected override InterfaceTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                InterfaceTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = InterfaceTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor) { }

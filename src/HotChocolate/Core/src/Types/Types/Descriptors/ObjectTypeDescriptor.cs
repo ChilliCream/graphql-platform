@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-            foreach (var field in definition.Fields)
+            foreach (ObjectFieldDefinition field in definition.Fields)
             {
                 Fields.Add(ObjectFieldDescriptor.From(Context, field));
             }

@@ -141,7 +141,6 @@ namespace HotChocolate.Types
             return _typeMap.ContainsKey(objectType.Name);
         }
 
-
         bool IUnionType.ContainsType(IObjectType objectType)
         {
             if (objectType is null)
@@ -180,16 +179,25 @@ namespace HotChocolate.Types
             object resolverResult) =>
             ResolveConcreteType(context, resolverResult);
 
-        protected override UnionTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                UnionTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = UnionTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
@@ -282,7 +290,7 @@ namespace HotChocolate.Types
                 {
                     foreach (ObjectType type in _typeMap.Values)
                     {
-                        if (type.IsOfType(c, r))
+                        if (type.IsInstanceOfType(c, r))
                         {
                             return type;
                         }

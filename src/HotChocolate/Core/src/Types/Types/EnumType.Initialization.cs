@@ -68,8 +68,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
         /// <inheritdoc />
-        protected override EnumTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             try
             {

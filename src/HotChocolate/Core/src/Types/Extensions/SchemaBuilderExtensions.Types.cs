@@ -679,5 +679,39 @@ namespace HotChocolate
 
             return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
         }
+
+        public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
+            this ISchemaBuilder builder,
+            NameString typeName)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName, typeof(TRuntimeType));
+        }
+
+        public static ISchemaBuilder BindRuntimeType(
+            this ISchemaBuilder builder,
+            Type runtimeType,
+            NameString typeName)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName, runtimeType);
+        }
     }
 }

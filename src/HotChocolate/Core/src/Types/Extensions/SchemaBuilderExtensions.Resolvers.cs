@@ -13,69 +13,6 @@ namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
-        private static ISchemaBuilder AddResolverInternal(
-            ISchemaBuilder builder,
-            NameString typeName,
-            NameString fieldName,
-            FieldResolverDelegate resolver)
-        {
-            return AddResolverConfig(
-                builder,
-                new FieldCoordinate(typeName, fieldName),
-                resolver,
-                null);
-        }
-
-        private static ISchemaBuilder AddResolverConfig(
-            ISchemaBuilder builder,
-            FieldCoordinate field,
-            FieldResolverDelegate resolver,
-            Type? resultType)
-        {
-            InitializeResolverTypeInterceptor(builder);
-
-            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
-                o is List<FieldResolverConfig> resolverConfigs)
-            {
-                resolverConfigs.Add(new(field, resolver, null, resultType));
-            }
-
-            return builder;
-        }
-
-        private static ISchemaBuilder AddResolverType(
-            ISchemaBuilder builder,
-            NameString typeName,
-            Type resolverType)
-        {
-            InitializeResolverTypeInterceptor(builder);
-
-            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
-                o is List<(NameString, Type)> resolverTypes)
-            {
-                resolverTypes.Add((typeName, resolverType));
-            }
-
-            return builder;
-        }
-
-        private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
-        {
-            if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
-            {
-                var resolverConfigs = new List<FieldResolverConfig>();
-                var resolverTypes = new List<(NameString, Type)>();
-                var runtimeTypes = new Dictionary<NameString, Type>();
-
-                builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
-                builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
-                builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
-
-                builder.TryAddTypeInterceptor(
-                    new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
-            }
-        }
-
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             FieldCoordinate field,
@@ -99,7 +36,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverConfig(builder, field, resolver, resultType);
+            return AddResolverConfigInternal(builder, field, resolver, resultType);
         }
 
         // AddResolver(IResolverContext)
@@ -390,7 +327,7 @@ namespace HotChocolate
                         : resolverType.Name;
                 }
 
-                AddResolverType(builder, typeName.Value, resolverType);
+                AddResolverTypeInternal(builder, typeName.Value, resolverType);
 
 
                 return builder;
@@ -417,7 +354,7 @@ namespace HotChocolate
             {
                 foreach (var property in resolverType.GetProperties())
                 {
-                    AddResolverType(builder, property.Name, property.PropertyType);
+                    AddResolverTypeInternal(builder, property.Name, property.PropertyType);
                 }
 
                 return builder;
@@ -446,6 +383,85 @@ namespace HotChocolate
 
             builder.SetContextData(WellKnownContextData.RootInstance, root);
             return AddRootResolver(builder, typeof(T));
+        }
+
+        private static ISchemaBuilder AddResolverInternal(
+            ISchemaBuilder builder,
+            NameString typeName,
+            NameString fieldName,
+            FieldResolverDelegate resolver)
+        {
+            return AddResolverConfigInternal(
+                builder,
+                new FieldCoordinate(typeName, fieldName),
+                resolver,
+                null);
+        }
+
+        private static ISchemaBuilder AddResolverConfigInternal(
+            ISchemaBuilder builder,
+            FieldCoordinate field,
+            FieldResolverDelegate resolver,
+            Type? resultType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverConfigs, out var o) &&
+                o is List<FieldResolverConfig> resolverConfigs)
+            {
+                resolverConfigs.Add(new(field, resolver, null, resultType));
+            }
+
+            return builder;
+        }
+
+        private static ISchemaBuilder AddResolverTypeInternal(
+            ISchemaBuilder builder,
+            NameString typeName,
+            Type resolverType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.ResolverTypes, out var o) &&
+                o is List<(NameString, Type)> resolverTypes)
+            {
+                resolverTypes.Add((typeName, resolverType));
+            }
+
+            return builder;
+        }
+
+        private static ISchemaBuilder BindRuntimeTypeInternal(
+            ISchemaBuilder builder,
+            NameString typeName,
+            Type runtimeType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
+                o is Dictionary<NameString, Type> runtimeTypes)
+            {
+                runtimeTypes[typeName] = runtimeType;
+            }
+
+            return builder;
+        }
+
+        private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
+        {
+            if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))
+            {
+                var resolverConfigs = new List<FieldResolverConfig>();
+                var resolverTypes = new List<(NameString, Type)>();
+                var runtimeTypes = new Dictionary<NameString, Type>();
+
+                builder.ContextData.Add(WellKnownContextData.ResolverConfigs, resolverConfigs);
+                builder.ContextData.Add(WellKnownContextData.ResolverTypes, resolverTypes);
+                builder.ContextData.Add(WellKnownContextData.RuntimeTypes, runtimeTypes);
+
+                builder.TryAddTypeInterceptor(
+                    new ResolverTypeInterceptor(resolverConfigs, resolverTypes, runtimeTypes));
+            }
         }
     }
 }

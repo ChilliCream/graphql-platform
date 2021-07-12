@@ -98,48 +98,47 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 {
                     await next(context);
 
-                    var dataLoader =
+                    TestDataLoader dataLoader =
                         context.Services
                             .GetRequiredService<IDataLoaderRegistry>()
                             .GetOrRegister<TestDataLoader>(() => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader(key: ""a"")
                             b: withDataLoader(key: ""b"")
                             bar {
                                 c: withDataLoader(key: ""c"")
                             }
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader(key: ""a"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
@@ -156,45 +155,44 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 {
                     await next(context);
 
-                    var dataLoader =
+                    TestDataLoader dataLoader =
                         context.Services
                             .GetRequiredService<IDataLoaderRegistry>()
                             .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader2(key: ""a"")
                             b: withDataLoader2(key: ""b"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader2(key: ""a"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withDataLoader2(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
@@ -209,32 +207,33 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 .AddDataLoader<ITestDataLoader, TestDataLoader>());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withStackedDataLoader(key: ""a"")
                             b: withStackedDataLoader(key: ""b"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withStackedDataLoader(key: ""a"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withStackedDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
@@ -262,32 +261,33 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: dataLoaderWithInterface(key: ""a"")
                             b: dataLoaderWithInterface(key: ""b"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: dataLoaderWithInterface(key: ""a"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();

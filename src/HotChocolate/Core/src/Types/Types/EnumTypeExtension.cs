@@ -55,16 +55,23 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Enum;
 
-        protected override EnumTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                EnumTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = EnumTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
@@ -121,9 +128,8 @@ namespace HotChocolate.Types
             {
                 if (type.RuntimeType.IsInstanceOfType(enumValue.RuntimeValue))
                 {
-                    EnumValueDefinition? existingValue =
-                        type.Values.FirstOrDefault(t =>
-                            enumValue.RuntimeValue.Equals(t.RuntimeValue));
+                    EnumValueDefinition? existingValue = type.Values.FirstOrDefault(
+                        t => Equals(enumValue.RuntimeValue, t.RuntimeValue));
 
                     if (existingValue is null)
                     {

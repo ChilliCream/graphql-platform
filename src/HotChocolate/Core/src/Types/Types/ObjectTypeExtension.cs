@@ -61,16 +61,23 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Object;
 
-        protected override ObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                ObjectTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }

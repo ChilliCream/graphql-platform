@@ -57,21 +57,27 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.InputObject;
 
-        protected override InputObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = InputObjectTypeDescriptor.New(
+                        context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
-        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
-        {
-        }
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
             ITypeDiscoveryContext context,

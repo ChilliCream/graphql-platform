@@ -159,16 +159,25 @@ namespace HotChocolate.Types
         /// </summary>
         internal bool IsPublic { get; private set; }
 
-        protected override DirectiveTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                DirectiveTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = DirectiveTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IDirectiveTypeDescriptor descriptor) { }

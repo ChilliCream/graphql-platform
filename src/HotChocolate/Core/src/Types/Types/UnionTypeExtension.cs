@@ -59,16 +59,23 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Union;
 
-        protected override UnionTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                UnionTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = UnionTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
