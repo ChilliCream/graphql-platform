@@ -348,7 +348,7 @@ services
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-Hot Chocolate will correctly instantiate the service, depending on its lifetime. A scoped service for example is only instantiated once per request and this instance is injected into all resolvers used during the request.
+Hot Chocolate will correctly inject the service depending on its lifetime. For example, a scoped service is only instantiated once per scope (by default that's the GraphQL request execution) and this same instance is injected into all resolvers who share the same scope.
 
 ## Constructor Injection
 
