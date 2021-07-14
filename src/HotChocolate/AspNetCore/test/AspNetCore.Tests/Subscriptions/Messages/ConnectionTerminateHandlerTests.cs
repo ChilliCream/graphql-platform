@@ -10,7 +10,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_TerminateMessage_True()
         {
             // arrange
-            var handler = new TerminateConnectionMessageHandler();
+            var interceptor = new SocketSessionInterceptorMock();
+            var handler = new TerminateConnectionMessageHandler(interceptor);
             var message = new TerminateConnectionMessage();
 
             // act
@@ -24,7 +25,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_AcceptMessage_False()
         {
             // arrange
-            var handler = new TerminateConnectionMessageHandler();
+            var interceptor = new SocketSessionInterceptorMock();
+            var handler = new TerminateConnectionMessageHandler(interceptor);
             KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
@@ -39,7 +41,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var connection = new SocketConnectionMock { Closed = false };
-            var handler = new TerminateConnectionMessageHandler();
+            var interceptor = new SocketSessionInterceptorMock();
+            var handler = new TerminateConnectionMessageHandler(interceptor);
             var message = new TerminateConnectionMessage();
 
             // act
