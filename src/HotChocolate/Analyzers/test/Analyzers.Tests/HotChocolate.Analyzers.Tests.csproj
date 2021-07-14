@@ -27,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer.Core" Version="2.11.10" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Analyzers\HotChocolate.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\..\Neo4J\src\Data\HotChocolate.Data.Neo4J.csproj" />
   </ItemGroup>
