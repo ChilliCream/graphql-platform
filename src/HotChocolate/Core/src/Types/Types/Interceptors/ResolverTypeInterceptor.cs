@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Interceptors
 {
     internal sealed class ResolverTypeInterceptor : TypeInterceptor
     {
-        private readonly Dictionary<NameString, ITypeDefinition> _typeDefs = new();
+        private readonly List<ITypeDefinition> _typeDefs = new();
         private readonly List<FieldResolverConfig> _fieldResolvers;
         private readonly List<(NameString, Type)> _resolverTypeList;
         private readonly Dictionary<NameString, Type> _runtimeTypes;
@@ -57,78 +57,75 @@ namespace HotChocolate.Types.Interceptors
             IDictionary<string, object?> contextData)
         {
             if (!completionContext.IsIntrospectionType &&
-                completionContext.Type is INamedType namedType &&
+                completionContext.Type is IHasName namedType &&
                 definition is ITypeDefinition typeDef)
             {
-                if (_runtimeTypes.TryGetValue(typeDef.Name, out Type? type))
+                if (typeDef.RuntimeType == typeof(object) &&
+                    _runtimeTypes.TryGetValue(typeDef.Name, out Type? type))
                 {
                     typeDef.RuntimeType = type;
                 }
-                _typeDefs.Add(namedType.Name, typeDef);
+
+                typeDef.Name = namedType.Name;
+                _typeDefs.Add(typeDef);
             }
         }
 
         public override void OnAfterCompleteTypeNames()
         {
-            var resolvers = new Dictionary<NameString, FieldResolverConfig>();
-            var members = new Dictionary<NameString, MemberInfo>();
-            var values = new Dictionary<NameString, (object, MemberInfo)>();
-            var valuesToName = new Dictionary<string, (object, MemberInfo)>();
+            var context = new CompletionContext(_typeDefs);
 
-            ApplyResolver(resolvers, members);
-            ApplySourceMembers(members, values, valuesToName);
+            ApplyResolver(context);
+            ApplySourceMembers(context);
         }
 
-        private void ApplyResolver(
-            Dictionary<NameString, FieldResolverConfig> resolvers,
-            Dictionary<NameString, MemberInfo> members)
+        private void ApplyResolver(CompletionContext context)
         {
             var completed = 0;
 
-            foreach (ObjectTypeDefinition objectTypeDef in
-                _typeDefs.Values.OfType<ObjectTypeDefinition>())
+            foreach (ObjectTypeDefinition objectTypeDef in _typeDefs.OfType<ObjectTypeDefinition>())
             {
                 if (_configs.Contains(objectTypeDef.Name))
                 {
                     foreach (FieldResolverConfig config in _configs[objectTypeDef.Name])
                     {
-                        resolvers[config.Field.FieldName] = config;
+                        context.resolvers[config.Field.FieldName] = config;
                     }
 
                     foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                     {
-                        if (resolvers.TryGetValue(field.Name, out FieldResolverConfig config))
+                        if (context.resolvers.TryGetValue(field.Name, out FieldResolverConfig conf))
                         {
-                            field.Resolvers = config.ToFieldResolverDelegates();
-                            TrySetRuntimeType(field, config);
+                            field.Resolvers = conf.ToFieldResolverDelegates();
+                            TrySetRuntimeType(context, field, conf);
                             completed++;
                         }
                     }
 
-                    resolvers.Clear();
+                    context.resolvers.Clear();
                 }
 
                 if (completed < objectTypeDef.Fields.Count)
                 {
-                    ApplyResolverTypes(objectTypeDef, members);
+                    ApplyResolverTypes(context, objectTypeDef);
                 }
 
-                members.Clear();
+                context.members.Clear();
             }
         }
 
         private void ApplyResolverTypes(
-            ObjectTypeDefinition objectTypeDef,
-            Dictionary<NameString, MemberInfo> members)
+            CompletionContext context,
+            ObjectTypeDefinition objectTypeDef)
         {
-            CollectResolverMembers(objectTypeDef.Name, members);
+            CollectResolverMembers(objectTypeDef.Name, context.members);
 
-            if (members.Count > 0)
+            if (context.members.Count > 0)
             {
                 foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                 {
                     if (!field.Resolvers.HasResolvers &&
-                        members.TryGetValue(field.Name, out MemberInfo? member))
+                        context.members.TryGetValue(field.Name, out MemberInfo? member))
                     {
                         field.ResolverMember = member;
 
@@ -143,37 +140,36 @@ namespace HotChocolate.Types.Interceptors
             }
         }
 
-        private void ApplySourceMembers(
-            Dictionary<NameString, MemberInfo> members,
-            Dictionary<NameString, (object, MemberInfo)> values,
-            Dictionary<string, (object, MemberInfo)> valuesToName)
+        private void ApplySourceMembers(CompletionContext context)
         {
-            var queue = new Queue<ITypeDefinition>(
-                _typeDefs.Values.Where(t => t.RuntimeType != typeof(object)));
-
-            while (queue.Count > 0)
+            foreach (ITypeDefinition definition in
+                _typeDefs.Where(t => t.RuntimeType != typeof(object)))
             {
-                switch (queue.Dequeue())
+                context.typesToAnalyze.Enqueue(definition);
+            }
+
+            while (context.typesToAnalyze.Count > 0)
+            {
+                switch (context.typesToAnalyze.Dequeue())
                 {
                     case ObjectTypeDefinition objectTypeDef:
-                        ApplyObjectSourceMembers(objectTypeDef, members, queue);
+                        ApplyObjectSourceMembers(context, objectTypeDef);
                         break;
 
                     case InputObjectTypeDefinition inputTypeDef:
-                        ApplyInputSourceMembers(inputTypeDef, members, queue);
+                        ApplyInputSourceMembers(context, inputTypeDef);
                         break;
 
                     case EnumTypeDefinition enumTypeDef:
-                        ApplyEnumSourceMembers(enumTypeDef, values, valuesToName);
+                        ApplyEnumSourceMembers(context, enumTypeDef);
                         break;
                 }
             }
         }
 
         private void ApplyObjectSourceMembers(
-            ObjectTypeDefinition objectTypeDef,
-            Dictionary<NameString, MemberInfo> members,
-            Queue<ITypeDefinition> typesToAnalyze)
+            CompletionContext context,
+            ObjectTypeDefinition objectTypeDef)
         {
             var initialized = false;
 
@@ -181,11 +177,12 @@ namespace HotChocolate.Types.Interceptors
             {
                 if (!initialized && field.Member is null)
                 {
-                    CollectSourceMembers(objectTypeDef.RuntimeType, members);
+                    CollectSourceMembers(objectTypeDef.RuntimeType, context.members);
                     initialized = true;
                 }
 
-                if (field.Member is null && members.TryGetValue(field.Name, out MemberInfo? member))
+                if (field.Member is null &&
+                    context.members.TryGetValue(field.Name, out MemberInfo? member))
                 {
                     field.Member = member;
                 }
@@ -198,18 +195,17 @@ namespace HotChocolate.Types.Interceptors
 
                     if (TrySetRuntimeTypeFromMember(field.Type, field.Member) is { } updated)
                     {
-                        typesToAnalyze.Enqueue(updated);
+                        context.typesToAnalyze.Enqueue(updated);
                     }
                 }
             }
 
-            members.Clear();
+            context.members.Clear();
         }
 
         private void ApplyInputSourceMembers(
-            InputObjectTypeDefinition inputTypeDef,
-            Dictionary<NameString, MemberInfo> members,
-            Queue<ITypeDefinition> typesToAnalyze)
+            CompletionContext context,
+            InputObjectTypeDefinition inputTypeDef)
         {
             var initialized = false;
 
@@ -272,9 +268,7 @@ namespace HotChocolate.Types.Interceptors
             values.Clear();
         }
 
-        private void CollectResolverMembers(
-            NameString typeName,
-            Dictionary<NameString, MemberInfo> members)
+        private void CollectResolverMembers(CompletionContext context, NameString typeName)
         {
             if (!_resolverTypes.Contains(typeName))
             {
@@ -283,59 +277,69 @@ namespace HotChocolate.Types.Interceptors
 
             foreach (var resolverType in _resolverTypes[typeName])
             {
-                CollectSourceMembers(resolverType, members);
+                CollectSourceMembers(context, resolverType);
             }
         }
 
-        private void CollectSourceMembers(
-            Type runtimeType,
-            Dictionary<NameString, MemberInfo> members)
+        private void CollectSourceMembers(CompletionContext context, Type runtimeType)
         {
             foreach (var member in _typeInspector.GetMembers(runtimeType, false))
             {
                 NameString name = _naming.GetMemberName(member, MemberKind.ObjectField);
-                members[name] = member;
+                context.members[name] = member;
             }
         }
 
-        private void TrySetRuntimeType(ObjectFieldDefinition field, FieldResolverConfig config)
+        private void TrySetRuntimeType(
+            CompletionContext context,
+            ObjectFieldDefinition field,
+            FieldResolverConfig config)
         {
             if (config.ResultType != typeof(object) &&
                 field.Type is not null &&
-                _typeReferenceResolver.TryGetType(field.Type, out IType? type) &&
-                type.NamedType() is IHasTypeDefinition definition &&
-                definition.Definition is { } typeDef &&
-                typeDef.RuntimeType == typeof(object))
+                _typeReferenceResolver.TryGetType(field.Type, out IType? type))
             {
-                typeDef.RuntimeType = Unwrap(config.ResultType, type);
+                foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
+                {
+                    if (typeDef.RuntimeType == typeof(object))
+                    {
+                        typeDef.RuntimeType = Unwrap(config.ResultType, type);
+                    }
+                }
             }
         }
 
-        private ITypeDefinition? TrySetRuntimeTypeFromMember(
+        private IReadOnlyCollection<ITypeDefinition>? TrySetRuntimeTypeFromMember(
+            CompletionContext context,
             ITypeReference? typeRef,
             MemberInfo member)
         {
-            if (typeRef is not null &&
-                _typeReferenceResolver.TryGetType(typeRef, out IType? type) &&
-                type.NamedType() is IHasTypeDefinition definition &&
-                definition.Definition is { } typeDef &&
-                typeDef.RuntimeType == typeof(object))
+            if (typeRef is not null && _typeReferenceResolver.TryGetType(typeRef, out IType? type))
             {
-                typeDef.RuntimeType = Unwrap(_typeInspector.GetReturnType(member), type);
-                return typeDef;
+                List<ITypeDefinition>? updated = null;
+                Type? runtimeType = null;
+
+                foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
+                {
+                    if (typeDef.RuntimeType == typeof(object))
+                    {
+                        updated ??= new List<ITypeDefinition>();
+                        runtimeType ??= Unwrap(_typeInspector.GetReturnType(member), type);
+                        typeDef.RuntimeType = runtimeType;
+                        updated.Add(typeDef);
+                    }
+                }
+
+                return updated;
             }
 
             return null;
         }
 
-        private Type? Unwrap(
-            Type resultType,
-            IType type)
+        private Type? Unwrap(Type resultType, IType type)
             => Unwrap(_context.TypeInspector.GetType(resultType), type);
 
-        private Type? Unwrap(
-            IExtendedType extendedType,
-            IType type)
+        private Type? Unwrap(IExtendedType extendedType, IType type)
         {
             if (type.IsNonNullType())
             {
@@ -355,6 +359,21 @@ namespace HotChocolate.Types.Interceptors
             return extendedType.IsNullable
                 ? _context.TypeInspector.ChangeNullability(extendedType, false).Source
                 : extendedType.Source;
+        }
+
+        private class CompletionContext
+        {
+            public Dictionary<NameString, FieldResolverConfig> resolvers = new();
+            public Dictionary<NameString, MemberInfo> members = new();
+            public Dictionary<NameString, (object, MemberInfo)> values = new();
+            public Dictionary<string, (object, MemberInfo)> valuesToName = new();
+            public Queue<ITypeDefinition> typesToAnalyze = new();
+            public ILookup<NameString, ITypeDefinition> TypeDefs;
+
+            public CompletionContext(List<ITypeDefinition> typeDefs)
+            {
+                TypeDefs = typeDefs.ToLookup(t => t.Name);
+            }
         }
     }
 }

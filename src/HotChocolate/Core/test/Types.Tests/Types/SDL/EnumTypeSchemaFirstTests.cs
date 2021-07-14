@@ -101,7 +101,7 @@ namespace HotChocolate.Types.SDL
                 }
 
                 enum Greetings {
-                    GOOD @Bind(to: ""GoodMorning"")
+                    GOOD @bind(to: ""GoodMorning"")
                 }";
 
             // act

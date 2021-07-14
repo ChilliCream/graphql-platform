@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Factories
         public static string? GetBindingValue(this Language.IHasDirectives syntaxNode)
         {
             DirectiveNode? directive = syntaxNode.Directives.FirstOrDefault(
-                t => t.Name.Value == WellKnownDirectives.Deprecated);
+                t => t.Name.Value == Name);
 
             if (directive is null)
             {
