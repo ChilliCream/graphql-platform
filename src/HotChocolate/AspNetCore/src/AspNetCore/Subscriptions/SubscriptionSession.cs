@@ -34,7 +34,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             _session = session ??
                 throw new ArgumentNullException(nameof(session));
-            _sessionInterceptor = sessionInterceptor;
+            _sessionInterceptor = sessionInterceptor ??
+                throw new ArgumentNullException(nameof(sessionInterceptor));
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
             _responseStream = responseStream ??
