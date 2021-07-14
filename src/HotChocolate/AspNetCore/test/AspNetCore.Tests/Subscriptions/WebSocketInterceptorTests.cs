@@ -18,7 +18,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
         }
 
-
         [Fact]
         public Task Send_ShouldTrigger_OnConnectAsync()
         {
