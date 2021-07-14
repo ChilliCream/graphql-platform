@@ -21,6 +21,7 @@ namespace HotChocolate.Types.Factories
             var typeDefinition = new InputObjectTypeDefinition(
                 node.Name.Value,
                 node.Description?.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             if (preserveSyntaxNodes)
             {
@@ -39,6 +40,7 @@ namespace HotChocolate.Types.Factories
             var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
             var typeDefinition = new InputObjectTypeDefinition(node.Name.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
@@ -59,6 +61,7 @@ namespace HotChocolate.Types.Factories
                     inputField.Description?.Value,
                     TypeReference.Create(inputField.Type),
                     inputField.DefaultValue);
+                inputFieldDefinition.BindTo = inputField.GetBindingValue();
 
                 if (preserveSyntaxNodes)
                 {

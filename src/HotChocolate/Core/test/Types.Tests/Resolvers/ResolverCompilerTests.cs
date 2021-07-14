@@ -1442,7 +1442,7 @@ namespace HotChocolate.Resolvers
                 [ScopedState]
                 string? foo = default) => foo;
 
-            public string? GetScopedStateNullable(
+            public string GetScopedStateNullable(
                 [ScopedState]
                 string? foo) => foo!;
 

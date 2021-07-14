@@ -21,7 +21,7 @@ namespace HotChocolate.Configuration
                     d.Field("a").Type<StringType>();
                     d.Field("b").Type<StringType>();
                 })
-                .AddResolver<TestResolverCollectionA>()
+                .AddResolver<TestResolverCollectionA>("TestObjectA")
                 .Create();
 
             // assert
@@ -46,7 +46,7 @@ namespace HotChocolate.Configuration
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<DummyQuery>()
                 .AddDocumentFromString(source)
-                .AddResolver<TestObjectB>("Dummy")
+                .BindRuntimeType<TestObjectB>("Dummy")
                 .Create();
 
             // assert

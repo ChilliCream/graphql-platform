@@ -189,14 +189,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 ObjectFieldDefinition? targetField = field switch
                 {
-                    { BindTo: { Type: ObjectFieldBindingType.Property } bindTo } =>
+                    { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name)),
-                    { BindTo: { Type: ObjectFieldBindingType.Field } bindTo } =>
+                    { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
                     _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))
                 };
 
-                var replaceField = field.BindTo?.Replace ?? false;
+                var replaceField = field.BindToField?.Replace ?? false;
                 var removeField = field.Ignore;
 
                 // we skip fields that have an incompatible parent.

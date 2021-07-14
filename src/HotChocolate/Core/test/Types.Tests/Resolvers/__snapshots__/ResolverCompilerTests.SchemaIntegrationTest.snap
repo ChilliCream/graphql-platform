@@ -4,16 +4,18 @@
 
 type Resolvers {
   claimsPrincipal: Boolean!
-  globalState: String
+  globalState: String!
   globalStateNullable: String!
-  globalStateWithDefault: String!
+  globalStateWithDefault: String
   globalStateWithDefaultAbc: String!
   globalStateWithKey: String!
   localState: String!
-  localStateWithDefault: String!
+  localStateWithDefault: String
   localStateWithDefaultAbc: String!
   localStateWithKey: String!
+  nullableClaimsPrincipal: Boolean!
   optionalStringResolverWithArg(a: String!): String
+  path: Boolean!
   resolverWithCancellationToken: String!
   resolverWithDocument: Boolean!
   resolverWithFieldSelection: Boolean!
@@ -22,14 +24,13 @@ type Resolvers {
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!
   resolverWithOutputField: Boolean!
-  resolverWithPath: Boolean!
   resolverWithResolverContext: Boolean!
   resolverWithSchema: Boolean!
   resolverWithSelection: Boolean!
   resolverWithService: Boolean!
   scopedState: String!
   scopedStateNullable: String!
-  scopedStateWithDefault: String!
+  scopedStateWithDefault: String
   scopedStateWithDefaultAbc: String!
   scopedStateWithKey: String!
   setGlobalState: String!

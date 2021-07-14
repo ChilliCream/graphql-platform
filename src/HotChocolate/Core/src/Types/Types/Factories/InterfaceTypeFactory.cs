@@ -16,6 +16,7 @@ namespace HotChocolate.Types.Factories
             var typeDefinition = new InterfaceTypeDefinition(
                 node.Name.Value,
                 node.Description?.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             if (preserveSyntaxNodes)
             {
@@ -39,6 +40,7 @@ namespace HotChocolate.Types.Factories
             var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
             var typeDefinition = new InterfaceTypeDefinition(node.Name.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             foreach (NamedTypeNode typeNode in node.Interfaces)
             {
@@ -63,6 +65,7 @@ namespace HotChocolate.Types.Factories
                     field.Name.Value,
                     field.Description?.Value,
                     TypeReference.Create(field.Type));
+                fieldDefinition.BindTo = field.GetBindingValue();
 
                 if (preserveSyntaxNodes)
                 {
@@ -94,6 +97,7 @@ namespace HotChocolate.Types.Factories
                     argument.Description?.Value,
                     TypeReference.Create(argument.Type),
                     argument.DefaultValue);
+                argumentDefinition.BindTo = argument.GetBindingValue();
 
                 if (preserveSyntaxNodes)
                 {

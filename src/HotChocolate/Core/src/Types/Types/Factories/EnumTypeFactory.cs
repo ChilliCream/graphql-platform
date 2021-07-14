@@ -17,6 +17,7 @@ namespace HotChocolate.Types.Factories
             var typeDefinition = new EnumTypeDefinition(
                 node.Name.Value,
                 node.Description?.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             if (preserveSyntaxNodes)
             {
@@ -35,6 +36,7 @@ namespace HotChocolate.Types.Factories
             var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
             var typeDefinition = new EnumTypeDefinition(node.Name.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             SdlToTypeSystemHelper.AddDirectives(typeDefinition, node);
 
@@ -54,6 +56,7 @@ namespace HotChocolate.Types.Factories
                     value.Name.Value,
                     value.Description?.Value,
                     value.Name.Value);
+                valueDefinition.BindTo = value.GetBindingValue();
 
                 if (preserveSyntaxNodes)
                 {

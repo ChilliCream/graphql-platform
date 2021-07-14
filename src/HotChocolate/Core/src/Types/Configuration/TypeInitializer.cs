@@ -44,11 +44,14 @@ namespace HotChocolate.Configuration
             _isOfType = isOfType;
             _getTypeKind = getTypeKind ??
                 throw new ArgumentNullException(nameof(_getTypeKind));
+
             _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
                 _typeInspector, _typeRegistry, _typeLookup);
+
+            _interceptor.InitializeContext(descriptorContext, _typeReferenceResolver);
         }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;

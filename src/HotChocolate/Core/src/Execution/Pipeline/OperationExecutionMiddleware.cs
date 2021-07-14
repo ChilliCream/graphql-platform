@@ -117,7 +117,7 @@ namespace HotChocolate.Execution.Pipeline
                     }
 
                     if(operationContext.Execution.DeferredWork.HasWork &&
-                       context.Result is IQueryResult result)
+                        context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership
                         // of the life time handling and return the operation context

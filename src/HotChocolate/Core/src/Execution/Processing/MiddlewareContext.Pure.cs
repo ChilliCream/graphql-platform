@@ -19,8 +19,6 @@ namespace HotChocolate.Execution.Processing
             private Path _path = default!;
             private object? _parent;
 
-
-
             public PureResolverContext(MiddlewareContext parentContext)
             {
                 _parentContext = parentContext;

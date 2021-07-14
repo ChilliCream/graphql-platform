@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -10,6 +11,7 @@ namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
+        private IReadOnlyCollection<TypeInterceptor> _typeInterceptors;
         private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
         private IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
@@ -19,6 +21,7 @@ namespace HotChocolate.Configuration
 
         public AggregateTypeInterceptor()
         {
+            _typeInterceptors = Array.Empty<TypeInterceptor>();
             _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
@@ -29,6 +32,7 @@ namespace HotChocolate.Configuration
 
         public void SetInterceptors(IReadOnlyCollection<object> interceptors)
         {
+            _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToList();
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
@@ -40,6 +44,16 @@ namespace HotChocolate.Configuration
         public override bool TriggerAggregations => _triggerAggregations;
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        internal override void InitializeContext(
+            IDescriptorContext context,
+            TypeReferenceResolver typeReferenceResolver)
+        {
+            foreach (TypeInterceptor interceptor in _typeInterceptors)
+            {
+                interceptor.InitializeContext(context, typeReferenceResolver);
+            }
+        }
 
         public override void OnBeforeDiscoverTypes()
         {

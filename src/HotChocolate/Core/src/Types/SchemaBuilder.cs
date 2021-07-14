@@ -11,18 +11,20 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public partial class SchemaBuilder : ISchemaBuilder
     {
         private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
 
-        private readonly Dictionary<string, object> _contextData = new();
+        private readonly Dictionary<string, object?> _contextData = new();
         private readonly List<FieldMiddleware> _globalComponents = new();
         private readonly List<LoadSchemaDocument> _documents = new();
         private readonly List<CreateRef> _types = new();
         private readonly Dictionary<OperationType, CreateRef> _operations = new();
-        private readonly Dictionary<(Type, string), List<CreateConvention>> _conventions = new();
+        private readonly Dictionary<(Type, string?), List<CreateConvention>> _conventions = new();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes = new();
         private readonly List<object> _schemaInterceptors = new();
         private readonly List<object> _typeInterceptors = new()
@@ -32,9 +34,9 @@ namespace HotChocolate
             typeof(CostTypeInterceptor)
         };
         private SchemaOptions _options = new();
-        private IsOfTypeFallback _isOfType;
-        private IServiceProvider _services;
-        private CreateRef _schema;
+        private IsOfTypeFallback? _isOfType;
+        private IServiceProvider? _services;
+        private CreateRef? _schema;
 
         public IDictionary<string, object?> ContextData => _contextData;
 
@@ -91,10 +93,12 @@ namespace HotChocolate
 
         public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
         {
-            if (options != null)
+            if (options is null)
             {
-                _options = SchemaOptions.FromOptions(options);
+                throw new ArgumentNullException(nameof(options));
             }
+
+            _options = SchemaOptions.FromOptions(options);
             return this;
         }
 
@@ -146,7 +150,7 @@ namespace HotChocolate
         public ISchemaBuilder TryAddConvention(
             Type convention,
             CreateConvention factory,
-            string scope = null)
+            string? scope = null)
         {
             if (convention is null)
             {
@@ -169,14 +173,16 @@ namespace HotChocolate
         public ISchemaBuilder AddConvention(
             Type convention,
             CreateConvention factory,
-            string scope = null)
+            string? scope = null)
         {
             if (convention is null)
             {
                 throw new ArgumentNullException(nameof(convention));
             }
 
-            if(!_conventions.TryGetValue((convention, scope), out List<CreateConvention> factories))
+            if(!_conventions.TryGetValue(
+                (convention, scope),
+                out List<CreateConvention>? factories))
             {
                 factories = new List<CreateConvention>();
                 _conventions[(convention, scope)] = factories;
@@ -322,7 +328,7 @@ namespace HotChocolate
 
         public ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType)
         {
-            _isOfType = isOfType;
+            _isOfType = isOfType ?? throw new ArgumentNullException(nameof(isOfType));
             return this;
         }
 
@@ -338,13 +344,13 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder SetContextData(string key, object value)
+        public ISchemaBuilder SetContextData(string key, object? value)
         {
             _contextData[key] = value;
             return this;
         }
 
-        public ISchemaBuilder SetContextData(string key, Func<object, object> update)
+        public ISchemaBuilder SetContextData(string key, Func<object?, object?> update)
         {
             _contextData.TryGetValue(key, out var value);
             _contextData[key] = update(value);

@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Defines a binding to another object field.
         /// </summary>
-        public ObjectFieldBinding? BindTo { get; set; }
+        public ObjectFieldBinding? BindToField { get; set; }
 
         /// <summary>
         /// The member that represents the resolver.
@@ -173,7 +173,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.SourceType = SourceType;
             target.ResolverType = ResolverType;
             target.Member = Member;
-            target.BindTo = BindTo;
+            target.BindToField = BindToField;
             target.ResolverMember = ResolverMember;
             target.Expression = Expression;
             target.ResultType = ResultType;

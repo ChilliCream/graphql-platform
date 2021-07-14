@@ -785,7 +785,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolver_Resolver_ResolverIsSet()
+        public async Task AddResolver_Resolver_ResolverIsSet()
         {
             // arrange
             var queryType = new ObjectType(t => t
@@ -793,21 +793,20 @@ namespace HotChocolate
                 .Field("foo")
                 .Type<StringType>());
 
-            FieldResolverDelegate resolverDelegate =
-                c => new ValueTask<object>(null);
-            var resolverDescriptor =
-                new FieldResolver("TestMe", "foo", resolverDelegate);
+            ValueTask<object> ResolverDelegate(IResolverContext c) => new("test");
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(queryType)
-                .AddRootResolver(resolverDescriptor)
+                .AddResolver("TestMe", "foo", ResolverDelegate)
                 .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("TestMe");
             Assert.NotNull(type);
-            Assert.Equal(resolverDelegate, type.Fields["foo"].Resolver);
+
+            var context = new Mock<IResolverContext>();
+            Assert.Equal("test", await type.Fields["foo"].Resolver(context.Object));
         }
 
         [Fact]
@@ -829,11 +828,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilderExtensions.BindClrType<int, StringType>(null);
+            void Action() => SchemaBuilderExtensions.BindClrType<int, StringType>(null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -841,11 +839,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(null, typeof(StringType));
+            void Action() => SchemaBuilder.New().BindRuntimeType(null, typeof(StringType));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -853,11 +850,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(typeof(string), null);
+            void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -865,11 +861,10 @@ namespace HotChocolate
         {
             // arrange
             // act
-            Action action = () =>
-                SchemaBuilder.New().BindClrType(typeof(string), typeof(string));
+            void Action() => SchemaBuilder.New().BindRuntimeType(typeof(string), typeof(string));
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]

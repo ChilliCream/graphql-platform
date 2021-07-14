@@ -6,16 +6,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// Represents a type definition.
     /// </summary>
     public interface ITypeDefinition
-        : IHasSyntaxNode
+        : IDefinition
+        , IHasSyntaxNode
         , IHasRuntimeType
         , IHasDirectiveDefinition
         , IHasExtendsType
     {
-        /// <summary>
-        /// Gets or sets the name the type shall have.
-        /// </summary>
-        NameString Name { get; set; }
-
         /// <summary>
         /// Gets or sets the runtime type.
         /// The runtime type defines of which value the type is when it

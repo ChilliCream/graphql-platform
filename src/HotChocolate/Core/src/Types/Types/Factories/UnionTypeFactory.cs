@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Factories
             var typeDefinition = new UnionTypeDefinition(
                 node.Name.Value,
                 node.Description?.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             if (preserveSyntaxNodes)
             {
@@ -34,6 +35,7 @@ namespace HotChocolate.Types.Factories
         public UnionTypeExtension Create(IDescriptorContext context, UnionTypeExtensionNode node)
         {
             var typeDefinition = new UnionTypeDefinition(node.Name.Value);
+            typeDefinition.BindTo = node.GetBindingValue();
 
             foreach (NamedTypeNode namedType in node.Types)
             {

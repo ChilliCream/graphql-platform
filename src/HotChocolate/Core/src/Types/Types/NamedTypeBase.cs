@@ -20,16 +20,16 @@ namespace HotChocolate.Types
         , IHasDirectives
         , IHasRuntimeType
         , IHasTypeIdentity
-        where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
+        , IHasTypeDefinition
+        where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode, ITypeDefinition
     {
         private IDirectiveCollection? _directives;
-        private Type? _clrType;
+        private Type? _runtimeType;
         private ISyntaxNode? _syntaxNode;
 
-        /// <summary>
-        /// The associated syntax node from the GraphQL SDL.
-        /// </summary>
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
+
+        ITypeDefinition? IHasTypeDefinition.Definition => Definition;
 
         /// <inheritdoc />
         public abstract TypeKind Kind { get; }
@@ -52,11 +52,11 @@ namespace HotChocolate.Types
         {
             get
             {
-                if (_clrType is null)
+                if (_runtimeType is null)
                 {
                     throw new TypeInitializationException();
                 }
-                return _clrType;
+                return _runtimeType;
             }
         }
 
@@ -76,9 +76,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            _clrType = definition is IHasRuntimeType clr && clr.RuntimeType != GetType()
-                ? clr.RuntimeType
-                : typeof(object);
+            UpdateRuntimeType(definition);
 
             context.RegisterDependencyRange(
                 definition.GetDirectives().Select(t => t.Reference));
@@ -91,10 +89,12 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
+            UpdateRuntimeType(definition);
+
             _syntaxNode = definition.SyntaxNode;
 
-            _directives =
-                DirectiveCollection.CreateAndComplete(context,this, definition.GetDirectives());
+            _directives = DirectiveCollection.CreateAndComplete(
+                context, this, definition.GetDirectives());
         }
 
         /// <summary>
@@ -122,5 +122,8 @@ namespace HotChocolate.Types
                 TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
             }
         }
+
+        private void UpdateRuntimeType(ITypeDefinition definition)
+            => _runtimeType = definition.RuntimeType ?? typeof(object);
     }
 }
