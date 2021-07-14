@@ -671,33 +671,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Include_TypeWithOneField_ContainsThisField()
-        {
-            // arrange
-            // act
-            ObjectType<object> fooType =
-                CreateType(new ObjectType<object>(d => d
-                    .Include<Foo>()));
-
-            // assert
-            Assert.True(fooType.Fields.ContainsField("description"));
-        }
-
-        [Fact]
-        public void Include_TypeWithOneField_And_Update_FieldDefinition()
-        {
-            // arrange
-            // act
-            ObjectType<object> fooType =
-                CreateType(new ObjectType<object>(d => d
-                    .Include<Foo>()
-                    .Field<Foo>(t => t.Description).Name("desc")));
-
-            // assert
-            Assert.True(fooType.Fields.ContainsField("desc"));
-        }
-
-        [Fact]
         public void NonNullAttribute_StringIsRewritten_NonNullStringType()
         {
             // arrange

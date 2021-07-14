@@ -166,18 +166,6 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        [Obsolete("Use ObjectTypeExtension API.")]
-        public IObjectTypeDescriptor Include<TResolver>()
-        {
-            if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
-            {
-                throw new ArgumentException(ObjectTypeDescriptor_Resolver_SchemaType);
-            }
-
-            ResolverTypes.Add(typeof(TResolver));
-            return this;
-        }
-
         public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
         {
             Definition.IsOfType = isOfType

@@ -89,12 +89,12 @@ namespace HotChocolate.Types.Interceptors
                 {
                     foreach (FieldResolverConfig config in _configs[objectTypeDef.Name])
                     {
-                        context.resolvers[config.Field.FieldName] = config;
+                        context.Resolvers[config.Field.FieldName] = config;
                     }
 
                     foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                     {
-                        if (context.resolvers.TryGetValue(field.Name, out FieldResolverConfig conf))
+                        if (context.Resolvers.TryGetValue(field.Name, out FieldResolverConfig conf))
                         {
                             field.Resolvers = conf.ToFieldResolverDelegates();
                             TrySetRuntimeType(context, field, conf);
@@ -102,7 +102,7 @@ namespace HotChocolate.Types.Interceptors
                         }
                     }
 
-                    context.resolvers.Clear();
+                    context.Resolvers.Clear();
                 }
 
                 if (completed < objectTypeDef.Fields.Count)
@@ -110,7 +110,7 @@ namespace HotChocolate.Types.Interceptors
                     ApplyResolverTypes(context, objectTypeDef);
                 }
 
-                context.members.Clear();
+                context.Members.Clear();
             }
         }
 
@@ -118,14 +118,14 @@ namespace HotChocolate.Types.Interceptors
             CompletionContext context,
             ObjectTypeDefinition objectTypeDef)
         {
-            CollectResolverMembers(objectTypeDef.Name, context.members);
+            CollectResolverMembers(context, objectTypeDef.Name);
 
-            if (context.members.Count > 0)
+            if (context.Members.Count > 0)
             {
                 foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                 {
                     if (!field.Resolvers.HasResolvers &&
-                        context.members.TryGetValue(field.Name, out MemberInfo? member))
+                        context.Members.TryGetValue(field.Name, out MemberInfo? member))
                     {
                         field.ResolverMember = member;
 
@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Interceptors
                             objectTypeDef.RuntimeType,
                             resolverType: member.ReflectedType);
 
-                        TrySetRuntimeTypeFromMember(field.Type, member);
+                        TrySetRuntimeTypeFromMember(context, field.Type, member);
                     }
                 }
             }
@@ -145,12 +145,12 @@ namespace HotChocolate.Types.Interceptors
             foreach (ITypeDefinition definition in
                 _typeDefs.Where(t => t.RuntimeType != typeof(object)))
             {
-                context.typesToAnalyze.Enqueue(definition);
+                context.TypesToAnalyze.Enqueue(definition);
             }
 
-            while (context.typesToAnalyze.Count > 0)
+            while (context.TypesToAnalyze.Count > 0)
             {
-                switch (context.typesToAnalyze.Dequeue())
+                switch (context.TypesToAnalyze.Dequeue())
                 {
                     case ObjectTypeDefinition objectTypeDef:
                         ApplyObjectSourceMembers(context, objectTypeDef);
@@ -177,12 +177,12 @@ namespace HotChocolate.Types.Interceptors
             {
                 if (!initialized && field.Member is null)
                 {
-                    CollectSourceMembers(objectTypeDef.RuntimeType, context.members);
+                    CollectSourceMembers(context, objectTypeDef.RuntimeType);
                     initialized = true;
                 }
 
                 if (field.Member is null &&
-                    context.members.TryGetValue(field.Name, out MemberInfo? member))
+                    context.Members.TryGetValue(field.Name, out MemberInfo? member))
                 {
                     field.Member = member;
                 }
@@ -193,14 +193,17 @@ namespace HotChocolate.Types.Interceptors
                         field.Member,
                         objectTypeDef.RuntimeType);
 
-                    if (TrySetRuntimeTypeFromMember(field.Type, field.Member) is { } updated)
+                    if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } upd)
                     {
-                        context.typesToAnalyze.Enqueue(updated);
+                        foreach (ITypeDefinition updated in upd)
+                        {
+                            context.TypesToAnalyze.Enqueue(updated);
+                        }
                     }
                 }
             }
 
-            context.members.Clear();
+            context.Members.Clear();
         }
 
         private void ApplyInputSourceMembers(
@@ -213,30 +216,32 @@ namespace HotChocolate.Types.Interceptors
             {
                 if (!initialized && field.Property is null)
                 {
-                    CollectSourceMembers(inputTypeDef.RuntimeType, members);
+                    CollectSourceMembers(context, inputTypeDef.RuntimeType);
                     initialized = true;
                 }
 
                 if (field.Property is null &&
-                    members.TryGetValue(field.Name, out MemberInfo? member) &&
+                    context.Members.TryGetValue(field.Name, out MemberInfo? member) &&
                     member is PropertyInfo property)
                 {
                     field.Property = property;
 
-                    if (TrySetRuntimeTypeFromMember(field.Type, property) is { } updated)
+                    if (TrySetRuntimeTypeFromMember(context, field.Type, property) is { } upd)
                     {
-                        typesToAnalyze.Enqueue(updated);
+                        foreach (ITypeDefinition updated in upd)
+                        {
+                            context.TypesToAnalyze.Enqueue(updated);
+                        }
                     }
                 }
             }
 
-            members.Clear();
+            context.Members.Clear();
         }
 
         private void ApplyEnumSourceMembers(
-            EnumTypeDefinition enumTypeDef,
-            Dictionary<NameString, (object, MemberInfo)> values,
-            Dictionary<string, (object, MemberInfo)> valuesToName)
+            CompletionContext context,
+            EnumTypeDefinition enumTypeDef)
         {
             var initialized = false;
 
@@ -248,16 +253,18 @@ namespace HotChocolate.Types.Interceptors
                     {
                         NameString name = _naming.GetEnumValueName(value);
                         MemberInfo? member = _typeInspector.GetEnumValueMember(enumTypeDef);
-                        values.Add(name, (value, member!));
-                        valuesToName.Add(value.ToString()!, (value, member!));
+                        context.Values.Add(name, (value, member!));
+                        context.ValuesToName.Add(value.ToString()!, (value, member!));
                     }
                     initialized = true;
                 }
 
                 (object Value, MemberInfo Member) info;
                 if (enumValue.Member is null &&
-                    (enumValue.BindTo is null && values.TryGetValue(enumValue.Name, out info) ||
-                     enumValue.BindTo is { } b && valuesToName.TryGetValue(b, out info)))
+                    (enumValue.BindTo is null &&
+                        context.Values.TryGetValue(enumValue.Name, out info) ||
+                     enumValue.BindTo is { } b &&
+                        context.ValuesToName.TryGetValue(b, out info)))
                 {
                     enumValue.RuntimeValue = info.Value;
                     enumValue.Member = info.Member;
@@ -265,7 +272,8 @@ namespace HotChocolate.Types.Interceptors
 
             }
 
-            values.Clear();
+            context.Values.Clear();
+            context.ValuesToName.Clear();
         }
 
         private void CollectResolverMembers(CompletionContext context, NameString typeName)
@@ -286,7 +294,7 @@ namespace HotChocolate.Types.Interceptors
             foreach (var member in _typeInspector.GetMembers(runtimeType, false))
             {
                 NameString name = _naming.GetMemberName(member, MemberKind.ObjectField);
-                context.members[name] = member;
+                context.Members[name] = member;
             }
         }
 
@@ -363,12 +371,12 @@ namespace HotChocolate.Types.Interceptors
 
         private class CompletionContext
         {
-            public Dictionary<NameString, FieldResolverConfig> resolvers = new();
-            public Dictionary<NameString, MemberInfo> members = new();
-            public Dictionary<NameString, (object, MemberInfo)> values = new();
-            public Dictionary<string, (object, MemberInfo)> valuesToName = new();
-            public Queue<ITypeDefinition> typesToAnalyze = new();
-            public ILookup<NameString, ITypeDefinition> TypeDefs;
+            public readonly Dictionary<NameString, FieldResolverConfig> Resolvers = new();
+            public readonly Dictionary<NameString, MemberInfo> Members = new();
+            public readonly Dictionary<NameString, (object, MemberInfo)> Values = new();
+            public readonly Dictionary<string, (object, MemberInfo)> ValuesToName = new();
+            public readonly Queue<ITypeDefinition> TypesToAnalyze = new();
+            public readonly ILookup<NameString, ITypeDefinition> TypeDefs;
 
             public CompletionContext(List<ITypeDefinition> typeDefs)
             {

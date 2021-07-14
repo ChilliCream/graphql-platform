@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;

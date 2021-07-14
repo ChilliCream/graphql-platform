@@ -229,7 +229,7 @@ namespace HotChocolate.Types
                         definition.SourceType ??
                         definition.Member?.ReflectedType ??
                         definition.Member?.DeclaringType ??
-                        definition.ResolverType!,
+                        typeof(object),
                         definition.ResolverType);
                 }
                 else if (definition.ResolverMember is not null)
@@ -239,7 +239,7 @@ namespace HotChocolate.Types
                         definition.SourceType ??
                         definition.Member?.ReflectedType ??
                         definition.Member?.DeclaringType ??
-                        definition.ResolverType!,
+                        typeof(object),
                         definition.ResolverType);
                 }
                 else if (definition.Member is not null)

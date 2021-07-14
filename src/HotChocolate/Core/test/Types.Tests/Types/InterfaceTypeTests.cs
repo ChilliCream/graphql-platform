@@ -117,14 +117,13 @@ namespace HotChocolate.Types
         {
             // arrange && act
             ISchema schema = SchemaBuilder.New()
-                .AddType<IType>()
+                .AddType<IFoo>()
                 .AddQueryType<FooImpl>()
                 .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("FooImpl");
-            Assert.Collection(type.Implements,
-                t => Assert.Equal("IFoo", t.Name));
+            Assert.Collection(type.Implements, t => Assert.Equal("IFoo", t.Name));
         }
 
         [Fact]

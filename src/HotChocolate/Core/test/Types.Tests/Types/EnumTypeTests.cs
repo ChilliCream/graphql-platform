@@ -66,7 +66,8 @@ namespace HotChocolate.Types
             ISchema schema = SchemaBuilder.New()
                 .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
-                    .DependsOn<StringType>())
+                    .DependsOn<StringType>()
+                    .Value("ABC"))
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -82,7 +83,8 @@ namespace HotChocolate.Types
             ISchema schema = SchemaBuilder.New()
                 .AddEnumType(d => d
                     .Name(dep => dep.Name + "Enum")
-                    .DependsOn(typeof(StringType)))
+                    .DependsOn(typeof(StringType))
+                    .Value("ABC"))
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -99,7 +101,7 @@ namespace HotChocolate.Types
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("bar")
                     .Location(DirectiveLocation.Enum)))
-                .AddEnumType(d => d.Directive(new DirectiveNode("bar")))
+                .AddEnumType(d => d.Name("Foo").Directive(new DirectiveNode("bar")).Value("ABC"))
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -116,7 +118,7 @@ namespace HotChocolate.Types
                 .AddDirectiveType(new DirectiveType<Bar>(d => d
                     .Name("bar")
                     .Location(DirectiveLocation.Enum)))
-                .AddEnumType(d => d.Directive<Bar>())
+                .AddEnumType(d => d.Name("Foo").Directive<Bar>().Value("ABC"))
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
