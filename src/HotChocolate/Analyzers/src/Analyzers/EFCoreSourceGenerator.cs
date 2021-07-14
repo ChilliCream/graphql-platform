@@ -7,6 +7,7 @@ using HotChocolate.Analyzers.Types;
 using HotChocolate.Analyzers.Types.EFCore;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using Humanizer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.Analyzers.TypeNames;
@@ -56,17 +57,42 @@ namespace HotChocolate.Analyzers
             EFCoreSettings settings,
             ISchema schema)
         {
-            foreach (ObjectType objectType in schema.Types
+            var @namespace = settings.Namespace!; // TODO: There's a warning here about namespace being nullable, but it's cuz the setting type has it nullable. What should it be? Neo4J generator does ! which seems wrong
+
+            var typeName = "AppDbContext";
+
+            var usePluralizedTableNames = true; // TODO: Grab from a @tableNamingConvention or something directive on Schema type.
+
+            ClassDeclarationSyntax dbContextClass =
+                ClassDeclaration(typeName)
+                    .AddGeneratedAttribute()
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword)); // TODO: Should it be partial?
+
+            var objectTypes = schema.Types
                 .OfType<ObjectType>()
                 .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
-                .ToList())
+                .ToList();
+
+            foreach (ObjectType objectType in objectTypes)
             {
-                GenerateModel(context, settings.Namespace, objectType); // TODO: There's a warning here about namespace being nullable, but it's cuz the setting type has it nullable. What should it be? Neo4J generator does ! which seems wrong
+                GenerateModel(
+                    context,
+                    usePluralizedTableNames : usePluralizedTableNames,
+                    dbContextClass,
+                    @namespace,
+                    objectType);
             }
+
+            // Generate DbContext class
+            context.AddClass(@namespace, "AppDbContext", dbContextClass);
         }
 
         private static void GenerateModel(
             GeneratorExecutionContext context,
+            bool usePluralizedTableNames,
+            ClassDeclarationSyntax dbContextClass,
             string @namespace,
             IObjectType objectType)
         {
@@ -74,6 +100,16 @@ namespace HotChocolate.Analyzers
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
             var modelName = typeNameDirective?.Name ?? objectType.Name.Value;
             var modelConfigurerName = $"{modelName}Configurer";
+
+            TableDirective? tableDirective =
+                objectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
+            JsonDirective? jsonDirective =
+                objectType.GetFirstDirective<JsonDirective>(JsonDirectiveType.NameConst);
+
+            var tableName = tableDirective is not null || jsonDirective is null
+                ? tableDirective?.Name ?? DeriveTableName(objectType.Name.Value, usePluralizedTableNames) // TODO: Use Humanizer or something I guess
+                : null;
+            var pluralizedTableName = tableName.Pluralize(inputIsKnownToBeSingular: false);
 
             ClassDeclarationSyntax modelDeclaration =
                 ClassDeclaration(modelName)
@@ -107,24 +143,45 @@ namespace HotChocolate.Analyzers
             }
 
             // Generate model and model configurer classes
-            context.AddClass(@namespace, modelName, modelDeclaration, _emptyUsings);
+            context.AddClass(@namespace, modelName, modelDeclaration);
             context.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
+
+            // Add it on to the DbContext
+            GenericNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
+            dbContextClass = dbContextClass.AddProperty(
+                pluralizedTableName,
+                dbSetType,
+                description: null,
+                setable: true);
         }
 
-        private static readonly UsingDirectiveSyntax[] _emptyUsings = Array.Empty<UsingDirectiveSyntax>();
+        private static string DeriveTableName(string objectTypeName, bool usePluralizedTableNames)
+        {
+            return objectTypeName + "s"; // TODO: Leverage Humanizer 
+        }
 
-        private static readonly QualifiedNameSyntax _msEfCoreQualifiedName = 
+        private static readonly QualifiedNameSyntax _msEfCoreQualifiedNameForNs = 
             QualifiedName(
                 IdentifierName("Microsoft"),
                 IdentifierName("EntityFrameworkCore"));
 
+        private static readonly QualifiedNameSyntax _msEfCoreQualifiedName =
+            QualifiedName(
+                AliasQualifiedName(
+                    IdentifierName(Token(SyntaxKind.GlobalKeyword)),
+                    IdentifierName("Microsoft")),
+                IdentifierName("EntityFrameworkCore"));
+
+        private static readonly GenericNameSyntax _dbSetGenericName =
+            GenericName(Identifier("DbSet"));
+
         private static readonly UsingDirectiveSyntax[] _modelConfigurerUsings = new[]
         {
-            UsingDirective(_msEfCoreQualifiedName),
+            UsingDirective(_msEfCoreQualifiedNameForNs),
             UsingDirective(
                 QualifiedName(
                     QualifiedName(
-                        _msEfCoreQualifiedName,
+                        _msEfCoreQualifiedNameForNs,
                         IdentifierName("Metadata")),
                     IdentifierName("Builders")))
         };
@@ -163,10 +220,29 @@ namespace HotChocolate.Analyzers
                                             IdentifierName(modelTypeName))))))))
                 .WithBody(
                     Block()));
+
+        private static GenericNameSyntax GetDbSetTypeName(string @namespace, string modelTypeName)
+        {
+            IdentifierNameSyntax fullModelTypeName =
+                IdentifierName(Global(@namespace + "." + modelTypeName));
+
+            return _dbSetGenericName.WithTypeArgumentList(
+                TypeArgumentList(
+                    SingletonSeparatedList<TypeSyntax>(fullModelTypeName)));
+        }
     }
 
     public static class ExtensionsToRefactorElsewhere
     {
+        public static void AddClass(
+            this GeneratorExecutionContext context,
+            string @namespace,
+            string className,
+            ClassDeclarationSyntax classDeclaration)
+        {
+            context.AddClass(@namespace, className, classDeclaration, Array.Empty<UsingDirectiveSyntax>());
+        }
+
         public static void AddClass(
             this GeneratorExecutionContext context,
             string @namespace,

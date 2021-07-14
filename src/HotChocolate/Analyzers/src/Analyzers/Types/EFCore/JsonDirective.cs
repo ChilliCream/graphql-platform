@@ -9,10 +9,12 @@ namespace HotChocolate.Analyzers.Types.EFCore
 
     public class JsonDirectiveType : DirectiveType<JsonDirective>
     {
+        public const string NameConst = "json";
+
         protected override void Configure(IDirectiveTypeDescriptor<JsonDirective> descriptor)
         {
             descriptor
-                .Name("json")
+                .Name(NameConst)
 
                 // TODO: What does this do exactly? Instruct that it's a nested document on a record in a JSON typed col?
                 // The example we have is actually quite interesting too given that it's plural (Customer.ShipppingAddresses)

@@ -9,10 +9,12 @@ namespace HotChocolate.Analyzers.Types.EFCore
 
     public class TableDirectiveType : DirectiveType<TableDirective>
     {
+        public const string NameConst = "table";
+
         protected override void Configure(IDirectiveTypeDescriptor<TableDirective> descriptor)
         {
             descriptor
-                .Name("table")
+                .Name(NameConst)
                 .Location(DirectiveLocation.Object);
 
             descriptor

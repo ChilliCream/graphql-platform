@@ -171,7 +171,7 @@ namespace HotChocolate.Analyzers
             TypeNameDirective? typeNameDirective =
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
             string typeName = typeNameDirective?.Name ?? objectType.Name.Value;
-            string pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s";
+            string pluralTypeName = typeNameDirective?.PluralName ?? typeName + "s"; // TODO: Humanizer too?
 
             MethodDeclarationSyntax resolverSyntax =
                 MethodDeclaration(
