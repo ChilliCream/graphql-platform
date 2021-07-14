@@ -26,7 +26,12 @@ partial class Build : NukeBuild
         .DependsOn(PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
-        .Requires(() => Configuration.Equals(Release))
+        .Requires(() => Configuration.Equals(Release));
+        
+
+    Target PackLocal => _ => _
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
@@ -34,11 +39,7 @@ partial class Build : NukeBuild
 
             projFile = File.ReadAllText(EmptyServerProj);
             File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", GitVersion.SemVer));
-        });
-
-    Target PackLocal => _ => _
-        .Produces(PackageDirectory / "*.nupkg")
-        .Produces(PackageDirectory / "*.snupkg")
+        })
         .Executes(() =>
         {
             DotNetBuildSonarSolution(
