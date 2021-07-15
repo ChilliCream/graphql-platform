@@ -43,6 +43,7 @@ import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
+import XMLogoSvg from "../images/companies/xm.svg"
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
@@ -311,6 +312,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={160}>
                 <Link to="https://www.sytadelle.fr">
                   <SytadelleLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://xm.com">
+                  <XMLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
