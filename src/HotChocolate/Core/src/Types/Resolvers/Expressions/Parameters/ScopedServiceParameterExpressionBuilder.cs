@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
     {
         private static readonly PropertyInfo _contextData =
             ContextType.GetProperty(
-                nameof(IResolverContext.ScopedContextData))!;
+                nameof(IResolverContext.LocalContextData))!;
         private static readonly MethodInfo _getScopedState =
             typeof(ExpressionHelper).GetMethod(
                 nameof(ExpressionHelper.GetScopedState))!;
