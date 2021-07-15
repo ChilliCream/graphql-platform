@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -28,12 +27,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public bool IsPure => false;
 
         public virtual bool CanHandle(ParameterInfo parameter)
-            => parameter.IsDefined(typeof(ScopedStateAttribute));
+            => parameter.IsDefined(typeof(ScopedServiceAttribute));
 
         public Expression Build(ParameterInfo parameter, Expression context)
         {
             ConstantExpression key = Expression.Constant(
-                parameter.ParameterType.FullName ?? parameter.ParameterType.Name,
+                parameter.ParameterType.FullName ??
+                    parameter.ParameterType.Name,
                 typeof(string));
 
             MemberExpression contextData = Expression.Property(context, _contextData);
