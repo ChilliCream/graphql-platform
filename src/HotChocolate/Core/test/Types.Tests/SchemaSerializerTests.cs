@@ -94,7 +94,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void SerializeAsync_Serialize()
+        public async Task SerializeAsync_Serialize()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -104,7 +104,7 @@ namespace HotChocolate
             using var stream = new MemoryStream();
 
             // act
-            SchemaSerializer.SerializeAsync(schema, stream);
+            await SchemaSerializer.SerializeAsync(schema, stream);
 
             // assert
             Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
@@ -116,11 +116,11 @@ namespace HotChocolate
             // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(FileResource.Open("serialize_schema.graphql"))
-                .AddResolver<Query>()
-                .Use(next => next)
                 .AddDirectiveType(new DirectiveType(t => t
                     .Name("upper")
                     .Location(DirectiveLocation.FieldDefinition)))
+                .Use(next => next)
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // act
