@@ -51,8 +51,8 @@ namespace HotChocolate.Types.Relay
                         ctx.SetLocalValue(InternalType, deserializedId.TypeName);
                         ctx.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
 
-                        if (ctx.Schema.TryGetType(deserializedId.TypeName, out ObjectType type) &&
-                            type.ContextData.TryGetValue(NodeResolver, out object? o) &&
+                        if (ctx.Schema.TryGetType(deserializedId.TypeName, out ObjectType? type) &&
+                            type.ContextData.TryGetValue(NodeResolver, out var o) &&
                             o is FieldResolverDelegate resolver)
                         {
                             return await resolver.Invoke(ctx).ConfigureAwait(false);

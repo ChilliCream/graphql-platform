@@ -69,7 +69,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                         m,
                         typeof(object),
                         typeof(TResolver));
-                return ResolveNode(resolver.Resolver);
+                return ResolveNode(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                     typeof(object),
                     method.DeclaringType ?? typeof(object));
 
-            return ResolveNode(resolver.Resolver);
+            return ResolveNode(resolver.Resolver!);
         }
 
         protected static class MiddlewareHelper

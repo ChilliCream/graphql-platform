@@ -78,7 +78,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             {
                 FieldResolverDelegates resolver =
                     Context.ResolverCompiler.CompileResolve(m, typeof(object), typeof(TResolver));
-                return ResolveNode(resolver.Resolver);
+                return ResolveNode(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                     method,
                     typeof(object),
                     method.DeclaringType ?? typeof(object));
-            return ResolveNode(resolver.Resolver);
+            return ResolveNode(resolver.Resolver!);
         }
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>

@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Relay
 
             descriptor
                 .Type(new NonNullType(query.Type))
-                .Resolver(ctx => ctx.GetQueryRoot<object>());
+                .Resolve(ctx => ctx.GetQueryRoot<object>());
 
             payload.Definition.Fields.Add(descriptor.CreateDefinition());
         }

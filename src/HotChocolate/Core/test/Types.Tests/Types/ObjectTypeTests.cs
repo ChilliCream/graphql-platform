@@ -500,8 +500,7 @@ namespace HotChocolate.Types
             var source = @"
                 type A { field: String }
                 type B { field: String }
-                type C { field: String }
-            ";
+                type C { field: String }";
 
             // act
             ISchema schema = SchemaBuilder.New()

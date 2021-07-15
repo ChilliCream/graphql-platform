@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using static HotChocolate.WellKnownDirectives;
 
 namespace HotChocolate
 {
@@ -84,16 +86,16 @@ namespace HotChocolate
 
             var builtInDirectives = new HashSet<NameString>
             {
-                WellKnownDirectives.Skip,
-                WellKnownDirectives.Include,
-                WellKnownDirectives.Deprecated
+                Skip,
+                Include,
+                Deprecated
             };
 
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
                 schema.DirectiveTypes
                     .Where(directive => !builtInDirectives.Contains(directive.Name))
-                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
-                .Select(SerializeDirectiveTypeDefinition);
+                    .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
+                    .Select(SerializeDirectiveTypeDefinition);
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
@@ -370,6 +372,11 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
+            SerializeDeprecationDirective(
+                directives,
+                field.IsDeprecated,
+                field.DeprecationReason);
+
             if (printResolverKind && field.PureResolver is not null)
             {
                 directives.Add(new DirectiveNode("pureResolver"));
@@ -397,6 +404,11 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
+            SerializeDeprecationDirective(
+                directives,
+                field.IsDeprecated,
+                field.DeprecationReason);
+
             return new FieldDefinitionNode
             (
                 null,
@@ -406,6 +418,26 @@ namespace HotChocolate
                 SerializeType(field.Type),
                 directives
             );
+        }
+
+        private static void SerializeDeprecationDirective(
+            ICollection<DirectiveNode> directives,
+            bool isDeprecated,
+            string deprecationReason)
+        {
+            if (isDeprecated)
+            {
+                if (DeprecationDefaultReason.EqualsOrdinal(deprecationReason))
+                {
+                    directives.Add(new DirectiveNode(Deprecated));
+                }
+                else
+                {
+                    directives.Add(new DirectiveNode(
+                        Deprecated,
+                        new ArgumentNode("reason", deprecationReason)));
+                }
+            }
         }
 
         private static InputValueDefinitionNode SerializeInputField(

@@ -290,7 +290,7 @@ namespace HotChocolate.Types
 
                     foreach (ObjectType type in types)
                     {
-                        if (type.IsOfType(c, r))
+                        if (type.IsInstanceOfType(c, r))
                         {
                             return type;
                         }

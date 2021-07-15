@@ -49,9 +49,9 @@ namespace HotChocolate.Types
             ISchema schema = SchemaBuilder.New()
                 .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>())
-                .AddType<FooType>()
-                .AddType<BarType>()
+                    .DependsOn<StringType>()
+                    .Type<FooType>()
+                    .Type<BarType>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
@@ -67,9 +67,9 @@ namespace HotChocolate.Types
             ISchema schema = SchemaBuilder.New()
                 .AddUnionType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType)))
-                .AddType<FooType>()
-                .AddType<BarType>()
+                    .DependsOn(typeof(StringType))
+                    .Type<FooType>()
+                    .Type<BarType>())
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
