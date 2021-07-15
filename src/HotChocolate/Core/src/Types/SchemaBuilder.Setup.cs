@@ -131,8 +131,8 @@ namespace HotChocolate
 
                     var visitorContext = new SchemaSyntaxVisitorContext(context);
                     var visitor = new SchemaSyntaxVisitor();
-                    visitor.Visit(schemaDocument, visitorContext);
 
+                    visitor.Visit(schemaDocument, visitorContext);
                     types.AddRange(visitorContext.Types);
 
                     RegisterOperationName(
@@ -380,10 +380,12 @@ namespace HotChocolate
                     builder,
                     OperationType.Query,
                     builder._options.QueryTypeName);
+
                 RegisterOperationName(
                     builder,
                     OperationType.Mutation,
                     builder._options.MutationTypeName);
+
                 RegisterOperationName(
                     builder,
                     OperationType.Subscription,
@@ -394,12 +396,7 @@ namespace HotChocolate
                         t => t.Key,
                         t => t.Value(context.TypeInspector));
 
-                definition.QueryType = ResolveOperation(
-                    OperationType.Query, operations, typeRegistry);
-                definition.MutationType = ResolveOperation(
-                    OperationType.Mutation, operations, typeRegistry);
-                definition.SubscriptionType = ResolveOperation(
-                    OperationType.Subscription, operations, typeRegistry);
+                ResolveOperations(definition, operations, typeRegistry);
 
                 IReadOnlyCollection<TypeSystemObjectBase> types =
                     RemoveUnreachableTypes(builder, typeRegistry, definition);
@@ -410,44 +407,65 @@ namespace HotChocolate
                 return definition;
             }
 
-            private static ObjectType? ResolveOperation(
-                OperationType operation,
+            private static void ResolveOperations(
+                SchemaTypesDefinition schemaDef,
                 Dictionary<OperationType, ITypeReference> operations,
                 TypeRegistry typeRegistry)
             {
-                if (!operations.ContainsKey(operation))
+                if (operations.Count == 0)
                 {
-                    NameString typeName = operation.ToString();
-                    return typeRegistry.Types
-                        .Select(t => t.Type)
-                        .OfType<ObjectType>()
-                        .FirstOrDefault(t => t.Name.Equals(typeName));
+                    schemaDef.QueryType = GetObjectType(OperationTypeNames.Query);
+                    schemaDef.MutationType = GetObjectType(OperationTypeNames.Mutation);
+                    schemaDef.SubscriptionType = GetObjectType(OperationTypeNames.Subscription);
                 }
-                else if (operations.TryGetValue(operation, out ITypeReference? reference))
+                else
                 {
-                    if (reference is SchemaTypeReference sr)
-                    {
-                        return (ObjectType)sr.Type;
-                    }
-
-                    if (reference is ExtendedTypeReference cr &&
-                        typeRegistry.TryGetType(cr, out RegisteredType? registeredType))
-                    {
-                        return (ObjectType)registeredType.Type;
-                    }
-
-                    if (reference is SyntaxTypeReference str)
-                    {
-                        NamedTypeNode namedType = str.Type.NamedType();
-                        return typeRegistry.Types
-                            .Select(t => t.Type)
-                            .OfType<ObjectType>()
-                            .FirstOrDefault(t => t.Name.Equals(
-                                namedType.Name.Value));
-                    }
+                    schemaDef.QueryType = GetOperationType(OperationType.Query);
+                    schemaDef.MutationType = GetOperationType(OperationType.Mutation);
+                    schemaDef.SubscriptionType = GetOperationType(OperationType.Subscription);
                 }
 
-                return null;
+                ObjectType? GetObjectType(NameString typeName)
+                {
+                    foreach (RegisteredType registeredType in typeRegistry.Types)
+                    {
+                        if (registeredType.Type is ObjectType objectType &&
+                            objectType.Name.Equals(typeName))
+                        {
+                            return objectType;
+                        }
+                    }
+
+                    return null;
+                }
+
+                ObjectType? GetOperationType(OperationType operation)
+                {
+                    if (operations.TryGetValue(operation, out ITypeReference? reference))
+                    {
+                        if (reference is SchemaTypeReference sr)
+                        {
+                            return (ObjectType)sr.Type;
+                        }
+
+                        if (reference is ExtendedTypeReference cr &&
+                            typeRegistry.TryGetType(cr, out RegisteredType? registeredType))
+                        {
+                            return (ObjectType)registeredType.Type;
+                        }
+
+                        if (reference is SyntaxTypeReference str)
+                        {
+                            NamedTypeNode namedType = str.Type.NamedType();
+                            return typeRegistry.Types
+                                .Select(t => t.Type)
+                                .OfType<ObjectType>()
+                                .FirstOrDefault(t => t.Name.Equals(namedType.Name.Value));
+                        }
+                    }
+
+                    return null;
+                }
             }
 
             private static IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(

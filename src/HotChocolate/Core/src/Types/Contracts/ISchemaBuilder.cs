@@ -14,8 +14,14 @@ namespace HotChocolate
 
     public delegate IConvention CreateConvention(IServiceProvider services);
 
+    /// <summary>
+    /// The schema builder provides a configuration API to create a GraphQL schema.
+    /// </summary>
     public interface ISchemaBuilder
     {
+        /// <summary>
+        /// Gets direct access to the schema building context data.
+        /// </summary>
         IDictionary<string, object?> ContextData { get; }
 
         ISchemaBuilder SetSchema(Type type);
@@ -74,9 +80,29 @@ namespace HotChocolate
         /// </exception>
         ISchemaBuilder AddType(INamedTypeExtension typeExtension);
 
+        /// <summary>
+        /// Binds a .NET runtime type to a GraphQL schema type.
+        /// </summary>
+        /// <param name="clrType">
+        /// The .NET runtime type.
+        /// </param>
+        /// <param name="schemaType">
+        /// The GraphQL schema type.
+        /// </param>
+        /// <returns></returns>
         [Obsolete("Use BindRuntimeType")]
         ISchemaBuilder BindClrType(Type clrType, Type schemaType);
 
+        /// <summary>
+        /// Binds a .NET runtime type to a GraphQL schema type.
+        /// </summary>
+        /// <param name="runtimeType">
+        /// The .NET runtime type.
+        /// </param>
+        /// <param name="schemaType">
+        /// The GraphQL schema type.
+        /// </param>
+        /// <returns></returns>
         ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType);
 
         /// <summary>

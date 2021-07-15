@@ -35,7 +35,8 @@ namespace HotChocolate.Configuration
         {
             foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
             {
-                if (directiveType.IsExecutableDirective)
+                if (directiveType.IsExecutableDirective ||
+                    directiveType.Name.Equals(WellKnownDirectives.Deprecated))
                 {
                     _touched.Add(directiveType);
                 }

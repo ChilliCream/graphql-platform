@@ -1169,7 +1169,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\u0022No longer supported\u0022"
+              "defaultValue": "\u0022No longer supported.\u0022"
             }
           ],
           "onOperation": false,

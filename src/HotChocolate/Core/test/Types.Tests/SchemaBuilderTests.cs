@@ -281,7 +281,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType(typeof(FooType))
                 .Create();
 
@@ -295,7 +295,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType<FooType>()
                 .Create();
 
@@ -309,7 +309,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddMutationType<Foo>()
                 .Create();
 
@@ -337,7 +337,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType(typeof(FooType))
                 .Create();
 
@@ -351,7 +351,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType<FooType>()
                 .Create();
 
@@ -365,7 +365,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddType(typeof(QueryType))
+                .AddQueryType(typeof(QueryType))
                 .AddSubscriptionType<Foo>()
                 .Create();
 

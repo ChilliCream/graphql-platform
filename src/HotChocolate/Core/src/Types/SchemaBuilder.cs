@@ -15,6 +15,9 @@ using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// The schema builder provides a configuration API to create a GraphQL schema.
+    /// </summary>
     public partial class SchemaBuilder : ISchemaBuilder
     {
         private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
@@ -38,8 +41,10 @@ namespace HotChocolate
         private IServiceProvider? _services;
         private CreateRef? _schema;
 
+        /// <inheritdoc />
         public IDictionary<string, object?> ContextData => _contextData;
 
+        /// <inheritdoc />
         public ISchemaBuilder SetSchema(Type type)
         {
             if (type is null)
@@ -60,6 +65,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetSchema(ISchema schema)
         {
             if (schema is null)
@@ -80,6 +86,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure)
         {
             if (configure is null)
@@ -91,6 +98,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
         {
             if (options is null)
@@ -102,6 +110,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
             if (configure is null)
@@ -113,6 +122,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder Use(FieldMiddleware middleware)
         {
             if (middleware is null)
@@ -124,6 +134,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
         {
             if (loadSchemaDocument is null)
@@ -135,6 +146,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddType(Type type)
         {
             if (type is null)
@@ -147,6 +159,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder TryAddConvention(
             Type convention,
             CreateConvention factory,
@@ -170,6 +183,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddConvention(
             Type convention,
             CreateConvention factory,
@@ -193,10 +207,12 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         [Obsolete]
         public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
             => BindRuntimeType(clrType, schemaType);
 
+        /// <inheritdoc />
         public ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType)
         {
             if (runtimeType is null)
@@ -224,6 +240,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddType(INamedType namedType)
         {
             if (namedType is null)
@@ -235,6 +252,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddType(INamedTypeExtension typeExtension)
         {
             if (typeExtension is null)
@@ -246,6 +264,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddDirectiveType(DirectiveType type)
         {
             if (type is null)
@@ -257,6 +276,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddRootType(
             Type rootType,
             OperationType operation)
@@ -302,6 +322,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddRootType(
             ObjectType rootType,
             OperationType operation)
@@ -326,12 +347,14 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType)
         {
             _isOfType = isOfType ?? throw new ArgumentNullException(nameof(isOfType));
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder AddServices(IServiceProvider services)
         {
             if (services is null)
@@ -344,12 +367,14 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetContextData(string key, object? value)
         {
             _contextData[key] = value;
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder SetContextData(string key, Func<object?, object?> update)
         {
             _contextData.TryGetValue(key, out var value);
@@ -357,6 +382,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
         {
             if (interceptor is null)
@@ -379,6 +405,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
         {
             if (interceptor is null)
@@ -394,6 +421,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder TryAddSchemaInterceptor(Type interceptor)
         {
             if (interceptor is null)
@@ -416,6 +444,7 @@ namespace HotChocolate
             return this;
         }
 
+        /// <inheritdoc />
         public ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor)
         {
             if (interceptor is null)
@@ -431,6 +460,12 @@ namespace HotChocolate
             return this;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="SchemaBuilder"/> instance.
+        /// </summary>
+        /// <returns>
+        /// Returns a new instance of <see cref="SchemaBuilder"/>.
+        /// </returns>
         public static SchemaBuilder New() => new();
     }
 }

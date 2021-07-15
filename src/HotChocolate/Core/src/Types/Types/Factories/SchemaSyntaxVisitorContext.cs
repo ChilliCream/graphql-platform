@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Factories
 
         public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
 
-        public string QueryTypeName { get; set; } = OperationTypeNames.Query;
+        public string? QueryTypeName { get; set; }
 
         public string? MutationTypeName { get; set; }
 

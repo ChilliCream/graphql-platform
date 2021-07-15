@@ -168,8 +168,7 @@ namespace HotChocolate.Types.Factories
             context.Description = node.Description?.Value;
             context.Directives = node.Directives;
 
-            foreach (OperationTypeDefinitionNode operationType in
-                node.OperationTypes)
+            foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
             {
                 switch (operationType.Operation)
                 {

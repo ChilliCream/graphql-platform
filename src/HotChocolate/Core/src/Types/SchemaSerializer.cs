@@ -337,6 +337,11 @@ namespace HotChocolate
                 .Select(SerializeDirective)
                 .ToList();
 
+            SerializeDeprecationDirective(
+                directives,
+                enumValue.IsDeprecated,
+                enumValue.DeprecationReason);
+
             return new EnumValueDefinitionNode
             (
                 null,

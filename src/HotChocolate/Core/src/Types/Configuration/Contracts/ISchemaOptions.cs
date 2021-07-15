@@ -1,6 +1,8 @@
 ﻿using HotChocolate.Execution;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     /// <summary>
@@ -11,17 +13,17 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// Gets or sets the name of the query type.
         /// </summary>
-        new string QueryTypeName { get; set; }
+        new string? QueryTypeName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the mutation type.
         /// </summary>
-        new string MutationTypeName { get; set; }
+        new string? MutationTypeName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the subscription type.
         /// </summary>
-        new string SubscriptionTypeName { get; set; }
+        new string? SubscriptionTypeName { get; set; }
 
         /// <summary>
         /// Defines if the schema allows the query type to be omitted.
@@ -76,7 +78,7 @@ namespace HotChocolate.Configuration
         new bool AllowInlining { get; set; }
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         new ExecutionStrategy DefaultResolverStrategy { get; set; }
     }
