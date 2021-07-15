@@ -265,8 +265,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        public class BarType : ObjectType<Bar>
         {
         }
 
