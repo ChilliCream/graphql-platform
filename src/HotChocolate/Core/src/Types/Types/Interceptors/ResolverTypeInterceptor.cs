@@ -185,19 +185,19 @@ namespace HotChocolate.Types.Interceptors
                     context.Members.TryGetValue(field.Name, out MemberInfo? member))
                 {
                     field.Member = member;
-                }
 
-                if (field.Member is not null && !field.Resolvers.HasResolvers)
-                {
-                    field.Resolvers = _resolverCompiler.CompileResolve(
-                        field.Member,
-                        objectTypeDef.RuntimeType);
-
-                    if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } upd)
+                    if (!field.Resolvers.HasResolvers)
                     {
-                        foreach (ITypeDefinition updated in upd)
+                        field.Resolvers = _resolverCompiler.CompileResolve(
+                            field.Member,
+                            objectTypeDef.RuntimeType);
+
+                        if (TrySetRuntimeTypeFromMember(context, field.Type, field.Member) is { } u)
                         {
-                            context.TypesToAnalyze.Enqueue(updated);
+                            foreach (ITypeDefinition updated in u)
+                            {
+                                context.TypesToAnalyze.Enqueue(updated);
+                            }
                         }
                     }
                 }
