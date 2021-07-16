@@ -1,65 +1,88 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
-using HotChocolate.Properties;
+using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __Schema : ObjectType<ISchema>
+    internal sealed class __Schema : ObjectType
     {
-        protected override void Configure(IObjectTypeDescriptor<ISchema> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__Schema)
-                .Description(TypeResources.Schema_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+            SyntaxTypeReference typeListType = Parse($"[{nameof(__Type)}!]!");
+            SyntaxTypeReference typeType = Create(nameof(__Type));
+            SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
+            SyntaxTypeReference directiveListType = Parse($"[{nameof(__Directive)}!]!");
+            SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            descriptor
-                .Field(Names.Description)
-                .Type<StringType>()
-                .Resolver(c => c.Schema.Description);
-
-            descriptor
-                .Field(Names.Types)
-                .Description(TypeResources.Schema_Types)
-                .Type<NonNullType<ListType<NonNullType<__Type>>>>()
-                .Resolver(c => c.Schema.Types);
-
-            descriptor
-                .Field(t => t.QueryType)
-                .Name(Names.QueryType)
-                .Description(TypeResources.Schema_QueryType)
-                .Type<NonNullType<__Type>>();
-
-            descriptor
-                .Field(t => t.MutationType)
-                .Name(Names.MutationType)
-                .Description(TypeResources.Schema_MutationType)
-                .Type<__Type>();
-
-            descriptor
-                .Field(t => t.SubscriptionType)
-                .Name(Names.SubscriptionType)
-                .Description(TypeResources.Schema_SubscriptionType)
-                .Type<__Type>();
-
-            descriptor
-                .Field(Names.Directives)
-                .Description(TypeResources.Schema_Directives)
-                .Type<NonNullType<ListType<NonNullType<__Directive>>>>()
-                .Resolver(c => c.Schema.DirectiveTypes);
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            var def = new ObjectTypeDefinition(Names.__Schema, Schema_Description, typeof(ISchema))
             {
-                descriptor
-                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .Name(Names.AppliedDirectives);
+                Fields =
+                {
+                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                    new(Names.Types, Schema_Types, typeListType, pureResolver: Resolvers.Types),
+                    new(Names.QueryType,
+                        Schema_QueryType,
+                        nonNullTypeType,
+                        pureResolver: Resolvers.QueryType),
+                    new(Names.MutationType,
+                        Schema_MutationType,
+                        typeType,
+                        pureResolver: Resolvers.MutationType),
+                    new(Names.SubscriptionType,
+                        Schema_SubscriptionType,
+                        typeType,
+                        pureResolver: Resolvers.SubscriptionType),
+                    new(Names.Directives,
+                        Schema_Directives,
+                        directiveListType,
+                        pureResolver: Resolvers.Directives),
+                }
+            };
+
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                def.Fields.Add(new(
+                    Names.AppliedDirectives,
+                    type: appDirectiveListType,
+                    pureResolver: Resolvers.AppliedDirectives));
             }
+
+            return def;
+        }
+
+        private static class Resolvers
+        {
+            public static object? Description(IPureResolverContext context)
+                => context.Parent<ISchema>().Description;
+
+            public static object Types(IPureResolverContext context)
+                => context.Parent<ISchema>().Types;
+
+            public static object QueryType(IPureResolverContext context)
+                => context.Parent<ISchema>().QueryType;
+
+            public static object? MutationType(IPureResolverContext context)
+                => context.Parent<ISchema>().MutationType;
+
+            public static object? SubscriptionType(IPureResolverContext context)
+                => context.Parent<ISchema>().SubscriptionType;
+
+            public static object Directives(IPureResolverContext context)
+                => context.Parent<ISchema>().DirectiveTypes;
+
+            public static object AppliedDirectives(IPureResolverContext context)
+                => context.Parent<IHasDirectives>().Directives
+                    .Where(t => t.Type.IsPublic)
+                    .Select(d => d.ToNode());
         }
 
         public static class Names

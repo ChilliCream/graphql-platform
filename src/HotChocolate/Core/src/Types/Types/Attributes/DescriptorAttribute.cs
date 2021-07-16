@@ -6,8 +6,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
-    public abstract class DescriptorAttribute
-        : Attribute
+    public abstract class DescriptorAttribute : Attribute
     {
         protected internal abstract void TryConfigure(
             IDescriptorContext context,

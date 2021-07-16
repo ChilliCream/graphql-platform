@@ -11,30 +11,32 @@ namespace HotChocolate.Utilities
         public void Convert_Dictionary_FooInputObject()
         {
             // arrange
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.RegisterType<InputObjectType<Foo>>();
-                c.RegisterType<DecimalType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<InputObjectType<Foo>>()
+                .AddType<DecimalType>()
+                .Create();
 
             INamedInputType type = schema.GetType<INamedInputType>("FooInput");
 
-            var baz = new Dictionary<string, object>();
-            baz["number"] = "1.5";
+            var baz = new Dictionary<string, object> { ["number"] = "1.5" };
 
-            var bar = new Dictionary<string, object>();
-            bar["state"] = "ON";
-            bar["bazs"] = new List<object> { baz };
-            bar["stringArray"] = new List<object> { "1", "2", "5" };
+            var bar = new Dictionary<string, object>
+            {
+                ["state"] = "ON",
+                ["bazs"] = new List<object> { baz },
+                ["stringArray"] = new List<object> { "1", "2", "5" }
+            };
 
-            var foo = new Dictionary<string, object>();
-            foo["text"] = "abc";
-            foo["bar"] = bar;
+            var foo = new Dictionary<string, object>
+            {
+                ["text"] = "abc",
+                ["bar"] = bar
+            };
 
             // assert
             var converter = new DictionaryToInputObjectConverter(DefaultTypeConverter.Default);
-            object converted = converter.Convert(foo, type);
+            var converted = converter.Convert(foo, type);
 
             // assert
             converted.MatchSnapshot();
@@ -44,24 +46,21 @@ namespace HotChocolate.Utilities
         public void Convert_Dictionary_InputObjectWithoutClrType()
         {
             // arrange
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.RegisterType(new InputObjectType(t =>
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddInputObjectType(t =>
                     t.Name("FooInput")
                         .Field("a")
-                        .Type<ListType<StringType>>()));
-            });
+                        .Type<ListType<StringType>>())
+                .Create();
 
             INamedInputType type = schema.GetType<INamedInputType>("FooInput");
 
-            var foo = new Dictionary<string, object>();
-            foo["a"] = new List<object> { "abc", "def" };
+            var foo = new Dictionary<string, object> { ["a"] = new List<object> { "abc", "def" } };
 
             // assert
-            var converter = new DictionaryToInputObjectConverter(
-                DefaultTypeConverter.Default);
-            object converted = converter.Convert(foo, type);
+            var converter = new DictionaryToInputObjectConverter(DefaultTypeConverter.Default);
+            var converted = converter.Convert(foo, type);
 
             // assert
             converted.MatchSnapshot();

@@ -12,10 +12,9 @@ namespace HotChocolate.Execution.Processing
 
         private class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultMap>>
         {
-            private static readonly ResultMapPolicy _policy = new ResultMapPolicy();
+            private static readonly ResultMapPolicy _policy = new();
 
-            public ResultObjectBuffer<ResultMap> Create() =>
-                new ResultObjectBuffer<ResultMap>(16, _policy);
+            public ResultObjectBuffer<ResultMap> Create() => new(16, _policy);
 
             public bool Return(ResultObjectBuffer<ResultMap> obj)
             {
@@ -26,7 +25,7 @@ namespace HotChocolate.Execution.Processing
 
         private class ResultMapPolicy : IPooledObjectPolicy<ResultMap>
         {
-            public ResultMap Create() => new ResultMap();
+            public ResultMap Create() => new();
 
             public bool Return(ResultMap obj)
             {

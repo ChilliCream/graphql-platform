@@ -726,6 +726,24 @@ Type: `{0}`</value>
   <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
     <value>Default multiplier cannot be below two.</value>
   </data>
+  <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
+    <value>The event message parameter can only be used in a subscription context.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_Misconfigured" xml:space="preserve">
+    <value>The resolver compiler is misconfigured and could not find an expression builder for the specified parameter.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValudationError" xml:space="preserve">
+    <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
+    <value>Only methods are allowed.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
+    <value>The schema builder context is invalid.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolver_EmptyCooridnates" xml:space="preserve">
+    <value>Empty field coordinates are not allowed.</value>
+  </data>
   <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
   </data>
@@ -734,5 +752,8 @@ Type: `{0}`</value>
   </data>
   <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
+  </data>
+  <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
+    <value>Could not resolve the claims principal.</value>
   </data>
 </root>

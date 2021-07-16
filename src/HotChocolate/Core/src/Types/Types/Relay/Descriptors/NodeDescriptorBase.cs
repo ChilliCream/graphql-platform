@@ -3,9 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -20,7 +18,7 @@ namespace HotChocolate.Types.Relay.Descriptors
         }
 
         protected internal sealed override NodeDefinition Definition { get; protected set; } =
-            new NodeDefinition();
+            new();
 
         protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
@@ -66,13 +64,12 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(object),
-                            new FieldMember("_", "_", m),
-                            resolverType: typeof(TResolver)));
-                return ResolveNode(resolver.Resolver);
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        typeof(object),
+                        typeof(TResolver));
+                return ResolveNode(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -87,14 +84,13 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        typeof(object),
-                        new FieldMember("_", "_", method),
-                        resolverType: method.DeclaringType ?? typeof(object)));
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    method,
+                    typeof(object),
+                    method.DeclaringType ?? typeof(object));
 
-            return ResolveNode(resolver.Resolver);
+            return ResolveNode(resolver.Resolver!);
         }
 
         protected static class MiddlewareHelper
@@ -103,11 +99,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             private static FieldMiddleware Middleware
             {
-                get
-                {
-                    return _middleware ??=
-                        FieldClassMiddlewareFactory.Create<IdMiddleware>();
-                }
+                get => _middleware ??= FieldClassMiddlewareFactory.Create<IdMiddleware>();
             }
 
             public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)

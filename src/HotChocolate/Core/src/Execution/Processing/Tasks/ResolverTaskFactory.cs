@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing.Tasks
@@ -96,43 +97,27 @@ namespace HotChocolate.Execution.Processing.Tasks
                             buffered = 0;
                         }
 
-                        switch (selection.Strategy)
+                        if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
-                            case SelectionExecutionStrategy.Inline:
-                                ResolveAndCompleteInline(
-                                    operationContext,
-                                    resolverContext,
-                                    selection,
-                                    path.Append(selection.ResponseName),
-                                    selection.Field.Type,
-                                    selection.ResponseName,
-                                    responseIndex++,
-                                    result,
-                                    resultMap);
-                                break;
-
-                            case SelectionExecutionStrategy.Pure:
-                                buffer[buffered++] = CreatePureResolverTask(
-                                    operationContext,
-                                    resolverContext,
-                                    selection,
-                                    path.Append(selection.ResponseName),
-                                    responseIndex++,
-                                    result,
-                                    resultMap);
-                                break;
-
-                            // parallel and serial are always enqueued.
-                            default:
-                                buffer[buffered++] = CreateResolverTask(
-                                    operationContext,
-                                    resolverContext,
-                                    selection,
-                                    path.Append(selection.ResponseName),
-                                    responseIndex++,
-                                    result,
-                                    resultMap);
-                                break;
+                            ResolveAndCompleteInline(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                responseIndex++,
+                                result,
+                                resultMap);
+                        }
+                        else
+                        {
+                            buffer[buffered++] = CreateResolverTask(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                responseIndex++,
+                                result,
+                                resultMap);
                         }
                     }
                 }
@@ -161,9 +146,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
-            Path path ,
-            IType fieldType ,
-            string responseName,
+            Path path,
             int responseIndex,
             object parent,
             ResultMap resultMap)
@@ -172,19 +155,18 @@ namespace HotChocolate.Execution.Processing.Tasks
 
             try
             {
-                var resolverResult = selection.InlineResolver!(parent);
-
-                if (ValueCompletion.TryComplete(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    path,
-                    fieldType,
-                    responseName,
-                    responseIndex,
-                    resolverResult,
-                    out completedValue) &&
-                    fieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                if (TryExecute(out var resolverResult) &&
+                    ValueCompletion.TryComplete(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        path,
+                        selection.Type,
+                        selection.ResponseName,
+                        responseIndex,
+                        resolverResult,
+                        out completedValue) &&
+                    selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
                     result.Parent = resultMap;
@@ -226,9 +208,35 @@ namespace HotChocolate.Execution.Processing.Tasks
             {
                 resultMap.SetValue(
                     responseIndex,
-                    responseName,
+                    selection.ResponseName,
                     completedValue,
-                    fieldType.IsNullableType());
+                    selection.Type.IsNullableType());
+            }
+
+            bool TryExecute(out object? result)
+            {
+                try
+                {
+                    if (resolverContext.TryCreatePureContext(
+                        selection, path, parent,
+                        out IPureResolverContext? childContext))
+                    {
+                        result = selection.PureResolver!(childContext);
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ValueCompletion.ReportError(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        path,
+                        ex);
+                }
+
+                result = null;
+                return false;
             }
         }
 
@@ -274,29 +282,6 @@ namespace HotChocolate.Execution.Processing.Tasks
                 parent,
                 path,
                 scopedContext);
-
-            return task;
-        }
-
-        private static IExecutionTask CreatePureResolverTask(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            int responseIndex,
-            object parent,
-            ResultMap resultMap)
-        {
-            PureResolverTask task = operationContext.Execution.PureResolverTasks.Get();
-
-            task.Initialize(
-                operationContext,
-                selection,
-                resultMap,
-                responseIndex,
-                parent,
-                path,
-                resolverContext.ScopedContextData);
 
             return task;
         }

@@ -9,20 +9,63 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// GraphQL Enum types, like Scalar types, also represent leaf values in a GraphQL type system.
+    /// However Enum types describe the set of possible values.
+    ///
+    /// Enums are not references for a numeric value, but are unique values in their own right.
+    /// They may serialize as a string: the name of the represented value.
+    ///
+    /// In this example, an Enum type called Direction is defined:
+    ///
+    /// <code>
+    /// enum Direction {
+    ///   NORTH
+    ///   EAST
+    ///   SOUTH
+    ///   WEST
+    /// }
+    /// </code>
+    /// </summary>
     public partial class EnumType
         : NamedTypeBase<EnumTypeDefinition>
         , IEnumType
     {
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Enum;
 
+        /// <summary>
+        /// Gets the associated syntax node from the GraphQL SDL.
+        /// </summary>
         public EnumTypeDefinitionNode? SyntaxNode { get; private set; }
 
+        /// <summary>
+        /// Gets the enum values of this type.
+        /// </summary>
         public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
 
+        /// <summary>
+        /// Gets a dictionary that allows to lookup the enum value by its name.
+        /// </summary>
         protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
 
+        /// <summary>
+        /// Gets a dictionary that allows to lookup the enum value by its runtime value.
+        /// </summary>
         protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
+        /// <summary>
+        /// Tries to resolve the runtime value of this enum type by its name.
+        /// </summary>
+        /// <param name="name">
+        /// The GraphQL name for the enum value.
+        /// </param>
+        /// <param name="runtimeValue">
+        /// The runtime enum runtime value.
+        /// </param>
+        /// <returns>
+        /// <c>true</c>, if there is a runtime value associated with the provided enum value name.
+        /// </returns>
         public bool TryGetRuntimeValue(
             NameString name,
             [NotNullWhen(true)] out object? runtimeValue)
@@ -177,6 +220,7 @@ namespace HotChocolate.Types
                 this);
         }
 
+        /// <inheritdoc />
         public object? Deserialize(object? resultValue)
         {
             if (TryDeserialize(resultValue, out object? runtimeValue))
@@ -189,6 +233,7 @@ namespace HotChocolate.Types
                 this);
         }
 
+        /// <inheritdoc />
         public bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)

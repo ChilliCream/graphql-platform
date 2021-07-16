@@ -27,7 +27,7 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   street: String!
-  consultant(customer: CustomerInput): Consultant
+  consultant: Consultant
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
@@ -122,16 +122,6 @@ input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer
   name: String
   street: String
   consultantId: String
-}
-
-input CustomerInput @source(name: "CustomerInput", schema: "customer") {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: UUID!
-  kind: CustomerKind!
 }
 
 input SayInput @source(name: "SayInput", schema: "customer") {

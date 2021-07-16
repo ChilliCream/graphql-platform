@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -14,6 +15,12 @@ namespace HotChocolate.Configuration
         public virtual bool TriggerAggregations => false;
 
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        internal virtual void InitializeContext(
+            IDescriptorContext context, 
+            TypeReferenceResolver typeReferenceResolver)
+        {
+        }
 
         public virtual void OnBeforeDiscoverTypes()
         {

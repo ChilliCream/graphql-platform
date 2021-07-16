@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using static HotChocolate.Stitching.ThrowHelper;
 using static HotChocolate.Stitching.Properties.StitchingResources;
 
@@ -33,10 +31,9 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     nameof(variable));
             }
 
-            IInputField? argument = context.Field.Arguments.FirstOrDefault(
-                t => t.Name.Value.EqualsOrdinal(variable.Name.Value));
-
-            if (argument is null)
+            if (!context.Selection.Field.Arguments.TryGetField(
+                variable.Name.Value, 
+                out IInputField? argument))
             {
                 throw ArgumentScopedVariableResolver_InvalidArgumentName(
                     variable.Name.Value,

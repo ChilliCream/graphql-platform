@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Introspection
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
     [Introspection]
-    public class __DirectiveArgument : ObjectType<ArgumentNode>
+    public sealed class __DirectiveArgument : ObjectType<ArgumentNode>
     {
         protected override void Configure(
             IObjectTypeDescriptor<ArgumentNode> descriptor)

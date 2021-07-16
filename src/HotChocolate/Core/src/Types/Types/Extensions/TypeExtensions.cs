@@ -193,7 +193,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (type is NonNullType nnt && nnt.Type is T)
+            if (type is NonNullType { Type: T })
             {
                 return true;
             }
@@ -251,7 +251,7 @@ namespace HotChocolate.Types
             {
                 null => throw new ArgumentNullException(nameof(type)),
                 ListType lt => lt,
-                NonNullType nnt when nnt.Type is ListType nnlt => nnlt,
+                NonNullType { Type: ListType nnlt } => nnlt,
                 _ => throw new ArgumentException(TypeResources.TypeExtensions_InvalidStructure)
             };
         }
@@ -295,7 +295,7 @@ namespace HotChocolate.Types
                 return l.ElementType;
             }
 
-            if (type is NonNullType n && n.Type is ListType nl)
+            if (type is NonNullType { Type: ListType nl })
             {
                 return nl.ElementType;
             }
@@ -344,7 +344,7 @@ namespace HotChocolate.Types
                 return ToRuntimeType(type.InnerType());
             }
 
-            if (type is IHasRuntimeType t && t.RuntimeType != null)
+            if (type is IHasRuntimeType { RuntimeType: { } } t)
             {
                 return t.RuntimeType;
             }
@@ -441,28 +441,6 @@ namespace HotChocolate.Types
             if (typeNode is NamedTypeNode)
             {
                 return namedType;
-            }
-
-            throw new NotSupportedException(
-                TypeResources.TypeExtensions_KindIsNotSupported);
-        }
-
-        public static IType Rewrite(this IType original, INamedType newNamedType)
-        {
-            if (original is NonNullType nnt
-                && Rewrite(nnt.Type, newNamedType) is INullableType nullableType)
-            {
-                return new NonNullType(nullableType);
-            }
-
-            if (original is ListType lt)
-            {
-                return new ListType(Rewrite(lt.ElementType, newNamedType));
-            }
-
-            if (original is INamedType)
-            {
-                return newNamedType;
             }
 
             throw new NotSupportedException(

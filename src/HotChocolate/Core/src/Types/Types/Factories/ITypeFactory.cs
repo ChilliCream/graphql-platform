@@ -1,5 +1,6 @@
 ﻿using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories
 {
@@ -8,8 +9,7 @@ namespace HotChocolate.Types.Factories
         where TType : IHasName
     {
         TType Create(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions,
+            IDescriptorContext context,
             TNode node);
     }
 }

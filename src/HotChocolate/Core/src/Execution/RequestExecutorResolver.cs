@@ -11,6 +11,8 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ThrowHelper;
@@ -28,7 +30,6 @@ namespace HotChocolate.Execution
         private readonly IServiceProvider _applicationServices;
         private ulong _version;
         private bool _disposed;
-
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
@@ -87,8 +88,8 @@ namespace HotChocolate.Execution
                     schemaServices.GetRequiredService<IRequestExecutor>(),
                     schemaServices,
                     schemaServices.GetRequiredService<IDiagnosticEvents>(),
-                    options
-                );
+                    options,
+                    schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
                 foreach (OnRequestExecutorCreatedAction action in options.OnRequestExecutorCreated)
                 {
@@ -171,19 +172,28 @@ namespace HotChocolate.Execution
                 version = ++_version;
             }
 
+            var serviceCollection = new ServiceCollection();
+            var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
             var lazy = new SchemaBuilder.LazySchema();
 
             RequestExecutorOptions executorOptions =
                 await CreateExecutorOptionsAsync(options, cancellationToken)
                     .ConfigureAwait(false);
 
-            var serviceCollection = new ServiceCollection();
+            // if there are any type modules we will register them with the
+            // type module change monitor.
+            // The module will track if type modules signal changes to the schema and
+            // start a schema eviction.
+            foreach (var typeModule in options.TypeModules)
+            {
+                typeModuleChangeMonitor.Register(typeModule);
+            }
 
             serviceCollection.AddSingleton<IApplicationServiceProvider>(
                 _ => new DefaultApplicationServiceProvider(_applicationServices));
 
             serviceCollection.AddSingleton(_ => lazy.Schema);
-
+            serviceCollection.AddSingleton(typeModuleChangeMonitor);
             serviceCollection.AddSingleton(executorOptions);
             serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
                 s => s.GetRequiredService<RequestExecutorOptions>());
@@ -252,6 +262,7 @@ namespace HotChocolate.Execution
                     options,
                     executorOptions,
                     combinedServices,
+                    typeModuleChangeMonitor,
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -263,6 +274,7 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             RequestExecutorOptions executorOptions,
             IServiceProvider serviceProvider,
+            TypeModuleChangeMonitor typeModuleChangeMonitor,
             CancellationToken cancellationToken)
         {
             if (options.Schema is not null)
@@ -278,6 +290,14 @@ namespace HotChocolate.Execution
                 .AddServices(serviceProvider)
                 .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
                 .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
+
+            IDescriptorContext context = schemaBuilder.CreateContext();
+
+            await foreach (INamedType type in typeModuleChangeMonitor.CreateTypesAsync(context)
+                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                schemaBuilder.AddType(type);
+            }
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
             {
@@ -295,7 +315,7 @@ namespace HotChocolate.Execution
 
             schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
 
-            ISchema schema = schemaBuilder.Create();
+            ISchema schema = schemaBuilder.Create(context);
             AssertSchemaNameValid(schema, schemaName);
             return schema;
         }
@@ -372,16 +392,20 @@ namespace HotChocolate.Execution
 
         private class RegisteredExecutor : IDisposable
         {
+            private bool _disposed;
+
             public RegisteredExecutor(
                 IRequestExecutor executor,
                 IServiceProvider services,
                 IDiagnosticEvents diagnosticEvents,
-                RequestExecutorSetup setup)
+                RequestExecutorSetup setup,
+                TypeModuleChangeMonitor typeModuleChangeMonitor)
             {
                 Executor = executor;
                 Services = services;
                 DiagnosticEvents = diagnosticEvents;
                 Setup = setup;
+                TypeModuleChangeMonitor = typeModuleChangeMonitor;
             }
 
             public IRequestExecutor Executor { get; }
@@ -392,11 +416,19 @@ namespace HotChocolate.Execution
 
             public RequestExecutorSetup Setup { get; }
 
+            public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; }
+
             public void Dispose()
             {
-                if (Services is IDisposable d)
+                if (_disposed)
                 {
-                    d.Dispose();
+                    if (Services is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
+
+                    TypeModuleChangeMonitor.Dispose();
+                    _disposed = true;
                 }
             }
         }
@@ -419,6 +451,77 @@ namespace HotChocolate.Execution
                 IDictionary<string, object?> contextData)
             {
                 definition!.Name = _schemaName;
+            }
+        }
+
+        private sealed class TypeModuleChangeMonitor : IDisposable
+        {
+            private readonly List<ITypeModule> _typeModules = new();
+            private readonly RequestExecutorResolver _resolver;
+            private bool _disposed;
+
+            public TypeModuleChangeMonitor(RequestExecutorResolver resolver, NameString schemaName)
+            {
+                _resolver = resolver;
+                SchemaName = schemaName;
+            }
+
+            public NameString SchemaName { get; }
+
+            public void Register(ITypeModule typeModule)
+            {
+                typeModule.TypesChanged += EvictRequestExecutor;
+                _typeModules.Add(typeModule);
+            }
+
+            public IAsyncEnumerable<INamedType> CreateTypesAsync(IDescriptorContext context)
+                => new TypeModuleEnumerable(_typeModules, context);
+
+            private void EvictRequestExecutor(object sender, EventArgs args)
+                => _resolver.EvictRequestExecutor(SchemaName);
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    foreach (var typeModule in _typeModules)
+                    {
+                        typeModule.TypesChanged -= EvictRequestExecutor;
+                    }
+
+                    _typeModules.Clear();
+                    _disposed = true;
+                }
+            }
+
+            private sealed class TypeModuleEnumerable : IAsyncEnumerable<INamedType>
+            {
+                private readonly List<ITypeModule> _typeModules;
+                private readonly IDescriptorContext _context;
+
+                public TypeModuleEnumerable(
+                    List<ITypeModule> typeModules,
+                    IDescriptorContext context)
+                {
+                    _typeModules = typeModules;
+                    _context = context;
+                }
+
+                public async IAsyncEnumerator<INamedType> GetAsyncEnumerator(
+                    CancellationToken cancellationToken = default)
+                {
+                    foreach (var typeModule in _typeModules)
+                    {
+                        IReadOnlyCollection<INamedType> types =
+                            await typeModule.CreateTypesAsync(_context, cancellationToken)
+                                .ConfigureAwait(false);
+
+                        foreach (INamedType type in types)
+                        {
+                            yield return type;
+                        }
+                    }
+                }
             }
         }
     }

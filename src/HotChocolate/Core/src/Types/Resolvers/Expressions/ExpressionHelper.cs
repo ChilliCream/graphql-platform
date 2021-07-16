@@ -19,36 +19,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task) =>
             await task.ConfigureAwait(false);
 
-
         public static ValueTask<object> WrapResultHelper<T>(T result) => new(result);
-
-        [Obsolete]
-        public static TContextData ResolveContextData<TContextData>(
-            IDictionary<string, object> contextData,
-            string key,
-            bool defaultIfNotExists)
-        {
-            if (contextData.TryGetValue(key, out var value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is TContextData v)
-                {
-                    return v;
-                }
-            }
-            else if (defaultIfNotExists)
-            {
-                return default;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist);
-        }
 
         public static TContextData GetGlobalState<TContextData>(
             IDictionary<string, object> contextData,
@@ -92,32 +63,6 @@ namespace HotChocolate.Resolvers.Expressions
             IDictionary<string, object> contextData,
             string key) =>
             value => contextData[key] = value;
-
-        [Obsolete]
-        public static TContextData ResolveScopedContextData<TContextData>(
-            IReadOnlyDictionary<string, object> contextData,
-            string key,
-            bool defaultIfNotExists)
-        {
-            if (contextData.TryGetValue(key, out var value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is TContextData v)
-                {
-                    return v;
-                }
-            }
-            else if (defaultIfNotExists)
-            {
-                return default;
-            }
-
-            throw new ArgumentException(ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist);
-        }
 
         public static TContextData GetScopedState<TContextData>(
             IReadOnlyDictionary<string, object> contextData,

@@ -8,17 +8,18 @@ namespace HotChocolate.Internal
 {
     internal sealed class TypeCache
     {
-        private readonly object _sync = new object();
-        private readonly Dictionary<ExtendedTypeId, ExtendedType> _types =
-            new Dictionary<ExtendedTypeId, ExtendedType>();
+        private readonly object _sync = new();
+        private readonly Dictionary<ExtendedTypeId, ExtendedType> _types = new();
+        private readonly Dictionary<object, ExtendedType> _typeMemberLookup = new();
+        private readonly Dictionary<ExtendedTypeId, TypeInfo> _typeInfos = new();
 
-        private readonly Dictionary<object, ExtendedType> _typeMemberLookup =
-            new Dictionary<object, ExtendedType>();
-
-        private readonly Dictionary<ExtendedTypeId, TypeInfo> _typeInfos =
-            new Dictionary<ExtendedTypeId, TypeInfo>();
-
-        public ExtendedType GetType(ExtendedTypeId id) => _types[id];
+        public ExtendedType GetType(ExtendedTypeId id)
+        {
+            lock (_sync)
+            {
+                return _types[id];
+            }
+        }
 
         public bool TryGetType(
             ExtendedTypeId id,

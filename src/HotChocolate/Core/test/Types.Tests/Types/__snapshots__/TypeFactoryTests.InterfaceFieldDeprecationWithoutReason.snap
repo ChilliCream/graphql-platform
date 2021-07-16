@@ -3,7 +3,7 @@
 }
 
 interface Simple {
-  a: String @deprecated(reason: "No longer supported")
+  a: String @deprecated
 }
 
 type DummyQuery {

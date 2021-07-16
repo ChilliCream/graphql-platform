@@ -244,7 +244,6 @@ namespace HotChocolate.Execution.Processing
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
-                        inlineResolver: TryCreateInlineField(field, selection),
                         strategy: field.IsParallelExecutable
                             ? null // use default strategy
                             : SelectionExecutionStrategy.Serial,
@@ -577,18 +576,6 @@ namespace HotChocolate.Execution.Processing
             if (field.PureResolver is not null && selection.Directives.Count == 0)
             {
                 return field.PureResolver;
-            }
-
-            return null;
-        }
-
-        private InlineFieldDelegate? TryCreateInlineField(
-            IObjectField field,
-            FieldNode selection)
-        {
-            if (field.InlineResolver is not null && selection.Directives.Count == 0)
-            {
-                return field.InlineResolver;
             }
 
             return null;

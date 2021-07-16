@@ -59,16 +59,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public ObjectPool<PureResolverTask> PureResolverTasks
-        {
-            get
-            {
-                AssertNotPooled();
-                return _pureResolverTasks;
-            }
-        }
-
-        /// <inheritdoc />
         public ObjectPool<IExecutionTask?[]> TaskBuffers
         {
             get

@@ -66,7 +66,7 @@ namespace HotChocolate.Types
         {
             if (_parsedDirective is null!)
             {
-                _parsedDirective = ParseValue(Type, _customDirective);
+                _parsedDirective = ParseValue(Type, _customDirective!);
             }
 
             if (removeNullArguments
@@ -181,7 +181,7 @@ namespace HotChocolate.Types
 
             if (constructor is null)
             {
-                directive = default;
+                directive = default!;
                 return false;
             }
 

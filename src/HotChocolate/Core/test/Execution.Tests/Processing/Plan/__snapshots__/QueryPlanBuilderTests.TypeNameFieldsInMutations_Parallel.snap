@@ -26,8 +26,7 @@
           {
             "id": 2,
             "field": "Bar.__typename",
-            "responseName": "__typename",
-            "pure": true
+            "responseName": "__typename"
           }
         ]
       }

@@ -15,16 +15,13 @@ namespace HotChocolate.Stitching.Delegation
         public void CreateVariableValue()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
-            var contextData = new Dictionary<string, object>();
-            contextData["a"] = "AbcDef";
+            var contextData = new Dictionary<string, object> { ["a"] = "AbcDef" };
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ContextData).Returns(contextData);
@@ -45,20 +42,18 @@ namespace HotChocolate.Stitching.Delegation
             Assert.Null(value.DefaultValue);
             Assert.Equal("__contextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
-            Assert.Equal("AbcDef", value.Value.Value);
+            Assert.Equal("AbcDef", value.Value?.Value);
         }
 
         [Fact]
         public void ContextDataEntryDoesNotExist()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var contextData = new Dictionary<string, object>();
 
@@ -89,13 +84,11 @@ namespace HotChocolate.Stitching.Delegation
         public void ContextIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var scopedVariable = new ScopedVariableNode(
                 null,
@@ -105,7 +98,7 @@ namespace HotChocolate.Stitching.Delegation
             // act
             var resolver = new ContextDataScopedVariableResolver();
             Action a = () => resolver.Resolve(
-                null,
+                null!,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
 
@@ -117,13 +110,11 @@ namespace HotChocolate.Stitching.Delegation
         public void ScopedVariableIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IMiddlewareContext>();
 
@@ -131,7 +122,7 @@ namespace HotChocolate.Stitching.Delegation
             var resolver = new ContextDataScopedVariableResolver();
             Action a = () => resolver.Resolve(
                 context.Object,
-                null,
+                null!,
                 schema.GetType<StringType>("String"));
 
             // assert
@@ -142,14 +133,6 @@ namespace HotChocolate.Stitching.Delegation
         public void TargetTypeIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
-
             var context = new Mock<IMiddlewareContext>();
 
             var scopedVariable = new ScopedVariableNode(
@@ -159,26 +142,21 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                context.Object,
-                scopedVariable,
-                null);
+            void Action() => resolver.Resolve(context.Object, scopedVariable, null!);
 
             // assert
-            Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(Action).ParamName);
         }
 
         [Fact]
         public void InvalidScope()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IMiddlewareContext>();
 

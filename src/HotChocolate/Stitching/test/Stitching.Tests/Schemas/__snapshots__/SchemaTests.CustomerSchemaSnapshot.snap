@@ -22,7 +22,7 @@ type Customer implements Node {
   id: ID!
   name: String!
   street: String!
-  consultant(customer: CustomerInput): Consultant
+  consultant: Consultant
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
@@ -88,16 +88,6 @@ input CreateCustomerInput {
   name: String
   street: String
   consultantId: String
-}
-
-input CustomerInput {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: UUID!
-  kind: CustomerKind!
 }
 
 input SayInput {

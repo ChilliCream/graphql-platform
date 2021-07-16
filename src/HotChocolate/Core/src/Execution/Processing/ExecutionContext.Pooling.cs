@@ -12,7 +12,6 @@ namespace HotChocolate.Execution.Processing
         private readonly WorkBacklog _workBacklog;
         private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
-        private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
         private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
 
         private CancellationTokenSource _completed = default!;
@@ -22,14 +21,12 @@ namespace HotChocolate.Execution.Processing
         public ExecutionContext(
             OperationContext operationContext,
             ObjectPool<ResolverTask> resolverTasks,
-            ObjectPool<PureResolverTask> pureResolverTasks,
             ObjectPool<IExecutionTask?[]> taskBuffers)
         {
             _operationContext = operationContext;
             _workBacklog = new WorkBacklog();
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
-            _pureResolverTasks = pureResolverTasks;
             _taskBuffers = taskBuffers;
             _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }

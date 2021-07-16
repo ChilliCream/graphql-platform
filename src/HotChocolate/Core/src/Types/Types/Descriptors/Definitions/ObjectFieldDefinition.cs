@@ -9,13 +9,35 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     /// <summary>
-    /// The <see cref="ObjectFieldDefinition"/> represents the configuration data for an
-    /// output field (interface- or object-field).
+    /// The <see cref="ObjectFieldDefinition"/> contains the settings
+    /// to create a <see cref="ObjectField"/>.
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         private List<FieldMiddleware>? _middlewareComponents;
         private List<object>? _customSettings;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectFieldDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectFieldDefinition(
+            NameString name,
+            string? description = null,
+            ITypeReference? type = null,
+            FieldResolverDelegate? resolver = null,
+            PureFieldDelegate? pureResolver = null)
+        {
+            Name = name;
+            Description = description;
+            Type = type;
+            Resolver = resolver;
+            PureResolver = pureResolver;
+        }
 
         /// <summary>
         /// The object runtime type.
@@ -35,7 +57,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Defines a binding to another object field.
         /// </summary>
-        public ObjectFieldBinding? BindTo { get; set; }
+        public ObjectFieldBinding? BindToField { get; set; }
 
         /// <summary>
         /// The member that represents the resolver.
@@ -60,12 +82,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// The delegate that represents an optional pure resolver.
         /// </summary>
-        public PureFieldResolverDelegate? PureResolver { get; set; }
+        public PureFieldDelegate? PureResolver { get; set; }
 
         /// <summary>
-        /// The delegate that represents an optional inline resolver.
+        /// Gets or sets all resolvers at once.
         /// </summary>
-        public InlineFieldDelegate? InlineResolver { get; set; }
+        public FieldResolverDelegates Resolvers
+        {
+            get => GetResolvers();
+            set
+            {
+                Resolver = value.Resolver;
+                PureResolver = value.PureResolver;
+            }
+        }
 
         /// <summary>
         /// The delegate that represents the pub-/sub-system subscribe delegate to open an
@@ -123,6 +153,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
             return _customSettings;
         }
 
+        internal FieldResolverDelegates GetResolvers() =>
+            new(Resolver, PureResolver);
 
         internal void CopyTo(ObjectFieldDefinition target)
         {
@@ -141,7 +173,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.SourceType = SourceType;
             target.ResolverType = ResolverType;
             target.Member = Member;
-            target.BindTo = BindTo;
+            target.BindToField = BindToField;
             target.ResolverMember = ResolverMember;
             target.Expression = Expression;
             target.ResultType = ResultType;

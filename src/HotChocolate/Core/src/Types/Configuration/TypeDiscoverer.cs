@@ -146,7 +146,7 @@ namespace HotChocolate.Configuration
                     _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
+                    _typeInspector, unresolvedType, out ExtendedTypeReference? schemaType))
                 {
                     inferred = true;
 

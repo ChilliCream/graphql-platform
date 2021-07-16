@@ -167,7 +167,7 @@ namespace HotChocolate.Types
 
             if (definition is InputFieldDefinition inputField)
             {
-                resultType = typeInspector.GetReturnType(inputField.Property, true);
+                resultType = typeInspector.GetReturnType(inputField.Property!, true);
             }
             else if (definition.Parameter is not null)
             {

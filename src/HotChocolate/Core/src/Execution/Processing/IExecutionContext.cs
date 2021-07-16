@@ -40,11 +40,6 @@ namespace HotChocolate.Execution.Processing
         ObjectPool<ResolverTask> ResolverTasks { get; }
 
         /// <summary>
-        /// Gets the pure resolver task pool.
-        /// </summary>
-        ObjectPool<PureResolverTask> PureResolverTasks { get; }
-
-        /// <summary>
         /// Gets the task buffer pool.
         /// </summary>
         ObjectPool<IExecutionTask?[]> TaskBuffers { get; }

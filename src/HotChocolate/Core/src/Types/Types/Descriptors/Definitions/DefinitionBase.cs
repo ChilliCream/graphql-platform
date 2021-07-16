@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// A type system definition is used in the type initialization to store properties
     /// of a type system object.
     /// </summary>
-    public class DefinitionBase
+    public class DefinitionBase : IDefinition
     {
         private List<TypeDependency>? _dependencies;
         private List<ILazyTypeConfiguration>? _configurations;
@@ -27,6 +27,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets or sets the description the type shall have.
         /// </summary>
         public string? Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets a name to which this definition is bound to.
+        /// </summary>
+        public string? BindTo { get; set; }
 
         /// <summary>
         /// Get access to context data that are copied to the type
@@ -116,6 +121,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.Name = Name;
             target.Description = Description;
             target.AttributesAreApplied = AttributesAreApplied;
+            target.BindTo = BindTo;
         }
 
         protected void MergeInto(DefinitionBase target)
@@ -148,6 +154,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             if (Description is not null)
             {
                 target.Description = Description;
+            }
+
+            if (BindTo is not null)
+            {
+                target.BindTo = BindTo;
             }
 
             if (!target.AttributesAreApplied)

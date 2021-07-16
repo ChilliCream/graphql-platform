@@ -55,7 +55,7 @@ namespace HotChocolate.Types
                 .OnBeforeCreate(
                     (c, d) =>
                     {
-                        MemberInfo resolverMember = d.ResolverMember ?? d.Member;
+                        MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                         d.Type = CreateConnectionTypeRef(c, resolverMember, type, options);
                         d.CustomSettings.Add(typeof(Connection));
                     });

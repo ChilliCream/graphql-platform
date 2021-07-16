@@ -1,6 +1,12 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
+using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
@@ -9,52 +15,68 @@ namespace HotChocolate.Types.Introspection
     [Introspection]
     internal sealed class __Field : ObjectType<IOutputField>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<IOutputField> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__Field)
-                .Description(TypeResources.Field_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+            SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+            SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
+            SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+            SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
+            SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            descriptor
-                .Field(t => t.Name)
-                .Name(Names.Name)
-                .Type<NonNullType<StringType>>();
-
-            descriptor
-                .Field(t => t.Description)
-                .Name(Names.Description);
-
-            descriptor
-                .Field(t => t.Arguments)
-                .Name(Names.Args)
-                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolver(c => c.Parent<IOutputField>().Arguments);
-
-            descriptor
-                .Field(t => t.Type)
-                .Name(Names.Type)
-                .Type<NonNullType<__Type>>();
-
-            descriptor
-                .Field(t => t.IsDeprecated)
-                .Name(Names.IsDeprecated)
-                .Type<NonNullType<BooleanType>>();
-
-            descriptor
-                .Field(t => t.DeprecationReason)
-                .Name(Names.DeprecationReason);
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            var def = new ObjectTypeDefinition(
+                Names.__Field,
+                TypeResources.Field_Description,
+                typeof(IOutputField))
             {
-                descriptor
-                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .Name(Names.AppliedDirectives);
+
+                Fields =
+                {
+                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments),
+                    new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
+                    new(Names.IsDeprecated, type: nonNullBooleanType,
+                        pureResolver: Resolvers.IsDeprecated),
+                    new(Names.DeprecationReason, type: stringType,
+                        pureResolver: Resolvers.DeprecationReason),
+                }
+            };
+
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                def.Fields.Add(new(Names.AppliedDirectives,
+                    type: directiveListType,
+                    pureResolver: Resolvers.AppliedDirectives));
             }
+
+            return def;
+        }
+
+        public static class Resolvers
+        {
+            public static string Name(IPureResolverContext context)
+                => context.Parent<IOutputField>().Name.Value;
+
+            public static string? Description(IPureResolverContext context)
+                => context.Parent<IOutputField>().Description;
+
+            public static IFieldCollection<IInputField> Arguments(IPureResolverContext context)
+                => context.Parent<IOutputField>().Arguments;
+
+            public static IType Type(IPureResolverContext context)
+                => context.Parent<IOutputField>().Type;
+
+            public static object IsDeprecated(IPureResolverContext context)
+                => context.Parent<IOutputField>().IsDeprecated;
+
+            public static string? DeprecationReason(IPureResolverContext context)
+                => context.Parent<IOutputField>().DeprecationReason;
+
+            public static object AppliedDirectives(IPureResolverContext context) =>
+                context.Parent<IOutputField>() is IHasDirectives hasDirectives
+                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
+                    : Enumerable.Empty<DirectiveNode>();
         }
 
         public static class Names

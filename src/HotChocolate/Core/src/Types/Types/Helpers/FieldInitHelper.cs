@@ -18,8 +18,8 @@ namespace HotChocolate.Types
         {
             try
             {
-                return argumentDefinition.NativeDefaultValue != null
-                    ? argumentType.ParseValue(argumentDefinition.NativeDefaultValue)
+                return argumentDefinition.RuntimeDefaultValue != null
+                    ? argumentType.ParseValue(argumentDefinition.RuntimeDefaultValue)
                     : argumentDefinition.DefaultValue;
             }
             catch (Exception ex)

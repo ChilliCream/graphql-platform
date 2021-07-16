@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -14,8 +14,16 @@ namespace HotChocolate
 
     public delegate IConvention CreateConvention(IServiceProvider services);
 
+    /// <summary>
+    /// The schema builder provides a configuration API to create a GraphQL schema.
+    /// </summary>
     public interface ISchemaBuilder
     {
+        /// <summary>
+        /// Gets direct access to the schema building context data.
+        /// </summary>
+        IDictionary<string, object?> ContextData { get; }
+
         ISchemaBuilder SetSchema(Type type);
 
         ISchemaBuilder SetSchema(ISchema schema);
@@ -30,23 +38,118 @@ namespace HotChocolate
 
         ISchemaBuilder AddDocument(LoadSchemaDocument loadDocument);
 
+        /// <summary>
+        /// Adds a GraphQL type to the schema.
+        /// </summary>
+        /// <param name="type">
+        /// The GraphQL type.
+        /// </param>
+        /// <returns>
+        /// Returns the schema builder to chain in further configuration.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="type"/> is <c>null</c>
+        /// </exception>
         ISchemaBuilder AddType(Type type);
 
-        ISchemaBuilder AddType(INamedType type);
+        /// <summary>
+        /// Adds a GraphQL type to the schema.
+        /// </summary>
+        /// <param name="namedType">
+        /// The GraphQL type.
+        /// </param>
+        /// <returns>
+        /// Returns the schema builder to chain in further configuration.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="namedType"/> is <c>null</c>
+        /// </exception>
+        ISchemaBuilder AddType(INamedType namedType);
 
-        ISchemaBuilder AddType(INamedTypeExtension type);
+        /// <summary>
+        /// Adds a GraphQL type extension to the schema.
+        /// </summary>
+        /// <param name="typeExtension">
+        /// The GraphQL type extension.
+        /// </param>
+        /// <returns>
+        /// Returns the schema builder to chain in further configuration.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="typeExtension"/> is <c>null</c>
+        /// </exception>
+        ISchemaBuilder AddType(INamedTypeExtension typeExtension);
 
+        /// <summary>
+        /// Binds a .NET runtime type to a GraphQL schema type.
+        /// </summary>
+        /// <param name="clrType">
+        /// The .NET runtime type.
+        /// </param>
+        /// <param name="schemaType">
+        /// The GraphQL schema type.
+        /// </param>
+        /// <returns></returns>
+        [Obsolete("Use BindRuntimeType")]
         ISchemaBuilder BindClrType(Type clrType, Type schemaType);
 
-        ISchemaBuilder AddRootType(Type type, OperationType operation);
+        /// <summary>
+        /// Binds a .NET runtime type to a GraphQL schema type.
+        /// </summary>
+        /// <param name="runtimeType">
+        /// The .NET runtime type.
+        /// </param>
+        /// <param name="schemaType">
+        /// The GraphQL schema type.
+        /// </param>
+        /// <returns></returns>
+        ISchemaBuilder BindRuntimeType(Type runtimeType, Type schemaType);
 
-        ISchemaBuilder AddRootType(ObjectType type, OperationType operation);
+        /// <summary>
+        /// Add a GraphQL root type to the schema.
+        /// </summary>
+        /// <param name="rootType">
+        /// A type representing a GraphQL root type.
+        /// This type must inherit from <see cref="ObjectType{T}"/> or be a class.
+        /// </param>
+        /// <param name="operation">
+        /// The operation type that <see cref="rootType"/> represents.
+        /// </param>
+        /// <returns>
+        /// Returns the schema builder to chain in further configuration.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="rootType"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// - <see cref="rootType"/> is either not a class or is not inheriting from
+        /// <see cref="ObjectType{T}"/>.
+        ///
+        /// - A root type for the specified <paramref name="operation"/> was already set.
+        /// </exception>
+        ISchemaBuilder AddRootType(Type rootType, OperationType operation);
+
+        /// <summary>
+        /// Add a GraphQL root type to the schema.
+        /// </summary>
+        /// <param name="rootType">
+        /// An instance of <see cref="ObjectType"/> that represents a root type.
+        /// </param>
+        /// <param name="operation">
+        /// The operation type that <see cref="rootType"/> represents.
+        /// </param>
+        /// <returns>
+        /// Returns the schema builder to chain in further configuration.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="rootType"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// A root type for the specified <paramref name="operation"/> was already set.
+        /// </exception>
+        ISchemaBuilder AddRootType(ObjectType rootType, OperationType operation);
 
         ISchemaBuilder AddDirectiveType(DirectiveType type);
-
-        ISchemaBuilder AddResolver(FieldResolver fieldResolver);
-
-        ISchemaBuilder AddBinding(IBindingInfo binding);
 
         ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);
 
@@ -74,6 +177,22 @@ namespace HotChocolate
             CreateConvention factory,
             string? scope = null);
 
+        /// <summary>
+        /// Creates a new GraphQL Schema.
+        /// </summary>
+        /// <returns>
+        /// Returns a new GraphQL Schema.
+        /// </returns>
         ISchema Create();
+
+        /// <summary>
+        /// Creates a new GraphQL Schema.
+        /// </summary>
+        /// <returns>
+        /// Returns a new GraphQL Schema.
+        /// </returns>
+        ISchema Create(IDescriptorContext context);
+
+        IDescriptorContext CreateContext();
     }
 }

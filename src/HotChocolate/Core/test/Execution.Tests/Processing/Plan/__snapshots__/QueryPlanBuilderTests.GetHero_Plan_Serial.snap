@@ -5,40 +5,29 @@
     "nodes": [
       {
         "type": "Resolver",
-        "strategy": "Serial",
+        "strategy": "Parallel",
         "selections": [
           {
             "id": 0,
             "field": "Query.hero",
-            "responseName": "hero"
+            "responseName": "hero",
+            "pure": true
           },
           {
-            "id": 7,
-            "field": "Droid.friends",
+            "id": 2,
+            "field": "Human.friends",
             "responseName": "friends"
           }
         ]
       },
       {
         "type": "Resolver",
-        "strategy": "Parallel",
+        "strategy": "Serial",
         "selections": [
           {
-            "id": 2,
-            "field": "Human.friends",
+            "id": 7,
+            "field": "Droid.friends",
             "responseName": "friends"
-          },
-          {
-            "id": 3,
-            "field": "CharacterConnection.nodes",
-            "responseName": "nodes",
-            "pure": true
-          },
-          {
-            "id": 8,
-            "field": "CharacterConnection.nodes",
-            "responseName": "nodes",
-            "pure": true
           }
         ]
       }

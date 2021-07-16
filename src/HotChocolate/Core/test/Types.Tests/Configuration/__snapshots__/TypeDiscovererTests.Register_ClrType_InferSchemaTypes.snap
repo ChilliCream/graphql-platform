@@ -104,6 +104,14 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.DeprecatedDirectiveType",
+      "runtimeType": "HotChocolate.Types.DeprecatedDirective",
+      "references": [
+        "None: HotChocolate.Types.DeprecatedDirectiveType",
+        "None: DeprecatedDirectiveType"
+      ]
+    },
+    {
       "type": "HotChocolate.Types.StringType",
       "runtimeType": "System.String",
       "references": [
@@ -117,14 +125,6 @@
       "references": [
         "None: HotChocolate.Types.BooleanType",
         "None: BooleanType"
-      ]
-    },
-    {
-      "type": "HotChocolate.Types.DeprecatedDirectiveType",
-      "runtimeType": "HotChocolate.Types.DeprecatedDirective",
-      "references": [
-        "None: HotChocolate.Types.DeprecatedDirectiveType",
-        "None: DeprecatedDirectiveType"
       ]
     },
     {
@@ -161,9 +161,9 @@
     "Output: IType": "Output: HotChocolate.Types.Introspection.__Type",
     "None: TypeKind!": "None: HotChocolate.Types.Introspection.__TypeKind",
     "None: DeferDirective": "None: HotChocolate.Types.DeferDirectiveType",
+    "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "None: String": "None: HotChocolate.Types.StringType",
     "None: Boolean!": "None: HotChocolate.Types.BooleanType",
-    "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "None: Int32!": "None: HotChocolate.Types.IntType",
     "Output: Foo": "Output: ObjectType<Foo>",
     "Output: Bar": "Output: ObjectType<Bar>"

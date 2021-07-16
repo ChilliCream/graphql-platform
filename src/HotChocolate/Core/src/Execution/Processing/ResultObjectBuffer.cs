@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Processing
         private readonly int _capacity;
         private readonly IPooledObjectPolicy<T> _policy;
         private readonly T?[] _buffer;
-        private int _index = 0;
+        private int _index;
 
         public ResultObjectBuffer(int capacity, IPooledObjectPolicy<T> policy)
         {
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution.Processing
                 _index = _capacity;
             }
 
-            for (int i = 0; i < _index; i++)
+            for (var i = 0; i < _index; i++)
             {
                 if (!_policy.Return(_buffer[i]!))
                 {
