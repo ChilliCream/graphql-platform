@@ -6,7 +6,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v11",
         "items": [
           {
             "path": "index",
@@ -96,7 +96,11 @@
             "items": [
               {
                 "path": "index",
-                "title": "Resolver"
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
               },
               {
                 "path": "fetching-from-databases",
@@ -191,6 +195,24 @@
             ]
           },
           {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
@@ -240,7 +262,7 @@
       },
       {
         "path": "v10",
-        "title": "v10 (previous)",
+        "title": "v10",
         "items": [
           {
             "path": "index",
@@ -477,7 +499,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v1 (preview)",
+        "title": "v1",
         "items": [
           {
             "path": "index",
@@ -494,7 +516,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (preview)",
+        "title": "v11",
         "items": [
           {
             "path": "index",
@@ -591,7 +613,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v11",
         "items": [
           {
             "path": "index",
@@ -601,7 +623,7 @@
       },
       {
         "path": "v10",
-        "title": "v10 (previous)",
+        "title": "v10",
         "items": [
           {
             "path": "index",

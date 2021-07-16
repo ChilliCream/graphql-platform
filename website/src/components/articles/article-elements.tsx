@@ -13,7 +13,7 @@ export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
 
   @media only screen and (min-width: 820px) {
     > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;
