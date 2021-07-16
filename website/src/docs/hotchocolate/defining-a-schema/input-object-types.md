@@ -41,7 +41,9 @@ public class Mutation
 
 > Note: If a class is used as an argument to a resolver and it does not end in `Input`, Hot Chocolate (by default) will append `Input` to the type name in the resulting schema.
 
-If you would like your input type classes to be immutable, or you are using [nullable reference types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references), you can add a constructor and Hot Chocolate will use it under the hood. Just note that, (1) the type of the argument must exactly match the property's type, and, (2) the name of the argument must match the property name (bar a lowercase first letter).
+If you would like your input type classes to be immutable, or you are using [nullable reference types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references), you can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that, (1) the type of the argument must exactly match the property's type, (2) the name of the argument must match the property name (bar a lowercase first letter), and (3) no setters will be called, so you need to provide arguments for all the properties. 
+
+Hot Chocolate even validates any custom input constructor at schema build time, so you don't need to worry about breaking things during refactoring!
 
 ```csharp
 public class BookInput
