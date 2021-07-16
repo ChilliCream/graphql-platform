@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.CodeGeneration
 {
@@ -20,20 +22,20 @@ namespace HotChocolate.CodeGeneration
         public string Namespace { get; }
 
         /// <summary>
-        /// A GraphQL schema to generate code for.
+        /// GraphQL documents to generate source for.
         /// </summary>
-        public ISchema Schema { get; }
+        public IReadOnlyList<DocumentNode> Documents { get; }
 
         public Neo4JCodeGeneratorContext(
             string name,
             string databaseName,
             string @namespace,
-            ISchema schema)
+            IReadOnlyList<DocumentNode> documents)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
             Namespace = @namespace ?? throw new ArgumentNullException(nameof(@namespace));
-            Schema = schema;
+            Documents = documents;
         }
     }
 }

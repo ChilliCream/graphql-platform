@@ -17,10 +17,13 @@ namespace HotChocolate.CodeGeneration
         {
             var result = new CodeGenerationResult();
 
+            ISchema schema = SchemaHelper.CreateSchema(context.Documents);
+
             GenerateTypes(
                 result,
-                DataGeneratorContext.FromSchema(context.Schema),
-                context);
+                DataGeneratorContext.FromSchema(schema),
+                context,
+                schema);
 
             return result;
         }
@@ -28,20 +31,20 @@ namespace HotChocolate.CodeGeneration
         private static void GenerateTypes(
             CodeGenerationResult result,
             DataGeneratorContext dataContext,
-            Neo4JCodeGeneratorContext generatorContext)
+            Neo4JCodeGeneratorContext generatorContext,
+            ISchema schema)
         {
             GenerateQueryType(
                 result,
                 dataContext,
                 generatorContext,
-                generatorContext.Schema.Types
+                schema.Types
                     .OfType<ObjectType>()
                     .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
                     .ToList());
 
             GenerateDependencyInjectionCode(
                 result,
-                dataContext,
                 generatorContext);
         }
 
@@ -189,7 +192,6 @@ namespace HotChocolate.CodeGeneration
 
         private static void GenerateDependencyInjectionCode(
             CodeGenerationResult result,
-            DataGeneratorContext dataContext,
             Neo4JCodeGeneratorContext codeGeneratorContext)
         {
             var typeName = codeGeneratorContext.Name + "RequestExecutorBuilderExtensions";
