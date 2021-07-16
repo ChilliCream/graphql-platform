@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Introspection
                 => context.Parent<IOutputField>().DeprecationReason;
 
             public static object AppliedDirectives(IPureResolverContext context) =>
-                context.Parent<IType>() is IHasDirectives hasDirectives
+                context.Parent<IOutputField>() is IHasDirectives hasDirectives
                     ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();
         }
