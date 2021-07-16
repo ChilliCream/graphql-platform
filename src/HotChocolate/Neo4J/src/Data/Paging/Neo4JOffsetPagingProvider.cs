@@ -86,7 +86,10 @@ namespace HotChocolate.Data.Neo4J.Paging
                     queryable = queryable.WithSkip(arguments.Skip.Value);
                 }
 
-                queryable = queryable.WithLimit(arguments.Take + 1);
+                if (arguments.Take.HasValue)
+                {
+                    queryable = queryable.WithLimit(arguments.Take.Value + 1);
+                }
 
                 IList items = await queryable
                     .ToListAsync(context.RequestAborted)
