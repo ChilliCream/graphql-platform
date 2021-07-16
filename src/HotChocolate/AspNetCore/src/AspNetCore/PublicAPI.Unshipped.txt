@@ -1,0 +1,1 @@
+static HotChocolate.AspNetCore.Subscriptions.WebSocketSession.New(Microsoft.AspNetCore.Http.HttpContext! httpContext, HotChocolate.AspNetCore.Subscriptions.IMessagePipeline! messagePipeline, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor) -> HotChocolate.AspNetCore.Subscriptions.WebSocketSession!

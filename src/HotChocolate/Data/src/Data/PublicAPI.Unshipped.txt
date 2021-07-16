@@ -1,0 +1,8 @@
+HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.AddAbstractType(System.Type! type, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>! memberAssignments) -> void
+HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.GetAbstractTypes() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<System.Type!, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>!>>!
+HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.HasAbstractTypes() -> bool
+HotChocolate.Data.Projections.ISelectionVisitorContext.ResolvedType.get -> System.Collections.Generic.Stack<HotChocolate.Types.INamedType?>!
+HotChocolate.Data.Projections.SelectionVisitorContext.ResolvedType.get -> System.Collections.Generic.Stack<HotChocolate.Types.INamedType?>!
+override HotChocolate.Data.Projections.Expressions.QueryableProjectionVisitor.VisitObjectType(HotChocolate.Types.IOutputField! field, HotChocolate.Types.ObjectType! objectType, HotChocolate.Language.SelectionSetNode? selectionSet, HotChocolate.Data.Projections.Expressions.QueryableProjectionContext! context) -> HotChocolate.Data.Projections.ISelectionVisitorAction!
+static HotChocolate.Data.Projections.Expressions.QueryableProjectionScopeExtensions.CreateMemberInit(this HotChocolate.Data.Projections.Expressions.QueryableProjectionScope! scope) -> System.Linq.Expressions.Expression!
+virtual HotChocolate.Data.Projections.SelectionVisitor<TContext>.VisitObjectType(HotChocolate.Types.IOutputField! field, HotChocolate.Types.ObjectType! objectType, HotChocolate.Language.SelectionSetNode? selectionSet, TContext context) -> HotChocolate.Data.Projections.ISelectionVisitorAction!

@@ -29,11 +29,16 @@
 *REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.DefaultComplexity.get -> int
 *REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.MaxAllowedComplexity.get -> int?
 *REMOVED*HotChocolate.Validation.Options.IMaxComplexityOptionsAccessor.UseComplexityMultipliers.get -> bool
-HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.DocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData, bool onlyNonCacheable = false) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.DocumentValidatorContext.ContextData.set -> void
 HotChocolate.Validation.DocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
 HotChocolate.Validation.DocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?
 HotChocolate.Validation.DocumentValidatorContext.VariableValues.set -> void
-HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> HotChocolate.Validation.DocumentValidatorResult!
+HotChocolate.Validation.DocumentValidatorRule<TVisitor>.DocumentValidatorRule(TVisitor! visitor, bool isCacheable = true) -> void
+HotChocolate.Validation.DocumentValidatorRule<TVisitor>.IsCacheable.get -> bool
+HotChocolate.Validation.IDocumentValidator.Validate(HotChocolate.ISchema! schema, HotChocolate.Language.DocumentNode! document, System.Collections.Generic.IDictionary<string!, object?>! contextData, bool onlyNonCacheable = false) -> HotChocolate.Validation.DocumentValidatorResult!
 HotChocolate.Validation.IDocumentValidatorContext.List.get -> System.Collections.Generic.IList<object?>!
 HotChocolate.Validation.IDocumentValidatorContext.VariableValues.get -> HotChocolate.Execution.IVariableValueCollection?
+HotChocolate.Validation.IDocumentValidatorRule.IsCacheable.get -> bool
+static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationVisitor<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder, bool isCacheable = true) -> HotChocolate.Validation.Options.IValidationBuilder!
+static Microsoft.Extensions.DependencyInjection.HotChocolateValidationBuilderExtensions.TryAddValidationVisitor<T>(this HotChocolate.Validation.Options.IValidationBuilder! builder, System.Func<System.IServiceProvider!, HotChocolate.Validation.Options.ValidationOptions!, T!>! factory, bool isCacheable = true) -> HotChocolate.Validation.Options.IValidationBuilder!
