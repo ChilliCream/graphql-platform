@@ -57,6 +57,12 @@ public class BookInput
     }
 }
 ```
+
+You can even use records if you're on C# 9.0+! The equivalent of above would be:
+
+```csharp
+public record BookingInput(string Title, string Author);
+```
   
 We can also use a class both as an output- and an input-type.
 
