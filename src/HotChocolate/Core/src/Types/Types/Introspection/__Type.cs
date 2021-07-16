@@ -1,6 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -28,11 +27,11 @@ namespace HotChocolate.Types.Introspection
             SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
             SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            var def = new ObjectTypeDefinition(Names.__Type, TypeResources.Type_Description)
+            var def = new ObjectTypeDefinition(
+                Names.__Type,
+                TypeResources.Type_Description,
+                typeof(IType))
             {
-                Name = Names.__Type,
-                Description = TypeResources.Type_Description,
-                RuntimeType = typeof(IType),
                 Fields =
                 {
                     new(Names.Kind,
