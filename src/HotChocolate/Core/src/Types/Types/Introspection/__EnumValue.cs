@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Introspection
         protected override void Configure(
             IObjectTypeDescriptor<IEnumValue> descriptor)
         {
+            
             descriptor
                 .Name(Names.__EnumValue)
                 .Description(TypeResources.EnumValue_Description)
