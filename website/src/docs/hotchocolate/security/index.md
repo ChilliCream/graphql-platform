@@ -2,8 +2,9 @@
 title: "Overview"
 ---
 
-When we think about API security, we, in many cases, only think about authorization. With GraphQL, we need to think further about security concepts to ensure that our GraphQL API performs predictably and malicious actors do not bring our service down or degrade performance for others.
 In this section we will learn how to secure our GraphQL endpoint.
+
+When we think about API security, we, in many cases, only think about authorization. With GraphQL, we need to think further about security concepts to ensure that our GraphQL API performs predictably and malicious actors do not bring our service down or degrade performance for others.
 
 # Authentication
 
@@ -23,11 +24,11 @@ Depending on our setup and requirements, the simplest way to make our server sec
 
 [Learn more about persisted queries](/docs/hotchocolate/performance/persisted-queries)
 
-# Introspection
+<!-- # Introspection
 
 The introspection is one of the GraphQL core features and powers many of the GraphQL IDEs and tools. But introspection also can produce large results, which can degrade the server performance. Apart from the performance aspect, you are also exposing the exact structure of your graph to anyone. In some cases, we might want to limit the access to introspection. Hot Chocolate allows you to control who can access introspection fields by using query validation rules.
 
-[Learn more about restricting introspection](/docs/hotchocolate/security/introspection).
+[Learn more about restricting introspection](/docs/hotchocolate/security/introspection). -->
 
 # Pagination
 
@@ -39,11 +40,11 @@ Pagination is another topic we often forget when thinking about securing our Gra
 
 By default, Hot Chocolate has an internal execution timeout of 30 seconds. This is to ensure that requests do not occupy server resources for an extended amount of time. Make sure that the execution options are correctly covering your use case.-->
 
-# Query Depth
+<!-- # Query Depth
 
 With GraphQL, we give the consumer of our API the ability to drill into our data graph arbitrarily. The user can pick and choose what data he or she needs. This is one of the powerful concepts with GraphQL. It also is one of its vulnerabilities. We need to control how deep a user can drill into our data graph to ensure that requests perform consistently.
 
-[Learn more about query depth validation rules](/docs/hotchocolate/security/query-depth).
+[Learn more about query depth validation rules](/docs/hotchocolate/security/query-depth). -->
 
 # Operation Complexity
 

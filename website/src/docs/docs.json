@@ -215,10 +215,6 @@
                 "title": "Authorization"
               },
               {
-                "path": "introspection",
-                "title": "Introspection"
-              },
-              {
                 "path": "operation-complexity",
                 "title": "Operation Complexity"
               }
