@@ -362,8 +362,9 @@ const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
 
   return (
     <OutdatedDocumentationWarning>
-      This is documentation for <strong>{product.version}</strong>
-      .<br />
+      This is documentation for <strong>{product.version}</strong>, which is no
+      longer actively maintained.
+      <br />
       For up-to-date documentation, see the{" "}
       <Link to={`/docs/${product.name}`}>latest version</Link>.
     </OutdatedDocumentationWarning>

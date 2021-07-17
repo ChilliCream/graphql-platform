@@ -1,0 +1,2 @@
+﻿SELECT "d"."IsProjectedTrue1", "d"."IsProjectedTrue2", "d"."IsProjectedTrue3"
+FROM "Data" AS "d"

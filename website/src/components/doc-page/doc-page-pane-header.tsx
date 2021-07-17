@@ -46,6 +46,7 @@ const CloseButton = styled(TimesIconSvg)`
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s ease-in-out;
+  fill: #000;
 
   &:hover {
     opacity: 1;

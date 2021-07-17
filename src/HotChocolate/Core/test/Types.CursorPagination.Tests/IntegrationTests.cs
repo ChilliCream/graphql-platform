@@ -611,6 +611,39 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Deactivate_BackwardPagination()
+        {
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Deactivate_BackwardPagination_Interface()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryAttr>()
+                    .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false })
+                    .AddInterfaceType<ISome>(d => d.Field(t => t.ExplicitType()).UsePaging())
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -755,7 +788,7 @@ namespace HotChocolate.Types.Pagination
             _source = source;
         }
 
-        public object Source =>_source;
+        public object Source => _source;
 
         public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
