@@ -17,9 +17,9 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             Selection selection)
         {
-            if (context.Type is ObjectType type &&
-                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out var fieldsObj) &&
-                fieldsObj is string[] fields)
+            if (!(context.Type is ObjectType type &&
+                type.ContextData.TryGetValue(AlwaysProjectedFieldsKey, out object? fieldsObj) &&
+                fieldsObj is string[] fields))
             {
                 return selection;
             }
@@ -32,30 +32,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 if (context.Fields.TryGetValue(fields[i], out var field) &&
                     field.Field.Name == fields[i])
                 {
-                    if (!context.Fields.TryGetValue(fields[i], out var field) ||
-                        field.Field.Name != fields[i])
-                    {
-                        IObjectField nodesField = type.Fields[fields[i]];
-                        var alias = "__projection_alias_" + aliasCount++;
-                        var nodesFieldNode = new FieldNode(
-                            null,
-                            new NameNode(fields[i]),
-                            new NameNode(alias),
-                            Array.Empty<DirectiveNode>(),
-                            Array.Empty<ArgumentNode>(),
-                            null);
-
-                        var compiledSelection = new Selection(
-                            context.GetNextId(),
-                            context.Type,
-                            nodesField,
-                            nodesFieldNode,
-                            context.CompileResolverPipeline(nodesField, nodesFieldNode),
-                            arguments: selection.Arguments,
-                            internalSelection: true);
-
-                        context.Fields[alias] = compiledSelection;
-                    }
+                    continue;
                 }
 
                 // if the field is already added as an alias we do not need to add it
@@ -78,6 +55,7 @@ namespace HotChocolate.Data.Projections.Handlers
                     context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
                 var compiledSelection = new Selection(
+                    context.GetNextId(),
                     context.Type,
                     nodesField,
                     nodesFieldNode,
