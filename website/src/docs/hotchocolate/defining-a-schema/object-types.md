@@ -209,9 +209,9 @@ public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        descriptor.bindfieldsexplicitly();
+        descriptor.BindFieldsExplicitly();
 
-        descriptor.field(f => f.title);
+        descriptor.Field(f => f.Title);
     }
 }
 ```
