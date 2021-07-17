@@ -1,0 +1,4 @@
+*REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ApplyCursorToEdges(System.Linq.IQueryable<TEntity>! allEdges, int? after, int? before) -> System.Linq.IQueryable<TEntity>!
+*REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ExecuteQueryableAsync(System.Linq.IQueryable<TEntity>! queryable, int offset, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Pagination.IndexEdge<TEntity>!>!>
+*REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetFirstEdges(System.Linq.IQueryable<TEntity>! edges, int first, ref int offset) -> System.Linq.IQueryable<TEntity>!
+*REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetLastEdges(System.Linq.IQueryable<TEntity>! edges, int last, ref int offset) -> System.Linq.IQueryable<TEntity>!
