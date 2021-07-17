@@ -90,6 +90,7 @@ type Starship {
 type Subscription {
   onReview(episode: Episode!): Review!
   onNext: String
+  onException: String
 }
 
 union SearchResult = Starship | Human | Droid
