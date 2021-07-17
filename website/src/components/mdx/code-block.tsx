@@ -1,7 +1,7 @@
-import React, { FunctionComponent } from "react";
-import styled from "styled-components";
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
+import React, { FunctionComponent } from "react";
+import styled from "styled-components";
 import { Copy } from "./copy";
 
 interface CodeBlockProps {
@@ -120,7 +120,7 @@ const IndicatorContent = styled.div`
   z-index: 1;
   top: 0;
   left: 50px;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px var(--border-radius) var(--border-radius);
   padding: 2px 8px;
   font-size: 0.8em;
   font-weight: bold;

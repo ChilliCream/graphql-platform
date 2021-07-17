@@ -12,9 +12,16 @@ namespace HotChocolate.Data.Projections
             new Foo { IsProjectedTrue = true, IsProjectedFalse = false }
         };
 
+        private static readonly MultipleFoo[] _fooMultipleEntities =
+        {
+            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false },
+            new MultipleFoo{ IsProjectedTrue1 = true, IsProjectedFalse = false }
+        };
+
         private static readonly Bar[] _barEntities =
         {
-            new Bar { IsProjectedFalse = false }, new Bar { IsProjectedFalse = false }
+            new Bar { IsProjectedFalse = false },
+            new Bar { IsProjectedFalse = false }
         };
 
         private readonly SchemaCache _cache = new SchemaCache();
@@ -68,6 +75,22 @@ namespace HotChocolate.Data.Projections
         }
 
         [Fact]
+        public async Task IsProjected_Should_AlwaysBeProjectedWhenSelected_When_TrueAndMultiple()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_fooMultipleEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root { isProjectedFalse }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
         public async Task IsProjected_Should_NotFailWhenSelectionSetSkippedCompletely()
         {
             // arrange
@@ -99,6 +122,25 @@ namespace HotChocolate.Data.Projections
         public class Bar
         {
             public int Id { get; set; }
+
+            [IsProjected(false)]
+            public bool? IsProjectedFalse { get; set; }
+
+            public bool? ShouldNeverBeProjected { get; set; }
+        }
+
+        public class MultipleFoo
+        {
+            public int Id { get; set; }
+
+            [IsProjected(true)]
+            public bool? IsProjectedTrue1 { get; set; }
+
+            [IsProjected(true)]
+            public bool? IsProjectedTrue2 { get; set; }
+
+            [IsProjected(true)]
+            public bool? IsProjectedTrue3 { get; set; }
 
             [IsProjected(false)]
             public bool? IsProjectedFalse { get; set; }

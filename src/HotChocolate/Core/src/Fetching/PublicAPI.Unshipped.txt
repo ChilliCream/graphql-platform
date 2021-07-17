@@ -1,4 +1,52 @@
+abstract HotChocolate.Fetching.BatchDataLoader<TKey, TValue>.LoadBatchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>!>!
+abstract HotChocolate.Fetching.CacheDataLoader<TKey, TValue>.LoadSingleAsync(TKey key, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TValue>!
+abstract HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>.LoadGroupedBatchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Linq.ILookup<TKey, TValue>!>!
+HotChocolate.Fetching.BatchDataLoader<TKey, TValue>
+HotChocolate.Fetching.BatchDataLoader<TKey, TValue>.BatchDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.set -> void
+HotChocolate.Fetching.CacheDataLoader<TKey, TValue>
+HotChocolate.Fetching.CacheDataLoader<TKey, TValue>.CacheDataLoader(int cacheSize) -> void
+HotChocolate.Fetching.DataLoaderParameterExpressionBuilder
+HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.DataLoaderParameterExpressionBuilder() -> void
+HotChocolate.Fetching.DefaultDataLoaderRegistry
+HotChocolate.Fetching.DefaultDataLoaderRegistry.DefaultDataLoaderRegistry() -> void
+HotChocolate.Fetching.DefaultDataLoaderRegistry.Dispose() -> void
+HotChocolate.Fetching.DefaultDataLoaderRegistry.GetOrRegister<T>(string! key, System.Func<T>! createDataLoader) -> T
+HotChocolate.Fetching.DefaultDataLoaderRegistry.GetOrRegister<T>(System.Func<T>! createDataLoader) -> T
+HotChocolate.Fetching.FetchBatch<TKey, TValue>
+HotChocolate.Fetching.FetchCacheCt<TKey, TValue>
+HotChocolate.Fetching.FetchGroup<TKey, TValue>
+HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>
+HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>.GroupedDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.set -> void
+HotChocolate.Fetching.IDataLoaderRegistry
+HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(string! key, System.Func<T>! createDataLoader) -> T
+HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(System.Func<T>! createDataLoader) -> T
+HotChocolate.Fetching.RegisterDataLoaderException
+HotChocolate.Fetching.RegisterDataLoaderException.RegisterDataLoaderException(string! message) -> void
+HotChocolate.Types.DataLoaderObjectFieldExtensions
+HotChocolate.Types.DataLoaderResolverContextExtensions
+HotChocolate.Types.UseDataLoaderAttribute
+HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType) -> void
+override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.Build(System.Reflection.ParameterInfo! parameter, System.Linq.Expressions.Expression! context) -> System.Linq.Expressions.Expression!
+override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
+override HotChocolate.Types.UseDataLoaderAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
+override sealed HotChocolate.Fetching.BatchDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue>>!>
+override sealed HotChocolate.Fetching.CacheDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue>>!>
+override sealed HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue[]!>>!>
+static HotChocolate.Types.DataLoaderObjectFieldExtensions.UseDataloader(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type! dataLoaderType) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.DataLoaderObjectFieldExtensions.UseDataloader<TDataLoader>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.BatchDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Fetching.FetchBatch<TKey, TValue>! fetch, string? key = null) -> GreenDonut.IDataLoader<TKey, TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.BatchDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchBatch<TKey, TValue>! fetch) -> GreenDonut.IDataLoader<TKey, TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.CacheDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Fetching.FetchCacheCt<TKey, TValue>! fetch, string? key = null, int cacheSize = 100) -> GreenDonut.IDataLoader<TKey, TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.CacheDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchCacheCt<TKey, TValue>! fetch, int cacheSize = 100) -> GreenDonut.IDataLoader<TKey, TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.DataLoader<T>(this HotChocolate.Resolvers.IResolverContext! context) -> T
+static HotChocolate.Types.DataLoaderResolverContextExtensions.DataLoader<T>(this HotChocolate.Resolvers.IResolverContext! context, string! key) -> T
+static HotChocolate.Types.DataLoaderResolverContextExtensions.FetchOnceAsync<TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TValue>!>! fetch) -> System.Threading.Tasks.Task<TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.FetchOnceAsync<TValue>(this HotChocolate.Resolvers.IResolverContext! context, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TValue>!>! fetch, string? key = null) -> System.Threading.Tasks.Task<TValue>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Fetching.FetchGroup<TKey, TValue>! fetch, string? key = null) -> GreenDonut.IDataLoader<TKey, TValue[]!>!
+static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchGroup<TKey, TValue>! fetch) -> GreenDonut.IDataLoader<TKey, TValue[]!>!
+*REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar
+*REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar.GetOrAddDataLoader<TDataLoader>(string! name, System.Func<GreenDonut.IBatchScheduler!, TDataLoader>! factory) -> TDataLoader

@@ -41,27 +41,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -73,27 +72,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(first: 2) {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos(first: 2) {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -105,27 +103,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(first: 2 after: ""MQ=="") {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos(first: 2 after: ""MQ=="") {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -137,27 +134,26 @@ namespace HotChocolate.Data.MongoDb.Paging
             IRequestExecutor executor = await CreateSchemaAsync();
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos(last: 1 before: ""NA=="") {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos(last: 1 before: ""NA=="") {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -170,27 +166,26 @@ namespace HotChocolate.Data.MongoDb.Paging
 
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        edges {
-                            node {
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            edges {
+                                node {
+                                    bar
+                                }
+                                cursor
+                            }
+                            nodes {
                                 bar
                             }
-                            cursor
+                            pageInfo {
+                                hasNextPage
+                                hasPreviousPage
+                                startCursor
+                                endCursor
+                            }
                         }
-                        nodes {
-                            bar
-                        }
-                        pageInfo {
-                            hasNextPage
-                            hasPreviousPage
-                            startCursor
-                            endCursor
-                        }
-                    }
-                }");
+                    }");
             result.MatchDocumentSnapshot();
         }
 
@@ -203,13 +198,29 @@ namespace HotChocolate.Data.MongoDb.Paging
 
 
             IExecutionResult result = await executor
-                .ExecuteAsync(
-                    @"
-                {
-                    foos {
-                        totalCount
-                    }
-                }");
+                .ExecuteAsync(@"
+                    {
+                        foos {
+                            totalCount
+                        }
+                    }");
+            result.MatchDocumentSnapshot();
+        }
+
+        [Fact]
+        public async Task TotalCount_AndFirst()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor = await CreateSchemaAsync();
+
+            IExecutionResult result = await executor
+                .ExecuteAsync(@"
+                    {
+                        foos(first:1) {
+                            totalCount
+                        }
+                    }");
             result.MatchDocumentSnapshot();
         }
 
