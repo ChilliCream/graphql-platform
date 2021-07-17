@@ -29,8 +29,8 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
                 (tag) => tag && tag.length > 0
               ) as string[])
             : [];
-          const featuredImage = node?.frontmatter!.featuredImage
-            ?.childImageSharp?.gatsbyImageData;
+          const featuredImage =
+            node?.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
           return (
             <Article key={`article-${node.id}`}>
@@ -98,11 +98,11 @@ const Container = styled.ul`
 const Article = styled.li`
   @media only screen and (min-width: 820px) {
     margin: 20px 0 0;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
     > a > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;

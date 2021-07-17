@@ -118,6 +118,18 @@ namespace HotChocolate.Types.Descriptors
                 ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
                 : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
+            if (descriptor is null && Definition.Arguments.Count > 0)
+            {
+                ArgumentDefinition? definition = parameter is null
+                    ? Definition.Arguments.FirstOrDefault(t => t.Name.Equals(name))
+                    : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
+
+                if (definition is not null)
+                {
+                    descriptor = ArgumentDescriptor.From(Context, definition);
+                }
+            }
+
             if (descriptor is null)
             {
                 descriptor = parameter is null
