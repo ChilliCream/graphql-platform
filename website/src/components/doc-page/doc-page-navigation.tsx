@@ -321,7 +321,6 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
-  min-height: 50%;
 
   ${({ show }) => show && `margin-left: 0 !important;`}
 

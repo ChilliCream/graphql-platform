@@ -13,6 +13,7 @@ namespace HotChocolate.Types
         private int? _defaultPageSize;
         private int? _maxPageSize;
         private bool? _includeTotalCount;
+        private bool? _allowBackwardPagination;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.
@@ -28,11 +29,13 @@ namespace HotChocolate.Types
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
-        
-        public Type? SchemaType 
-        { 
-            [Obsolete("Use Type.")] get => Type; 
-            [Obsolete("Use the new constructor.")] set => Type = value; 
+
+        public Type? SchemaType
+        {
+            [Obsolete("Use Type.")]
+            get => Type;
+            [Obsolete("Use the new constructor.")]
+            set => Type = value;
         }
 
         /// <summary>
@@ -67,6 +70,15 @@ namespace HotChocolate.Types
             set => _includeTotalCount = value;
         }
 
+        /// <summary>
+        /// Allow backward paging using <c>last</c> and <c>before</c>
+        /// </summary>
+        public bool AllowBackwardPagination
+        {
+            get => _allowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+            set => _allowBackwardPagination = value;
+        }
+
         protected override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
@@ -82,7 +94,8 @@ namespace HotChocolate.Types
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            AllowBackwardPagination = AllowBackwardPagination
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -93,7 +106,8 @@ namespace HotChocolate.Types
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            AllowBackwardPagination = AllowBackwardPagination
                         });
                 }
             }
