@@ -48,3 +48,5 @@ static HotChocolate.Types.DataLoaderResolverContextExtensions.FetchOnceAsync<TVa
 static HotChocolate.Types.DataLoaderResolverContextExtensions.FetchOnceAsync<TValue>(this HotChocolate.Resolvers.IResolverContext! context, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TValue>!>! fetch, string? key = null) -> System.Threading.Tasks.Task<TValue>!
 static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Fetching.FetchGroup<TKey, TValue>! fetch, string? key = null) -> GreenDonut.IDataLoader<TKey, TValue[]!>!
 static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchGroup<TKey, TValue>! fetch) -> GreenDonut.IDataLoader<TKey, TValue[]!>!
+*REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar
+*REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar.GetOrAddDataLoader<TDataLoader>(string! name, System.Func<GreenDonut.IBatchScheduler!, TDataLoader>! factory) -> TDataLoader
