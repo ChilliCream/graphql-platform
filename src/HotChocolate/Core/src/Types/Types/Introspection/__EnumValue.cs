@@ -1,7 +1,6 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -64,9 +63,9 @@ namespace HotChocolate.Types.Introspection
                 => context.Parent<IEnumValue>().DeprecationReason;
 
             public static object AppliedDirectives(IPureResolverContext context)
-                => context.Parent<IEnumValue>() is IHasDirectives hasDirectives
-                    ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
-                    : Enumerable.Empty<DirectiveNode>();
+                => context.Parent<IEnumValue>().Directives
+                    .Where(t => t.Type.IsPublic)
+                    .Select(d => d.ToNode());
         }
 
         public static class Names

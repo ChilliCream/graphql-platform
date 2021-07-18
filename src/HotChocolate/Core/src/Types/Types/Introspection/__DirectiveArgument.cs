@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Introspection
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
     [Introspection]
-    public sealed class __DirectiveArgument : ObjectType<ArgumentNode>
+    internal sealed class __DirectiveArgument : ObjectType<ArgumentNode>
     {
         protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {

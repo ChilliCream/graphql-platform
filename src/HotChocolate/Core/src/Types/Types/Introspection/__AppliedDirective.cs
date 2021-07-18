@@ -1,6 +1,11 @@
 #pragma warning disable IDE1006 // Naming Styles
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
@@ -11,34 +16,40 @@ namespace HotChocolate.Types.Introspection
     /// This type is NOT specified by the graphql specification presently.
     /// </summary>
     [Introspection]
-    public class __AppliedDirective : ObjectType<DirectiveNode>
+    internal sealed class __AppliedDirective : ObjectType<DirectiveNode>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<DirectiveNode> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__AppliedDirective)
-                .Description(TypeResources.___AppliedDirective_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFieldsExplicitly();
+            SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+            SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveArgument)}!]!");
 
-            descriptor
-                .Field(Names.Name)
-                .Type<NonNullType<StringType>>()
-                .Resolve(c => c.Parent<DirectiveNode>().Name.Value);
+            return new ObjectTypeDefinition(
+                Names.__AppliedDirective,
+                TypeResources.___AppliedDirective_Description,
+                typeof(DirectiveType))
+            {
+                Fields =
+                {
+                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                    new(Names.Args, type: locationListType, pureResolver: Resolvers.Arguments)
+                }
+            };
+        }
 
-            descriptor
-                .Field(Names.Args)
-                .Type<NonNullType<ListType<NonNullType<__DirectiveArgument>>>>()
-                .Resolve(c => c.Parent<DirectiveNode>().Arguments);
+        private static class Resolvers
+        {
+            public static string Name(IPureResolverContext context)
+                => context.Parent<DirectiveNode>().Name.Value;
+
+            public static object Arguments(IPureResolverContext context)
+                => context.Parent<DirectiveNode>().Arguments;
         }
 
         public static class Names
         {
             public const string __AppliedDirective = "__AppliedDirective";
-            public const string Args = "args";
             public const string Name = "name";
+            public const string Args = "args";
         }
     }
 }

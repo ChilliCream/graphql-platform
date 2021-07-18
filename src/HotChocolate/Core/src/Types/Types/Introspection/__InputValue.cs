@@ -3,7 +3,6 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -70,7 +69,7 @@ namespace HotChocolate.Types.Introspection
             }
 
             public static object AppliedDirectives(IPureResolverContext context)
-                => context.Parent<IHasDirectives>().Directives
+                => context.Parent<IInputField>().Directives
                     .Where(t => t.Type.IsPublic)
                     .Select(d => d.ToNode());
         }

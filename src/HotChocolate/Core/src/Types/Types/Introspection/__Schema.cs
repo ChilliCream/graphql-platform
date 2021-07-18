@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Introspection
                 => context.Parent<ISchema>().DirectiveTypes;
 
             public static object AppliedDirectives(IPureResolverContext context)
-                => context.Parent<IHasDirectives>().Directives
+                => context.Parent<ISchema>().Directives
                     .Where(t => t.Type.IsPublic)
                     .Select(d => d.ToNode());
         }
