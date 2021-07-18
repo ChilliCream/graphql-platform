@@ -756,4 +756,7 @@ Type: `{0}`</value>
   <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
     <value>Could not resolve the claims principal.</value>
   </data>
+  <data name="DirectiveLocation_VariableDefinition" xml:space="preserve">
+    <value>Location adjacent to a variable definition.</value>
+  </data>
 </root>

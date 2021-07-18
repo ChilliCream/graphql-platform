@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Introspection
             return def;
         }
 
-        public static class Resolvers
+        private static class Resolvers
         {
             public static string Name(IPureResolverContext context)
                 => context.Parent<IOutputField>().Name.Value;

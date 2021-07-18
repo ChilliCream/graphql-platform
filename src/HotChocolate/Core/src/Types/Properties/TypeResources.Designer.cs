@@ -1310,5 +1310,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound", resourceCulture);
             }
         }
+        
+        internal static string DirectiveLocation_VariableDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_VariableDefinition", resourceCulture);
+            }
+        }
     }
 }

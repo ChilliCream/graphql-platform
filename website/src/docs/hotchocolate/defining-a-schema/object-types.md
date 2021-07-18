@@ -65,6 +65,26 @@ public class AuthorType : ObjectType<Author>
 
 The `descriptor` gives us the ability to configure the object type. We will cover how to use it in the following chapters.
 
+Since there could be multiple types inheriting from `ObjectType<Author>`, but differing in their name and fields, it is not certain which of these types should be used when we return an `Author` CLR type from one of our resolvers.
+
+**Therefore it's important to note that Code-first object types are not automatically inferred. They need to be explicitly specified or registered.**
+
+We can either [explicitly specify the type on a per-resolver basis](#explicit-types) or we can register the type once globally:
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddType<AuthorType>();
+    }
+}
+```
+
+In the above example every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
+
 We can also create schema object types without a backing POCO.
 
 ```csharp
@@ -189,6 +209,8 @@ public class BookType : ObjectType<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
+        descriptor.BindFieldsExplicitly();
+
         descriptor.Field(f => f.Title);
     }
 }
@@ -196,14 +218,20 @@ public class BookType : ObjectType<Book>
 
 # Naming
 
-Hot Chocolate infers the names of the object types and their fields automatically, but sometimes we might want to specify names ourselves.
+Unless specified explicitly, Hot Chocolate automatically infers the names of object types and their fields. Per default the name of the class becomes the name of the object type. When using `ObjectType<T>` in Code-first, the name of `T` is chosen as the name for the object type. The names of methods and properties on the respective class are chosen as names of the fields of the object type.
+
+The following conventions are applied when transforming C# method and property names into SDL types and fields:
+
+- **Get prefixes are removed:** The get operation is implied and therefore redundant information.
+- **Async postfixes are removed:** The `Async` is an implementation detail and therefore not relevant to the schema.
+- **The first letter is lowercased:** This is not part of the specification, but a widely agreed upon standard in the GraphQL world.
+
+If we need to we can override these inferred names.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-Per default the name of the class is the name of the object type in the schema and the names of the properties are the names of the fields of that object type.
-
-We can override these defaults using the `[GraphQLName]` attribute.
+The `[GraphQLName]` attribute allows us to specify an explicit name.
 
 ```csharp
 [GraphQLName("BookAuthor")]
@@ -217,9 +245,7 @@ public class Author
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-By default, the name of the object type in the schema is either the class name, if we are inheriting from `ObjectType`, or the name of the POCO (`T`) if we are inheriting from `ObjectType<T>`.
-
-We can override these defaults using the `Name` method on the `IObjectTypeDescriptor` / `IObjectFieldDescriptor`.
+The `Name` method on the `IObjectTypeDescriptor` / `IObjectFieldDescriptor` allows us to specify an explicit name.
 
 ```csharp
 public class AuthorType : ObjectType<Author>
@@ -251,9 +277,19 @@ type BookAuthor {
 }
 ```
 
+If only one of our clients requires specific names, it is better to use [aliases](https://graphql.org/learn/queries/#aliases) in this client's operations than changing the entire schema.
+
+```graphql
+{
+  MyUser: user {
+    Username: name
+  }
+}
+```
+
 # Explicit types
 
-Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though, for example when we are working with custom scalars.
+Hot Chocolate will, most of the time, correctly infer the schema types of our fields. Sometimes we might have to be explicit about it though. For example when we are working with custom scalars or Code-first types in general.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -367,7 +403,7 @@ public class Startup
 
 What we have just created is a resolver. Hot Chocolate automatically creates resolvers for our properties, but we can also define them ourselves.
 
-Head over to the [resolver documentation](/docs/hotchocolate/fetching-data) to learn more.
+[Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
 
 # Generics
 
