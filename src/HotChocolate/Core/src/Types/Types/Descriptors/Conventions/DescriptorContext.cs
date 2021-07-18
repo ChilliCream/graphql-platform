@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
+using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// The descriptor context is passed around during the schema creation and
+    /// allows access to conventions and context data.
+    /// </summary>
     public sealed class DescriptorContext : IDescriptorContext
     {
         private readonly Dictionary<(Type, string?), IConvention> _conventions = new();
@@ -28,25 +38,33 @@ namespace HotChocolate.Types.Descriptors
             SchemaInterceptor schemaInterceptor,
             TypeInterceptor typeInterceptor)
         {
+            Schema = schema;
             Options = options;
             _cFactories = conventionFactories;
             _services = services;
             ContextData = contextData;
             SchemaInterceptor = schemaInterceptor;
             TypeInterceptor = typeInterceptor;
+            ResolverCompiler = new DefaultResolverCompiler(
+                services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
             schema.Completed += OnSchemaOnCompleted;
 
-            void OnSchemaOnCompleted(object sender, EventArgs args)
+            void OnSchemaOnCompleted(object? sender, EventArgs args)
             {
                 SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
             }
         }
 
+        internal SchemaBuilder.LazySchema Schema { get; }
+
+        /// <inheritdoc />
         public IServiceProvider Services => _services;
 
+        /// <inheritdoc />
         public IReadOnlySchemaOptions Options { get; }
 
+        /// <inheritdoc />
         public INamingConventions Naming
         {
             get
@@ -54,13 +72,21 @@ namespace HotChocolate.Types.Descriptors
                 if (_naming is null)
                 {
                     _naming = GetConventionOrDefault<INamingConventions>(
-                        () => new DefaultNamingConventions(Options.UseXmlDocumentation));
+                        () => Options.UseXmlDocumentation
+                            ? new DefaultNamingConventions(
+                                new XmlDocumentationProvider(
+                                    new XmlDocumentationFileResolver(),
+                                    Services.GetService<ObjectPool<StringBuilder>>() ??
+                                    new NoOpStringBuilderPool()))
+                            : new DefaultNamingConventions(
+                                new NoopDocumentationProvider()));
                 }
 
                 return _naming;
             }
         }
 
+        /// <inheritdoc />
         public ITypeInspector TypeInspector
         {
             get
@@ -75,12 +101,19 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        /// <inheritdoc />
         public SchemaInterceptor SchemaInterceptor { get; }
 
+        /// <inheritdoc />
         public TypeInterceptor TypeInterceptor { get; }
 
+        /// <inheritdoc />
+        public IResolverCompiler ResolverCompiler { get; }
+
+        /// <inheritdoc />
         public IDictionary<string, object?> ContextData { get; }
 
+        /// <inheritdoc />
         public T GetConventionOrDefault<T>(
             Func<T> defaultConvention,
             string? scope = null)
@@ -177,6 +210,11 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        public void Dispose()
+        {
+            ResolverCompiler.Dispose();
+        }
+
         internal static DescriptorContext Create(
             IReadOnlySchemaOptions? options = null,
             IServiceProvider? services = null,
@@ -194,6 +232,16 @@ namespace HotChocolate.Types.Descriptors
                 schema ?? new SchemaBuilder.LazySchema(),
                 schemaInterceptor ?? new AggregateSchemaInterceptor(),
                 typeInterceptor ?? new AggregateTypeInterceptor());
+        }
+
+        private class NoOpStringBuilderPool : ObjectPool<StringBuilder>
+        {
+            public override StringBuilder Get() => new();
+
+            public override void Return(StringBuilder obj)
+            {
+                obj.Clear();
+            }
         }
     }
 }

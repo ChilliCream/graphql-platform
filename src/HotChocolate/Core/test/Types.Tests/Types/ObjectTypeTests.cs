@@ -19,21 +19,23 @@ namespace HotChocolate.Types
 {
     public class ObjectTypeTests : TypeTestBase
     {
+        public ObjectTypeTests()
+        {
+        }
+
         [Fact]
         public void ObjectType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new ObjectType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Field("bar")
                     .Type<StringType>()
-                    .Resolver("foo")));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Resolve("foo"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("StringFoo");
@@ -44,17 +46,15 @@ namespace HotChocolate.Types
         public void ObjectType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new ObjectType(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Field("bar")
                     .Type<StringType>()
-                    .Resolver("foo")));
-
-                c.Options.StrictValidation = false;
-            });
+                    .Resolve("foo"))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("StringFoo");
@@ -65,14 +65,12 @@ namespace HotChocolate.Types
         public void GenericObjectType_DynamicName()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new ObjectType<Foo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn<StringType>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("StringFoo");
@@ -83,14 +81,12 @@ namespace HotChocolate.Types
         public void GenericObjectType_DynamicName_NonGeneric()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterType(new ObjectType<Foo>(d => d
+            ISchema schema = SchemaBuilder.New()
+                .AddObjectType(d => d
                     .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))));
-
-                c.Options.StrictValidation = false;
-            });
+                    .DependsOn(typeof(StringType)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("StringFoo");
@@ -138,7 +134,7 @@ namespace HotChocolate.Types
             ObjectType fooType = CreateType(new ObjectType(c => c
                 .Name("Foo")
                 .Field("bar")
-                .Resolver(() => "baz")),
+                .Resolve(() => "baz")),
                 b => b.Use(next => async context =>
                 {
                     await next(context);
@@ -154,7 +150,7 @@ namespace HotChocolate.Types
             Assert.Equal("BAZ", resolverContext.Object.Result);
         }
 
-        [Obsolete]
+        [Obsolete("DeprecationReason is obsolete.")]
         [Fact]
         public void DeprecationReason_Obsolete()
         {
@@ -167,7 +163,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("bar")
                 .DeprecationReason("fooBar")
-                .Resolver(() => "baz")));
+                .Resolve(() => "baz")));
 
             // assert
             Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
@@ -186,7 +182,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("bar")
                 .Deprecated("fooBar")
-                .Resolver(() => "baz")));
+                .Resolve(() => "baz")));
 
             // assert
             Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
@@ -205,7 +201,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("bar")
                 .Deprecated("fooBar")
-                .Resolver(() => "baz")));
+                .Resolve(() => "baz")));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -223,7 +219,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("bar")
                 .Deprecated()
-                .Resolver(() => "baz")));
+                .Resolve(() => "baz")));
 
             // assert
             Assert.Equal(
@@ -244,7 +240,7 @@ namespace HotChocolate.Types
                 .Name("Foo")
                 .Field("bar")
                 .Deprecated()
-                .Resolver(() => "baz")));
+                .Resolve(() => "baz")));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -354,10 +350,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -388,10 +384,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -422,10 +418,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -456,10 +452,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -487,7 +483,10 @@ namespace HotChocolate.Types
             ";
 
             // act
-            var schema = Schema.Create(source, c => c.Use(_ => _ => default));
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .Use(_ => _)
+                .Create();
 
             Assert.Equal("A", schema.QueryType.Name.Value);
             Assert.Equal("B", schema.MutationType?.Name.Value);
@@ -501,18 +500,19 @@ namespace HotChocolate.Types
             var source = @"
                 type A { field: String }
                 type B { field: String }
-                type C { field: String }
-            ";
+                type C { field: String }";
 
             // act
-            var schema = Schema.Create(source,
-                c =>
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .Use(_ => _)
+                .ModifyOptions(o =>
                 {
-                    c.Use(_ => _ => default);
-                    c.Options.QueryTypeName = "A";
-                    c.Options.MutationTypeName = "B";
-                    c.Options.SubscriptionTypeName = "C";
-                });
+                    o.QueryTypeName = "A";
+                    o.MutationTypeName = "B";
+                    o.SubscriptionTypeName = "C";
+                })
+                .Create();
 
             Assert.Equal("A", schema.QueryType.Name.Value);
             Assert.Equal("B", schema.MutationType?.Name.Value);
@@ -523,12 +523,14 @@ namespace HotChocolate.Types
         public void NoQueryType()
         {
             // arrange
-            var source = @"
-                type A { field: String }
-            ";
+            var source = @"type A { field: String }";
 
             // act
-            void Action() => Schema.Create(source, c => c.Use(_ => _ => default));
+            void Action()
+                => SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .Use(_ => _)
+                    .Create();
 
             Assert.Throws<SchemaException>(Action).Errors.MatchSnapshot();
         }
@@ -553,10 +555,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -587,10 +589,10 @@ namespace HotChocolate.Types
             // act
             try
             {
-                Schema.Create(source, c =>
-                {
-                    c.BindResolver(() => "foo").To("C", "a");
-                });
+                SchemaBuilder.New()
+                    .AddDocumentFromString(source)
+                    .AddResolver("C.a", _ => new("foo"))
+                    .Create();
             }
             catch (SchemaException ex)
             {
@@ -624,10 +626,10 @@ namespace HotChocolate.Types
             ";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.BindResolver(() => "foo").To("C", "a");
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddResolver("C.a", _ => new("foo"))
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
@@ -638,7 +640,7 @@ namespace HotChocolate.Types
         public void ObjectTypeImplementsAllFieldsWithWrappedTypes()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String!): String!
                 }
@@ -657,41 +659,14 @@ namespace HotChocolate.Types
             ";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.BindResolver(() => "foo").To("C", "a");
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddResolver("C.a", _ => new("foo"))
+                .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("C");
             Assert.Equal(2, type.Implements.Count);
-        }
-
-        [Fact]
-        public void Include_TypeWithOneField_ContainsThisField()
-        {
-            // arrange
-            // act
-            ObjectType<object> fooType =
-                CreateType(new ObjectType<object>(d => d
-                    .Include<Foo>()));
-
-            // assert
-            Assert.True(fooType.Fields.ContainsField("description"));
-        }
-
-        [Fact]
-        public void Include_TypeWithOneField_And_Update_FieldDefinition()
-        {
-            // arrange
-            // act
-            ObjectType<object> fooType =
-                CreateType(new ObjectType<object>(d => d
-                    .Include<Foo>()
-                    .Field<Foo>(t => t.Description).Name("desc")));
-
-            // assert
-            Assert.True(fooType.Fields.ContainsField("desc"));
         }
 
         [Fact]
@@ -714,13 +689,15 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver(() => "")
+                .Resolve(() => "")
                 .Argument("_456",
                     a => a.Type<InputObjectType<Foo>>()
                         .DefaultValue(new Foo())));
 
             // act
-            var schema = Schema.Create(t => t.RegisterQueryType(objectType));
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -732,7 +709,7 @@ namespace HotChocolate.Types
             // arrange
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
-                .Resolver("World"));
+                .Resolve("World"));
 
             // act
             IRequestExecutor executor =
@@ -753,7 +730,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver(() => "fooBar"));
+                .Resolve(() => "fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -773,7 +750,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType(t => t
                 .Name("Bar")
                 .Field("_123")
-                .Resolver(() => "fooBar"));
+                .Resolve(() => "fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -794,7 +771,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver("fooBar"));
+                .Resolve("fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -814,7 +791,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType(t => t
                 .Name("Bar")
                 .Field("_123")
-                .Resolver("fooBar"));
+                .Resolve("fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -835,7 +812,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver(ctx => ctx.Field.Name.Value));
+                .Resolve(ctx => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -855,7 +832,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType(t => t
                 .Name("Bar")
                 .Field("_123")
-                .Resolver(ctx => ctx.Field.Name.Value));
+                .Resolve(ctx => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -876,7 +853,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver((ctx, _) => ctx.Field.Name.Value));
+                .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -896,7 +873,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType(t => t
                 .Name("Bar")
                 .Field("_123")
-                .Resolver((ctx, _) => ctx.Field.Name.Value));
+                .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -917,7 +894,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver(() => (object)"fooBar"));
+                .Resolve(() => (object)"fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -938,7 +915,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver((object)"fooBar"));
+                .Resolve((object)"fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -959,7 +936,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver(ctx => (object)ctx.Field.Name.Value));
+                .Resolve(ctx => (object)ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -980,7 +957,7 @@ namespace HotChocolate.Types
                 .Name("Bar")
                 .Field("_123")
                 .Type<StringType>()
-                .Resolver((ctx, _) => (object)ctx.Field.Name.Value));
+                .Resolve((ctx, _) => (object)ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1000,7 +977,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver(() => "fooBar"));
+                .Resolve(() => "fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -1020,7 +997,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver("fooBar"));
+                .Resolve("fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -1040,7 +1017,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver(ctx => ctx.Field.Name.Value));
+                .Resolve(ctx => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1060,7 +1037,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver((ctx, _) => ctx.Field.Name.Value));
+                .Resolve((ctx, _) => ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1080,7 +1057,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver(() => (object)"fooBar"));
+                .Resolve(() => (object)"fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -1100,7 +1077,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver((object)"fooBar"));
+                .Resolve((object)"fooBar"));
 
             // act
             IRequestExecutor executor =
@@ -1120,7 +1097,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver(ctx => (object)ctx.Field.Name.Value));
+                .Resolve(ctx => (object)ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1140,7 +1117,7 @@ namespace HotChocolate.Types
             var objectType = new ObjectType<Foo>(t => t
                 .Field(f => f.Description)
                 .Type<StringType>()
-                .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
+                .Resolve((ctx, _) => (object)ctx.Selection.Field.Name.Value));
 
             // act
             IRequestExecutor executor =
@@ -1162,7 +1139,9 @@ namespace HotChocolate.Types
                 .Name("desc")
                 .Type<StringType>());
 
-            var schema = Schema.Create(t => t.RegisterQueryType(objectType));
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(objectType)
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -1198,7 +1177,7 @@ namespace HotChocolate.Types
             ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
             {
                 d.Ignore(t => t.Description);
-                d.Field("foo").Type<StringType>().Resolver("abc");
+                d.Field("foo").Type<StringType>().Resolve("abc");
             }));
 
             // assert
@@ -1209,14 +1188,14 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void UnignoreFieldWithShortcut()
+        public void UnIgnoreFieldWithShortcut()
         {
             // arrange
             // act
             ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
             {
                 d.Ignore(t => t.Description);
-                d.Field("foo").Type<StringType>().Resolver("abc");
+                d.Field("foo").Type<StringType>().Resolve("abc");
                 d.Field(t => t.Description).Ignore(false);
             }));
 
@@ -1233,11 +1212,10 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore<Foo>(null, t => t.Description);
+            void Action() => ObjectTypeDescriptorExtensions.Ignore<Foo>(null, t => t.Description);
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -1247,8 +1225,7 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectTypeDescriptor<Foo>>();
 
             // act
-            Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore(descriptor.Object, null);
+            Action a = () => descriptor.Object.Ignore(null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -1259,16 +1236,16 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => SchemaBuilder.New()
-                .AddType(new ObjectType(t => t
-                    .Name("Foo")
-                    .Field("bar")
-                    .Type<NonNullType<InputObjectType<Foo>>>()))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddType(new ObjectType(t => t.Name("Foo")
+                        .Field("bar")
+                        .Type<NonNullType<InputObjectType<Foo>>>()))
+                    .Create();
 
             // assert
-            Assert.Throws<SchemaException>(a)
-                .Errors.First().Message.MatchSnapshot();
+            Assert.Throws<SchemaException>(Action)
+                .Errors[0].Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1276,16 +1253,16 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action a = () => SchemaBuilder.New()
-                .AddType(new ObjectType(t => t
-                    .Name("Foo")
-                    .Field("bar")
-                    .Type(new NonNullType(new InputObjectType<Foo>()))))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddType(new ObjectType(t => t.Name("Foo")
+                        .Field("bar")
+                        .Type(new NonNullType(new InputObjectType<Foo>()))))
+                    .Create();
 
             // assert
-            Assert.Throws<SchemaException>(a)
-                .Errors.First().Message.MatchSnapshot();
+            Assert.Throws<SchemaException>(Action)
+                .Errors[0].Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1321,15 +1298,15 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddQueryType<QueryWithIntArg>(t => t
-                    .Field(f => f.GetBar(1))
-                    .Argument("bar", a => a.DefaultValue(default)))
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType<QueryWithIntArg>(t => t.Field(f => f.GetBar(1))
+                        .Argument("bar", a => a.DefaultValue(default)))
+                    .Create();
 
             // assert
-            Assert.Throws<SchemaException>(action)
-                .Errors.First().Message.MatchSnapshot();
+            Assert.Throws<SchemaException>(Action)
+                .Errors[0].Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1364,11 +1341,10 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<QueryWithDocumentation>();
-                c.Options.UseXmlDocumentation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDocumentation>()
+                .ModifyOptions(o => o.UseXmlDocumentation = false)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -1402,7 +1378,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new ObjectType<FooObsolete>())
                 .Create();
 
@@ -1420,7 +1396,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(new ObjectType<FooDeprecated>())
                 .Create();
 
@@ -1551,7 +1527,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolve(
-                        ctx => new ValueTask<object>("abc"),
+                        _ => new ValueTask<object>("abc"),
                         typeof(string)))
                 .Create();
 
@@ -1569,7 +1545,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolve(
-                        ctx => new ValueTask<object>("abc"),
+                        _ => new ValueTask<object>("abc"),
                         typeof(NativeType<List<int>>)))
                 .Create();
 
@@ -1587,7 +1563,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolve(
-                        ctx => new ValueTask<object>("abc"),
+                        _ => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1606,7 +1582,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolve(
-                        ctx => new ValueTask<object>("abc"),
+                        _ => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1624,9 +1600,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Type<StringType>()
-                    .Resolve(
-                        ctx => new ValueTask<object>("abc"),
-                        typeof(int)))
+                    .Resolve(_ => new ValueTask<object>("abc"), typeof(int)))
                 .Create();
 
             // assert
@@ -1643,9 +1617,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Type<StringType>()
-                    .Resolve(
-                        ctx => new ValueTask<object>("abc"),
-                        null))
+                    .Resolve(_ => new ValueTask<object>("abc"), null))
                 .Create();
 
             // assert
@@ -1828,7 +1800,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Field(t => t.Description);
                 descriptor.Field("test")
-                    .Resolver(() => new List<string>())
+                    .Resolve(() => new List<string>())
                     .Type<ListType<StringType>>();
             }
         }

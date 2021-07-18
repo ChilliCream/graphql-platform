@@ -5,8 +5,7 @@ namespace HotChocolate.Execution.Configuration
     /// <summary>
     /// Represents something that configures the <see cref="RequestExecutorSetup"/>.
     /// </summary>
-    public interface IConfigureRequestExecutorSetup
-        : IConfigureOptions<RequestExecutorSetup>
+    public interface IConfigureRequestExecutorSetup : IConfigureOptions<RequestExecutorSetup>
     {
         /// <summary>
         /// The schema name to which this instance provides configurations to.

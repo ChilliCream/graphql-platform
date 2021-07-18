@@ -12,13 +12,12 @@ namespace HotChocolate.Resolvers
     public delegate ValueTask FieldDelegate(IMiddlewareContext context);
 
     /// <summary>
-    /// This delegate represents a pure field that can be executed without any side-effects.
+    /// This delegates represents a pure resolver that is side-effect free and sync.
     /// </summary>
-    /// <param name="context">The middleware context.</param>
-    public delegate void PureFieldDelegate(IMiddlewareContext context);
-
-    /// <summary>
-    /// This delegate represents a field resolver that can be inlined when executing.
-    /// </summary>
-    public delegate object? InlineFieldDelegate(object? parent);
+    /// <param name="context">The resolver context.</param>
+    /// <param name="parent">The parent of the resolved field.</param>
+    /// <returns>
+    /// Returns the resolver result.
+    /// </returns>
+    public delegate object? PureFieldDelegate(IPureResolverContext context);
 }

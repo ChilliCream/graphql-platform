@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
-using HotChocolate.Types.Introspection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic.CompilerServices;
 using Snapshooter.Xunit;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
@@ -56,13 +54,11 @@ namespace HotChocolate
             var query = FileResource.Open("IntrospectionQuery.graphql");
 
             // act
-            ISchema schema = Schema.Create(
-                source,
-                c =>
-                {
-                    c.Options.StrictValidation = false;
-                    c.Use(next => context => next(context));
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .Use(next => next)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             IRequestExecutor executor = schema.MakeExecutable();
@@ -74,18 +70,16 @@ namespace HotChocolate
         public async Task SchemaDescription()
         {
             // arrange
-            string sourceText = "\"\"\"\nMy Schema Description\n\"\"\"" +
+            var sourceText = "\"\"\"\nMy Schema Description\n\"\"\"" +
                 "schema" +
                 "{ query: Foo }" +
                 "type Foo { bar: String }";
 
             // act
-            ISchema schema = Schema.Create(
-                sourceText,
-                c =>
-                {
-                    c.Use(next => context => next(context));
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .Use(next => next)
+                .Create();
 
             // assert
             IRequestExecutor executor = schema.MakeExecutable();
@@ -98,12 +92,12 @@ namespace HotChocolate
         public async Task SchemaBuilder_BindType()
         {
             // arrange
-            string sourceText = "type Query { hello: String }";
+            var sourceText = "type Query { hello: String }";
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .BindComplexType<Query>()
+                .AddRootResolver(new { Query = new Query() })
                 .Create();
 
             // assert
@@ -117,99 +111,12 @@ namespace HotChocolate
         public async Task SchemaBuilder_AddResolver()
         {
             // arrange
-            string sourceText = "type Query { hello: String }";
+            var sourceText = "type Query { hello: String }";
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
                 .AddResolver("Query", "hello", () => "World")
-                .Create();
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ hello }");
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SchemaBuilder_BindType_Configure()
-        {
-            // arrange
-            string sourceText = "type Query { hello: String }";
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .BindComplexType<Query1>(c => c
-                    .To("Query")
-                    .Field(t => t.Hello1())
-                    .Name("hello"))
-                .Create();
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ hello }");
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SchemaBuilder_BindType_And_Resolver()
-        {
-            // arrange
-            string sourceText = "type Query { hello: String }";
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .BindComplexType<Query>()
-                .BindResolver<QueryResolver>(c => c
-                    .To<Query>()
-                    .Resolve(f => f.Hello())
-                    .With(r => r.Resolve(default)))
-                .Create();
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ hello }");
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SchemaBuilder_BindType_And_Resolver_NameBind()
-        {
-            // arrange
-            string sourceText = "type Query { hello: String }";
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .BindComplexType<Query>()
-                .BindResolver<QueryResolver>(c => c
-                    .To("Query")
-                    .Resolve("hello")
-                    .With(r => r.Resolve(default)))
-                .Create();
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ hello }");
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SchemaBuilder_BindType_And_Resolver_Implicit()
-        {
-            // arrange
-            string sourceText = "type Query { hello: String }";
-
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .BindResolver<Query>()
                 .Create();
 
             // assert
@@ -240,7 +147,7 @@ namespace HotChocolate
 
             // assert
             Assert.Collection(
-                Assert.Throws<SchemaException>((Action) Action).Errors,
+                Assert.Throws<SchemaException>(Action).Errors,
                     error => Assert.Equal(
                         ErrorCodes.Schema.InvalidArgument,
                         error.Code),
@@ -256,7 +163,7 @@ namespace HotChocolate
         public void BuiltInScalarsAreRecognized()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     string_field: String
                     string_non_null_field: String!
@@ -266,13 +173,12 @@ namespace HotChocolate
                     float_non_null_field: Float!
                     bool_field: Boolean
                     bool_non_null_field: Boolean!
-                }
-            ";
+                }";
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _)
                 .Create();
 
             // assert
@@ -283,7 +189,7 @@ namespace HotChocolate
         public void BuiltInScalarsAreRecognized2()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     foo: Foo
                 }
@@ -303,7 +209,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _)
                 .Create();
 
             // assert
@@ -314,7 +220,7 @@ namespace HotChocolate
         public void ListTypesAreRecognized()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     foo: Foo
                 }
@@ -332,7 +238,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _)
                 .Create();
 
             // assert
@@ -343,12 +249,12 @@ namespace HotChocolate
         public async Task SchemaBuilder_AnyType()
         {
             // arrange
-            string sourceText = "type Query { hello: Any }";
+            var sourceText = "type Query { hello: Any }";
 
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .BindComplexType<Query>()
+                .AddResolver<Query>()
                 .Create();
 
             // assert
@@ -360,19 +266,6 @@ namespace HotChocolate
         public class Query
         {
             public string Hello() => "World";
-        }
-
-        public class Query1
-        {
-            public string Hello1() => "World1";
-        }
-
-        public class QueryResolver
-        {
-            public string Resolve(Query query)
-            {
-                return query.Hello() + " with resolver";
-            }
         }
     }
 }

@@ -4,6 +4,11 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext
     {
+        public MiddlewareContext()
+        {
+            _childContext = new PureResolverContext(this);
+        }
+
         public void Initialize(
             IOperationContext operationContext,
             ISelection selection,
@@ -27,6 +32,7 @@ namespace HotChocolate.Execution.Processing
 
         public void Clean()
         {
+            _childContext.Clear();
             _operationContext = default!;
             _services = default!;
             _selection = default!;

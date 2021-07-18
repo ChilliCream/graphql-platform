@@ -13,6 +13,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<Type>? _knownClrTypes;
         private List<ITypeReference>? _interfaces;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public InterfaceTypeDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public InterfaceTypeDefinition(
+            NameString name,
+            string? description = null,
+            Type? runtimeType = null)
+            : base(runtimeType ?? typeof(object))
+        {
+            Name = name;
+            Description = description;
+        }
+
         public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= new List<Type>();
 
         public ResolveAbstractType? ResolveAbstractType { get; set; }

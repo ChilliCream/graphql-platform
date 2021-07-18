@@ -12,12 +12,11 @@ namespace HotChocolate.Utilities
         public void Convert_ObjectValue_FooInputObject()
         {
             // arrange
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.RegisterType<InputObjectType<Foo>>();
-                c.RegisterType<DecimalType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<InputObjectType<Foo>>()
+                .AddType<DecimalType>()
+                .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -28,10 +27,8 @@ namespace HotChocolate.Utilities
                 new ObjectFieldNode("state", new EnumValueNode("ON")),
                 new ObjectFieldNode("bazs", new ListValueNode(baz)),
                 new ObjectFieldNode("stringArray", new ListValueNode(
-                    new IValueNode[]  {
                         new StringValueNode("abc"),
-                        new StringValueNode("def")
-                    })));
+                        new StringValueNode("def"))));
 
             var foo = new ObjectValueNode(
                 new ObjectFieldNode("text", new StringValueNode("abc")),
@@ -50,23 +47,20 @@ namespace HotChocolate.Utilities
         public void Convert_ObjectValue_InputObjectWithoutClrType()
         {
             // arrange
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.RegisterType(new InputObjectType(t =>
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddInputObjectType(t =>
                     t.Name("FooInput")
                         .Field("a")
-                        .Type<ListType<StringType>>()));
-            });
+                        .Type<ListType<StringType>>())
+                .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var foo = new ObjectValueNode(
                 new ObjectFieldNode("a", new ListValueNode(
-                    new IValueNode[]  {
-                        new StringValueNode("abc"),
-                        new StringValueNode("def")
-                    })));
+                    new StringValueNode("abc"),
+                    new StringValueNode("def"))));
 
             // assert
             var converter = new ObjectValueToInputObjectConverter(

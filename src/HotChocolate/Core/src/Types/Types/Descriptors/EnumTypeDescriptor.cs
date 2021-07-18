@@ -32,8 +32,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        protected internal override EnumTypeDefinition Definition { get; protected set; } =
-            new EnumTypeDefinition();
+        protected internal override EnumTypeDefinition Definition { get; protected set; } = new();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
             new List<EnumValueDescriptor>();
@@ -50,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.AttributesAreApplied = true;
             }
 
-            var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.Value);
+            var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.RuntimeValue);
             AddImplicitValues(definition, values);
 
             definition.Values.Clear();
@@ -69,16 +68,16 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeDefinition.Values.IsImplicitBinding())
             {
-                foreach (object value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
+                foreach (var value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
                 {
                     EnumValueDefinition valueDefinition =
                         EnumValueDescriptor.New(Context, value)
                             .CreateDefinition();
 
-                    if (valueDefinition.Value is not null &&
-                        !values.ContainsKey(valueDefinition.Value))
+                    if (valueDefinition.RuntimeValue is not null &&
+                        !values.ContainsKey(valueDefinition.RuntimeValue))
                     {
-                        values.Add(valueDefinition.Value, valueDefinition);
+                        values.Add(valueDefinition.RuntimeValue, valueDefinition);
                     }
                 }
             }
@@ -127,8 +126,8 @@ namespace HotChocolate.Types.Descriptors
         public IEnumValueDescriptor Value<T>(T value)
         {
             EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
-                t.Definition.Value is not null &&
-                t.Definition.Value.Equals(value));
+                t.Definition.RuntimeValue is not null &&
+                t.Definition.RuntimeValue.Equals(value));
 
             if (descriptor is not null)
             {
@@ -163,16 +162,16 @@ namespace HotChocolate.Types.Descriptors
 
         public static EnumTypeDescriptor New(
             IDescriptorContext context) =>
-            new EnumTypeDescriptor(context);
+            new(context);
 
         public static EnumTypeDescriptor New(
             IDescriptorContext context,
             Type clrType) =>
-            new EnumTypeDescriptor(context, clrType);
+            new(context, clrType);
 
         public static EnumTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
-            new EnumTypeDescriptor<T>(context);
+            new(context);
 
         public static EnumTypeDescriptor FromSchemaType(
             IDescriptorContext context,
@@ -186,11 +185,11 @@ namespace HotChocolate.Types.Descriptors
         public static EnumTypeDescriptor From(
             IDescriptorContext context,
             EnumTypeDefinition definition) =>
-            new EnumTypeDescriptor(context, definition);
+            new(context, definition);
 
         public static EnumTypeDescriptor From<T>(
             IDescriptorContext context,
             EnumTypeDefinition definition) =>
-            new EnumTypeDescriptor<T>(context, definition);
+            new(context, definition);
     }
 }

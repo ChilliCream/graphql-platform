@@ -11,8 +11,7 @@ namespace HotChocolate.Types.Descriptors
     /// A type reference is used to refer to a type in the type system.
     /// This allows us to loosly couple types.
     /// </summary>
-    public abstract class TypeReference
-        : ITypeReference
+    public abstract class TypeReference : ITypeReference
     {
         protected TypeReference(
             TypeContext context,
@@ -97,13 +96,18 @@ namespace HotChocolate.Types.Descriptors
             ITypeNode type,
             TypeContext context = TypeContext.None,
             string? scope = null) =>
-            new SyntaxTypeReference(type, context, scope);
+            new(type, context, scope);
 
         public static SyntaxTypeReference Create(
             NameString typeName,
             TypeContext context = TypeContext.None,
             string? scope = null) =>
-            new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope);
+            new(new NamedTypeNode(typeName), context, scope);
+
+        public static SyntaxTypeReference Parse(
+            string sourceText,
+            TypeContext context = TypeContext.None) =>
+            new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context);
 
         public static ExtendedTypeReference Create(
             IExtendedType type,
@@ -117,13 +121,11 @@ namespace HotChocolate.Types.Descriptors
                     InferTypeContext(type),
                     scope);
             }
-            else
-            {
-                return new ExtendedTypeReference(
-                    type,
-                    context,
-                    scope);
-            }
+
+            return new ExtendedTypeReference(
+                type,
+                context,
+                scope);
         }
     }
 }

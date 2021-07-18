@@ -12,37 +12,72 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// This is not a full type and is used to split the type configuration into multiple part.
-    /// Any type extension instance is will not survive the initialization and instead is
-    /// merged into the target type.
+    /// Object type extensions are used to represent a type which has been extended
+    /// from some original type.
+    ///
+    /// For example, this might be used to represent local data, or by a GraphQL service
+    /// which is itself an extension of another GraphQL service.
     /// </summary>
     public class ObjectTypeExtension
         : NamedTypeExtensionBase<ObjectTypeDefinition>
     {
         private Action<IObjectTypeDescriptor>? _configure;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="ObjectType"/>.
+        /// </summary>
         protected ObjectTypeExtension()
         {
             _configure = Configure;
         }
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="ObjectType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
         public ObjectTypeExtension(Action<IObjectTypeDescriptor> configure)
         {
             _configure = configure;
         }
 
+        /// <summary>
+        /// Create a object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The object type definition that specifies the properties of the
+        /// newly created object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created object type.
+        /// </returns>
+        public static ObjectTypeExtension CreateUnsafe(ObjectTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Object;
 
-        protected override ObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                ObjectTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = ObjectTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }

@@ -6,14 +6,14 @@ namespace HotChocolate.Configuration
 {
     internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
     {
-        private readonly IReadOnlyList<ISchemaInterceptor> _interceptors;
+        private IReadOnlyList<ISchemaInterceptor> _interceptors;
 
         public AggregateSchemaInterceptor()
         {
             _interceptors = Array.Empty<ISchemaInterceptor>();
         }
 
-        public AggregateSchemaInterceptor(IReadOnlyList<ISchemaInterceptor> interceptors)
+        public void SetInterceptors(IReadOnlyList<ISchemaInterceptor> interceptors)
         {
             _interceptors = interceptors;
         }

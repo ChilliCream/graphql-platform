@@ -10,6 +10,6 @@ namespace HotChocolate
         public const string LabelArgument = "label";
         public const string Deprecated = "deprecated";
         public const string DeprecationReasonArgument = "reason";
-        public const string DeprecationDefaultReason = "No longer supported";
+        public const string DeprecationDefaultReason = "No longer supported.";
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System.Linq;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Directives
 {
-    public class SpecedDirectiveTypeTests
-        : TypeTestBase
+    public class SpecedDirectiveTypeTests : TypeTestBase
     {
         [Fact]
         public void EnsureSkipDirectiveIsAvailable()

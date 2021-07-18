@@ -13,8 +13,7 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeLookup
     {
-        private readonly Dictionary<ITypeReference, ITypeReference> _refs =
-            new Dictionary<ITypeReference, ITypeReference>();
+        private readonly Dictionary<ITypeReference, ITypeReference> _refs = new();
         private readonly ITypeInspector _typeInspector;
         private readonly TypeRegistry _typeRegistry;
 

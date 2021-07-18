@@ -15,15 +15,18 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly MessageProcessor _messageProcessor;
         private readonly MessageReceiver _messageReceiver;
         private readonly bool _disposeConnection;
+        private readonly ISocketSessionInterceptor _sessionInterceptor;
         private bool _disposed;
 
         private WebSocketSession(
+            ISocketSessionInterceptor sessionInterceptor,
             ISocketConnection connection,
             IMessagePipeline messagePipeline,
             bool disposeConnection)
         {
             _connection = connection;
             _disposeConnection = disposeConnection;
+            _sessionInterceptor = sessionInterceptor;
 
             _keepAlive = new KeepConnectionAliveJob(connection);
             _messageProcessor = new MessageProcessor(connection, messagePipeline, _pipe.Reader);
@@ -42,7 +45,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     _messageProcessor.Begin(cts.Token);
                     await _messageReceiver.ReceiveAsync(cts.Token);
                 }
-                catch(OperationCanceledException) when (cts.Token.IsCancellationRequested)
+                catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
                 {
                     // OperationCanceledException are caught and will not
                     // bubble further. We will just close the current subscription
@@ -61,6 +64,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                             AspNetCoreResources.WebSocketSession_SessionEnded,
                             SocketCloseStatus.NormalClosure,
                             CancellationToken.None);
+                        await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
                     }
                     catch
                     {
@@ -85,13 +89,15 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _connection.Dispose();
                 }
+
                 _disposed = true;
             }
         }
 
         public static WebSocketSession New(
             HttpContext httpContext,
-            IMessagePipeline messagePipeline)
+            IMessagePipeline messagePipeline,
+            ISocketSessionInterceptor socketSessionInterceptor)
         {
             if (httpContext is null)
             {
@@ -103,8 +109,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 throw new ArgumentNullException(nameof(messagePipeline));
             }
 
+            if (socketSessionInterceptor is null)
+            {
+                throw new ArgumentNullException(nameof(socketSessionInterceptor));
+            }
+
             var connection = WebSocketConnection.New(httpContext);
-            return new WebSocketSession(connection, messagePipeline, true);
+            return new WebSocketSession(
+                socketSessionInterceptor,
+                connection,
+                messagePipeline,
+                true);
         }
     }
 }

@@ -130,7 +130,7 @@ namespace HotChocolate
 
         public int CompareTo(NameString other)
         {
-            return Value.CompareTo(other.Value);
+            return string.Compare(Value, other.Value, StringComparison.Ordinal);
         }
 
         /// <summary>

@@ -64,5 +64,25 @@ namespace HotChocolate
         /// Includes the query plan into the response.
         /// </summary>
         public const string IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan";
+
+        /// <summary>
+        /// The key for setting resolver configurations.
+        /// </summary>
+        public const string ResolverConfigs = "HotChocolate.Types.ResolverConfigs";
+
+        /// <summary>
+        /// The key for setting resolver types.
+        /// </summary>
+        public const string ResolverTypes = "HotChocolate.Types.ResolverTypes";
+
+        /// <summary>
+        /// The key for setting runtime types.
+        /// </summary>
+        public const string RuntimeTypes = "HotChocolate.Types.RuntimeTypes";
+
+        /// <summary>
+        /// The key for setting root instances.
+        /// </summary>
+        public const string RootInstance = "HotChocolate.Types.RootInstance";
     }
 }

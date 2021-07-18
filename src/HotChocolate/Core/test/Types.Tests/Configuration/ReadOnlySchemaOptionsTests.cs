@@ -1,10 +1,9 @@
-using HotChocolate.Types;
-using Xunit;
-using Snapshooter.Xunit;
-using HotChocolate.Configuration;
 using System;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
+using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class ReadOnlySchemaOptionsTests
     {

@@ -21,6 +21,16 @@ namespace HotChocolate.Resolvers
         IObjectField Field { get; }
 
         /// <summary>
+        /// Gets the type of the selection.
+        /// </summary>
+        IType Type { get; }
+
+        /// <summary>
+        /// Gets the type kind of the selection.
+        /// </summary>
+        TypeKind TypeKind { get; }
+
+        /// <summary>
         /// Gets the field selection syntax node.
         /// </summary>
         FieldNode SyntaxNode { get; }
@@ -29,11 +39,5 @@ namespace HotChocolate.Resolvers
         /// Gets the merged field selections.
         /// </summary>
         IReadOnlyList<FieldNode> SyntaxNodes { get; }
-
-        /// <summary>
-        /// Gets the merged field selections.
-        /// </summary>
-        [Obsolete("Use SyntaxNodes.")]
-        IReadOnlyList<FieldNode> Nodes { get; }
     }
 }

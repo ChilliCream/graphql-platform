@@ -13,7 +13,6 @@ namespace HotChocolate.Execution.Processing
         private readonly WorkBacklog _workBacklog;
         private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
-        private readonly ObjectPool<PureResolverTask> _pureResolverTasks;
         private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
         private readonly ExecutionTaskProcessor _taskProcessor;
         
@@ -26,14 +25,12 @@ namespace HotChocolate.Execution.Processing
             OperationContext operationContext,
 
             ObjectPool<ResolverTask> resolverTasks,
-            ObjectPool<PureResolverTask> pureResolverTasks,
             ObjectPool<IExecutionTask?[]> taskBuffers)
         {
             _operationContext = operationContext;
             _workBacklog = new WorkBacklog();
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
-            _pureResolverTasks = pureResolverTasks;
             _taskBuffers = taskBuffers;
             _taskProcessor = new ExecutionTaskProcessor(
                 _operationContext,

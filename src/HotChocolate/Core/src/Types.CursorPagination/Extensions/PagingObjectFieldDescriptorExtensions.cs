@@ -7,6 +7,7 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Types.Pagination.PagingDefaults;
 
 namespace HotChocolate.Types
 {
@@ -41,8 +42,6 @@ namespace HotChocolate.Types
 
             resolvePagingProvider ??= ResolvePagingProvider;
 
-            descriptor.AddPagingArguments();
-
             PagingHelper.UsePaging(
                 descriptor,
                 type,
@@ -52,10 +51,26 @@ namespace HotChocolate.Types
 
             descriptor
                 .Extend()
+                .OnBeforeCreate((c, d) =>
+                {
+                    if (!(c.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var obj) &&
+                       obj is PagingOptions pagingOptions))
+                    {
+                        pagingOptions = default;
+                    }
+
+                    var descriptor = ObjectFieldDescriptor.From(c, d);
+                    descriptor.AddPagingArguments(
+                        pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination);
+                    descriptor.CreateDefinition();
+                });
+
+            descriptor
+                .Extend()
                 .OnBeforeCreate(
                     (c, d) =>
                     {
-                        MemberInfo resolverMember = d.ResolverMember ?? d.Member;
+                        MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                         d.Type = CreateConnectionTypeRef(c, resolverMember, type, options);
                         d.CustomSettings.Add(typeof(Connection));
                     });
@@ -80,7 +95,22 @@ namespace HotChocolate.Types
             }
 
             descriptor
-                .AddPagingArguments()
+                .Extend()
+                .OnBeforeCreate((c, d) =>
+                {
+                    if (!(c.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var obj) &&
+                       obj is PagingOptions pagingOptions))
+                    {
+                        pagingOptions = default;
+                    }
+
+                    var descriptor = InterfaceFieldDescriptor.From(c, d);
+                    descriptor.AddPagingArguments(
+                        pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination);
+                    descriptor.CreateDefinition();
+                });
+
+            descriptor
                 .Extend()
                 .OnBeforeCreate(
                     (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, options));
@@ -89,33 +119,49 @@ namespace HotChocolate.Types
         }
 
         public static IObjectFieldDescriptor AddPagingArguments(
-            this IObjectFieldDescriptor descriptor)
+            this IObjectFieldDescriptor descriptor,
+            bool allowBackwardPagination = true)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor
+            descriptor
                 .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>())
-                .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>());
+
+            if (allowBackwardPagination)
+            {
+                descriptor
+                    .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
+                    .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+            }
+
+            return descriptor;
         }
 
         public static IInterfaceFieldDescriptor AddPagingArguments(
-            this IInterfaceFieldDescriptor descriptor)
+            this IInterfaceFieldDescriptor descriptor,
+            bool allowBackwardPagination = true)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor
+            descriptor
                 .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>())
-                .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>());
+
+            if (allowBackwardPagination)
+            {
+                descriptor
+                    .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
+                    .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+            }
+
+            return descriptor;
         }
 
         private static ITypeReference CreateConnectionTypeRef(

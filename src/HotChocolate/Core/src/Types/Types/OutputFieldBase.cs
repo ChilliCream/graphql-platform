@@ -38,7 +38,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines if this field as a introspection field.
         /// </summary>
-        public virtual bool IsIntrospectionField { get; } = false;
+        public virtual bool IsIntrospectionField => false;
 
         public bool IsDeprecated { get; }
 

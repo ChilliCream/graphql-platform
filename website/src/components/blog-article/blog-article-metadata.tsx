@@ -1,8 +1,8 @@
+import { graphql } from "gatsby";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticleMetadataFragment } from "../../../graphql-types";
 import { Link } from "../misc/link";
-import { graphql } from "gatsby";
 
 interface BlogArticleMetadataProperties {
   data: BlogArticleMetadataFragment;
@@ -55,7 +55,7 @@ const AuthorLink = styled(Link)`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  color: #666;
+  color: var(--text-color);
 `;
 
 const AuthorImage = styled.img`

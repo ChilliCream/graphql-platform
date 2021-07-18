@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((sp, sb) => configureSchema(sb))));
+                    new SchemaBuilderAction((_, sb) => configureSchema(sb))));
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((sp, sb, ct) => configureSchema(sb, ct))));
+                    new SchemaBuilderAction((_, sb, ct) => configureSchema(sb, ct))));
         }
 
         /// <summary>

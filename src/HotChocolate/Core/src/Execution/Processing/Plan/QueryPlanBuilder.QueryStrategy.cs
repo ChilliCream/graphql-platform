@@ -83,7 +83,6 @@ namespace HotChocolate.Execution.Processing.Plan
                         }
                     }
                     else if (selection.Strategy == SelectionExecutionStrategy.Default ||
-                        selection.Strategy == SelectionExecutionStrategy.Pure ||
                         context.SelectionPath.Count == 0)
                     {
                         if (parent is ResolverQueryPlanNode p &&
@@ -108,9 +107,10 @@ namespace HotChocolate.Execution.Processing.Plan
                             context.NodePath.Push(resolverPlanStep);
                         }
                     }
-                    else if (selection.Strategy == SelectionExecutionStrategy.Inline)
+                    else if (selection.Strategy == SelectionExecutionStrategy.Pure)
                     {
-                        // if a selection is inlined we just ignore it in the plan.
+                        // if a selection is pure we just ignore it in the plan since
+                        // it will be inlined.
                     }
                     else
                     {

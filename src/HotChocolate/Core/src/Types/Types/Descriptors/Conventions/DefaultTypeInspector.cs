@@ -43,30 +43,6 @@ namespace HotChocolate.Types.Descriptors
         public bool IgnoreRequiredAttribute { get; protected set; }
 
         /// <inheritdoc />
-        public virtual IEnumerable<Type> GetResolverTypes(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return GetResolverTypesInternal(type);
-        }
-
-        private IEnumerable<Type> GetResolverTypesInternal(Type sourceType)
-        {
-            if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
-            {
-                return sourceType
-                    .GetCustomAttributes(typeof(GraphQLResolverAttribute))
-                    .OfType<GraphQLResolverAttribute>()
-                    .SelectMany(attr => attr.ResolverTypes);
-            }
-
-            return Enumerable.Empty<Type>();
-        }
-
-        /// <inheritdoc />
         public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
 
         /// <inheritdoc />

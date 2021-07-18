@@ -70,15 +70,49 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        /// <summary>
+        /// Create a directive type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The directive type definition that specifies the properties of the
+        /// newly created directive type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created directive type.
+        /// </returns>
+        public static DirectiveType CreateUnsafe(DirectiveTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <summary>
+        /// The associated syntax node from the GraphQL SDL.
+        /// </summary>
         public DirectiveDefinitionNode? SyntaxNode { get; private set; }
 
+        /// <summary>
+        /// Gets the runtime type.
+        /// The runtime type defines of which value the type is when it
+        /// manifests in the execution engine.
+        /// </summary>
         public Type RuntimeType { get; private set; } = default!;
 
+        /// <summary>
+        /// Defines if this directive is repeatable. Repeatable directives are often useful when
+        /// the same directive should be used with different arguments at a single location,
+        /// especially in cases where additional information needs to be provided to a type or
+        /// schema extension via a directive
+        /// </summary>
         public bool IsRepeatable { get; private set; }
 
+        /// <summary>
+        /// Gets the locations where this directive type can be used to annotate
+        /// a type system member.
+        /// </summary>
         public ICollection<DirectiveLocation> Locations { get; private set; } = default!;
 
-        public FieldCollection<Argument> Arguments { get; private set; }  = default!;
+        /// <summary>
+        /// Gets the directive arguments.
+        /// </summary>
+        public FieldCollection<Argument> Arguments { get; private set; } = default!;
 
         public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; } =
             default!;
@@ -120,23 +154,33 @@ namespace HotChocolate.Types
         /// </summary>
         public bool IsTypeSystemDirective { get; private set; }
 
+        /// <summary>
+        /// Defines if instances of this directive type are publicly visible through introspection.
+        /// </summary>
         internal bool IsPublic { get; private set; }
 
-        protected override DirectiveTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                DirectiveTypeDescriptor.FromSchemaType( context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = DirectiveTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
-        protected virtual void Configure(IDirectiveTypeDescriptor descriptor)
-        {
-        }
+        protected virtual void Configure(IDirectiveTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
             ITypeDiscoveryContext context,
@@ -152,9 +196,9 @@ namespace HotChocolate.Types
             RegisterDependencies(context, definition);
         }
 
-        private void RegisterDependencies(
-           ITypeDiscoveryContext context,
-           DirectiveTypeDefinition definition)
+        private static void RegisterDependencies(
+            ITypeDiscoveryContext context,
+            DirectiveTypeDefinition definition)
         {
             context.RegisterDependencyRange(
                 definition.GetArguments().Select(t => t.Type),
@@ -222,7 +266,7 @@ namespace HotChocolate.Types
                 return obj;
             }
 
-            if (_converter.TryConvert(typeof(object), targetType, obj, out object? o))
+            if (_converter.TryConvert(typeof(object), targetType, obj, out var o))
             {
                 return o;
             }

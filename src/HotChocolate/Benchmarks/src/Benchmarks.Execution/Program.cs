@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
+using HotChocolate;
 using HotChocolate.Benchmarks;
 
 public static class Program

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,6 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext
     {
+        private readonly PureResolverContext _childContext;
         private ISelection _selection = default!;
 
         public IObjectType ObjectType => _selection.DeclaringType;
@@ -25,5 +27,21 @@ namespace HotChocolate.Execution.Processing
         public FieldDelegate? ResolverPipeline => _selection.ResolverPipeline;
 
         public PureFieldDelegate? PureResolver => _selection.PureResolver;
+
+        public bool TryCreatePureContext(
+            ISelection selection,
+            Path path,
+            object? parent,
+            [NotNullWhen(true)] out IPureResolverContext? context)
+        {
+            if (_childContext.Initialize(selection, path, parent))
+            {
+                context = _childContext;
+                return true;
+            }
+
+            context = null;
+            return false;
+        }
     }
 }

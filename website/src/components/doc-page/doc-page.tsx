@@ -1,4 +1,4 @@
-import { graphql } from "gatsby";
+import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, {
   FunctionComponent,
@@ -49,19 +49,13 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   originPath,
 }) => {
   const dispatch = useDispatch();
+  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
   const { fields, frontmatter, body } = data.file!.childMdx!;
   const slug = fields!.slug!;
-  const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/g;
-  const result = productAndVersionPattern.exec(slug);
-
-  if (!result) {
-    throw new Error(`Slug ${slug} could not be parsed`);
-  }
-
-  const selectedProduct = result[1] || "";
-  const selectedVersion = result[2] || "";
   const title = frontmatter!.title!;
-  const responsiveMenuRef = useRef<HTMLDivElement>(null);
+
+  const product = useProductInformation(slug);
 
   const hasScrolled$ = useObservable((state) => {
     return state.common.yScrollPosition > 20;
@@ -90,14 +84,20 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
     };
   }, [hasScrolled$]);
 
+  if (!product) {
+    throw new Error(
+      `Product information could not be parsed from slug: '${slug}'`
+    );
+  }
+
   return (
     <TabGroupProvider>
       <Container>
         <DocPageNavigation
           data={data}
           selectedPath={slug}
-          selectedProduct={selectedProduct}
-          selectedVersion={selectedVersion}
+          selectedProduct={product.name}
+          selectedVersion={product.version}
         />
         <ArticleWrapper>
           <ArticleContainer>
@@ -117,6 +117,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                     </Button>
                   </ResponsiveMenu>
                 </ResponsiveMenuWrapper>
+                <DocumentationNotes product={product} />
                 <ArticleTitle>{title}</ArticleTitle>
               </ArticleHeader>
               <ArticleContent>
@@ -164,6 +165,30 @@ export const DocPageGraphQLFragment = graphql`
     ...DocPageNavigation
   }
 `;
+
+const productAndVersionPattern = /^\/docs\/([\w-]+)(?:\/(v\d+))?/;
+
+interface ProductInformation {
+  readonly name: string;
+  readonly version: string;
+}
+
+function useProductInformation(slug: string): ProductInformation | null {
+  if (!slug) {
+    return null;
+  }
+
+  const result = productAndVersionPattern.exec(slug);
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    name: result[1] || "",
+    version: result[2] || "",
+  };
+}
 
 const ResponsiveMenuWrapper = styled.div`
   position: absolute;
@@ -247,7 +272,7 @@ const ResponsiveMenu = styled.div`
   width: 820px;
   height: 60px;
   padding: 0 20px;
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
   background: linear-gradient(
     180deg,
     #ffffff 30%,
@@ -289,7 +314,7 @@ const Button = styled.button`
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: #666;
+  color: var(--text-color);
   transition: color 0.2s ease-in-out;
 
   &.aside-toggle {
@@ -308,7 +333,50 @@ const Button = styled.button`
     margin-right: 5px;
     width: 16px;
     height: 16px;
-    fill: #666;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
   }
 `;
+
+const OutdatedDocumentationWarning = styled.div`
+  padding: 20px 20px;
+  background-color: var(--warning-color);
+  color: var(--text-color-contrast);
+  line-height: 1.4;
+
+  > br {
+    margin-bottom: 16px;
+  }
+
+  > a {
+    color: white !important;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 50px;
+  }
+`;
+
+interface DocumentationNotesProperties {
+  readonly product: ProductInformation;
+}
+
+const DocumentationNotes: FunctionComponent<DocumentationNotesProperties> = ({
+  product,
+}) => {
+  if (product.version === "") {
+    return null;
+  }
+
+  return (
+    <OutdatedDocumentationWarning>
+      This is documentation for <strong>{product.version}</strong>, which is no
+      longer actively maintained.
+      <br />
+      For up-to-date documentation, see the{" "}
+      <Link to={`/docs/${product.name}`}>latest version</Link>.
+    </OutdatedDocumentationWarning>
+  );
+};

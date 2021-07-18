@@ -200,15 +200,14 @@ namespace HotChocolate.Execution.Batching
                 .UseField(next => context =>
                 {
                     var o = context.Parent<object>();
-                    if (o is Dictionary<string, object> d &&
-                        d.TryGetValue(context.ResponseName, out var v))
+                    if (o is Dictionary<string, object> d
+                        && d.TryGetValue(context.ResponseName, out var v))
                     {
                         context.Result = v;
                     }
                     return next(context);
                 })
                 .AddExportDirectiveType());
-
 
             // act
             var batch = new List<IReadOnlyQueryRequest>
@@ -305,7 +304,7 @@ namespace HotChocolate.Execution.Batching
 
                     d.Field("baz")
                         .Argument("bar", a => a.Type<StringType>())
-                        .Resolve(c => c.ArgumentValue<string>("bar"));
+                        .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
                 })
                 .AddExportDirectiveType());
 
