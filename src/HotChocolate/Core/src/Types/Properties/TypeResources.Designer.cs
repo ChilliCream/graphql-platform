@@ -1316,5 +1316,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DirectiveLocation_VariableDefinition", resourceCulture);
             }
         }
+        
+        internal static string SchemaBuilderExtensions_AddResolver_TypeConditionNotMet {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_TypeConditionNotMet", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface", resourceCulture);
+            }
+        }
     }
 }
