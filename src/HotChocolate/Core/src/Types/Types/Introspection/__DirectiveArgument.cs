@@ -26,7 +26,8 @@ namespace HotChocolate.Types.Introspection
 
             return new ObjectTypeDefinition(
                 Names.__DirectiveArgument,
-                TypeResources.___DirectiveArgument_Description)
+                TypeResources.___DirectiveArgument_Description,
+                runtimeType: typeof(ArgumentNode))
             {
                 Fields =
                 {

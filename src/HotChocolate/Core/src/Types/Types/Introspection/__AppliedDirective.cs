@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Introspection
             return new ObjectTypeDefinition(
                 Names.__AppliedDirective,
                 TypeResources.___AppliedDirective_Description,
-                typeof(DirectiveType))
+                typeof(DirectiveNode))
             {
                 Fields =
                 {
