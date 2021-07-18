@@ -756,4 +756,13 @@ Type: `{0}`</value>
   <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
     <value>Could not resolve the claims principal.</value>
   </data>
+  <data name="DirectiveLocation_VariableDefinition" xml:space="preserve">
+    <value>Location adjacent to a variable definition.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolver_TypeConditionNotMet" xml:space="preserve">
+    <value>The resolver type needs to be a public non-abstract non-static class.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface" xml:space="preserve">
+    <value>The resolver type needs to be a class or interface</value>
+  </data>
 </root>

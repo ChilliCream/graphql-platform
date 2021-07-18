@@ -13,6 +13,24 @@ namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="field">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <param name="resultType">
+        /// The resolver result type.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             FieldCoordinate field,
@@ -39,8 +57,24 @@ namespace HotChocolate
             return AddResolverConfigInternal(builder, field, resolver, resultType);
         }
 
-        // AddResolver(IResolverContext)
-
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -61,6 +95,24 @@ namespace HotChocolate
                 ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -81,6 +133,24 @@ namespace HotChocolate
                 ctx => resolver(ctx));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -101,6 +171,24 @@ namespace HotChocolate
                 ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -121,8 +209,24 @@ namespace HotChocolate
                 async ctx => await resolver(ctx).ConfigureAwait(false));
         }
 
-        // Resolver()
-
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -143,6 +247,24 @@ namespace HotChocolate
                 _ => new ValueTask<object?>(resolver()));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -162,6 +284,24 @@ namespace HotChocolate
             return AddResolverInternal(builder, typeName, fieldName, _ => resolver());
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -182,6 +322,24 @@ namespace HotChocolate
                 _ => new ValueTask<object?>(resolver()));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -207,6 +365,24 @@ namespace HotChocolate
 
         // Resolver(IResolverContext, CancellationToken)
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -227,6 +403,24 @@ namespace HotChocolate
                 ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -247,6 +441,24 @@ namespace HotChocolate
                 ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -272,6 +484,24 @@ namespace HotChocolate
 
         // Constant
 
+        /// <summary>
+        /// Adds a resolver delegate that returns a constant result.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="constantResult">
+        /// The constant result that will be returned for the specified field.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -287,6 +517,24 @@ namespace HotChocolate
                 _ => new ValueTask<object?>(constantResult));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate that returns a constant result.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="constantResult">
+        /// The constant result that will be returned for the specified field.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
@@ -302,6 +550,22 @@ namespace HotChocolate
                 _ => new ValueTask<object?>(constantResult));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="resolverType">
+        /// The type that holds one or many resolvers
+        /// for the specified <paramref name="typeName"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             Type resolverType,
@@ -334,10 +598,26 @@ namespace HotChocolate
             }
 
             throw new ArgumentException(
-                "The resolver type needs to be a public non-abstract non-static class.",
+                TypeResources.SchemaBuilderExtensions_AddResolver_TypeConditionNotMet,
                 nameof(resolverType));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type that holds one or many resolvers
+        /// for the specified <paramref name="typeName"/>.
+        /// </typeparam>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static ISchemaBuilder AddResolver<T>(
             this ISchemaBuilder builder,
             NameString? typeName = null)
@@ -361,7 +641,7 @@ namespace HotChocolate
             }
 
             throw new ArgumentException(
-                "The resolver type needs to be a class or interface",
+                TypeResources.SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface,
                 nameof(resolverType));
         }
 
