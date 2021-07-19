@@ -5,6 +5,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable
@@ -16,6 +17,8 @@ namespace HotChocolate.Resolvers
         [Fact]
         public async Task AddWellKnownService()
         {
+            Snapshot.FullName();
+
             await new ServiceCollection()
                 .AddSingleton<SayHelloService>()
                 .AddGraphQL()
@@ -31,6 +34,8 @@ namespace HotChocolate.Resolvers
         [Fact]
         public async Task AddWellKnownState()
         {
+            Snapshot.FullName();
+
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWellKnownState>()
