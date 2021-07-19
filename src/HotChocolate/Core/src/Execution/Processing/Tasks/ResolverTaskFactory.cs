@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -88,8 +89,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
             IExecutionTask?[] buffer = operationContext.Execution.TaskBuffers.Get();
+            (ISelection, int)[] inline = ArrayPool<(ISelection, int)>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
+            var inlined = 0;
 
             try
             {
@@ -107,14 +110,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                         if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
-                            ResolveAndCompleteInline(
-                                operationContext,
-                                resolverContext,
-                                selection,
-                                path.Append(selection.ResponseName),
-                                responseIndex++,
-                                result,
-                                resultMap);
+                            inline[inlined++] = (selection, responseIndex++);
                         }
                         else
                         {
@@ -133,6 +129,23 @@ namespace HotChocolate.Execution.Processing.Tasks
                 if (buffered > 0)
                 {
                     backlog.Register(buffer, buffered);
+                }
+
+                if (inlined > 0)
+                {
+                    for (var i = 0; i < inlined; i++)
+                    {
+                        (ISelection selection, int ri) = inline[i];
+
+                        ResolveAndCompleteInline(
+                            operationContext,
+                            resolverContext,
+                            selection,
+                            path.Append(selection.ResponseName),
+                            ri,
+                            result,
+                            resultMap);
+                    }
                 }
 
                 TryHandleDeferredFragments(

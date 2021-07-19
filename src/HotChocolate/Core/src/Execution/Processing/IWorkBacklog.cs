@@ -15,11 +15,6 @@ namespace HotChocolate.Execution.Processing
         event EventHandler<EventArgs>? BackPressureLimitExceeded;
 
         /// <summary>
-        /// Signals that all tasks have been dispatched and the backlog is empty
-        /// </summary>
-        event EventHandler<EventArgs>? BacklogEmpty;
-
-        /// <summary>
         /// A task that can be awaited to wait for the completion of the current work backlog.
         /// </summary>
         Task Completion { get; }
@@ -70,6 +65,6 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// Returns a boolean indicating if a processor can close.
         /// </returns>
-        bool TryCompleteProcessor();
+        Task<bool> TryCompleteProcessor();
     }
 }

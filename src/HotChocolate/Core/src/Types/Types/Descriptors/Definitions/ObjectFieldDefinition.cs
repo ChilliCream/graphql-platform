@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         private List<FieldMiddleware>? _middlewareComponents;
+        private List<ResultConverterDelegate>? _resultConverters;
         private List<object>? _customSettings;
 
         /// <summary>
@@ -110,6 +111,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _middlewareComponents ??= new List<FieldMiddleware>();
 
         /// <summary>
+        /// A list of middleware components which will be used to form the field pipeline.
+        /// </summary>
+        public IList<ResultConverterDelegate> ResultConverters =>
+            _resultConverters ??= new List<ResultConverterDelegate>();
+
+        /// <summary>
         /// A list of custom settings objects that can be user in the type interceptors.
         /// Custom settings are not copied to the actual type system object.
         /// </summary>
@@ -140,6 +147,19 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         /// <summary>
+        /// A list of converters that can transform the resolver result.
+        /// </summary>
+        internal IReadOnlyList<ResultConverterDelegate> GetResultConverters()
+        {
+            if (_resultConverters is null)
+            {
+                return Array.Empty<ResultConverterDelegate>();
+            }
+
+            return _resultConverters;
+        }
+
+        /// <summary>
         /// A list of custom settings objects that can be user in the type interceptors.
         /// Custom settings are not copied to the actual type system object.
         /// </summary>
@@ -153,7 +173,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             return _customSettings;
         }
 
-        internal FieldResolverDelegates GetResolvers() =>
+        private FieldResolverDelegates GetResolvers() =>
             new(Resolver, PureResolver);
 
         internal void CopyTo(ObjectFieldDefinition target)

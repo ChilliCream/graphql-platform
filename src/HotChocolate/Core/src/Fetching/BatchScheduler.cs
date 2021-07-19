@@ -5,10 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace HotChocolate.Fetching
 {

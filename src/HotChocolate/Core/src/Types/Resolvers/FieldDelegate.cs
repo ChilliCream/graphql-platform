@@ -15,9 +15,11 @@ namespace HotChocolate.Resolvers
     /// This delegates represents a pure resolver that is side-effect free and sync.
     /// </summary>
     /// <param name="context">The resolver context.</param>
-    /// <param name="parent">The parent of the resolved field.</param>
     /// <returns>
     /// Returns the resolver result.
     /// </returns>
     public delegate object? PureFieldDelegate(IPureResolverContext context);
+
+
+    public delegate object? ResultConverterDelegate(IPureResolverContext context, object? result);
 }

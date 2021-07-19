@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.ConferencePlanner.Attendees;
@@ -16,6 +17,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -147,7 +149,7 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerByIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
-                    // .AddDiagnosticEventListener<BatchDiagnostics>()
+                    //.AddDiagnosticEventListener<BatchDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
@@ -165,6 +167,7 @@ namespace HotChocolate.ConferencePlanner
         {
             var scope = new RequestScope();
             context.ContextData[nameof(RequestScope)] = scope;
+            context.ContextData[nameof(Stopwatch)] = scope.Stopwatch;
             return scope;
         }
 
@@ -192,9 +195,15 @@ namespace HotChocolate.ConferencePlanner
             Console.WriteLine($"{timeSpan} Scaled down to {processors} processors with backlog size {backlogSize}.");
         }
 
+        public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        {
+            return new ResolverScope(((RequestScope)context.ContextData[nameof(RequestScope)]!), (ISelection)context.Selection);
+        }
+
         private class RequestScope : IActivityScope
         {
             private readonly Stopwatch _stopwatch;
+            private readonly System.Collections.Concurrent.ConcurrentDictionary<FieldCoordinate, int> _ = new();
 
             public RequestScope()
             {
@@ -204,9 +213,31 @@ namespace HotChocolate.ConferencePlanner
 
             public TimeSpan Elapsed => _stopwatch.Elapsed;
 
+            public Stopwatch Stopwatch => _stopwatch;
+
+            public void Count(FieldCoordinate coordinate)
+            {
+                _.AddOrUpdate(coordinate, c => 1, (c, v) => v + 1);
+            }
+
             public void Dispose()
             {
                 Console.WriteLine($"Completed in {Elapsed}");
+
+                Console.WriteLine("-----------------------------------");
+
+                foreach (var field in _.OrderBy(t => t.Key.ToString()))
+                {
+                    Console.WriteLine($"{field.Key}:{field.Value}");
+                }
+
+                Console.WriteLine("-----------------------------------");
+
+                Console.WriteLine($"Fields:{_.Select(t => t.Value).Sum()}");
+
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("-----------------------------------");
+
                 _stopwatch.Stop();
             }
         }
@@ -224,6 +255,28 @@ namespace HotChocolate.ConferencePlanner
             public void Dispose()
             {
                 Console.WriteLine($"{_requestScope.Elapsed} End Dispatching Batch.");
+            }
+        }
+
+        private class ResolverScope : IActivityScope
+        {
+            private RequestScope _requestScope;
+            private ISelection _selection;
+
+            public ResolverScope(RequestScope requestScope, ISelection selection)
+            {
+                _requestScope = requestScope;
+                _selection = selection;
+
+                TimeSpan timeSpan = requestScope.Elapsed;
+                requestScope.Count(selection.Field.Coordinate);
+                Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} Begin {selection.Field.Coordinate}");
+            }
+
+            public void Dispose()
+            {
+                TimeSpan timeSpan = _requestScope.Elapsed;
+                Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} End {_selection.Field.Coordinate}");
             }
         }
     }

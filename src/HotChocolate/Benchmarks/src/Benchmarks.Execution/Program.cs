@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -9,9 +10,8 @@ using HotChocolate.Benchmarks;
 public static class Program
 {
     static void Main(string[] args) =>
-        Run().Wait();
-        // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-
+        //Run().Wait();
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
@@ -23,10 +23,15 @@ public static class Program
         Console.WriteLine("Ready");
         Console.ReadLine();
 
+        var stopwatch = Stopwatch.StartNew();
+
         for (int i = 0; i < 50; i++)
         {
-            await Task.Delay(2000);
+            stopwatch.Restart();
             await queryBench.Sessions_Medium();
+            Console.WriteLine(stopwatch.Elapsed);
+            Console.WriteLine();
+            Console.WriteLine();
         }
     }
 }

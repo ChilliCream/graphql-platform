@@ -59,7 +59,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = n => c => default;
+            FieldMiddleware placeholder = _ => _ => default;
+
             descriptor.Use(placeholder);
             descriptor.Extend().OnBeforeCreate(RewriteObjectFieldType);
             descriptor.Extend().OnBeforeCompletion(
@@ -236,12 +237,14 @@ namespace HotChocolate.Types
                     if (resultType.IsArrayOrList)
                     {
                         var list = new List<object?>();
+
                         foreach (var element in (IEnumerable)context.Result)
                         {
                             list.Add(element is null
                                 ? element
                                 : serializer.Serialize(schemaName, typeName, element));
                         }
+
                         context.Result = list;
                     }
                     else

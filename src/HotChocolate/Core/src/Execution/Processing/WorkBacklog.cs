@@ -1,36 +1,42 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Properties;
+using HotChocolate.Fetching;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing
 {
     /// <inheritdoc/>
     internal class WorkBacklog : IWorkBacklog
     {
+        private const int _maxAllowedProcessors = 4;
+        private static readonly Task<bool> _falseResult = Task.FromResult(false);
+        private static readonly Task<bool> _trueResult = Task.FromResult(true);
         private readonly object _sync = new();
         private readonly WorkQueue _work = new();
         private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
+        private readonly List<TaskCompletionSource<bool>> _waiting = new();
+
         private TaskCompletionSource<bool> _completion = default!;
 
         private bool _completed;
         private int _processors;
         private IRequestContext _requestContext = default!;
         private IDiagnosticEvents _diagnosticEvents = default!;
+        private IBatchDispatcher _batchDispatcher = default!;
+        private CancellationToken _requestAborted;
 
         /// <inheritdoc/>
         public event EventHandler<EventArgs>? BackPressureLimitExceeded;
-
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs>? BacklogEmpty;
 
         /// <inheritdoc/>
         public Task Completion => _completion.Task;
@@ -48,17 +54,20 @@ namespace HotChocolate.Execution.Processing
         {
             Clear();
 
-            if (BackPressureLimitExceeded is null || BacklogEmpty is null)
+            if (BackPressureLimitExceeded is null)
             {
                 throw new InvalidOperationException(
                     Resources.WorkBacklog_NotFullyInitialized);
             }
 
             _completion = new TaskCompletionSource<bool>();
+            _batchDispatcher = operationContext.Execution.BatchDispatcher;
             _requestContext = operationContext.RequestContext;
             _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
+            _requestAborted = operationContext.RequestAborted;
             _stateMachine.Initialize(operationContext, queryPlan);
             _requestContext.RequestAborted.Register(Cancel);
+            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
 
         /// <inheritdoc />
@@ -97,6 +106,7 @@ namespace HotChocolate.Execution.Processing
             {
                 throw new ArgumentNullException(nameof(task));
             }
+
 
             var scaled = false;
             var backlogSize = 0;
@@ -190,6 +200,7 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
+
             if (task.Parent is not null)
             {
                 return;
@@ -271,67 +282,101 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc/>
-        public bool TryCompleteProcessor()
+        public Task<bool> TryCompleteProcessor()
         {
-            var firstTry = true;
             int processors;
             int backlogSize;
-
-            RETRY:
+            var completed = false;
 
             // if the execution is already completed or if the completion task is
             // null we scale down.
-            if (_completed ||
-                _completion is null! ||
-                _requestContext.RequestAborted.IsCancellationRequested)
+            if (_completed || _completion is null! || _requestAborted.IsCancellationRequested)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             // if there is still work we keep on working. We check this here to
             // try to avoid the lock.
             if (!_work.IsEmpty)
             {
-                return false;
+                return _falseResult;
             }
 
             lock (_sync)
             {
                 if (!_work.IsEmpty)
                 {
-                    return false;
+                    return _falseResult;
                 }
 
                 processors = _processors;
 
                 // if the backlog is empty, this is the last processor and all tasks are
                 // running we will signal that there is no more work that we can do.
-                if (firstTry && processors == 1 && _work.HasRunningTasks)
+                if (processors == 1 && _work.HasRunningTasks)
                 {
-                    firstTry = false;
-                    BacklogEmpty?.Invoke(this, EventArgs.Empty);
-                    goto RETRY;
+                    TryDispatchBatchesUnsafe();
+
+                    if (!_work.IsEmpty)
+                    {
+                        return _falseResult;
+                    }
                 }
 
                 processors = --_processors;
                 backlogSize = _work.Count;
 
+
                 // if we are the last processor to shut down we will check
                 // if the execution is completed.
                 if (processors == 0)
                 {
-                    TryCompleteUnsafe();
+                    completed = TryCompleteUnsafe();
                 }
+
+                // we invoke the scale diagnostic event after leaving the lock to not block
+                // if a an event listener is badly implemented.
+                _diagnosticEvents.ScaleTaskProcessorsDown(_requestContext, backlogSize, processors);
             }
 
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.ScaleTaskProcessorsDown(
-                _requestContext,
-                backlogSize,
-                processors);
-            return true;
+            if (completed)
+            {
+                return _trueResult;
+            }
+
+            var tcs = new TaskCompletionSource<bool>();
+            _waiting.Push(tcs);
+            return tcs.Task;
         }
+
+        private void TryDispatchBatches()
+        {
+            if (IsEmpty && _batchDispatcher.HasTasks && _processors == 0)
+            {
+                lock (_sync)
+                {
+                    if (_processors == 0)
+                    {
+                        TryDispatchBatchesUnsafe();
+                    }
+                }
+            }
+        }
+
+        private void TryDispatchBatchesUnsafe()
+        {
+            if (IsEmpty && _batchDispatcher.HasTasks)
+            {
+                using (_diagnosticEvents.DispatchBatch(_requestContext))
+                {
+                    _batchDispatcher.Dispatch();
+                }
+            }
+        }
+
+        private void BatchDispatcherEventHandler(
+            object? source, EventArgs args) =>
+            TryDispatchBatches();
 
         private void Cancel()
         {
@@ -341,6 +386,11 @@ namespace HotChocolate.Execution.Processing
                 if (_completion is not null!)
                 {
                     _completion.TrySetCanceled();
+                }
+
+                foreach (var tcs in _waiting)
+                {
+                    tcs.TrySetResult(true);
                 }
             }
         }
@@ -355,6 +405,18 @@ namespace HotChocolate.Execution.Processing
                     _completion = default!;
                 }
 
+                foreach (var tcs in _waiting)
+                {
+                    tcs.TrySetResult(true);
+                }
+
+                if (_batchDispatcher is not null!)
+                {
+                    _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                    _batchDispatcher = default!;
+                }
+
+                _waiting.Clear();
                 _work.Clear();
                 _suspended.Clear();
                 _stateMachine.Clear();
@@ -366,10 +428,19 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryScaleUnsafe()
         {
-            if (_processors < 4 && BackPressureLimitExceeded is not null)
+            if (_processors < _maxAllowedProcessors && BackPressureLimitExceeded is not null)
             {
                 _processors++;
-                BackPressureLimitExceeded(null, EventArgs.Empty);
+
+                if (_waiting.TryPop(out var tcs))
+                {
+                    tcs.TrySetResult(false);
+                }
+                else
+                {
+                    BackPressureLimitExceeded(null, EventArgs.Empty);
+                }
+
                 return true;
             }
 
@@ -381,10 +452,10 @@ namespace HotChocolate.Execution.Processing
             => _processors switch
             {
                 0 => 1,
-                1 => 4,
-                2 => 16,
-                3 => 64,
-                4 => 128,
+                1 => int.MaxValue,
+                2 => int.MaxValue,
+                3 => int.MaxValue,
+                4 => int.MaxValue,
                 _ => throw new NotSupportedException("The scale size is not supported.")
             };
 
@@ -395,6 +466,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _completed = true;
                 _completion.TrySetResult(true);
+                CompleteWorker();
                 return true;
             }
 
@@ -402,6 +474,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _completed = true;
                 _completion.TrySetCanceled();
+                CompleteWorker();
                 return true;
             }
 
@@ -416,7 +489,15 @@ namespace HotChocolate.Execution.Processing
             bool IsCanceled()
                 => !_completed &&
                 _processors == 0 &&
-                _requestContext.RequestAborted.IsCancellationRequested;
+                _requestAborted.IsCancellationRequested;
+
+            void CompleteWorker()
+            {
+                foreach (var tcs in _waiting)
+                {
+                    tcs.TrySetResult(true);
+                }
+            }
         }
     }
 }

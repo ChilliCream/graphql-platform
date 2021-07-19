@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly ObjectPool<ResolverTask> _resolverTasks;
         private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
         private readonly ExecutionTaskProcessor _taskProcessor;
-        
+
         private IDiagnosticEvents _diagnosticEvents = default!;
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
@@ -36,7 +36,6 @@ namespace HotChocolate.Execution.Processing
                 _operationContext,
                 _workBacklog,
                 _taskBuffers);
-            _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
         public void Initialize(
@@ -50,7 +49,6 @@ namespace HotChocolate.Execution.Processing
             requestAborted.Register(TryComplete);
 
             _batchDispatcher = batchDispatcher;
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _isInitialized = true;
 
             _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
@@ -60,12 +58,7 @@ namespace HotChocolate.Execution.Processing
         public void Clean()
         {
             _diagnosticEvents = default!;
-
-            if (_batchDispatcher is not null!)
-            {
-                _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-                _batchDispatcher = default!;
-            }
+            _batchDispatcher = default!;
 
             if (_completed is not null!)
             {

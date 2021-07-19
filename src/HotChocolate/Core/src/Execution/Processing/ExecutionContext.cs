@@ -67,22 +67,5 @@ namespace HotChocolate.Execution.Processing
                 return _taskBuffers;
             }
         }
-
-        private void TryDispatchBatches()
-        {
-            AssertNotPooled();
-
-            if (Work.IsEmpty && BatchDispatcher.HasTasks)
-            {
-                using (_diagnosticEvents.DispatchBatch(_operationContext.RequestContext))
-                {
-                    BatchDispatcher.Dispatch();
-                }
-            }
-        }
-
-        private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            TryDispatchBatches();
     }
 }
