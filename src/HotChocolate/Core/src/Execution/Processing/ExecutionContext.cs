@@ -39,16 +39,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public bool IsCompleted
-        {
-            get
-            {
-                AssertNotPooled();
-                return Work.IsEmpty && !Work.HasRunningTasks;
-            }
-        }
-
-        /// <inheritdoc />
         public ObjectPool<ResolverTask> ResolverTasks
         {
             get

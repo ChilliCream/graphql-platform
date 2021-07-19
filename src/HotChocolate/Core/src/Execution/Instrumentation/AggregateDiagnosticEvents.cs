@@ -128,25 +128,19 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void ScaleTaskProcessorsUp(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public void StartProcessing(IRequestContext context)
         {
             for (var i = 0; i < _listeners.Length; i++)
             {
-                _listeners[i].ScaleTaskProcessorsUp(context, backlogSize, processors);
+                _listeners[i].StartProcessing(context);
             }
         }
 
-        public void ScaleTaskProcessorsDown(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public void StopProcessing(IRequestContext context)
         {
             for (var i = 0; i < _listeners.Length; i++)
             {
-                _listeners[i].ScaleTaskProcessorsDown(context, backlogSize, processors);
+                _listeners[i].StopProcessing(context);
             }
         }
 

@@ -146,13 +146,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="context">
         /// The request that is being executed.
         /// </param>
-        /// <param name="backlogSize">
-        /// The current backlog size.
-        /// </param>
-        /// <param name="processors">
-        /// The new processor count.
-        /// </param>
-        void ScaleTaskProcessorsUp(IRequestContext context, int backlogSize, int processors);
+        void StartProcessing(IRequestContext context);
 
         /// <summary>
         /// This event is called when the request execution pipeline scales
@@ -161,13 +155,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <param name="context">
         /// The request that is being executed.
         /// </param>
-        /// <param name="backlogSize">
-        /// The current backlog size.
-        /// </param>
-        /// <param name="processors">
-        /// The new processor count.
-        /// </param>
-        void ScaleTaskProcessorsDown(IRequestContext context, int backlogSize, int processors);
+        void StopProcessing(IRequestContext context);
 
         /// <summary>
         /// Called when a subscription was created.

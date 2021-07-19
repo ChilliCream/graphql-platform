@@ -71,18 +71,12 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual void ScaleTaskProcessorsUp(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public virtual void StartProcessing(IRequestContext context)
         {
         }
 
         /// <inheritdoc />
-        public virtual void ScaleTaskProcessorsDown(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public virtual void StopProcessing(IRequestContext context)
         {
         }
 

@@ -39,17 +39,11 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public void ScaleTaskProcessorsUp(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public void StartProcessing(IRequestContext context)
         {
         }
 
-        public void ScaleTaskProcessorsDown(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public void StopProcessing(IRequestContext context)
         {
         }
 

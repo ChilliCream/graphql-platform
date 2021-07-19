@@ -1,5 +1,4 @@
 using System.Threading;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -14,16 +13,13 @@ namespace HotChocolate.Execution.Processing
         private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
         private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
-        private readonly ExecutionTaskProcessor _taskProcessor;
 
-        private IDiagnosticEvents _diagnosticEvents = default!;
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
         private bool _isInitialized;
 
         public ExecutionContext(
             OperationContext operationContext,
-
             ObjectPool<ResolverTask> resolverTasks,
             ObjectPool<IExecutionTask?[]> taskBuffers)
         {
@@ -32,32 +28,22 @@ namespace HotChocolate.Execution.Processing
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
             _taskBuffers = taskBuffers;
-            _taskProcessor = new ExecutionTaskProcessor(
-                _operationContext,
-                _workBacklog,
-                _taskBuffers);
         }
 
-        public void Initialize(
-            IBatchDispatcher batchDispatcher,
-            IDiagnosticEvents diagnosticEvents,
-            CancellationToken requestAborted)
+        public void Initialize(IBatchDispatcher batchDispatcher)
         {
             _completed = new CancellationTokenSource();
-            _diagnosticEvents = diagnosticEvents;
 
-            requestAborted.Register(TryComplete);
+            _operationContext.RequestAborted.Register(TryComplete);
 
             _batchDispatcher = batchDispatcher;
             _isInitialized = true;
 
-            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
-            _taskProcessor.Initialize(batchDispatcher, requestAborted);
+            _workBacklog.Initialize(_operationContext);
         }
 
         public void Clean()
         {
-            _diagnosticEvents = default!;
             _batchDispatcher = default!;
 
             if (_completed is not null!)
@@ -69,7 +55,6 @@ namespace HotChocolate.Execution.Processing
 
             _workBacklog.Clear();
             _deferredWorkBacklog.Clear();
-            _taskProcessor.Clean();
 
             _isInitialized = false;
         }
@@ -86,8 +71,7 @@ namespace HotChocolate.Execution.Processing
             ResetStateMachine();
         }
 
-        public void ResetStateMachine()
-            => _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
+        public void ResetStateMachine() => _workBacklog.Initialize(_operationContext);
 
         private void TryComplete()
         {

@@ -27,11 +27,6 @@ namespace HotChocolate.Execution.Processing
         IBatchDispatcher BatchDispatcher { get; }
 
         /// <summary>
-        /// Defines that the execution is completed.
-        /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
         /// Gets the resolver task pool.
         /// </summary>
         ObjectPool<ResolverTask> ResolverTasks { get; }
