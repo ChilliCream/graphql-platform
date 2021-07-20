@@ -8,7 +8,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal sealed class ObjectTypeParameterExpressionBuilder
-        : LambdaParameterExpressionBuilder<IResolverContext, IObjectType>
+        : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectType>
     {
         public ObjectTypeParameterExpressionBuilder()
             : base(ctx => ctx.ObjectType)

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
 
         private async Task ProcessTasksAsync()
         {
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(8);
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(16);
 
 RESTART:
             try

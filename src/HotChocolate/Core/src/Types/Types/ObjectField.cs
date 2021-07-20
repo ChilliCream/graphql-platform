@@ -173,7 +173,10 @@ namespace HotChocolate.Types
 
             if (resolvers.PureResolver is not null && IsPureContext())
             {
-                PureResolver = resolvers.PureResolver;
+                PureResolver = FieldMiddlewareCompiler.Compile(
+                    definition.GetResultConverters(),
+                    resolvers.PureResolver,
+                    skipMiddleware);
             }
 
             // by definition fields with pure resolvers are parallel executable.
@@ -185,6 +188,7 @@ namespace HotChocolate.Types
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
                 fieldComponents,
+                definition.GetResultConverters(),
                 Resolver,
                 skipMiddleware);
 

@@ -23,6 +23,11 @@ namespace HotChocolate.Resolvers
         IObjectType RootType { get; }
 
         /// <summary>
+        /// Gets the object type on which the field resolver is being executed.
+        /// </summary>
+        IObjectType ObjectType { get; }
+
+        /// <summary>
         /// Gets the field selection for which a field resolver is
         /// being executed.
         /// </summary>

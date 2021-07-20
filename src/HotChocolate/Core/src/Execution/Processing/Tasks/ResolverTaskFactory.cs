@@ -80,6 +80,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             Path path,
+            ObjectType resultType,
             object result,
             ISelectionSet selectionSet)
         {
@@ -89,10 +90,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
             IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
-            (ISelection, int)[] inline = ArrayPool<(ISelection, int)>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
-            var inlined = 0;
 
             try
             {
@@ -110,7 +109,15 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                         if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
-                            inline[inlined++] = (selection, responseIndex++);
+                            ResolveAndCompleteInline(
+                                operationContext,
+                                resolverContext,
+                                selection,
+                                path.Append(selection.ResponseName),
+                                responseIndex++,
+                                resultType,
+                                result,
+                                resultMap);
                         }
                         else
                         {
@@ -131,23 +138,6 @@ namespace HotChocolate.Execution.Processing.Tasks
                     backlog.Register(buffer, buffered);
                 }
 
-                if (inlined > 0)
-                {
-                    for (var i = 0; i < inlined; i++)
-                    {
-                        (ISelection selection, var ri) = inline[i];
-
-                        ResolveAndCompleteInline(
-                            operationContext,
-                            resolverContext,
-                            selection,
-                            path.Append(selection.ResponseName),
-                            ri,
-                            result,
-                            resultMap);
-                    }
-                }
-
                 TryHandleDeferredFragments(
                     operationContext,
                     selectionSet,
@@ -160,7 +150,6 @@ namespace HotChocolate.Execution.Processing.Tasks
             finally
             {
                 ArrayPool<IExecutionTask?>.Shared.Return(buffer);
-                ArrayPool<(ISelection, int)>.Shared.Return(inline);
             }
         }
 
@@ -170,6 +159,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ISelection selection,
             Path path,
             int responseIndex,
+            ObjectType parentType,
             object parent,
             ResultMap resultMap)
         {
@@ -240,7 +230,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 try
                 {
                     if (resolverContext.TryCreatePureContext(
-                        selection, path, parent,
+                        selection, path, parentType, parent,
                         out IPureResolverContext? childContext))
                     {
                         result = selection.PureResolver!(childContext);

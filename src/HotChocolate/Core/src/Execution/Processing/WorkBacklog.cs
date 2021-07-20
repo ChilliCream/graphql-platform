@@ -245,6 +245,7 @@ namespace HotChocolate.Execution.Processing
         private Task<bool> TryStopProcessing()
         {
             bool completed;
+            TaskCompletionSource<bool> pause = default!;
 
             // if the execution is already completed or if the completion task is
             // null we stop processing
@@ -281,17 +282,16 @@ namespace HotChocolate.Execution.Processing
 
                 _processing = false;
                 completed = TryCompleteProcessingUnsafe();
+
+                if (!completed)
+                {
+                    _pause = pause = new TaskCompletionSource<bool>();
+                }
             }
 
             _diagnosticEvents.StopProcessing(_requestContext);
 
-            if (completed)
-            {
-                return _trueResult;
-            }
-
-            _pause = new TaskCompletionSource<bool>();
-            return _pause.Task;
+            return completed ? _trueResult : pause.Task;
         }
 
         private void TryDispatchBatches()
@@ -329,12 +329,12 @@ namespace HotChocolate.Execution.Processing
             {
                 _completed = true;
 
+                _pause?.TrySetResult(true);
+
                 if (_completion is not null!)
                 {
                     _completion.TrySetCanceled();
                 }
-
-                _pause?.TrySetResult(true);
             }
         }
 
@@ -342,14 +342,14 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_sync)
             {
+                _pause?.TrySetResult(true);
+                _pause = null;
+
                 if (_completion is not null!)
                 {
                     _completion.TrySetCanceled();
                     _completion = default!;
                 }
-
-                _pause?.TrySetResult(true);
-                _pause = null;
 
                 if (_batchDispatcher is not null!)
                 {
@@ -362,6 +362,12 @@ namespace HotChocolate.Execution.Processing
                 _stateMachine.Clear();
                 _processing = false;
                 _completed = false;
+
+                _requestContext = default!;
+                _errorHandler = default!;
+                _result = default!;
+                _diagnosticEvents = default!;
+                _requestAborted = default;
             }
         }
 
@@ -370,17 +376,17 @@ namespace HotChocolate.Execution.Processing
         {
             if (HasCompleted())
             {
+                _pause?.TrySetResult(true);
                 _completed = true;
                 _completion.TrySetResult(true);
-                _pause?.TrySetResult(true);
                 return true;
             }
 
             if (IsCanceled())
             {
+                _pause?.TrySetResult(true);
                 _completed = true;
                 _completion.TrySetCanceled();
-                _pause?.TrySetResult(true);
                 return true;
             }
 

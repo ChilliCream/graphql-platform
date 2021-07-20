@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -17,6 +15,7 @@ namespace HotChocolate.Execution.Processing
             private IReadOnlyDictionary<NameString, ArgumentValue> _argumentValues = default!;
             private ISelection _selection = default!;
             private Path _path = default!;
+            private ObjectType _parentType = default!;
             private object? _parent;
 
             public PureResolverContext(MiddlewareContext parentContext)
@@ -24,10 +23,15 @@ namespace HotChocolate.Execution.Processing
                 _parentContext = parentContext;
             }
 
-            public bool Initialize(ISelection selection, Path path, object? parent)
+            public bool Initialize(
+                ISelection selection,
+                Path path,
+                ObjectType parentType,
+                object? parent)
             {
                 _selection = selection;
                 _path = path;
+                _parentType = parentType;
                 _parent = parent;
                 _argumentValues = selection.Arguments;
 
@@ -51,6 +55,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _selection = default!;
                 _path = default!;
+                _parentType = default!;
                 _parent = null;
                 _argumentValues = default!;
             }
@@ -58,6 +63,8 @@ namespace HotChocolate.Execution.Processing
             public ISchema Schema => _parentContext.Schema;
 
             public IObjectType RootType => _parentContext.RootType;
+
+            public IObjectType ObjectType => _parentType;
 
             public IFieldSelection Selection => _parentContext.Selection;
 

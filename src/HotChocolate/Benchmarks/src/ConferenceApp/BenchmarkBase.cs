@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.ConferencePlanner.Attendees;
 using HotChocolate.ConferencePlanner.Data;
@@ -18,8 +20,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.ConferencePlanner
 {
@@ -70,7 +70,7 @@ namespace HotChocolate.ConferencePlanner
 
             if (result is IDisposable d)
             {
-                // d.Dispose();
+                d.Dispose();
             }
         }
 
@@ -149,7 +149,7 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerByIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
-                    //.AddDiagnosticEventListener<BatchDiagnostics>()
+                    .AddDiagnosticEventListener<BatchDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
@@ -177,22 +177,16 @@ namespace HotChocolate.ConferencePlanner
             return new BatchScope(((RequestScope)context.ContextData[nameof(RequestScope)]!));
         }
 
-        public override void ScaleTaskProcessorsUp(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public override void StartProcessing(IRequestContext context)
         {
             TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
-            Console.WriteLine($"{timeSpan} Scaled up to {processors} processors with backlog size {backlogSize}.");
+            Console.WriteLine($"{timeSpan} Start processing.");
         }
 
-        public override void ScaleTaskProcessorsDown(
-            IRequestContext context,
-            int backlogSize,
-            int processors)
+        public override void StopProcessing(IRequestContext context)
         {
             TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
-            Console.WriteLine($"{timeSpan} Scaled down to {processors} processors with backlog size {backlogSize}.");
+            Console.WriteLine($"{timeSpan} Stop processing.");
         }
 
         public override IActivityScope ResolveFieldValue(IMiddlewareContext context)

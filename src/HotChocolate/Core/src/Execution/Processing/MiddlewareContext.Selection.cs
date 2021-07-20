@@ -31,10 +31,11 @@ namespace HotChocolate.Execution.Processing
         public bool TryCreatePureContext(
             ISelection selection,
             Path path,
+            ObjectType parentType,
             object? parent,
             [NotNullWhen(true)] out IPureResolverContext? context)
         {
-            if (_childContext.Initialize(selection, path, parent))
+            if (_childContext.Initialize(selection, path, parentType, parent))
             {
                 context = _childContext;
                 return true;

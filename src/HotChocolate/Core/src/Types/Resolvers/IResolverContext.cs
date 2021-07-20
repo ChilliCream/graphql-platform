@@ -22,11 +22,6 @@ namespace HotChocolate.Resolvers
         IServiceProvider Services { get; set; }
 
         /// <summary>
-        /// Gets the object type on which the field resolver is being executed.
-        /// </summary>
-        IObjectType ObjectType { get; }
-
-        /// <summary>
         /// Gets the field on which the field resolver is being executed.
         /// </summary>
         [Obsolete("Use Selection.Field or Selection.Type.")]
