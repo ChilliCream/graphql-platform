@@ -24,10 +24,9 @@ namespace HotChocolate.Execution.Processing
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
-            ObjectPool<IExecutionTask?[]> taskBufferPool,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool, taskBufferPool);
+            _executionContext = new ExecutionContext(this, resolverTaskPool);
             _resultHelper = new ResultHelper(resultPool);
         }
 

@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IWorkBacklog backlog = operationContext.Execution.Work;
-            IExecutionTask?[] buffer = operationContext.Execution.TaskBuffers.Get();
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                operationContext.Execution.TaskBuffers.Return(buffer);
+                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
             }
         }
 
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IWorkBacklog backlog = operationContext.Execution.Work;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
-            IExecutionTask?[] buffer = operationContext.Execution.TaskBuffers.Get();
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             (ISelection, int)[] inline = ArrayPool<(ISelection, int)>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
@@ -135,7 +135,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 {
                     for (var i = 0; i < inlined; i++)
                     {
-                        (ISelection selection, int ri) = inline[i];
+                        (ISelection selection, var ri) = inline[i];
 
                         ResolveAndCompleteInline(
                             operationContext,
@@ -159,7 +159,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                operationContext.Execution.TaskBuffers.Return(buffer);
+                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                ArrayPool<(ISelection, int)>.Shared.Return(inline);
             }
         }
 

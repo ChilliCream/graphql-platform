@@ -17,7 +17,6 @@ namespace HotChocolate.Execution.Processing
         private static readonly Task<bool> _trueResult = Task.FromResult(true);
 
         private readonly object _sync = new();
-        private readonly IExecutionTask?[] _buffer = new IExecutionTask[4];
         private readonly WorkQueue _work = new();
         private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
@@ -224,6 +223,8 @@ namespace HotChocolate.Execution.Processing
         {
             if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
+                _processing = true;
+
                 if (_pause is null)
                 {
                     StartProcessing();
@@ -268,7 +269,7 @@ namespace HotChocolate.Execution.Processing
 
                 // if the backlog is empty and we have running tasks we will try to dispatch
                 // any batch tasks.
-                if (_work.HasRunningTasks)
+                if (_work.HasRunningTasks && _batchDispatcher.HasTasks)
                 {
                     TryDispatchBatchesUnsafe();
 
@@ -278,6 +279,7 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
+                _processing = false;
                 completed = TryCompleteProcessingUnsafe();
             }
 
@@ -306,6 +308,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryDispatchBatchesUnsafe()
         {
             if (IsEmpty && _batchDispatcher.HasTasks)

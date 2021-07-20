@@ -1,15 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
+using System.Buffers;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
-using HotChocolate.Execution.Properties;
-using HotChocolate.Fetching;
-using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -20,11 +11,13 @@ namespace HotChocolate.Execution.Processing
 #pragma warning restore 4014
 
         private async Task ExecuteProcessorAsync()
-            => await ProcessTasksAsync(_buffer).ConfigureAwait(false);
+            => await ProcessTasksAsync().ConfigureAwait(false);
 
-        private async Task ProcessTasksAsync(IExecutionTask?[] buffer)
+        private async Task ProcessTasksAsync()
         {
-            RESTART:
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(8);
+
+RESTART:
             try
             {
                 do
@@ -48,6 +41,7 @@ namespace HotChocolate.Execution.Processing
                                 task.BeginExecute(_requestAborted);
                                 await task.WaitForCompletionAsync(_requestAborted)
                                     .ConfigureAwait(false);
+                                buffer[i] = null;
 
                                 if (_requestAborted.IsCancellationRequested)
                                 {
@@ -65,6 +59,7 @@ namespace HotChocolate.Execution.Processing
                         for (var i = 0; i < work; i++)
                         {
                             buffer[i]!.BeginExecute(_requestAborted);
+                            buffer[i] = null;
                         }
                     }
                 } while (!_requestAborted.IsCancellationRequested);
@@ -83,6 +78,9 @@ namespace HotChocolate.Execution.Processing
             {
                 goto RESTART;
             }
+
+            buffer.AsSpan().Clear();
+            ArrayPool<IExecutionTask?>.Shared.Return(buffer);
         }
 
         private void HandleError(Exception exception)

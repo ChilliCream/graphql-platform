@@ -47,15 +47,5 @@ namespace HotChocolate.Execution.Processing
                 return _resolverTasks;
             }
         }
-
-        /// <inheritdoc />
-        public ObjectPool<IExecutionTask?[]> TaskBuffers
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskBuffers;
-            }
-        }
     }
 }

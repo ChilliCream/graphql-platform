@@ -32,11 +32,6 @@ namespace HotChocolate.Execution.Processing
         ObjectPool<ResolverTask> ResolverTasks { get; }
 
         /// <summary>
-        /// Gets the task buffer pool.
-        /// </summary>
-        ObjectPool<IExecutionTask?[]> TaskBuffers { get; }
-
-        /// <summary>
         /// Resets the execution state.
         /// </summary>
         void Reset();
