@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.Types.Relay
 {
     /// <summary>
-    ///
+    /// Represents options for adding a query root field to mutation payloads.
     /// </summary>
     public class MutationPayloadOptions
     {

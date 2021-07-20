@@ -34,6 +34,10 @@ namespace HotChocolate
                 .AddGlobalObjectIdentification();
         }
 
+        /// <summary>
+        /// Adds a <c>node</c> field to the root query according to the
+        /// Global Object Identification specification.
+        /// </summary>
         public static ISchemaBuilder AddGlobalObjectIdentification(this ISchemaBuilder schemaBuilder)
         {
             return schemaBuilder
@@ -41,7 +45,11 @@ namespace HotChocolate
                 .AddType<NodeType>();
         }
 
-        public static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder, Action<MutationPayloadOptions>? configureOptions = null)
+        /// <summary>
+        /// Enables rewriting of mutation payloads to provide access to a query root field.
+        /// </summary>
+        public static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder,
+            Action<MutationPayloadOptions>? configureOptions = null)
         {
             MutationPayloadOptions options = new();
 
@@ -50,7 +58,8 @@ namespace HotChocolate
             return schemaBuilder.AddQueryFieldToMutationPayloads(options);
         }
 
-        private static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder, MutationPayloadOptions options)
+        private static ISchemaBuilder AddQueryFieldToMutationPayloads(this ISchemaBuilder schemaBuilder,
+            MutationPayloadOptions options)
         {
             return schemaBuilder
                 .SetMutationPayloadOptions(options)
