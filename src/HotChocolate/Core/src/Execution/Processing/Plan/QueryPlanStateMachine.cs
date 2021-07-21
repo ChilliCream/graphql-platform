@@ -73,6 +73,26 @@ namespace HotChocolate.Execution.Processing.Plan
             Activate(plan.Root);
         }
 
+        public object? TryGetStep(IExecutionTask task)
+        {
+            return _plan.TryGetStep(task, out var step) ? step : null;
+        }
+
+        public bool RegisterTask(IExecutionTask task, object? step)
+        {
+            if (step is QueryPlanStep s)
+            {
+                InitializeState(s, out State state);
+
+                state.Tasks++;
+                task.State = step;
+                task.IsSerial = state.IsSerial;
+                return state.IsActive;
+            }
+
+            return true;
+        }
+
         public bool Register(IExecutionTask task)
         {
             if (_plan.TryGetStep(task, out var step))

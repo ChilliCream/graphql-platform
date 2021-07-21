@@ -1,8 +1,8 @@
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
@@ -75,9 +75,11 @@ namespace HotChocolate.Execution.Processing
 
             var started = false;
 
+            var state = _stateMachine.TryGetStep(task);
+
             lock (_sync)
             {
-                if (_stateMachine.Register(task))
+                if (_stateMachine.RegisterTask(task, state))
                 {
                     WorkQueue2 work = task.IsSerial ? _serial : _work;
                     work.Push(task);
@@ -106,28 +108,49 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(tasks));
             }
 
+            if (length == 1)
+            {
+                Register(tasks[0]!);
+                tasks[0] = null;
+                return;
+            }
+
             bool started;
 
-            lock (_sync)
+            object?[] step = ArrayPool<object?>.Shared.Rent(length);
+
+            try
             {
                 for (var i = 0; i < length; i++)
                 {
-                    IExecutionTask task = tasks[i]!;
-                    tasks[i] = null;
-                    Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
-
-                    if (_stateMachine.Register(task))
-                    {
-                        WorkQueue2 work = task.IsSerial ? _serial : _work;
-                        work.Push(task);
-                    }
-                    else
-                    {
-                        _suspended.Enqueue(task);
-                    }
+                    step[i] = _stateMachine.TryGetStep(tasks[i]!);
                 }
 
-                started = TryStartProcessingUnsafe();
+                lock (_sync)
+                {
+                    for (var i = 0; i < length; i++)
+                    {
+                        IExecutionTask task = tasks[i]!;
+                        tasks[i] = null;
+                        Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
+
+                        if (_stateMachine.RegisterTask(task, step[i]))
+                        {
+                            WorkQueue2 work = task.IsSerial ? _serial : _work;
+                            work.Push(task);
+                        }
+                        else
+                        {
+                            _suspended.Enqueue(task);
+                        }
+                    }
+
+                    started = TryStartProcessingUnsafe();
+                }
+            }
+            finally
+            {
+                ArrayPool<object?>.Shared.Return(step);
             }
 
             if (started)

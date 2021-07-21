@@ -27,6 +27,11 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
+            if (keys.Count == 1)
+            {
+                Counter.One();
+            }
+
             await using ApplicationDbContext dbContext = 
                 _dbContextFactory.CreateDbContext();
 

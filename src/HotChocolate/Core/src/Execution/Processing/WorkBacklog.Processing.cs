@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Processing
     internal partial class WorkBacklog
     {
 #pragma warning disable 4014
-        private void StartProcessing() => ExecuteProcessorAsync();
+        private void StartProcessing() => Task.Run(ExecuteProcessorAsync);
 #pragma warning restore 4014
 
         private async Task ExecuteProcessorAsync()
@@ -26,6 +26,11 @@ RESTART:
 
                     if (work is 0)
                     {
+                        if (_work.HasRunningTasks || _serial.HasRunningTasks)
+                        {
+                            await Task.Yield();
+                        }
+
                         break;
                     }
 

@@ -15,24 +15,36 @@ namespace HotChocolate.ConferencePlanner.DataLoader
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
         public TrackByIdDataLoader(
-            IBatchScheduler batchScheduler, 
+            IBatchScheduler batchScheduler,
             IDbContextFactory<ApplicationDbContext> dbContextFactory)
             : base(batchScheduler)
         {
-            _dbContextFactory = dbContextFactory ?? 
+            _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));
         }
 
         protected override async Task<IReadOnlyDictionary<int, Track>> LoadBatchAsync(
-            IReadOnlyList<int> keys, 
+            IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            await using ApplicationDbContext dbContext = 
+            if (keys.Count == 1)
+            {
+                Counter.One();
+            }
+
+            await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
             return await dbContext.Tracks
                 .Where(s => keys.Contains(s.Id))
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
         }
+    }
+
+    public static class Counter
+    {
+        public static int Count = 0;
+
+        public static int One() => Interlocked.Increment(ref Count);
     }
 }

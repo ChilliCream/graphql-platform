@@ -264,13 +264,13 @@ namespace HotChocolate.ConferencePlanner
 
                 TimeSpan timeSpan = requestScope.Elapsed;
                 requestScope.Count(selection.Field.Coordinate);
-                Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} Begin {selection.Field.Coordinate}");
+                // Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} Begin {selection.Field.Coordinate}");
             }
 
             public void Dispose()
             {
                 TimeSpan timeSpan = _requestScope.Elapsed;
-                Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} End {_selection.Field.Coordinate}");
+                //Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} End {_selection.Field.Coordinate}");
             }
         }
     }

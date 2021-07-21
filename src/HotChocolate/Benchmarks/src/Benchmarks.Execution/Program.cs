@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,12 +9,13 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using HotChocolate;
 using HotChocolate.Benchmarks;
+using HotChocolate.ConferencePlanner.DataLoader;
 
 public static class Program
 {
     static void Main(string[] args) =>
         Run().Wait();
-        // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+    // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
@@ -28,17 +30,27 @@ public static class Program
 
         Console.WriteLine("Run");
 
-        var stopwatch = Stopwatch.StartNew();
-        var list = new List<TimeSpan>();
+        var list = new ConcurrentBag<TimeSpan>();
 
         for (int i = 0; i < 50; i++)
         {
-            stopwatch.Restart();
-            await queryBench.Sessions_Medium();
-            list.Add(stopwatch.Elapsed);
-            Console.WriteLine(stopwatch.Elapsed);
+            await Task.WhenAll(
+                RunItem(queryBench, list), 
+                RunItem(queryBench, list), 
+                RunItem(queryBench, list));
         }
 
-        Console.WriteLine(list.Sum(t => t.Milliseconds) / 50);
+        Console.WriteLine(list.Sum(t => t.Milliseconds) / list.Count);
+        Console.WriteLine($"{list.Count + 2} runs {Counter.Count} one item batches.");
     }
+
+    private static async Task RunItem(QueryBenchmarks bench, ConcurrentBag<TimeSpan> list)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        stopwatch.Restart();
+        await bench.Sessions_Medium();
+        list.Add(stopwatch.Elapsed);
+        Console.WriteLine(stopwatch.Elapsed);
+    }
+
 }
