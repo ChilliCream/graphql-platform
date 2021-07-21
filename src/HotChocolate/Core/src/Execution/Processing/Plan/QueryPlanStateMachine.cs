@@ -103,6 +103,21 @@ namespace HotChocolate.Execution.Processing.Plan
             return false;
         }
 
+        public bool Complete(object taskState)
+        {
+            if (taskState is QueryPlanStep step)
+            {
+                InitializeState(step, out State state);
+
+                if (--state.Tasks == 0)
+                {
+                    return Complete(step);
+                }
+            }
+
+            return false;
+        }
+
         public bool IsSuspended(IExecutionTask task)
         {
             if (task.State is QueryPlanStep step)

@@ -10,10 +10,10 @@ namespace HotChocolate.Execution.Processing.Internal
         private IExecutionTask? _head;
 
         public bool IsEmpty { get; private set; } = true;
-        
+
         public bool HasWork => !IsEmpty;
 
-        public void CopyTo(WorkQueue work, WorkQueue serial, QueryPlanStateMachine stateMachine)
+        public void CopyTo(WorkQueue2 work, WorkQueue2 serial, QueryPlanStateMachine stateMachine)
         {
             IExecutionTask? head = _head;
             _head = null;
