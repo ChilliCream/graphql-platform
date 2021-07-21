@@ -56,7 +56,20 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(create));
             }
 
-            return _map.GetOrAdd(key, k => AddNewEntry(k, create())).Value;
+            var read = true;
+
+            Entry entry = _map.GetOrAdd(key, k =>
+            {
+                read = false;
+                return AddNewEntry(k, create());
+            });
+
+            if (read)
+            {
+                TouchEntryUnsafe(entry);
+            }
+
+            return entry.Value;
         }
 
         public void Clear()

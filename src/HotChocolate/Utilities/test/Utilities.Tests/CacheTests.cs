@@ -99,7 +99,7 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
-        public void Reorder_Items_When_Cache_Is_Filling_Up()
+        public void Reorder_Items_When_Cache_Is_Filling_Up_With_TryGet()
         {
             // arrange
             var cache = new Cache<string>(10);
@@ -113,6 +113,34 @@ namespace HotChocolate.Utilities
 
             // act
             Assert.True(cache.TryGet("c", out _));
+
+            // assert
+            Assert.Collection(
+                cache.GetKeys(),
+                key => Assert.Equal("c", key),
+                key => Assert.Equal("g", key),
+                key => Assert.Equal("f", key),
+                key => Assert.Equal("e", key),
+                key => Assert.Equal("d", key),
+                key => Assert.Equal("b", key),
+                key => Assert.Equal("a", key));
+        }
+
+        [Fact]
+        public void Reorder_Items_When_Cache_Is_Filling_Up_With_GetOrCreate()
+        {
+            // arrange
+            var cache = new Cache<string>(10);
+            cache.GetOrCreate("a", () => "a");
+            cache.GetOrCreate("b", () => "b");
+            cache.GetOrCreate("c", () => "c");
+            cache.GetOrCreate("d", () => "d");
+            cache.GetOrCreate("e", () => "e");
+            cache.GetOrCreate("f", () => "f");
+            cache.GetOrCreate("g", () => "g");
+
+            // act
+            cache.GetOrCreate("c", () => "c");
 
             // assert
             Assert.Collection(
