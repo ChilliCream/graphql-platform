@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Relay
 
             if (query is { Context: not null } && mutation is { Context: not null })
             {
-                RelayOptions options = query.Context.DescriptorContext.GetRelayOptions();
+                MutationPayloadOptions options = query.Context.DescriptorContext.GetMutationPayloadOptions();
                 options.QueryFieldName ??= _defaultFieldName;
 
                 foreach (ObjectFieldDefinition field in mutation.Definition.Fields)
