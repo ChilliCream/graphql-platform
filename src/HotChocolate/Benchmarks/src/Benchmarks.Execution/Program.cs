@@ -12,8 +12,8 @@ using HotChocolate.Benchmarks;
 public static class Program
 {
     static void Main(string[] args) =>
-        // Run().Wait();
-        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        Run().Wait();
+        // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
@@ -26,8 +26,7 @@ public static class Program
         Console.WriteLine("Warmup 2");
         await queryBench.Sessions_Medium();
 
-        Console.WriteLine("Ready");
-        // Console.ReadLine();
+        Console.WriteLine("Run");
 
         var stopwatch = Stopwatch.StartNew();
         var list = new List<TimeSpan>();
@@ -38,12 +37,6 @@ public static class Program
             await queryBench.Sessions_Medium();
             list.Add(stopwatch.Elapsed);
             Console.WriteLine(stopwatch.Elapsed);
-
-            if (stopwatch.ElapsedMilliseconds > 370 || stopwatch.ElapsedMilliseconds < 200)
-            {
-                // Console.WriteLine("Waiting");
-                // Console.ReadLine();
-            }
         }
 
         Console.WriteLine(list.Sum(t => t.Milliseconds) / 50);
