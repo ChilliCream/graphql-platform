@@ -1,43 +1,9 @@
 {
-  a: speakerById(id: "U3BlYWtlcgppMQ==") {
-    ...SpeakerInfo
-  }
-  b: speakerById(id: "U3BlYWtlcgppMzE=") {
-    ...SpeakerInfo
-  }
-  c: speakerById(id: "U3BlYWtlcgppMzA=") {
-    ...SpeakerInfo
-  }
-  d: speakerById(id: "U3BlYWtlcgppMjk=") {
-    ...SpeakerInfo
-  }
   sessions(first: 50) {
     nodes {
-      speakers {
-        name
-        sessions {
-          ...SessionInfo
-        }
-      }
+      ... SessionInfo
     }
-  }
-  tracks {
-    nodes {
-      name
-      sessions {
-        nodes {
-          abstract
-          title
-          speakers {
-            name
-            sessions {
-              ...SessionInfo
-            }
-          }
-        }
-      }
-    }
-  }
+  }  
 }
 
 fragment SessionInfo on Session {

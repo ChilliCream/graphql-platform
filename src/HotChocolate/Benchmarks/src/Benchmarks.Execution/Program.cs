@@ -14,8 +14,8 @@ using HotChocolate.ConferencePlanner.DataLoader;
 public static class Program
 {
     static void Main(string[] args) =>
-        Run().Wait();
-    // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        // Run().Wait();
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
@@ -23,10 +23,10 @@ public static class Program
         var queryBench = new QueryBenchmarks();
 
         Console.WriteLine("Warmup 1");
-        await queryBench.Sessions_Medium();
+        await queryBench.Sessions_Large();
 
         Console.WriteLine("Warmup 2");
-        await queryBench.Sessions_Medium();
+        await queryBench.Sessions_Large();
 
         Console.WriteLine("Run");
 
@@ -48,7 +48,7 @@ public static class Program
     {
         var stopwatch = Stopwatch.StartNew();
         stopwatch.Restart();
-        await bench.Sessions_Medium();
+        await bench.Sessions_Large();
         list.Add(stopwatch.Elapsed);
         Console.WriteLine(stopwatch.Elapsed);
     }

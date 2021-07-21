@@ -267,7 +267,7 @@ namespace HotChocolate.Execution.Processing.Plan
 TryAgain:
             for (var i = 0; i < _state.Length; i++)
             {
-                var state = _state[i];
+                State state = _state[i];
 
                 if (state.IsActive && state.Tasks == 0)
                 {
