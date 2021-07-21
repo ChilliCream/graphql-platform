@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Processing.Internal
             IsEmpty = false;
         }
 
-        private void AppendTask(ref IExecutionTask? head, IExecutionTask executionTask)
+        private static void AppendTask(ref IExecutionTask? head, IExecutionTask executionTask)
         {
             executionTask.Previous = null;
             executionTask.Next = head;
