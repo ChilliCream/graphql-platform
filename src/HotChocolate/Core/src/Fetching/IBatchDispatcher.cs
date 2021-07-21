@@ -24,11 +24,16 @@ namespace HotChocolate.Fetching
         bool DispatchOnSchedule { get; set; }
 
         /// <summary>
+        /// Initializes the batch dispatcher with the current task execution context,
+        /// </summary>
+        /// <param name="context">
+        /// The task execution context which allows to enqueue new tasks.
+        /// </param>
+        void Initialize(IExecutionTaskContext context);
+
+        /// <summary>
         /// Dispatches execution tasks to the execution engine work backlog.
         /// </summary>
-        /// <param name="enqueue">
-        /// The task enqueue delegate.
-        /// </param>
-        void Dispatch(Action<IExecutionTaskDefinition> enqueue);
+        void Dispatch();
     }
 }

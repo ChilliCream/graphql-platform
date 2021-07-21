@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
@@ -93,24 +94,24 @@ namespace HotChocolate.Types.Relay.Descriptors
             return ResolveNode(resolver.Resolver!);
         }
 
-        protected static class MiddlewareHelper
+        protected static class ConverterHelper
         {
-            private static FieldMiddleware? _middleware;
+            private static ResultConverterDelegate? _resultConverter;
 
-            private static FieldMiddleware Middleware
+            private static ResultConverterDelegate Converter
             {
-                get => _middleware ??= FieldClassMiddlewareFactory.Create<IdMiddleware>();
+                get => _resultConverter ??= IdMiddleware.Create();
             }
 
             public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
             {
-                descriptor.Extend().OnBeforeCreate(d =>
+                IList<ResultConverterDelegate> converters =
+                    descriptor.Extend().Definition.ResultConverters;
+
+                if (!converters.Contains(Converter))
                 {
-                    if (!d.MiddlewareComponents.Contains(Middleware))
-                    {
-                        d.MiddlewareComponents.Add(Middleware);
-                    }
-                });
+                    converters.Add(Converter);
+                }
 
                 return descriptor;
             }

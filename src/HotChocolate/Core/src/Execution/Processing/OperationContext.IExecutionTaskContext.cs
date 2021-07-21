@@ -14,6 +14,11 @@ namespace HotChocolate.Execution.Processing
             ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
         }
 
+        void IExecutionTaskContext.Register(IExecutionTask task)
+        {
+            Execution.Work.Register(task);
+        }
+
         private void ReportError(IExecutionTask task, IError error)
         {
             if (task is null)

@@ -166,5 +166,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.AttributesAreApplied = AttributesAreApplied;
             }
         }
+
+        public override string ToString()
+        {
+            return GetType().Name + ": " + Name;
+        }
     }
 }

@@ -146,7 +146,7 @@ namespace GreenDonut
             }
 
             Task<TValue> newValue = Task.Factory.StartNew(
-                async () => ((TValue)await value.ConfigureAwait(false) ?? default)!,
+                async () => ((TValue)(await value.ConfigureAwait(false))! ?? default)!,
                 TaskCreationOptions.RunContinuationsAsynchronously)
                     .Unwrap();
 

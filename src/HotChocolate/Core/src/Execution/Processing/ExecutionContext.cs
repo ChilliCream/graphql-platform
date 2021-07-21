@@ -39,16 +39,6 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc />
-        public bool IsCompleted
-        {
-            get
-            {
-                AssertNotPooled();
-                return Work.IsEmpty && !Work.IsRunning;
-            }
-        }
-
-        /// <inheritdoc />
         public ObjectPool<ResolverTask> ResolverTasks
         {
             get
@@ -57,43 +47,5 @@ namespace HotChocolate.Execution.Processing
                 return _resolverTasks;
             }
         }
-
-        /// <inheritdoc />
-        public ObjectPool<IExecutionTask?[]> TaskBuffers
-        {
-            get
-            {
-                AssertNotPooled();
-                return _taskBuffers;
-            }
-        }
-
-#pragma warning disable 4014
-        private void BeginTryDispatchBatches() => TryDispatchBatches();
-#pragma warning restore 4014
-
-        private async ValueTask TryDispatchBatches()
-        {
-            AssertNotPooled();
-
-            if (Work.IsEmpty && BatchDispatcher.HasTasks)
-            {
-                await Task.Yield();
-
-                if (Work.IsEmpty && BatchDispatcher.HasTasks)
-                {
-                    BatchDispatcher.Dispatch(Register);
-                }
-            }
-
-            void Register(IExecutionTaskDefinition taskDefinition)
-            {
-                Work.Register(taskDefinition.Create(_operationContext));
-            }
-        }
-
-        private void BatchDispatcherEventHandler(
-            object? source, EventArgs args) =>
-            BeginTryDispatchBatches();
     }
 }

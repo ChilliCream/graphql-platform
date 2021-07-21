@@ -46,6 +46,7 @@ namespace HotChocolate.Execution.Processing
         public IObjectType ObjectType =>
             _middlewareContext.ObjectType;
 
+        [Obsolete("Use Selection.Field or Selection.Type.")]
         public IObjectField Field =>
             _middlewareContext.Field;
 

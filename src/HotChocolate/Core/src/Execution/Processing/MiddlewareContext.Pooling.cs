@@ -28,6 +28,7 @@ namespace HotChocolate.Execution.Processing
             ScopedContextData = scopedContextData;
             LocalContextData = ImmutableDictionary<string, object?>.Empty;
             Arguments = _selection.Arguments;
+            RequestAborted = _operationContext.RequestAborted;
         }
 
         public void Clean()
@@ -50,6 +51,7 @@ namespace HotChocolate.Execution.Processing
             ResultMap = default!;
             HasErrors = false;
             Arguments = default!;
+            RequestAborted = default!;
         }
     }
 }

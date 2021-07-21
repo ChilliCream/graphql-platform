@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
 
         public IVariableValueCollection Variables => _operationContext.Variables;
 
-        public CancellationToken RequestAborted => _operationContext.RequestAborted;
+        public CancellationToken RequestAborted { get; private set; }
 
         public IReadOnlyList<IFieldSelection> GetSelections(
             ObjectType typeContext,

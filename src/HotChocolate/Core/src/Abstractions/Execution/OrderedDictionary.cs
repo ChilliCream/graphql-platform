@@ -1,16 +1,17 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution
 {
-    public class OrderedDictionary
-        : OrderedDictionary<string, object>
+    public class OrderedDictionary : OrderedDictionary<string, object>
     {
     }
 
     public class OrderedDictionary<TKey, TValue>
         : IDictionary<TKey, TValue>
         , IReadOnlyDictionary<TKey, TValue>
+        where TKey : notnull
     {
         private readonly List<KeyValuePair<TKey, TValue>> _order;
         private readonly Dictionary<TKey, TValue> _map;
@@ -139,7 +140,7 @@ namespace HotChocolate.Execution
             return false;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             return _map.TryGetValue(key, out value);
         }

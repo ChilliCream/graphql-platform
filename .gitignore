@@ -314,4 +314,8 @@ src/Build.Pack.sln
 
 # asp .net core
 appsettings.user.json
+
+# benchmark dbs
 conferences.db
+conferences.db-shm
+conferences.db-wal

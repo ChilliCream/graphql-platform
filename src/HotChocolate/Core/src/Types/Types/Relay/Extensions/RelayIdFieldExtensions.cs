@@ -59,8 +59,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = n => c => default;
-            descriptor.Use(placeholder);
+            ResultConverterDelegate placeholder = (_, r) => r;
+
+            descriptor.Extend().Definition.ResultConverters.Add(placeholder);
             descriptor.Extend().OnBeforeCreate(RewriteObjectFieldType);
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => AddSerializerToObjectField(c, d, placeholder, typeName));
@@ -191,7 +192,7 @@ namespace HotChocolate.Types
         private static void AddSerializerToObjectField(
             ITypeCompletionContext completionContext,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            ResultConverterDelegate placeholder,
             NameString typeName)
         {
             ITypeInspector typeInspector = completionContext.TypeInspector;
@@ -220,35 +221,35 @@ namespace HotChocolate.Types
             IIdSerializer serializer =
                 completionContext.Services.GetService<IIdSerializer>() ??
                 new IdSerializer();
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
+            var index = definition.ResultConverters.IndexOf(placeholder);
 
             if (typeName.IsEmpty)
             {
                 typeName = completionContext.Type.Name;
             }
 
-            definition.MiddlewareComponents[index] = next => async context =>
+            definition.ResultConverters[index] = (_, result) =>
             {
-                await next(context).ConfigureAwait(false);
-
-                if (context.Result is not null)
+                if (result is not null)
                 {
                     if (resultType.IsArrayOrList)
                     {
                         var list = new List<object?>();
-                        foreach (var element in (IEnumerable)context.Result)
+
+                        foreach (var element in (IEnumerable)result)
                         {
                             list.Add(element is null
                                 ? element
                                 : serializer.Serialize(schemaName, typeName, element));
                         }
-                        context.Result = list;
+
+                        return list;
                     }
-                    else
-                    {
-                        context.Result = serializer.Serialize(schemaName, typeName, context.Result);
-                    }
+
+                    return serializer.Serialize(schemaName, typeName, result);
                 }
+
+                return result;
             };
         }
 
