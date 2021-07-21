@@ -96,9 +96,9 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // act
             queue.TryTake(out var task);
-            queue.Complete(task!);
+            queue.Complete();
             queue.TryTake(out task);
-            queue.Complete(task!);
+            queue.Complete();
 
             // assert
             Assert.Same(task1, task);

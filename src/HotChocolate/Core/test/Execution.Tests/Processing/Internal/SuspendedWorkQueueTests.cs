@@ -38,7 +38,7 @@ namespace HotChocolate.Execution.Processing.Internal
             queue.Enqueue(task2);
 
             // assert
-            var work = new WorkQueue2();
+            var work = new WorkQueue();
             var plan = new QueryPlan(new MockQueryPlanStep());
             var operationContext = new Mock<IOperationContext>();
             var stateMachine = new QueryPlanStateMachine();

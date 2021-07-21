@@ -18,8 +18,8 @@ namespace HotChocolate.Execution.Processing
         private static readonly Task<bool> _trueResult = Task.FromResult(true);
 
         private readonly object _sync = new();
-        private readonly WorkQueue2 _work = new();
-        private readonly WorkQueue2 _serial = new();
+        private readonly WorkQueue _work = new();
+        private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution.Processing
             {
                 if (_stateMachine.RegisterTask(task, state))
                 {
-                    WorkQueue2 work = task.IsSerial ? _serial : _work;
+                    WorkQueue work = task.IsSerial ? _serial : _work;
                     work.Push(task);
 
                     started = TryStartProcessingUnsafe();
@@ -136,7 +136,7 @@ namespace HotChocolate.Execution.Processing
 
                         if (_stateMachine.RegisterTask(task, step[i]))
                         {
-                            WorkQueue2 work = task.IsSerial ? _serial : _work;
+                            WorkQueue work = task.IsSerial ? _serial : _work;
                             work.Push(task);
                         }
                         else
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 // determine the work queue.
-                WorkQueue2 work = task.IsSerial ? _serial : _work;
+                WorkQueue work = task.IsSerial ? _serial : _work;
 
                 // now we complete the work queue which will signal to the execution context
                 // that work has been completed if it has no more tasks enqueued or marked
@@ -225,7 +225,7 @@ namespace HotChocolate.Execution.Processing
 
             lock (_sync)
             {
-                WorkQueue2 work = _stateMachine.IsSerial ? _serial : _work;
+                WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
 
                 for (var i = 0; i < buffer.Length; i++)
                 {

@@ -8,29 +8,17 @@ namespace HotChocolate.Execution.Processing.Internal
     internal sealed class WorkQueue
     {
         private readonly Stack<IExecutionTask> _stack = new();
-        private IExecutionTask? _runningHead;
+        private int _running;
 
         public bool IsEmpty => _stack.Count == 0;
 
-        public bool HasRunningTasks => _runningHead is not null;
-
+        public bool HasRunningTasks => _running > 0;
 
         public int Count => _stack.Count;
 
-        public void Complete(IExecutionTask executionTask)
+        public void Complete()
         {
-            if (executionTask is null)
-            {
-                throw new ArgumentNullException(nameof(executionTask));
-            }
-
-            Remove(ref _runningHead, executionTask);
-        }
-
-        public bool TryPeekInProgress([MaybeNullWhen(false)] out IExecutionTask executionTask)
-        {
-            executionTask = _runningHead;
-            return executionTask is not null;
+            _running--;
         }
 
         public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
@@ -39,7 +27,7 @@ namespace HotChocolate.Execution.Processing.Internal
             if (_stack.Count > 0)
             {
                 executionTask = _stack.Pop();
-                Add(ref _runningHead, executionTask);
+                _running++;
                 return true;
             }
 
@@ -47,7 +35,7 @@ namespace HotChocolate.Execution.Processing.Internal
 #else
             if (_stack.TryPop(out executionTask))
             {
-                Add(ref _runningHead, executionTask);
+                _running++;
                 return true;
             }
 #endif
@@ -65,51 +53,10 @@ namespace HotChocolate.Execution.Processing.Internal
             return _stack.Count;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Add(ref IExecutionTask? head, IExecutionTask executionTask)
-        {
-            executionTask.Next = head;
-
-            if (head is not null)
-            {
-                head.Previous = executionTask;
-            }
-
-            head = executionTask;
-        }
-
-        private static void Remove(ref IExecutionTask? head, IExecutionTask executionTask)
-        {
-            IExecutionTask? previous = executionTask.Previous;
-            IExecutionTask? next = executionTask.Next;
-
-            if (previous is null)
-            {
-                if (ReferenceEquals(head, executionTask))
-                {
-                    head = next;
-
-                    if (next is not null)
-                    {
-                        next.Previous = null;
-                    }
-                }
-            }
-            else
-            {
-                previous.Next = next;
-
-                if (next is not null)
-                {
-                    next.Previous = previous;
-                }
-            }
-        }
-
         public void Clear()
         {
             _stack.Clear();
-            _runningHead = null;
+            _running = 0;
         }
     }
 }
