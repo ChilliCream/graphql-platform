@@ -26,6 +26,11 @@ namespace HotChocolate
             public const string Timeout = "HC0045";
 
             /// <summary>
+            /// The request was canceled
+            /// </summary>
+            public const string Canceled = "HC0049";
+
+            /// <summary>
             /// The operation complexity was exceeded.
             /// </summary>
             public const string ComplexityExceeded = "HC0047";

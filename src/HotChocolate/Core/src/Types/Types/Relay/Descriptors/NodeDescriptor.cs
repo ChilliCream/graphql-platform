@@ -39,33 +39,42 @@ namespace HotChocolate.Types.Relay.Descriptors
         {
             if (Definition.IdMember is null)
             {
-                MiddlewareHelper.TryAdd(
-                    typeDescriptor
-                        .Field(NodeType.Names.Id)
-                        .Type<NonNullType<IdType>>());
+                IObjectFieldDescriptor descriptor = typeDescriptor
+                    .Field(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>();
+
+                ConverterHelper.TryAdd(descriptor);
             }
             else
             {
-                MiddlewareHelper.TryAdd(
-                    typeDescriptor
-                        .Field(Definition.IdMember)
-                        .Name(NodeType.Names.Id)
-                        .Type<NonNullType<IdType>>());
+                IObjectFieldDescriptor descriptor = typeDescriptor
+                    .Field(Definition.IdMember)
+                    .Name(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>();
+
+                ConverterHelper.TryAdd(descriptor);
             }
         }
 
         protected override IObjectFieldDescriptor ConfigureNodeField()
         {
-            return Definition.IdMember is null
-                ? MiddlewareHelper.TryAdd(
-                    _typeDescriptor
-                        .Field(NodeType.Names.Id)
-                        .Type<NonNullType<IdType>>())
-                : MiddlewareHelper.TryAdd(
-                    _typeDescriptor
-                        .Field(Definition.IdMember)
-                        .Name(NodeType.Names.Id)
-                        .Type<NonNullType<IdType>>());
+            if (Definition.IdMember is null)
+            {
+                IObjectFieldDescriptor descriptor = _typeDescriptor
+                    .Field(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>();
+
+                return ConverterHelper.TryAdd(descriptor);
+            }
+            else
+            {
+                IObjectFieldDescriptor descriptor = _typeDescriptor
+                    .Field(Definition.IdMember)
+                    .Name(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>();
+
+                return ConverterHelper.TryAdd(descriptor);
+            }
         }
 
         public INodeDescriptor IdField(MemberInfo propertyOrMethod)

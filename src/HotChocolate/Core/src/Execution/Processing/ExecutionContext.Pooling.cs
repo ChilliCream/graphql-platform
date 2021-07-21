@@ -12,7 +12,6 @@ namespace HotChocolate.Execution.Processing
         private readonly WorkBacklog _workBacklog;
         private readonly DeferredWorkBacklog _deferredWorkBacklog;
         private readonly ObjectPool<ResolverTask> _resolverTasks;
-        private readonly ObjectPool<IExecutionTask?[]> _taskBuffers;
 
         private CancellationTokenSource _completed = default!;
         private IBatchDispatcher _batchDispatcher = default!;
@@ -20,41 +19,29 @@ namespace HotChocolate.Execution.Processing
 
         public ExecutionContext(
             OperationContext operationContext,
-            ObjectPool<ResolverTask> resolverTasks,
-            ObjectPool<IExecutionTask?[]> taskBuffers)
+            ObjectPool<ResolverTask> resolverTasks)
         {
             _operationContext = operationContext;
             _workBacklog = new WorkBacklog();
             _deferredWorkBacklog = new DeferredWorkBacklog();
             _resolverTasks = resolverTasks;
-            _taskBuffers = taskBuffers;
-            _workBacklog.BacklogEmpty += BatchDispatcherEventHandler;
         }
 
-        public void Initialize(
-            IBatchDispatcher batchDispatcher,
-            CancellationToken requestAborted)
+        public void Initialize(IBatchDispatcher batchDispatcher)
         {
             _completed = new CancellationTokenSource();
-            requestAborted.Register(TryComplete);
+
+            _operationContext.RequestAborted.Register(TryComplete);
 
             _batchDispatcher = batchDispatcher;
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
             _isInitialized = true;
 
-            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
+            _workBacklog.Initialize(_operationContext);
         }
 
         public void Clean()
         {
-            if (_batchDispatcher is not null!)
-            {
-                _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-                _batchDispatcher = default!;
-            }
-
-            _workBacklog.Clear();
-            _deferredWorkBacklog.Clear();
+            _batchDispatcher = default!;
 
             if (_completed is not null!)
             {
@@ -63,26 +50,25 @@ namespace HotChocolate.Execution.Processing
                 _completed = default!;
             }
 
+            _workBacklog.Clear();
+            _deferredWorkBacklog.Clear();
+
             _isInitialized = false;
         }
 
         public void Reset()
         {
-            ResetStateMachine();
-
             if (_completed is not null!)
             {
                 TryComplete();
                 _completed.Dispose();
                 _completed = new CancellationTokenSource();
             }
+
+            ResetStateMachine();
         }
 
-        public void ResetStateMachine()
-        {
-            _workBacklog.Clear();
-            _workBacklog.Initialize(_operationContext, _operationContext.QueryPlan);
-        }
+        public void ResetStateMachine() => _workBacklog.Initialize(_operationContext);
 
         private void TryComplete()
         {

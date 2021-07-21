@@ -119,7 +119,7 @@ namespace HotChocolate
         /// <returns>
         /// <c>true</c> if both <see cref="NameString"/> values are equal.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

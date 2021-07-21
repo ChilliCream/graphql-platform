@@ -195,7 +195,6 @@ namespace HotChocolate.Execution.Batching
                     {
                         { "bar" , "456" }
                     });
-
                     return list;
                 })
                 .UseField(next => context =>

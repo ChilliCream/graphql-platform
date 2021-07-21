@@ -44,5 +44,15 @@ namespace HotChocolate.Execution
         /// The exception that happened during execution.
         /// </param>
         void ReportError(IExecutionTask task, Exception exception);
+
+        /// <summary>
+        /// Registers a new execution task.
+        /// An execution task may register new execution tasks
+        /// before it has hit <see cref="Completed"/>.
+        /// </summary>
+        /// <param name="task">
+        /// The new execution task.
+        /// </param>
+        void Register(IExecutionTask task);
     }
 }

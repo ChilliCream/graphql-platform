@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -6,72 +7,62 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
     /// <inheritdoc/>
-    internal class WorkBacklog : IWorkBacklog
+    internal partial class WorkBacklog : IWorkBacklog
     {
+        private static readonly Task<bool> _falseResult = Task.FromResult(false);
+        private static readonly Task<bool> _trueResult = Task.FromResult(true);
+
         private readonly object _sync = new();
         private readonly WorkQueue _work = new();
         private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
-        private int _processors = 1;
-        private bool _mainIsPaused;
+        private TaskCompletionSource<bool> _completion = default!;
+        private TaskCompletionSource<bool>? _pause;
+
+        private bool _processing;
+        private bool _completed;
+
         private IRequestContext _requestContext = default!;
+        private IBatchDispatcher _batchDispatcher = default!;
+        private IErrorHandler _errorHandler = default!;
+        private IResultHelper _result = default!;
         private IDiagnosticEvents _diagnosticEvents = default!;
+        private CancellationToken _requestAborted;
 
-        public WorkBacklog()
+        private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+
+        private bool HasRunningTasks
+            => _work.HasRunningTasks ||
+               _serial.HasRunningTasks ||
+               !_stateMachine.IsCompleted;
+
+        /// <inheritdoc/>
+        public Task Completion => _completion.Task;
+
+        internal void Initialize(OperationContext operationContext)
         {
-            _work.BacklogEmpty += (sender, args) => BacklogEmpty?.Invoke(sender, args);
-        }
+            Clear();
 
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs>? BackPressureLimitExceeded;
+            _completion = new TaskCompletionSource<bool>();
 
-        /// <inheritdoc/>
-        public event EventHandler<EventArgs>? BacklogEmpty;
-
-        /// <inheritdoc/>
-        public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
-
-        /// <inheritdoc/>
-        public bool IsRunning =>
-            _work.IsRunning ||
-            _serial.IsRunning ||
-           !_stateMachine.IsCompleted ||
-           _processors > 1;
-
-        internal void Initialize(OperationContext operationContext, QueryPlan queryPlan)
-        {
+            _batchDispatcher = operationContext.Execution.BatchDispatcher;
             _requestContext = operationContext.RequestContext;
             _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
-            _stateMachine.Initialize(operationContext, queryPlan);
-        }
+            _requestAborted = operationContext.RequestAborted;
+            _errorHandler = operationContext.ErrorHandler;
+            _result = operationContext.Result;
 
-        /// <inheritdoc />
-        public int TryTake(IExecutionTask?[] buffer, bool main)
-        {
-            lock (_sync)
-            {
-                var size = 0;
-                WorkQueue work = main && _stateMachine.IsSerial ? _serial : _work;
+            _stateMachine.Initialize(operationContext, operationContext.QueryPlan);
+            _requestContext.RequestAborted.Register(Cancel);
 
-                for (var i = 0; i < buffer.Length; i++)
-                {
-                    if (!work.TryTake(out IExecutionTask? task))
-                    {
-                        break;
-                    }
-
-                    size++;
-                    buffer[i] = task;
-                }
-
-                return size;
-            }
+            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
 
         /// <inheritdoc/>
@@ -82,22 +73,18 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            var scaled = false;
-            var backlogSize = 0;
-            var processors = _processors;
+            var started = false;
+
+            var state = _stateMachine.TryGetStep(task);
 
             lock (_sync)
             {
-                if (_stateMachine.Register(task))
+                if (_stateMachine.RegisterTask(task, state))
                 {
                     WorkQueue work = task.IsSerial ? _serial : _work;
-                    backlogSize = work.Push(task);
+                    work.Push(task);
 
-                    if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
-                    {
-                        scaled = TryScaleUnsafe();
-                        processors = _processors;
-                    }
+                    started = TryStartProcessingUnsafe();
                 }
                 else
                 {
@@ -105,11 +92,11 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (scaled)
+            if (started)
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.StartProcessing(_requestContext);
             }
         }
 
@@ -121,41 +108,56 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(tasks));
             }
 
-            var scaled = false;
-            var backlogSize = 0;
-            var processors = _processors;
+            if (length == 1)
+            {
+                Register(tasks[0]!);
+                tasks[0] = null;
+                return;
+            }
 
-            lock (_sync)
+            bool started;
+
+            object?[] step = ArrayPool<object?>.Shared.Rent(length);
+
+            try
             {
                 for (var i = 0; i < length; i++)
                 {
-                    IExecutionTask task = tasks[i]!;
-                    tasks[i] = null;
-                    Debug.Assert(task != null, "A task slot is not allowed to be empty.");
-
-                    if (_stateMachine.Register(task))
-                    {
-                        WorkQueue work = task.IsSerial ? _serial : _work;
-                        backlogSize = work.Push(task);
-                    }
-                    else
-                    {
-                        _suspended.Enqueue(task);
-                    }
+                    step[i] = _stateMachine.TryGetStep(tasks[i]!);
                 }
 
-                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
+                lock (_sync)
                 {
-                    scaled = TryScaleUnsafe();
-                    processors = _processors;
+                    for (var i = 0; i < length; i++)
+                    {
+                        IExecutionTask task = tasks[i]!;
+                        tasks[i] = null;
+                        Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
+
+                        if (_stateMachine.RegisterTask(task, step[i]))
+                        {
+                            WorkQueue work = task.IsSerial ? _serial : _work;
+                            work.Push(task);
+                        }
+                        else
+                        {
+                            _suspended.Enqueue(task);
+                        }
+                    }
+
+                    started = TryStartProcessingUnsafe();
                 }
             }
+            finally
+            {
+                ArrayPool<object?>.Shared.Return(step);
+            }
 
-            if (scaled)
+            if (started)
             {
                 // we invoke the scale diagnostic event after leaving the lock to not block
                 // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
+                _diagnosticEvents.StartProcessing(_requestContext);
             }
         }
 
@@ -172,18 +174,14 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var scaled = false;
-            var backlogSize = 0;
-            var processors = _processors;
-
             lock (_sync)
             {
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
-                if (_stateMachine.Complete(task) && !_suspended.IsEmpty)
+                if (_stateMachine.Complete(task) && _suspended.HasWork)
                 {
-                    TryEnqueueSuspended();
+                    _suspended.CopyTo(_work, _serial, _stateMachine);
                 }
 
                 // determine the work queue.
@@ -192,164 +190,242 @@ namespace HotChocolate.Execution.Processing
                 // now we complete the work queue which will signal to the execution context
                 // that work has been completed if it has no more tasks enqueued or marked
                 // running.
-                work.Complete(task);
+                work.Complete();
 
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks
                 // are not enqueued.
-                while (!_stateMachine.IsCompleted &&
-                    _work.IsEmpty &&
-                    _serial.IsEmpty &&
-                    !_work.IsRunning &&
-                    !_serial.IsRunning)
+                while (NeedsStateMachineCompletion())
                 {
-                    if (_stateMachine.CompleteNext() && !_suspended.IsEmpty)
+                    if (_stateMachine.CompleteNext() && _suspended.HasWork)
                     {
-                        TryEnqueueSuspended();
+                        _suspended.CopyTo(_work, _serial, _stateMachine);
                     }
                 }
+
+                TryCompleteProcessingUnsafe();
             }
 
-            if (scaled)
-            {
-                // we invoke the scale diagnostic event after leaving the lock to not block
-                // if a an event listener is badly implemented.
-                _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
-            }
-
-            void TryEnqueueSuspended()
-            {
-                // note that backlog pressure is only measured on the default work queue since the
-                // serial work queue is not scaled by default.
-                _suspended.CopyTo(_work, _serial, _stateMachine);
-                backlogSize = _work.Count;
-
-                if (backlogSize > CalculateScalePressure() || _mainIsPaused && _processors == 1)
-                {
-                    scaled = TryScaleUnsafe();
-                    processors = _processors;
-                }
-            }
+            bool NeedsStateMachineCompletion()
+                => !_stateMachine.IsCompleted &&
+                   _work.IsEmpty &&
+                   _serial.IsEmpty &&
+                   !_work.HasRunningTasks &&
+                   !_serial.HasRunningTasks;
         }
 
-        /// <inheritdoc/>
-        public async Task WaitForWorkAsync(CancellationToken cancellationToken)
+        private int TryTake(IExecutionTask?[] buffer)
         {
-            // we do not have any code to switch between serial and parallel work since the wait
-            // for work is only meant for parallel work since the serial work is executed in
-            // one stream.
+            var size = 0;
+
+            if (_completed)
+            {
+                return default;
+            }
 
             lock (_sync)
             {
-                // if we have work we will not wait and end waiting for new work.
-                if (!_work.IsEmpty || _work.IsEmpty && !IsRunning)
-                {
-                    return;
-                }
+                WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
 
-                // mark the main processor as being paused.
-                _mainIsPaused = true;
-            }
-
-            try
-            {
-                // lets take the first thing in the in progress list an wait for it.
-                if (_work.TryPeekInProgress(out IExecutionTask? executionTask))
+                for (var i = 0; i < buffer.Length; i++)
                 {
-                    await executionTask
-                        .WaitForCompletionAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                else
-                {
-                    // if we have no work in progress we will just wait for 2 spins for a second.
-                    Thread.SpinWait(2);
-
-                    // now lets see if there is new work or if we have completed.
-                    if (!_work.IsEmpty || _work.IsEmpty && !IsRunning)
+                    if (!work.TryTake(out IExecutionTask? task))
                     {
-                        return;
+                        break;
                     }
 
-                    // if we are still running and there is no work in progress that we can await
-                    // we will yield the task back to the task scheduler for a second and then
-                    // complete waiting.
-                    await Task.Yield();
+                    size++;
+                    buffer[i] = task;
                 }
-            }
-            finally
-            {
-                // mark the main task as in progress again.
-                _mainIsPaused = false;
-            }
-        }
 
-        /// <inheritdoc/>
-        public bool TryCompleteProcessor()
-        {
-            var changedScale = false;
-            var processors = _processors;
-            var backlogSize = 0;
-
-            try
-            {
-                lock (_sync)
-                {
-                    if (_mainIsPaused && _processors == 2 && !_work.IsEmpty)
-                    {
-                        return false;
-                    }
-
-                    changedScale = true;
-                    processors = --_processors;
-                    backlogSize = _work.Count;
-                    return true;
-                }
+                return size;
             }
-            finally
-            {
-                if (changedScale)
-                {
-                    // we invoke the scale diagnostic event after leaving the lock to not block
-                    // if a an event listener is badly implemented.
-                    _diagnosticEvents.ScaleTaskProcessors(_requestContext, backlogSize, processors);
-                }
-            }
-        }
-
-        public void Clear()
-        {
-            _work.Clear();
-            _suspended.Clear();
-            _stateMachine.Clear();
-            _processors = 1;
-            BackPressureLimitExceeded = null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryScaleUnsafe()
+        private bool TryStartProcessingUnsafe()
         {
-            if (_processors < 4 && BackPressureLimitExceeded is not null)
+            if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
-                _processors++;
-                BackPressureLimitExceeded(null, EventArgs.Empty);
+                _processing = true;
+
+                if (_pause is null)
+                {
+                    StartProcessing();
+                }
+                else
+                {
+                    TaskCompletionSource<bool> pause = _pause;
+                    _pause = null;
+                    pause.TrySetResult(false);
+                }
+
                 return true;
             }
 
             return false;
         }
 
-        private int CalculateScalePressure() =>
-            _processors switch
+        private Task<bool> TryStopProcessing()
+        {
+            bool completed;
+            TaskCompletionSource<bool> pause = default!;
+
+            // if the execution is already completed or if the completion task is
+            // null we stop processing
+            if (_completed || _completion is null! || _requestAborted.IsCancellationRequested)
             {
-                1 => 4,
-                2 => 8,
-                3 => 16,
-                4 => 32,
-                5 => 64,
-                6 => 128,
-                7 => 256,
-                _ => 512
-            };
+                return _trueResult;
+            }
+
+            // if there is still work we keep on processing. We check this here to
+            // try to avoid the lock.
+            if (!_work.IsEmpty)
+            {
+                return _falseResult;
+            }
+
+            lock (_sync)
+            {
+                if (!_work.IsEmpty)
+                {
+                    return _falseResult;
+                }
+
+                // if the backlog is empty and we have running tasks we will try to dispatch
+                // any batch tasks.
+                if (_work.HasRunningTasks && _batchDispatcher.HasTasks)
+                {
+                    TryDispatchBatchesUnsafe();
+
+                    if (!_work.IsEmpty)
+                    {
+                        return _falseResult;
+                    }
+                }
+
+                _processing = false;
+                completed = TryCompleteProcessingUnsafe();
+
+                if (!completed)
+                {
+                    _pause = pause = new TaskCompletionSource<bool>();
+                }
+            }
+
+            _diagnosticEvents.StopProcessing(_requestContext);
+
+            return completed ? _trueResult : pause.Task;
+        }
+
+        private void TryDispatchBatches()
+        {
+            if (!_processing && IsEmpty && _batchDispatcher.HasTasks)
+            {
+                lock (_sync)
+                {
+                    if (!_processing)
+                    {
+                        TryDispatchBatchesUnsafe();
+                    }
+                }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void TryDispatchBatchesUnsafe()
+        {
+            if (IsEmpty && _batchDispatcher.HasTasks)
+            {
+                using (_diagnosticEvents.DispatchBatch(_requestContext))
+                {
+                    _batchDispatcher.Dispatch();
+                }
+            }
+        }
+
+        private void BatchDispatcherEventHandler(object? source, EventArgs args)
+            => TryDispatchBatches();
+
+        private void Cancel()
+        {
+            lock (_sync)
+            {
+                _completed = true;
+
+                _pause?.TrySetResult(true);
+
+                if (_completion is not null!)
+                {
+                    _completion.TrySetCanceled();
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            lock (_sync)
+            {
+                _pause?.TrySetResult(true);
+                _pause = null;
+
+                if (_completion is not null!)
+                {
+                    _completion.TrySetCanceled();
+                    _completion = default!;
+                }
+
+                if (_batchDispatcher is not null!)
+                {
+                    _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                    _batchDispatcher = default!;
+                }
+
+                _work.Clear();
+                _suspended.Clear();
+                _stateMachine.Clear();
+                _processing = false;
+                _completed = false;
+
+                _requestContext = default!;
+                _errorHandler = default!;
+                _result = default!;
+                _diagnosticEvents = default!;
+                _requestAborted = default;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TryCompleteProcessingUnsafe()
+        {
+            if (HasCompleted())
+            {
+                _pause?.TrySetResult(true);
+                _completed = true;
+                _completion.TrySetResult(true);
+                return true;
+            }
+
+            if (IsCanceled())
+            {
+                _pause?.TrySetResult(true);
+                _completed = true;
+                _completion.TrySetCanceled();
+                return true;
+            }
+
+            return false;
+
+            bool HasCompleted()
+                => !_completed &&
+                   !_processing &&
+                   IsEmpty &&
+                   !HasRunningTasks;
+
+            bool IsCanceled()
+                => !_completed &&
+                   !_processing &&
+                   _requestAborted.IsCancellationRequested;
+        }
     }
 }

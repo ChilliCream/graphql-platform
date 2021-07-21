@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Fetching;
@@ -30,19 +27,9 @@ namespace HotChocolate.Execution.Processing
         IBatchDispatcher BatchDispatcher { get; }
 
         /// <summary>
-        /// Defines that the execution is completed.
-        /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
         /// Gets the resolver task pool.
         /// </summary>
         ObjectPool<ResolverTask> ResolverTasks { get; }
-
-        /// <summary>
-        /// Gets the task buffer pool.
-        /// </summary>
-        ObjectPool<IExecutionTask?[]> TaskBuffers { get; }
 
         /// <summary>
         /// Resets the execution state.

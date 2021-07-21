@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
     /// </summary>
     public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly RequestExecutorProxy _executorProxy;
         private IRequestExecutor _executor;
         private bool _disposed;

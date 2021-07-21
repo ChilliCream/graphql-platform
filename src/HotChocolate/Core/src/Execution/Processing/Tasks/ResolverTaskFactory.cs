@@ -1,6 +1,9 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -19,7 +22,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IWorkBacklog backlog = operationContext.Execution.Work;
-            IExecutionTask?[] buffer = operationContext.Execution.TaskBuffers.Get();
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
 
@@ -47,7 +50,13 @@ namespace HotChocolate.Execution.Processing.Tasks
                     }
                 }
 
-                if (buffered > 0)
+                if (buffered == 0)
+                {
+                    // in the case all root fields are skipped we execute a dummy task in order
+                    // to not have to many extra API for this special case.
+                    backlog.Register(new NoOpExecutionTask(operationContext));
+                }
+                else
                 {
                     backlog.Register(buffer, buffered);
                 }
@@ -63,7 +72,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                operationContext.Execution.TaskBuffers.Return(buffer);
+                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
             }
         }
 
@@ -71,6 +80,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             Path path,
+            ObjectType resultType,
             object result,
             ISelectionSet selectionSet)
         {
@@ -79,7 +89,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IWorkBacklog backlog = operationContext.Execution.Work;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
-            IExecutionTask?[] buffer = operationContext.Execution.TaskBuffers.Get();
+            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
 
@@ -105,6 +115,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                                 selection,
                                 path.Append(selection.ResponseName),
                                 responseIndex++,
+                                resultType,
                                 result,
                                 resultMap);
                         }
@@ -138,7 +149,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                operationContext.Execution.TaskBuffers.Return(buffer);
+                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
             }
         }
 
@@ -148,6 +159,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ISelection selection,
             Path path,
             int responseIndex,
+            ObjectType parentType,
             object parent,
             ResultMap resultMap)
         {
@@ -218,7 +230,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 try
                 {
                     if (resolverContext.TryCreatePureContext(
-                        selection, path, parent,
+                        selection, path, parentType, parent,
                         out IPureResolverContext? childContext))
                     {
                         result = selection.PureResolver!(childContext);
@@ -263,7 +275,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             return task;
         }
 
-        public static IExecutionTask CreateResolverTask(
+        private static IExecutionTask CreateResolverTask(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
@@ -311,6 +323,19 @@ namespace HotChocolate.Execution.Processing.Tasks
                     }
                 }
             }
+        }
+
+        private sealed class NoOpExecutionTask : ParallelExecutionTask
+        {
+            public NoOpExecutionTask(IOperationContext context)
+            {
+                Context = (IExecutionTaskContext)context;
+            }
+
+            protected override IExecutionTaskContext Context { get; }
+
+            protected override ValueTask ExecuteAsync(CancellationToken cancellationToken)
+                => default;
         }
     }
 }

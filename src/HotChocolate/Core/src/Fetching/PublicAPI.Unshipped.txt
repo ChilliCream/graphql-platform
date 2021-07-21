@@ -3,8 +3,10 @@ abstract HotChocolate.Fetching.CacheDataLoader<TKey, TValue>.LoadSingleAsync(TKe
 abstract HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>.LoadGroupedBatchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Linq.ILookup<TKey, TValue>!>!
 HotChocolate.Fetching.BatchDataLoader<TKey, TValue>
 HotChocolate.Fetching.BatchDataLoader<TKey, TValue>.BatchDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
+HotChocolate.Fetching.BatchScheduler.Dispatch() -> void
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.set -> void
+HotChocolate.Fetching.BatchScheduler.Initialize(HotChocolate.Execution.IExecutionTaskContext! context) -> void
 HotChocolate.Fetching.CacheDataLoader<TKey, TValue>
 HotChocolate.Fetching.CacheDataLoader<TKey, TValue>.CacheDataLoader(int cacheSize) -> void
 HotChocolate.Fetching.DataLoaderParameterExpressionBuilder
@@ -19,8 +21,10 @@ HotChocolate.Fetching.FetchCacheCt<TKey, TValue>
 HotChocolate.Fetching.FetchGroup<TKey, TValue>
 HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>
 HotChocolate.Fetching.GroupedDataLoader<TKey, TValue>.GroupedDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
+HotChocolate.Fetching.IBatchDispatcher.Dispatch() -> void
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.set -> void
+HotChocolate.Fetching.IBatchDispatcher.Initialize(HotChocolate.Execution.IExecutionTaskContext! context) -> void
 HotChocolate.Fetching.IDataLoaderRegistry
 HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(string! key, System.Func<T>! createDataLoader) -> T
 HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(System.Func<T>! createDataLoader) -> T
@@ -50,3 +54,5 @@ static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TK
 static HotChocolate.Types.DataLoaderResolverContextExtensions.GroupDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchGroup<TKey, TValue>! fetch) -> GreenDonut.IDataLoader<TKey, TValue[]!>!
 *REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar
 *REMOVED*HotChocolate.Fetching.IAdHocDataLoaderRegistrar.GetOrAddDataLoader<TDataLoader>(string! name, System.Func<GreenDonut.IBatchScheduler!, TDataLoader>! factory) -> TDataLoader
+*REMOVED*HotChocolate.Fetching.BatchScheduler.Dispatch(System.Action<HotChocolate.Execution.IExecutionTaskDefinition!>! enqueue) -> void
+*REMOVED*HotChocolate.Fetching.IBatchDispatcher.Dispatch(System.Action<HotChocolate.Execution.IExecutionTaskDefinition!>! enqueue) -> void

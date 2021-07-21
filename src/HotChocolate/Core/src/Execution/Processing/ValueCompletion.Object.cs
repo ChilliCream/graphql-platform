@@ -42,6 +42,7 @@ namespace HotChocolate.Execution.Processing
                     operationContext,
                     resolverContext,
                     path,
+                    objectType,
                     result,
                     selections);
                 return true;

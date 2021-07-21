@@ -183,6 +183,12 @@ namespace HotChocolate.Execution
                     string.Format(ErrorHelper_RequestTimeout, timeout),
                     ErrorCodes.Execution.Timeout));
 
+        public static IQueryResult OperationCanceled() =>
+            QueryResultBuilder.CreateError(
+                new Error(
+                    ErrorHelper_OperationCanceled_Message,
+                    ErrorCodes.Execution.Canceled));
+
         public static IQueryResult MaxComplexityReached(
             int complexity,
             int allowedComplexity) =>

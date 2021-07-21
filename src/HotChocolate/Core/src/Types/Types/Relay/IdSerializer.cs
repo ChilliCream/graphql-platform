@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Relay
         {
             if (id is null)
             {
-                throw new ArgumentNullException(nameof(id));
+                return null;
             }
 
             typeName.EnsureNotEmpty(nameof(typeName));

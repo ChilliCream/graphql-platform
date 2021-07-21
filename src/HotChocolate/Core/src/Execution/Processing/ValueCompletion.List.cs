@@ -228,15 +228,15 @@ namespace HotChocolate.Execution.Processing
             bool TryCompleteElement(Path elementPath, object? elementResult)
             {
                 if (TryComplete(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        elementPath,
-                        elementType,
-                        responseName,
-                        responseIndex,
-                        elementResult,
-                        out var completedElement) &&
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    elementPath,
+                    elementType,
+                    responseName,
+                    responseIndex,
+                    elementResult,
+                    out var completedElement) &&
                     completedElement is not null)
                 {
                     resultList.Add(completedElement);
