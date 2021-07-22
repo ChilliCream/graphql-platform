@@ -26,7 +26,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             return builder.SetAccessModifier(AccessModifier.Protected);
         }
 
-        public static MethodBuilder SetAccessModifier(this MethodBuilder builder, VisibilityOverride visibilityOverride, AccessModifier defaultAccessModifier)
+        public static MethodBuilder SetAccessModifier(
+            this MethodBuilder builder, 
+            VisibilityOverride visibilityOverride, 
+            AccessModifier defaultAccessModifier)
         {
             var accessModifier = visibilityOverride switch
             {
