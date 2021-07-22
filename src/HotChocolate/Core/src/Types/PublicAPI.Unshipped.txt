@@ -1,0 +1,3 @@
+const HotChocolate.Types.Pagination.PagingDefaults.AllowBackwardPagination = true -> bool
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.get -> bool?
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.set -> void

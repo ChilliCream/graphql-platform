@@ -1,0 +1,6 @@
+HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.get -> bool
+HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.set -> void
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, bool allowBackwardPagination = true) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, bool allowBackwardPagination = true) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
