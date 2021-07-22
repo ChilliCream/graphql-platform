@@ -28,13 +28,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
             string clientName,
             IDocumentHashProvider hashProvider,
             RequestStrategy requestStrategy,
-            IReadOnlyList<TransportProfile> transportProfiles)
+            IReadOnlyList<TransportProfile> transportProfiles,
+            VisibilityOverrides visibilityOverrides)
         {
             Namespace = @namespace;
             ClientName = clientName;
             HashProvider = hashProvider;
             RequestStrategy = requestStrategy;
             TransportProfiles = transportProfiles;
+            VisibilityOverrides = visibilityOverrides;
         }
 
         public string ClientName { get; }
@@ -47,6 +49,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public IDocumentHashProvider HashProvider { get; }
 
         public IReadOnlyList<TransportProfile> TransportProfiles { get; }
+
+        public VisibilityOverrides VisibilityOverrides { get; }
 
         public IReadOnlyList<INamedTypeDescriptor> Types => _types;
 

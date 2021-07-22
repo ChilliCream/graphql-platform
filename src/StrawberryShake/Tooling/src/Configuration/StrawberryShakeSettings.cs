@@ -82,5 +82,10 @@ namespace StrawberryShake.Tools.Configuration
         /// Gets the transport profiles.
         /// </summary>
         public List<StrawberryShakeSettingsTransportProfile> TransportProfiles { get; } = new();
+
+        /// <summary>
+        /// Gets the visibility overrides.
+        /// </summary>
+        public VisibilityOverrides VisibilityOverrides { get; } = new();
     }
 }

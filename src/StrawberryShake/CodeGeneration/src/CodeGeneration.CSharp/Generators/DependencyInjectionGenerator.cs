@@ -64,7 +64,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             MethodBuilder addClientMethod = factory
                 .AddMethod($"Add{descriptor.Name}")
-                .SetPublic()
+                .SetAccessModifier(descriptor.VisibilityOverride, AccessModifier.Internal)
                 .SetStatic()
                 .SetReturnType(
                     TypeNames.IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))

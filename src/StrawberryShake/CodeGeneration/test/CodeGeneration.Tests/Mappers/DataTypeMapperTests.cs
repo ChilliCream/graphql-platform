@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.Tools.Configuration;
 using Xunit;
 using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
@@ -46,7 +47,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 new[]
                 {
                     TransportProfile.Default
-                });
+                },
+                new VisibilityOverrides());
 
             TypeDescriptorMapper.Map(
                 clientModel,
@@ -127,7 +129,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 new[]
                 {
                     TransportProfile.Default
-                });
+                },
+                new VisibilityOverrides());
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);
@@ -221,7 +224,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 new[]
                 {
                     TransportProfile.Default
-                });
+                },
+                new VisibilityOverrides());
             TypeDescriptorMapper.Map(
                 clientModel,
                 context);

@@ -225,6 +225,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                     RazorComponents = context.Settings.RazorComponents,
                     EntityRecords = context.Settings.Records.Entities,
                     SingleCodeFile = context.Settings.UseSingleFile,
+                    VisibilityOverrides = context.Settings.VisibilityOverrides,
                     HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
                     {
                         "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),

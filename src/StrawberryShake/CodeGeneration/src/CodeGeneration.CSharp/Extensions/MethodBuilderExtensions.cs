@@ -1,5 +1,6 @@
 using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -23,6 +24,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public static MethodBuilder SetProtected(this MethodBuilder builder)
         {
             return builder.SetAccessModifier(AccessModifier.Protected);
+        }
+
+        public static MethodBuilder SetAccessModifier(this MethodBuilder builder, VisibilityOverride visibilityOverride, AccessModifier defaultAccessModifier)
+        {
+            var accessModifier = visibilityOverride switch
+            {
+                VisibilityOverride.Internal => AccessModifier.Internal,
+                VisibilityOverride.Public => AccessModifier.Public,
+                _ => defaultAccessModifier,
+            };
+
+            return builder.SetAccessModifier(accessModifier);
         }
 
         public static MethodBuilder AddParameter(

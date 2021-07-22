@@ -42,6 +42,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         EntityIdFactoryDescriptor EntityIdFactory { get; }
 
+        VisibilityOverrides VisibilityOverrides { get; }
+
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
         void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);

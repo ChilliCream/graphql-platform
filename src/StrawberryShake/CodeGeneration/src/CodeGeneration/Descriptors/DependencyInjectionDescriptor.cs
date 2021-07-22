@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Descriptors
 {
@@ -18,7 +19,8 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             IReadOnlyList<ITypeDescriptor> typeDescriptors,
             IReadOnlyList<TransportProfile> transportProfiles,
             EntityIdFactoryDescriptor entityIdFactoryDescriptor,
-            StoreAccessorDescriptor storeAccessorDescriptor)
+            StoreAccessorDescriptor storeAccessorDescriptor,
+            VisibilityOverride visibilityOverride)
         {
             ClientDescriptor = clientDescriptor;
             Name = clientDescriptor.Name;
@@ -29,6 +31,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
             StoreAccessor = storeAccessorDescriptor;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
+            VisibilityOverride = visibilityOverride;
         }
 
         /// <summary>
@@ -54,5 +57,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// The operations that are contained in this client class
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
+
+        public VisibilityOverride VisibilityOverride { get; }
     }
 }
