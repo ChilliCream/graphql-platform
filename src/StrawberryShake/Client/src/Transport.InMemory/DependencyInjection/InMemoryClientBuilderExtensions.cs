@@ -18,11 +18,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// with the correct name and the default schema of the <see cref="IServiceCollection"/>
         /// </summary>
         /// <param name="clientBuilder">
-        /// The <see cref="IClientBuilder{T}"/>
+        /// The <see cref="IClientBuilder"/>
         /// </param>
-        public static IClientBuilder<T> ConfigureInMemoryClient<T>(
-            this IClientBuilder<T> clientBuilder)
-            where T : IStoreAccessor
+        public static IClientBuilder ConfigureInMemoryClient(
+            this IClientBuilder clientBuilder)
         {
             if (clientBuilder == null)
             {
@@ -30,6 +29,142 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName);
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IInMemoryClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="InMemoryClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
+        /// </param>
+        public static IClientBuilder ConfigureInMemoryClient(
+            this IClientBuilder clientBuilder,
+            Action<IInMemoryClient> configureClient)
+        {
+            if (clientBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(clientBuilder));
+            }
+
+            if (configureClient == null)
+            {
+                throw new ArgumentNullException(nameof(configureClient));
+            }
+
+            clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IInMemoryClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="InMemoryClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
+        /// </param>
+        public static IClientBuilder ConfigureInMemoryClient(
+            this IClientBuilder clientBuilder,
+            Action<IServiceProvider, IInMemoryClient> configureClient)
+        {
+            if (clientBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(clientBuilder));
+            }
+
+            if (configureClient == null)
+            {
+                throw new ArgumentNullException(nameof(configureClient));
+            }
+
+            clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IInMemoryClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="InMemoryClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
+        /// </param>
+        public static IClientBuilder ConfigureInMemoryClientAsync(
+            this IClientBuilder clientBuilder,
+            Func<IInMemoryClient, CancellationToken, ValueTask> configureClient)
+        {
+            if (clientBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(clientBuilder));
+            }
+
+            if (configureClient == null)
+            {
+                throw new ArgumentNullException(nameof(configureClient));
+            }
+
+            clientBuilder.Services
+                .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IInMemoryClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="InMemoryClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="InMemoryClient"/>.
+        /// </param>
+        public static IClientBuilder ConfigureInMemoryClientAsync(
+            this IClientBuilder clientBuilder,
+            Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> configureClient)
+        {
+            if (clientBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(clientBuilder));
+            }
+
+            if (configureClient == null)
+            {
+                throw new ArgumentNullException(nameof(configureClient));
+            }
+
+            clientBuilder.Services
+                .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
+
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IInMemoryClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="InMemoryClient"/>
+        /// with the correct name and the default schema of the <see cref="IServiceCollection"/>
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder{T}"/>
+        /// </param>
+        public static IClientBuilder<T> ConfigureInMemoryClient<T>(
+            this IClientBuilder<T> clientBuilder)
+            where T : IStoreAccessor
+        {
+            ConfigureInMemoryClient((IClientBuilder)clientBuilder);
+
             return clientBuilder;
         }
 
@@ -49,17 +184,8 @@ namespace Microsoft.Extensions.DependencyInjection
             Action<IInMemoryClient> configureClient)
             where T : IStoreAccessor
         {
-            if (clientBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(clientBuilder));
-            }
+            ConfigureInMemoryClient((IClientBuilder)clientBuilder, configureClient);
 
-            if (configureClient == null)
-            {
-                throw new ArgumentNullException(nameof(configureClient));
-            }
-
-            clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
             return clientBuilder;
         }
 
@@ -79,17 +205,8 @@ namespace Microsoft.Extensions.DependencyInjection
             Action<IServiceProvider, IInMemoryClient> configureClient)
             where T : IStoreAccessor
         {
-            if (clientBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(clientBuilder));
-            }
+            ConfigureInMemoryClient((IClientBuilder)clientBuilder, configureClient);
 
-            if (configureClient == null)
-            {
-                throw new ArgumentNullException(nameof(configureClient));
-            }
-
-            clientBuilder.Services.AddInMemoryClient(clientBuilder.ClientName, configureClient);
             return clientBuilder;
         }
 
@@ -109,18 +226,8 @@ namespace Microsoft.Extensions.DependencyInjection
             Func<IInMemoryClient, CancellationToken, ValueTask> configureClient)
             where T : IStoreAccessor
         {
-            if (clientBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(clientBuilder));
-            }
+            ConfigureInMemoryClientAsync((IClientBuilder)clientBuilder, configureClient);
 
-            if (configureClient == null)
-            {
-                throw new ArgumentNullException(nameof(configureClient));
-            }
-
-            clientBuilder.Services
-                .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
             return clientBuilder;
         }
 
@@ -140,18 +247,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Func<IServiceProvider, IInMemoryClient, CancellationToken, ValueTask> configureClient)
             where T : IStoreAccessor
         {
-            if (clientBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(clientBuilder));
-            }
-
-            if (configureClient == null)
-            {
-                throw new ArgumentNullException(nameof(configureClient));
-            }
-
-            clientBuilder.Services
-                .AddInMemoryClientAsync(clientBuilder.ClientName, configureClient);
+            ConfigureInMemoryClientAsync((IClientBuilder)clientBuilder, configureClient);
 
             return clientBuilder;
         }

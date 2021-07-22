@@ -16,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// with the correct name
         /// </summary>
         /// <param name="clientBuilder">
-        /// The <see cref="IClientBuilder{T}"/>
+        /// The <see cref="IClientBuilder"/>
         /// </param>
         /// <param name="configureClient">
         /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
@@ -25,11 +25,48 @@ namespace Microsoft.Extensions.DependencyInjection
         /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
         /// with a <see cref="IWebSocketClientBuilder"/>
         /// </param>
-        public static IClientBuilder<T> ConfigureWebSocketClient<T>(
-            this IClientBuilder<T> clientBuilder,
+        public static IClientBuilder ConfigureWebSocketClient(
+            this IClientBuilder clientBuilder,
             Action<IWebSocketClient> configureClient,
             Action<IWebSocketClientBuilder>? configureClientBuilder = null)
-            where T : IStoreAccessor
+        {
+            if (clientBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(clientBuilder));
+            }
+
+            if (configureClient == null)
+            {
+                throw new ArgumentNullException(nameof(configureClient));
+            }
+
+            IWebSocketClientBuilder builder = clientBuilder.Services
+                .AddWebSocketClient(clientBuilder.ClientName, configureClient);
+
+            configureClientBuilder?.Invoke(builder);
+
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="ISocketClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="WebSocketClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
+        /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+        /// with a <see cref="IWebSocketClientBuilder"/>
+        /// </param>
+        public static IClientBuilder ConfigureWebSocketClient(
+            this IClientBuilder clientBuilder,
+            Action<IServiceProvider, IWebSocketClient> configureClient,
+            Action<IWebSocketClientBuilder>? configureClientBuilder = null)
         {
             if (clientBuilder == null)
             {
@@ -66,24 +103,37 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </param>
         public static IClientBuilder<T> ConfigureWebSocketClient<T>(
             this IClientBuilder<T> clientBuilder,
+            Action<IWebSocketClient> configureClient,
+            Action<IWebSocketClientBuilder>? configureClientBuilder = null)
+            where T : IStoreAccessor
+        {
+            ConfigureWebSocketClient((IClientBuilder)clientBuilder, configureClient, configureClientBuilder);
+
+            return clientBuilder;
+        }
+
+        /// <summary>
+        /// Adds the <see cref="ISocketClientFactory"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a <see cref="WebSocketClient"/>
+        /// with the correct name
+        /// </summary>
+        /// <param name="clientBuilder">
+        /// The <see cref="IClientBuilder{T}"/>
+        /// </param>
+        /// <param name="configureClient">
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
+        /// </param>
+        /// <param name="configureClientBuilder">
+        /// A delegate that is used to additionally configure the <see cref="IWebSocketClient"/>
+        /// with a <see cref="IWebSocketClientBuilder"/>
+        /// </param>
+        public static IClientBuilder<T> ConfigureWebSocketClient<T>(
+            this IClientBuilder<T> clientBuilder,
             Action<IServiceProvider, IWebSocketClient> configureClient,
             Action<IWebSocketClientBuilder>? configureClientBuilder = null)
             where T : IStoreAccessor
         {
-            if (clientBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(clientBuilder));
-            }
-
-            if (configureClient == null)
-            {
-                throw new ArgumentNullException(nameof(configureClient));
-            }
-
-            IWebSocketClientBuilder builder = clientBuilder.Services
-                .AddWebSocketClient(clientBuilder.ClientName, configureClient);
-
-            configureClientBuilder?.Invoke(builder);
+            ConfigureWebSocketClient((IClientBuilder)clientBuilder, configureClient, configureClientBuilder);
 
             return clientBuilder;
         }
