@@ -178,7 +178,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 settings.HashProvider,
                 settings.RequestStrategy,
                 settings.TransportProfiles,
-                settings.VisibilityOverrides);
+                settings.AccessModifiers);
 
             // First we run all mappers that do not have any dependencies on others.
             EntityIdFactoryDescriptorMapper.Map(clientModel, context);

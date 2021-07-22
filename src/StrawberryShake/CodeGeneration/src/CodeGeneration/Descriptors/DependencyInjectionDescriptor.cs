@@ -20,7 +20,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             IReadOnlyList<TransportProfile> transportProfiles,
             EntityIdFactoryDescriptor entityIdFactoryDescriptor,
             StoreAccessorDescriptor storeAccessorDescriptor,
-            VisibilityOverride visibilityOverride)
+            AccessModifier accessModifier)
         {
             ClientDescriptor = clientDescriptor;
             Name = clientDescriptor.Name;
@@ -31,7 +31,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             EntityIdFactoryDescriptor = entityIdFactoryDescriptor;
             StoreAccessor = storeAccessorDescriptor;
             EnumTypeDescriptor = typeDescriptors.OfType<EnumTypeDescriptor>().ToList();
-            VisibilityOverride = visibilityOverride;
+            AccessModifier = accessModifier;
         }
 
         /// <summary>
@@ -58,6 +58,6 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// </summary>
         public List<OperationDescriptor> Operations { get; }
 
-        public VisibilityOverride VisibilityOverride { get; }
+        public AccessModifier AccessModifier { get; }
     }
 }

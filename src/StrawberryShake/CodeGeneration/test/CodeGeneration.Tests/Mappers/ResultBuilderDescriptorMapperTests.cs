@@ -49,7 +49,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     TransportProfile.Default
                 },
-                new VisibilityOverrides());
+                new AccessModifiers());
             TypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
 

@@ -62,10 +62,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
             new Sha1DocumentHashProvider(HashFormat.Hex);
 
         /// <summary>
-        /// Visibility overrides.
+        /// Access modifiers.
         /// </summary>
-        public VisibilityOverrides VisibilityOverrides { get; set; }
-            = new VisibilityOverrides();
+        public AccessModifiers AccessModifiers { get; set; }
+            = new AccessModifiers();
 
         /// <summary>
         /// The transport profiles that shall be generated.

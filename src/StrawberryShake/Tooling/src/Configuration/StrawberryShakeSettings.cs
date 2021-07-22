@@ -86,6 +86,6 @@ namespace StrawberryShake.Tools.Configuration
         /// <summary>
         /// Gets the visibility overrides.
         /// </summary>
-        public VisibilityOverrides VisibilityOverrides { get; } = new();
+        public AccessModifiers VisibilityOverrides { get; } = new();
     }
 }

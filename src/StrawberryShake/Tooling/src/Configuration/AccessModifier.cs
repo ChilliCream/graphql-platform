@@ -1,12 +1,7 @@
-﻿namespace StrawberryShake.Tools.Configuration
+namespace StrawberryShake.Tools.Configuration
 {
-    public enum VisibilityOverride
+    public enum AccessModifier
     {
-        /// <summary>
-        /// Use the default visibility.
-        /// </summary>
-        Default,
-
         /// <summary>
         /// Use public visibility.
         /// </summary>

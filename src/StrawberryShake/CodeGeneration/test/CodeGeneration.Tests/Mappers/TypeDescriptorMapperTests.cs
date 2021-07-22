@@ -34,7 +34,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     TransportProfile.Default
                 },
-                new VisibilityOverrides());
+                new AccessModifiers());
             TypeDescriptorMapper.Map(clientModel, context);
 
             // assert

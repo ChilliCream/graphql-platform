@@ -1,6 +1,5 @@
 using System;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -8,37 +7,36 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         public static MethodBuilder SetPublic(this MethodBuilder builder)
         {
-            return builder.SetAccessModifier(AccessModifier.Public);
+            return builder.SetAccessModifier(Builders.AccessModifier.Public);
         }
 
         public static MethodBuilder SetPrivate(this MethodBuilder builder)
         {
-            return builder.SetAccessModifier(AccessModifier.Private);
+            return builder.SetAccessModifier(Builders.AccessModifier.Private);
         }
 
         public static MethodBuilder SetInternal(this MethodBuilder builder)
         {
-            return builder.SetAccessModifier(AccessModifier.Internal);
+            return builder.SetAccessModifier(Builders.AccessModifier.Internal);
         }
 
         public static MethodBuilder SetProtected(this MethodBuilder builder)
         {
-            return builder.SetAccessModifier(AccessModifier.Protected);
+            return builder.SetAccessModifier(Builders.AccessModifier.Protected);
         }
 
         public static MethodBuilder SetAccessModifier(
-            this MethodBuilder builder, 
-            VisibilityOverride visibilityOverride, 
-            AccessModifier defaultAccessModifier)
+            this MethodBuilder builder,
+            Tools.Configuration.AccessModifier accessModifier)
         {
-            var accessModifier = visibilityOverride switch
+            var value = accessModifier switch
             {
-                VisibilityOverride.Internal => AccessModifier.Internal,
-                VisibilityOverride.Public => AccessModifier.Public,
-                _ => defaultAccessModifier,
+                Tools.Configuration.AccessModifier.Internal => Builders.AccessModifier.Internal,
+                Tools.Configuration.AccessModifier.Public => Builders.AccessModifier.Public,
+                _ => throw new ArgumentOutOfRangeException(nameof(accessModifier)),
             };
 
-            return builder.SetAccessModifier(accessModifier);
+            return builder.SetAccessModifier(value);
         }
 
         public static MethodBuilder AddParameter(

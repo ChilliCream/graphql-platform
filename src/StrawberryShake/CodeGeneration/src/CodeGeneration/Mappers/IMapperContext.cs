@@ -42,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         EntityIdFactoryDescriptor EntityIdFactory { get; }
 
-        VisibilityOverrides VisibilityOverrides { get; }
+        AccessModifiers AccessModifiers { get; }
 
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 

@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     context.TransportProfiles,
                     context.EntityIdFactory,
                     context.StoreAccessor,
-                    context.VisibilityOverrides.DependencyInjection));
+                    context.AccessModifiers.DependencyInjection));
         }
     }
 }
