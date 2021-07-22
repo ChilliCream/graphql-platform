@@ -64,7 +64,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             MethodBuilder addClientMethod = factory
                 .AddMethod($"Add{descriptor.Name}")
-                .SetAccessModifier(descriptor.VisibilityOverride, AccessModifier.Internal)
+                .SetAccessModifier(descriptor.VisibilityOverride, AccessModifier.Public)
                 .SetStatic()
                 .SetReturnType(
                     TypeNames.IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
@@ -90,7 +90,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 GenerateClientForProfile(settings, factory, descriptor, profile);
             }
-
 
             factory.AddClass(_clientServiceProvider);
 
