@@ -45,7 +45,6 @@ export const SEO: FunctionComponent<SEOProperties> = ({
             gatsbyImageData(
               layout: FIXED
               width: 1200
-              pngOptions: { quality: 90 }
             )
           }
         }
