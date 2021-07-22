@@ -5,14 +5,13 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SQLiteClientBuilderExtensions
     {
-        public static IClientBuilder<T> AddSQLitePersistence<T>(
-            this IClientBuilder<T> builder,
+        public static IClientBuilder AddSQLitePersistence(
+            this IClientBuilder builder,
             string connectionString)
-            where T : IStoreAccessor
         {
             builder.Services.AddSingleton(
                 sp => new SQLitePersistence(
-                    sp.GetRequiredService<T>(),
+                    (IStoreAccessor)sp.GetRequiredService(builder.StoreAccessorType),
                     connectionString));
 
             return builder;

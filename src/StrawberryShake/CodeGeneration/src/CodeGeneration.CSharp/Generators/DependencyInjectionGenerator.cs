@@ -66,8 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddMethod($"Add{descriptor.Name}")
                 .SetPublic()
                 .SetStatic()
-                .SetReturnType(
-                    TypeNames.IClientBuilder.WithGeneric(descriptor.StoreAccessor.RuntimeType))
+                .SetReturnType(TypeNames.IClientBuilder)
                 .AddParameter(
                     _services,
                     x => x.SetThis().SetType(TypeNames.IServiceCollection))
@@ -213,6 +212,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .SetCode(GenerateClientServiceProviderFactory(descriptor))))
                 .AddEmptyLine()
                 .AddCode(RegisterStoreAccessor(settings, descriptor.StoreAccessor))
+                .AddCode(RegisterStoreAccessorInterface(descriptor.StoreAccessor))
                 .AddEmptyLine()
                 .ForEach(
                     descriptor.Operations,
@@ -353,6 +353,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddGeneric(
                                 TypeNames.IEnumerable.WithGeneric(
                                     TypeNames.IOperationResultDataFactory)))));
+        }
+
+        private static ICode RegisterStoreAccessorInterface(StoreAccessorDescriptor storeAccessor)
+        {
+            return MethodCallBuilder
+                    .New()
+                    .SetMethodName(TypeNames.AddSingleton)
+                    .AddArgument(_services)
+                    .AddArgument(LambdaBuilder
+                        .New()
+                        .AddArgument(_sp)
+                        .SetCode(MethodCallBuilder
+                            .Inline()
+                            .SetPrefix($"({TypeNames.IStoreAccessor})")
+                            .SetMethodName(TypeNames.GetRequiredService)
+                            .SetWrapArguments()
+                            .AddArgument(_sp)
+                            .AddGeneric(storeAccessor.RuntimeType.ToString())));
         }
 
         private static ICode ForwardSingletonToClientServiceProvider(string generic) =>

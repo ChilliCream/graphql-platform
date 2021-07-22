@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake
@@ -21,13 +22,10 @@ namespace StrawberryShake
         /// The <see cref="IServiceCollection"/> of the client
         /// </summary>
         public IServiceCollection ClientServices { get; }
-    }
 
-    /// <summary>
-    /// Represents a builder that can be used to configure a client
-    /// </summary>
-    public interface IClientBuilder<T> : IClientBuilder
-        where T : IStoreAccessor
-    {
+        /// <summary>
+        /// The <see cref="IStoreAccessor"/> <see cref="Type"/>.
+        /// </summary>
+        public Type StoreAccessorType { get; }
     }
 }

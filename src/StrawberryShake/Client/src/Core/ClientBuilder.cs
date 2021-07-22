@@ -1,9 +1,10 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake
 {
     /// <inheritdoc />
-    public class ClientBuilder<T> : IClientBuilder<T> where T : IStoreAccessor
+    public class ClientBuilder<T> : IClientBuilder where T : IStoreAccessor
     {
         /// <summary>
         /// Initializes a new instance of a <see cref="ClientBuilder{T}"/>
@@ -35,5 +36,8 @@ namespace StrawberryShake
 
         /// <inheritdoc />
         public IServiceCollection ClientServices { get; }
+
+        /// <inheritdoc />
+        public Type StoreAccessorType => typeof(T);
     }
 }
