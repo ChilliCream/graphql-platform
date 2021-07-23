@@ -100,9 +100,6 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor
             .Field("genres")
             .Type<ListType<StringType>>()
@@ -129,12 +126,10 @@ public class Startup
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
 
 ```csharp
-public class QueryTypeBookResolvers : ObjectTypeExtension
+public class QueryTypeBookResolvers : ObjectTypeExtension<Query>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Name(OperationTypeNames.Query);
-
         descriptor
             .Field("books")
             .Type<ListType<BookType>>()
@@ -155,8 +150,6 @@ public class Startup
     }
 }
 ```
-
-> Note: We can use `OperationTypeNames.Query` instead of `"Query"`. `OperationTypeNames` contain the names of the three root types.
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -201,9 +194,6 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor.Ignore(f => f.AuthorId);
     }
 }
@@ -268,9 +258,6 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor
             .Field(f => f.AuthorId)
             .Type<AuthorType>()
@@ -303,21 +290,46 @@ Simply replace the field on the existing type.
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Extending types by name
+## Extending by name
 
-When you don't own or have direct access to a type, you'll need to extend it by name instead.
-  
+If we do not have direct access to a type, we can still extend it by specifying its name.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
 ```csharp
 [ExtendObjectType("Foo")]
 public class FooExtensions
 {
-    // ...
+    // Omitted code for brevity
 }
 ```
-  
-// TODO: Example for code-first 
 
-  
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class FooTypeExtensions : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Foo");
+
+        // Omitted code for brevity
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+When extending root types, we can make use of the constants in `OperationTypeNames`. We can for example use `OperationTypeNames.Query` instead of writing "Query" everywhere.
+
 ## Extending base types
 
 We can also extend multiple types at once, but still dedicate specific resolvers to specific types.
