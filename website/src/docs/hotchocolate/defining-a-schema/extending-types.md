@@ -303,6 +303,45 @@ Simply replace the field on the existing type.
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+## Extending types by name
+
+When you don't own or have direct access to a type, you'll need to extend it by name instead.
+  
+```csharp
+[ExtendObjectType("Foo")]
+public class FooExtensions
+{
+    // ...
+}
+```
+  
+// TODO: Example for code-first 
+
+```csharp
+// this extends every type that inherits from object (essentially every type)
+[ExtendObjectType(typeof(object))]
+public class ObjectExtensions
+{
+    // this field is added to every object type
+    public string NewField()
+    {
+        // Omitted code for brevity
+    }
+
+    // this field is only added to the Book type
+    public Author GetAuthor([Parent] Book book)
+    {
+        // Omitted code for brevity
+    }
+
+    // this field is only added to the Author type
+    public IEnumerable<Book> GetBooks([Parent] Author author)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+  
 ## Extending base types
 
 We can also extend multiple types at once, but still dedicate specific resolvers to specific types.
