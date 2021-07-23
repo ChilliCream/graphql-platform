@@ -6,6 +6,8 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class WorkBacklog
     {
+        private IExecutionTask?[] _buffer = new IExecutionTask?[16];
+
 #pragma warning disable 4014
         private void StartProcessing() => Task.Run(ExecuteProcessorAsync);
 #pragma warning restore 4014
@@ -15,7 +17,7 @@ namespace HotChocolate.Execution.Processing
 
         private async Task ProcessTasksAsync()
         {
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(16);
+            var buffer = _buffer;
 
 RESTART:
             try
@@ -85,7 +87,6 @@ RESTART:
             }
 
             buffer.AsSpan().Clear();
-            ArrayPool<IExecutionTask?>.Shared.Return(buffer);
         }
 
         private void HandleError(Exception exception)
