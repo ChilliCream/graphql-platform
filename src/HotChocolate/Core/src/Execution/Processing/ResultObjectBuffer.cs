@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Processing
 
         public bool TryPop([NotNullWhen(true)] out T? obj)
         {
-            var nextIndex = Interlocked.Increment(ref _index) - 1;
+            var nextIndex = _index++;
             if (nextIndex < _capacity)
             {
                 if (_buffer[nextIndex] is { } o)

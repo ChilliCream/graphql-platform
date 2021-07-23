@@ -57,21 +57,27 @@ namespace HotChocolate.Execution.Processing
 
         public void Clean()
         {
-            while (_cleanupActions.TryTake(out var clean))
+            if (_isInitialized)
             {
-                clean();
-            }
+                if (_cleanupActions.Count > 0)
+                {
+                    while (_cleanupActions.TryTake(out var clean))
+                    {
+                        clean();
+                    }
+                }
 
-            _executionContext.Clean();
-            _resultHelper.Clear();
-            _requestContext = default!;
-            _operation = default!;
-            _queryPlan = default!;
-            _variables = default!;
-            _services = default!;
-            _rootValue = null;
-            _resolveQueryRootValue = default!;
-            _isInitialized = false;
+                _executionContext.Clean();
+                _resultHelper.Clear();
+                _requestContext = default!;
+                _operation = default!;
+                _queryPlan = default!;
+                _variables = default!;
+                _services = default!;
+                _rootValue = null;
+                _resolveQueryRootValue = default!;
+                _isInitialized = false;
+            }
         }
 
         private void AssertInitialized()

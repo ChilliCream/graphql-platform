@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class WorkBacklog
     {
-        private IExecutionTask?[] _buffer = new IExecutionTask?[16];
+        private readonly IExecutionTask?[] _buffer = new IExecutionTask?[16];
 
 #pragma warning disable 4014
         private void StartProcessing() => Task.Run(ExecuteProcessorAsync);
