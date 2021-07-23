@@ -1143,6 +1143,7 @@ const HotChocolate.Types.Introspection.__AppliedDirective.Names.Name = "name" ->
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.__DirectiveArgument = "__DirectiveArgument" -> string!
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.Name = "name" -> string!
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.Value = "value" -> string!
+const HotChocolate.Types.Pagination.PagingDefaults.AllowBackwardPagination = true -> bool
 const HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize = 10 -> int
 const HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount = false -> bool
 const HotChocolate.Types.Pagination.PagingDefaults.MaxPageSize = 50 -> int
@@ -2673,6 +2674,8 @@ HotChocolate.Types.Pagination.PagingMiddleware
 HotChocolate.Types.Pagination.PagingMiddleware.InvokeAsync(HotChocolate.Resolvers.IMiddlewareContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.Types.Pagination.PagingMiddleware.PagingMiddleware(HotChocolate.Resolvers.FieldDelegate! next, HotChocolate.Types.Pagination.IPagingHandler! pagingHandler) -> void
 HotChocolate.Types.Pagination.PagingOptions
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.get -> bool?
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.set -> void
 HotChocolate.Types.Pagination.PagingOptions.DefaultPageSize.get -> int?
 HotChocolate.Types.Pagination.PagingOptions.DefaultPageSize.set -> void
 HotChocolate.Types.Pagination.PagingOptions.IncludeTotalCount.get -> bool?
