@@ -23,7 +23,6 @@ namespace HotChocolate.Execution.Processing
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
-        private TaskCompletionSource<bool> _completion = default!;
         private TaskCompletionSource<bool>? _pause;
 
         private bool _processing;
@@ -44,13 +43,10 @@ namespace HotChocolate.Execution.Processing
                !_stateMachine.IsCompleted;
 
         /// <inheritdoc/>
-        public Task Completion => _completion.Task;
 
         internal void Initialize(OperationContext operationContext)
         {
             Clear();
-
-            _completion = new TaskCompletionSource<bool>();
 
             _batchDispatcher = operationContext.Execution.BatchDispatcher;
             _requestContext = operationContext.RequestContext;
@@ -239,18 +235,9 @@ namespace HotChocolate.Execution.Processing
             if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
-
-                if (_pause is null)
-                {
-                    StartProcessing();
-                }
-                else
-                {
-                    TaskCompletionSource<bool> pause = _pause;
-                    _pause = null;
-                    pause.TrySetResult(false);
-                }
-
+                TaskCompletionSource<bool> pause = _pause!;
+                _pause = null;
+                pause.TrySetResult(false);
                 return true;
             }
 
@@ -264,7 +251,7 @@ namespace HotChocolate.Execution.Processing
 
             // if the execution is already completed or if the completion task is
             // null we stop processing
-            if (_completed || _completion is null! || _requestAborted.IsCancellationRequested)
+            if (_completed || _requestAborted.IsCancellationRequested)
             {
                 return _trueResult;
             }
@@ -345,11 +332,6 @@ namespace HotChocolate.Execution.Processing
                 _completed = true;
 
                 _pause?.TrySetResult(true);
-
-                if (_completion is not null!)
-                {
-                    _completion.TrySetCanceled();
-                }
             }
         }
 
@@ -359,12 +341,6 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause?.TrySetResult(true);
                 _pause = null;
-
-                if (_completion is not null!)
-                {
-                    _completion.TrySetCanceled();
-                    _completion = default!;
-                }
 
                 if (_batchDispatcher is not null!)
                 {
@@ -393,7 +369,6 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause?.TrySetResult(true);
                 _completed = true;
-                _completion.TrySetResult(true);
                 return true;
             }
 
@@ -401,7 +376,6 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause?.TrySetResult(true);
                 _completed = true;
-                _completion.TrySetCanceled();
                 return true;
             }
 

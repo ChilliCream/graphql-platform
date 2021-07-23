@@ -10,11 +10,6 @@ namespace HotChocolate.Execution.Processing
     internal interface IWorkBacklog
     {
         /// <summary>
-        /// A task that can be awaited to wait for the completion of the current work backlog.
-        /// </summary>
-        Task Completion { get; }
-
-        /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
         void Register(IExecutionTask task);
@@ -28,5 +23,7 @@ namespace HotChocolate.Execution.Processing
         /// Complete a task
         /// </summary>
         void Complete(IExecutionTask task);
+
+        Task ExecuteAsync();
     }
 }
