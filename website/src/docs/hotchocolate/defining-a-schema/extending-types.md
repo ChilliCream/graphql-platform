@@ -4,27 +4,13 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL allows us to extend existing types with new functionality.
+Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 
-```sdl
-type Query {
-  foo: String
-}
+Because of these capabilities, they also allow for better organization of our types. We could for example have classes that encapsulate part of our domain and extend our `Query` type with these functionalities.
 
-extend type Query {
-  bar: String
-}
-```
+Type extensions are especially useful if we want to modify third-party types, such as types that live in a separate assembly and are therefore not directly modifiable by us.
 
-In Hot Chocolate type extensions work a little different. Instead of generating the `extend` syntax in the schema, the original type definition and its type extensions are merged at runtime into a combined type.
-
-Type extensions make most sense, if
-
-- we want to split up types into separate classes.
-
-- we can not modify the original type.
-
-> Note: If we just want to organize the fields of one of our types in different files, we can use [partial classes](https://docs.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods) in the Annotation-based approach.
+> ⚠️ Note: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
 
 # Object Types
 
@@ -292,7 +278,7 @@ Simply replace the field on the existing type.
 
 ## Extending by name
 
-If we do not have direct access to a type, we can still extend it by specifying its name.
+If we can not reference a type, we can still extend it by specifying its name.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -323,7 +309,7 @@ public class FooTypeExtensions : ObjectTypeExtension
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+⚠️ Schema-first does currently not support extending types by their name
 
 </ExampleTabs.Schema>
 </ExampleTabs>
