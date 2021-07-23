@@ -317,30 +317,6 @@ public class FooExtensions
   
 // TODO: Example for code-first 
 
-```csharp
-// this extends every type that inherits from object (essentially every type)
-[ExtendObjectType(typeof(object))]
-public class ObjectExtensions
-{
-    // this field is added to every object type
-    public string NewField()
-    {
-        // Omitted code for brevity
-    }
-
-    // this field is only added to the Book type
-    public Author GetAuthor([Parent] Book book)
-    {
-        // Omitted code for brevity
-    }
-
-    // this field is only added to the Author type
-    public IEnumerable<Book> GetBooks([Parent] Author author)
-    {
-        // Omitted code for brevity
-    }
-}
-```
   
 ## Extending base types
 
