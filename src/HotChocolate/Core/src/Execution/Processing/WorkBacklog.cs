@@ -74,7 +74,6 @@ namespace HotChocolate.Execution.Processing
             }
 
             var started = false;
-
             var state = _stateMachine.TryGetStep(task);
 
             lock (_sync)
@@ -117,40 +116,32 @@ namespace HotChocolate.Execution.Processing
 
             bool started;
 
-            object?[] step = ArrayPool<object?>.Shared.Rent(length);
+            for (var i = 0; i < length; i++)
+            {
+                IExecutionTask task = tasks[i]!;
+                Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
+                task.State ??= _stateMachine.TryGetStep(task);
+            }
 
-            try
+            lock (_sync)
             {
                 for (var i = 0; i < length; i++)
                 {
-                    step[i] = _stateMachine.TryGetStep(tasks[i]!);
-                }
+                    IExecutionTask task = tasks[i]!;
+                    tasks[i] = null;
 
-                lock (_sync)
-                {
-                    for (var i = 0; i < length; i++)
+                    if (_stateMachine.RegisterTask(task))
                     {
-                        IExecutionTask task = tasks[i]!;
-                        tasks[i] = null;
-                        Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
-
-                        if (_stateMachine.RegisterTask(task, step[i]))
-                        {
-                            WorkQueue work = task.IsSerial ? _serial : _work;
-                            work.Push(task);
-                        }
-                        else
-                        {
-                            _suspended.Enqueue(task);
-                        }
+                        WorkQueue work = task.IsSerial ? _serial : _work;
+                        work.Push(task);
                     }
-
-                    started = TryStartProcessingUnsafe();
+                    else
+                    {
+                        _suspended.Enqueue(task);
+                    }
                 }
-            }
-            finally
-            {
-                ArrayPool<object?>.Shared.Return(step);
+
+                started = TryStartProcessingUnsafe();
             }
 
             if (started)

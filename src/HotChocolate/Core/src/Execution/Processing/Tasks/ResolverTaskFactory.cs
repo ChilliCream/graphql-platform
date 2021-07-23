@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -89,8 +90,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             IWorkBacklog backlog = operationContext.Execution.Work;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
-            var bufferSize = buffer.Length;
+            IExecutionTask?[]? buffer = null;
+            var bufferSize = selections.Count;
             var buffered = 0;
 
             try
@@ -101,12 +102,6 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                     if (selection.IsIncluded(variables))
                     {
-                        if (buffered == bufferSize)
-                        {
-                            backlog.Register(buffer, buffer.Length);
-                            buffered = 0;
-                        }
-
                         if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
                             ResolveAndCompleteInline(
@@ -121,6 +116,11 @@ namespace HotChocolate.Execution.Processing.Tasks
                         }
                         else
                         {
+                            if (buffer == null)
+                            {
+                                buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
+                            }
+
                             buffer[buffered++] = CreateResolverTask(
                                 operationContext,
                                 resolverContext,
@@ -129,13 +129,19 @@ namespace HotChocolate.Execution.Processing.Tasks
                                 responseIndex++,
                                 result,
                                 resultMap);
+
+                            if (buffered == bufferSize)
+                            {
+                                backlog.Register(buffer!, bufferSize);
+                                buffered = 0;
+                            }
                         }
                     }
                 }
 
                 if (buffered > 0)
                 {
-                    backlog.Register(buffer, buffered);
+                    backlog.Register(buffer!, buffered);
                 }
 
                 TryHandleDeferredFragments(
@@ -149,7 +155,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                if (buffer != null)
+                {
+                    ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                }
             }
         }
 
@@ -207,7 +216,9 @@ namespace HotChocolate.Execution.Processing.Tasks
                     ex);
             }
 
-            if (completedValue is null && selection.Field.Type.IsNonNullType())
+            var isNullable = selection.Type.IsNonNullType();
+
+            if (completedValue is null && isNullable)
             {
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
@@ -222,7 +233,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     responseIndex,
                     selection.ResponseName,
                     completedValue,
-                    selection.Type.IsNullableType());
+                    isNullable);
             }
 
             bool TryExecute(out object? result)
