@@ -9,6 +9,8 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal interface IWorkBacklog
     {
+        bool IsCompleted { get; }
+
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>

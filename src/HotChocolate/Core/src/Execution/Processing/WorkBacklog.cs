@@ -42,8 +42,6 @@ namespace HotChocolate.Execution.Processing
                _serial.HasRunningTasks ||
                !_stateMachine.IsCompleted;
 
-        /// <inheritdoc/>
-
         internal void Initialize(OperationContext operationContext)
         {
             Clear();
@@ -60,6 +58,9 @@ namespace HotChocolate.Execution.Processing
 
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
         }
+
+        /// <inheritdoc/>
+        public bool IsCompleted => _completed;
 
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
@@ -232,10 +233,10 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryStartProcessingUnsafe()
         {
-            if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
+            if (_pause != null && !_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
-                TaskCompletionSource<bool> pause = _pause!;
+                TaskCompletionSource<bool> pause = _pause;
                 _pause = null;
                 pause.TrySetResult(false);
                 return true;

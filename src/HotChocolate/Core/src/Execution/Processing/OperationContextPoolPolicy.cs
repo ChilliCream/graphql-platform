@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing
 
             // if work related to the operation context has completed we can
             // reuse the operation context.
-            if (obj.Execution.Work.Completion.IsCompleted)
+            if (obj.Execution.Work.IsCompleted)
             {
                 obj.Clean();
                 return true;

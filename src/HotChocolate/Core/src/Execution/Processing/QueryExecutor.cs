@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Processing
                 Path.Root,
                 scopedContext);
 
-            await operationContext.Execution.Work.Completion.ConfigureAwait(false);
+            await operationContext.Execution.Work.ExecuteAsync().ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()
