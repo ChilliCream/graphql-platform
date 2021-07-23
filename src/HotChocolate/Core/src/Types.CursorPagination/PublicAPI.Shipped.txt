@@ -67,6 +67,8 @@ HotChocolate.Types.Pagination.QueryableCursorPagingProvider
 HotChocolate.Types.Pagination.QueryableCursorPagingProvider.QueryableCursorPagingProvider() -> void
 HotChocolate.Types.PagingObjectFieldDescriptorExtensions
 HotChocolate.Types.UsePagingAttribute
+HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.get -> bool
+HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.set -> void
 HotChocolate.Types.UsePagingAttribute.DefaultPageSize.get -> int
 HotChocolate.Types.UsePagingAttribute.DefaultPageSize.set -> void
 HotChocolate.Types.UsePagingAttribute.IncludeTotalCount.get -> bool
@@ -94,8 +96,8 @@ static HotChocolate.Types.Pagination.ConnectionType<T>.ApplyConfig(HotChocolate.
 static HotChocolate.Types.Pagination.CursorPagingHelper.ApplyPagination<TSource, TEntity>(TSource source, HotChocolate.Types.Pagination.CursorPagingArguments arguments, HotChocolate.Types.Pagination.CursorPagingHelper.ApplySkip<TSource>! applySkip, HotChocolate.Types.Pagination.CursorPagingHelper.ApplyTake<TSource>! applyTake, HotChocolate.Types.Pagination.CursorPagingHelper.ToIndexEdgesAsync<TSource, TEntity>! toIndexEdgesAsync, HotChocolate.Types.Pagination.CursorPagingHelper.CountAsync<TSource>! countAsync, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Types.Pagination.Connection!>
 static HotChocolate.Types.Pagination.IndexEdge<T>.Create(T node, int index) -> HotChocolate.Types.Pagination.IndexEdge<T>!
 static HotChocolate.Types.Pagination.IndexEdge<T>.DeserializeCursor(string! cursor) -> int
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
-static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, bool allowBackwardPagination = true) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, bool allowBackwardPagination = true) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, System.Type? type = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IInterfaceFieldDescriptor!
 static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.GetCursorPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.UsePaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.GetCursorPagingProvider? resolvePagingProvider = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
