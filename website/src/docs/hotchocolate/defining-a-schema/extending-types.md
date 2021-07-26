@@ -314,7 +314,7 @@ public class FooTypeExtensions : ObjectTypeExtension
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-When extending root types, we can make use of the constants in `OperationTypeNames`. We can for example use `OperationTypeNames.Query` instead of writing "Query" everywhere.
+When extending root types, we can make use of the constants in `OperationTypeNames`. We can for example use `OperationTypeNames.Query` instead of writing `"Query"` everywhere.
 
 ## Extending base types
 
