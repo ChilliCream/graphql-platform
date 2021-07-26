@@ -115,7 +115,7 @@ namespace StrawberryShake.CodeGeneration
             if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
             {
                 typeInfo = factory();
-                Debug.Assert($"{typeInfo.Namespace}{typeInfo.Name}" == fullTypeName);
+                Debug.Assert($"{typeInfo.Namespace}.{typeInfo.Name}" == fullTypeName, $"Expected generated type '{typeInfo.Namespace}.{typeInfo.Name}' to eqyal '{fullTypeName}'.");
                 _infos.Add(fullTypeName, typeInfo);
             }
 
