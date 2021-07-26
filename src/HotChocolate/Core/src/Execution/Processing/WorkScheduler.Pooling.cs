@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
@@ -95,7 +96,22 @@ namespace HotChocolate.Execution.Processing
             ResetStateMachine();
         }
 
-        public void ResetStateMachine() => Initialize(_batchDispatcher);
+        public void ResetStateMachine()
+        {
+            lock (_sync)
+            {
+                _pause?.TrySetResult(true);
+                _pause = null;
+
+                _work.Clear();
+                _suspended.Clear();
+                _stateMachine.Clear();
+                _stateMachine.Initialize(_operationContext, _operationContext.QueryPlan);
+
+                _processing = false;
+                _completed = false;
+            }
+        }
 
         private void AssertNotPooled()
         {

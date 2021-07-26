@@ -84,6 +84,7 @@ RESTART:
             }
 
             buffer.AsSpan().Clear();
+            _requestAborted.ThrowIfCancellationRequested();
         }
 
         private void HandleError(Exception exception)
