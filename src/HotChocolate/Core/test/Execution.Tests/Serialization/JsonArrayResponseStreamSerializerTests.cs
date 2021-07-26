@@ -56,7 +56,7 @@ namespace HotChocolate.Execution.Serialization
         {
             // arrange
             var serializer = new JsonArrayResponseStreamSerializer();
-           var stream = new Mock<Stream>();
+            var stream = new Mock<Stream>();
 
             // act
             Task Action() =>

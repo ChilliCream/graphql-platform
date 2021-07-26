@@ -1,39 +1,25 @@
 using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
-using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
-    /// <inheritdoc/>
-    internal partial class WorkBacklog : IWorkBacklog
+    internal partial class WorkScheduler : IWorkScheduler
     {
-        private static readonly Task<bool> _falseResult = Task.FromResult(false);
-        private static readonly Task<bool> _trueResult = Task.FromResult(true);
+        /// <inheritdoc/>
+        public bool IsCompleted => _completed;
 
-        private readonly object _sync = new();
-        private readonly WorkQueue _work = new();
-        private readonly WorkQueue _serial = new();
-        private readonly SuspendedWorkQueue _suspended = new();
-        private readonly QueryPlanStateMachine _stateMachine = new();
-
-        private TaskCompletionSource<bool>? _pause;
-
-        private bool _processing;
-        private bool _completed;
-
-        private IRequestContext _requestContext = default!;
-        private IBatchDispatcher _batchDispatcher = default!;
-        private IErrorHandler _errorHandler = default!;
-        private IResultHelper _result = default!;
-        private IDiagnosticEvents _diagnosticEvents = default!;
-        private CancellationToken _requestAborted;
+        /// <inheritdoc />
+        public IDeferredWorkBacklog DeferredWork
+        {
+            get
+            {
+                AssertNotPooled();
+                return _deferredWorkBacklog;
+            }
+        }
 
         private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
@@ -41,26 +27,6 @@ namespace HotChocolate.Execution.Processing
             => _work.HasRunningTasks ||
                _serial.HasRunningTasks ||
                !_stateMachine.IsCompleted;
-
-        internal void Initialize(OperationContext operationContext)
-        {
-            Clear();
-
-            _batchDispatcher = operationContext.Execution.BatchDispatcher;
-            _requestContext = operationContext.RequestContext;
-            _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
-            _requestAborted = operationContext.RequestAborted;
-            _errorHandler = operationContext.ErrorHandler;
-            _result = operationContext.Result;
-
-            _stateMachine.Initialize(operationContext, operationContext.QueryPlan);
-            _requestContext.RequestAborted.Register(Cancel);
-
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-        }
-
-        /// <inheritdoc/>
-        public bool IsCompleted => _completed;
 
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
@@ -331,35 +297,7 @@ namespace HotChocolate.Execution.Processing
             lock (_sync)
             {
                 _completed = true;
-
                 _pause?.TrySetResult(true);
-            }
-        }
-
-        public void Clear()
-        {
-            lock (_sync)
-            {
-                _pause?.TrySetResult(true);
-                _pause = null;
-
-                if (_batchDispatcher is not null!)
-                {
-                    _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-                    _batchDispatcher = default!;
-                }
-
-                _work.Clear();
-                _suspended.Clear();
-                _stateMachine.Clear();
-                _processing = false;
-                _completed = false;
-
-                _requestContext = default!;
-                _errorHandler = default!;
-                _result = default!;
-                _diagnosticEvents = default!;
-                _requestAborted = default;
             }
         }
 

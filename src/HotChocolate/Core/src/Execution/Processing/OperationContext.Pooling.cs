@@ -11,7 +11,8 @@ namespace HotChocolate.Execution.Processing
     internal sealed partial class OperationContext
     {
         private readonly ConcurrentBag<Action> _cleanupActions = new();
-        private readonly ExecutionContext _executionContext;
+        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly WorkScheduler _workScheduler;
         private readonly ResultHelper _resultHelper;
         private IRequestContext _requestContext = default!;
         private IPreparedOperation _operation = default!;
@@ -26,7 +27,8 @@ namespace HotChocolate.Execution.Processing
             ObjectPool<ResolverTask> resolverTaskPool,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool);
+            _resolverTaskPool = resolverTaskPool;
+            _workScheduler = new WorkScheduler(this);
             _resultHelper = new ResultHelper(resultPool);
         }
 
@@ -52,7 +54,7 @@ namespace HotChocolate.Execution.Processing
             _isInitialized = true;
 
             batchDispatcher.Initialize(this);
-            _executionContext.Initialize(batchDispatcher);
+            _workScheduler.Initialize(batchDispatcher);
         }
 
         public void Clean()
@@ -67,7 +69,7 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
-                _executionContext.Clean();
+                _workScheduler.Clear();
                 _resultHelper.Clear();
                 _requestContext = default!;
                 _operation = default!;

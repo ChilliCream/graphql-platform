@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal partial class WorkBacklog
+    internal partial class WorkScheduler
     {
         private readonly IExecutionTask?[] _buffer = new IExecutionTask?[16];
 
         public async Task ExecuteAsync()
         {
              _processing = true;
-            var buffer = _buffer;
+            IExecutionTask?[] buffer = _buffer;
 
 RESTART:
             try

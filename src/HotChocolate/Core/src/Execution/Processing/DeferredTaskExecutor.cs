@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
                 IOperationContext context = _operationContextOwner.OperationContext;
                 QueryPlan rootQueryPlan = context.QueryPlan;
 
-                while (context.Execution.DeferredWork.TryTake(
+                while (context.Scheduler.DeferredWork.TryTake(
                     out IDeferredExecutionTask? deferredTask))
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Processing
                     }
 
                     context.Result.Clear();
-                    context.Execution.Reset();
+                    context.Scheduler.Reset();
                     context.QueryPlan = rootQueryPlan;
 
                     yield return await deferredTask.ExecuteAsync(context).ConfigureAwait(false);

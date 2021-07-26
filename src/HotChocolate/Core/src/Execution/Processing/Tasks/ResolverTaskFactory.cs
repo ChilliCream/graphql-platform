@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -22,7 +21,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-            IWorkBacklog backlog = operationContext.Execution.Work;
+            IWorkScheduler scheduler = operationContext.Scheduler;
             IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
@@ -36,7 +35,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     {
                         if (buffered == bufferSize)
                         {
-                            backlog.Register(buffer, bufferSize);
+                            scheduler.Register(buffer, bufferSize);
                             buffered = 0;
                         }
 
@@ -55,11 +54,11 @@ namespace HotChocolate.Execution.Processing.Tasks
                 {
                     // in the case all root fields are skipped we execute a dummy task in order
                     // to not have to many extra API for this special case.
-                    backlog.Register(new NoOpExecutionTask(operationContext));
+                    scheduler.Register(new NoOpExecutionTask(operationContext));
                 }
                 else
                 {
-                    backlog.Register(buffer, buffered);
+                    scheduler.Register(buffer, buffered);
                 }
 
                 TryHandleDeferredFragments(
@@ -87,7 +86,7 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            IWorkBacklog backlog = operationContext.Execution.Work;
+            IWorkScheduler scheduler = operationContext.Scheduler;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
             IExecutionTask?[]? buffer = null;
@@ -132,7 +131,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                             if (buffered == bufferSize)
                             {
-                                backlog.Register(buffer!, bufferSize);
+                                scheduler.Register(buffer!, bufferSize);
                                 buffered = 0;
                             }
                         }
@@ -141,7 +140,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                 if (buffered > 0)
                 {
-                    backlog.Register(buffer!, buffered);
+                    scheduler.Register(buffer!, buffered);
                 }
 
                 TryHandleDeferredFragments(
@@ -272,7 +271,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             object parent,
             ResultMap resultMap)
         {
-            ResolverTask task = operationContext.Execution.ResolverTasks.Get();
+            ResolverTask task = operationContext.ResolverTasks.Get();
 
             task.Initialize(
                 operationContext,
@@ -295,7 +294,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap,
             IImmutableDictionary<string, object?> scopedContext)
         {
-            ResolverTask task = operationContext.Execution.ResolverTasks.Get();
+            ResolverTask task = operationContext.ResolverTasks.Get();
 
             task.Initialize(
                 operationContext,
@@ -324,7 +323,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     IFragment fragment = fragments[i];
                     if (!fragment.IsConditional)
                     {
-                        operationContext.Execution.DeferredWork.Register(
+                        operationContext.Scheduler.DeferredWork.Register(
                             new DeferredFragment(
                                 fragment,
                                 fragment.GetLabel(operationContext.Variables),

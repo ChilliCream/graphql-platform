@@ -1,14 +1,21 @@
-using System;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
     /// <summary>
-    /// The task backlog of the execution engine stores <see cref="IExecutionTask"/>
-    /// without any guaranteed order.
+    /// The work scheduler organizes the processing of request tasks.
     /// </summary>
-    internal interface IWorkBacklog
+    internal interface IWorkScheduler
     {
+        /// <summary>
+        /// Gets the backlog of the task that shall be processed after
+        /// all the main tasks have been executed.
+        /// </summary>
+        IDeferredWorkBacklog DeferredWork { get; }
+
+        /// <summary>
+        /// Defines if the execution is completed.
+        /// </summary>
         bool IsCompleted { get; }
 
         /// <summary>
@@ -26,6 +33,14 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         void Complete(IExecutionTask task);
 
+        /// <summary>
+        /// Execute the work.
+        /// </summary>
         Task ExecuteAsync();
+
+        /// <summary>
+        /// Resets the execution state.
+        /// </summary>
+        void Reset();
     }
 }

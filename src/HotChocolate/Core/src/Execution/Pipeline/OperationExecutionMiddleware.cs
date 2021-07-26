@@ -125,7 +125,7 @@ namespace HotChocolate.Execution.Pipeline
                             .Create();
                     }
 
-                    if(operationContext.Execution.DeferredWork.HasWork &&
+                    if(operationContext.Scheduler.DeferredWork.HasWork &&
                         context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership
