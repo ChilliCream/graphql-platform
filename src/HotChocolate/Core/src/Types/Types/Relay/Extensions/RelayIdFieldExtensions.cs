@@ -17,7 +17,7 @@ namespace HotChocolate.Types
     {
         private static IdSerializer? _idSerializer;
 
-        public static IInputFieldDescriptor ID(
+        public static IInputFieldDescriptor GlobalId(
             this IInputFieldDescriptor descriptor,
             NameString typeName = default)
         {
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
-        public static IArgumentDescriptor ID(
+        public static IArgumentDescriptor GlobalId(
             this IArgumentDescriptor descriptor,
             NameString typeName = default)
         {
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
-        public static IObjectFieldDescriptor ID(
+        public static IObjectFieldDescriptor GlobalId(
             this IObjectFieldDescriptor descriptor,
             NameString typeName = default)
         {
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
-        public static IInterfaceFieldDescriptor ID(
+        public static IInterfaceFieldDescriptor GlobalId(
             this IInterfaceFieldDescriptor descriptor)
         {
             if (descriptor is null)

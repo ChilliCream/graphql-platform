@@ -10,9 +10,9 @@ namespace HotChocolate.Types.Relay
         AttributeTargets.Parameter |
         AttributeTargets.Property |
         AttributeTargets.Method)]
-    public class IDAttribute : DescriptorAttribute
+    public class GlobalIdAttribute : DescriptorAttribute
     {
-        public IDAttribute(string? typeName = null)
+        public GlobalIdAttribute(string? typeName = null)
         {
             if (typeName is not null)
             {
@@ -30,16 +30,16 @@ namespace HotChocolate.Types.Relay
             switch (descriptor)
             {
                 case IInputFieldDescriptor d when element is PropertyInfo:
-                    d.ID(TypeName);
+                    d.GlobalId(TypeName);
                     break;
                 case IArgumentDescriptor d when element is ParameterInfo:
-                    d.ID(TypeName);
+                    d.GlobalId(TypeName);
                     break;
                 case IObjectFieldDescriptor d when element is MemberInfo:
-                    d.ID(TypeName);
+                    d.GlobalId(TypeName);
                     break;
                 case IInterfaceFieldDescriptor d when element is MemberInfo:
-                    d.ID();
+                    d.GlobalId();
                     break;
             }
         }
