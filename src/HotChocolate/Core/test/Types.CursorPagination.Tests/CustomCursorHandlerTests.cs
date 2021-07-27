@@ -5,6 +5,8 @@ using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types.Pagination
 {
     public class CustomCursorHandlerTests
@@ -43,7 +45,11 @@ namespace HotChocolate.Types.Pagination
         public class Query
         {
             [UsePaging]
-            public Connection<string> GetItems(int first, string after, int last, string before)
+            public Connection<string> GetItems(
+                int first = 10, 
+                string? after = null, 
+                int? last = null, 
+                string? before = null)
             {
                 return new(
                     new[] { new Edge<string>("hello", "abc") },

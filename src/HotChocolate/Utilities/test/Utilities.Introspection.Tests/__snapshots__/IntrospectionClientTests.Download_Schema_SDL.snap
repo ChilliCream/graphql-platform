@@ -29,7 +29,7 @@ type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CharacterConnection
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
@@ -39,7 +39,7 @@ type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CharacterConnection
   height(unit: Unit): Float
   primaryFunction: String
 }
@@ -53,7 +53,7 @@ enum Episode {
 interface Character {
   id: ID!
   name: String!
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CharacterConnection
   appearsIn: [Episode]
   height(unit: Unit): Float
 }

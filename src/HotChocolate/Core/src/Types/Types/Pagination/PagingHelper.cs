@@ -149,8 +149,6 @@ namespace HotChocolate.Types.Pagination
                         return schemaType.ElementType!;
                     }
                 }
-
-
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))

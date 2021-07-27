@@ -5,6 +5,7 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -45,9 +46,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             return ResolveNode(async ctx =>
             {
-                if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalId,
-                    out object? id))
+                if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var id))
                 {
                     if (id is TId c)
                     {
@@ -77,7 +76,11 @@ namespace HotChocolate.Types.Relay.Descriptors
             if (member is MethodInfo m)
             {
                 FieldResolverDelegates resolver =
-                    Context.ResolverCompiler.CompileResolve(m, typeof(object), typeof(TResolver));
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        typeof(object),
+                        typeof(TResolver),
+                        ParameterExpressionBuilders);
                 return ResolveNode(resolver.Resolver!);
             }
 
@@ -97,7 +100,8 @@ namespace HotChocolate.Types.Relay.Descriptors
                 Context.ResolverCompiler.CompileResolve(
                     method,
                     typeof(object),
-                    method.DeclaringType ?? typeof(object));
+                    method.DeclaringType ?? typeof(object),
+                    ParameterExpressionBuilders);
             return ResolveNode(resolver.Resolver!);
         }
 

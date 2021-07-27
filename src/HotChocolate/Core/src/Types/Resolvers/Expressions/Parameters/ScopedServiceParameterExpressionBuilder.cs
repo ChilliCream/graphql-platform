@@ -46,12 +46,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             return parameter.HasDefaultValue
                 ? Expression.Call(
                     getScopedState,
+                    context,
                     contextData,
                     key,
                     Expression.Constant(true, typeof(bool)),
                     Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
                 : Expression.Call(
                     getScopedState,
+                    context,
                     contextData,
                     key,
                     Expression.Constant(

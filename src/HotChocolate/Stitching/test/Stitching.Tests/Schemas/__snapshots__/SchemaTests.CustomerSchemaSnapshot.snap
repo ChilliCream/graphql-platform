@@ -11,7 +11,7 @@ interface Node {
 type Consultant implements Node {
   id: ID!
   name: String!
-  customers(first: Int after: String last: Int before: String): CustomerConnection
+  customers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CustomerConnection
 }
 
 type CreateCustomerPayload {
@@ -66,7 +66,10 @@ type PageInfo {
 }
 
 type Query {
-  node(id: ID!): Node
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   customer(id: ID!): Customer
   customers(ids: [ID!]!): [Customer]
   consultant(id: ID!): Consultant

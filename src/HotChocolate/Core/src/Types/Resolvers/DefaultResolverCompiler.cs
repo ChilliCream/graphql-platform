@@ -22,6 +22,8 @@ namespace HotChocolate.Resolvers
     /// </summary>
     internal sealed class DefaultResolverCompiler : IResolverCompiler
     {
+        private static readonly IParameterExpressionBuilder[] _empty =
+            Array.Empty<IParameterExpressionBuilder>();
         private static readonly ParameterExpression _context =
             Parameter(typeof(IResolverContext), "context");
         private static readonly ParameterExpression _pureContext =
@@ -33,6 +35,7 @@ namespace HotChocolate.Resolvers
 
         private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
         private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
+        private readonly ImplicitArgumentParameterExpressionBuilder _defaultExprBuilder = new();
 
         public DefaultResolverCompiler(
             IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
@@ -71,17 +74,14 @@ namespace HotChocolate.Resolvers
             list.Add(new ClaimsPrincipalParameterExpressionBuilder());
             list.Add(new PathParameterExpressionBuilder());
 
-            // last we qdd the implicit argument expression builder which represents our default
-            // expression builder and will compile all that is left to GraphQL field arguments.
-            list.Add(new ImplicitArgumentParameterExpressionBuilder());
-
             _parameterExpressionBuilders = list;
         }
 
         /// <inheritdoc />
         public FieldResolverDelegates CompileResolve<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod,
-            Type? sourceType = null)
+            Type? sourceType = null,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
         {
             if (propertyOrMethod is null)
             {
@@ -94,7 +94,7 @@ namespace HotChocolate.Resolvers
             {
                 Type source = sourceType ?? typeof(TResolver);
                 Type? resolver = sourceType is null ? typeof(TResolver) : null;
-                return CompileResolve(member, source, resolver);
+                return CompileResolve(member, source, resolver, parameterExpressionBuilders);
             }
 
             throw new ArgumentException(
@@ -120,7 +120,8 @@ namespace HotChocolate.Resolvers
         public FieldResolverDelegates CompileResolve(
             MemberInfo member,
             Type? sourceType = null,
-            Type? resolverType = null)
+            Type? resolverType = null,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
         {
             if (member is null)
             {
@@ -135,12 +136,21 @@ namespace HotChocolate.Resolvers
 
             if (member is MethodInfo { IsStatic: true } method)
             {
-                resolver = CompileStaticResolver(method, sourceType);
+                resolver = CompileStaticResolver(method, parameterExpressionBuilders ?? _empty);
             }
             else
             {
-                resolver = CreateResolver(member, sourceType, resolverType);
-                pureResolver = TryCompilePureResolver(member, sourceType, resolverType);
+                resolver = CreateResolver(
+                    member,
+                    sourceType,
+                    resolverType,
+                    parameterExpressionBuilders ?? _empty);
+
+                pureResolver = TryCompilePureResolver(
+                    member,
+                    sourceType,
+                    resolverType,
+                    parameterExpressionBuilders ?? _empty);
             }
 
             return new(resolver, pureResolver);
@@ -159,7 +169,7 @@ namespace HotChocolate.Resolvers
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 Expression owner = CreateResolverOwner(_context, sourceType, resolverType);
-                Expression[] parameterExpr = CreateParameters(_context, parameters);
+                Expression[] parameterExpr = CreateParameters(_context, parameters, _empty);
                 Expression subscribeResolver = Call(owner, method, parameterExpr);
                 subscribeResolver = EnsureSubscribeResult(subscribeResolver, method.ReturnType);
                 return Lambda<SubscribeResolverDelegate>(subscribeResolver, _context).Compile();
@@ -171,12 +181,16 @@ namespace HotChocolate.Resolvers
         }
 
         /// <inheritdoc />
-        public IEnumerable<ParameterInfo> GetArgumentParameters(ParameterInfo[] parameters)
+        public IEnumerable<ParameterInfo> GetArgumentParameters(
+            ParameterInfo[] parameters,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
         {
             foreach (ParameterInfo parameter in parameters)
             {
                 IParameterExpressionBuilder builder =
-                    GetParameterExpressionBuilder(parameter);
+                    GetParameterExpressionBuilder(
+                        parameter,
+                        parameterExpressionBuilders ?? _empty);
 
                 if (builder.Kind == ArgumentKind.Argument)
                 {
@@ -185,9 +199,14 @@ namespace HotChocolate.Resolvers
             }
         }
 
-        private FieldResolverDelegate CompileStaticResolver(MethodInfo method, Type source)
+        private FieldResolverDelegate CompileStaticResolver(
+            MethodInfo method,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
-            Expression[] parameters = CreateParameters(_context, method.GetParameters());
+            Expression[] parameters = CreateParameters(
+                _context,
+                method.GetParameters(),
+                fieldParameterExpressionBuilders);
             Expression resolver = Call(method, parameters);
             resolver = EnsureResolveResult(resolver, method.ReturnType);
             return Lambda<FieldResolverDelegate>(resolver, _context).Compile();
@@ -196,7 +215,8 @@ namespace HotChocolate.Resolvers
         private FieldResolverDelegate CreateResolver(
             MemberInfo member,
             Type source,
-            Type resolverType)
+            Type resolverType,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
             if (member is PropertyInfo property)
             {
@@ -210,7 +230,10 @@ namespace HotChocolate.Resolvers
             {
                 ParameterInfo[] parameters = method.GetParameters();
                 Expression owner = CreateResolverOwner(_context, source, resolverType);
-                Expression[] parameterExpr = CreateParameters(_context, parameters);
+                Expression[] parameterExpr = CreateParameters(
+                    _context,
+                    parameters,
+                    fieldParameterExpressionBuilders);
                 Expression methodResolver = Call(owner, method, parameterExpr);
                 methodResolver = EnsureResolveResult(methodResolver, method.ReturnType);
                 return Lambda<FieldResolverDelegate>(methodResolver, _context).Compile();
@@ -223,7 +246,8 @@ namespace HotChocolate.Resolvers
         private PureFieldDelegate? TryCompilePureResolver(
             MemberInfo member,
             Type source,
-            Type resolver)
+            Type resolver,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
             if (member is PropertyInfo property && IsPureResolverResult(property.PropertyType))
             {
@@ -242,10 +266,13 @@ namespace HotChocolate.Resolvers
             {
                 ParameterInfo[] parameters = method.GetParameters();
 
-                if (IsPureResolver(method, parameters, source))
+                if (IsPureResolver(method, parameters, fieldParameterExpressionBuilders))
                 {
                     Expression owner = CreateResolverOwner(_pureContext, source, resolver);
-                    Expression[] parameterExpr = CreateParameters(_pureContext, parameters);
+                    Expression[] parameterExpr = CreateParameters(
+                        _pureContext,
+                        parameters,
+                        fieldParameterExpressionBuilders);
                     Expression methodResolver = Call(owner, method, parameterExpr);
 
                     if (method.ReturnType != typeof(object))
@@ -260,7 +287,10 @@ namespace HotChocolate.Resolvers
             return null;
         }
 
-        private bool IsPureResolver(MethodInfo method, ParameterInfo[] parameters, Type source)
+        private bool IsPureResolver(
+            MethodInfo method,
+            ParameterInfo[] parameters,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
             if (!IsPureResolverResult(method.ReturnType))
             {
@@ -270,7 +300,7 @@ namespace HotChocolate.Resolvers
             foreach (ParameterInfo parameter in parameters)
             {
                 IParameterExpressionBuilder builder =
-                    GetParameterExpressionBuilder(parameter);
+                    GetParameterExpressionBuilder(parameter, fieldParameterExpressionBuilders);
 
                 if (!builder.IsPure)
                 {
@@ -322,7 +352,8 @@ namespace HotChocolate.Resolvers
 
         private Expression[] CreateParameters(
             ParameterExpression context,
-            ParameterInfo[] parameters)
+            ParameterInfo[] parameters,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
             var parameterResolvers = new Expression[parameters.Length];
 
@@ -331,7 +362,7 @@ namespace HotChocolate.Resolvers
                 ParameterInfo parameter = parameters[i];
 
                 IParameterExpressionBuilder builder =
-                    GetParameterExpressionBuilder(parameter);
+                    GetParameterExpressionBuilder(parameter, fieldParameterExpressionBuilders);
 
                 parameterResolvers[i] = builder.Build(parameter, context);
             }
@@ -340,11 +371,29 @@ namespace HotChocolate.Resolvers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IParameterExpressionBuilder GetParameterExpressionBuilder(ParameterInfo parameter)
+        private IParameterExpressionBuilder GetParameterExpressionBuilder(
+            ParameterInfo parameter,
+            IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
             if (_cache.TryGetValue(parameter, out var cached))
             {
                 return cached;
+            }
+
+            if (fieldParameterExpressionBuilders.Length > 0)
+            {
+                foreach (IParameterExpressionBuilder builder in fieldParameterExpressionBuilders)
+                {
+                    if (builder.CanHandle(parameter))
+                    {
+#if NETSTANDARD
+                    _cache[parameter] = builder;
+#else
+                        _cache.TryAdd(parameter, builder);
+#endif
+                        return builder;
+                    }
+                }
             }
 
             foreach (IParameterExpressionBuilder builder in _parameterExpressionBuilders)
@@ -360,7 +409,7 @@ namespace HotChocolate.Resolvers
                 }
             }
 
-            throw new NotSupportedException(DefaultResolverCompilerService_Misconfigured);
+            return _defaultExprBuilder;
         }
 
         public void Dispose()

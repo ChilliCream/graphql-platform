@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 
 #nullable enable
 
@@ -21,6 +22,9 @@ namespace HotChocolate.Resolvers
         /// <param name="sourceType">
         /// The source type.
         /// </param>
+        /// <param name="parameterExpressionBuilders">
+        /// Field level parameter expression builders.
+        /// </param>
         /// <typeparam name="TResolver">
         /// The resolver type.
         /// </typeparam>
@@ -29,7 +33,8 @@ namespace HotChocolate.Resolvers
         /// </returns>
         FieldResolverDelegates CompileResolve<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod,
-            Type? sourceType = null);
+            Type? sourceType = null,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
 
         /// <summary>
         /// Compiles a resolver from a member selector.
@@ -63,13 +68,17 @@ namespace HotChocolate.Resolvers
         /// <param name="resolverType">
         /// The resolver type.
         /// </param>
+        /// <param name="parameterExpressionBuilders">
+        /// Field level parameter expression builders.
+        /// </param>
         /// <returns>
         /// Returns a struct containing the compiled resolvers.
         /// </returns>
         FieldResolverDelegates CompileResolve(
             MemberInfo member,
             Type? sourceType = null,
-            Type? resolverType = null);
+            Type? resolverType = null,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
 
         /// <summary>
         /// Compiles a subscribe resolver from a member.
@@ -98,12 +107,14 @@ namespace HotChocolate.Resolvers
         /// <param name="parameters">
         /// The method parameters.
         /// </param>
-        /// <param name="sourceType">
-        /// The source type.
+        /// <param name="parameterExpressionBuilders">
+        /// Field level parameter expression builders.
         /// </param>
         /// <returns>
         /// Returns only the parameters representing GraphQL field arguments.
         /// </returns>
-        IEnumerable<ParameterInfo> GetArgumentParameters(ParameterInfo[] parameters);
+        IEnumerable<ParameterInfo> GetArgumentParameters(
+            ParameterInfo[] parameters,
+            IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
     }
 }

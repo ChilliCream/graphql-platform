@@ -3,7 +3,7 @@
 }
 
 interface ISome2 {
-  explicitType(first: Int after: String last: Int before: String): StringConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): StringConnection
 }
 
 type Foo {
@@ -42,9 +42,9 @@ type PageInfo {
 }
 
 type QueryAttr {
-  nestedObjectList(first: Int after: String last: Int before: String): FooConnection
-  letters(first: Int after: String last: Int before: String): StringConnection
-  explicitType(first: Int after: String last: Int before: String): StringConnection
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FooConnection
+  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): StringConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): StringConnection
 }
 
 "A connection to a list of items."

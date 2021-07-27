@@ -1257,12 +1257,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string DefaultResolverCompilerService_Misconfigured {
-            get {
-                return ResourceManager.GetString("DefaultResolverCompilerService_Misconfigured", resourceCulture);
-            }
-        }
-        
         internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
             get {
                 return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
@@ -1326,6 +1320,30 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface {
             get {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodeField_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodeField_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodeField_Id_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodeField_Id_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodesField_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodesField_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodesField_Ids_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
             }
         }
     }

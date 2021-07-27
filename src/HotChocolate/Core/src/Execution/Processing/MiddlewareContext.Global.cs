@@ -99,7 +99,7 @@ namespace HotChocolate.Execution.Processing
                 .Build());
         }
 
-        public void ReportError(Exception exception)
+        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
         {
             if (exception is null)
             {
@@ -113,15 +113,23 @@ namespace HotChocolate.Execution.Processing
                     ReportError(error);
                 }
             }
+            else if (exception is AggregateException aggregateException)
+            {
+                foreach (Exception innerException in aggregateException.InnerExceptions)
+                {
+                    ReportError(innerException);
+                }
+            }
             else
             {
-                IError error = _operationContext.ErrorHandler
+                IErrorBuilder errorBuilder = _operationContext.ErrorHandler
                     .CreateUnexpectedError(exception)
                     .SetPath(Path)
-                    .AddLocation(_selection.SyntaxNode)
-                    .Build();
+                    .AddLocation(_selection.SyntaxNode);
 
-                ReportError(error);
+                configure?.Invoke(errorBuilder);
+
+                ReportError(errorBuilder.Build());
             }
         }
 
