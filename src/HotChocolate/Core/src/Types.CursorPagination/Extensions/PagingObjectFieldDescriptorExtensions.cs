@@ -167,17 +167,31 @@ namespace HotChocolate.Types
             IList<ArgumentDefinition> arguments,
             bool allowBackwardPagination)
         {
-            SyntaxTypeReference nullableInt = TypeReference.Parse("Int");
-            SyntaxTypeReference nullableString = TypeReference.Parse("String");
+            SyntaxTypeReference intType = TypeReference.Parse("Int");
+            SyntaxTypeReference stringType = TypeReference.Parse("String");
 
-            arguments.Add(new(First, PagingArguments_First_Description, nullableInt));
-            arguments.Add(new(After, PagingArguments_After_Description, nullableString));
+            arguments.AddOrUpdate(First, PagingArguments_First_Description, intType);
+            arguments.AddOrUpdate(After, PagingArguments_After_Description, stringType);
 
             if (allowBackwardPagination)
             {
-                arguments.Add(new(Last, PagingArguments_Last_Description, nullableInt));
-                arguments.Add(new(Before, PagingArguments_Before_Description, nullableString));
+                arguments.AddOrUpdate(Last, PagingArguments_Last_Description, intType);
+                arguments.AddOrUpdate(Before, PagingArguments_Before_Description, stringType);
             }
+        }
+
+        private static void AddOrUpdate(
+            this IList<ArgumentDefinition> arguments,
+            NameString name,
+            string description,
+            ITypeReference type)
+        {
+            ArgumentDefinition argument = 
+                arguments.FirstOrDefault(t => t.Name.Equals(name)) ?? 
+                new(name);
+
+            argument.Description ??= description;
+            argument.Type = type;
         }
 
         private static ITypeReference CreateConnectionTypeRef(
