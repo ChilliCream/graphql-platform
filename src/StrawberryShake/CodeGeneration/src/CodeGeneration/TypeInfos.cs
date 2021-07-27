@@ -112,6 +112,11 @@ namespace StrawberryShake.CodeGeneration
 
         private RuntimeTypeInfo GetOrAdd(string fullTypeName, System.Func<RuntimeTypeInfo> factory)
         {
+            if (!fullTypeName.StartsWith("global::"))
+            {
+                fullTypeName = "global::" + fullTypeName;
+            }
+
             if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
             {
                 typeInfo = factory();
