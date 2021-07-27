@@ -1235,7 +1235,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1245,7 +1245,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1255,7 +1255,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1265,7 +1265,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1400,7 +1400,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1410,7 +1410,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1420,7 +1420,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1430,7 +1430,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1596,7 +1596,7 @@
               "Args": [
                 {
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1606,7 +1606,7 @@
                 },
                 {
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -1616,7 +1616,7 @@
                 },
                 {
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "Int",
@@ -1626,7 +1626,7 @@
                 },
                 {
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "Kind": "Scalar",
                     "Name": "String",
@@ -4447,7 +4447,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4465,7 +4465,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4483,7 +4483,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4501,7 +4501,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4738,7 +4738,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4756,7 +4756,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -4774,7 +4774,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -4792,7 +4792,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5048,7 +5048,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "first",
-                  "Description": null,
+                  "Description": "Returns the first _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5066,7 +5066,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "after",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come after the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
@@ -5084,7 +5084,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "last",
-                  "Description": null,
+                  "Description": "Returns the last _n_ elements from the list.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "Int",
@@ -5102,7 +5102,7 @@
                 {
                   "__typename": "__InputValue",
                   "Name": "before",
-                  "Description": null,
+                  "Description": "Returns the elements in the list that come before the specified cursor.",
                   "Type": {
                     "__typename": "__Type",
                     "Name": "String",
