@@ -14,7 +14,6 @@ namespace HotChocolate.Execution.Pipeline
 
         public OperationVariableCoercionMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
             VariableCoercionHelper coercionHelper)
         {
             _next = next ??
@@ -25,11 +24,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Variables is not null)
-            {
-                await _next(context).ConfigureAwait(false);
-            }
-            else if (context.Operation is not null)
+            if (context.Operation is not null)
             {
                 CoerceVariables(
                     context,

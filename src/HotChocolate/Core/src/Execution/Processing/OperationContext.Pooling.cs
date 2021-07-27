@@ -11,7 +11,8 @@ namespace HotChocolate.Execution.Processing
     internal sealed partial class OperationContext
     {
         private readonly ConcurrentBag<Action> _cleanupActions = new();
-        private readonly ExecutionContext _executionContext;
+        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly WorkScheduler _workScheduler;
         private readonly ResultHelper _resultHelper;
         private IRequestContext _requestContext = default!;
         private IPreparedOperation _operation = default!;
@@ -26,7 +27,8 @@ namespace HotChocolate.Execution.Processing
             ObjectPool<ResolverTask> resolverTaskPool,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool);
+            _resolverTaskPool = resolverTaskPool;
+            _workScheduler = new WorkScheduler(this);
             _resultHelper = new ResultHelper(resultPool);
         }
 
@@ -52,26 +54,32 @@ namespace HotChocolate.Execution.Processing
             _isInitialized = true;
 
             batchDispatcher.Initialize(this);
-            _executionContext.Initialize(batchDispatcher);
+            _workScheduler.Initialize(batchDispatcher);
         }
 
         public void Clean()
         {
-            while (_cleanupActions.TryTake(out var clean))
+            if (_isInitialized)
             {
-                clean();
-            }
+                if (_cleanupActions.Count > 0)
+                {
+                    while (_cleanupActions.TryTake(out var clean))
+                    {
+                        clean();
+                    }
+                }
 
-            _executionContext.Clean();
-            _resultHelper.Clear();
-            _requestContext = default!;
-            _operation = default!;
-            _queryPlan = default!;
-            _variables = default!;
-            _services = default!;
-            _rootValue = null;
-            _resolveQueryRootValue = default!;
-            _isInitialized = false;
+                _workScheduler.Clear();
+                _resultHelper.Clear();
+                _requestContext = default!;
+                _operation = default!;
+                _queryPlan = default!;
+                _variables = default!;
+                _services = default!;
+                _rootValue = null;
+                _resolveQueryRootValue = default!;
+                _isInitialized = false;
+            }
         }
 
         private void AssertInitialized()

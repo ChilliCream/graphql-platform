@@ -4,18 +4,14 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal partial class WorkBacklog
+    internal partial class WorkScheduler
     {
-#pragma warning disable 4014
-        private void StartProcessing() => Task.Run(ExecuteProcessorAsync);
-#pragma warning restore 4014
+        private readonly IExecutionTask?[] _buffer = new IExecutionTask?[16];
 
-        private async Task ExecuteProcessorAsync()
-            => await ProcessTasksAsync().ConfigureAwait(false);
-
-        private async Task ProcessTasksAsync()
+        public async Task ExecuteAsync()
         {
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(16);
+             _processing = true;
+            IExecutionTask?[] buffer = _buffer;
 
 RESTART:
             try
@@ -24,7 +20,43 @@ RESTART:
                 {
                     var work = TryTake(buffer);
 
-                    if (work is 0)
+                    if (work != 0)
+                    {
+                        if (!buffer[0]!.IsSerial)
+                        {
+                            for (var i = 0; i < work; i++)
+                            {
+                                buffer[i]!.BeginExecute(_requestAborted);
+                                buffer[i] = null;
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                _batchDispatcher.DispatchOnSchedule = true;
+
+                                for (var i = 0; i < work; i++)
+                                {
+                                    IExecutionTask task = buffer[i]!;
+                                    task.BeginExecute(_requestAborted);
+                                    await task.WaitForCompletionAsync(_requestAborted)
+                                        .ConfigureAwait(false);
+                                    buffer[i] = null;
+
+                                    if (_requestAborted.IsCancellationRequested)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                _batchDispatcher.DispatchOnSchedule = false;
+                            }
+                        }
+                    }
+                    else
                     {
                         if (_work.HasRunningTasks || _serial.HasRunningTasks)
                         {
@@ -34,39 +66,6 @@ RESTART:
                         break;
                     }
 
-                    if (buffer[0]!.IsSerial)
-                    {
-                        try
-                        {
-                            _batchDispatcher.DispatchOnSchedule = true;
-
-                            for (var i = 0; i < work; i++)
-                            {
-                                IExecutionTask task = buffer[i]!;
-                                task.BeginExecute(_requestAborted);
-                                await task.WaitForCompletionAsync(_requestAborted)
-                                    .ConfigureAwait(false);
-                                buffer[i] = null;
-
-                                if (_requestAborted.IsCancellationRequested)
-                                {
-                                    break;
-                                }
-                            }
-                        }
-                        finally
-                        {
-                            _batchDispatcher.DispatchOnSchedule = false;
-                        }
-                    }
-                    else
-                    {
-                        for (var i = 0; i < work; i++)
-                        {
-                            buffer[i]!.BeginExecute(_requestAborted);
-                            buffer[i] = null;
-                        }
-                    }
                 } while (!_requestAborted.IsCancellationRequested);
             }
             catch (Exception ex)
@@ -85,7 +84,7 @@ RESTART:
             }
 
             buffer.AsSpan().Clear();
-            ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+            _requestAborted.ThrowIfCancellationRequested();
         }
 
         private void HandleError(Exception exception)
