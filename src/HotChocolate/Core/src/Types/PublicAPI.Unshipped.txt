@@ -141,3 +141,19 @@ static HotChocolate.Types.ResolveObjectFieldDescriptorExtensions.Resolve<TResult
 ~HotChocolate.Types.Relay.MutationPayloadOptions.QueryFieldName.set -> void
 ~HotChocolate.Types.Relay.MutationPayloadOptions.MutationPayloadPredicate.get -> System.Func<HotChocolate.Types.INamedType, bool>
 ~HotChocolate.Types.Relay.MutationPayloadOptions.MutationPayloadPredicate.set -> void
+*REMOVED*static HotChocolate.Types.RelayIdFieldExtensions.ID(this HotChocolate.Types.IArgumentDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IArgumentDescriptor!
+*REMOVED*static HotChocolate.Types.RelayIdFieldExtensions.ID(this HotChocolate.Types.IInputFieldDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IInputFieldDescriptor!
+*REMOVED*static HotChocolate.Types.RelayIdFieldExtensions.ID(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+*REMOVED*static HotChocolate.Types.RelayIdFieldExtensions.ID(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*HotChocolate.Types.Relay.IDAttribute
+*REMOVED*HotChocolate.Types.Relay.IDAttribute.IDAttribute(string? typeName = null) -> void
+*REMOVED*HotChocolate.Types.Relay.IDAttribute.TypeName.get -> HotChocolate.NameString
+*REMOVED*override HotChocolate.Types.Relay.IDAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
+static HotChocolate.Types.RelayIdFieldExtensions.GlobalId(this HotChocolate.Types.IArgumentDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IArgumentDescriptor!
+static HotChocolate.Types.RelayIdFieldExtensions.GlobalId(this HotChocolate.Types.IInputFieldDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IInputFieldDescriptor!
+static HotChocolate.Types.RelayIdFieldExtensions.GlobalId(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor) -> HotChocolate.Types.IInterfaceFieldDescriptor!
+static HotChocolate.Types.RelayIdFieldExtensions.GlobalId(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.NameString typeName = default(HotChocolate.NameString)) -> HotChocolate.Types.IObjectFieldDescriptor!
+HotChocolate.Types.Relay.GlobalIdAttribute
+HotChocolate.Types.Relay.GlobalIdAttribute.GlobalIdAttribute(string? typeName = null) -> void
+HotChocolate.Types.Relay.GlobalIdAttribute.TypeName.get -> HotChocolate.NameString
+override HotChocolate.Types.Relay.GlobalIdAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
