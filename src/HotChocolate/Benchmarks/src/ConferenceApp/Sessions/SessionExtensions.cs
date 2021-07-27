@@ -62,9 +62,9 @@ namespace HotChocolate.ConferencePlanner.Sessions
             return await trackById.LoadAsync(session.TrackId.Value, cancellationToken);
         }
 
-        [ID(nameof(Track))]
+        [GlobalId(nameof(Track))]
         [BindMember(nameof(Session.TrackId))]
-        public int? TrackId([Parent] Session session) => session.TrackId; 
+        public int? TrackId([Parent] Session session) => session.TrackId;
 
         [NodeResolver]
         public Task<Session> GetSessionAsync(

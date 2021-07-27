@@ -16,19 +16,19 @@ namespace HotChocolate.ConferencePlanner.Attendees
         [UseApplicationDbContext]
         [UsePaging]
         public IQueryable<Attendee> GetAttendees(
-            [ScopedService] ApplicationDbContext context) => 
+            [ScopedService] ApplicationDbContext context) =>
             context.Attendees;
 
         public Task<Attendee> GetAttendeeByIdAsync(
-            [ID(nameof(Attendee))]int id,
+            [GlobalId(nameof(Attendee))] int id,
             AttendeeByIdDataLoader attendeeById,
-            CancellationToken cancellationToken) => 
+            CancellationToken cancellationToken) =>
             attendeeById.LoadAsync(id, cancellationToken);
 
         public async Task<IEnumerable<Attendee>> GetAttendeesByIdAsync(
-            [ID(nameof(Attendee))]int[] ids,
+            [GlobalId(nameof(Attendee))] int[] ids,
             AttendeeByIdDataLoader attendeeById,
-            CancellationToken cancellationToken) => 
+            CancellationToken cancellationToken) =>
             await attendeeById.LoadAsync(ids, cancellationToken);
     }
 }

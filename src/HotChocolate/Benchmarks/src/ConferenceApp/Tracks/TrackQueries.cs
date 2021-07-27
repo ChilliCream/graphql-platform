@@ -35,13 +35,13 @@ namespace HotChocolate.ConferencePlanner.Tracks
             await context.Tracks.Where(t => names.Contains(t.Name)).ToListAsync(cancellationToken);
 
         public Task<Track> GetTrackByIdAsync(
-            [ID(nameof(Track))] int id,
+            [GlobalId(nameof(Track))] int id,
             TrackByIdDataLoader trackById,
             CancellationToken cancellationToken) =>
             trackById.LoadAsync(id, cancellationToken);
 
         public async Task<IEnumerable<Track>> GetSessionsByIdAsync(
-            [ID(nameof(Track))] int[] ids,
+            [GlobalId(nameof(Track))] int[] ids,
             TrackByIdDataLoader trackById,
             CancellationToken cancellationToken) =>
             await trackById.LoadAsync(ids, cancellationToken);

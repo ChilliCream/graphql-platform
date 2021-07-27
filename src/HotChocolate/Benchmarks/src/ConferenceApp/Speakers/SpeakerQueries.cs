@@ -19,13 +19,13 @@ namespace HotChocolate.ConferencePlanner.Speakers
             context.Speakers.OrderBy(t => t.Name);
 
         public Task<Speaker> GetSpeakerByIdAsync(
-            [ID(nameof(Speaker))]int id,
+            [GlobalId(nameof(Speaker))] int id,
             SpeakerByIdDataLoader dataLoader,
             CancellationToken cancellationToken) =>
             dataLoader.LoadAsync(id, cancellationToken);
 
         public async Task<IEnumerable<Speaker>> GetSpeakersByIdAsync(
-            [ID(nameof(Speaker))]int[] ids,
+            [GlobalId(nameof(Speaker))] int[] ids,
             SpeakerByIdDataLoader dataLoader,
             CancellationToken cancellationToken) =>
             await dataLoader.LoadAsync(ids, cancellationToken);

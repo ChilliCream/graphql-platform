@@ -58,7 +58,7 @@ namespace HotChocolate.Types
             public Person GetPerson() => new Person(1, "Michael");
         }
 
-        public record Person([ID] int Id, string Name);
+        public record Person([GlobalId] int Id, string Name);
 
         public class Query2
         {
@@ -66,6 +66,6 @@ namespace HotChocolate.Types
                 new DefaultValueTest(1, "Test");
         }
 
-        public record DefaultValueTest([ID] int Id, string Name = "ShouldBeDefaultValue");
+        public record DefaultValueTest([GlobalId] int Id, string Name = "ShouldBeDefaultValue");
     }
 }

@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Relay
 
         public class SomeQuery
         {
-            [ID]
+            [GlobalId]
             public string GetId() => "Hello";
 
             public string GetString() => "Hello";

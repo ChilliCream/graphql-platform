@@ -7,6 +7,6 @@ namespace HotChocolate.ConferencePlanner.Sessions
     public record AddSessionInput(
         string Title,
         string? Abstract,
-        [ID(nameof(Speaker))]
+        [GlobalId(nameof(Speaker))]
         IReadOnlyList<int> SpeakerIds);
 }

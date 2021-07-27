@@ -4,6 +4,6 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.ConferencePlanner.Sessions
 {
     public record RenameSessionInput(
-        [ID(nameof(Session))] int SessionId,
+        [GlobalId(nameof(Session))] int SessionId,
         string Title);
 }

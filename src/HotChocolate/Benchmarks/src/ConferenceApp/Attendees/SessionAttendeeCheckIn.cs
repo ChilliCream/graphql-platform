@@ -17,10 +17,10 @@ namespace HotChocolate.ConferencePlanner.Attendees
             SessionId = sessionId;
         }
 
-        [ID(nameof(Attendee))]
+        [GlobalId(nameof(Attendee))]
         public int AttendeeId { get; }
 
-        [ID(nameof(Session))]
+        [GlobalId(nameof(Session))]
         public int SessionId { get; }
 
         [UseApplicationDbContext]

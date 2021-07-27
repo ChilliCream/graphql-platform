@@ -15,7 +15,7 @@ namespace HotChocolate.ConferencePlanner.Attendees
     {
         [Subscribe(With = nameof(SubscribeToOnAttendeeCheckedInAsync))]
         public SessionAttendeeCheckIn OnAttendeeCheckedIn(
-            [ID(nameof(Session))] int sessionId,
+            [GlobalId(nameof(Session))] int sessionId,
             [EventMessage] int attendeeId,
             SessionByIdDataLoader sessionById,
             CancellationToken cancellationToken) =>

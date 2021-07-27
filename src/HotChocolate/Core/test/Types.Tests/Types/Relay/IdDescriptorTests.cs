@@ -91,15 +91,15 @@ namespace HotChocolate.Types.Relay
             {
                 descriptor
                     .Field(t => t.IntId(default))
-                    .Argument("id", a => a.ID());
+                    .Argument("id", a => a.GlobalId());
 
                 descriptor
                     .Field(t => t.StringId(default))
-                    .Argument("id", a => a.ID());
+                    .Argument("id", a => a.GlobalId());
 
                 descriptor
                     .Field(t => t.GuidId(default))
-                    .Argument("id", a => a.ID());
+                    .Argument("id", a => a.GlobalId());
 
                 descriptor
                     .Field(t => t.Foo(default))
@@ -114,7 +114,7 @@ namespace HotChocolate.Types.Relay
             {
                 descriptor
                     .Field(t => t.SomeId)
-                    .ID("Some");
+                    .GlobalId("Some");
             }
         }
 
@@ -126,7 +126,7 @@ namespace HotChocolate.Types.Relay
 
                 descriptor
                     .Field(t => t.SomeId)
-                    .ID("Bar");
+                    .GlobalId("Bar");
             }
         }
 
@@ -136,7 +136,7 @@ namespace HotChocolate.Types.Relay
             {
                 descriptor
                     .Field(t => t.SomeId)
-                    .ID();
+                    .GlobalId();
             }
         }
 

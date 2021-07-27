@@ -4,8 +4,8 @@ using HotChocolate.Types.Relay;
 namespace HotChocolate.ConferencePlanner.Attendees
 {
     public record CheckInAttendeeInput(
-        [ID(nameof(Session))]
+        [GlobalId(nameof(Session))]
         int SessionId,
-        [ID(nameof(Attendee))]
+        [GlobalId(nameof(Attendee))]
         int AttendeeId);
 }
