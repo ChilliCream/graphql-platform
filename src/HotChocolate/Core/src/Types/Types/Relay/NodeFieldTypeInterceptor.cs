@@ -3,23 +3,18 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
-using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
-using HotChocolate.Utilities;
 using static HotChocolate.Types.WellKnownContextData;
 using static HotChocolate.Properties.TypeResources;
-using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBuilderHelpers;
 
 #nullable enable
 
@@ -212,28 +207,5 @@ namespace HotChocolate.Types.Relay
             Path itemPath = context.Path.Append(item);
             context.ReportError(ex, error => error.SetPath(itemPath));
         }
-    }
-
-    internal sealed class NodeIdParameterExpressionBuilder
-        : ScopedStateParameterExpressionBuilder
-    {
-        public override ArgumentKind Kind => ArgumentKind.LocalState;
-
-        protected override PropertyInfo ContextDataProperty { get;  } =
-            ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
-
-        protected override MethodInfo SetStateMethod
-            => throw new NotSupportedException();
-
-        protected override MethodInfo SetStateGenericMethod
-            => throw new NotSupportedException();
-
-        public override bool CanHandle(ParameterInfo parameter)
-            => parameter.Name?.EqualsOrdinal("id") ?? false;
-
-        protected override string? GetKey(ParameterInfo parameter)
-            => InternalId;
-
-        public static NodeIdParameterExpressionBuilder Instance { get; } = new();
     }
 }
