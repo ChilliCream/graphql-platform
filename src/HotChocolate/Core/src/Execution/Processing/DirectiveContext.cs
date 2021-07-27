@@ -118,6 +118,9 @@ namespace HotChocolate.Execution.Processing
         public void ReportError(IError error) =>
             _middlewareContext.ReportError(error);
 
+        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null) =>
+            _middlewareContext.ReportError(exception, configure);
+
         public T Resolver<T>() =>
             _middlewareContext.Resolver<T>();
 

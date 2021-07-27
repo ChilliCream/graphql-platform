@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Resolvers.Expressions
@@ -65,12 +66,15 @@ namespace HotChocolate.Resolvers.Expressions
             value => contextData[key] = value;
 
         public static TContextData GetScopedState<TContextData>(
+            IPureResolverContext context,
             IReadOnlyDictionary<string, object> contextData,
             string key,
             bool defaultIfNotExists = false) =>
-            GetScopedStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
+            GetScopedStateWithDefault<TContextData>(
+                context, contextData, key, defaultIfNotExists, default);
 
         public static TContextData GetScopedStateWithDefault<TContextData>(
+            IPureResolverContext context,
             IReadOnlyDictionary<string, object> contextData,
             string key,
             bool hasDefaultValue,
@@ -83,7 +87,8 @@ namespace HotChocolate.Resolvers.Expressions
                     return default;
                 }
 
-                if (value is TContextData v)
+                if (value is TContextData v ||
+                    context.Service<ITypeConverter>().TryConvert(value, out v))
                 {
                     return v;
                 }

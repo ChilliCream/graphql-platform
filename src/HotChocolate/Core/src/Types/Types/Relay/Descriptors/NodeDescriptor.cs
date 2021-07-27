@@ -30,8 +30,7 @@ namespace HotChocolate.Types.Relay.Descriptors
         {
             if (Definition.Resolver is not null)
             {
-                definition.ContextData[WellKnownContextData.NodeResolver] =
-                    Definition.Resolver;
+                definition.ContextData[WellKnownContextData.NodeResolver] = Definition.Resolver;
             }
         }
 

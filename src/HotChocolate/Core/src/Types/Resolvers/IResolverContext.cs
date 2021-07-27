@@ -130,6 +130,20 @@ namespace HotChocolate.Resolvers
         void ReportError(IError error);
 
         /// <summary>
+        /// Report a non-terminating resolver error to the execution engine.
+        /// The error will be displayed in the errorsection with a reference to
+        /// the field selection that is associated with the current
+        /// resolver context.
+        /// </summary>
+        /// <param name="exception">
+        /// The exception that was thrown.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to further configure the error object.
+        /// </param>
+        void ReportError(Exception exception, Action<IErrorBuilder>? configure = null);
+
+        /// <summary>
         /// Gets the pre-compiled selections for the <paramref name="selectionSet" />
         /// with the specified <paramref name="typeContext" />.
         /// type context.

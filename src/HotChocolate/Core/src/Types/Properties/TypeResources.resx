@@ -729,9 +729,6 @@ Type: `{0}`</value>
   <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
     <value>The event message parameter can only be used in a subscription context.</value>
   </data>
-  <data name="DefaultResolverCompilerService_Misconfigured" xml:space="preserve">
-    <value>The resolver compiler is misconfigured and could not find an expression builder for the specified parameter.</value>
-  </data>
   <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValudationError" xml:space="preserve">
     <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
   </data>
@@ -764,5 +761,17 @@ Type: `{0}`</value>
   </data>
   <data name="SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface" xml:space="preserve">
     <value>The resolver type needs to be a class or interface</value>
+  </data>
+  <data name="Relay_NodeField_Description" xml:space="preserve">
+    <value>Fetches an object given its ID.</value>
+  </data>
+  <data name="Relay_NodeField_Id_Description" xml:space="preserve">
+    <value>ID of the object.</value>
+  </data>
+  <data name="Relay_NodesField_Description" xml:space="preserve">
+    <value>Lookup nodes by a list of IDs.</value>
+  </data>
+  <data name="Relay_NodesField_Ids_Description" xml:space="preserve">
+    <value>The list of node IDs.</value>
   </data>
 </root>
