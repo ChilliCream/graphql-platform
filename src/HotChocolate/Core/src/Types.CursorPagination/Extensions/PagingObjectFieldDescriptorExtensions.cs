@@ -186,8 +186,7 @@ namespace HotChocolate.Types
             string description,
             ITypeReference type)
         {
-            ArgumentDefinition? argument =
-                arguments.FirstOrDefault(t => t.Name.Equals(name)) ??
+            ArgumentDefinition? argument = arguments.FirstOrDefault(t => t.Name.Equals(name));
 
             if (argument is null)
             {
