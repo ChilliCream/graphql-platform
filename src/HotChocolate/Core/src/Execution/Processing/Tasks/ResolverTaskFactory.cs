@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
-            IWorkBacklog backlog = operationContext.Execution.Work;
+            IWorkScheduler scheduler = operationContext.Scheduler;
             IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
             var bufferSize = buffer.Length;
             var buffered = 0;
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     {
                         if (buffered == bufferSize)
                         {
-                            backlog.Register(buffer, bufferSize);
+                            scheduler.Register(buffer, bufferSize);
                             buffered = 0;
                         }
 
@@ -54,11 +54,11 @@ namespace HotChocolate.Execution.Processing.Tasks
                 {
                     // in the case all root fields are skipped we execute a dummy task in order
                     // to not have to many extra API for this special case.
-                    backlog.Register(new NoOpExecutionTask(operationContext));
+                    scheduler.Register(new NoOpExecutionTask(operationContext));
                 }
                 else
                 {
-                    backlog.Register(buffer, buffered);
+                    scheduler.Register(buffer, buffered);
                 }
 
                 TryHandleDeferredFragments(
@@ -86,11 +86,11 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            IWorkBacklog backlog = operationContext.Execution.Work;
+            IWorkScheduler scheduler = operationContext.Scheduler;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
-            var bufferSize = buffer.Length;
+            IExecutionTask?[]? buffer = null;
+            var bufferSize = selections.Count;
             var buffered = 0;
 
             try
@@ -101,12 +101,6 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                     if (selection.IsIncluded(variables))
                     {
-                        if (buffered == bufferSize)
-                        {
-                            backlog.Register(buffer, buffer.Length);
-                            buffered = 0;
-                        }
-
                         if (selection.Strategy is SelectionExecutionStrategy.Pure)
                         {
                             ResolveAndCompleteInline(
@@ -121,6 +115,11 @@ namespace HotChocolate.Execution.Processing.Tasks
                         }
                         else
                         {
+                            if (buffer == null)
+                            {
+                                buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
+                            }
+
                             buffer[buffered++] = CreateResolverTask(
                                 operationContext,
                                 resolverContext,
@@ -129,13 +128,19 @@ namespace HotChocolate.Execution.Processing.Tasks
                                 responseIndex++,
                                 result,
                                 resultMap);
+
+                            if (buffered == bufferSize)
+                            {
+                                scheduler.Register(buffer!, bufferSize);
+                                buffered = 0;
+                            }
                         }
                     }
                 }
 
                 if (buffered > 0)
                 {
-                    backlog.Register(buffer, buffered);
+                    scheduler.Register(buffer!, buffered);
                 }
 
                 TryHandleDeferredFragments(
@@ -149,7 +154,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                if (buffer != null)
+                {
+                    ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                }
             }
         }
 
@@ -207,7 +215,9 @@ namespace HotChocolate.Execution.Processing.Tasks
                     ex);
             }
 
-            if (completedValue is null && selection.Field.Type.IsNonNullType())
+            var isNullable = selection.Type.IsNonNullType();
+
+            if (completedValue is null && isNullable)
             {
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
@@ -222,7 +232,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     responseIndex,
                     selection.ResponseName,
                     completedValue,
-                    selection.Type.IsNullableType());
+                    isNullable);
             }
 
             bool TryExecute(out object? result)
@@ -261,7 +271,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             object parent,
             ResultMap resultMap)
         {
-            ResolverTask task = operationContext.Execution.ResolverTasks.Get();
+            ResolverTask task = operationContext.ResolverTasks.Get();
 
             task.Initialize(
                 operationContext,
@@ -284,7 +294,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap,
             IImmutableDictionary<string, object?> scopedContext)
         {
-            ResolverTask task = operationContext.Execution.ResolverTasks.Get();
+            ResolverTask task = operationContext.ResolverTasks.Get();
 
             task.Initialize(
                 operationContext,
@@ -313,7 +323,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     IFragment fragment = fragments[i];
                     if (!fragment.IsConditional)
                     {
-                        operationContext.Execution.DeferredWork.Register(
+                        operationContext.Scheduler.DeferredWork.Register(
                             new DeferredFragment(
                                 fragment,
                                 fragment.GetLabel(operationContext.Variables),

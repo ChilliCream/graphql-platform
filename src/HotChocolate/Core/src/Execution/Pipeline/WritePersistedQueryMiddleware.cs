@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Pipeline
                 context.DocumentId is { } documentId &&
                 context.Request.Query is { } query &&
                 context.Result is IReadOnlyQueryResult result &&
-                context.ValidationResult is { HasErrors: false } &&
+                context.IsValidDocument &&
                 context.Request.Extensions is { } &&
                 context.Request.Extensions.TryGetValue(_persistedQuery, out var s) &&
                 s is IReadOnlyDictionary<string, object> settings)
