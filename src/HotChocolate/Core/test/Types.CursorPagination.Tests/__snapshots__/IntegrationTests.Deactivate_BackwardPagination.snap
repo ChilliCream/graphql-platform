@@ -38,9 +38,9 @@ type PageInfo {
 }
 
 type Query {
-  letters(first: Int after: String): StringConnection
-  explicitType(first: Int after: String): StringConnection
-  nestedObjectList(first: Int after: String): FooConnection
+  letters("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): StringConnection
+  explicitType("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): StringConnection
+  nestedObjectList("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String): FooConnection
 }
 
 "A connection to a list of items."

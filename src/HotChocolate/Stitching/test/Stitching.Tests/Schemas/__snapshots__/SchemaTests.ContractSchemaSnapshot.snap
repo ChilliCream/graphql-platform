@@ -30,7 +30,10 @@ type LifeInsuranceContract implements Node & Contract {
 }
 
 type Query {
-  node(id: ID!): Node
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   contract(contractId: ID!): Contract
   contracts(customerId: ID!): [Contract!]
   extendedScalar(d: DateTime): DateTime

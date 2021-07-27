@@ -6146,7 +6146,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6156,7 +6156,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6166,7 +6166,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6176,7 +6176,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6311,7 +6311,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6321,7 +6321,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6331,7 +6331,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6341,7 +6341,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6507,7 +6507,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6517,7 +6517,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6527,7 +6527,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6537,7 +6537,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
