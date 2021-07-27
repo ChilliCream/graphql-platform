@@ -1,40 +1,25 @@
 using System;
-using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
-using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution.Processing
 {
-    /// <inheritdoc/>
-    internal partial class WorkBacklog : IWorkBacklog
+    internal partial class WorkScheduler : IWorkScheduler
     {
-        private static readonly Task<bool> _falseResult = Task.FromResult(false);
-        private static readonly Task<bool> _trueResult = Task.FromResult(true);
+        /// <inheritdoc/>
+        public bool IsCompleted => _completed;
 
-        private readonly object _sync = new();
-        private readonly WorkQueue _work = new();
-        private readonly WorkQueue _serial = new();
-        private readonly SuspendedWorkQueue _suspended = new();
-        private readonly QueryPlanStateMachine _stateMachine = new();
-
-        private TaskCompletionSource<bool> _completion = default!;
-        private TaskCompletionSource<bool>? _pause;
-
-        private bool _processing;
-        private bool _completed;
-
-        private IRequestContext _requestContext = default!;
-        private IBatchDispatcher _batchDispatcher = default!;
-        private IErrorHandler _errorHandler = default!;
-        private IResultHelper _result = default!;
-        private IDiagnosticEvents _diagnosticEvents = default!;
-        private CancellationToken _requestAborted;
+        /// <inheritdoc />
+        public IDeferredWorkBacklog DeferredWork
+        {
+            get
+            {
+                AssertNotPooled();
+                return _deferredWorkBacklog;
+            }
+        }
 
         private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
@@ -42,28 +27,6 @@ namespace HotChocolate.Execution.Processing
             => _work.HasRunningTasks ||
                _serial.HasRunningTasks ||
                !_stateMachine.IsCompleted;
-
-        /// <inheritdoc/>
-        public Task Completion => _completion.Task;
-
-        internal void Initialize(OperationContext operationContext)
-        {
-            Clear();
-
-            _completion = new TaskCompletionSource<bool>();
-
-            _batchDispatcher = operationContext.Execution.BatchDispatcher;
-            _requestContext = operationContext.RequestContext;
-            _diagnosticEvents = operationContext.RequestContext.DiagnosticEvents;
-            _requestAborted = operationContext.RequestAborted;
-            _errorHandler = operationContext.ErrorHandler;
-            _result = operationContext.Result;
-
-            _stateMachine.Initialize(operationContext, operationContext.QueryPlan);
-            _requestContext.RequestAborted.Register(Cancel);
-
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-        }
 
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
@@ -74,7 +37,6 @@ namespace HotChocolate.Execution.Processing
             }
 
             var started = false;
-
             var state = _stateMachine.TryGetStep(task);
 
             lock (_sync)
@@ -117,40 +79,32 @@ namespace HotChocolate.Execution.Processing
 
             bool started;
 
-            object?[] step = ArrayPool<object?>.Shared.Rent(length);
+            for (var i = 0; i < length; i++)
+            {
+                IExecutionTask task = tasks[i]!;
+                Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
+                task.State ??= _stateMachine.TryGetStep(task);
+            }
 
-            try
+            lock (_sync)
             {
                 for (var i = 0; i < length; i++)
                 {
-                    step[i] = _stateMachine.TryGetStep(tasks[i]!);
-                }
+                    IExecutionTask task = tasks[i]!;
+                    tasks[i] = null;
 
-                lock (_sync)
-                {
-                    for (var i = 0; i < length; i++)
+                    if (_stateMachine.RegisterTask(task))
                     {
-                        IExecutionTask task = tasks[i]!;
-                        tasks[i] = null;
-                        Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
-
-                        if (_stateMachine.RegisterTask(task, step[i]))
-                        {
-                            WorkQueue work = task.IsSerial ? _serial : _work;
-                            work.Push(task);
-                        }
-                        else
-                        {
-                            _suspended.Enqueue(task);
-                        }
+                        WorkQueue work = task.IsSerial ? _serial : _work;
+                        work.Push(task);
                     }
-
-                    started = TryStartProcessingUnsafe();
+                    else
+                    {
+                        _suspended.Enqueue(task);
+                    }
                 }
-            }
-            finally
-            {
-                ArrayPool<object?>.Shared.Return(step);
+
+                started = TryStartProcessingUnsafe();
             }
 
             if (started)
@@ -245,21 +199,12 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryStartProcessingUnsafe()
         {
-            if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
+            if (_pause != null && !_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
-
-                if (_pause is null)
-                {
-                    StartProcessing();
-                }
-                else
-                {
-                    TaskCompletionSource<bool> pause = _pause;
-                    _pause = null;
-                    pause.TrySetResult(false);
-                }
-
+                TaskCompletionSource<bool> pause = _pause;
+                _pause = null;
+                pause.TrySetResult(false);
                 return true;
             }
 
@@ -273,7 +218,7 @@ namespace HotChocolate.Execution.Processing
 
             // if the execution is already completed or if the completion task is
             // null we stop processing
-            if (_completed || _completion is null! || _requestAborted.IsCancellationRequested)
+            if (_completed || _requestAborted.IsCancellationRequested)
             {
                 return _trueResult;
             }
@@ -352,46 +297,7 @@ namespace HotChocolate.Execution.Processing
             lock (_sync)
             {
                 _completed = true;
-
                 _pause?.TrySetResult(true);
-
-                if (_completion is not null!)
-                {
-                    _completion.TrySetCanceled();
-                }
-            }
-        }
-
-        public void Clear()
-        {
-            lock (_sync)
-            {
-                _pause?.TrySetResult(true);
-                _pause = null;
-
-                if (_completion is not null!)
-                {
-                    _completion.TrySetCanceled();
-                    _completion = default!;
-                }
-
-                if (_batchDispatcher is not null!)
-                {
-                    _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-                    _batchDispatcher = default!;
-                }
-
-                _work.Clear();
-                _suspended.Clear();
-                _stateMachine.Clear();
-                _processing = false;
-                _completed = false;
-
-                _requestContext = default!;
-                _errorHandler = default!;
-                _result = default!;
-                _diagnosticEvents = default!;
-                _requestAborted = default;
             }
         }
 
@@ -402,7 +308,6 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause?.TrySetResult(true);
                 _completed = true;
-                _completion.TrySetResult(true);
                 return true;
             }
 
@@ -410,7 +315,6 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause?.TrySetResult(true);
                 _completed = true;
-                _completion.TrySetCanceled();
                 return true;
             }
 

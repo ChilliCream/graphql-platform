@@ -93,9 +93,9 @@ namespace HotChocolate.Execution.Processing.Plan
             return true;
         }
 
-        public bool Register(IExecutionTask task)
+        public bool RegisterTask(IExecutionTask task)
         {
-            if (_plan.TryGetStep(task, out var step))
+            if (task.State is QueryPlanStep step)
             {
                 InitializeState(step, out State state);
 

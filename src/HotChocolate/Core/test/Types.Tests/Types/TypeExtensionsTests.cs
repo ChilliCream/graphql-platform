@@ -243,10 +243,11 @@ namespace HotChocolate.Types
         public static void IsComplexType_UnionType_False()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsComplexType();
+            bool result = type.Object.IsComplexType();
 
             // assert
             Assert.False(result);
@@ -292,10 +293,11 @@ namespace HotChocolate.Types
         public static void IsLeafType_EnumType_True()
         {
             // arrange
-            IType type = Mock.Of<EnumType>();
+            var type = new Mock<EnumType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
 
             // act
-            bool result = type.IsLeafType();
+            bool result = type.Object.IsLeafType();
 
             // assert
             Assert.True(result);
@@ -400,10 +402,11 @@ namespace HotChocolate.Types
         public static void IsObjectType_True()
         {
             // arrange
-            IType type = Mock.Of<ObjectType>();
+            var type = new Mock<ObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Object);
 
             // act
-            bool result = type.IsObjectType();
+            bool result = type.Object.IsObjectType();
 
             // assert
             Assert.True(result);
@@ -449,10 +452,11 @@ namespace HotChocolate.Types
         public static void IsScalarType_False()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsInterfaceType();
+            bool result = type.Object.IsScalarType();
 
             // assert
             Assert.False(result);
@@ -472,10 +476,11 @@ namespace HotChocolate.Types
         public static void IsEnumType_True()
         {
             // arrange
-            IType type = Mock.Of<EnumType>();
+            var type = new Mock<EnumType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Enum);
 
             // act
-            bool result = type.IsEnumType();
+            bool result = type.Object.IsEnumType();
 
             // assert
             Assert.True(result);
@@ -508,10 +513,11 @@ namespace HotChocolate.Types
         public static void IsUnionType_True()
         {
             // arrange
-            IType type = Mock.Of<UnionType>();
+            var type = new Mock<UnionType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.Union);
 
             // act
-            bool result = type.IsUnionType();
+            bool result = type.Object.IsUnionType();
 
             // assert
             Assert.True(result);
@@ -544,10 +550,11 @@ namespace HotChocolate.Types
         public static void IsInputObjectType_True()
         {
             // arrange
-            IType type = Mock.Of<InputObjectType>();
+            var type = new Mock<InputObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
 
             // act
-            bool result = type.IsInputObjectType();
+            bool result = type.Object.IsInputObjectType();
 
             // assert
             Assert.True(result);
@@ -678,10 +685,11 @@ namespace HotChocolate.Types
         public static void IsAbstractType_False()
         {
             // arrange
-            IType type = Mock.Of<InputObjectType>();
+            var type = new Mock<InputObjectType>();
+            type.SetupGet(t => t.Kind).Returns(TypeKind.InputObject);
 
             // act
-            bool result = type.IsAbstractType();
+            bool result = type.Object.IsAbstractType();
 
             // assert
             Assert.False(result);
@@ -704,7 +712,7 @@ namespace HotChocolate.Types
             IType type = new StringType();
 
             // act
-            bool result = type.IsType<StringType>();
+            bool result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.True(result);
@@ -717,7 +725,7 @@ namespace HotChocolate.Types
             IType type = new NonNullType(new StringType());
 
             // act
-            bool result = type.IsType<StringType>();
+            bool result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.True(result);
@@ -730,7 +738,7 @@ namespace HotChocolate.Types
             IType type = Mock.Of<InputObjectType>();
 
             // act
-            bool result = type.IsType<StringType>();
+            bool result = type.IsType(TypeKind.Scalar);
 
             // assert
             Assert.False(result);

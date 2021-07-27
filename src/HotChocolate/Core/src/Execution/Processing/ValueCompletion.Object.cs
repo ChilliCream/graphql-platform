@@ -76,18 +76,20 @@ namespace HotChocolate.Execution.Processing
                     return true;
                 }
 
-                switch (fieldType)
+                switch (fieldType.Kind)
                 {
-                    case ObjectType ot:
-                        objectType = ot;
+                    case TypeKind.Object:
+                        objectType = (ObjectType)fieldType;
                         return true;
 
-                    case InterfaceType it:
-                        objectType = it.ResolveConcreteType(resolverContext, result);
+                    case TypeKind.Interface:
+                        objectType = ((InterfaceType)fieldType)
+                            .ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
 
-                    case UnionType ut:
-                        objectType = ut.ResolveConcreteType(resolverContext, result);
+                    case TypeKind.Union:
+                        objectType = ((UnionType)fieldType)
+                            .ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
                 }
 

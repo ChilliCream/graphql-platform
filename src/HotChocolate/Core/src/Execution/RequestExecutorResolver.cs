@@ -477,7 +477,7 @@ namespace HotChocolate.Execution
             public IAsyncEnumerable<INamedType> CreateTypesAsync(IDescriptorContext context)
                 => new TypeModuleEnumerable(_typeModules, context);
 
-            private void EvictRequestExecutor(object sender, EventArgs args)
+            private void EvictRequestExecutor(object? sender, EventArgs args)
                 => _resolver.EvictRequestExecutor(SchemaName);
 
             public void Dispose()
