@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Processing
@@ -26,7 +28,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
-        void Register(IExecutionTask?[] tasks, int length);
+        void Register(List<IExecutionTask> tasks);
 
         /// <summary>
         /// Complete a task
