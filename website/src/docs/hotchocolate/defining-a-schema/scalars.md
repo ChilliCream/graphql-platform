@@ -15,15 +15,163 @@ GraphQL gives us the freedom to define custom scalar types.
 This makes them the perfect tool for expressive value types.
 We could, for example, create a scalar for `CreditCardNumber` or `NonEmptyString`.
 
-The GraphQL specification defines the following scalars
+# GraphQL scalars
 
-| Type      | Description                                                 |
-| --------- | ----------------------------------------------------------- |
-| `Int`     | Signed 32-bit numeric non-fractional value                  |
-| `Float`   | Double-precision fractional values as specified by IEEE 754 |
-| `String`  | UTF-8 character sequences                                   |
-| `Boolean` | Boolean type representing true or false                     |
-| `ID`      | Unique identifier                                           |
+The GraphQL specification defines the following scalars.
+
+## String
+
+TODO: UTF-8 character sequences
+
+```sdl
+type Product {
+  description: String;
+}
+```
+
+## Boolean
+
+TODO: Boolean type representing true or false
+
+```sdl
+type Product {
+  purchasable: Boolean;
+}
+```
+
+## Int
+
+TODO: Signed 32-bit numeric non-fractional value
+
+```sdl
+type Product {
+  quantity: Int;
+}
+```
+
+## Float
+
+TODO: Double-precision fractional values as specified by IEEE 754
+
+```sdl
+type Product {
+  price: Float;
+}
+```
+
+## ID
+
+Most of the types in our schema will contain an `id` field, used to identify the corresponding entity in our persistence layer.
+
+Issues can arise, when the types of these `id` fields are dependent upon the technology used in the persistence layer. If we are using SQL for example, the type of the `id` field would be `Int`, when using MongoDB it would be `String`. If we ever decide to switch the technology used in the persistence layer, we would also have to change the schema type of the `id` field accordingly. This would break most of our clients, even though these clients should not have to care which technology our backend is using to store an entity in the first place.
+
+To facilitate technology-specific Ids, there's the `ID` scalar.
+
+TODO: describe the ID scalar and its requirements in more detail
+
+```sdl
+type Query {
+  product(id: ID!): Product
+}
+
+type Product {
+  id: ID!;
+}
+```
+
+`ID` values are always represented as a [String](#string), but can be coerced to their expected type on the server.
+
+We can create a schema like the above in the following way.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(IdType))]
+    public int Id { get; set; }
+}
+
+public class Query
+{
+    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+        => new() { Id = id };
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.Name("Product");
+
+        descriptor.Field(f => f.Id).Type<NonNullType<IdType>>();
+    }
+}
+
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("product")
+            .Argument("id", a => a.Type<NonNullType<IdType>>())
+            .Type<ProductType>()
+            .Resolve(context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                return new Product { Id = id };
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+Usage of the `ID` scalar would look like the following.
+
+**Request:**
+
+```graphql
+{
+  product(id: "123") {
+    id
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "product": {
+      "id": "123"
+    }
+  }
+}
+```
+
+Notice how our code uses `int` for the `Id`, but in the actual request and the response a `string` is being used. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
 # .NET Scalars
 
