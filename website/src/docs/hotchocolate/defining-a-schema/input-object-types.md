@@ -161,5 +161,38 @@ public class Startup
 }
 ```
 
+> ⚠ Note: Object types nested inside of an input object type need to also be declared as input object types.
+
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+## Immutable types
+
+If we want our input type classes to be immutable, or we are using [nullable reference types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references), we can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that
+
+1. The type of the argument must exactly match the property's type
+2. The name of the argument must match the property name (bar a lowercase first letter)
+3. No setters will be called, so you need to provide arguments for all the properties.
+
+Hot Chocolate validates any custom input constructor at schema build time, so we don't need to worry about breaking things during refactoring!
+
+```csharp
+public class BookInput
+{
+    // No need for the setters now
+    public string Title { get; }
+    public string Author { get; }
+
+    public BookingInput(string title, string author)
+    {
+        Title = title;
+        Author = author;
+    }
+}
+```
+
+We can also use record types, if we're on C# 9.0+. The equivalent to the above would be:
+
+```csharp
+public record BookingInput(string Title, string Author);
+```
