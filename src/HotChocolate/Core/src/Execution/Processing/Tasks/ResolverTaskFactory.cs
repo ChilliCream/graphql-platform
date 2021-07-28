@@ -82,7 +82,6 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            IWorkScheduler scheduler = operationContext.Scheduler;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
             var final = !selectionSet.IsConditional;
