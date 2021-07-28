@@ -141,7 +141,9 @@ namespace HotChocolate.ConferencePlanner
                     // filtering and sorting.
                     .AddFiltering()
                     .AddSorting()
-                    .EnableRelaySupport()
+                    .AddGlobalObjectIdentification()
+                    .AddQueryFieldToMutationPayloads()
+                    .AddIdSerializer()
 
                     // Now we add some the DataLoader to our system. 
                     .AddDataLoader<AttendeeByIdDataLoader>()

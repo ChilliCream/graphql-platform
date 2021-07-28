@@ -103,7 +103,6 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                     if (_taskBuffer.Count > 0)
                     {
-                        Console.WriteLine(_selection.ResponseName);
                         _operationContext.Scheduler.Register(_taskBuffer);
                     }
                 }

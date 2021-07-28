@@ -69,8 +69,6 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(tasks));
             }
 
-            Console.WriteLine($"Register {tasks.Count}");
-
             if (tasks.Count == 1)
             {
                 Register(tasks[0]!);
@@ -308,15 +306,15 @@ namespace HotChocolate.Execution.Processing
         {
             if (HasCompleted())
             {
-                _pause.TryContinueUnsafe();
                 _completed = true;
+                _pause.TryContinueUnsafe();
                 return true;
             }
 
             if (IsCanceled())
             {
-                _pause.TryContinueUnsafe();
                 _completed = true;
+                _pause.TryContinueUnsafe();
                 return true;
             }
 

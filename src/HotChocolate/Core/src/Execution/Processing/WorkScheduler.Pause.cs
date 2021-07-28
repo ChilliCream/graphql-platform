@@ -27,13 +27,10 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (_continue)
                     {
-                        Console.WriteLine("Quick Continue");
                         _continue = false;
                         continuation();
                         return;
                     }
-
-                    Console.WriteLine("Wait");
 
                     if (_continuation is not null)
                     {
@@ -46,8 +43,6 @@ namespace HotChocolate.Execution.Processing
 
             public void TryContinueUnsafe()
             {
-                Console.WriteLine("Wait");
-
                 lock (_sync)
                 {
                     Action? continuation = _continuation;
