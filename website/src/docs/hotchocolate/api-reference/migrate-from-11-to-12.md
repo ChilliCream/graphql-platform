@@ -131,24 +131,3 @@ public string Id { get; set; }
 ```csharp
 descriptor.Field(f => f.Id).GlobalId();
 ```
-
-### Shorthand for specifying the IdType
-
-If you have previously used the `IDAttribute` as a shorthand for the `ID` scalar (`IdType`), but didn't actually need the Relay specific encoding of the Ids, you can create your own attribute and use it as shorthand:
-
-```csharp
-public class IdAttribute : ObjectFieldDescriptorAttribute
-{
-    public override void OnConfigure(IDescriptorContext context,
-        IObjectFieldDescriptor descriptor, MemberInfo member)
-    {
-        descriptor.Type<NonNullType<IdType>>();
-    }
-}
-
-public class Foo
-{
-    [Id]
-    public string Id { get; set; }
-}
-```
