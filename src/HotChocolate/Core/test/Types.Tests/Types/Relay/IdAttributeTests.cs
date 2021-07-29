@@ -306,6 +306,12 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
+        public void EnsureIdIsOnlyAppliedOnce()
+        {
+            SchemaBuilder.New()
+                .AddTy
+        }
+
         [SuppressMessage("Performance", "CA1822:Mark members as static")]
         public class Query
         {
@@ -334,6 +340,7 @@ namespace HotChocolate.Types.Relay
                 string.Join(", ", id.Select(t => t?.ToString() ?? "null"));
 
             public string InterceptedId([InterceptedID] [ID] int id) => id.ToString();
+
             public string InterceptedIds([InterceptedID] [ID] int[] id) =>
                 string.Join(", ", id.Select(t => t.ToString()));
 
@@ -469,6 +476,16 @@ namespace HotChocolate.Types.Relay
                             .Select(x => new IdValue("x", "y", int.Parse(x)))
                             .ToArray()
                         : new IdValue("x", "y", int.Parse((string)runtimeValue!));
+            }
+        }
+
+        public class TestQuery : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+
+                descriptor.Field("abc").ID().ID().Resolve("abc");
             }
         }
     }
