@@ -4,16 +4,9 @@ title: "Scalars"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-A GraphQL schema should be built as expressive as possible.
-Just from looking at the schema, a developer should know how to use the API.
-In GraphQL we are not limited to only describing the structure of a type, we can even describe value types.
-Scalar types represent types that can hold data of a specific kind.
-Scalars are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type.
+Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
-A scalar must only know how to serialize and deserialize the value of the field.
-GraphQL gives us the freedom to define custom scalar types.
-This makes them the perfect tool for expressive value types.
-We could, for example, create a scalar for `CreditCardNumber` or `NonEmptyString`.
+Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
 
 # GraphQL scalars
 
