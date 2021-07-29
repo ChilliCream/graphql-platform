@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>false</IsPackable>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- <PackageId>HotChocolate.CodeGeneration.Neo4J</PackageId> -->
+    <AssemblyName>HotChocolate.CodeGeneration.Neo4J</AssemblyName>
+    <RootNamespace>HotChocolate.CodeGeneration.Neo4J</RootNamespace>
+    <Description>Contains source generators for Neo4J.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGeneration\HotChocolate.CodeGeneration.csproj" />
+  </ItemGroup>
+
+</Project>

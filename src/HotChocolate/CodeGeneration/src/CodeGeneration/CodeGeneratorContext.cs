@@ -4,7 +4,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.CodeGeneration
 {
-    public class Neo4JCodeGeneratorContext
+    public class CodeGeneratorContext
     {
         /// <summary>
         /// A name for what's being generated.
@@ -26,7 +26,7 @@ namespace HotChocolate.CodeGeneration
         /// </summary>
         public IReadOnlyList<DocumentNode> Documents { get; }
 
-        public Neo4JCodeGeneratorContext(
+        public CodeGeneratorContext(
             string name,
             string databaseName,
             string @namespace,

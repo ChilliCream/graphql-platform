@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Neo4J.Types
 {
     public class RelationshipDirectionType : EnumType<RelationshipDirection>
     {
