@@ -21,17 +21,17 @@ The GraphQL specification defines the following scalars.
 
 ## String
 
-TODO: UTF-8 character sequences
-
 ```sdl
 type Product {
   description: String;
 }
 ```
 
-## Boolean
+This scalar represents an UTF-8 character sequence.
 
-TODO: Boolean type representing true or false
+It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
+
+## Boolean
 
 ```sdl
 type Product {
@@ -39,9 +39,11 @@ type Product {
 }
 ```
 
-## Int
+This scalar represent a Boolean value, which can be either `true` or `false`.
 
-TODO: Signed 32-bit numeric non-fractional value
+It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
+
+## Int
 
 ```sdl
 type Product {
@@ -49,9 +51,11 @@ type Product {
 }
 ```
 
-## Float
+This scalar represents a signed 32-bit numeric non-fractional value.
 
-TODO: Double-precision fractional values as specified by IEEE 754
+It is automatically inferred from the usage of the .NET [int type](https://docs.microsoft.com/dotnet/api/system.int32).
+
+## Float
 
 ```sdl
 type Product {
@@ -59,29 +63,25 @@ type Product {
 }
 ```
 
+This scalar represents double-precision fractional values, as specified by IEEE 754.
+
+It is automatically inferred from the usage of the .NET [float](https://docs.microsoft.com/dotnet/api/system.single) or [double type](https://docs.microsoft.com/dotnet/api/system.double).
+
+> Note: We introduced a separate `Decimal` scalar to handle `decimal` values.
+
 ## ID
 
-Most of the types in our schema will contain an `id` field, used to identify the corresponding entity in our persistence layer.
-
-Issues can arise, when the types of these `id` fields are dependent upon the technology used in the persistence layer. If we are using SQL for example, the type of the `id` field would be `Int`, when using MongoDB it would be `String`. If we ever decide to switch the technology used in the persistence layer, we would also have to change the schema type of the `id` field accordingly. This would break most of our clients, even though these clients should not have to care which technology our backend is using to store an entity in the first place.
-
-To facilitate technology-specific Ids, there's the `ID` scalar.
-
-TODO: describe the ID scalar and its requirements in more detail
-
 ```sdl
-type Query {
-  product(id: ID!): Product
-}
-
 type Product {
   id: ID!;
 }
 ```
 
-`ID` values are always represented as a [String](#string), but can be coerced to their expected type on the server.
+This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
 
-We can create a schema like the above in the following way.
+It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+
+`ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -96,7 +96,9 @@ public class Product
 public class Query
 {
     public Product GetProduct([GraphQLType(typeof(IdType))] int id)
-        => new() { Id = id };
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
@@ -115,7 +117,7 @@ public class ProductType : ObjectType<Product>
     {
         descriptor.Name("Product");
 
-        descriptor.Field(f => f.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(f => f.Id).Type<IdType>();
     }
 }
 
@@ -127,13 +129,13 @@ public class QueryType : ObjectType
 
         descriptor
             .Field("product")
-            .Argument("id", a => a.Type<NonNullType<IdType>>())
+            .Argument("id", a => a.Type<IdType>())
             .Type<ProductType>()
             .Resolve(context =>
             {
                 var id = context.ArgumentValue<int>("id");
 
-                return new Product { Id = id };
+                // Omitted code for brevity
             });
     }
 }
@@ -142,36 +144,42 @@ public class QueryType : ObjectType
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+               type Query {
+                 product(id: ID): Product
+               }
+
+               type Product {
+                 id: ID
+               }
+            ")
+            .BindComplexType<Product>()
+            .AddResolver("Query", "product", context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-Usage of the `ID` scalar would look like the following.
-
-**Request:**
-
-```graphql
-{
-  product(id: "123") {
-    id
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "data": {
-    "product": {
-      "id": "123"
-    }
-  }
-}
-```
-
-Notice how our code uses `int` for the `Id`, but in the actual request and the response a `string` is being used. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
+Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
 # .NET Scalars
 
@@ -313,13 +321,13 @@ dotnet add package HotChocolate.Types.Scalars
 | PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
 | PostalCode       | Postal code                                                                                                                                              |
 | Port             | TCP port within the range of 0 to 65535                                                                                                                  |
-| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                 |
-| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                |
+| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
+| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
 | UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
-[1]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors
+[1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
 [2]: https://tools.ietf.org/html/rfc3339
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
