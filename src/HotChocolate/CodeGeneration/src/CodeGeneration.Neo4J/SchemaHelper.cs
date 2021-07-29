@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Language;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Neo4J.Types
 {
     public static class SchemaHelper
     {
@@ -15,13 +16,14 @@ namespace HotChocolate.CodeGeneration.Types
             schemaBuilder.AddDirectiveType<SortingDirectiveType>();
             schemaBuilder.AddDirectiveType<OperationDirectiveType>();
             schemaBuilder.AddDirectiveType<PagingDirectiveType>();
-            schemaBuilder.AddDirectiveType<RelationshipDirectiveType>();
             schemaBuilder.AddDirectiveType<TypeNameDirectiveType>();
+
+            schemaBuilder.AddDirectiveType<RelationshipDirectiveType>();
 
             schemaBuilder.ModifyOptions(o => o.StrictValidation = false);
             schemaBuilder.Use(next => next);
 
-            foreach (var document in documents)
+            foreach (DocumentNode? document in documents)
             {
                 schemaBuilder.AddDocument(document);
             }

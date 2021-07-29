@@ -1,4 +1,4 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Neo4J.Types
 {
     public class RelationshipDirective
     {

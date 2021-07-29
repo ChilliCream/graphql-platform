@@ -1,19 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.CodeGeneration.Neo4J.Types;
 using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.CodeGeneration.TypeNames;
+using static HotChocolate.CodeGeneration.Neo4J.Neo4JTypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
-namespace HotChocolate.CodeGeneration
+namespace HotChocolate.CodeGeneration.Neo4J
 {
-    public partial class Neo4JCodeGenerator : INeo4JCodeGenerator
+    public partial class Neo4JCodeGenerator : ICodeGenerator
     {
-        public CodeGenerationResult Generate(Neo4JCodeGeneratorContext context)
+        public CodeGenerationResult Generate(CodeGeneratorContext context)
         {
             var result = new CodeGenerationResult();
 
@@ -31,7 +33,7 @@ namespace HotChocolate.CodeGeneration
         private static void GenerateTypes(
             CodeGenerationResult result,
             DataGeneratorContext dataContext,
-            Neo4JCodeGeneratorContext generatorContext,
+            CodeGeneratorContext generatorContext,
             ISchema schema)
         {
             GenerateQueryType(
@@ -51,7 +53,7 @@ namespace HotChocolate.CodeGeneration
         private static void GenerateQueryType(
             CodeGenerationResult result,
             DataGeneratorContext dataContext,
-            Neo4JCodeGeneratorContext generatorContext,
+            CodeGeneratorContext generatorContext,
             IReadOnlyList<IObjectType> objectTypes)
         {
             ClassDeclarationSyntax queryDeclaration =
@@ -138,7 +140,7 @@ namespace HotChocolate.CodeGeneration
 
         private static MethodDeclarationSyntax CreateQueryResolver(
             DataGeneratorContext dataContext,
-            Neo4JCodeGeneratorContext context,
+            CodeGeneratorContext generatorContext,
             IObjectType objectType)
         {
             const string session = nameof(session);
@@ -173,7 +175,7 @@ namespace HotChocolate.CodeGeneration
                                     Argument(IdentifierName("session")))))))
                 .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
                 .AddGraphQLNameAttribute(GraphQLFieldName(pluralTypeName))
-                .AddNeo4JDatabaseAttribute(context.DatabaseName)
+                .AddNeo4JDatabaseAttribute(generatorContext.DatabaseName)
                 .AddPagingAttribute(dataContext.Paging)
                 .AddProjectionAttribute();
 
@@ -192,9 +194,9 @@ namespace HotChocolate.CodeGeneration
 
         private static void GenerateDependencyInjectionCode(
             CodeGenerationResult result,
-            Neo4JCodeGeneratorContext codeGeneratorContext)
+            CodeGeneratorContext generatorContext)
         {
-            var typeName = codeGeneratorContext.Name + "RequestExecutorBuilderExtensions";
+            var typeName = generatorContext.Name + "RequestExecutorBuilderExtensions";
 
             ClassDeclarationSyntax dependencyInjectionCode =
                 ClassDeclaration(typeName)
@@ -206,7 +208,7 @@ namespace HotChocolate.CodeGeneration
 
             var statements = new List<StatementSyntax>
             {
-                AddTypeExtension(Global(codeGeneratorContext.Namespace + ".Query")),
+                AddTypeExtension(Global(generatorContext.Namespace + ".Query")),
                 AddNeo4JFiltering(),
                 AddNeo4JSorting(),
                 AddNeo4JProjections(),
@@ -216,7 +218,7 @@ namespace HotChocolate.CodeGeneration
             MethodDeclarationSyntax addTypes =
                 MethodDeclaration(
                     IdentifierName(Global(IRequestExecutorBuilder)),
-                    Identifier("Add" + codeGeneratorContext.Name + "Types"))
+                    Identifier("Add" + generatorContext.Name + "Types"))
                 .WithModifiers(
                     TokenList(
                         Token(SyntaxKind.PublicKeyword),
