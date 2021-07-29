@@ -320,7 +320,7 @@ namespace HotChocolate.Types.Relay
                 .AddQueryType(d =>
                 {
                     d.Name("Query");
-                    d.Field("abc").ID().ID().ID().ID().Resolve("abc");
+                    d.Field("abc").GlobalId().GlobalId().GlobalId().GlobalId().Resolve("abc");
                 })
                 .TryAddTypeInterceptor(inspector)
                 .Create();

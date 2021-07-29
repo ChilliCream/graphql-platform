@@ -17,6 +17,29 @@ namespace HotChocolate.Types
     {
         private static IdSerializer? _idSerializer;
 
+        [Obsolete("Use GlobalId")]
+        public static IInputFieldDescriptor ID(
+            this IInputFieldDescriptor descriptor,
+            NameString typeName = default)
+            => descriptor.GlobalId(typeName);
+
+        [Obsolete("Use GlobalId")]
+        public static IArgumentDescriptor ID(
+            this IArgumentDescriptor descriptor,
+            NameString typeName = default)
+            => descriptor.GlobalId(typeName);
+
+        [Obsolete("Use GlobalId")]
+        public static IObjectFieldDescriptor ID(
+            this IObjectFieldDescriptor descriptor,
+            NameString typeName = default)
+            => descriptor.GlobalId(typeName);
+
+        [Obsolete("Use GlobalId")]
+        public static IInterfaceFieldDescriptor ID(
+            this IInterfaceFieldDescriptor descriptor)
+            => descriptor.GlobalId();
+
         public static IInputFieldDescriptor GlobalId(
             this IInputFieldDescriptor descriptor,
             NameString typeName = default)
@@ -86,7 +109,7 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             ArgumentDefinition definition)
         {
-            if(definition.Type is ExtendedTypeReference typeReference)
+            if (definition.Type is ExtendedTypeReference typeReference)
             {
                 ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
                 IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
@@ -104,7 +127,7 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             ObjectFieldDefinition definition)
         {
-            if(definition.Type is ExtendedTypeReference typeReference)
+            if (definition.Type is ExtendedTypeReference typeReference)
             {
                 ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
                 IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
@@ -122,7 +145,7 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             InterfaceFieldDefinition definition)
         {
-            if(definition.Type is ExtendedTypeReference typeReference)
+            if (definition.Type is ExtendedTypeReference typeReference)
             {
                 ITypeInfo typeInfo = context.TypeInspector.CreateTypeInfo(typeReference.Type);
                 IExtendedType type = RewriteType(context.TypeInspector, typeInfo);
