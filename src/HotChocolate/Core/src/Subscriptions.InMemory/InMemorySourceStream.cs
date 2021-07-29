@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using static HotChocolate.Subscriptions.Properties.Resources;
+using static HotChocolate.Subscriptions.InMemory.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.InMemory
 {
