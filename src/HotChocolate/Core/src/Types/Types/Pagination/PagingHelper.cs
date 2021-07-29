@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.WellKnownMiddleware;
 
 #nullable enable
 
@@ -28,10 +29,11 @@ namespace HotChocolate.Types.Pagination
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = _ => _ => default;
+            FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
@@ -54,7 +56,7 @@ namespace HotChocolate.Types.Pagination
             Type? entityType,
             GetPagingProvider? resolvePagingProvider,
             PagingOptions options,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             options = context.GetSettings(options);
             entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
@@ -65,8 +67,8 @@ namespace HotChocolate.Types.Pagination
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
 
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
         }
 
         private static IExtendedType GetSourceType(

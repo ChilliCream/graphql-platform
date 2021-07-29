@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Fetching.Utilities.ThrowHelper;
+using static HotChocolate.WellKnownMiddleware;
 
 #nullable enable
 
@@ -24,15 +25,16 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Type dataLoaderType)
         {
-            FieldMiddleware placeholder = _ => _ => default;
+            FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: DataLoader);
 
             if (!TryGetDataLoaderTypes(dataLoaderType, out Type? keyType, out Type? valueType))
             {
                 throw DataLoader_InvalidType(dataLoaderType);
             }
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (c, definition) =>
@@ -76,7 +78,7 @@ namespace HotChocolate.Types
 
         private static void CompileMiddleware(
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             Type keyType,
             Type valueType,
             Type dataLoaderType)
@@ -96,8 +98,8 @@ namespace HotChocolate.Types
             }
 
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] = new(middleware, key: DataLoader);
         }
 
         private static bool TryGetDataLoaderTypes(

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
@@ -7,15 +8,15 @@ namespace HotChocolate.Types
     {
         public static FieldDelegate Compile(
             IReadOnlyList<FieldMiddleware> globalComponents,
-            IReadOnlyList<FieldMiddleware> fieldComponents,
+            IReadOnlyList<FieldMiddlewareDefinition> fieldComponents,
             IReadOnlyList<ResultConverterDelegate> resultConverters,
             FieldResolverDelegate fieldResolver,
             bool skipMiddleware)
         {
             if (skipMiddleware ||
-                globalComponents.Count is 0 &&
-                fieldComponents.Count is 0 &&
-                resultConverters.Count is 0)
+                globalComponents.Count == 0 &&
+                fieldComponents.Count == 0 &&
+                resultConverters.Count == 0)
             {
                 return fieldResolver is null
                     ? null
@@ -39,7 +40,7 @@ namespace HotChocolate.Types
 
         private static FieldDelegate CompilePipeline(
             IReadOnlyList<FieldMiddleware> components,
-            IReadOnlyList<FieldMiddleware> mappedComponents,
+            IReadOnlyList<FieldMiddlewareDefinition> mappedComponents,
             IReadOnlyList<ResultConverterDelegate> resultConverters,
             FieldResolverDelegate fieldResolver)
             => CompileMiddlewareComponents(components,
@@ -56,6 +57,20 @@ namespace HotChocolate.Types
             for (var i = components.Count - 1; i >= 0; i--)
             {
                 next = components[i](next);
+            }
+
+            return next;
+        }
+
+        private static FieldDelegate CompileMiddlewareComponents(
+            IReadOnlyList<FieldMiddlewareDefinition> components,
+            FieldDelegate first)
+        {
+            FieldDelegate next = first;
+
+            for (var i = components.Count - 1; i >= 0; i--)
+            {
+                next = components[i].Middleware(next);
             }
 
             return next;

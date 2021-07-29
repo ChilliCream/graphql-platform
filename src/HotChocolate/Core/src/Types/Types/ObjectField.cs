@@ -160,7 +160,8 @@ namespace HotChocolate.Types
             ObjectFieldDefinition definition)
         {
             var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
-            IReadOnlyList<FieldMiddleware> fieldComponents = definition.GetMiddlewareComponents();
+            IReadOnlyList<FieldMiddlewareDefinition> fieldMiddlewareDefinitions =
+                definition.GetMiddlewareDefinitions();
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
 
             var skipMiddleware =
@@ -187,7 +188,7 @@ namespace HotChocolate.Types
 
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
-                fieldComponents,
+                fieldMiddlewareDefinitions,
                 definition.GetResultConverters(),
                 Resolver,
                 skipMiddleware);
@@ -213,7 +214,7 @@ namespace HotChocolate.Types
             {
                 return skipMiddleware ||
                    context.GlobalComponents.Count == 0 &&
-                   fieldComponents.Count == 0 &&
+                   fieldMiddlewareDefinitions.Count == 0 &&
                    _executableDirectives.Length == 0;
             }
         }

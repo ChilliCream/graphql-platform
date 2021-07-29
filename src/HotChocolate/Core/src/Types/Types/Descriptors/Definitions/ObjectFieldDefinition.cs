@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,9 +15,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
-        private List<FieldMiddleware>? _middlewareComponents;
+        private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
         private List<ResultConverterDelegate>? _resultConverters;
         private List<object>? _customSettings;
+        private bool _middlewareDefinitionsClean = false;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -107,8 +109,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        public IList<FieldMiddleware> MiddlewareComponents
-            => _middlewareComponents ??= new List<FieldMiddleware>();
+        public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
+        {
+            get
+            {
+                _middlewareDefinitionsClean = false;
+                return _middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            }
+        }
 
         /// <summary>
         /// A list of converters that can transform the resolver result.
@@ -136,14 +144,92 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        internal IReadOnlyList<FieldMiddleware> GetMiddlewareComponents()
+        internal IReadOnlyList<FieldMiddlewareDefinition> GetMiddlewareDefinitions()
         {
-            if (_middlewareComponents is null)
+            if (_middlewareDefinitions is null)
             {
-                return Array.Empty<FieldMiddleware>();
+                return Array.Empty<FieldMiddlewareDefinition>();
             }
 
-            return _middlewareComponents;
+            var count = _middlewareDefinitions.Count;
+
+            if (!_middlewareDefinitionsClean && count > 1)
+            {
+                if (count == 2 &&
+                    _middlewareDefinitions[0].IsRepeatable &&
+                    _middlewareDefinitions[1].IsRepeatable)
+                {
+                    _middlewareDefinitionsClean = true;
+                }
+
+                if (count == 3 &&
+                    _middlewareDefinitions[0].IsRepeatable &&
+                    _middlewareDefinitions[1].IsRepeatable &&
+                    _middlewareDefinitions[2].IsRepeatable)
+                {
+                    _middlewareDefinitionsClean = true;
+                }
+
+                if (count == 4 &&
+                    _middlewareDefinitions[0].IsRepeatable &&
+                    _middlewareDefinitions[1].IsRepeatable &&
+                    _middlewareDefinitions[2].IsRepeatable &&
+                    _middlewareDefinitions[3].IsRepeatable)
+                {
+                    _middlewareDefinitionsClean = true;
+                }
+
+
+                if (!_middlewareDefinitionsClean)
+                {
+                    var nonRepeatable = 0;
+
+                    foreach (FieldMiddlewareDefinition def in _middlewareDefinitions)
+                    {
+                        if (!def.IsRepeatable && def.Key is not null)
+                        {
+                            nonRepeatable++;
+                        }
+                    }
+
+                    if (nonRepeatable > 1)
+                    {
+                        string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+                        int i = 0, ki = 0;
+
+                        do
+                        {
+                            FieldMiddlewareDefinition def = _middlewareDefinitions[i];
+
+                            if (def.IsRepeatable || def.Key is null)
+                            {
+                                i++;
+                            }
+                            else
+                            {
+                                if (ki > 0)
+                                {
+                                    if (Array.IndexOf(keys, def.Key) != -1)
+                                    {
+                                        count--;
+                                        _middlewareDefinitions.RemoveAt(i);
+                                        continue;
+                                    }
+                                }
+
+                                keys[ki++] = def.Key;
+                            }
+
+                        } while (i < count);
+
+                        ArrayPool<string>.Shared.Return(keys);
+                    }
+
+                    _middlewareDefinitionsClean = true;
+                }
+            }
+
+            return _middlewareDefinitions;
         }
 
         /// <summary>
@@ -180,19 +266,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_middlewareComponents is { Count: > 0 })
+            if (_middlewareDefinitions is { Count: > 0 })
             {
-                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+                target._middlewareDefinitions = new(_middlewareDefinitions);
+                _middlewareDefinitionsClean = false;
             }
 
             if (_resultConverters is { Count: > 0 })
             {
-                target._resultConverters = new List<ResultConverterDelegate>(_resultConverters);
+                target._resultConverters = new(_resultConverters);
             }
 
             if (_customSettings is { Count: > 0 })
             {
-                target._customSettings = new List<object>(_customSettings);
+                target._customSettings = new(_customSettings);
             }
 
             target.SourceType = SourceType;
@@ -212,10 +299,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.MergeInto(target);
 
-            if (_middlewareComponents is { Count: > 0 })
+            if (_middlewareDefinitions is { Count: > 0 })
             {
-                target._middlewareComponents ??= new List<FieldMiddleware>();
-                target._middlewareComponents.AddRange(_middlewareComponents);
+                target._middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+                target._middlewareDefinitions.AddRange(_middlewareDefinitions);
+                _middlewareDefinitionsClean = false;
             }
 
             if (_resultConverters is { Count: > 0 })
@@ -270,5 +358,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.SubscribeResolver = SubscribeResolver;
             }
         }
+    }
+
+    public sealed class FieldMiddlewareDefinition
+    {
+        public FieldMiddlewareDefinition(
+            FieldMiddleware middleware,
+            bool isRepeatable = true,
+            string? key = null)
+        {
+            Middleware = middleware;
+            IsRepeatable = isRepeatable;
+            Key = key;
+        }
+
+        public FieldMiddleware Middleware { get; }
+
+        public bool IsRepeatable { get; }
+
+        public string? Key { get; }
     }
 }

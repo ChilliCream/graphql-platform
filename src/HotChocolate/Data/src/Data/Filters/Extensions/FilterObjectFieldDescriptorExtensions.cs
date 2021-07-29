@@ -6,11 +6,9 @@ using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
-using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Types
 {
@@ -129,12 +127,14 @@ namespace HotChocolate.Types
             ITypeSystemMember? filterTypeInstance,
             string? scope)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder = new(_ => _ => default);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (c, definition) =>
@@ -181,10 +181,10 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, definition) =>
+                                    (ctx, d) =>
                                         CompileMiddleware(
-                                            context,
-                                            definition,
+                                            ctx,
+                                            d,
                                             argumentTypeReference,
                                             placeholder,
                                             scope))
@@ -197,8 +197,8 @@ namespace HotChocolate.Types
                                 .New<ArgumentDefinition>()
                                 .Definition(argumentDefinition)
                                 .Configure(
-                                    (context, argumentDefinition) =>
-                                        argumentDefinition.Name =
+                                    (context, argDef) =>
+                                        argDef.Name =
                                             context.GetFilterConvention(scope).GetArgumentName())
                                 .On(ApplyConfigurationOn.Naming)
                                 .Build());
@@ -211,7 +211,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             string? scope)
         {
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
@@ -226,8 +226,9 @@ namespace HotChocolate.Types
                 {
                     convention
                 })!;
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Filtering);
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>
