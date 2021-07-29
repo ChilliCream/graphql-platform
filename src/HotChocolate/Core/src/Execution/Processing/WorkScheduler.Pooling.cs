@@ -1,6 +1,4 @@
-using System.ComponentModel;
 using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
@@ -11,16 +9,15 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class WorkScheduler
     {
-        private static readonly Task<bool> _trueResult = Task.FromResult(true);
-        private static readonly Task<bool> _falseResult = Task.FromResult(false);
-
         private readonly object _sync = new();
         private readonly WorkQueue _work = new();
         private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
 
-        private TaskCompletionSource<bool>? _pause;
+        private readonly OperationContext _operationContext;
+        private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
+        private readonly Pause _pause;
 
         private bool _processing;
         private bool _completed;
@@ -32,14 +29,12 @@ namespace HotChocolate.Execution.Processing
         private IDiagnosticEvents _diagnosticEvents = default!;
         private CancellationToken _requestAborted;
 
-        private readonly OperationContext _operationContext;
-        private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
-
         private bool _isInitialized;
 
         public WorkScheduler(OperationContext operationContext)
         {
             _operationContext = operationContext;
+            _pause = new(_sync);
         }
 
         public void Initialize(IBatchDispatcher batchDispatcher)
@@ -65,8 +60,7 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_sync)
             {
-                _pause?.TrySetResult(true);
-                _pause = null;
+                _pause.TryContinueUnsafe();
 
                 if (_batchDispatcher is not null!)
                 {
@@ -100,8 +94,7 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_sync)
             {
-                _pause?.TrySetResult(true);
-                _pause = null;
+                _pause.TryContinueUnsafe();
 
                 _work.Clear();
                 _suspended.Clear();

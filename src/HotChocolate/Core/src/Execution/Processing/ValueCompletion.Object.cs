@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -17,6 +18,7 @@ namespace HotChocolate.Execution.Processing
             Path path,
             IType fieldType,
             object result,
+            List<IExecutionTask> bufferedTasks,
             [NotNullWhen(true)] out object? completedResult)
         {
             if (TryResolveObjectType(
@@ -44,7 +46,8 @@ namespace HotChocolate.Execution.Processing
                     path,
                     objectType,
                     result,
-                    selections);
+                    selections,
+                    bufferedTasks);
                 return true;
             }
 
