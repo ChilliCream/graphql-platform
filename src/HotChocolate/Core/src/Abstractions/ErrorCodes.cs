@@ -134,6 +134,7 @@ namespace HotChocolate
             public const string InvalidArgument = "TS_INVALID_ARG";
             public const string NonNullArgument = "TS_ARG_NON_NULL";
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
+            public const string MiddlewareOrderInvalid = "MIDDLEWARE_ORDER_INVALID";
         }
 
         public static class Scalars

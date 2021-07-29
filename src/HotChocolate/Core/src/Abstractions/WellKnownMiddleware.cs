@@ -43,7 +43,7 @@ namespace HotChocolate
         /// <summary>
         /// This key identifies the DbContext middleware.
         /// </summary>
-        public const string UseDbContext = "HotChocolate.Data.EF.UseDbContext";
+        public const string DbContext = "HotChocolate.Data.EF.UseDbContext";
 
         /// <summary>
         /// This key identifies the ToList middleware.

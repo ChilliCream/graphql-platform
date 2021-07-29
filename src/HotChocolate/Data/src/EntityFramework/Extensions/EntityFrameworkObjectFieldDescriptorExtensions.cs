@@ -39,7 +39,7 @@ namespace HotChocolate.Types
                     {
                         context.RemoveLocalValue(scopedServiceName);
                     }
-                }, key: WellKnownMiddleware.UseDbContext));
+                }, key: WellKnownMiddleware.DbContext));
 
             descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 

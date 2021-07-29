@@ -288,6 +288,20 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public override void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            {
+                if (interceptor.CanHandle(validationContext))
+                {
+                    interceptor.OnValidateType(validationContext, definition, contextData);
+                }
+            }
+        }
+
         public override bool TryCreateScope(
             ITypeDiscoveryContext discoveryContext,
             [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies)

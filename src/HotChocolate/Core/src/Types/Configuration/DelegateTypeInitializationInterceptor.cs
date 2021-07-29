@@ -92,6 +92,13 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData) =>
             _onAfterCompleteType?.Invoke(completionContext, definition, contextData);
 
+        public void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+
         public void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
