@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution
 {
-    public class OrderedDictionary : OrderedDictionary<string, object>
+    public class OrderedDictionary : OrderedDictionary<string, object?>
     {
     }
 
@@ -130,13 +130,15 @@ namespace HotChocolate.Execution
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            int index = _order.IndexOf(item);
+            var index = _order.IndexOf(item);
+
             if (index != -1)
             {
                 _order.RemoveAt(index);
                 _map.Remove(item.Key);
                 return true;
             }
+
             return false;
         }
 
@@ -147,7 +149,7 @@ namespace HotChocolate.Execution
 
         private int IndexOfKey(TKey key)
         {
-            for (int i = 0; i < _order.Count; i++)
+            for (var i = 0; i < _order.Count; i++)
             {
                 if (key.Equals(_order[i].Key))
                 {
@@ -167,7 +169,6 @@ namespace HotChocolate.Execution
             return _order.GetEnumerator();
         }
 
-        public OrderedDictionary<TKey, TValue> Clone() =>
-            new OrderedDictionary<TKey, TValue>(this);
+        public OrderedDictionary<TKey, TValue> Clone() => new(this);
     }
 }
