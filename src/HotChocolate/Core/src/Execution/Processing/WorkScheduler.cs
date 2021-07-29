@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
@@ -45,7 +45,6 @@ namespace HotChocolate.Execution.Processing
                 {
                     WorkQueue work = task.IsSerial ? _serial : _work;
                     work.Push(task);
-
                     started = TryStartProcessingUnsafe();
                 }
                 else
@@ -63,40 +62,40 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc/>
-        public void Register(IExecutionTask?[] tasks, int length)
+        public void Register(List<IExecutionTask> tasks)
         {
             if (tasks is null)
             {
                 throw new ArgumentNullException(nameof(tasks));
             }
 
-            if (length == 1)
+            if (tasks.Count == 1)
             {
                 Register(tasks[0]!);
-                tasks[0] = null;
                 return;
             }
 
-            bool started;
+            var started = false;
 
-            for (var i = 0; i < length; i++)
+            for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i]!;
-                Debug.Assert(task != null!, "A task slot is not allowed to be empty.");
                 task.State ??= _stateMachine.TryGetStep(task);
             }
 
             lock (_sync)
             {
-                for (var i = 0; i < length; i++)
+                var start = false;
+
+                for (var i = 0; i < tasks.Count; i++)
                 {
                     IExecutionTask task = tasks[i]!;
-                    tasks[i] = null;
 
                     if (_stateMachine.RegisterTask(task))
                     {
                         WorkQueue work = task.IsSerial ? _serial : _work;
                         work.Push(task);
+                        start = true;
                     }
                     else
                     {
@@ -104,7 +103,10 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
-                started = TryStartProcessingUnsafe();
+                if (start)
+                {
+                    started = TryStartProcessingUnsafe();
+                }
             }
 
             if (started)
@@ -199,42 +201,39 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryStartProcessingUnsafe()
         {
-            if (_pause != null && !_processing && (!_work.IsEmpty || !_serial.IsEmpty))
+            if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
-                TaskCompletionSource<bool> pause = _pause;
-                _pause = null;
-                pause.TrySetResult(false);
+                _pause.TryContinueUnsafe();
                 return true;
             }
 
             return false;
         }
 
-        private Task<bool> TryStopProcessing()
+        private async ValueTask<bool> TryStopProcessing()
         {
             bool completed;
-            TaskCompletionSource<bool> pause = default!;
 
             // if the execution is already completed or if the completion task is
             // null we stop processing
             if (_completed || _requestAborted.IsCancellationRequested)
             {
-                return _trueResult;
+                return true;
             }
 
             // if there is still work we keep on processing. We check this here to
             // try to avoid the lock.
             if (!_work.IsEmpty)
             {
-                return _falseResult;
+                return false;
             }
 
             lock (_sync)
             {
                 if (!_work.IsEmpty)
                 {
-                    return _falseResult;
+                    return false;
                 }
 
                 // if the backlog is empty and we have running tasks we will try to dispatch
@@ -245,22 +244,23 @@ namespace HotChocolate.Execution.Processing
 
                     if (!_work.IsEmpty)
                     {
-                        return _falseResult;
+                        return false;
                     }
                 }
 
                 _processing = false;
                 completed = TryCompleteProcessingUnsafe();
-
-                if (!completed)
-                {
-                    _pause = pause = new TaskCompletionSource<bool>();
-                }
             }
 
             _diagnosticEvents.StopProcessing(_requestContext);
 
-            return completed ? _trueResult : pause.Task;
+            if (completed)
+            {
+                return true;
+            }
+
+            await _pause;
+            return completed;
         }
 
         private void TryDispatchBatches()
@@ -297,7 +297,7 @@ namespace HotChocolate.Execution.Processing
             lock (_sync)
             {
                 _completed = true;
-                _pause?.TrySetResult(true);
+                _pause.TryContinueUnsafe();
             }
         }
 
@@ -306,15 +306,15 @@ namespace HotChocolate.Execution.Processing
         {
             if (HasCompleted())
             {
-                _pause?.TrySetResult(true);
                 _completed = true;
+                _pause.TryContinueUnsafe();
                 return true;
             }
 
             if (IsCanceled())
             {
-                _pause?.TrySetResult(true);
                 _completed = true;
+                _pause.TryContinueUnsafe();
                 return true;
             }
 

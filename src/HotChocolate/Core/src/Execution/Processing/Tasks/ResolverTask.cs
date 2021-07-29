@@ -21,13 +21,13 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public override void BeginExecute(CancellationToken cancellationToken)
         {
-            _task = ExecuteAsync(cancellationToken).AsTask();
+            _task = ExecuteAsync(cancellationToken);
         }
 
         public override Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
             _task ?? Task.CompletedTask;
 
-        private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+        private async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             try
             {

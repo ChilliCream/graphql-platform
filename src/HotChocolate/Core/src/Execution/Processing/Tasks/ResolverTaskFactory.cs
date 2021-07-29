@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -11,6 +10,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 {
     internal static class ResolverTaskFactory
     {
+        private static List<IExecutionTask>? _pooled = new();
+
         public static ResultMap EnqueueResolverTasks(
             IOperationContext operationContext,
             ISelectionSet selectionSet,
@@ -22,35 +23,28 @@ namespace HotChocolate.Execution.Processing.Tasks
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IWorkScheduler scheduler = operationContext.Scheduler;
-            IExecutionTask?[] buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
-            var bufferSize = buffer.Length;
-            var buffered = 0;
+            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            var final = !selectionSet.IsConditional;
 
             try
             {
                 for (var i = 0; i < selections.Count; i++)
                 {
                     ISelection selection = selections[i];
-                    if (selection.IsIncluded(operationContext.Variables))
+                    if (final || selection.IsIncluded(operationContext.Variables))
                     {
-                        if (buffered == bufferSize)
-                        {
-                            scheduler.Register(buffer, bufferSize);
-                            buffered = 0;
-                        }
-
-                        buffer[buffered++] = CreateResolverTask(
+                        bufferedTasks.Add(CreateResolverTask(
                             operationContext,
                             selection,
                             parent,
                             responseIndex++,
                             path.Append(selection.ResponseName),
                             resultMap,
-                            scopedContext);
+                            scopedContext));
                     }
                 }
 
-                if (buffered == 0)
+                if (bufferedTasks.Count == 0)
                 {
                     // in the case all root fields are skipped we execute a dummy task in order
                     // to not have to many extra API for this special case.
@@ -58,7 +52,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 }
                 else
                 {
-                    scheduler.Register(buffer, buffered);
+                    scheduler.Register(bufferedTasks);
                 }
 
                 TryHandleDeferredFragments(
@@ -72,7 +66,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
-                ArrayPool<IExecutionTask?>.Shared.Return(buffer);
+                bufferedTasks.Clear();
+                Interlocked.Exchange(ref _pooled, bufferedTasks);
             }
         }
 
@@ -82,83 +77,56 @@ namespace HotChocolate.Execution.Processing.Tasks
             Path path,
             ObjectType resultType,
             object result,
-            ISelectionSet selectionSet)
+            ISelectionSet selectionSet,
+            List<IExecutionTask> bufferedTasks)
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
-            IWorkScheduler scheduler = operationContext.Scheduler;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IVariableValueCollection variables = operationContext.Variables;
-            IExecutionTask?[]? buffer = null;
-            var bufferSize = selections.Count;
-            var buffered = 0;
+            var final = !selectionSet.IsConditional;
 
-            try
+            for (var i = 0; i < selections.Count; i++)
             {
-                for (var i = 0; i < selections.Count; i++)
+                ISelection selection = selections[i];
+
+                if (final || selection.IsIncluded(variables))
                 {
-                    ISelection selection = selections[i];
-
-                    if (selection.IsIncluded(variables))
+                    if (selection.Strategy is SelectionExecutionStrategy.Pure)
                     {
-                        if (selection.Strategy is SelectionExecutionStrategy.Pure)
-                        {
-                            ResolveAndCompleteInline(
-                                operationContext,
-                                resolverContext,
-                                selection,
-                                path.Append(selection.ResponseName),
-                                responseIndex++,
-                                resultType,
-                                result,
-                                resultMap);
-                        }
-                        else
-                        {
-                            if (buffer == null)
-                            {
-                                buffer = ArrayPool<IExecutionTask?>.Shared.Rent(selections.Count);
-                            }
-
-                            buffer[buffered++] = CreateResolverTask(
-                                operationContext,
-                                resolverContext,
-                                selection,
-                                path.Append(selection.ResponseName),
-                                responseIndex++,
-                                result,
-                                resultMap);
-
-                            if (buffered == bufferSize)
-                            {
-                                scheduler.Register(buffer!, bufferSize);
-                                buffered = 0;
-                            }
-                        }
+                        ResolveAndCompleteInline(
+                            operationContext,
+                            resolverContext,
+                            selection,
+                            path.Append(selection.ResponseName),
+                            responseIndex++,
+                            resultType,
+                            result,
+                            resultMap,
+                            bufferedTasks);
+                    }
+                    else
+                    {
+                        bufferedTasks.Add(CreateResolverTask(
+                            operationContext,
+                            resolverContext,
+                            selection,
+                            path.Append(selection.ResponseName),
+                            responseIndex++,
+                            result,
+                            resultMap));
                     }
                 }
-
-                if (buffered > 0)
-                {
-                    scheduler.Register(buffer!, buffered);
-                }
-
-                TryHandleDeferredFragments(
-                    operationContext,
-                    selectionSet,
-                    resolverContext.ScopedContextData,
-                    path,
-                    result);
-
-                return resultMap;
             }
-            finally
-            {
-                if (buffer != null)
-                {
-                    ArrayPool<IExecutionTask?>.Shared.Return(buffer);
-                }
-            }
+
+            TryHandleDeferredFragments(
+                operationContext,
+                selectionSet,
+                resolverContext.ScopedContextData,
+                path,
+                result);
+
+            return resultMap;
         }
 
         private static void ResolveAndCompleteInline(
@@ -169,7 +137,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             int responseIndex,
             ObjectType parentType,
             object parent,
-            ResultMap resultMap)
+            ResultMap resultMap,
+            List<IExecutionTask> bufferedTasks)
         {
             object? completedValue = null;
 
@@ -185,6 +154,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                         selection.ResponseName,
                         responseIndex,
                         resolverResult,
+                        bufferedTasks,
                         out completedValue) &&
                     selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)

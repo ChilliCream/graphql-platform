@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace HotChocolate.Execution.Processing.Tasks
     internal abstract class ResolverTaskBase : IExecutionTask
     {
         private readonly MiddlewareContext _resolverContext = new();
+        private readonly List<IExecutionTask> _taskBuffer = new();
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
 
@@ -69,6 +71,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             Parent = null;
             Next = null;
             Previous = null;
+            _taskBuffer.Clear();
             return true;
         }
 
@@ -90,11 +93,17 @@ namespace HotChocolate.Execution.Processing.Tasks
                         _resolverContext.ResponseName,
                         _resolverContext.ResponseIndex,
                         _resolverContext.Result,
+                        _taskBuffer,
                         out completedValue) &&
                         _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                         completedValue is IHasResultDataParent result)
                     {
                         result.Parent = _resolverContext.ResultMap;
+                    }
+
+                    if (_taskBuffer.Count > 0)
+                    {
+                        _operationContext.Scheduler.Register(_taskBuffer);
                     }
                 }
             }

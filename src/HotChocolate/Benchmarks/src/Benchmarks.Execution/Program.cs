@@ -14,8 +14,8 @@ using HotChocolate.ConferencePlanner.DataLoader;
 public static class Program
 {
     static void Main(string[] args) =>
-        Run().Wait();
-        // BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
+        // Run().Wait();
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
     private static async Task Run()
     {
@@ -34,7 +34,10 @@ public static class Program
 
         for (int i = 0; i < 50; i++)
         {
+            Console.WriteLine("Start ---------------------");
             await RunItem(queryBench, list);
+            Console.WriteLine("End -----------------------");
+            Console.WriteLine();
         }
 
         Console.WriteLine(list.Sum(t => t.Milliseconds) / list.Count);
