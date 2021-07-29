@@ -168,7 +168,7 @@ public class Startup
 
 ## Immutable types
 
-If we want our input type classes to be immutable, or we are using [nullable reference types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references), we can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that
+If we want our input type classes to be immutable, or we are using [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references), we can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that
 
 1. The type of the argument must exactly match the property's type
 2. The name of the argument must match the property name (bar a lowercase first letter)
