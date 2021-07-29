@@ -9,7 +9,7 @@ namespace HotChocolate.Types
         public static FieldDelegate Compile(
             IReadOnlyList<FieldMiddleware> globalComponents,
             IReadOnlyList<FieldMiddlewareDefinition> fieldComponents,
-            IReadOnlyList<ResultConverterDelegate> resultConverters,
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
             FieldResolverDelegate fieldResolver,
             bool skipMiddleware)
         {
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
         }
 
         public static PureFieldDelegate Compile(
-            IReadOnlyList<ResultConverterDelegate> resultConverters,
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
             PureFieldDelegate fieldResolver,
             bool skipMiddleware)
             => skipMiddleware || resultConverters.Count == 0
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         private static FieldDelegate CompilePipeline(
             IReadOnlyList<FieldMiddleware> components,
             IReadOnlyList<FieldMiddlewareDefinition> mappedComponents,
-            IReadOnlyList<ResultConverterDelegate> resultConverters,
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
             FieldResolverDelegate fieldResolver)
             => CompileMiddlewareComponents(components,
                 CompileMiddlewareComponents(mappedComponents,
@@ -77,28 +77,28 @@ namespace HotChocolate.Types
         }
 
         private static FieldDelegate CompileResultConverters(
-            IReadOnlyList<ResultConverterDelegate> components,
+            IReadOnlyList<ResultConverterDefinition> components,
             FieldDelegate first)
         {
             FieldDelegate next = first;
 
             for (var i = components.Count - 1; i >= 0; i--)
             {
-                next = CreateConverterMiddleware(components[i])(next);
+                next = CreateConverterMiddleware(components[i].Converter)(next);
             }
 
             return next;
         }
 
         private static PureFieldDelegate CompileResultConverters(
-            IReadOnlyList<ResultConverterDelegate> components,
+            IReadOnlyList<ResultConverterDefinition> components,
             PureFieldDelegate first)
         {
             PureFieldDelegate next = first;
 
             for (var i = components.Count - 1; i >= 0; i--)
             {
-                next = CreatePureConverterMiddleware(components[i], next);
+                next = CreatePureConverterMiddleware(components[i].Converter, next);
             }
 
             return next;

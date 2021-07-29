@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
@@ -59,7 +58,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            ResultConverterDelegate placeholder = (_, r) => r;
+            ResultConverterDefinition placeholder =
+                new((_, r) => r, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
 
             descriptor.Extend().Definition.ResultConverters.Add(placeholder);
             descriptor.Extend().OnBeforeCreate(RewriteObjectFieldType);
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
         private static void AddSerializerToObjectField(
             ITypeCompletionContext completionContext,
             ObjectFieldDefinition definition,
-            ResultConverterDelegate placeholder,
+            ResultConverterDefinition placeholder,
             NameString typeName)
         {
             ITypeInspector typeInspector = completionContext.TypeInspector;
@@ -215,7 +215,7 @@ namespace HotChocolate.Types
             }
 
             NameString schemaName = default;
-            completionContext.DescriptorContext.SchemaCompleted += (sender, args) =>
+            completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
                 schemaName = args.Schema.Name;
 
             IIdSerializer serializer =
@@ -228,7 +228,7 @@ namespace HotChocolate.Types
                 typeName = completionContext.Type.Name;
             }
 
-            definition.ResultConverters[index] = (_, result) =>
+            definition.ResultConverters[index] = new((_, result) =>
             {
                 if (result is not null)
                 {
@@ -250,7 +250,7 @@ namespace HotChocolate.Types
                 }
 
                 return result;
-            };
+            }, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
         }
 
         private static IInputValueFormatter CreateSerializer(

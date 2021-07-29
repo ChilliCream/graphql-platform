@@ -16,9 +16,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
         private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
-        private List<ResultConverterDelegate>? _resultConverters;
+        private List<ResultConverterDefinition>? _resultConverters;
         private List<object>? _customSettings;
-        private bool _middlewareDefinitionsClean = false;
+        private bool _middlewareDefinitionsCleaned = false;
+        private bool _resultConvertersCleaned = false;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -113,7 +114,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             get
             {
-                _middlewareDefinitionsClean = false;
+                _middlewareDefinitionsCleaned = false;
                 return _middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
             }
         }
@@ -121,8 +122,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of converters that can transform the resolver result.
         /// </summary>
-        public IList<ResultConverterDelegate> ResultConverters
-            => _resultConverters ??= new List<ResultConverterDelegate>();
+        public IList<ResultConverterDefinition> ResultConverters
+        {
+            get
+            {
+                _resultConvertersCleaned = false;
+                return _resultConverters ??= new List<ResultConverterDefinition>();
+            }
+        }
 
         /// <summary>
         /// A list of custom settings objects that can be user in the type interceptors.
@@ -151,83 +158,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 return Array.Empty<FieldMiddlewareDefinition>();
             }
 
-            var count = _middlewareDefinitions.Count;
-
-            if (!_middlewareDefinitionsClean && count > 1)
-            {
-                if (count == 2 &&
-                    _middlewareDefinitions[0].IsRepeatable &&
-                    _middlewareDefinitions[1].IsRepeatable)
-                {
-                    _middlewareDefinitionsClean = true;
-                }
-
-                if (count == 3 &&
-                    _middlewareDefinitions[0].IsRepeatable &&
-                    _middlewareDefinitions[1].IsRepeatable &&
-                    _middlewareDefinitions[2].IsRepeatable)
-                {
-                    _middlewareDefinitionsClean = true;
-                }
-
-                if (count == 4 &&
-                    _middlewareDefinitions[0].IsRepeatable &&
-                    _middlewareDefinitions[1].IsRepeatable &&
-                    _middlewareDefinitions[2].IsRepeatable &&
-                    _middlewareDefinitions[3].IsRepeatable)
-                {
-                    _middlewareDefinitionsClean = true;
-                }
-
-
-                if (!_middlewareDefinitionsClean)
-                {
-                    var nonRepeatable = 0;
-
-                    foreach (FieldMiddlewareDefinition def in _middlewareDefinitions)
-                    {
-                        if (!def.IsRepeatable && def.Key is not null)
-                        {
-                            nonRepeatable++;
-                        }
-                    }
-
-                    if (nonRepeatable > 1)
-                    {
-                        string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
-                        int i = 0, ki = 0;
-
-                        do
-                        {
-                            FieldMiddlewareDefinition def = _middlewareDefinitions[i];
-
-                            if (def.IsRepeatable || def.Key is null)
-                            {
-                                i++;
-                            }
-                            else
-                            {
-                                if (ki > 0)
-                                {
-                                    if (Array.IndexOf(keys, def.Key) != -1)
-                                    {
-                                        count--;
-                                        _middlewareDefinitions.RemoveAt(i);
-                                        continue;
-                                    }
-                                }
-
-                                keys[ki++] = def.Key;
-                            }
-
-                        } while (i < count);
-
-                        ArrayPool<string>.Shared.Return(keys);
-                    }
-
-                    _middlewareDefinitionsClean = true;
-                }
-            }
+            CleanMiddlewareDefinitions(_middlewareDefinitions, ref _middlewareDefinitionsCleaned);
 
             return _middlewareDefinitions;
         }
@@ -235,12 +166,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of converters that can transform the resolver result.
         /// </summary>
-        internal IReadOnlyList<ResultConverterDelegate> GetResultConverters()
+        internal IReadOnlyList<ResultConverterDefinition> GetResultConverters()
         {
             if (_resultConverters is null)
             {
-                return Array.Empty<ResultConverterDelegate>();
+                return Array.Empty<ResultConverterDefinition>();
             }
+
+            CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
 
             return _resultConverters;
         }
@@ -269,12 +202,13 @@ namespace HotChocolate.Types.Descriptors.Definitions
             if (_middlewareDefinitions is { Count: > 0 })
             {
                 target._middlewareDefinitions = new(_middlewareDefinitions);
-                _middlewareDefinitionsClean = false;
+                _middlewareDefinitionsCleaned = false;
             }
 
             if (_resultConverters is { Count: > 0 })
             {
                 target._resultConverters = new(_resultConverters);
+                _resultConvertersCleaned = false;
             }
 
             if (_customSettings is { Count: > 0 })
@@ -303,13 +237,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target._middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
                 target._middlewareDefinitions.AddRange(_middlewareDefinitions);
-                _middlewareDefinitionsClean = false;
+                _middlewareDefinitionsCleaned = false;
             }
 
             if (_resultConverters is { Count: > 0 })
             {
-                target._resultConverters ??= new List<ResultConverterDelegate>();
+                target._resultConverters ??= new List<ResultConverterDefinition>();
                 target._resultConverters.AddRange(_resultConverters);
+                _resultConvertersCleaned = false;
             }
 
             if (_customSettings is { Count: > 0 })
@@ -358,9 +293,100 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.SubscribeResolver = SubscribeResolver;
             }
         }
+
+        private static void CleanMiddlewareDefinitions<T>(
+            IList<T> definitions,
+            ref bool definitionsCleaned)
+            where T : IMiddlewareDefinition
+        {
+            var count = definitions.Count;
+
+            if (!definitionsCleaned && count > 1)
+            {
+                if (count == 2 &&
+                    definitions[0].IsRepeatable &&
+                    definitions[1].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+                if (count == 3 &&
+                    definitions[0].IsRepeatable &&
+                    definitions[1].IsRepeatable &&
+                    definitions[2].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+                if (count == 4 &&
+                    definitions[0].IsRepeatable &&
+                    definitions[1].IsRepeatable &&
+                    definitions[2].IsRepeatable &&
+                    definitions[3].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+
+                if (!definitionsCleaned)
+                {
+                    var nonRepeatable = 0;
+
+                    foreach (var def in definitions)
+                    {
+                        if (!def.IsRepeatable && def.Key is not null)
+                        {
+                            nonRepeatable++;
+                        }
+                    }
+
+                    if (nonRepeatable > 1)
+                    {
+                        string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+                        int i = 0, ki = 0;
+
+                        do
+                        {
+                            IMiddlewareDefinition def = definitions[i];
+
+                            if (def.IsRepeatable || def.Key is null)
+                            {
+                                i++;
+                            }
+                            else
+                            {
+                                if (ki > 0)
+                                {
+                                    if (Array.IndexOf(keys, def.Key) != -1)
+                                    {
+                                        count--;
+                                        definitions.RemoveAt(i);
+                                        continue;
+                                    }
+                                }
+
+                                keys[ki++] = def.Key;
+                            }
+
+                        } while (i < count);
+
+                        ArrayPool<string>.Shared.Return(keys);
+                    }
+
+                    definitionsCleaned = true;
+                }
+            }
+        }
     }
 
-    public sealed class FieldMiddlewareDefinition
+    public interface IMiddlewareDefinition
+    {
+        public bool IsRepeatable { get; }
+
+        public string? Key { get; }
+    }
+
+    public sealed class FieldMiddlewareDefinition : IMiddlewareDefinition
     {
         public FieldMiddlewareDefinition(
             FieldMiddleware middleware,
@@ -373,6 +399,25 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         public FieldMiddleware Middleware { get; }
+
+        public bool IsRepeatable { get; }
+
+        public string? Key { get; }
+    }
+
+    public sealed class ResultConverterDefinition : IMiddlewareDefinition
+    {
+        public ResultConverterDefinition(
+            ResultConverterDelegate converter,
+            bool isRepeatable = true,
+            string? key = null)
+        {
+            Converter = converter;
+            IsRepeatable = isRepeatable;
+            Key = key;
+        }
+
+        public ResultConverterDelegate Converter { get; }
 
         public bool IsRepeatable { get; }
 
