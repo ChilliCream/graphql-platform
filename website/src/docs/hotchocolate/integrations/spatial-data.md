@@ -2,12 +2,11 @@
 title: Spatial Data
 ---
 
-> **Experimental** With version 11 we release support for spatial data. This feature is not totally finished
-> and polished yet. Spatial types is a community-driven feature. As the core team has little experience
-> with spatial data, we need you feedback and decided to release what we have. It is important for use
-> to deliver you the best experience, so reach out to us if you run into issues or have ideas to improve it.
-> We try not to introduce breaking changes, but we save ourself the possibility to make changes to the api
-> in future releases when we find flaws in the current design.
+> ⚠️ Experimental Warning: This feature is not yet finished nor polished.
+>
+> Spatial types is a community-driven feature. As the core team has little experience with spatial data, we need your feedback to decide the next steps for this feature. It is important for us to deliver you the best experience, so reach out to us if you run into issues or have ideas to improve it.
+>
+> We try not to introduce breaking changes, but we save ourselves the possibility to make changes to the API in future releases, if we find flaws in the current design.
 
 Spatial data describes locations or shapes in form of objects. Many database providers have support
 for storing this type of data. APIs often use GeoJSON to send spatial data over the network.

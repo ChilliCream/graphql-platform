@@ -24,7 +24,7 @@ const PlatformPage: FunctionComponent = () => {
           An end-to-end solution to build, manage and access your GraphQL API
         </Hero>
         <Teaser>
-          The heart of the ChilliCream platform is Hot Chocolate our core for
+          The heart of the ChilliCream platform is Hot Chocolate, our core for
           the GraphQL client and server. The ChilliCream platform provides
           developer tools and services to speed up the entire development
           process.
