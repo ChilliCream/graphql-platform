@@ -72,6 +72,7 @@ services
 ```
 
 ### Schema Federations
+
 In a federated approach, type renames can be done on the domain service:
 
 ```csharp

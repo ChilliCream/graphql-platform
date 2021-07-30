@@ -226,7 +226,7 @@ query {
 }
 ```
 
-**⚠️ "or" does not work when you use it like this: **
+**⚠️ `or` does not work when you use it like this: **
 
 ```graphql
 query {
@@ -246,9 +246,9 @@ query {
 
 In this case the filters are applied like `title.Contains("John") && title.Contains("Doe")` rather than `title.Contains("John") || title.Contains("Doe")` how you probably intended it.
 
-## Removing AND / OR
+## Removing "and" / "or"
 
-If you do not want to expose `AND` and `OR` you can remove these fields with the descriptor API:
+If you do not want to expose `and` and `or` you can remove these fields with the descriptor API:
 
 ```csharp
 public class UserFilterType : FilterInputType<User>
