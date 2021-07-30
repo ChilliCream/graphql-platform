@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -21,38 +22,56 @@ namespace HotChocolate
             }
 
             TypeInfo typeInfo = type.GetTypeInfo();
-            string name = typeInfo.IsDefined(
-                typeof(GraphQLNameAttribute), false)
-                ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>().Name
+            string name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
+                ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
                 : GetFromType(typeInfo);
-            return NameUtils.MakeValidGraphQLName(name);
+
+            return NameUtils.MakeValidGraphQLName(name)!;
         }
 
         public static string GetGraphQLName(this PropertyInfo property)
         {
+            if (property is null)
+            {
+                throw new ArgumentNullException(nameof(property));
+            }
+
             string name = property.IsDefined(
                 typeof(GraphQLNameAttribute), false)
-                ? property.GetCustomAttribute<GraphQLNameAttribute>().Name
+                ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
                 : NormalizeName(property.Name);
-            return NameUtils.MakeValidGraphQLName(name);
+
+            return NameUtils.MakeValidGraphQLName(name)!;
         }
 
         public static string GetGraphQLName(this MethodInfo method)
         {
+            if (method is null)
+            {
+                throw new ArgumentNullException(nameof(method));
+            }
+
             string name = method.IsDefined(
                 typeof(GraphQLNameAttribute), false)
-                ? method.GetCustomAttribute<GraphQLNameAttribute>().Name
+                ? method.GetCustomAttribute<GraphQLNameAttribute>()!.Name
                 : NormalizeMethodName(method);
-            return NameUtils.MakeValidGraphQLName(name);
+
+            return NameUtils.MakeValidGraphQLName(name)!;
         }
 
         public static string GetGraphQLName(this ParameterInfo parameter)
         {
+            if (parameter is null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
             string name = parameter.IsDefined(
                 typeof(GraphQLNameAttribute), false)
-                ? parameter.GetCustomAttribute<GraphQLNameAttribute>().Name
-                : NormalizeName(parameter.Name);
-            return NameUtils.MakeValidGraphQLName(name);
+                ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+                : NormalizeName(parameter.Name!);
+
+            return NameUtils.MakeValidGraphQLName(name)!;
         }
 
         public static string GetGraphQLName(this MemberInfo member)
@@ -114,7 +133,7 @@ namespace HotChocolate
             return false;
         }
 
-        public static string GetGraphQLDescription(
+        public static string? GetGraphQLDescription(
             this ICustomAttributeProvider attributeProvider)
         {
             if (attributeProvider.IsDefined(
@@ -134,22 +153,21 @@ namespace HotChocolate
 
         public static bool IsDeprecated(
             this ICustomAttributeProvider attributeProvider,
-            out string reason)
+            out string? reason)
         {
-            var deprecatedAttribute =
-                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
-                    attributeProvider);
+            GraphQLDeprecatedAttribute? deprecatedAttribute =
+                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
 
-            if (deprecatedAttribute != null)
+            if (deprecatedAttribute is not null)
             {
                 reason = deprecatedAttribute.DeprecationReason;
                 return true;
             }
 
-            var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
-                attributeProvider);
+            ObsoleteAttribute? obsoleteAttribute =
+                GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
 
-            if (obsoleteAttribute != null)
+            if (obsoleteAttribute is not null)
             {
                 reason = obsoleteAttribute.Message;
                 return true;
@@ -179,16 +197,11 @@ namespace HotChocolate
         }
 
         private static string NormalizeName(string name)
-        {
-            if (name.Length > 1)
-            {
-                return name.Substring(0, 1).ToLowerInvariant() +
-                    name.Substring(1);
-            }
-            return name.ToLowerInvariant();
-        }
+            => name.Length > 1
+                ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
+                : name.ToLowerInvariant();
 
-        private static TAttribute GetAttributeIfDefined<TAttribute>(
+        private static TAttribute? GetAttributeIfDefined<TAttribute>(
             ICustomAttributeProvider attributeProvider)
             where TAttribute : Attribute
         {

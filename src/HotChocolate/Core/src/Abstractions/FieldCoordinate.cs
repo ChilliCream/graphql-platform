@@ -1,6 +1,8 @@
 using System;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate
 {
     /// <summary>

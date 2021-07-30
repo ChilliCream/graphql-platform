@@ -1,8 +1,9 @@
 ﻿using System;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     /// <summary>
     /// Represents read-only schema options.
@@ -39,6 +40,7 @@ namespace HotChocolate.Configuration
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility;
             AllowInlining = options.AllowInlining;
             DefaultResolverStrategy = options.DefaultResolverStrategy;
+            ValidatePipelineOrder = options.ValidatePipelineOrder;
         }
 
         /// <summary>
@@ -109,8 +111,13 @@ namespace HotChocolate.Configuration
         public bool AllowInlining { get; }
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         public ExecutionStrategy DefaultResolverStrategy { get; }
+
+        /// <summary>
+        /// Defines if the order of important middleware components shall be validated.
+        /// </summary>
+        public bool ValidatePipelineOrder { get; }
     }
 }

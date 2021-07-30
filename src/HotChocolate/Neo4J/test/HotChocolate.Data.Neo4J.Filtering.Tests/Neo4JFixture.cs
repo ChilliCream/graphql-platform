@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             (Type, Type) key = (typeof(T), typeof(TType));
             return _cache.GetOrAdd(
                 key,
-                k => CreateSchema<T, TType>(cypher));
+                _ => CreateSchema<T, TType>(cypher));
         }
 
         private async Task<IRequestExecutor> CreateSchema<TEntity, T>(string cypher)
@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession()))
+                        .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {
@@ -69,6 +69,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
                         }
                     })
                 .UseDefaultPipeline()
+                .ModifyOptions(o => o.ValidatePipelineOrder = false)
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()

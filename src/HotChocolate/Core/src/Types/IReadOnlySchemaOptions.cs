@@ -1,9 +1,10 @@
-﻿using HotChocolate.Execution;
+﻿using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     /// <summary>
     /// Represents read-only schema options.
@@ -78,8 +79,13 @@ namespace HotChocolate.Configuration
         bool AllowInlining { get; }
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         ExecutionStrategy DefaultResolverStrategy { get; }
+
+        /// <summary>
+        /// Defines if the order of important middleware components shall be validated.
+        /// </summary>
+        bool ValidatePipelineOrder { get; }
     }
 }

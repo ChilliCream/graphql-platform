@@ -70,12 +70,15 @@ namespace HotChocolate.Types
             Type? filterType,
             ITypeSystemMember? filterTypeInstance = null)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Filtering);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate((c, definition) =>
                 {
@@ -98,7 +101,7 @@ namespace HotChocolate.Types
                     }
 
                     ITypeReference argumentTypeReference = filterTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                        ? c.TypeInspector.GetTypeRef(
                             argumentType,
                             TypeContext.Input)
                         : TypeReference.Create(filterTypeInstance);
@@ -126,10 +129,10 @@ namespace HotChocolate.Types
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, definition) =>
+                            .Configure((context, d) =>
                                 CompileMiddleware(
                                     context,
-                                    definition,
+                                    d,
                                     argumentTypeReference,
                                     placeholder))
                             .On(ApplyConfigurationOn.Completion)
@@ -145,7 +148,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             IFilterNamingConvention convention =
                 context.DescriptorContext.GetFilterNamingConvention();
@@ -158,8 +161,9 @@ namespace HotChocolate.Types
                         typeof(FilterMiddlewareContext),
                         FilterMiddlewareContext.Create(convention.ArgumentName)
                     ));
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Filtering);
         }
 
         private static IObjectFieldDescriptor AddFilterArguments(
@@ -205,11 +209,11 @@ namespace HotChocolate.Types
                 LazyTypeConfigurationBuilder
                     .New<ArgumentDefinition>()
                     .Definition(definition)
-                    .Configure((context, definition) =>
+                    .Configure((context, d) =>
                     {
                         IFilterNamingConvention convention =
                             context.DescriptorContext.GetFilterNamingConvention();
-                        definition.Name = convention.ArgumentName;
+                        d.Name = convention.ArgumentName;
                     })
                    .On(ApplyConfigurationOn.Completion)
                    .Build();

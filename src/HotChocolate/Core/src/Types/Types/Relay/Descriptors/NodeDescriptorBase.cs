@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
@@ -99,16 +100,16 @@ namespace HotChocolate.Types.Relay.Descriptors
 
         protected static class ConverterHelper
         {
-            private static ResultConverterDelegate? _resultConverter;
+            private static ResultConverterDefinition? _resultConverter;
 
-            private static ResultConverterDelegate Converter
+            private static ResultConverterDefinition Converter
             {
                 get => _resultConverter ??= IdMiddleware.Create();
             }
 
             public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
             {
-                IList<ResultConverterDelegate> converters =
+                IList<ResultConverterDefinition> converters =
                     descriptor.Extend().Definition.ResultConverters;
 
                 if (!converters.Contains(Converter))

@@ -183,6 +183,25 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData);
 
         /// <summary>
+        /// This event is called after the type system member is fully completed and is
+        /// intended to add validation logic. If the type is not valid throw a
+        /// <see cref="SchemaException"/>.
+        /// </summary>
+        /// <param name="validationContext">
+        /// The type completion context.
+        /// </param>
+        /// <param name="definition">
+        /// The type definition of the type system member.
+        /// </param>
+        /// <param name="contextData">
+        /// The context data of the type system member.
+        /// </param>
+        void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData);
+
+        /// <summary>
         /// This event is called after all type system members have been completed.
         /// </summary>
         /// <param name="completionContexts">

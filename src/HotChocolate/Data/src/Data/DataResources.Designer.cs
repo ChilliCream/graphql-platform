@@ -428,5 +428,11 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("FilterConvention_ProviderHasToBeInitializedByConvention", resourceCulture);
             }
         }
+        
+        internal static string UseProjection_CannotHandleType_ {
+            get {
+                return ResourceManager.GetString("UseProjection_CannotHandleType_", resourceCulture);
+            }
+        }
     }
 }

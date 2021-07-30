@@ -774,4 +774,7 @@ Type: `{0}`</value>
   <data name="Relay_NodesField_Ids_Description" xml:space="preserve">
     <value>The list of node IDs.</value>
   </data>
+  <data name="ErrorHelper_MiddlewareOrderInvalid" xml:space="preserve">
+    <value>The middleware pipeline order for the field `{0}` is invalid. Middleware order is important especially with data pipelines. The correct order of a data pipeline is as follows: UseDbContext -> UsePaging -> UseProjection -> UseFiltering -> UseSorting. You may omit any of these middleware or have other middleware in between but you need to abide by the overall order. Your order is: {1}.</value>
+  </data>
 </root>

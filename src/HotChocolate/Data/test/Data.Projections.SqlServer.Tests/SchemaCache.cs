@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Projections
             (Type, T[] entites) key = (typeof(T), entities);
             return _cache.GetOrAdd(
                 key,
-                k => base.CreateSchema(
+                _ => base.CreateSchema(
                     entities,
                     usePaging: usePaging,
                     useOffsetPaging: useOffsetPaging,

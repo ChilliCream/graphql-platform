@@ -1346,5 +1346,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_MiddlewareOrderInvalid {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MiddlewareOrderInvalid", resourceCulture);
+            }
+        }
     }
 }

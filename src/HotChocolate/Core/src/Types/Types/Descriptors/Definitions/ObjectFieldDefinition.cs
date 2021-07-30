@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,9 +15,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
     /// </summary>
     public class ObjectFieldDefinition : OutputFieldDefinitionBase
     {
-        private List<FieldMiddleware>? _middlewareComponents;
-        private List<ResultConverterDelegate>? _resultConverters;
+        private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
+        private List<ResultConverterDefinition>? _resultConverters;
         private List<object>? _customSettings;
+        private bool _middlewareDefinitionsCleaned;
+        private bool _resultConvertersCleaned;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -107,14 +110,26 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        public IList<FieldMiddleware> MiddlewareComponents
-            => _middlewareComponents ??= new List<FieldMiddleware>();
+        public IList<FieldMiddlewareDefinition> MiddlewareDefinitions
+        {
+            get
+            {
+                _middlewareDefinitionsCleaned = false;
+                return _middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+            }
+        }
 
         /// <summary>
         /// A list of converters that can transform the resolver result.
         /// </summary>
-        public IList<ResultConverterDelegate> ResultConverters
-            => _resultConverters ??= new List<ResultConverterDelegate>();
+        public IList<ResultConverterDefinition> ResultConverters
+        {
+            get
+            {
+                _resultConvertersCleaned = false;
+                return _resultConverters ??= new List<ResultConverterDefinition>();
+            }
+        }
 
         /// <summary>
         /// A list of custom settings objects that can be user in the type interceptors.
@@ -136,25 +151,29 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// A list of middleware components which will be used to form the field pipeline.
         /// </summary>
-        internal IReadOnlyList<FieldMiddleware> GetMiddlewareComponents()
+        internal IReadOnlyList<FieldMiddlewareDefinition> GetMiddlewareDefinitions()
         {
-            if (_middlewareComponents is null)
+            if (_middlewareDefinitions is null)
             {
-                return Array.Empty<FieldMiddleware>();
+                return Array.Empty<FieldMiddlewareDefinition>();
             }
 
-            return _middlewareComponents;
+            CleanMiddlewareDefinitions(_middlewareDefinitions, ref _middlewareDefinitionsCleaned);
+
+            return _middlewareDefinitions;
         }
 
         /// <summary>
         /// A list of converters that can transform the resolver result.
         /// </summary>
-        internal IReadOnlyList<ResultConverterDelegate> GetResultConverters()
+        internal IReadOnlyList<ResultConverterDefinition> GetResultConverters()
         {
             if (_resultConverters is null)
             {
-                return Array.Empty<ResultConverterDelegate>();
+                return Array.Empty<ResultConverterDefinition>();
             }
+
+            CleanMiddlewareDefinitions(_resultConverters, ref _resultConvertersCleaned);
 
             return _resultConverters;
         }
@@ -180,19 +199,21 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_middlewareComponents is { Count: > 0 })
+            if (_middlewareDefinitions is { Count: > 0 })
             {
-                target._middlewareComponents = new List<FieldMiddleware>(_middlewareComponents);
+                target._middlewareDefinitions = new(_middlewareDefinitions);
+                _middlewareDefinitionsCleaned = false;
             }
 
             if (_resultConverters is { Count: > 0 })
             {
-                target._resultConverters = new List<ResultConverterDelegate>(_resultConverters);
+                target._resultConverters = new(_resultConverters);
+                _resultConvertersCleaned = false;
             }
 
             if (_customSettings is { Count: > 0 })
             {
-                target._customSettings = new List<object>(_customSettings);
+                target._customSettings = new(_customSettings);
             }
 
             target.SourceType = SourceType;
@@ -212,16 +233,18 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.MergeInto(target);
 
-            if (_middlewareComponents is { Count: > 0 })
+            if (_middlewareDefinitions is { Count: > 0 })
             {
-                target._middlewareComponents ??= new List<FieldMiddleware>();
-                target._middlewareComponents.AddRange(_middlewareComponents);
+                target._middlewareDefinitions ??= new List<FieldMiddlewareDefinition>();
+                target._middlewareDefinitions.AddRange(_middlewareDefinitions);
+                _middlewareDefinitionsCleaned = false;
             }
 
             if (_resultConverters is { Count: > 0 })
             {
-                target._resultConverters ??= new List<ResultConverterDelegate>();
+                target._resultConverters ??= new List<ResultConverterDefinition>();
                 target._resultConverters.AddRange(_resultConverters);
+                _resultConvertersCleaned = false;
             }
 
             if (_customSettings is { Count: > 0 })
@@ -268,6 +291,89 @@ namespace HotChocolate.Types.Descriptors.Definitions
             if (SubscribeResolver is not null)
             {
                 target.SubscribeResolver = SubscribeResolver;
+            }
+        }
+
+        private static void CleanMiddlewareDefinitions<T>(
+            IList<T> definitions,
+            ref bool definitionsCleaned)
+            where T : IMiddlewareDefinition
+        {
+            var count = definitions.Count;
+
+            if (!definitionsCleaned && count > 1)
+            {
+                if (count == 2 && definitions[0].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+                if (count == 3 &&
+                    definitions[0].IsRepeatable &&
+                    definitions[1].IsRepeatable &&
+                    definitions[2].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+                if (count == 4 &&
+                    definitions[0].IsRepeatable &&
+                    definitions[1].IsRepeatable &&
+                    definitions[2].IsRepeatable &&
+                    definitions[3].IsRepeatable)
+                {
+                    definitionsCleaned = true;
+                }
+
+
+                if (!definitionsCleaned)
+                {
+                    var nonRepeatable = 0;
+
+                    foreach (var def in definitions)
+                    {
+                        if (!def.IsRepeatable && def.Key is not null)
+                        {
+                            nonRepeatable++;
+                        }
+                    }
+
+                    if (nonRepeatable > 1)
+                    {
+                        string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+                        int i = 0, ki = 0;
+
+                        do
+                        {
+                            IMiddlewareDefinition def = definitions[i];
+
+                            if (def.IsRepeatable || def.Key is null)
+                            {
+                                i++;
+                            }
+                            else
+                            {
+                                if (ki > 0)
+                                {
+                                    if (Array.IndexOf(keys, def.Key) != -1)
+                                    {
+                                        count--;
+                                        definitions.RemoveAt(i);
+                                        continue;
+                                    }
+                                }
+
+                                keys[ki++] = def.Key;
+                                i++;
+                            }
+
+                        } while (i < count);
+
+                        ArrayPool<string>.Shared.Return(keys);
+                    }
+
+                    definitionsCleaned = true;
+                }
             }
         }
     }

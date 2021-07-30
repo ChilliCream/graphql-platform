@@ -32,10 +32,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (context, definition) =>
@@ -82,13 +84,14 @@ namespace HotChocolate.Types
         private static void CompileMiddleware(
             Type type,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             Type middlewareDefinition)
         {
             Type middlewareType = middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.SingleOrDefault);
         }
     }
 }
