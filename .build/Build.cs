@@ -76,20 +76,14 @@ partial class Build : NukeBuild
     Target Reset => _ => _
         .Executes(() =>
         {
-            TryDelete(AllSolutionFile);
-            TryDelete(SonarSolutionFile);
-            TryDelete(TestSolutionFile);
-            TryDelete(PackSolutionFile);
+            Helpers.TryDelete(AllSolutionFile);
+            Helpers.TryDelete(SonarSolutionFile);
+            Helpers.TryDelete(TestSolutionFile);
+            Helpers.TryDelete(PackSolutionFile);
 
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
 
-    private static void TryDelete(string fileName) 
-    {
-        if(File.Exists(fileName))
-        {
-            File.Delete(fileName);
-        }
-    }
+    
 }
