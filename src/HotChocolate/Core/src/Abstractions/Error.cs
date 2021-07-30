@@ -8,10 +8,16 @@ using HotChocolate.Properties;
 
 namespace HotChocolate
 {
-    public sealed class Error : IError
+    /// <summary>
+    /// Represents a GraphQL execution error.
+    /// </summary>
+    public class Error : IError
     {
         private const string _codePropertyName = "code";
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Error"/>.
+        /// </summary>
         public Error(
             string message,
             string? code = null,
@@ -77,8 +83,8 @@ namespace HotChocolate
                 return RemoveCode();
             }
 
-            var extensions = Extensions is null
-                ? new OrderedDictionary<string, object?>() { [_codePropertyName] = code }
+            OrderedDictionary<string, object?> extensions = Extensions is null
+                ? new OrderedDictionary<string, object?> { [_codePropertyName] = code }
                 : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
@@ -157,7 +163,7 @@ namespace HotChocolate
                     nameof(key));
             }
 
-            var extensions = Extensions is { }
+            OrderedDictionary<string, object?> extensions = Extensions is { }
                 ? new OrderedDictionary<string, object?>(Extensions)
                 : new OrderedDictionary<string, object?>();
             extensions[key] = value;

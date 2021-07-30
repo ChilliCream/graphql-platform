@@ -10,9 +10,39 @@ namespace HotChocolate.Execution.Processing
             ISelection selection,
             IError error)
         {
-            error = operationContext.ErrorHandler.Handle(error);
-            operationContext.Result.AddError(error, selection.SyntaxNode);
-            operationContext.DiagnosticEvents.ResolverError(resolverContext, error);
+            if (error is AggregateError aggregateError)
+            {
+                foreach (var innerError in aggregateError.Errors)
+                {
+                    ReportSingle(innerError);
+                }
+            }
+            else
+            {
+                ReportSingle(error);
+            }
+
+            void ReportSingle(IError singleError)
+            {
+                AddProcessedError(operationContext.ErrorHandler.Handle(singleError));
+            }
+
+            void AddProcessedError(IError processed)
+            {
+                if (processed is AggregateError ar)
+                {
+                    foreach (var ie in ar.Errors)
+                    {
+                        operationContext.Result.AddError(ie, selection.SyntaxNode);
+                        operationContext.DiagnosticEvents.ResolverError(resolverContext, ie);
+                    }
+                }
+                else
+                {
+                    operationContext.Result.AddError(processed, selection.SyntaxNode);
+                    operationContext.DiagnosticEvents.ResolverError(resolverContext, processed);
+                }
+            }
         }
 
         public static void ReportError(
