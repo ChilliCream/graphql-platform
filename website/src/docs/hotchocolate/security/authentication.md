@@ -139,7 +139,6 @@ services
     .AddDocumentFromString(@"
         type Query {
           me: User
-          meLegacy: User
         }
     ")
     .AddResolver("Query", "me", (context) =>

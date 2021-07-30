@@ -233,38 +233,6 @@ var connection = new Connection<User>(
     getTotalCount: cancellationToken => ValueTask.FromResult(0));
 ```
 
-<!-- ## Custom Edges
-
-_Edges_ are not only there to hold the _cusor_, they can also be used to include information about the relation between the parent and one of the _nodes_.
-
-```sdl
-type User {
-  id: ID!
-  name: String!
-  friends: FriendConnection
-}
-
-type FriendConnection {
-  pageInfo: PageInfo!
-  edges: [FriendEdge!]
-  nodes: [User!]
-}
-
-type FriendEdge {
-  cursor: String!
-  # this is a relation specific property
-  friendsSince: DateTime!
-  node: User!
-}
-
-type PageInfo {
-  hasNextPage: Boolean!
-  hasPreviousPage: Boolean!
-  startCursor: String
-  endCursor: String
-}
-``` -->
-
 # Offset Pagination
 
 > Note: While we support _offset-based_ pagination, we highly encourage the use of [_Connections_](#connections) instead. _Connections_ provide an abstraction which makes it easier to switch to another pagination mechanism later on.

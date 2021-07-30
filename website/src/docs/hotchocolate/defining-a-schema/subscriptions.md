@@ -283,5 +283,3 @@ public class Subscription
         => book;
 }
 ```
-
-<!-- todo: arguments with Subscribe(With = "...") -->

@@ -140,4 +140,4 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-A query type is just a regular [object type](/docs/hotchocolate/defining-a-schema/object-types), so we can do everything we could do with an object type with the query type (this applies to all root types).
+A query type is just a regular [object type](/docs/hotchocolate/v11/defining-a-schema/object-types), so we can do everything we could do with an object type with the query type (this applies to all root types).

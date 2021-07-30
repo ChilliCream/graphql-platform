@@ -4,7 +4,7 @@ title: "Enums"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-An Enum is a special kind of [scalar](/docs/hotchocolate/defining-a-schema/scalars) that is restricted to a particular set of allowed values.
+An Enum is a special kind of [scalar](/docs/hotchocolate/v11/defining-a-schema/scalars) that is restricted to a particular set of allowed values.
 
 ```sdl
 enum UserRole {

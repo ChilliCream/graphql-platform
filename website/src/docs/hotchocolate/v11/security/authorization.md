@@ -8,7 +8,7 @@ Authorization allows us to determine a user's permissions within our system. We 
 
 Authentication is a prerequisite of Authorization, as we first need to validate a user's "authenticity" before we can evaluate his authorization claims.
 
-[Learn how to setup authentication](/docs/hotchocolate/security/authentication)
+[Learn how to setup authentication](/docs/hotchocolate/v11/security/authentication)
 
 # Setup
 

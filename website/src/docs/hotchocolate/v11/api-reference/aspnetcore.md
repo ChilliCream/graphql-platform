@@ -67,7 +67,7 @@ GraphQL can also be served through an HTTP GET request. You have the same option
 For example, if we wanted to execute the following GraphQL query:
 
 ```graphql
-query($id: ID!) {
+query ($id: ID!) {
   user(id: $id) {
     name
   }

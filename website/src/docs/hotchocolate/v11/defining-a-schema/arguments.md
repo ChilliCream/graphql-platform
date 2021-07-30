@@ -25,7 +25,7 @@ Clients can specify arguments like the following.
 Often times arguments will be specified using variables.
 
 ```graphql
-query($userId: ID!) {
+query ($userId: ID!) {
   user(id: $userId) {
     username
   }
@@ -119,6 +119,6 @@ services
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/defining-a-schema/non-null)
+Arguments can be made required by using the non-null type. Learn more about [non-null](/docs/hotchocolate/v11/defining-a-schema/non-null)
 
-If we need to provide complex objects as arguments, we can use [input object types](/docs/hotchocolate/defining-a-schema/input-object-types).
+If we need to provide complex objects as arguments, we can use [input object types](/docs/hotchocolate/v11/defining-a-schema/input-object-types).
