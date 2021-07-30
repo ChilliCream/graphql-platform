@@ -47,7 +47,7 @@ partial class Build : NukeBuild
         .DependsOn(Restore) 
         .Executes(() =>
         {
-            Helpers.TryDelete(AllSolutionFile);
+            TryDelete(AllSolutionFile);
 
             DotNetBuildSonarSolution(
                 AllSolutionFile,
