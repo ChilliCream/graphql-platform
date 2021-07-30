@@ -134,25 +134,21 @@ namespace HotChocolate.Configuration
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
-            throw new NotImplementedException();
         }
 
         public void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
-            throw new NotImplementedException();
         }
 
         public void OnTypesCompletedName(
             IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
-            throw new NotImplementedException();
         }
 
         public void OnTypesCompleted(
             IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
-            throw new NotImplementedException();
         }
     }
 }
