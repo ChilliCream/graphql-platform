@@ -1,7 +1,8 @@
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     /// <summary>
     /// Represents mutable schema options.
@@ -79,10 +80,15 @@ namespace HotChocolate.Configuration
         public bool AllowInlining { get; set; } = true;
 
         /// <summary>
-        /// Defines that the default resolver execution strategy. 
+        /// Defines that the default resolver execution strategy.
         /// </summary>
         public ExecutionStrategy DefaultResolverStrategy { get; set; } =
             ExecutionStrategy.Parallel;
+
+        /// <summary>
+        /// Defines if the order of important middleware components shall be validated.
+        /// </summary>
+        public bool ValidatePipelineOrder { get; set; } = true;
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
@@ -99,7 +105,8 @@ namespace HotChocolate.Configuration
                 EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
                 DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
                 AllowInlining = options.AllowInlining,
-                DefaultResolverStrategy = options.DefaultResolverStrategy
+                DefaultResolverStrategy = options.DefaultResolverStrategy,
+                ValidatePipelineOrder = options.ValidatePipelineOrder
             };
         }
     }

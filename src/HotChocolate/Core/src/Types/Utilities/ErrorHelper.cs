@@ -138,9 +138,10 @@ namespace HotChocolate.Utilities
         public static ISchemaError MiddlewareOrderInvalid(
             FieldCoordinate field,
             ITypeSystemObject type,
-            ISyntaxNode? syntaxNode)
+            ISyntaxNode? syntaxNode,
+            string currentOrder)
             => SchemaErrorBuilder.New()
-                .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field)
+                .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
                 .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
                 .SetTypeSystemObject(type)
                 .AddSyntaxNode(syntaxNode)

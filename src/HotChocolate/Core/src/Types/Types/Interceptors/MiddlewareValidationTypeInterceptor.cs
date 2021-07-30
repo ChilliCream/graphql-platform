@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,6 +11,10 @@ namespace HotChocolate.Types.Interceptors
 {
     internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     {
+        public override bool CanHandle(ITypeSystemObjectContext context)
+            => context.DescriptorContext.Options.ValidatePipelineOrder &&
+               context.Type is ObjectType;
+
         public override void OnValidateType(
             ITypeSystemObjectContext validationContext,
             DefinitionBase? definition,
@@ -88,7 +93,87 @@ namespace HotChocolate.Types.Interceptors
             if (error)
             {
                 throw new SchemaException(
-                    ErrorHelper.MiddlewareOrderInvalid(field, type, syntaxNode));
+                    ErrorHelper.MiddlewareOrderInvalid(
+                        field,
+                        type,
+                        syntaxNode,
+                        PrintPipeline(middlewareDefinitions)));
+            }
+        }
+
+        private string PrintPipeline(
+            IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        {
+            var sb = new StringBuilder();
+            var next = false;
+            var other = false;
+
+            foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+            {
+                if (definition.Key is not null)
+                {
+                    switch (definition.Key)
+                    {
+                        case WellKnownMiddleware.DbContext:
+                            other = false;
+                            PrintNext();
+                            sb.Append("UseDbContext");
+                            break;
+
+                        case WellKnownMiddleware.Paging:
+                            other = false;
+                            PrintNext();
+                            sb.Append("UsePaging");
+                            break;
+
+                        case WellKnownMiddleware.Projection:
+                            other = false;
+                            PrintNext();
+                            sb.Append("UseProjection");
+                            break;
+
+                        case WellKnownMiddleware.Filtering:
+                            other = false;
+                            PrintNext();
+                            sb.Append("UseFiltering");
+                            break;
+
+                        case WellKnownMiddleware.Sorting:
+                            other = false;
+                            PrintNext();
+                            sb.Append("UseSorting");
+                            break;
+
+                        default:
+                            PrintOther();
+                            break;
+                    }
+                }
+                else
+                {
+                    PrintOther();
+                }
+
+                next = true;
+            }
+
+            return sb.ToString();
+
+            void PrintNext()
+            {
+                if (next)
+                {
+                    sb.Append(" -> ");
+                }
+            }
+
+            void PrintOther()
+            {
+                if (!other)
+                {
+                    sb.Append("...");
+                    other = true;
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
