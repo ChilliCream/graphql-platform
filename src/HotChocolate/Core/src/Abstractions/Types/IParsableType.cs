@@ -70,10 +70,19 @@ namespace HotChocolate.Types
         /// <returns>
         /// Returns a GraphQL value syntax representation of the <paramref name="resultValue"/>.
         /// </returns>
-        /// <exception cref="SerializationException">
+        /// <exception cref="HotChocolate.Types.SerializationException">
         /// Unable to parse the given <paramref name="resultValue"/>
         /// into a GraphQL value syntax representation of this type.
         /// </exception>
         IValueNode ParseResult(object? resultValue);
+    }
+
+    public interface IParsableType2 : IParsableType
+    {
+        object? ParseLiteral(IValueNode valueSyntax, Path? path, bool withDefaults = true);
+
+        IValueNode ParseValue(object? runtimeValue, Path? path);
+
+        IValueNode ParseResult(object? resultValue, Path? path);
     }
 }

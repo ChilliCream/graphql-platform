@@ -17,9 +17,6 @@ using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 namespace HotChocolate.Types
 {
-    /// <summary>
-    /// Represents a GraphQL input object type
-    /// </summary>
     public partial class InputObjectType
     {
         private Action<IInputObjectTypeDescriptor>? _configure;

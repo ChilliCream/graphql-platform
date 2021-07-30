@@ -223,7 +223,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object? runtimeValue))
+            if (TryDeserialize(resultValue, out var runtimeValue))
             {
                 return runtimeValue;
             }

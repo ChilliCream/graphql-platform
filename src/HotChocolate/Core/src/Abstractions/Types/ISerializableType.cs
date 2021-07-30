@@ -33,6 +33,15 @@ namespace HotChocolate.Types
         /// </returns>
         object? Deserialize(object? resultValue);
 
+        bool TrySerialize(object? runtimeValue, out object? resultValue);
+
         bool TryDeserialize(object? resultValue, out object? runtimeValue);
+    }
+
+    public interface ISerializableType2 : ISerializableType
+    {
+        object? Serialize(object? runtimeValue, Path? path);
+
+        object? Deserialize(object? resultValue, Path? path);
     }
 }
