@@ -10,24 +10,6 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class SchemaRequestExecutorBuilderExtensions
     {
-        public static IRequestExecutorBuilder AddResolver(
-            this IRequestExecutorBuilder builder,
-            FieldResolver fieldResolver)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            // return builder.ConfigureSchema(b => b.AddResolver(fieldResolver));
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Adds a resolver delegate for a specific field.
         /// </summary>

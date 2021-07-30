@@ -32,9 +32,40 @@ namespace HotChocolate.Execution.Processing
             }
 
             AssertInitialized();
-            error = ErrorHandler.Handle(error);
-            Result.AddError(error);
-            DiagnosticEvents.TaskError(task, error);
+            
+            if (error is AggregateError aggregateError)
+            {
+                foreach (var innerError in aggregateError.Errors)
+                {
+                    ReportSingle(innerError);
+                }
+            }
+            else
+            {
+                ReportSingle(error);
+            }
+
+            void ReportSingle(IError singleError)
+            {
+                AddProcessedError(ErrorHandler.Handle(singleError));
+            }
+
+            void AddProcessedError(IError processed)
+            {
+                if (processed is AggregateError ar)
+                {
+                    foreach (var ie in ar.Errors)
+                    {
+                        Result.AddError(ie);
+                        DiagnosticEvents.TaskError(task, ie);
+                    }
+                }
+                else
+                {
+                    Result.AddError(processed);
+                    DiagnosticEvents.TaskError(task, processed);
+                }
+            }
         }
 
         void IExecutionTaskContext.Completed(IExecutionTask task)

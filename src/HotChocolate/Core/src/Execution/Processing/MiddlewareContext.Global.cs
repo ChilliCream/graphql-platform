@@ -140,10 +140,40 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(error));
             }
 
-            error = _operationContext.ErrorHandler.Handle(error);
-            _operationContext.Result.AddError(error, _selection.SyntaxNode);
-            _operationContext.DiagnosticEvents.ResolverError(this, error);
-            HasErrors = true;
+            if (error is AggregateError aggregateError)
+            {
+                foreach (var innerError in aggregateError.Errors)
+                {
+                    ReportSingle(innerError);
+                }
+            }
+            else
+            {
+                ReportSingle(error);
+            }
+
+            void ReportSingle(IError singleError)
+            {
+                AddProcessedError(_operationContext.ErrorHandler.Handle(singleError));
+                HasErrors = true;
+            }
+
+            void AddProcessedError(IError processed)
+            {
+                if (processed is AggregateError ar)
+                {
+                    foreach (var ie in ar.Errors)
+                    {
+                        _operationContext.Result.AddError(ie, _selection.SyntaxNode);
+                        _operationContext.DiagnosticEvents.ResolverError(this, ie);
+                    }
+                }
+                else
+                {
+                    _operationContext.Result.AddError(processed, _selection.SyntaxNode);
+                    _operationContext.DiagnosticEvents.ResolverError(this, processed);
+                }
+            }
         }
 
         public async ValueTask<T> ResolveAsync<T>()

@@ -186,4 +186,7 @@
   <data name="FieldCoordinate_Parse_InvalidFormat" xml:space="preserve">
     <value>The string has an invalid format.</value>
   </data>
+  <data name="AggregateError_Message" xml:space="preserve">
+    <value>For error details look at the `Errors` property.</value>
+  </data>
 </root>

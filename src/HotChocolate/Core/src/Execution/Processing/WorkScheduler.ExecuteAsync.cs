@@ -96,7 +96,18 @@ RESTART:
                     .Build();
 
             error = _errorHandler.Handle(error);
-            _result.AddError(error);
+
+            if (error is AggregateError aggregateError)
+            {
+                foreach (var innerError in aggregateError.Errors)
+                {
+                    _result.AddError(innerError);
+                }
+            }
+            else
+            {
+                _result.AddError(error);
+            }
         }
     }
 }

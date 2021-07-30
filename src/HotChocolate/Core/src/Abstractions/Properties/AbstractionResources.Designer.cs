@@ -182,5 +182,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFormat", resourceCulture);
             }
         }
+        
+        internal static string AggregateError_Message {
+            get {
+                return ResourceManager.GetString("AggregateError_Message", resourceCulture);
+            }
+        }
     }
 }
