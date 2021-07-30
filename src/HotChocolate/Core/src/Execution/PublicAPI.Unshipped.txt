@@ -7,6 +7,8 @@ HotChocolate.Execution.Configuration.RequestExecutorSetup.TypeModules.get -> Sys
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents.DispatchBatch(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents.StartProcessing(HotChocolate.Execution.IRequestContext! context) -> void
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents.StopProcessing(HotChocolate.Execution.IRequestContext! context) -> void
+HotChocolate.Execution.IRequestContext.Clone() -> HotChocolate.Execution.IRequestContext!
+HotChocolate.Execution.IRequestContext.IsValidDocument.get -> bool
 HotChocolate.Execution.Options.ComplexityAnalyzerSettings
 HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ApplyDefaults.get -> bool
 HotChocolate.Execution.Options.ComplexityAnalyzerSettings.ApplyDefaults.set -> void
@@ -80,6 +82,8 @@ static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExte
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.AddType(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<System.IServiceProvider!, HotChocolate.Types.INamedType!>! namedTypeFactory) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.BindRuntimeType(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Type! runtimeType, HotChocolate.NameString? typeName = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.BindRuntimeType<TRuntimeType>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.NameString? typeName = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.ModifyOptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Action<HotChocolate.ISchemaOptions!>! configure) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.SetOptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.IReadOnlySchemaOptions! options) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.DispatchBatch(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
 *REMOVED*HotChocolate.Execution.IRequestMiddleware
 *REMOVED*HotChocolate.Execution.IRequestMiddleware.InvokeAsync(HotChocolate.Execution.IRequestContext! context, HotChocolate.Execution.RequestDelegate! next) -> System.Threading.Tasks.Task!
