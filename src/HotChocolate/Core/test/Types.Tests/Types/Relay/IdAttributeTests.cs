@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -71,8 +72,6 @@ namespace HotChocolate.Types.Relay
         public async Task InterceptedId_On_Arguments()
         {
             // arrange
-            var guidId = new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5");
-
             // act
             IExecutionResult result =
                 await SchemaBuilder.New()
@@ -306,10 +305,21 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshot();
         }
 
+        [Fact]
         public void EnsureIdIsOnlyAppliedOnce()
         {
+            var inspector = new TestTypeInterceptor();
+
             SchemaBuilder.New()
-                .AddTy
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("abc").ID().ID().ID().ID().Resolve("abc");
+                })
+                .TryAddTypeInterceptor(inspector)
+                .Create();
+
+            Assert.Equal(1, inspector.Count);
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static")]
@@ -456,11 +466,11 @@ namespace HotChocolate.Types.Relay
             {
                 switch (descriptor)
                 {
-                    case IInputFieldDescriptor d when element is PropertyInfo:
-                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d));
+                    case IInputFieldDescriptor dc when element is PropertyInfo:
+                        dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                         break;
-                    case IArgumentDescriptor d when element is ParameterInfo:
-                        d.Extend().OnBeforeCompletion((c, d) => AddInterceptingSerializer(d));
+                    case IArgumentDescriptor dc when element is ParameterInfo:
+                        dc.Extend().OnBeforeCompletion((_, d) => AddInterceptingSerializer(d));
                         break;
                 }
             }
@@ -479,13 +489,23 @@ namespace HotChocolate.Types.Relay
             }
         }
 
-        public class TestQuery : ObjectType
+        public class TestTypeInterceptor : TypeInterceptor
         {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor.Name("Query");
+            public int Count { get; set; }
 
-                descriptor.Field("abc").ID().ID().Resolve("abc");
+            public override void OnValidateType(
+                ITypeSystemObjectContext validationContext,
+                DefinitionBase? definition,
+                IDictionary<string, object?> contextData)
+            {
+                if (validationContext.Type.Name.Equals("Query") &&
+                    definition is ObjectTypeDefinition typeDef)
+                {
+                    Count = typeDef.Fields
+                        .Single(t => t.Name.Equals("abc"))
+                        .GetResultConverters()
+                        .Count;
+                }
             }
         }
     }

@@ -18,8 +18,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<FieldMiddlewareDefinition>? _middlewareDefinitions;
         private List<ResultConverterDefinition>? _resultConverters;
         private List<object>? _customSettings;
-        private bool _middlewareDefinitionsCleaned = false;
-        private bool _resultConvertersCleaned = false;
+        private bool _middlewareDefinitionsCleaned;
+        private bool _resultConvertersCleaned;
 
         /// <summary>
         /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
@@ -303,9 +303,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             if (!definitionsCleaned && count > 1)
             {
-                if (count == 2 &&
-                    definitions[0].IsRepeatable &&
-                    definitions[1].IsRepeatable)
+                if (count == 2 && definitions[0].IsRepeatable)
                 {
                     definitionsCleaned = true;
                 }
@@ -366,6 +364,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                                 }
 
                                 keys[ki++] = def.Key;
+                                i++;
                             }
 
                         } while (i < count);
@@ -377,50 +376,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 }
             }
         }
-    }
-
-    public interface IMiddlewareDefinition
-    {
-        public bool IsRepeatable { get; }
-
-        public string? Key { get; }
-    }
-
-    public sealed class FieldMiddlewareDefinition : IMiddlewareDefinition
-    {
-        public FieldMiddlewareDefinition(
-            FieldMiddleware middleware,
-            bool isRepeatable = true,
-            string? key = null)
-        {
-            Middleware = middleware;
-            IsRepeatable = isRepeatable;
-            Key = key;
-        }
-
-        public FieldMiddleware Middleware { get; }
-
-        public bool IsRepeatable { get; }
-
-        public string? Key { get; }
-    }
-
-    public sealed class ResultConverterDefinition : IMiddlewareDefinition
-    {
-        public ResultConverterDefinition(
-            ResultConverterDelegate converter,
-            bool isRepeatable = true,
-            string? key = null)
-        {
-            Converter = converter;
-            IsRepeatable = isRepeatable;
-            Key = key;
-        }
-
-        public ResultConverterDelegate Converter { get; }
-
-        public bool IsRepeatable { get; }
-
-        public string? Key { get; }
     }
 }
