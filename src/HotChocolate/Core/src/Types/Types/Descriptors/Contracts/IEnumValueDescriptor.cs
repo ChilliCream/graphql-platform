@@ -23,6 +23,8 @@ namespace HotChocolate.Types
 
         IEnumValueDescriptor Deprecated();
 
+        IEnumValueDescriptor Ignore(bool ignore = true);
+
         IEnumValueDescriptor Directive<T>(
             T directiveInstance)
             where T : class;

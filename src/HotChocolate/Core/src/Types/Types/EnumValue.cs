@@ -41,6 +41,7 @@ namespace HotChocolate.Types
             Description = enumValueDefinition.Description;
             DeprecationReason = enumValueDefinition.DeprecationReason;
             IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
+            Ignore = enumValueDefinition.Ignore;
             Value = enumValueDefinition.RuntimeValue;
             ContextData = enumValueDefinition.GetContextData();
 
@@ -57,6 +58,8 @@ namespace HotChocolate.Types
         public bool IsDeprecated { get; }
 
         public string? DeprecationReason { get; }
+
+        public bool Ignore { get; }
 
         public object Value { get; }
 

@@ -24,8 +24,7 @@ namespace HotChocolate.Types
         /// <param name="value">
         /// The name value.
         /// </param>
-        IEnumTypeDescriptor Name(
-            NameString value);
+        IEnumTypeDescriptor Name(NameString value);
 
         /// <summary>
         /// Defines the description that the enum type shall have.
@@ -33,22 +32,23 @@ namespace HotChocolate.Types
         /// <param name="value">
         /// The description value.
         /// </param>
-        IEnumTypeDescriptor Description(
-            string value);
+        IEnumTypeDescriptor Description(string value);
 
         [Obsolete("Use `Value`.")]
-        IEnumValueDescriptor Item<T>(
-            T value);
+        IEnumValueDescriptor Item<T>(T value);
 
-        IEnumValueDescriptor Value<T>(
-            T value);
+        /// <summary>
+        /// Defines a value that should be included on the enum type.
+        /// </summary>
+        /// <param name="value">
+        /// The value to include.
+        /// </param>
+        IEnumValueDescriptor Value<T>(T value);
 
         [Obsolete("Use `BindValues`.")]
-        IEnumTypeDescriptor BindItems(
-            BindingBehavior behavior);
+        IEnumTypeDescriptor BindItems(BindingBehavior behavior);
 
-        IEnumTypeDescriptor BindValues(
-            BindingBehavior behavior);
+        IEnumTypeDescriptor BindValues(BindingBehavior behavior);
 
         /// <summary>
         /// Defines that all enum values have to be specified explicitly.
