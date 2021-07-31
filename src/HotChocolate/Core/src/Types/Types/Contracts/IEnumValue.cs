@@ -32,12 +32,6 @@ namespace HotChocolate.Types
         bool IsDeprecated { get; }
 
         /// <summary>
-        /// Defines if this enum value is ignored 
-        /// and therefore excluded from the schema.
-        /// </summary>        
-        bool Ignore { get; }
-
-        /// <summary>
         /// Gets the deprecation reason for this enum value.
         /// </summary>
         string? DeprecationReason { get; }
