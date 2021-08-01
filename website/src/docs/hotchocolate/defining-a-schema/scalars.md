@@ -72,7 +72,7 @@ type Product {
 
 This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
 
-It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types#explicit-types).
 
 `ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
 
