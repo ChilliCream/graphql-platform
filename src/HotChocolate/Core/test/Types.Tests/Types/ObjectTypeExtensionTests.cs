@@ -65,6 +65,38 @@ namespace HotChocolate.Types
             Assert.IsType<IntType>(type.Fields["test"].Type);
         }
 
+
+
+        [Fact]
+        public async Task ObjectTypeExtension_Remove_Field_By_Name()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooType>()
+                .AddTypeExtension(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Ignore(true)))
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ObjectTypeExtension_Remove_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooType>()
+                .AddTypeExtension(new ObjectTypeExtension<Foo>(d => d
+                    .Ignore(f => f.Description)))
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
         [Fact]
         public async Task ObjectTypeExtension_Execute_Infer_Field()
         {
