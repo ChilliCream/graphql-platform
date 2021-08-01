@@ -2,8 +2,8 @@ using GreenDonut;
 
 namespace HotChocolate.Fetching
 {
-    public interface IAutoBatchDispatcher : IBatchScheduler
-    {
-        
-    }
+    /// <summary>
+    /// Defines a batch dispatcher that immediately dispatches batch jobs.
+    /// </summary>
+    public interface IAutoBatchDispatcher : IBatchScheduler { }
 }

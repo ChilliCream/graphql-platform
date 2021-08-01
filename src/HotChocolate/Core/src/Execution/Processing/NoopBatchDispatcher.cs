@@ -11,7 +11,9 @@ namespace HotChocolate.Execution.Processing
 
         public bool DispatchOnSchedule { get; set; } = false;
 
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue) { }
+        public void Initialize(IExecutionTaskContext context) { }
+
+        public void Dispatch() { }
 
         public static NoopBatchDispatcher Default { get; } = new();
     }

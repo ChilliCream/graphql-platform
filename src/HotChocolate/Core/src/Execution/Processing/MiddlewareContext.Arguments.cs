@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -53,7 +52,7 @@ namespace HotChocolate.Execution.Processing
                 : new Optional<T>(CoerceArgumentValue<T>(argument));
         }
 
-        public T ArgumentLiteral<T>(NameString name) where T : IValueNode
+        public TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode
         {
             if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
@@ -62,13 +61,13 @@ namespace HotChocolate.Execution.Processing
 
             IValueNode literal = argument.ValueLiteral!;
 
-            if (literal is T castedLiteral)
+            if (literal is TValueNode castedLiteral)
             {
                 return castedLiteral;
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, Path, name,  typeof(T), literal.GetType());
+                _selection.SyntaxNode, Path, name,  typeof(TValueNode), literal.GetType());
         }
 
         public ValueKind ArgumentKind(NameString name)
@@ -120,7 +119,7 @@ namespace HotChocolate.Execution.Processing
             // create from this the required argument value.
             // This however comes with a performance impact of traversing the dictionary structure
             // and creating from this the object.
-            if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
+            if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
             {
                 var dictToObjConverter = new DictionaryToObjectConverter(
                     _operationContext.Converter);

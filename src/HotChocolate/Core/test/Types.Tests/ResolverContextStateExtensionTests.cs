@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -14,6 +15,8 @@ namespace HotChocolate
         [Fact]
         public async Task GetUserClaims()
         {
+            Snapshot.FullName();
+
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(new[]
                 {

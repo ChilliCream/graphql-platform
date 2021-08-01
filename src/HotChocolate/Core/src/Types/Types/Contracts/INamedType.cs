@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
     /// <summary>
     /// Represents a named GraphQL type.

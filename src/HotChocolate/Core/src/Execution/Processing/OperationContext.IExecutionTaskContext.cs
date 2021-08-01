@@ -14,6 +14,11 @@ namespace HotChocolate.Execution.Processing
             ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
         }
 
+        void IExecutionTaskContext.Register(IExecutionTask task)
+        {
+            Scheduler.Register(task);
+        }
+
         private void ReportError(IExecutionTask task, IError error)
         {
             if (task is null)
@@ -35,7 +40,7 @@ namespace HotChocolate.Execution.Processing
         void IExecutionTaskContext.Completed(IExecutionTask task)
         {
             AssertInitialized();
-            Execution.Work.Complete(task);
+            Scheduler.Complete(task);
         }
 
         IDisposable IExecutionTaskContext.Track(IExecutionTask task)

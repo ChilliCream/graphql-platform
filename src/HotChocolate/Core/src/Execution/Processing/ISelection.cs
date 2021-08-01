@@ -45,12 +45,7 @@ namespace HotChocolate.Execution.Processing
         /// The compiled pure resolver.
         /// </summary>
         PureFieldDelegate? PureResolver { get; }
-
-        /// <summary>
-        /// The compiled inline resolver that can be used to optimize execution of a request.
-        /// </summary>
-        InlineFieldDelegate? InlineResolver { get; }
-
+        
         /// <summary>
         /// The arguments that have been pre-coerced for this field selection.
         /// </summary>

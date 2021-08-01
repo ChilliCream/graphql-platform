@@ -22,6 +22,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
             // assert
             Assert.False(queue.IsEmpty);
+            Assert.True(queue.HasWork);
         }
 
         [Fact]

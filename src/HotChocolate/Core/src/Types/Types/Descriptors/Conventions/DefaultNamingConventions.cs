@@ -15,23 +15,15 @@ namespace HotChocolate.Types.Descriptors
         private const string _inputTypePostfix = "InputType";
         private readonly IDocumentationProvider _documentation;
 
+        public DefaultNamingConventions()
+        {
+            _documentation = new NoopDocumentationProvider();
+        }
+
         public DefaultNamingConventions(IDocumentationProvider documentation)
         {
             _documentation = documentation
                 ?? throw new ArgumentNullException(nameof(documentation));
-        }
-
-        public DefaultNamingConventions()
-            : this(true)
-        {
-        }
-
-        public DefaultNamingConventions(bool useXmlDocumentation)
-        {
-            _documentation = useXmlDocumentation
-                ? (IDocumentationProvider)new XmlDocumentationProvider(
-                    new XmlDocumentationFileResolver())
-                : new NoopDocumentationProvider();
         }
 
         protected IDocumentationProvider DocumentationProvider =>
@@ -205,8 +197,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 var c = name[i];
 
-                if (i > 0 && char.IsUpper(c) && 
-                    (!char.IsUpper(name[i - 1]) || 
+                if (i > 0 && char.IsUpper(c) &&
+                    (!char.IsUpper(name[i - 1]) ||
                         (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                 {
                     underscores++;
@@ -244,8 +236,8 @@ namespace HotChocolate.Types.Descriptors
 
                 for (var i = 1; i < name.Length; i++)
                 {
-                    if (char.IsUpper(name[i]) && 
-                        (!char.IsUpper(name[i - 1]) || 
+                    if (char.IsUpper(name[i]) &&
+                        (!char.IsUpper(name[i - 1]) ||
                             (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                     {
                         buffer[p++] = '_';

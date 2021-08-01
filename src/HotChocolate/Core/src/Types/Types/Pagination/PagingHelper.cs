@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Pagination
                 if (SchemaTypeResolver.TryInferSchemaType(
                     typeInspector,
                     r.WithType(typeInspector.GetType(typeInfo.NamedType)),
-                    out ExtendedTypeReference schemaTypeRef))
+                    out ExtendedTypeReference? schemaTypeRef))
                 {
                     // if we are able to infer the type we will reconstruct its structure so that
                     // we can correctly extract from it the element type with the correct
@@ -149,8 +149,6 @@ namespace HotChocolate.Types.Pagination
                         return schemaType.ElementType!;
                     }
                 }
-
-
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))

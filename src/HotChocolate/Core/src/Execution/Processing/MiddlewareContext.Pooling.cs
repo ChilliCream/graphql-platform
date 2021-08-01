@@ -4,6 +4,11 @@ namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext
     {
+        public MiddlewareContext()
+        {
+            _childContext = new PureResolverContext(this);
+        }
+
         public void Initialize(
             IOperationContext operationContext,
             ISelection selection,
@@ -23,10 +28,12 @@ namespace HotChocolate.Execution.Processing
             ScopedContextData = scopedContextData;
             LocalContextData = ImmutableDictionary<string, object?>.Empty;
             Arguments = _selection.Arguments;
+            RequestAborted = _operationContext.RequestAborted;
         }
 
         public void Clean()
         {
+            _childContext.Clear();
             _operationContext = default!;
             _services = default!;
             _selection = default!;
@@ -44,6 +51,7 @@ namespace HotChocolate.Execution.Processing
             ResultMap = default!;
             HasErrors = false;
             Arguments = default!;
+            RequestAborted = default!;
         }
     }
 }

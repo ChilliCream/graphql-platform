@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
@@ -17,6 +18,7 @@ namespace HotChocolate.Fetching
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly object _sync = new();
         private readonly List<Func<ValueTask>> _tasks = new();
+        private IExecutionTaskContext? _context;
         private bool _dispatchOnSchedule;
 
         /// <inheritdoc />
@@ -39,14 +41,25 @@ namespace HotChocolate.Fetching
         }
 
         /// <inheritdoc />
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
+        public void Initialize(IExecutionTaskContext context)
         {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        /// <inheritdoc />
+        public void Dispatch()
+        {
+            // TODO : resources
+            IExecutionTaskContext context = _context ??
+                throw new InvalidOperationException("The scheduler is not initialized.");
+
             lock (_sync)
             {
                 if (_tasks.Count > 0)
                 {
-                    var tasks = new List<Func<ValueTask>>(_tasks);
-                    enqueue(new BatchExecutionTaskDefinition(tasks));
+                    var task = new BatchExecutionTask(context, _tasks.ToList());
+                    _tasks.Clear();
+                    context.Register(task);
                 }
             }
         }
@@ -66,7 +79,6 @@ namespace HotChocolate.Fetching
                     dispatchOnSchedule = false;
                     _tasks.Add(dispatch);
                     TaskEnqueued?.Invoke(this, EventArgs.Empty);
-
                 }
             }
 
@@ -95,21 +107,6 @@ namespace HotChocolate.Fetching
             }
         }
 
-        private class BatchExecutionTaskDefinition : IExecutionTaskDefinition
-        {
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-
-            public BatchExecutionTaskDefinition(IReadOnlyList<Func<ValueTask>> tasks)
-            {
-                _tasks = tasks;
-            }
-
-            public IExecutionTask Create(IExecutionTaskContext context)
-            {
-                return new BatchExecutionTask(context, _tasks);
-            }
-        }
-
         private class BatchExecutionTask : ParallelExecutionTask
         {
             private readonly IReadOnlyList<Func<ValueTask>> _tasks;
@@ -126,16 +123,20 @@ namespace HotChocolate.Fetching
 
             protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
-                foreach (Func<ValueTask> task in _tasks)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        return;
-                    }
+                var running = new Task[_tasks.Count];
 
+                for (var i = 0; i < _tasks.Count; i++)
+                {
+                    running[i] = ExecuteBatchAsync(_tasks[i]);
+                }
+
+                await Task.WhenAll(running);
+
+                async Task ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
+                {
                     try
                     {
-                        await task.Invoke().ConfigureAwait(false);
+                        await executeBatchAsync.Invoke().ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {

@@ -35,8 +35,7 @@ namespace HotChocolate.Execution.Pipeline
             {
                 await _next(context).ConfigureAwait(false);
             }
-            else if (context.Document is not null &&
-                context.ValidationResult is { HasErrors: false })
+            else if (context.Document is not null && context.IsValidDocument)
             {
                 OperationDefinitionNode operation =
                     context.Document.GetOperation(context.Request.OperationName);

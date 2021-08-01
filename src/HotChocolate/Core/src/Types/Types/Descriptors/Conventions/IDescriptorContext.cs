@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 
 #nullable enable
 
@@ -9,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     /// The descriptor context is passed around during the schema creation and
     /// allows access to conventions and context data.
     /// </summary>
-    public interface IDescriptorContext : IHasContextData
+    public interface IDescriptorContext : IHasContextData, IDisposable
     {
         event EventHandler<SchemaCompletedEventArgs> SchemaCompleted;
 
@@ -42,6 +43,11 @@ namespace HotChocolate.Types.Descriptors
         /// Gets the type interceptor.
         /// </summary>
         TypeInterceptor TypeInterceptor { get; }
+
+        /// <summary>
+        /// Gets the resolver compiler.
+        /// </summary>
+        IResolverCompiler ResolverCompiler { get; }
 
         /// <summary>
         /// Gets a custom convention.

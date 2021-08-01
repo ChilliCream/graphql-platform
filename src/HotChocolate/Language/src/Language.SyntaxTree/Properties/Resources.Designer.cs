@@ -59,5 +59,11 @@ namespace HotChocolate.Language.Properties {
                 resourceCulture = value;
             }
         }
+        
+        internal static string DirectiveLocation_Value_CannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Value_CannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

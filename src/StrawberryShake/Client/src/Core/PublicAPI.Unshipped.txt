@@ -10,3 +10,6 @@ StrawberryShake.Serialization.UUIDSerializer.UUIDSerializer(string! typeName = "
 *REMOVED*StrawberryShake.Serialization.UuidSerializer
 *REMOVED*StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
 *REMOVED*const StrawberryShake.Serialization.BuiltInScalarNames.Uuid = "Uuid" -> string!
+*REMOVED*override StrawberryShake.Serialization.UuidSerializer.Format(System.Guid runtimeValue) -> string!
+*REMOVED*override StrawberryShake.Serialization.UuidSerializer.Parse(string! serializedValue) -> System.Guid
+*REMOVED*StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid", string! format = "D") -> void

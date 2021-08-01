@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -21,7 +22,7 @@ namespace HotChocolate.Language
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException(
-                    "The value mustn't be null or empty.",
+                    Resources.DirectiveLocation_Value_CannotBeNullOrEmpty,
                     nameof(value));
             }
 
@@ -73,62 +74,44 @@ namespace HotChocolate.Language
             return _value;
         }
 
-        public static DirectiveLocation Query { get; } =
-            new DirectiveLocation("QUERY");
+        public static DirectiveLocation Query { get; } = new("QUERY");
 
-        public static DirectiveLocation Mutation { get; } =
-            new DirectiveLocation("MUTATION");
+        public static DirectiveLocation Mutation { get; } = new("MUTATION");
 
-        public static DirectiveLocation Subscription { get; } =
-            new DirectiveLocation("SUBSCRIPTION");
+        public static DirectiveLocation Subscription { get; } = new("SUBSCRIPTION");
 
-        public static DirectiveLocation Field { get; } =
-            new DirectiveLocation("FIELD");
+        public static DirectiveLocation Field { get; } = new("FIELD");
 
-        public static DirectiveLocation VariableDefinition { get; } =
-            new DirectiveLocation("VARIABLE_DEFINITION");
+        public static DirectiveLocation VariableDefinition { get; } = new("VARIABLE_DEFINITION");
 
-        public static DirectiveLocation FragmentDefinition { get; } =
-            new DirectiveLocation("FRAGMENT_DEFINITION");
+        public static DirectiveLocation FragmentDefinition { get; } = new("FRAGMENT_DEFINITION");
 
-        public static DirectiveLocation FragmentSpread { get; } =
-            new DirectiveLocation("FRAGMENT_SPREAD");
+        public static DirectiveLocation FragmentSpread { get; } = new("FRAGMENT_SPREAD");
 
-        public static DirectiveLocation InlineFragment { get; } =
-            new DirectiveLocation("INLINE_FRAGMENT");
+        public static DirectiveLocation InlineFragment { get; } = new("INLINE_FRAGMENT");
 
-        public static DirectiveLocation Schema { get; } =
-            new DirectiveLocation("SCHEMA");
+        public static DirectiveLocation Schema { get; } = new("SCHEMA");
 
-        public static DirectiveLocation Scalar { get; } =
-            new DirectiveLocation("SCALAR");
+        public static DirectiveLocation Scalar { get; } = new("SCALAR");
 
-        public static DirectiveLocation Object { get; } =
-            new DirectiveLocation("OBJECT");
+        public static DirectiveLocation Object { get; } = new("OBJECT");
 
-        public static DirectiveLocation FieldDefinition { get; } =
-            new DirectiveLocation("FIELD_DEFINITION");
+        public static DirectiveLocation FieldDefinition { get; } = new("FIELD_DEFINITION");
 
-        public static DirectiveLocation ArgumentDefinition { get; } =
-            new DirectiveLocation("ARGUMENT_DEFINITION");
+        public static DirectiveLocation ArgumentDefinition { get; } = new("ARGUMENT_DEFINITION");
 
-        public static DirectiveLocation Interface { get; } =
-            new DirectiveLocation("INTERFACE");
+        public static DirectiveLocation Interface { get; } = new("INTERFACE");
 
-        public static DirectiveLocation Union { get; } =
-            new DirectiveLocation("UNION");
+        public static DirectiveLocation Union { get; } = new("UNION");
 
-        public static DirectiveLocation Enum { get; } =
-            new DirectiveLocation("ENUM");
+        public static DirectiveLocation Enum { get; } = new("ENUM");
 
-        public static DirectiveLocation EnumValue { get; } =
-            new DirectiveLocation("ENUM_VALUE");
+        public static DirectiveLocation EnumValue { get; } = new("ENUM_VALUE");
 
-        public static DirectiveLocation InputObject { get; } =
-            new DirectiveLocation("INPUT_OBJECT");
+        public static DirectiveLocation InputObject { get; } = new("INPUT_OBJECT");
 
         public static DirectiveLocation InputFieldDefinition { get; } =
-            new DirectiveLocation("INPUT_FIELD_DEFINITION");
+            new("INPUT_FIELD_DEFINITION");
 
         public static bool IsValidName(string value)
         {

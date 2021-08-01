@@ -8,6 +8,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// Defines the properties of a GraphQL object type.
+    /// </summary>
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
         , IComplexOutputTypeDefinition
@@ -16,6 +19,28 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<ITypeReference>? _interfaces;
         private List<ObjectFieldBinding>? _fieldIgnores;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectTypeDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+        /// </summary>
+        public ObjectTypeDefinition(
+            NameString name,
+            string? description = null,
+            Type? runtimeType = null)
+            : base(runtimeType ?? typeof(object))
+        {
+            Name = name;
+            Description = description;
+            FieldBindingType = runtimeType;
+        }
+
+        /// <summary>
+        /// Gets or sets the .net type representation of this type.
+        /// </summary>
         public override Type RuntimeType
         {
             get => base.RuntimeType;
@@ -26,21 +51,42 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
         }
 
+        /// <summary>
+        /// The type that shall be used to infer fields from.
+        /// </summary>
         public Type? FieldBindingType { get; set; }
 
+        /// <summary>
+        /// Runtime types that also represent this GraphQL type.
+        /// </summary>
         public IList<Type> KnownRuntimeTypes =>
             _knownClrTypes ??= new List<Type>();
 
+        /// <summary>
+        /// Gets fields that shall be ignored.
+        /// </summary>
         public IList<ObjectFieldBinding> FieldIgnores =>
             _fieldIgnores ??= new List<ObjectFieldBinding>();
 
+        /// <summary>
+        /// A delegate to determine if a resolver result is of this object type.
+        /// </summary>
         public IsOfType? IsOfType { get; set; }
 
+        /// <summary>
+        /// Defines if this type definition represents a object type extension.
+        /// </summary>
         public bool IsExtension { get; set; }
 
+        /// <summary>
+        /// Gets the interfaces that this object type implements.
+        /// </summary>
         public IList<ITypeReference> Interfaces =>
             _interfaces ??= new List<ITypeReference>();
 
+        /// <summary>
+        /// Gets the fields of this object type.
+        /// </summary>
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
 
@@ -143,14 +189,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 ObjectFieldDefinition? targetField = field switch
                 {
-                    { BindTo: { Type: ObjectFieldBindingType.Property } bindTo } =>
+                    { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name)),
-                    { BindTo: { Type: ObjectFieldBindingType.Field } bindTo } =>
+                    { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
                     _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))
                 };
 
-                var replaceField = field.BindTo?.Replace ?? false;
+                var replaceField = field.BindToField?.Replace ?? false;
                 var removeField = field.Ignore;
 
                 // we skip fields that have an incompatible parent.

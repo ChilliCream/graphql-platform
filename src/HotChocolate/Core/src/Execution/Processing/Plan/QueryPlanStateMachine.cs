@@ -73,9 +73,29 @@ namespace HotChocolate.Execution.Processing.Plan
             Activate(plan.Root);
         }
 
-        public bool Register(IExecutionTask task)
+        public object? TryGetStep(IExecutionTask task)
         {
-            if (_plan.TryGetStep(task, out var step))
+            return _plan.TryGetStep(task, out var step) ? step : null;
+        }
+
+        public bool RegisterTask(IExecutionTask task, object? step)
+        {
+            if (step is QueryPlanStep s)
+            {
+                InitializeState(s, out State state);
+
+                state.Tasks++;
+                task.State = step;
+                task.IsSerial = state.IsSerial;
+                return state.IsActive;
+            }
+
+            return true;
+        }
+
+        public bool RegisterTask(IExecutionTask task)
+        {
+            if (task.State is QueryPlanStep step)
             {
                 InitializeState(step, out State state);
 
@@ -91,6 +111,21 @@ namespace HotChocolate.Execution.Processing.Plan
         public bool Complete(IExecutionTask task)
         {
             if (task.State is QueryPlanStep step)
+            {
+                InitializeState(step, out State state);
+
+                if (--state.Tasks == 0)
+                {
+                    return Complete(step);
+                }
+            }
+
+            return false;
+        }
+
+        public bool Complete(object taskState)
+        {
+            if (taskState is QueryPlanStep step)
             {
                 InitializeState(step, out State state);
 
@@ -232,7 +267,7 @@ namespace HotChocolate.Execution.Processing.Plan
 TryAgain:
             for (var i = 0; i < _state.Length; i++)
             {
-                var state = _state[i];
+                State state = _state[i];
 
                 if (state.IsActive && state.Tasks == 0)
                 {

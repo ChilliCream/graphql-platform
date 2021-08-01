@@ -9,12 +9,9 @@ namespace HotChocolate
 {
     public static class ExecutionResultExtensions
     {
-        private static readonly JsonQueryResultSerializer _serializer =
-            new JsonQueryResultSerializer(false);
-        private static readonly JsonArrayResponseStreamSerializer _streamSerializer =
-            new JsonArrayResponseStreamSerializer();
-        private static readonly JsonQueryResultSerializer _serializerIndented =
-            new JsonQueryResultSerializer(true);
+        private static readonly JsonQueryResultSerializer _serializer = new(false);
+        private static readonly JsonArrayResponseStreamSerializer _streamSerializer = new();
+        private static readonly JsonQueryResultSerializer _serializerIndented = new(true);
 
         public static string ToJson(
             this IExecutionResult result,

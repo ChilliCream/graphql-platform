@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -43,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
-            AddImplicitFields<TDescriptor, TMember, TField>(
+            AddImplicitFields(
                 descriptor,
                 descriptor.RuntimeType,
                 createdFieldDefinition,
@@ -103,31 +102,20 @@ namespace HotChocolate.Types.Descriptors
                 var processed = new HashSet<NameString>(
                     arguments.Select(t => t.Name));
 
-                foreach (ParameterInfo parameter in method.GetParameters())
+                foreach (ParameterInfo parameter in
+                    context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
                 {
-                    if (IsArgumentType(method, parameter))
-                    {
-                        ArgumentDefinition argumentDefinition =
-                            ArgumentDescriptor
-                                .New(context, parameter)
-                                .CreateDefinition();
+                    ArgumentDefinition argumentDefinition =
+                        ArgumentDescriptor
+                            .New(context, parameter)
+                            .CreateDefinition();
 
-                        if (processed.Add(argumentDefinition.Name))
-                        {
-                            arguments.Add(argumentDefinition);
-                        }
+                    if (processed.Add(argumentDefinition.Name))
+                    {
+                        arguments.Add(argumentDefinition);
                     }
                 }
             }
-        }
-
-        private static bool IsArgumentType(
-            MemberInfo member,
-            ParameterInfo parameter)
-        {
-            return ArgumentHelper
-                .LookupKind(parameter, member.ReflectedType) ==
-                    ArgumentKind.Argument;
         }
     }
 }

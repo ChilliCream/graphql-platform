@@ -18,8 +18,7 @@ namespace HotChocolate.Language
             Description = description;
         }
 
-        public override SyntaxKind Kind { get; } =
-            SyntaxKind.InputObjectTypeDefinition;
+        public override SyntaxKind Kind => SyntaxKind.InputObjectTypeDefinition;
 
         public StringValueNode? Description { get; }
 

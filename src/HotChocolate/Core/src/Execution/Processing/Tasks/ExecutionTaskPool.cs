@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
@@ -88,20 +87,6 @@ namespace HotChocolate.Execution.Processing.Tasks
 #endif
                 }
             }
-        }
-    }
-
-    internal sealed class TaskBufferPoolPolicy : IPooledObjectPolicy<IExecutionTask?[]>
-    {
-        public IExecutionTask?[] Create()
-        {
-            return new IExecutionTask[4];
-        }
-
-        public bool Return(IExecutionTask?[] obj)
-        {
-            obj.AsSpan().Clear();
-            return true;
         }
     }
 }

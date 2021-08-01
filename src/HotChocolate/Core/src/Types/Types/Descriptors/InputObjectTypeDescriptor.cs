@@ -11,21 +11,19 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<InputObjectTypeDefinition>
         , IInputObjectTypeDescriptor
     {
-        protected InputObjectTypeDescriptor(
-            IDescriptorContext context,
-            Type clrType)
+        protected InputObjectTypeDescriptor(IDescriptorContext context, Type runtimeType)
             : base(context)
         {
-            if (clrType is null)
+            if (runtimeType is null)
             {
-                throw new ArgumentNullException(nameof(clrType));
+                throw new ArgumentNullException(nameof(runtimeType));
             }
 
-            Definition.RuntimeType = clrType;
+            Definition.RuntimeType = runtimeType;
             Definition.Name = context.Naming.GetTypeName(
-                clrType, TypeKind.InputObject);
+                runtimeType, TypeKind.InputObject);
             Definition.Description = context.Naming.GetTypeDescription(
-                clrType, TypeKind.InputObject);
+                runtimeType, TypeKind.InputObject);
         }
 
         protected InputObjectTypeDescriptor(IDescriptorContext context)
@@ -40,6 +38,11 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+
+            foreach (InputFieldDefinition field in definition.Fields)
+            {
+                Fields.Add(InputFieldDescriptor.From(Context, field));
+            }
         }
 
         protected internal override InputObjectTypeDefinition Definition { get; protected set; } =

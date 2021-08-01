@@ -7,6 +7,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
@@ -16,7 +17,6 @@ namespace HotChocolate.Execution.Pipeline
         private readonly RequestDelegate _next;
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
-        private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
         private readonly IQueryPlanCache _queryPlanCache;
         private readonly ITransactionScopeHandler _transactionScopeHandler;
@@ -27,7 +27,6 @@ namespace HotChocolate.Execution.Pipeline
             RequestDelegate next,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor,
             IQueryPlanCache queryPlanCache,
             [SchemaService] ITransactionScopeHandler transactionScopeHandler)
@@ -38,8 +37,6 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
-            _mutationExecutor = mutationExecutor ??
-                throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
                 throw new ArgumentNullException(nameof(subscriptionExecutor));
             _queryPlanCache = queryPlanCache ??
@@ -57,7 +54,7 @@ namespace HotChocolate.Execution.Pipeline
                 throw OperationExecutionMiddleware_NoBatchDispatcher();
             }
 
-            if (context is { Operation: not null, Variables: not null })
+            if (context.Operation is not null && context.Variables is not null)
             {
                 if (IsOperationAllowed(context))
                 {
@@ -89,11 +86,19 @@ namespace HotChocolate.Execution.Pipeline
 
             if (operation.Definition.Operation == OperationType.Subscription)
             {
+                // since the context is pooled we need to clone the context for
+                // long running executions.
+                IRequestContext clonedContext = context.Clone();
+
+                DefaultRequestContextAccessor accessor =
+                    clonedContext.Services.GetRequiredService<DefaultRequestContextAccessor>();
+                accessor.RequestContext = clonedContext;
+
                 context.Result = await _subscriptionExecutor
-                    .ExecuteAsync(context, queryPlan, () => GetQueryRootValue(context))
+                    .ExecuteAsync(clonedContext, queryPlan, () => GetQueryRootValue(clonedContext))
                     .ConfigureAwait(false);
 
-                await _next(context).ConfigureAwait(false);
+                await _next(clonedContext).ConfigureAwait(false);
             }
             else
             {
@@ -120,14 +125,21 @@ namespace HotChocolate.Execution.Pipeline
                             .Create();
                     }
 
-                    if(operationContext.Execution.DeferredWork.HasWork &&
-                       context.Result is IQueryResult result)
+                    if(operationContext.Scheduler.DeferredWork.HasWork &&
+                        context.Result is IQueryResult result)
                     {
                         // if we have deferred query task we will take ownership
                         // of the life time handling and return the operation context
                         // once we handled all deferred tasks.
                         var operationContextOwner = new OperationContextOwner(
                             operationContext, _operationContextPool);
+
+                        // since the context is pooled we need to clone the context for
+                        // long running executions.
+                        operationContext.RequestContext = context.Clone();
+
+                        // also we set operation context to null so that it is not
+                        // given back to the pool.
                         operationContext = null;
 
                         context.Result = new DeferredQueryResult
@@ -192,7 +204,7 @@ namespace HotChocolate.Execution.Pipeline
                     mutation,
                     () => GetQueryRootValue(context));
 
-                context.Result = await _mutationExecutor
+                context.Result = await _queryExecutor
                     .ExecuteAsync(operationContext)
                     .ConfigureAwait(false);
 
@@ -216,20 +228,23 @@ namespace HotChocolate.Execution.Pipeline
 
         private bool IsOperationAllowed(IRequestContext context)
         {
-            if (context.Request.AllowedOperations is null or { Length: 0 })
+            OperationType[]? allowedOps = context.Request.AllowedOperations;
+
+            if (allowedOps is null ||
+                allowedOps.Length == 0)
             {
                 return true;
             }
 
-            if (context.Request.AllowedOperations is { Length: 1 } allowed &&
-                allowed[0] == context.Operation?.Type)
+            if (allowedOps.Length == 1 &&
+                allowedOps[0] == context.Operation?.Type)
             {
                 return true;
             }
 
-            for (var i = 0; i < context.Request.AllowedOperations.Length; i++)
+            for (var i = 0; i < allowedOps.Length; i++)
             {
-                if (context.Request.AllowedOperations[i] == context.Operation?.Type)
+                if (allowedOps[i] == context.Operation?.Type)
                 {
                     return true;
                 }

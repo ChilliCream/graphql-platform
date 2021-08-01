@@ -28,16 +28,40 @@ namespace HotChocolate.Types
         private Func<ObjectValueNode, object> _parseLiteral = default!;
         private Func<IReadOnlyDictionary<string, object>, object> _deserialize = default!;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
         protected InputObjectType()
         {
             _configure = Configure;
         }
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
         public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        /// <summary>
+        /// Create an input object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The input object type definition that specifies the properties of the
+        /// newly created input object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created input object type.
+        /// </returns>
+        public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
+            => new() { Definition = definition};
 
         /// <summary>
         /// Override this in order to specify the type configuration explicitly.
@@ -49,16 +73,25 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override InputObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.FromSchemaType(context.DescriptorContext, GetType());
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = InputObjectTypeDescriptor.FromSchemaType(
+                        context.DescriptorContext,
+                        GetType());
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected override void OnRegisterDependencies(

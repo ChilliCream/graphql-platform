@@ -21,7 +21,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
         protected Uri SubscriptionUri { get; } = new Uri("ws://localhost:5000/graphql");
 
         protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
-            WebSocket webSocket, string type, TimeSpan timeout)
+            WebSocket webSocket,
+            string type,
+            TimeSpan timeout)
         {
             var timer = Stopwatch.StartNew();
 
@@ -55,11 +57,32 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return null;
         }
 
-        protected async Task<WebSocket> ConnectToServerAsync(
-            WebSocketClient client)
+        protected async Task WaitForConditions(Func<bool> condition, TimeSpan timeout)
         {
-            WebSocket webSocket = await client.ConnectAsync(
-                SubscriptionUri, CancellationToken.None);
+            var timer = Stopwatch.StartNew();
+
+            try
+            {
+                while (timer.Elapsed <= timeout)
+                {
+                    await Task.Delay(50);
+
+                    if (condition())
+                    {
+                        return;
+                    }
+                }
+            }
+            finally
+            {
+                timer.Stop();
+            }
+        }
+
+        protected async Task<WebSocket> ConnectToServerAsync(WebSocketClient client)
+        {
+            WebSocket webSocket =
+                await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
 
             await webSocket.SendConnectionInitializeAsync();
 
@@ -75,8 +98,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return webSocket;
         }
 
-        protected static WebSocketClient CreateWebSocketClient(
-            TestServer testServer)
+        protected static WebSocketClient CreateWebSocketClient(TestServer testServer)
         {
             WebSocketClient client = testServer.CreateWebSocketClient();
             client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 #nullable enable
@@ -7,7 +8,12 @@ namespace HotChocolate.Execution
     /// <summary>
     /// Represents the result of the GraphQL execution pipeline.
     /// </summary>
-    public interface IExecutionResult
+    /// <remarks>
+    /// Execution results are by default disposable and disposing
+    /// them allows it to give back its used memory to the execution
+    /// engine result pools.
+    /// </remarks>
+    public interface IExecutionResult : IDisposable
     {
         /// <summary>
         /// Gets the GraphQL errors of the result.

@@ -1134,18 +1134,6 @@ namespace HotChocolate
             public string Baz { get; }
         }
 
-        [GraphQLResolverOf(typeof(QueryType))]
-        public class QueryResolverOnType
-        {
-            public string Baz { get; }
-        }
-
-        [GraphQLResolverOf("Query")]
-        public class QueryResolverOnName
-        {
-            public string Baz { get; }
-        }
-
         public class MySchema
             : Schema
         {
@@ -1154,10 +1142,6 @@ namespace HotChocolate
                 descriptor.Description("Description");
             }
         }
-
-        public class MyEnumType
-            : EnumType
-        { }
 
         public class MyDirective
             : DirectiveType

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.DataLoader;
+using HotChocolate.Fetching;
+using HotChocolate.Types;
 using Moq;
 using Xunit;
 
@@ -18,7 +19,7 @@ namespace HotChocolate.Resolvers
             // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
-                    null,
+                    null!,
                     new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(
                             null)),
@@ -36,7 +37,7 @@ namespace HotChocolate.Resolvers
             // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
-                    null,
+                    null!,
                     "abc",
                     new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(

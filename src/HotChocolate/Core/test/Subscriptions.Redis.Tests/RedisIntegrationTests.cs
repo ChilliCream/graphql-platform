@@ -26,11 +26,11 @@ namespace HotChocolate.Subscriptions.Redis
             // arrange
             IServiceProvider services = new ServiceCollection()
                 .AddGraphQL()
-                .AddRedisSubscriptions(s => _connection)
+                .AddRedisSubscriptions(_ => _connection)
                 .AddQueryType(d => d
                     .Name("foo")
                     .Field("a")
-                    .Resolver("b"))
+                    .Resolve("b"))
                 .AddSubscriptionType<Subscription>()
                 .Services
                 .BuildServiceProvider();

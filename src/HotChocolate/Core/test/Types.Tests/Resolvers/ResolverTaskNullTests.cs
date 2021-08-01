@@ -21,9 +21,10 @@ namespace HotChocolate.Resolvers
         public async Task HandleNullResolverTask(string field, string argument)
         {
             // arrange
-            IRequestExecutor executor =
-                Schema.Create(c => c.RegisterQueryType<QueryType>())
-                    .MakeExecutable();
+            IRequestExecutor executor = SchemaBuilder.New()
+                .AddType<QueryType>()
+                .Create()
+                .MakeExecutable();
 
             // act
             var arg = argument is null ? "null" : $"\"{argument}\"";
@@ -35,8 +36,7 @@ namespace HotChocolate.Resolvers
                 field, argument ?? "null"));
         }
 
-        public class QueryType
-            : ObjectType<Query>
+        public class QueryType : ObjectType<Query>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
@@ -56,7 +56,7 @@ namespace HotChocolate.Resolvers
                 descriptor.Field("case4")
                     .Argument("name", a => a.Type<StringType>())
                     .Type<StringType>()
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                     {
                         var name = ctx.ArgumentValue<string>("name");
                         return name is null ? null : Task.FromResult(name);

@@ -239,5 +239,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Type_NameIsNotValid", resourceCulture);
             }
         }
+        
+        internal static string FieldCoordinate_Parse_InvalidComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFieldComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFieldComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFormat {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFormat", resourceCulture);
+            }
+        }
     }
 }

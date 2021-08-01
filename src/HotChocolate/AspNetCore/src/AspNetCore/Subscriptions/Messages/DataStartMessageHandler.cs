@@ -60,6 +60,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
 
                         var subscriptionSession = new SubscriptionSession(
                             session,
+                            _socketSessionInterceptor,
                             connection,
                             subscriptionResult,
                             subscription,

@@ -19,13 +19,13 @@ namespace HotChocolate.Language
             Description = description;
         }
 
-        public override SyntaxKind Kind { get; } = SyntaxKind.ObjectTypeDefinition;
+        public override SyntaxKind Kind => SyntaxKind.ObjectTypeDefinition;
 
         public StringValueNode? Description { get; }
 
         public override IEnumerable<ISyntaxNode> GetNodes()
         {
-            if (Description is { })
+            if (Description is not null)
             {
                 yield return Description;
             }

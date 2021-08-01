@@ -16,10 +16,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         where T : class, ISyntaxNode
     {
         private List<DirectiveDefinition>? _directives;
+        private Type _runtimeType = typeof(object);
 
         protected TypeDefinitionBase() { }
 
-        private Type _runtimeType = typeof(object);
+        protected TypeDefinitionBase(Type runtimeType)
+        {
+            _runtimeType = runtimeType;
+        }
 
         /// <summary>
         /// Gets or sets the .net type representation of this type.

@@ -89,8 +89,8 @@ namespace HotChocolate.Data.Sorting
             SortEnumValueDescriptor? descriptor = Values
                 .FirstOrDefault(
                     t =>
-                        t.Definition.Value is not null &&
-                        t.Definition.Value.Equals(operation));
+                        t.Definition.RuntimeValue is not null &&
+                        t.Definition.RuntimeValue.Equals(operation));
 
             if (descriptor is not null)
             {
