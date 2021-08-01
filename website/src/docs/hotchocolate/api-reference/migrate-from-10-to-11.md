@@ -331,7 +331,7 @@ To use projections with your GraphQL endpoint you have to register it on the sch
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddProjections();
 ```
 

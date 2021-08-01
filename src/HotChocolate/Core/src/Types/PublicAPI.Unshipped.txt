@@ -1,0 +1,1 @@
+HotChocolate.Types.IDescriptorExtension<T>.Definition.get -> T!
