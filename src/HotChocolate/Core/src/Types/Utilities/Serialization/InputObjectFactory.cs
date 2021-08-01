@@ -7,4 +7,8 @@ namespace HotChocolate.Utilities.Serialization
     internal delegate object InputObjectFactory(
         IReadOnlyDictionary<string, object?> fieldValues,
         ITypeConverter converter);
+
+    internal delegate object InputObjectActivator(
+        object[] fieldValues,
+        Path path);
 }

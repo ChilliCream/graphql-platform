@@ -41,6 +41,11 @@ namespace HotChocolate.Types
 
         IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
 
+        public object CreateInstance(object[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <inheritdoc />
         public virtual bool IsInstanceOfType(IValueNode literal)
         {

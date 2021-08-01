@@ -13,5 +13,7 @@ namespace HotChocolate.Types
         /// Gets the field that this type exposes.
         /// </summary>
         IFieldCollection<IInputField> Fields { get; }
+
+        object CreateInstance(object[] fieldValues);
     }
 }
