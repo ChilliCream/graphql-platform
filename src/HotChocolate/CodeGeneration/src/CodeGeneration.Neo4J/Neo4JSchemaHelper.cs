@@ -4,9 +4,9 @@ using HotChocolate.Language;
 
 namespace HotChocolate.CodeGeneration.Neo4J.Types
 {
-    public static class SchemaHelper
+    public static class Neo4JSchemaHelper
     {
-        public static ISchema CreateNeo4JSchema(IEnumerable<DocumentNode> documents)
+        public static ISchema CreateSchema(IEnumerable<DocumentNode> documents)
         {
             var schemaBuilder = new SchemaBuilder();
 

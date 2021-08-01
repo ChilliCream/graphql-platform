@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace HotChocolate.Analyzers.Types.EFCore
+namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     /// <summary>
     /// A marker interface for directives that will result in configuration

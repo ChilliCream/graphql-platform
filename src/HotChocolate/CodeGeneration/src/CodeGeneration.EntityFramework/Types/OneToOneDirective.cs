@@ -1,20 +1,20 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Analyzers.Types.EFCore
+namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
-    public class OneToManyDirective
+    public class OneToOneDirective
     {
         public string ForeignKey { get; set; } = default!;
 
         public string? InverseField { get; set; }
     }
 
-    public class OneToManyDirectiveType : DirectiveType<OneToManyDirective>
+    public class OneToOneDirectiveType : DirectiveType<OneToOneDirective>
     {
-        protected override void Configure(IDirectiveTypeDescriptor<OneToManyDirective> descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<OneToOneDirective> descriptor)
         {
             descriptor
-                .Name("oneToMany")
+                .Name("oneToOne")
                 .Location(DirectiveLocation.FieldDefinition);
 
             descriptor

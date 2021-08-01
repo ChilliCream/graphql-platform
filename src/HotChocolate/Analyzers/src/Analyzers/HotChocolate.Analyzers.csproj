@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.EntityFramework\HotChocolate.CodeGeneration.EntityFramework.csproj" />
     <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.Neo4J\HotChocolate.CodeGeneration.Neo4J.csproj" />
     <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration\HotChocolate.CodeGeneration.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
@@ -22,7 +23,6 @@
 
   <ItemGroup>
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Humanizer.Core" Version="2.11.10" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>

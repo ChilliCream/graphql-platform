@@ -1,14 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>false</IsPackable>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- <PackageId>HotChocolate.CodeGeneration</PackageId> -->
     <AssemblyName>HotChocolate.CodeGeneration</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration</RootNamespace>
     <Description>Contains source generators for Hot Chocolate.</Description>
@@ -19,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Humanizer.Core" Version="2.11.10" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>

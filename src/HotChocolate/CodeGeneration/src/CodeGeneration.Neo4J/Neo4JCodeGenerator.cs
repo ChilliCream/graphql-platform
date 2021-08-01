@@ -19,7 +19,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
         {
             var result = new CodeGenerationResult();
 
-            ISchema schema = SchemaHelper.CreateSchema(context.Documents);
+            ISchema schema = Neo4JSchemaHelper.CreateSchema(context.Documents);
 
             GenerateTypes(
                 result,
@@ -82,7 +82,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            result.AddSource(generatorContext.Namespace! + ".Query.cs", compilationUnit.ToFullString());
+            result.AddClass(generatorContext.Namespace, "Query", compilationUnit.ToFullString());
         }
 
         private static void GenerateObjectType(
@@ -135,7 +135,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            result.AddSource(@namespace + $".{typeName}.cs", compilationUnit.ToFullString());
+            result.AddClass(@namespace, typeName, compilationUnit.ToFullString());
         }
 
         private static MethodDeclarationSyntax CreateQueryResolver(
@@ -244,7 +244,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            result.AddSource(DependencyInjection + $".{typeName}.cs", compilationUnit.ToFullString());
+            result.AddSource(DependencyInjection, + typeName, compilationUnit.ToFullString());
         }
 
         private static ExpressionStatementSyntax AddTypeExtension(string typeExtensions)

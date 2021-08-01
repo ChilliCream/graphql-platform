@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Analyzers.Types.EFCore
+namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     public class JsonDirective
     {
