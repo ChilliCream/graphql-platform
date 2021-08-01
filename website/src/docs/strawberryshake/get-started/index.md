@@ -325,7 +325,7 @@ protected override void OnInitialized()
 
 Instead of fetching the data we watch the data for our request. Every time entities of our results are updated in the entity store our subscribe method will be triggered.
 
-Also we specified on our watch method that we want to first look at the store and only of there is nothing in the store we want to fetch the data from the network.
+Also we specified on our watch method that we want to first look at the store and only if there is nothing in the store we want to fetch the data from the network.
 
 Last, note that we are storing a disposable on our component state called `storeSession`. This represents our session with the store. We need to dispose the session when we no longer display our component.
 
