@@ -69,6 +69,16 @@ namespace HotChocolate.Types.Descriptors
                 Definition.AttributesAreApplied = true;
             }
 
+            foreach (ObjectFieldDescriptor field in Fields)
+            {
+                if (!field.Definition.Ignore)
+                    continue;
+
+                Definition.FieldIgnores.Add(new ObjectFieldBinding(
+                    field.Definition.Name,
+                    ObjectFieldBindingType.Field));
+            }
+
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 

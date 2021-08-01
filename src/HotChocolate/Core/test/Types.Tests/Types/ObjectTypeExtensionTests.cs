@@ -65,8 +65,6 @@ namespace HotChocolate.Types
             Assert.IsType<IntType>(type.Fields["test"].Type);
         }
 
-
-
         [Fact]
         public async Task ObjectTypeExtension_Remove_Field_By_Name()
         {
