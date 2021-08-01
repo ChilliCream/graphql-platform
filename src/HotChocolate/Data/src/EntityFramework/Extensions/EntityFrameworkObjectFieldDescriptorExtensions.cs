@@ -3,7 +3,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Data;
-using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
@@ -12,18 +12,19 @@ namespace HotChocolate.Types
 {
     public static class EntityFrameworkObjectFieldDescriptorExtensions
     {
-        private static Type _valueTask = typeof(ValueTask<>);
-        private static Type _task = typeof(Task<>);
+        private static readonly Type _valueTask = typeof(ValueTask<>);
+        private static readonly Type _task = typeof(Task<>);
 
         public static IObjectFieldDescriptor UseDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
             where TDbContext : DbContext
         {
             string scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
-            FieldMiddleware placeholder = next => context => throw new NotSupportedException();
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
 
-            descriptor
-                .Use(next => async context =>
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(
+                new(next => async context =>
                 {
                     await using TDbContext dbContext = context.Services
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
@@ -38,33 +39,38 @@ namespace HotChocolate.Types
                     {
                         context.RemoveLocalValue(scopedServiceName);
                     }
-                })
-                .Use(placeholder)
+                }, key: WellKnownMiddleware.DbContext));
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
+            descriptor
                 .Extend()
-                .OnBeforeNaming((c, d) =>
+                .OnBeforeNaming((_, d) =>
                 {
                     if (d.ResultType is null)
                     {
-                        d.MiddlewareComponents.Remove(placeholder);
+                        d.MiddlewareDefinitions.Remove(placeholder);
                         return;
                     }
 
                     if (TryExtractEntityType(d.ResultType, out Type? entityType))
                     {
                         Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
-                        var index = d.MiddlewareComponents.IndexOf(placeholder);
-                        d.MiddlewareComponents[index] = Create(middleware);
+                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
+                        d.MiddlewareDefinitions[index] =
+                            new(Create(middleware), key: WellKnownMiddleware.ToList);
                         return;
                     }
 
                     if (IsExecutable(d.ResultType))
                     {
                         Type middleware = typeof(ExecutableMiddleware);
-                        var index = d.MiddlewareComponents.IndexOf(placeholder);
-                        d.MiddlewareComponents[index] = Create(middleware);
+                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
+                        d.MiddlewareDefinitions[index] =
+                            new(Create(middleware), key: WellKnownMiddleware.ToList);
                     }
 
-                    d.MiddlewareComponents.Remove(placeholder);
+                    d.MiddlewareDefinitions.Remove(placeholder);
                 });
 
             return descriptor;

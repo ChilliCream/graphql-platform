@@ -367,7 +367,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            Definition.MiddlewareComponents.Add(middleware);
+            Definition.MiddlewareDefinitions.Add(new(middleware));
             return this;
         }
 

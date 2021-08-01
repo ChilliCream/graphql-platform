@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Data.Projections.Expressions
+namespace HotChocolate.Data.Projections
 {
     public class QueryableProjectionVisitorExecutableTests
     {

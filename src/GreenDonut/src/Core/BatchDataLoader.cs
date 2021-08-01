@@ -1,42 +1,43 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.Fetching
+namespace GreenDonut
 {
-    public abstract class GroupedDataLoader<TKey, TValue>
-        : DataLoaderBase<TKey, TValue[]>
+    public abstract class BatchDataLoader<TKey, TValue>
+        : DataLoaderBase<TKey, TValue>
         where TKey : notnull
     {
-        protected GroupedDataLoader(
+        protected BatchDataLoader(
             IBatchScheduler batchScheduler,
             DataLoaderOptions<TKey>? options = null)
             : base(batchScheduler, options)
         { }
 
-        protected sealed override async ValueTask<IReadOnlyList<Result<TValue[]>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
-            ILookup<TKey, TValue> result =
-                await LoadGroupedBatchAsync(keys, cancellationToken)
+            IReadOnlyDictionary<TKey, TValue> result =
+                await LoadBatchAsync(keys, cancellationToken)
                     .ConfigureAwait(false);
 
-            var items = new Result<TValue[]>[keys.Count];
+            var items = new Result<TValue>[keys.Count];
 
             for (var i = 0; i < keys.Count; i++)
             {
-                items[i] = result[keys[i]].ToArray();
+                if (result.TryGetValue(keys[i], out TValue? value))
+                {
+                    items[i] = value;
+                }
             }
 
             return items;
         }
 
-        protected abstract Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(
+        protected abstract Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken);
     }

@@ -1,9 +1,10 @@
-﻿using HotChocolate.Execution;
+﻿using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate
 {
     /// <summary>
     /// Represents mutable schema options.
@@ -81,5 +82,10 @@ namespace HotChocolate.Configuration
         /// Defines that the default resolver execution strategy.
         /// </summary>
         new ExecutionStrategy DefaultResolverStrategy { get; set; }
+
+        /// <summary>
+        /// Defines if the order of important middleware components shall be validated.
+        /// </summary>
+        new bool ValidatePipelineOrder { get; set; }
     }
 }

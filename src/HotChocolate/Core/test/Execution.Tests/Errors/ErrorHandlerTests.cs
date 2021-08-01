@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Errors
                 "{ foo }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String }")
-                    .UseField(next => context => throw new Exception("Foo"))
+                    .UseField(_ => _ => throw new Exception("Foo"))
                     .Services
                     .AddErrorFilter(error => error.WithCode("Foo123")));
         }
@@ -31,8 +31,8 @@ namespace HotChocolate.Execution.Errors
                 "{ foo bar }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String bar: String }")
-                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
-                    .AddResolver("Query", "bar", ctx => throw new NullReferenceException("Foo"))
+                    .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+                    .AddResolver("Query", "bar", _ => throw new NullReferenceException("Foo"))
                     .AddErrorFilter(error =>
                     {
                         if (error.Exception is NullReferenceException)
@@ -63,14 +63,14 @@ namespace HotChocolate.Execution.Errors
         {
             // arrange
             var serviceCollection = new ServiceCollection();
-            var schema = await serviceCollection
+            IRequestExecutor schema = await serviceCollection
                 .AddGraphQLServer()
                 .AddErrorFilter<DummyErrorFilter>()
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
             // act
-            var resp = await schema.ExecuteAsync("{ foo }");
+            IExecutionResult resp = await schema.ExecuteAsync("{ foo }");
 
             // assert
             resp.MatchSnapshot();
@@ -81,14 +81,14 @@ namespace HotChocolate.Execution.Errors
         {
             // arrange
             var serviceCollection = new ServiceCollection();
-            var schema = await serviceCollection
+            IRequestExecutor schema = await serviceCollection
                 .AddGraphQLServer()
                 .AddErrorFilter(f => new DummyErrorFilter())
                 .AddQueryType<Query>()
                 .BuildRequestExecutorAsync();
 
             // act
-            var resp = await schema.ExecuteAsync("{ foo }");
+            IExecutionResult resp = await schema.ExecuteAsync("{ foo }");
 
             // assert
             resp.MatchSnapshot();
@@ -107,12 +107,43 @@ namespace HotChocolate.Execution.Errors
                     .AddErrorFilter(_ => new DummyErrorFilter()));
         }
 
+        [Fact]
+        public async Task UseAggregateError_In_ErrorFilter()
+        {
+            Snapshot.FullName();
+
+            await ExpectError(
+                "{ foo }",
+                b => b
+                    .AddDocumentFromString("type Query { foo: String }")
+                    .AddResolver("Query", "foo", _ => throw new Exception("Foo"))
+                    .Services
+                    .AddErrorFilter(_ => new AggregateErrorFilter()));
+        }
+
+        [Fact]
+        public async Task ReportAggregateError_In_Resolver()
+        {
+            Snapshot.FullName();
+
+            await ExpectError(
+                "{ foo }",
+                b => b
+                    .AddDocumentFromString("type Query { foo: String }")
+                    .AddResolver("Query", "foo", ctx =>
+                    {
+                        ctx.ReportError(new AggregateError(new Error("abc"), new Error("def")));
+                        return "Hello";
+                    }),
+                expectedErrorCount: 2);
+        }
+
         private async Task ExpectError(
             string query,
             Action<IRequestExecutorBuilder> configure,
             int expectedErrorCount = 1)
         {
-            int errors = 0;
+            var errors = 0;
 
             await TestHelper.ExpectError(
                 query,
@@ -129,12 +160,21 @@ namespace HotChocolate.Execution.Errors
             Assert.Equal(expectedErrorCount, errors);
         }
 
-        public class DummyErrorFilter
-            : IErrorFilter
+        public class DummyErrorFilter : IErrorFilter
         {
             public IError OnError(IError error)
             {
                 return error.WithCode("Foo123");
+            }
+        }
+
+        public class AggregateErrorFilter : IErrorFilter
+        {
+            public IError OnError(IError error)
+            {
+                return new AggregateError(
+                    error.WithCode("A"),
+                    error.WithCode("B"));
             }
         }
 

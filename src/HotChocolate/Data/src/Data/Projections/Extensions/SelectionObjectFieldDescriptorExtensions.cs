@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
@@ -124,10 +123,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Projection);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (context, definition) =>
@@ -142,7 +143,7 @@ namespace HotChocolate.Types
                                     out ITypeInfo? typeInfo))
                             {
                                 throw new ArgumentException(
-                                    "Cannot handle the specified type.",
+                                    DataResources.UseProjection_CannotHandleType_,
                                     nameof(descriptor));
                             }
 
@@ -154,12 +155,12 @@ namespace HotChocolate.Types
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, definition) =>
+                                    (c, d) =>
                                         CompileMiddleware(
                                             selectionType,
-                                            definition,
+                                            d,
                                             placeholder,
-                                            context,
+                                            c,
                                             scope))
                                 .On(ApplyConfigurationOn.Completion)
                                 .Build();
@@ -172,7 +173,7 @@ namespace HotChocolate.Types
         private static void CompileMiddleware(
             Type type,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             ITypeCompletionContext context,
             string? scope)
         {
@@ -184,8 +185,9 @@ namespace HotChocolate.Types
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Projection);
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(

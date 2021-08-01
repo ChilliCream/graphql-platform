@@ -39,7 +39,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             var docs = new List<DocumentNode>() { doc };
 
-            var context = new Neo4JCodeGeneratorContext(
+            var context = new CodeGeneratorContext(
                 "MyNeo4J",
                 "Neo4JDatabase",
                 "CompanyName.Neo4J",

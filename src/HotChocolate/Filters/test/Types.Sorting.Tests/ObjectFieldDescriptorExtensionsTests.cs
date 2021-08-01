@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Sorting
             descriptor.UseSorting();
 
             // assert
-            Assert.Single(descriptor.CreateDefinition().MiddlewareComponents);
+            Assert.Single(descriptor.CreateDefinition().MiddlewareDefinitions);
         }
 
         [Fact]
@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Sorting
             descriptor.UseSorting<object>();
 
             // assert
-            Assert.Single(descriptor.CreateDefinition().MiddlewareComponents);
+            Assert.Single(descriptor.CreateDefinition().MiddlewareDefinitions);
         }
 
         [Fact]

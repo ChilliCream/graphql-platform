@@ -1,12 +1,12 @@
 using System;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Fetching
+namespace GreenDonut
 {
     /// <summary>
     /// Defines a batch dispatcher that immediately dispatches batch jobs.
     /// </summary>
-    public class AutoBatchScheduler : IAutoBatchDispatcher
+    public class AutoBatchScheduler : IBatchScheduler
     {
         /// <summary>
         /// Schedules a new job to the dispatcher that is immediately executed.

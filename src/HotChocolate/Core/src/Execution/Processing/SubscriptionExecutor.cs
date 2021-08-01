@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Plan;
@@ -98,7 +99,17 @@ namespace HotChocolate.Execution.Processing
                     await subscription.DisposeAsync().ConfigureAwait(false);
                 }
 
-                return new SubscriptionResult(null, new[] { error });
+                return new SubscriptionResult(null, Unwrap(error));
+            }
+
+            IReadOnlyList<IError> Unwrap(IError error)
+            {
+                if (error is AggregateError aggregateError)
+                {
+                    return aggregateError.Errors;
+                }
+                
+                return new[] { error };
             }
         }
     }

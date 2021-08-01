@@ -133,6 +133,7 @@ namespace HotChocolate.Types
             _definition = null;
 
             OnAfterCompleteType(context, definition, _contextData);
+            OnValidateType(context, definition, _contextData);
 
             MarkCompleted();
         }
@@ -252,6 +253,15 @@ namespace HotChocolate.Types
             IDictionary<string, object?> contextData)
         {
             context.TypeInterceptor.OnAfterCompleteType(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnValidateType(
+            ITypeSystemObjectContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnValidateType(
                 context, definition, contextData);
         }
 

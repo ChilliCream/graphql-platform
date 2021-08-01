@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.Fetching
+namespace GreenDonut
 {
     public abstract class CacheDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>

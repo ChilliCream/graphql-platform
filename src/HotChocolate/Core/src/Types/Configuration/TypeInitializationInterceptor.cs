@@ -17,7 +17,7 @@ namespace HotChocolate.Configuration
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
 
         internal virtual void InitializeContext(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             TypeReferenceResolver typeReferenceResolver)
         {
         }
@@ -118,6 +118,13 @@ namespace HotChocolate.Configuration
 
         public virtual void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnValidateType(
+            ITypeSystemObjectContext validationContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {

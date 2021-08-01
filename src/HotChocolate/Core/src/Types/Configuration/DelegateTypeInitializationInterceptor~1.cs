@@ -52,7 +52,10 @@ namespace HotChocolate.Configuration
             _onBeforeInitialize?.Invoke(discoveryContext);
         }
 
-        public void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
+        public void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
@@ -126,19 +129,26 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnTypesInitialized(IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        public void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
-            throw new NotImplementedException();
         }
 
-        public void OnTypesCompletedName(IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        public void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
-            throw new NotImplementedException();
         }
 
-        public void OnTypesCompleted(IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        public void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
-            throw new NotImplementedException();
+        }
+
+        public void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
         }
     }
 }

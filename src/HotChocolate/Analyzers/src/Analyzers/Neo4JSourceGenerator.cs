@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
 using HotChocolate.CodeGeneration;
+using HotChocolate.CodeGeneration.Neo4J;
 using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Analyzers
@@ -32,10 +33,10 @@ namespace HotChocolate.Analyzers
                     if (config.Extensions.Neo4J is { } settings &&
                         context.GetSchemaDocuments(config) is { Count: > 0 } schemaDocuments)
                     {
-                        var codeGeneratorContext = new Neo4JCodeGeneratorContext(
+                        var codeGeneratorContext = new CodeGeneratorContext(
                             settings.Name,
                             settings.DatabaseName,
-                            settings.Namespace ?? throw new Exception("Namespace is required"), // TODO: Review in PR
+                            settings.Namespace ?? throw new Exception("Namespace is required"), // TODO: Review in PR!!
                             schemaDocuments);
 
                         CodeGenerationResult? result = codeGenerator.Generate(codeGeneratorContext);

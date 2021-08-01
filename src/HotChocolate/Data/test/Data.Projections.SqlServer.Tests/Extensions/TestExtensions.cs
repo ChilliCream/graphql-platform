@@ -3,7 +3,7 @@ using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections.Extensions
 {
     public static class TestExtensions
     {
