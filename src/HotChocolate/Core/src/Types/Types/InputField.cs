@@ -40,6 +40,8 @@ namespace HotChocolate.Types
             }
         }
 
+        internal int Index => throw new NotImplementedException();
+
         /// <summary>
         /// The associated syntax node from the GraphQL SDL.
         /// </summary>

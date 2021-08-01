@@ -13,12 +13,128 @@ namespace HotChocolate.Types
     public class InputSerializer
     {
         private readonly ITypeConverter _converter;
-        private readonly IErrorHandler _errorHandler;
 
-        public InputSerializer(ITypeConverter converter, IErrorHandler errorHandler)
+        public InputSerializer(ITypeConverter converter)
         {
             _converter = converter ?? throw new ArgumentNullException(nameof(converter));
-            _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
+        }
+
+        public object? ParseValue(IValueNode value, IType type, Path path)
+        {
+
+        }
+
+        private List<object?> ParseList(IList resultValue, ListType type, Path path)
+        {
+            var list = new List<object?>();
+
+            for (var i = 0; i < resultValue.Count; i++)
+            {
+                list.Add(Deserialize(resultValue[i], type.ElementType, path.Append(i)));
+            }
+
+            return list;
+        }
+
+        private object ParseObject(
+            ObjectValueNode resultValue,
+            InputObjectType type,
+            Path path)
+        {
+            bool[]? processedBuffer = null;
+            Span<bool> processed = type.Fields.Count <= 64
+                ? stackalloc bool[type.Fields.Count]
+                : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
+
+            var fieldValues = new object[type.Fields.Count];
+            List<string>? invalidFieldNames = null;
+
+            try
+            {
+                for (var i = 0; i < resultValue.Fields.Count; i++)
+                {
+                    ObjectFieldNode fieldValue = resultValue.Fields[i];
+
+                    if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField? field))
+                    {
+                        processed[field.Index] = true;
+                    }
+                    else
+                    {
+                        invalidFieldNames ??= new List<string>();
+                        invalidFieldNames.Add(fieldValue.Name.Value);
+                    }
+                }
+
+                if (invalidFieldNames.Count > 0)
+                {
+                    if (invalidFieldNames.Count == 1)
+                    {
+                        // TODO : Resources
+                        throw new SerializationException(
+                            string.Format(
+                                "The field `{0}` does not exist on the type `{1}`.",
+                                invalidFieldNames[0],
+                                type.Name.Value),
+                            type);
+                    }
+
+                    throw new SerializationException(
+                        string.Format(
+                            "The fields `{0}` do not exist on the type `{1}`.",
+                            string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
+                            type.Name.Value),
+                        type);
+                }
+
+                for (var i = 0; i < type.Fields.Count; i++)
+                {
+                    if (!processed[i])
+                    {
+
+                    }
+                }
+            }
+            finally
+            {
+                if (processedBuffer is not null)
+                {
+                    ArrayPool<bool>.Shared.Return(processedBuffer);
+                }
+            }
+
+
+            for (var i = 0; i < type.Fields.Count; i++)
+            {
+                InputField field = type.Fields[i];
+
+                if (resultValue.TryGetValue(field.Name.Value, out var fieldValue))
+                {
+                    object value = Deserialize(fieldValue, field.Type, path.Append(field.Name));
+                    value = field.Formatter?.OnAfterDeserialize(value) ?? value;
+                    fieldValues[i] = ConvertValue(field, value);
+                }
+                else if(!field.IsOptional)
+                {
+                    object value = field.Type.ParseLiteral(field.DefaultValue, false);
+                    fieldValues[i] = ConvertValue(field, value);
+                }
+            }
+
+
+            return type.CreateInstance(fieldValues);
+        }
+
+        private object ParseLeaf(IValueNode resultValue, ILeafType type, Path path)
+        {
+            try
+            {
+                return type.ParseValue(resultValue);
+            }
+            catch (SerializationException ex)
+            {
+                throw new SerializationException(ex.Errors[0], ex.Type, path);
+            }
         }
 
         public object? Deserialize(object? resultValue, IType type, Path path)
@@ -27,6 +143,7 @@ namespace HotChocolate.Types
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
+                    // TODO : RESOURCE
                     throw new SerializationException("", type, path);
                 }
 
@@ -39,24 +156,24 @@ namespace HotChocolate.Types
                     return Deserialize(resultValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
-                    return Deserialize((IList)resultValue, (ListType)type, path);
+                    return DeserializeList((IList)resultValue, (ListType)type, path);
 
                 case TypeKind.InputObject:
-                    return Deserialize(
+                    return DeserializeObject(
                         (IReadOnlyDictionary<string, object?>)resultValue,
                         (InputObjectType)type,
                         path);
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
-
+                    return DeserializeLeaf(resultValue, (ILeafType)type, path);
 
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        private List<object?> Deserialize(IList resultValue, ListType type, Path path)
+        private List<object?> DeserializeList(IList resultValue, ListType type, Path path)
         {
             var list = new List<object?>();
 
@@ -68,7 +185,7 @@ namespace HotChocolate.Types
             return list;
         }
 
-        private object Deserialize(
+        private object DeserializeObject(
             IReadOnlyDictionary<string, object?> resultValue,
             InputObjectType type,
             Path path)
@@ -89,7 +206,19 @@ namespace HotChocolate.Types
                 }
                 else if(!field.IsOptional)
                 {
-                    object value = field.Type.ParseLiteral(field.DefaultValue, false);
+                    var value = field.DefaultValue is not null
+                        ? field.Type.ParseLiteral(field.DefaultValue, false)
+                        : null;
+
+                    if (value is null)
+                    {
+                        if (type.Kind == TypeKind.NonNull)
+                        {
+                            // TODO : RESOURCE
+                            throw new SerializationException("", type, path);
+                        }
+                    }
+
                     fieldValues[i] = ConvertValue(field, value);
                 }
             }
@@ -128,7 +257,7 @@ namespace HotChocolate.Types
             return type.CreateInstance(fieldValues);
         }
 
-        private object Deserialize(object resultValue, ILeafType type, Path path)
+        private object DeserializeLeaf(object resultValue, ILeafType type, Path path)
         {
             try
             {
