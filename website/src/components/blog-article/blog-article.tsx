@@ -61,7 +61,6 @@ export const BlogArticleGraphQLFragment = graphql`
             gatsbyImageData(
               layout: CONSTRAINED
               width: 800
-              pngOptions: { quality: 90 }
             )
           }
         }

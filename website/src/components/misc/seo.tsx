@@ -45,7 +45,6 @@ export const SEO: FC<SEOProps> = ({
             gatsbyImageData(
               layout: FIXED
               width: 1200
-              pngOptions: { quality: 90 }
             )
           }
         }

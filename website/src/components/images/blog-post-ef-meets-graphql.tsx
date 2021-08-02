@@ -17,7 +17,6 @@ export const BlogPostEFMeetsGraphQL: FC = () => {
           gatsbyImageData(
             layout: CONSTRAINED
             width: 1200
-            pngOptions: { quality: 90 }
           )
         }
       }

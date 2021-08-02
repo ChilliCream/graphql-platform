@@ -221,7 +221,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          gatsbyImageData(layout: CONSTRAINED, width: 800, pngOptions: { quality: 90 })
+                          gatsbyImageData(layout: CONSTRAINED, width: 800)
                         }
                       }
                     }
