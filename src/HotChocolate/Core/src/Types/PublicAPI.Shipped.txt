@@ -2296,6 +2296,7 @@ HotChocolate.Types.IDescriptorExtension.OnBeforeCreate(System.Action<HotChocolat
 HotChocolate.Types.IDescriptorExtension.OnBeforeCreate(System.Action<HotChocolate.Types.Descriptors.IDescriptorContext!, HotChocolate.Types.Descriptors.Definitions.DefinitionBase!>! configure) -> void
 HotChocolate.Types.IDescriptorExtension.OnBeforeNaming(System.Action<HotChocolate.Configuration.ITypeCompletionContext!, HotChocolate.Types.Descriptors.Definitions.DefinitionBase!>! configure) -> HotChocolate.Types.INamedDependencyDescriptor!
 HotChocolate.Types.IDescriptorExtension<T>
+HotChocolate.Types.IDescriptorExtension<T>.Definition.get -> T!
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCompletion(System.Action<HotChocolate.Configuration.ITypeCompletionContext!, T!>! configure) -> HotChocolate.Types.ICompletedDependencyDescriptor!
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCreate(System.Action<HotChocolate.Types.Descriptors.IDescriptorContext!, T!>! configure) -> void
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCreate(System.Action<T!>! configure) -> void
