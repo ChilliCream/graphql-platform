@@ -88,12 +88,12 @@ namespace HotChocolate.Execution.Pipeline.Complexity
         /// <summary>
         /// A helper to resolver a multiplier argument value.
         /// </summary>
-        public bool TryGetArgumentValue<T>(string name, [NotNullWhen(true)] out T value)
+        public bool TryGetArgumentValue<T>(string name, out T? value)
         {
             if (Field.Arguments.TryGetField(name, out IInputField? argument))
             {
                 IValueNode? argumentValue = Selection.Arguments
-                    .FirstOrDefault(t => StringExtensions.EqualsOrdinal(t.Name.Value, name))?
+                    .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(name))?
                     .Value;
 
                 if (argumentValue is VariableNode variable &&
