@@ -42,6 +42,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services
                 .TryAddRequestExecutorFactoryOptionsMonitor()
                 .TryAddTypeConverter()
+                .TryAddInputFormatter()
+                .TryAddInputParser()
+                .TryAddBatchExecutor()
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()

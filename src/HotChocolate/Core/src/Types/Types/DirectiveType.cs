@@ -23,7 +23,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class DirectiveType
         : TypeSystemObjectBase<DirectiveTypeDefinition>
-        , IHasRuntimeType
+            , IHasRuntimeType
     {
         // see: http://spec.graphql.org/draft/#ExecutableDirectiveLocation
         private static readonly HashSet<DirectiveLocation> _executableLocations =
@@ -58,6 +58,8 @@ namespace HotChocolate.Types
 
         private Action<IDirectiveTypeDescriptor>? _configure;
         private ITypeConverter _converter = default!;
+        private InputParser _inputParser = default!;
+        private InputFormatter _inputFormatter = default!;
 
         protected DirectiveType()
         {
@@ -67,7 +69,7 @@ namespace HotChocolate.Types
         public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
             _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
+                         throw new ArgumentNullException(nameof(configure));
         }
 
         /// <summary>
@@ -212,6 +214,8 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConverter();
+            _inputFormatter = context.DescriptorContext.InputFormatter;
+            _inputParser = context.DescriptorContext.InputParser;
             MiddlewareComponents = definition.GetMiddlewareComponents();
 
             SyntaxNode = definition.SyntaxNode;
@@ -244,43 +248,46 @@ namespace HotChocolate.Types
             FieldInitHelper.CompleteFields(context, definition, Arguments);
         }
 
-        internal object? DeserializeArgument(
-            Argument argument,
-            IValueNode valueNode,
-            Type targetType)
+        internal IValueNode SerializeArgument(Argument argument, object? obj)
         {
             if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            if (valueNode is null)
+            return _inputFormatter.FormatLiteral(obj, argument.Type, Path.New(argument.Name));
+        }
+
+        internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)
+        {
+            if (argument is null)
             {
-                throw new ArgumentNullException(nameof(valueNode));
+                throw new ArgumentNullException(nameof(argument));
             }
 
-            var obj = argument.Type.ParseLiteral(valueNode);
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
 
-            if (targetType.IsInstanceOfType(obj))
+            var obj = _inputParser.ParseLiteral(literal, argument.Type, Path.New(argument.Name));
+
+            if (target.IsInstanceOfType(obj))
             {
                 return obj;
             }
 
-            if (_converter.TryConvert(typeof(object), targetType, obj, out var o))
+            if (_converter.TryConvert(typeof(object), target, obj, out var o))
             {
                 return o;
             }
 
             throw new ArgumentException(
                 TypeResources.DirectiveType_UnableToConvert,
-                nameof(targetType));
+                nameof(target));
         }
 
-        internal T DeserializeArgument<T>(
-            Argument argument,
-            IValueNode valueNode)
-        {
-            return (T)DeserializeArgument(argument, valueNode, typeof(T))!;
-        }
+        internal T DeserializeArgument<T>(Argument argument, IValueNode literal)
+            => (T)DeserializeArgument(argument, literal, typeof(T))!;
     }
 }

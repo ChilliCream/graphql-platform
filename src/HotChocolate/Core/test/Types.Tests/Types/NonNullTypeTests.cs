@@ -34,11 +34,10 @@ namespace HotChocolate.Types
         public void InnerType_Cannot_Be_A_NonNullType()
         {
             // act
-            Action action =
-                () => new NonNullType(new NonNullType(new StringType()));
+            void Action() => new NonNullType(new NonNullType(new StringType()));
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]

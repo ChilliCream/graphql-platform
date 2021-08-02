@@ -34,6 +34,22 @@ namespace HotChocolate.Types
             }
         }
 
+        internal FieldCollection(T[] fields)
+        {
+            if (fields is null)
+            {
+                throw new ArgumentNullException(nameof(fields));
+            }
+
+            _fields = fields;
+            _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
+
+            foreach (var field in _fields)
+            {
+                _fieldsLookup.Add(field.Name, field);
+            }
+        }
+
         public T this[string fieldName] => _fieldsLookup[fieldName];
 
         public T this[int index] => _fields[index];

@@ -16,9 +16,10 @@ namespace HotChocolate.Types
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
     {
-        public InputField(InputFieldDefinition definition, FieldCoordinate fieldCoordinate)
-            : base(definition, fieldCoordinate)
+        public InputField(InputFieldDefinition definition, FieldCoordinate coordinate, int index)
+            : base(definition, coordinate)
         {
+            Index = index;
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
@@ -40,7 +41,10 @@ namespace HotChocolate.Types
             }
         }
 
-        internal int Index => throw new NotImplementedException();
+        /// <summary>
+        /// The position of this field in the type field list.
+        /// </summary>
+        internal int Index { get; }
 
         /// <summary>
         /// The associated syntax node from the GraphQL SDL.

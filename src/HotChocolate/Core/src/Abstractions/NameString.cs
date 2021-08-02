@@ -214,16 +214,20 @@ namespace HotChocolate
         /// Implicitly creates a new <see cref="NameString"/> from
         /// the given string.
         /// </summary>
-        /// <param name="s">The string.</param>
         public static implicit operator NameString(string s)
             => ConvertFromString(s);
 
         /// <summary>
         /// Implicitly calls ToString().
         /// </summary>
-        /// <param name="name"></param>
         public static implicit operator string(NameString name)
             => name.ToString();
+
+        /// <summary>
+        /// Implicitly creates a new root path.
+        /// </summary>
+        public static implicit operator Path(NameString name)
+            => Path.New(name);
 
         internal static NameString ConvertFromString(string s)
             => string.IsNullOrEmpty(s)

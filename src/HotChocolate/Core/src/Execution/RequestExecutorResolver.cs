@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -245,6 +246,7 @@ namespace HotChocolate.Execution
                     sp.GetRequiredService<IActivator>(),
                     sp.GetRequiredService<IDiagnosticEvents>(),
                     sp.GetRequiredService<RequestDelegate>(),
+                    _applicationServices.GetRequiredService<BatchExecutor>(),
                     version)
             );
 

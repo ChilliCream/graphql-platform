@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -200,5 +202,52 @@ namespace HotChocolate.Utilities
                     .New()
                     .SetMessage(ExtendedTypeReferenceHandler_NonGenericExecutableNotAllowed)
                     .Build());
+
+        public static SerializationException RequiredInputFieldIsMissing(
+            InputField field,
+            Path fieldPath)
+            => new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The required input field `{0}` is missing.",
+                        field.Name)
+                    .SetPath(fieldPath)
+                    .SetExtension("field", field.Coordinate.ToString())
+                    .Build(),
+                field.Type,
+                fieldPath);
+
+        public static SerializationException InvalidInputFieldNames(
+            InputObjectType type,
+            IReadOnlyList<string> invalidFieldNames,
+            Path path)
+        {
+            if (invalidFieldNames.Count == 1)
+            {
+                throw new SerializationException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "The field `{0}` does not exist on the type `{1}`.",
+                            invalidFieldNames[0],
+                            type.Name.Value)
+                        .SetPath(path)
+                        .SetExtension("type", type.Name)
+                        .Build(),
+                    type,
+                    path);
+        }
+
+            throw new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The fields `{0}` do not exist on the type `{1}`.",
+                        string.Join(", ", invalidFieldNames.Select(t => $"`{t}`")),
+                        type.Name.Value)
+                    .SetPath(path)
+                    .SetExtension("type", type.Name)
+                    .Build(),
+                type,
+                path);
+        }
     }
 }

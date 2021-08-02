@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -9,32 +10,23 @@ namespace HotChocolate.Utilities.Serialization
 {
     internal static class InputObjectConstructorResolver
     {
-        public static ConstructorInfo? GetConstructor(
+        public static ConstructorInfo? GetCompatibleConstructor(
             Type type,
-            IEnumerable<PropertyInfo> properties)
-        {
-            Dictionary<string, PropertyInfo> propertyMap = properties.ToDictionary(
-                t => t.Name,
-                StringComparer.OrdinalIgnoreCase);
-            return GetCompatibleConstructor(type, propertyMap);
-        }
-
-        private static ConstructorInfo? GetCompatibleConstructor(
-            Type type,
-            IReadOnlyDictionary<string, PropertyInfo> properties)
+            IReadOnlyDictionary<string, InputField> properties)
         {
             ConstructorInfo[] constructors = type.GetConstructors(
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
                 t => t.GetParameters().Length == 0);
 
-            if (properties.Values.All(t => t.CanWrite))
+            if (properties.Values.All(t => t.Property.CanWrite))
             {
                 if (defaultConstructor is not null)
                 {
                     return defaultConstructor;
                 }
-                else if (constructors.Length == 0)
+
+                if (constructors.Length == 0)
                 {
                     return null;
                 }
@@ -60,28 +52,27 @@ namespace HotChocolate.Utilities.Serialization
 
         private static bool IsCompatibleConstructor(
             ConstructorInfo constructor,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
+            IReadOnlyDictionary<string, InputField> fields,
             ISet<string> required)
         {
-            CollectReadOnlyProperties(properties, required);
+            CollectReadOnlyProperties(fields, required);
             return IsCompatibleConstructor(
                 constructor.GetParameters(),
-                properties,
+                fields,
                 required);
         }
 
         private static bool IsCompatibleConstructor(
             ParameterInfo[] parameters,
-            IReadOnlyDictionary<string, PropertyInfo> properties,
+            IReadOnlyDictionary<string, InputField> fields,
             ISet<string> required)
         {
-            for (int i = 0; i < parameters.Length; i++)
+            foreach (var parameter in parameters)
             {
-                ParameterInfo parameter = parameters[i];
-                if (properties.TryGetValue(parameter.Name!, out PropertyInfo? property)
-                    && parameter.ParameterType == property.PropertyType)
+                if (fields.TryGetValue(parameter.Name!, out InputField? field) &&
+                    parameter.ParameterType ==  field.Property.PropertyType)
                 {
-                    required.Remove(property.Name);
+                    required.Remove(field.Name);
                 }
                 else
                 {
@@ -93,14 +84,14 @@ namespace HotChocolate.Utilities.Serialization
         }
 
         private static void CollectReadOnlyProperties(
-            IReadOnlyDictionary<string, PropertyInfo> properties,
+            IReadOnlyDictionary<string, InputField> fields,
             ISet<string> required)
         {
             required.Clear();
 
-            foreach (KeyValuePair<string, PropertyInfo> item in properties)
+            foreach (KeyValuePair<string, InputField> item in fields)
             {
-                if (!item.Value.CanWrite)
+                if (!item.Value.Property.CanWrite)
                 {
                     required.Add(item.Key);
                 }

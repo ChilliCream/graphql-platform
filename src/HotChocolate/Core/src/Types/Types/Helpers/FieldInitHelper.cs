@@ -19,7 +19,10 @@ namespace HotChocolate.Types
             try
             {
                 return argumentDefinition.RuntimeDefaultValue != null
-                    ? argumentType.ParseValue(argumentDefinition.RuntimeDefaultValue)
+                    ? context.DescriptorContext.InputFormatter.FormatLiteral(
+                        argumentDefinition.RuntimeDefaultValue,
+                        argumentType,
+                        Path.Root)
                     : argumentDefinition.DefaultValue;
             }
             catch (Exception ex)

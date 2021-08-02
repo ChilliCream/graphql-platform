@@ -148,10 +148,10 @@ namespace HotChocolate.Execution.Processing
                 // runtime version we can skip over parsing it.
                 if (!argument.IsFinal)
                 {
-                    value = argument.Type.ParseLiteral(argument.ValueLiteral!);
-                    value = argument.Formatter is not null
-                        ? argument.Formatter.OnAfterDeserialize(value)
-                        : value;
+                    value = _parentContext._parser.ParseLiteral(
+                        argument.ValueLiteral!,
+                        argument.Type,
+                        Path.Root);
                 }
 
                 if (value is null)
