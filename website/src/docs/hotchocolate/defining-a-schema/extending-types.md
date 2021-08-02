@@ -173,8 +173,6 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
-
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
