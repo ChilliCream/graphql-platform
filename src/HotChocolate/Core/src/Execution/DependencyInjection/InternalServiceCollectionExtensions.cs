@@ -97,13 +97,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection TryAddBatchExecutor(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<BatchExecutor>();
-            return services;
-        }
-
         internal static IServiceCollection TryAddInputParser(
             this IServiceCollection services)
         {

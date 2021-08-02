@@ -228,12 +228,18 @@ namespace HotChocolate.Execution
 
             serviceCollection.AddSingleton<IActivator, DefaultActivator>();
 
-                serviceCollection.AddSingleton(
+            serviceCollection.AddSingleton(
                 sp => CreatePipeline(
                     schemaName,
                     options.Pipeline,
                     sp,
                     sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+
+            serviceCollection.AddSingleton(
+                sp => new BatchExecutor(
+                    sp.GetRequiredService<IErrorHandler>(),
+                    _applicationServices.GetRequiredService<ITypeConverter>(),
+                    _applicationServices.GetRequiredService<InputFormatter>()));
 
             serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
@@ -246,9 +252,8 @@ namespace HotChocolate.Execution
                     sp.GetRequiredService<IActivator>(),
                     sp.GetRequiredService<IDiagnosticEvents>(),
                     sp.GetRequiredService<RequestDelegate>(),
-                    _applicationServices.GetRequiredService<BatchExecutor>(),
-                    version)
-            );
+                    sp.GetRequiredService<BatchExecutor>(),
+                    version));
 
             foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
             {

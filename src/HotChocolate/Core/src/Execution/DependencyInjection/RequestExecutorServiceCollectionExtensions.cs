@@ -44,7 +44,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddTypeConverter()
                 .TryAddInputFormatter()
                 .TryAddInputParser()
-                .TryAddBatchExecutor()
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()

@@ -387,6 +387,13 @@ namespace HotChocolate.Validation.Rules
                 return true;
             }
 
+            if (inputType.Kind == TypeKind.NonNull && value.Kind == SyntaxKind.NullValue)
+            {
+                return false;
+            }
+
+            inputType = (INamedInputType)inputType.NamedType();
+
             if (inputType.IsEnumType())
             {
                 if (value is StringValueNode)
