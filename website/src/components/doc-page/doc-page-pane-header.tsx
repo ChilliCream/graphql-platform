@@ -1,20 +1,23 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import TimesIconSvg from "../../images/times.svg";
 
-interface DocPagePaneHeaderProperties {
+interface DocPagePaneHeaderProps {
   showWhenScreenWidthIsSmallerThan: number;
   title: string;
   onClose: () => void;
 }
 
-export const DocPagePaneHeader: FunctionComponent<DocPagePaneHeaderProperties> =
-  ({ showWhenScreenWidthIsSmallerThan, title, onClose }) => (
-    <Header showWhenScreenWidthIsSmallerThan={showWhenScreenWidthIsSmallerThan}>
-      <Title>{title}</Title>
-      <CloseButton onClick={onClose} />
-    </Header>
-  );
+export const DocPagePaneHeader: FC<DocPagePaneHeaderProps> = ({
+  showWhenScreenWidthIsSmallerThan,
+  title,
+  onClose,
+}) => (
+  <Header showWhenScreenWidthIsSmallerThan={showWhenScreenWidthIsSmallerThan}>
+    <Title>{title}</Title>
+    <CloseButton onClick={onClose} />
+  </Header>
+);
 
 const Header = styled.header<{ showWhenScreenWidthIsSmallerThan: number }>`
   display: flex;

@@ -1,11 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
@@ -20,7 +14,7 @@ import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
 
-export const Header: FunctionComponent = () => {
+export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`

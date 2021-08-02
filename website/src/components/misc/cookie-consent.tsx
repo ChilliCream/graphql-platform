@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -7,7 +7,7 @@ import { hideCookieConsent, showCookieConsent } from "../../state/common";
 import { Button } from "../button";
 import { Link } from "./link";
 
-export const CookieConsent: FunctionComponent = () => {
+export const CookieConsent: FC = () => {
   const show = useSelector<State, boolean>(
     (state) => state.common.showCookieConsent
   );

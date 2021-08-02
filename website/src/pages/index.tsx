@@ -1,6 +1,6 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
@@ -49,7 +49,7 @@ import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
 
-const IndexPage: FunctionComponent = () => {
+const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
     query getIndexPageData {
       site {
