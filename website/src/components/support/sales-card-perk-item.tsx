@@ -1,7 +1,7 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-export const SalesCardPerkItem: FunctionComponent = ({ children }) => {
+export const SalesCardPerkItem: FC = ({ children }) => {
   return (
     <Container>
       <Bullet>- </Bullet>
