@@ -1,0 +1,10 @@
+using HotChocolate.Data.Projections;
+
+namespace HotChocolate.Data.SqlKata
+{
+    /// <inheritdoc/>
+    public class SqlKataProjectionScope
+        : ProjectionScope<SqlKataProjectionDefinition>
+    {
+    }
+}

@@ -1,0 +1,1 @@
+﻿SELECT * FROM "ExampleData" WHERE "BarShort" IN (@p0) OR "BarShort" IS NULL

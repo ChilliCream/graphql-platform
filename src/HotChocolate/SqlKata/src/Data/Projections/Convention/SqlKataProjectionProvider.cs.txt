@@ -1,0 +1,74 @@
+using System;
+using System.Threading.Tasks;
+using HotChocolate.Data.Projections;
+using HotChocolate.Data.Sorting;
+using HotChocolate.Resolvers;
+using SqlKata.Driver;
+
+namespace HotChocolate.Data.SqlKata
+{
+    /// <inheritdoc/>
+    public class SqlKataProjectionProvider
+        : ProjectionProvider
+    {
+        /// <inheritdoc/>
+        public SqlKataProjectionProvider()
+        {
+        }
+
+        /// <inheritdoc/>
+        public SqlKataProjectionProvider(
+            Action<IProjectionProviderDescriptor> configure)
+            : base(configure)
+        {
+        }
+
+        /// <inheritdoc/>
+        public override FieldMiddleware CreateExecutor<TEntityType>()
+        {
+            return next => context => ExecuteAsync(next, context);
+
+            async ValueTask ExecuteAsync(
+                FieldDelegate next,
+                IMiddlewareContext context)
+            {
+                // first we let the pipeline run and produce a result.
+                await next(context).ConfigureAwait(false);
+
+                if (context.Result is not null)
+                {
+                    var visitorContext =
+                        new SqlKataProjectionVisitorContext(context, context.ObjectType);
+
+                    var visitor = new ProjectionVisitor<SqlKataProjectionVisitorContext>();
+                    visitor.Visit(visitorContext);
+
+                    if (!visitorContext.TryCreateQuery(
+                            out SqlKataProjectionDefinition? projections) ||
+                        visitorContext.Errors.Count > 0)
+                    {
+                        context.Result = Array.Empty<TEntityType>();
+                        foreach (IError error in visitorContext.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
+                    }
+                    else
+                    {
+                        context.LocalContextData =
+                            context.LocalContextData.SetItem(
+                                nameof(ProjectionDefinition<TEntityType>),
+                                projections);
+
+                        await next(context).ConfigureAwait(false);
+
+                        if (context.Result is ISqlKataExecutable executable)
+                        {
+                            context.Result = executable.WithProjection(projections);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

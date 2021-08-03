@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.SqlKata</PackageId>
+    <AssemblyName>HotChocolate.Data.SqlKata</AssemblyName>
+    <RootNamespace>HotChocolate.Data.SqlKata</RootNamespace>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <Description>Contains extensions for seamless integration of SqlKata into the HotChocolate.Data package</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SqlKata" Version="2.3.7" />
+    <PackageReference Include="SqlKata.Execution" Version="2.3.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="SqlKataResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SqlKataResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="SqlKataResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SqlKataResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

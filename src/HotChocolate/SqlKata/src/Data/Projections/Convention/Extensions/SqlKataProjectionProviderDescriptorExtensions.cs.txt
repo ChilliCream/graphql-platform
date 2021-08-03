@@ -1,0 +1,43 @@
+using System;
+using HotChocolate.Data.SqlKata;
+using HotChocolate.Data.SqlKata.Projections;
+using HotChocolate.Data.Projections;
+using HotChocolate.Data.Projections.Handlers;
+
+namespace HotChocolate.Data
+{
+    public static class SqlKataProjectionProviderDescriptorExtensions
+    {
+        /// <summary>
+        /// Initializes the default configuration for SqlKata on the convention by adding handlers
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/></returns>
+        public static IProjectionProviderDescriptor AddSqlKataDefaults(
+            this IProjectionProviderDescriptor descriptor) =>
+            descriptor.RegisterSqlKataHandlers();
+
+        /// <summary>
+        /// Registers projection handlers for SqlKata
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/></returns>
+        /// <exception cref="ArgumentNullException">
+        /// Throws in case the argument <paramref name="descriptor"/> is null
+        /// </exception>
+        public static IProjectionProviderDescriptor RegisterSqlKataHandlers(
+            this IProjectionProviderDescriptor descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            descriptor.RegisterFieldHandler<SqlKataProjectionScalarHandler>();
+            descriptor.RegisterFieldHandler<SqlKataProjectionFieldHandler>();
+            descriptor.RegisterOptimizer<QueryablePagingProjectionOptimizer>();
+            descriptor.RegisterOptimizer<IsProjectedProjectionOptimizer>();
+            return descriptor;
+        }
+    }
+}

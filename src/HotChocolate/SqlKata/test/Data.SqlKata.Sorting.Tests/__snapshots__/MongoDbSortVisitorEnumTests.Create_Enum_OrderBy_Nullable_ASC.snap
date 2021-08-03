@@ -1,0 +1,21 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "barEnum": null
+      },
+      {
+        "barEnum": "FOO"
+      },
+      {
+        "barEnum": "BAR"
+      },
+      {
+        "barEnum": "BAZ"
+      },
+      {
+        "barEnum": "QUX"
+      }
+    ]
+  }
+}

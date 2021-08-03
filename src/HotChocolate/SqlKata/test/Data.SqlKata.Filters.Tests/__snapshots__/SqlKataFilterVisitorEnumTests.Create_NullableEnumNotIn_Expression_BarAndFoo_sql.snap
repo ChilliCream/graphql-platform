@@ -1,0 +1,1 @@
+﻿SELECT * FROM "ExampleData" WHERE "BarEnum" NOT IN (@p0, @p1) OR "BarEnum" IS NULL

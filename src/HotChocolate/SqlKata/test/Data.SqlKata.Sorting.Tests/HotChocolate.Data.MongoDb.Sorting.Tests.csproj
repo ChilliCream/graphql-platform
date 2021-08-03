@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.SqlKata.Sorting.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.SqlKata.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+    <PackageReference Include="SqlKata.Driver.Core" Version="2.11.2" />
+    <PackageReference Include="SqlKata.Bson" Version="2.11.2" />
+  </ItemGroup>
+</Project>

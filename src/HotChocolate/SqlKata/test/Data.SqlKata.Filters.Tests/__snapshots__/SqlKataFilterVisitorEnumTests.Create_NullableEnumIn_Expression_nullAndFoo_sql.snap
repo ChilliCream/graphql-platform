@@ -1,0 +1,1 @@
+﻿SELECT * FROM "ExampleData" WHERE "BarEnum" IN (@p0) OR "BarEnum" IS NULL

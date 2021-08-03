@@ -1,0 +1,35 @@
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Data.Projections;
+using HotChocolate.Data.Projections.Expressions.Handlers;
+using HotChocolate.Execution.Processing;
+
+namespace HotChocolate.Data.SqlKata.Projections
+{
+    /// <summary>
+    /// A handler that can intersect a <see cref="ISelection"/> and optimize the selection set for
+    /// SqlKata projections.
+    /// </summary>
+    public abstract class SqlKataProjectionHandlerBase
+        : ProjectionFieldHandler<SqlKataProjectionVisitorContext>
+    {
+        /// <inheritdoc/>
+        public override bool TryHandleEnter(
+            SqlKataProjectionVisitorContext context,
+            ISelection selection,
+            [NotNullWhen(true)] out ISelectionVisitorAction? action)
+        {
+            action = SelectionVisitor.Continue;
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public override bool TryHandleLeave(
+            SqlKataProjectionVisitorContext context,
+            ISelection selection,
+            [NotNullWhen(true)] out ISelectionVisitorAction? action)
+        {
+            action = SelectionVisitor.Continue;
+            return true;
+        }
+    }
+}

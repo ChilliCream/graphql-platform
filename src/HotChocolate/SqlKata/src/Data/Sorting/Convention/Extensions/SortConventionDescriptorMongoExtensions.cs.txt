@@ -1,0 +1,31 @@
+using HotChocolate.Data.SqlKata.Sorting;
+using HotChocolate.Data.Sorting;
+
+namespace HotChocolate.Data
+{
+    public static class SortConventionDescriptorMongoExtensions
+    {
+        /// <summary>
+        /// Adds a <see cref="SqlKataSortProvider"/> with default configuration
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the provider is registered</param>
+        /// <returns>The <paramref name="descriptor"/> that was passed in as a parameter</returns>
+        public static ISortConventionDescriptor UseSqlKataProvider(
+            this ISortConventionDescriptor descriptor) =>
+            descriptor.Provider(new SqlKataSortProvider(x => x.AddDefaultFieldHandlers()));
+
+        /// <summary>
+        /// Initializes the default configuration of the provider by registering handlers
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/> that was passed in as a parameter</returns>
+        public static ISortProviderDescriptor<SqlKataSortVisitorContext> AddDefaultFieldHandlers(
+            this ISortProviderDescriptor<SqlKataSortVisitorContext> descriptor)
+        {
+            descriptor.AddOperationHandler<SqlKataAscendingSortOperationHandler>();
+            descriptor.AddOperationHandler<SqlKataDescendingSortOperationHandler>();
+            descriptor.AddFieldHandler<SqlKataDefaultSortFieldHandler>();
+            return descriptor;
+        }
+    }
+}

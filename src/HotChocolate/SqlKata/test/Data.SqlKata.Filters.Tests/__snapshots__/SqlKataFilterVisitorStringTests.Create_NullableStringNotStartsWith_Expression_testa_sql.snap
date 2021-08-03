@@ -1,0 +1,1 @@
+﻿SELECT * FROM "ExampleData" WHERE NOT (LOWER("Bar") like @p0) OR "Bar" IS NULL

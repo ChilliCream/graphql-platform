@@ -1,0 +1,17 @@
+using HotChocolate.Data.SqlKata;
+using HotChocolate.Data.Projections;
+
+namespace HotChocolate.Data
+{
+    public static class SqlKataProjectionConventionDescriptorExtensions
+    {
+        /// <summary>
+        /// Initializes the default configuration for SqlKata
+        /// </summary>
+        /// <param name="descriptor">The descriptor where the handlers are registered</param>
+        /// <returns>The <paramref name="descriptor"/></returns>
+        public static IProjectionConventionDescriptor AddSqlKataDefaults(
+            this IProjectionConventionDescriptor descriptor) =>
+            descriptor.Provider(new SqlKataProjectionProvider(x => x.AddSqlKataDefaults()));
+    }
+}

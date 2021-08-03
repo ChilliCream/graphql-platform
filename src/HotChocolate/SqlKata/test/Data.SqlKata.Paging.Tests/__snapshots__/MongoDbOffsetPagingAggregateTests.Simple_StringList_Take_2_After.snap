@@ -1,0 +1,18 @@
+﻿{
+  "data": {
+    "foos": {
+      "items": [
+        {
+          "bar": "d"
+        },
+        {
+          "bar": "e"
+        }
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true
+      }
+    }
+  }
+}

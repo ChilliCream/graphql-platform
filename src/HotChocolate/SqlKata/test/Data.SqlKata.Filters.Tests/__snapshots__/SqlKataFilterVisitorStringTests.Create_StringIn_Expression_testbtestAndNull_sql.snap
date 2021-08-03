@@ -1,0 +1,1 @@
+﻿SELECT * FROM "ExampleData" WHERE "Bar" IN (@p0, @p1)

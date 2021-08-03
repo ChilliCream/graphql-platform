@@ -1,0 +1,13 @@
+using HotChocolate.Data.Sorting;
+using SqlKata.Driver;
+
+namespace HotChocolate.Data.SqlKata.Sorting
+{
+    public class SqlKataAscendingSortOperationHandler : SqlKataSortOperationHandlerBase
+    {
+        public SqlKataAscendingSortOperationHandler()
+            : base(DefaultSortOperations.Ascending, SortDirection.Ascending)
+        {
+        }
+    }
+}

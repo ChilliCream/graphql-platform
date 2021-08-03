@@ -1,0 +1,27 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using HotChocolate.Data.SqlKata;
+
+namespace HotChocolate.Data.Sorting
+{
+    internal static class MongoProjectionVisitorContextExtensions
+    {
+        public static string GetPath(this SqlKataProjectionVisitorContext ctx) =>
+            string.Join(".", ctx.Path.Reverse());
+
+        public static bool TryCreateQuery(
+            this SqlKataProjectionVisitorContext context,
+            [NotNullWhen(true)] out SqlKataProjectionDefinition? query)
+        {
+            query = null;
+
+            if (context.Projections.Count == 0)
+            {
+                return false;
+            }
+
+            query = new SqlKataCombinedProjectionDefinition(context.Projections.ToArray());
+            return true;
+        }
+    }
+}

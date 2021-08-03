@@ -1,0 +1,301 @@
+#nullable enable
+abstract HotChocolate.Data.SqlKata.Filters.SqlKataComparableOperationHandler.Operation.get -> int
+abstract HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.HandleListOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope! scope, string! path) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+abstract HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.Operation.get -> int
+abstract HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+abstract HotChocolate.Data.SqlKata.Filters.SqlKataStringOperationHandler.Operation.get -> int
+abstract HotChocolate.Data.SqlKata.SqlKataExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+abstract HotChocolate.Data.SqlKata.SqlKataExecutable<T>.Print() -> string!
+abstract HotChocolate.Data.SqlKata.SqlKataExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+abstract HotChocolate.Data.SqlKata.SqlKataExecutable<T>.Source.get -> object!
+abstract HotChocolate.Data.SqlKata.SqlKataExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+abstract HotChocolate.Data.SqlKata.SqlKataFilterDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+abstract HotChocolate.Data.SqlKata.SqlKataProjectionDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+abstract HotChocolate.Data.SqlKata.SqlKataSortDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+HotChocolate.Data.SqlKata.Filters.FilterConventionDescriptorSqlKataExtensions
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanHandler.SqlKataComparableGreaterThanHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanOrEqualsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanOrEqualsHandler.SqlKataComparableGreaterThanOrEqualsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanHandler.SqlKataComparableLowerThanHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanOrEqualsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanOrEqualsHandler.SqlKataComparableLowerThanOrEqualsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanHandler.SqlKataComparableNotGreaterThanHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanOrEqualsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanOrEqualsHandler.SqlKataComparableNotGreaterThanOrEqualsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanHandler.SqlKataComparableNotLowerThanHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanOrEqualsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanOrEqualsHandler.SqlKataComparableNotLowerThanOrEqualsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataComparableOperationHandler.SqlKataComparableOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataDefaultFieldHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataDefaultFieldHandler.SqlKataDefaultFieldHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataEqualsOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataEqualsOperationHandler.SqlKataEqualsOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterCombinator
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterCombinator.SqlKataFilterCombinator() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterConventionDescriptorExtensions
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterProvider
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterProvider.SqlKataFilterProvider() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterProvider.SqlKataFilterProvider(System.Action<HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext!>!>! configure) -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope.SqlKataFilterScope() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope.Path.get -> System.Collections.Generic.Stack<string!>!
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext.SqlKataFilterVisitorContext(HotChocolate.Data.Filters.IFilterInputType! initialType) -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext.RuntimeTypes.get -> System.Collections.Generic.Stack<HotChocolate.Internal.IExtendedType!>!
+HotChocolate.Data.SqlKata.Filters.SqlKataInOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataInOperationHandler.SqlKataInOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataListAllOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataListAllOperationHandler.SqlKataListAllOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataListAnyOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataListAnyOperationHandler.SqlKataListAnyOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataListNoneOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataListNoneOperationHandler.SqlKataListNoneOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase
+HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.SqlKataListOperationHandlerBase() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataListSomeOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataListSomeOperationHandler.SqlKataListSomeOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataNotEqualsOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataNotEqualsOperationHandler.SqlKataNotEqualsOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataNotInOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataNotInOperationHandler.SqlKataNotInOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase
+HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase.CanBeNull.get -> bool
+HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase.CanBeNull.set -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase.SqlKataOperationHandlerBase() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringContainsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringContainsHandler.SqlKataStringContainsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringEndsWithHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringEndsWithHandler.SqlKataStringEndsWithHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotContainsHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotContainsHandler.SqlKataStringNotContainsHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotEndsWithHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotEndsWithHandler.SqlKataStringNotEndsWithHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotStartsWithHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringNotStartsWithHandler.SqlKataStringNotStartsWithHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringOperationHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringOperationHandler.SqlKataStringOperationHandler() -> void
+HotChocolate.Data.SqlKata.Filters.SqlKataStringStartsWithHandler
+HotChocolate.Data.SqlKata.Filters.SqlKataStringStartsWithHandler.SqlKataStringStartsWithHandler() -> void
+HotChocolate.Data.SqlKata.Filters.MongoFilterVisitorContextExtensions
+HotChocolate.Data.SqlKata.ISqlKataExecutable
+HotChocolate.Data.SqlKata.ISqlKataExecutable.WithFiltering(HotChocolate.Data.SqlKata.SqlKataFilterDefinition! filters) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.ISqlKataExecutable.WithProjection(HotChocolate.Data.SqlKata.SqlKataProjectionDefinition! projection) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.ISqlKataExecutable.WithSorting(HotChocolate.Data.SqlKata.SqlKataSortDefinition! sorting) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>
+HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.BuildPipeline() -> SqlKata.Driver.IAggregateFluent<T>!
+HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.SqlKataAggregateFluentExecutable(SqlKata.Driver.IAggregateFluent<T>! aggregate) -> void
+HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>
+HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.BuildPipeline() -> SqlKata.Driver.IFindFluent<T, T>!
+HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.SqlKataCollectionExecutable(SqlKata.Driver.IMongoCollection<T>! collection) -> void
+HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.Options.get -> SqlKata.Driver.FindOptionsBase?
+HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.WithOptions(SqlKata.Driver.FindOptionsBase! options) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.Filters.get -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition?
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.SqlKataExecutable() -> void
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.Projection.get -> HotChocolate.Data.SqlKata.SqlKataProjectionDefinition?
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.Sorting.get -> HotChocolate.Data.SqlKata.SqlKataSortDefinition?
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.WithFiltering(HotChocolate.Data.SqlKata.SqlKataFilterDefinition! filters) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.WithProjection(HotChocolate.Data.SqlKata.SqlKataProjectionDefinition! projection) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.SqlKataExecutable<T>.WithSorting(HotChocolate.Data.SqlKata.SqlKataSortDefinition! sorting) -> HotChocolate.Data.SqlKata.ISqlKataExecutable!
+HotChocolate.Data.SqlKata.SqlKataFilterDefinition
+HotChocolate.Data.SqlKata.SqlKataFilterDefinition.SqlKataFilterDefinition() -> void
+HotChocolate.Data.SqlKata.SqlKataFilterDefinition.ToFilterDefinition<T>() -> SqlKata.Driver.FilterDefinition<T>!
+HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>
+HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.BuildPipeline() -> SqlKata.Driver.IFindFluent<T, T>!
+HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.SqlKataFindFluentExecutable(SqlKata.Driver.IFindFluent<T, T>! findFluent) -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionDefinition
+HotChocolate.Data.SqlKata.SqlKataProjectionDefinition.SqlKataProjectionDefinition() -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionDefinition.ToProjectionDefinition<T>() -> SqlKata.Driver.ProjectionDefinition<T>!
+HotChocolate.Data.SqlKata.SqlKataProjectionProvider
+HotChocolate.Data.SqlKata.SqlKataProjectionProvider.SqlKataProjectionProvider() -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionProvider.SqlKataProjectionProvider(System.Action<HotChocolate.Data.Projections.IProjectionProviderDescriptor!>! configure) -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionScope
+HotChocolate.Data.SqlKata.SqlKataProjectionScope.SqlKataProjectionScope() -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext
+HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext.SqlKataProjectionVisitorContext(HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Types.IOutputType! initialType) -> void
+HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext.Path.get -> System.Collections.Generic.Stack<string!>!
+HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext.Projections.get -> System.Collections.Generic.Stack<HotChocolate.Data.SqlKata.SqlKataProjectionDefinition!>!
+HotChocolate.Data.SqlKata.SqlKataSchemaBuilderExtensions
+HotChocolate.Data.SqlKata.SqlKataSortDefinition
+HotChocolate.Data.SqlKata.SqlKataSortDefinition.SqlKataSortDefinition() -> void
+HotChocolate.Data.SqlKata.SqlKataSortDefinition.ToSortDefinition<T>() -> SqlKata.Driver.SortDefinition<T>!
+HotChocolate.Data.SqlKata.Paging.SqlKataCursorPagingProvider
+HotChocolate.Data.SqlKata.Paging.SqlKataCursorPagingProvider.SqlKataCursorPagingProvider() -> void
+HotChocolate.Data.SqlKata.Paging.SqlKataOffsetPagingProvider
+HotChocolate.Data.SqlKata.Paging.SqlKataOffsetPagingProvider.SqlKataOffsetPagingProvider() -> void
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionFieldHandler
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionFieldHandler.SqlKataProjectionFieldHandler() -> void
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionHandlerBase
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionHandlerBase.SqlKataProjectionHandlerBase() -> void
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionScalarHandler
+HotChocolate.Data.SqlKata.Projections.SqlKataProjectionScalarHandler.SqlKataProjectionScalarHandler() -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataAscendingSortOperationHandler
+HotChocolate.Data.SqlKata.Sorting.SqlKataAscendingSortOperationHandler.SqlKataAscendingSortOperationHandler() -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataDefaultSortFieldHandler
+HotChocolate.Data.SqlKata.Sorting.SqlKataDefaultSortFieldHandler.SqlKataDefaultSortFieldHandler() -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataDescendingSortOperationHandler
+HotChocolate.Data.SqlKata.Sorting.SqlKataDescendingSortOperationHandler.SqlKataDescendingSortOperationHandler() -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortOperationHandlerBase
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortOperationHandlerBase.SqlKataSortOperationHandlerBase(int operation, SqlKata.Driver.SortDirection sortDirection) -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortProvider
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortProvider.SqlKataSortProvider() -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortProvider.SqlKataSortProvider(System.Action<HotChocolate.Data.Sorting.ISortProviderDescriptor<HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext!>!>! configure) -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext.SqlKataSortVisitorContext(HotChocolate.Data.Sorting.ISortInputType! initialType) -> void
+HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext.Path.get -> System.Collections.Generic.Stack<string!>!
+HotChocolate.Data.SqlKataExecutableExtensions
+HotChocolate.Data.SqlKataProjectionConventionDescriptorExtensions
+HotChocolate.Data.SqlKataProjectionProviderDescriptorExtensions
+HotChocolate.Data.MongoSortingConventionDescriptorExtensions
+HotChocolate.Data.SortConventionDescriptorMongoExtensions
+HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.DefaultPageSize.get -> int
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.DefaultPageSize.set -> void
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.IncludeTotalCount.get -> bool
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.IncludeTotalCount.set -> void
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.MaxPageSize.get -> int
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.MaxPageSize.set -> void
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.Type.get -> System.Type?
+HotChocolate.Types.UseSqlKataOffsetPagingAttribute.UseSqlKataOffsetPagingAttribute(System.Type? type = null) -> void
+HotChocolate.Types.UseSqlKataPagingAttribute
+HotChocolate.Types.UseSqlKataPagingAttribute.DefaultPageSize.get -> int
+HotChocolate.Types.UseSqlKataPagingAttribute.DefaultPageSize.set -> void
+HotChocolate.Types.UseSqlKataPagingAttribute.IncludeTotalCount.get -> bool
+HotChocolate.Types.UseSqlKataPagingAttribute.IncludeTotalCount.set -> void
+HotChocolate.Types.UseSqlKataPagingAttribute.MaxPageSize.get -> int
+HotChocolate.Types.UseSqlKataPagingAttribute.MaxPageSize.set -> void
+HotChocolate.Types.UseSqlKataPagingAttribute.Type.get -> System.Type?
+HotChocolate.Types.UseSqlKataPagingAttribute.UseSqlKataPagingAttribute(System.Type? type = null) -> void
+Microsoft.Extensions.DependencyInjection.SqlKataDataRequestBuilderExtensions
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanOrEqualsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableGreaterThanOrEqualsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanOrEqualsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableLowerThanOrEqualsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanOrEqualsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotGreaterThanOrEqualsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanOrEqualsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableNotLowerThanOrEqualsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataComparableOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataDefaultFieldHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataDefaultFieldHandler.TryHandleEnter(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataDefaultFieldHandler.TryHandleLeave(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataEqualsOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataEqualsOperationHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataFilterCombinator.TryCombineOperations(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, System.Collections.Generic.Queue<HotChocolate.Data.SqlKata.SqlKataFilterDefinition!>! operations, HotChocolate.Data.Filters.FilterCombinator combinator, out HotChocolate.Data.SqlKata.SqlKataFilterDefinition! combined) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataFilterProvider.CreateExecutor<TEntityType>(HotChocolate.NameString argumentName) -> HotChocolate.Resolvers.FieldMiddleware!
+override HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext.CreateScope() -> HotChocolate.Data.Filters.FilterScope<HotChocolate.Data.SqlKata.SqlKataFilterDefinition!>!
+override HotChocolate.Data.SqlKata.Filters.SqlKataInOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataInOperationHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataListAllOperationHandler.HandleListOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope! scope, string! path) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataListAllOperationHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataListAnyOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataListAnyOperationHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataListNoneOperationHandler.HandleListOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope! scope, string! path) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataListNoneOperationHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.TryHandleEnter(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.TryHandleLeave(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataListSomeOperationHandler.HandleListOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope! scope, string! path) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataListSomeOperationHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataNotEqualsOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataNotEqualsOperationHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataNotInOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataNotInOperationHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataOperationHandlerBase.TryHandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Data.SqlKata.SqlKataFilterDefinition! result) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringContainsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringContainsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringEndsWithHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringEndsWithHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotContainsHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotContainsHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotEndsWithHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotEndsWithHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotStartsWithHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringNotStartsWithHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringStartsWithHandler.HandleOperation(HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+override HotChocolate.Data.SqlKata.Filters.SqlKataStringStartsWithHandler.Operation.get -> int
+override HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.Print() -> string!
+override HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.Source.get -> object!
+override HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+override HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.Print() -> string!
+override HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.Source.get -> object!
+override HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+override HotChocolate.Data.SqlKata.SqlKataFilterDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer<SqlKata.Bson.BsonDocument!>! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+override HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.Print() -> string!
+override HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.Source.get -> object!
+override HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+override HotChocolate.Data.SqlKata.SqlKataProjectionDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer<SqlKata.Bson.BsonDocument!>! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+override HotChocolate.Data.SqlKata.SqlKataProjectionProvider.CreateExecutor<TEntityType>() -> HotChocolate.Resolvers.FieldMiddleware!
+override HotChocolate.Data.SqlKata.SqlKataSortDefinition.Render(SqlKata.Bson.Serialization.IBsonSerializer<SqlKata.Bson.BsonDocument!>! documentSerializer, SqlKata.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> SqlKata.Bson.BsonDocument!
+override HotChocolate.Data.SqlKata.Paging.SqlKataCursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
+override HotChocolate.Data.SqlKata.Paging.SqlKataCursorPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.CursorPagingHandler!
+override HotChocolate.Data.SqlKata.Paging.SqlKataOffsetPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool
+override HotChocolate.Data.SqlKata.Paging.SqlKataOffsetPagingProvider.CreateHandler(HotChocolate.Internal.IExtendedType! source, HotChocolate.Types.Pagination.PagingOptions options) -> HotChocolate.Types.Pagination.OffsetPagingHandler!
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionFieldHandler.CanHandle(HotChocolate.Execution.Processing.ISelection! selection) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionFieldHandler.TryHandleEnter(HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext! context, HotChocolate.Execution.Processing.ISelection! selection, out HotChocolate.Data.Projections.ISelectionVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionFieldHandler.TryHandleLeave(HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext! context, HotChocolate.Execution.Processing.ISelection! selection, out HotChocolate.Data.Projections.ISelectionVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionHandlerBase.TryHandleEnter(HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext! context, HotChocolate.Execution.Processing.ISelection! selection, out HotChocolate.Data.Projections.ISelectionVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionHandlerBase.TryHandleLeave(HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext! context, HotChocolate.Execution.Processing.ISelection! selection, out HotChocolate.Data.Projections.ISelectionVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionScalarHandler.CanHandle(HotChocolate.Execution.Processing.ISelection! selection) -> bool
+override HotChocolate.Data.SqlKata.Projections.SqlKataProjectionScalarHandler.TryHandleEnter(HotChocolate.Data.SqlKata.SqlKataProjectionVisitorContext! context, HotChocolate.Execution.Processing.ISelection! selection, out HotChocolate.Data.Projections.ISelectionVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataDefaultSortFieldHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Sorting.ISortInputTypeDefinition! typeDefinition, HotChocolate.Data.Sorting.ISortFieldDefinition! fieldDefinition) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataDefaultSortFieldHandler.TryHandleEnter(HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataDefaultSortFieldHandler.TryHandleLeave(HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataSortOperationHandlerBase.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition! typeDefinition, HotChocolate.Data.Sorting.SortEnumValueDefinition! valueDefinition) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataSortOperationHandlerBase.TryHandleEnter(HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Data.Sorting.ISortEnumValue? sortValue, HotChocolate.Language.EnumValueNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
+override HotChocolate.Data.SqlKata.Sorting.SqlKataSortProvider.CreateExecutor<TEntityType>(HotChocolate.NameString argumentName) -> HotChocolate.Resolvers.FieldMiddleware!
+override HotChocolate.Types.UseSqlKataOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
+static HotChocolate.Data.SqlKata.Filters.FilterConventionDescriptorSqlKataExtensions.AddDefaultSqlKataFieldHandlers(this HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext!>! descriptor) -> HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext!>!
+static HotChocolate.Data.SqlKata.Filters.FilterConventionDescriptorSqlKataExtensions.UseSqlKataProvider(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+static HotChocolate.Data.SqlKata.Filters.SqlKataFilterConventionDescriptorExtensions.AddDefaultSqlKataOperations(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+static HotChocolate.Data.SqlKata.Filters.SqlKataFilterConventionDescriptorExtensions.AddSqlKataDefaults(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+static HotChocolate.Data.SqlKata.Filters.SqlKataFilterConventionDescriptorExtensions.BindDefaultSqlKataTypes(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+static HotChocolate.Data.SqlKata.Filters.SqlKataListOperationHandlerBase.CombineOperationsOfScope(HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope! scope) -> HotChocolate.Data.SqlKata.SqlKataFilterDefinition!
+static HotChocolate.Data.SqlKata.Filters.MongoFilterVisitorContextExtensions.GetMongoFilterScope(this HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context) -> HotChocolate.Data.SqlKata.Filters.SqlKataFilterScope!
+static HotChocolate.Data.SqlKata.Filters.MongoFilterVisitorContextExtensions.TryCreateQuery(this HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext! context, out HotChocolate.Data.SqlKata.SqlKataFilterDefinition? query) -> bool
+static HotChocolate.Data.SqlKata.SqlKataSchemaBuilderExtensions.AddSqlKataFiltering(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
+static HotChocolate.Data.SqlKata.SqlKataSchemaBuilderExtensions.AddSqlKataProjections(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
+static HotChocolate.Data.SqlKata.SqlKataSchemaBuilderExtensions.AddSqlKataSorting(this HotChocolate.ISchemaBuilder! builder, string? name = null) -> HotChocolate.ISchemaBuilder!
+static HotChocolate.Data.SqlKataExecutableExtensions.AsExecutable<T>(this SqlKata.Driver.IAggregateFluent<T>! aggregate) -> HotChocolate.Data.SqlKata.SqlKataAggregateFluentExecutable<T>!
+static HotChocolate.Data.SqlKataExecutableExtensions.AsExecutable<T>(this SqlKata.Driver.IFindFluent<T, T>! collection) -> HotChocolate.Data.SqlKata.SqlKataFindFluentExecutable<T>!
+static HotChocolate.Data.SqlKataExecutableExtensions.AsExecutable<T>(this SqlKata.Driver.IMongoCollection<T>! collection) -> HotChocolate.Data.SqlKata.SqlKataCollectionExecutable<T>!
+static HotChocolate.Data.SqlKataProjectionConventionDescriptorExtensions.AddSqlKataDefaults(this HotChocolate.Data.Projections.IProjectionConventionDescriptor! descriptor) -> HotChocolate.Data.Projections.IProjectionConventionDescriptor!
+static HotChocolate.Data.SqlKataProjectionProviderDescriptorExtensions.AddSqlKataDefaults(this HotChocolate.Data.Projections.IProjectionProviderDescriptor! descriptor) -> HotChocolate.Data.Projections.IProjectionProviderDescriptor!
+static HotChocolate.Data.SqlKataProjectionProviderDescriptorExtensions.RegisterSqlKataHandlers(this HotChocolate.Data.Projections.IProjectionProviderDescriptor! descriptor) -> HotChocolate.Data.Projections.IProjectionProviderDescriptor!
+static HotChocolate.Data.MongoSortingConventionDescriptorExtensions.AddDefaultSqlKataOperations(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
+static HotChocolate.Data.MongoSortingConventionDescriptorExtensions.AddSqlKataDefaults(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
+static HotChocolate.Data.MongoSortingConventionDescriptorExtensions.BindDefaultSqlKataTypes(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
+static HotChocolate.Data.SortConventionDescriptorMongoExtensions.AddDefaultFieldHandlers(this HotChocolate.Data.Sorting.ISortProviderDescriptor<HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext!>! descriptor) -> HotChocolate.Data.Sorting.ISortProviderDescriptor<HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext!>!
+static HotChocolate.Data.SortConventionDescriptorMongoExtensions.UseSqlKataProvider(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataOffsetPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataOffsetPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseSqlKataPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static Microsoft.Extensions.DependencyInjection.SqlKataDataRequestBuilderExtensions.AddSqlKataFiltering(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.SqlKataDataRequestBuilderExtensions.AddSqlKataProjections(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.SqlKataDataRequestBuilderExtensions.AddSqlKataSorting(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+virtual HotChocolate.Data.SqlKata.Filters.SqlKataFilterProvider.Visitor.get -> HotChocolate.Data.Filters.FilterVisitor<HotChocolate.Data.SqlKata.Filters.SqlKataFilterVisitorContext!, HotChocolate.Data.SqlKata.SqlKataFilterDefinition!>!
+virtual HotChocolate.Data.SqlKata.Sorting.SqlKataSortProvider.Visitor.get -> HotChocolate.Data.Sorting.SortVisitor<HotChocolate.Data.SqlKata.Sorting.SqlKataSortVisitorContext!, HotChocolate.Data.SqlKata.SqlKataSortDefinition!>!
