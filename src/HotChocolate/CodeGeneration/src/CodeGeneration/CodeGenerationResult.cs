@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using static Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace HotChocolate.CodeGeneration
 {
@@ -40,7 +40,7 @@ namespace HotChocolate.CodeGeneration
                     .AddUsings(usings)
                     .NormalizeWhitespace(elasticTrivia: true);
 
-            context.AddSource(@namespace + $".{className}.cs", compilationUnit.ToFullString());
+            AddClass(@namespace, className, compilationUnit.ToFullString());
         }
     }
 }

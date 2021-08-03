@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using HotChocolate.CodeGeneration;
 using HotChocolate.CodeGeneration.EntityFramework.Types;
 using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Types;

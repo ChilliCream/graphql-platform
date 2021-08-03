@@ -1,25 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Analyzers.Configuration;
 using HotChocolate.Analyzers.Diagnostics;
-using HotChocolate.Analyzers.Types;
-using HotChocolate.Analyzers.Types.EFCore;
 using HotChocolate.CodeGeneration;
 using HotChocolate.CodeGeneration.EntityFramework;
-using HotChocolate.Types;
-using HotChocolate.Types.Introspection;
-using Humanizer;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static HotChocolate.Analyzers.TypeNames;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace HotChocolate.Analyzers
 {
     [Generator]
-    public partial class EFCoreSourceGenerator : ISourceGenerator
+    public partial class EntityFrameworkSourceGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {

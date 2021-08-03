@@ -32,10 +32,10 @@ namespace HotChocolate.CodeGeneration.Types
             ISchema schema) =>
             new DataGeneratorContext(
                 null!,
-                schema.GetFirstDirective<OperationDirective>(
+                schema.GetFirstDirective(
                     "operation",
                     new OperationDirective { Operations = new[] { OperationKind.All } })!,
-                schema.GetFirstDirective<PagingDirective>(
+                schema.GetFirstDirective(
                     "paging", 
                     new PagingDirective
                     { 
@@ -52,10 +52,10 @@ namespace HotChocolate.CodeGeneration.Types
             DataGeneratorContext rootContext) =>
             new DataGeneratorContext(
                 rootContext.QueryTypeName,
-                member.GetFirstDirective<OperationDirective>(
+                member.GetFirstDirective(
                     "operation",
                     rootContext.Operation)!,
-                member.GetFirstDirective<PagingDirective>(
+                member.GetFirstDirective(
                     "paging", 
                     rootContext.Paging)!,
                 member.Directives["filtering"].Any() || rootContext.Filtering,

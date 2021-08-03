@@ -4,13 +4,13 @@ using static System.IO.Path;
 
 namespace HotChocolate.Analyzers
 {
-    public partial class EFCoreSourceGenerator
+    public partial class EntityFrameworkSourceGenerator
     {
         private const string _dll = ".dll";
         private static string _location =
-            GetDirectoryName(typeof(EFCoreSourceGenerator).Assembly.Location)!;
+            GetDirectoryName(typeof(EntityFrameworkSourceGenerator).Assembly.Location)!;
 
-        static EFCoreSourceGenerator()
+        static EntityFrameworkSourceGenerator()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
         }

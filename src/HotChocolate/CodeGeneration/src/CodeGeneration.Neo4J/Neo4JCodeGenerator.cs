@@ -6,8 +6,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using static HotChocolate.CodeGeneration.TypeNames;
 using static HotChocolate.CodeGeneration.Neo4J.Neo4JTypeNames;
+using static HotChocolate.CodeGeneration.TypeNames;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
@@ -244,7 +244,7 @@ namespace HotChocolate.CodeGeneration.Neo4J
 
             compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
 
-            result.AddSource(DependencyInjection, + typeName, compilationUnit.ToFullString());
+            result.AddClass(DependencyInjection, typeName, compilationUnit.ToFullString());
         }
 
         private static ExpressionStatementSyntax AddTypeExtension(string typeExtensions)
