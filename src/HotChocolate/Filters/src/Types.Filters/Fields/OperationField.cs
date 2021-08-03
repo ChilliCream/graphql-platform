@@ -7,8 +7,11 @@ namespace HotChocolate.Types.Filters
         : InputField
         , IFilterOperationField
     {
-        internal FilterOperationField(FilterOperationDefintion definition)
-            : base(definition, default)
+        internal FilterOperationField(
+            FilterOperationDefintion definition,
+            FieldCoordinate coordinate,
+            int index)
+            : base(definition, coordinate, index)
         {
             Operation = definition.Operation ??
                 throw new ArgumentNullException(nameof(definition.Operation));

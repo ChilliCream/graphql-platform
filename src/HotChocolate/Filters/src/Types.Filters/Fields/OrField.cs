@@ -13,9 +13,8 @@ namespace HotChocolate.Types.Filters
     {
         private const string _name = "OR";
 
-        internal OrField(
-            IDescriptorContext context)
-            : base(CreateDefinition(context), default)
+        internal OrField(IDescriptorContext context, NameString typeName, int index)
+            : base(CreateDefinition(context), new(typeName, _name), index)
         {
         }
 

@@ -68,12 +68,19 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCompleteFields(
             ITypeCompletionContext context,
             InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
+            ref InputField[] fields)
         {
+            var index = 0;
+            NameString typeName = context.Type.Name;
+
             foreach (SortOperationDefintion fieldDefinition in
                 definition.Fields.OfType<SortOperationDefintion>())
             {
-                fields.Add(new SortOperationField(fieldDefinition));
+                fields[index] = new SortOperationField(
+                    fieldDefinition,
+                    new(typeName, fieldDefinition.Name),
+                    index);
+                index++;
             }
         }
 
