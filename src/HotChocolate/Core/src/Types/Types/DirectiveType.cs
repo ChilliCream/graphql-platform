@@ -270,7 +270,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
-            var obj = _inputParser.ParseLiteral(literal, argument.Type, Path.New(argument.Name));
+            var obj = _inputParser.ParseLiteral(literal, argument);
 
             if (target.IsInstanceOfType(obj))
             {

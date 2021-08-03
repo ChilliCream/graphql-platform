@@ -544,7 +544,7 @@ namespace HotChocolate.Execution.Processing
                 ? (IInputType)argument.Type.InnerType()
                 : argument.Type;
 
-            return _parser.ParseLiteral(value, type, argument.Name);
+            return _parser.ParseLiteral(value, argument);
         }
 
         internal FieldDelegate CreateFieldMiddleware(

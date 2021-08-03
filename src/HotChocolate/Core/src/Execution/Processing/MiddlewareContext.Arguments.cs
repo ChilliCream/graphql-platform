@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 throw ResolverContext_LiteralNotCompatible(
-                    _selection.SyntaxNode, Path, name,  typeof(T), literal.GetType());
+                    _selection.SyntaxNode, Path, name, typeof(T), literal.GetType());
             }
 
             return ArgumentValue<T>(name);
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             throw ResolverContext_LiteralNotCompatible(
-                _selection.SyntaxNode, Path, name,  typeof(TValueNode), literal.GetType());
+                _selection.SyntaxNode, Path, name, typeof(TValueNode), literal.GetType());
         }
 
         public ValueKind ArgumentKind(NameString name)
@@ -90,7 +90,7 @@ namespace HotChocolate.Execution.Processing
             // runtime version we can skip over parsing it.
             if (!argument.IsFinal)
             {
-                value = _parser.ParseLiteral(argument.ValueLiteral!, argument.Type, Path.Root);
+                value = _parser.ParseLiteral(argument.ValueLiteral!, argument.Argument, typeof(T));
             }
 
             if (value is null)
@@ -109,35 +109,18 @@ namespace HotChocolate.Execution.Processing
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
-            }
-
-            // If the object is internally held as a dictionary structure we will try to
-            // create from this the required argument value.
-            // This however comes with a performance impact of traversing the dictionary structure
-            // and creating from this the object.
-            if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
-            {
-                var dictToObjConverter = new DictionaryToObjectConverter(
-                    _operationContext.Converter);
-
-                if (typeof(T).IsInterface)
-                {
-                    object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
-                    if (o is T c)
-                    {
-                        return c;
-                    }
-                }
-                else
-                {
-                    return (T)dictToObjConverter.Convert(value, typeof(T));
-                }
+                    _selection.SyntaxNode,
+                    Path,
+                    argument.Argument.Name,
+                    typeof(T));
             }
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, Path, argument.Argument.Name, typeof(T));
+                _selection.SyntaxNode,
+                Path,
+                argument.Argument.Name,
+                typeof(T));
         }
     }
 }

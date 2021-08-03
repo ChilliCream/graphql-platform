@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -43,5 +41,8 @@ namespace HotChocolate.Types
 
         internal object CreateInstance(object?[] fieldValues)
             => _createInstance(fieldValues);
+
+        internal void GetFieldValues(object runtimeValue, object?[] fieldValues)
+            => _getFieldValues(runtimeValue, fieldValues);
     }
 }

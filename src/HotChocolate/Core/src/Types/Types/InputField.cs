@@ -16,6 +16,9 @@ namespace HotChocolate.Types
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
     {
+        private Type _runtimeType;
+        private bool _IsOptional;
+
         public InputField(InputFieldDefinition definition, FieldCoordinate coordinate, int index)
             : base(definition, coordinate)
         {
@@ -32,19 +35,15 @@ namespace HotChocolate.Types
                 _ => new AggregateInputValueFormatter(formatters)
             };
 
-            Type? propertyType = definition.Property?.PropertyType;
+            _runtimeType = definition.Property?.PropertyType ?? typeof(object);
 
-            if (propertyType is { IsGenericType: true } &&
-                propertyType.GetGenericTypeDefinition() == typeof(Optional<>))
+            if (_runtimeType is { IsGenericType: true } &&
+                _runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
             {
-                IsOptional = true;
+                _IsOptional = true;
+                _runtimeType = _runtimeType.GetGenericArguments()[0];
             }
         }
-
-        /// <summary>
-        /// The position of this field in the type field list.
-        /// </summary>
-        internal int Index { get; }
 
         /// <summary>
         /// The associated syntax node from the GraphQL SDL.
@@ -57,124 +56,38 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public IInputValueFormatter? Formatter { get; }
 
-        protected internal PropertyInfo? Property { get; }
-
-        protected internal bool IsOptional { get; }
-
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;
 
-        public override Type RuntimeType
-        {
-            get
-            {
-                return Property is null
-                    ? base.RuntimeType
-                    : Property.PropertyType;
-            }
-        }
+        public override Type RuntimeType => _runtimeType;
 
-        public void SetValue(object obj, object? value)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
+        /// <summary>
+        /// The position of this field in the type field list.
+        /// </summary>
+        internal int Index { get; }
 
-            var success = Property is null
-                ? TrySetValueOnUnknownType(obj, value)
-                : TrySetValueOnKnownType(obj, value);
+        /// <summary>
+        /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
+        /// </summary>
+        internal bool IsOptional => _IsOptional;
 
-            if (!success)
-            {
-                throw new InvalidOperationException(
-                    TypeResources.InputField_CannotSetValue);
-            }
-        }
-
-        private bool TrySetValueOnUnknownType(object obj, object? value)
-        {
-            if (obj is IDictionary<string, object?> dict)
-            {
-                dict[Name] = value;
-                return true;
-            }
-
-            ILookup<string, PropertyInfo> properties =
-                ReflectionUtils.CreatePropertyLookup(obj.GetType());
-
-            if (properties[Name].FirstOrDefault() is { } p)
-            {
-                p.SetValue(obj, value);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool TrySetValueOnKnownType(object obj, object? value)
-        {
-            Property!.SetValue(obj, value);
-            return true;
-        }
-
-        public object? GetValue(object obj)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            bool success = Property is null
-                ? TryGetValueOnUnknownType(obj, out object? value)
-                : TryGetValueOnKnownType(obj, out value);
-
-            return success ? value : null;
-        }
-
-        public bool TryGetValue(object obj, out object? value)
-        {
-            if (obj is null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            return Property is null
-                ? TryGetValueOnUnknownType(obj, out value)
-                : TryGetValueOnKnownType(obj, out value);
-        }
-
-        private bool TryGetValueOnUnknownType(object obj, out object? value)
-        {
-            if (obj is IDictionary<string, object> d)
-            {
-                return d.TryGetValue(Name, out value);
-            }
-
-            ILookup<string, PropertyInfo> properties =
-                ReflectionUtils.CreatePropertyLookup(obj.GetType());
-
-            if (properties[Name].FirstOrDefault() is { } p)
-            {
-                value = p.GetValue(obj);
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
-        private bool TryGetValueOnKnownType(object obj, out object? value)
-        {
-            value = Property!.GetValue(obj);
-            return true;
-        }
+        protected internal PropertyInfo? Property { get; }
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
+
+            _runtimeType = definition.Property?.PropertyType ?? typeof(object);
+
+            if (_runtimeType is { IsGenericType: true } &&
+                _runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
+            {
+                _IsOptional = true;
+                _runtimeType = _runtimeType.GetGenericArguments()[0];
+            }
+
             DefaultValue = FieldInitHelper.CreateDefaultValue(
                 context, definition, Type, Coordinate);
         }

@@ -134,21 +134,7 @@ namespace HotChocolate.Types
                     argument.Name.Value,
                     out Argument? arg))
                 {
-                    INamedType namedType = arg.Type.NamedType();
-                    var valid = false;
-
-                    if (namedType.IsLeafType() &&
-                        ((ILeafType)namedType).IsInstanceOfType(argument.Value))
-                    {
-                        valid = true;
-                    }
-                    else if (namedType.IsInputObjectType() &&
-                        argument.Value.Kind is SyntaxKind.NullValue or SyntaxKind.ObjectValue)
-                    {
-                        valid = true;
-                    }
-
-                    if (!valid)
+                    if (!arg.Type.IsInstanceOfType(argument.Value))
                     {
                         context.ReportError(
                             DirectiveCollection_ArgumentValueTypeIsWrong(

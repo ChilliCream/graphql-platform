@@ -453,5 +453,42 @@ namespace HotChocolate.Types
             throw new NotSupportedException(
                 TypeResources.TypeExtensions_KindIsNotSupported);
         }
+
+        public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
+        {
+            if (type.Kind == TypeKind.NonNull)
+            {
+                if (literal.Kind == SyntaxKind.NullValue)
+                {
+                    return false;
+                }
+
+                return IsInstanceOfType((IInputType)((NonNullType)type).Type, literal);
+            }
+
+            if (type.Kind == TypeKind.List)
+            {
+                if (literal.Kind == SyntaxKind.ListValue)
+                {
+                    var list = ((ListValueNode)literal);
+
+                    if (list.Items.Count == 0)
+                    {
+                        return true;
+                    }
+
+                    literal = list.Items[0];
+                }
+
+                return IsInstanceOfType((IInputType)((ListType)type).ElementType, literal);
+            }
+
+            if (type.Kind == TypeKind.InputObject)
+            {
+                return literal.Kind == SyntaxKind.ObjectValue;
+            }
+
+            return ((ILeafType)type).IsInstanceOfType(literal);
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -24,8 +25,8 @@ namespace HotChocolate.Utilities
                 ErrorBuilder.New()
                     .SetMessage(
                         "The event message is of the type `{0}` and cannot be casted to `{1}.`",
-                        messageType.FullName,
-                        expectedType.FullName)
+                        messageType.FullName!,
+                        expectedType.FullName!)
                     .Build());
 
         public static GraphQLException EventMessage_NotFound() =>
@@ -40,7 +41,7 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "You need to specify the message type on {0}.{1}. (SubscribeAttribute)",
-                        member.DeclaringType.FullName,
+                        member.DeclaringType!.FullName,
                         member.Name)
                     .SetExtension("member", member)
                     .Build());
@@ -51,7 +52,7 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "You need to specify the topic type on {0}.{1}. (SubscribeAttribute)",
-                        member.DeclaringType.FullName,
+                        member.DeclaringType!.FullName,
                         member.Name)
                     .SetExtension("member", member)
                     .Build());
@@ -235,7 +236,7 @@ namespace HotChocolate.Utilities
                         .Build(),
                     type,
                     path);
-        }
+            }
 
             throw new SerializationException(
                 ErrorBuilder.New()
@@ -249,5 +250,53 @@ namespace HotChocolate.Utilities
                 type,
                 path);
         }
+
+        public static SerializationException NonNullInputViolation(
+            IType type,
+            Path? path,
+            InputField? field = null)
+            => new(ErrorBuilder.New()
+                .SetMessage("Cannot accept null for non-nullable input.")
+                .SetCode(ErrorCodes.Execution.NonNullViolation)
+                .SetPath(path)
+                .SetExtension(nameof(field), field.Coordinate.ToString())
+                .Build(),
+                type,
+                path);
+
+        public static SerializationException ParseInputObject_InvalidSyntaxKind(
+            InputObjectType type,
+            SyntaxKind kind,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                .SetMessage(
+                    "The syntax node `{0}` is incompatible with the type `{1}`.",
+                    kind,
+                    type.Name.Value)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name.Value)
+                .Build(),
+                type,
+                path);
+
+
+        public static SerializationException ParseNestedList_InvalidSyntaxKind(
+            ListType type,
+            SyntaxKind kind,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                .SetMessage(
+                    "The item syntax node for a nested list must be " + 
+                    "`ListValue` but the parser found `{0}`.",
+                    kind)
+                .SetPath(path)
+                .SetExtension(
+                    "specifiedBy", 
+                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                .Build(),
+                type,
+                path);
     }
 }

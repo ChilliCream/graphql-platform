@@ -13,10 +13,29 @@ namespace HotChocolate.Types
     public class InputParser
     {
         private readonly ITypeConverter _converter;
+        private readonly DictionaryToObjectConverter _dictToObjConverter;
 
         public InputParser(ITypeConverter converter)
         {
             _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+            _dictToObjConverter = new(converter);
+        }
+
+        public object? ParseLiteral(IValueNode value, IInputField field, Type? targetType = null)
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (field is null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true);
+            runtimeValue = FormatValue(field, runtimeValue);
+            return ConvertValue(targetType ?? field.RuntimeType, runtimeValue);
         }
 
         public object? ParseLiteral(IValueNode value, IType type, Path path)
@@ -36,20 +55,21 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return ParseLiteralInternal(value, type, path, 0);
+            return ParseLiteralInternal(value, type, path, 0, true);
         }
 
-        public object? ParseLiteral(IValueNode value, IInputField type, Path path)
-            => throw new NotImplementedException();
-
-        private object? ParseLiteralInternal(IValueNode value, IType type, Path path, int stack)
+        private object? ParseLiteralInternal(
+            IValueNode value,
+            IType type,
+            Path path,
+            int stack,
+            bool defaults)
         {
             if (value.Kind == SyntaxKind.NullValue)
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
-                    // TODO : RESOURCE
-                    throw new SerializationException("", type, path);
+                    throw NonNullInputViolation(type, path);
                 }
 
                 return null;
@@ -58,13 +78,18 @@ namespace HotChocolate.Types
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    return ParseLiteralInternal(value, ((NonNullType)type).Type, path, stack);
+                    return ParseLiteralInternal(
+                        value,
+                        ((NonNullType)type).Type,
+                        path,
+                        stack,
+                        defaults);
 
                 case TypeKind.List:
-                    return ParseList((ListValueNode)value, (ListType)type, path, stack);
+                    return ParseList(value, (ListType)type, path, stack, defaults);
 
                 case TypeKind.InputObject:
-                    return ParseObject((ObjectValueNode)value, (InputObjectType)type, path, stack);
+                    return ParseObject(value, (InputObjectType)type, path, stack, defaults);
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
@@ -75,111 +100,165 @@ namespace HotChocolate.Types
             }
         }
 
-        private List<object?> ParseList(
-            ListValueNode resultValue,
+        private IList ParseList(
+            IValueNode resultValue,
             ListType type,
             Path path,
-            int stack)
+            int stack,
+            bool defaults)
         {
-            var list = new List<object?>();
-            IReadOnlyList<IValueNode> items = resultValue.Items;
-
-            for (var i = 0; i < items.Count; i++)
+            if (resultValue.Kind == SyntaxKind.ListValue)
             {
-                list.Add(ParseLiteralInternal(items[i], type.ElementType, path.Append(i), stack));
-            }
+                IList list = CreateList(type);
+                IReadOnlyList<IValueNode> items = ((ListValueNode)resultValue).Items;
+                var flatList = !type.ElementType.IsListType();
+                IType elementType = type.ElementType;
 
-            return list;
+                if (flatList)
+                {
+                    for (var i = 0; i < items.Count; i++)
+                    {
+                        list.Add(ParseLiteralInternal(
+                            items[i],
+                            elementType,
+                            path.Append(i),
+                            stack,
+                            defaults));
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < items.Count; i++)
+                    {
+                        IValueNode item = items[i];
+                        Path itemPath = path.Append(i);
+
+                        if (item.Kind != SyntaxKind.ListValue)
+                        {
+                            throw ParseNestedList_InvalidSyntaxKind(type, item.Kind, itemPath);
+                        }
+
+                        list.Add(ParseLiteralInternal(
+                            item,
+                            elementType,
+                            itemPath,
+                            stack,
+                            defaults));
+                    }
+                }
+
+                return list;
+            }
+            else
+            {
+                IList list = CreateList(type);
+                list.Add(ParseLiteralInternal(
+                    resultValue,
+                    type.ElementType,
+                    path.Append(0),
+                    stack,
+                    defaults));
+                return list;
+            }
         }
 
         private object ParseObject(
-            ObjectValueNode resultValue,
+            IValueNode resultValue,
             InputObjectType type,
             Path path,
-            int stack)
+            int stack,
+            bool defaults)
         {
-            bool[]? processedBuffer = null;
-            Span<bool> processed = stack <= 256 && type.Fields.Count <= 32
-                ? stackalloc bool[type.Fields.Count]
-                : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
-            var processedCount = 0;
-
-            if (processedBuffer is null)
+            if (resultValue.Kind == SyntaxKind.ObjectValue)
             {
-                stack += type.Fields.Count;
-            }
+                bool[]? processedBuffer = null;
+                Span<bool> processed = stack <= 256 && type.Fields.Count <= 32
+                    ? stackalloc bool[type.Fields.Count]
+                    : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
+                var processedCount = 0;
 
-            var fieldValues = new object?[type.Fields.Count];
-            List<string>? invalidFieldNames = null;
-
-            try
-            {
-                for (var i = 0; i < resultValue.Fields.Count; i++)
+                if (processedBuffer is null)
                 {
-                    ObjectFieldNode fieldValue = resultValue.Fields[i];
-
-                    if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField? field))
-                    {
-                        IValueNode literal = fieldValue.Value;
-                        Path fieldPath = path.Append(field.Name);
-
-                        if (literal is null || literal.Kind == SyntaxKind.NullValue)
-                        {
-                            // TODO : RESOURCE
-                            throw new SerializationException("", type, fieldPath);
-                        }
-
-                        var value = ParseLiteralInternal(literal, field.Type, fieldPath, stack);
-                        value = FormatValue(field, value);
-                        fieldValues[i] = ConvertValue(field, value);
-                        processed[field.Index] = true;
-                        processedCount++;
-                    }
-                    else
-                    {
-                        invalidFieldNames ??= new List<string>();
-                        invalidFieldNames.Add(fieldValue.Name.Value);
-                    }
+                    stack += type.Fields.Count;
                 }
 
-                if (invalidFieldNames?.Count > 0)
-                {
-                    throw InvalidInputFieldNames(type, invalidFieldNames, path);
-                }
+                var fieldValues = new object?[type.Fields.Count];
+                List<string>? invalidFieldNames = null;
 
-                if (processedCount < type.Fields.Count)
+                try
                 {
-                    for (var i = 0; i < type.Fields.Count; i++)
+                    IReadOnlyList<ObjectFieldNode> fields = ((ObjectValueNode)resultValue).Fields;
+
+                    for (var i = 0; i < fields.Count; i++)
                     {
-                        if (!processed[i])
+                        ObjectFieldNode fieldValue = fields[i];
+
+                        if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField? field))
                         {
-                            InputField field = type.Fields[i];
+                            IValueNode literal = fieldValue.Value;
                             Path fieldPath = path.Append(field.Name);
 
-                            var value = field.DefaultValue is not null
-                                ? CreateDefaultValue(field.DefaultValue, field.Type, path, 0)
-                                : null;
-                            value = FormatValue(field, value);
-
-                            if (value is null && field.Type.Kind == TypeKind.NonNull)
+                            if (literal.Kind == SyntaxKind.NullValue &&
+                                field.Type.Kind == TypeKind.NonNull)
                             {
-                                throw RequiredInputFieldIsMissing(field, fieldPath);
+                                throw NonNullInputViolation(type, fieldPath, field);
                             }
 
-                            fieldValues[i] = ConvertValue(field, value);
+                            var value = ParseLiteralInternal(
+                                literal,
+                                field.Type,
+                                fieldPath,
+                                stack,
+                                defaults);
+                            value = FormatValue(field, value);
+                            value = ConvertValue(field.RuntimeType, value);
+
+                            if (field.IsOptional)
+                            {
+                                value = new Optional(value, true);
+                            }
+
+                            fieldValues[field.Index] = value;
+                            processed[field.Index] = true;
+                            processedCount++;
+                        }
+                        else
+                        {
+                            invalidFieldNames ??= new List<string>();
+                            invalidFieldNames.Add(fieldValue.Name.Value);
+                        }
+                    }
+
+                    if (invalidFieldNames?.Count > 0)
+                    {
+                        throw InvalidInputFieldNames(type, invalidFieldNames, path);
+                    }
+
+                    if (processedCount < type.Fields.Count)
+                    {
+                        for (var i = 0; i < type.Fields.Count; i++)
+                        {
+                            if (!processed[i])
+                            {
+                                InputField field = type.Fields[i];
+                                Path fieldPath = path.Append(field.Name);
+                                fieldValues[i] = CreateDefaultValue(field, fieldPath, stack);
+                            }
                         }
                     }
                 }
-            }
-            finally
-            {
-                if (processedBuffer is not null)
+                finally
                 {
-                    ArrayPool<bool>.Shared.Return(processedBuffer);
+                    if (processedBuffer is not null)
+                    {
+                        ArrayPool<bool>.Shared.Return(processedBuffer);
+                    }
                 }
+
+                return type.CreateInstance(fieldValues);
             }
 
-            return type.CreateInstance(fieldValues);
+            throw ParseInputObject_InvalidSyntaxKind(type, resultValue.Kind, path);
         }
 
         private object? ParseLeaf(IValueNode resultValue, ILeafType type, Path path)
@@ -215,8 +294,7 @@ namespace HotChocolate.Types
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
-                    // TODO : RESOURCE
-                    throw new SerializationException("", type, path);
+                    throw NonNullInputViolation(type, path);
                 }
 
                 return null;
@@ -275,28 +353,24 @@ namespace HotChocolate.Types
 
                     if (fieldValue is null && field.Type.Kind == TypeKind.NonNull)
                     {
-                        // TODO : RESOURCE
-                        throw new SerializationException("", type, fieldPath);
+                        throw NonNullInputViolation(type, fieldPath, field);
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath);
                     value = FormatValue(field, value);
-                    fieldValues[i] = ConvertValue(field, value);
+                    value = ConvertValue(field.RuntimeType, value);
+
+                    if (field.IsOptional)
+                    {
+                        value = new Optional(value, true);
+                    }
+
+                    fieldValues[i] = value;
                     consumed++;
                 }
                 else
                 {
-                    var value = field.DefaultValue is not null
-                        ? CreateDefaultValue(field.DefaultValue, field.Type, path, 0)
-                        : null;
-                    value = FormatValue(field, value);
-
-                    if (value is null && field.Type.Kind == TypeKind.NonNull)
-                    {
-                        throw RequiredInputFieldIsMissing(field, path.Append(field.Name));
-                    }
-
-                    fieldValues[i] = ConvertValue(field, value);
+                    fieldValues[i] = CreateDefaultValue(field, path.Append(field.Name), 0);
                 }
             }
 
@@ -326,70 +400,97 @@ namespace HotChocolate.Types
             }
             catch (SerializationException ex)
             {
-                throw new SerializationException(ex.Errors[0], ex.Type, path);
+                throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
             }
         }
 
-        private object? CreateDefaultValue(
-            IValueNode? defaultValue,
-            IType type,
-            Path path,
-            int stack)
+        private object? CreateDefaultValue(InputField field, Path path, int stack)
         {
-            return null;
+            if (field.DefaultValue is null || field.DefaultValue.Kind == SyntaxKind.NullValue)
+            {
+                if (field.Type.Kind == TypeKind.NonNull)
+                {
+                    throw RequiredInputFieldIsMissing(field, path);
+                }
+
+                return field.IsOptional ? new Optional(null, false) : null;
+            }
+
+            object? value;
+
+            try
+            {
+                value = ParseLiteralInternal(field.DefaultValue, field.Type, path, stack, false);
+            }
+            catch (SerializationException ex)
+            {
+                throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+            }
+
+            value = FormatValue(field, value);
+            value = ConvertValue(field.RuntimeType, value);
+
+            return field.IsOptional ? new Optional(value, false) : value;
         }
 
-        private object? FormatValue(InputField field, object? value)
+        private object? FormatValue(IInputField field, object? value)
         {
             return field.Formatter is null || value is null
                 ? value
                 : field.Formatter.OnAfterDeserialize(value);
         }
 
-        private object? ConvertValue(InputField field, object? value)
+        private object? ConvertValue(Type requestedType, object? value)
         {
             if (value is null)
             {
                 return null;
             }
 
-            Type valueType = value.GetType();
-            Type type = field.RuntimeType;
-
-            if (valueType == type)
+            if (requestedType.IsInstanceOfType(value))
             {
                 return value;
             }
 
-            if (field.RuntimeType != typeof(object))
+            if (_converter.TryConvert(value.GetType(), requestedType, value, out var converted))
             {
-                if (type.IsInterface && type.IsInstanceOfType(value))
-                {
-                    return value;
-                }
+                return converted;
+            }
 
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Optional<>))
-                {
-                    type = type.GetGenericArguments()[0];
-                }
-
-                value = _converter.Convert(value.GetType(), type, value);
+            // create from this the required argument value.
+            // This however comes with a performance impact of traversing the dictionary structure
+            // and creating from this the object.
+            if (value is IReadOnlyDictionary<string, object> or IReadOnlyList<object>)
+            {
+                return _dictToObjConverter.Convert(value, requestedType);
             }
 
             return value;
         }
-    }
 
-    public class InputFormatter
-    {
-        public IValueNode FormatLiteral(object? value, IType type, Path path)
-        {
-            return default!;
-        }
+        private static IList CreateList(ListType type)
+            => (IList)Activator.CreateInstance(CreateRuntimeType(type))!;
 
-        public object? FormatResult(object? value, IType type, Path path)
+        private static Type CreateRuntimeType(IType type)
+            => type.Kind switch
+            {
+                TypeKind.NonNull => CreateRuntimeType(((NonNullType)type).Type),
+                TypeKind.List => typeof(List<>).MakeGenericType(
+                    CreateRuntimeType(((ListType)type).ElementType)),
+                _ => ((INamedType)type).ToRuntimeType()
+            };
+
+        private readonly struct Optional : IOptional
         {
-            return default!;
+            public Optional(object? value, bool hasValue)
+            {
+                Value = value;
+                HasValue = hasValue;
+            }
+
+            public object? Value { get; }
+
+            public bool HasValue { get; }
         }
     }
 }

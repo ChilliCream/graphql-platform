@@ -12,14 +12,14 @@ namespace HotChocolate.Utilities.Serialization
     {
         public static ConstructorInfo? GetCompatibleConstructor(
             Type type,
-            IReadOnlyDictionary<string, InputField> properties)
+            IReadOnlyDictionary<string, InputField> fields)
         {
             ConstructorInfo[] constructors = type.GetConstructors(
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
             ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
                 t => t.GetParameters().Length == 0);
 
-            if (properties.Values.All(t => t.Property.CanWrite))
+            if (fields.Values.All(t => t.Property!.CanWrite))
             {
                 if (defaultConstructor is not null)
                 {
@@ -33,13 +33,17 @@ namespace HotChocolate.Utilities.Serialization
             }
 
             var required = new HashSet<string>();
+            CollectReadOnlyProperties(fields, required);
 
-            foreach (ConstructorInfo constructor in
-                constructors.OrderByDescending(t => t.GetParameters().Length))
+            if (constructors.Length > 0)
             {
-                if (IsCompatibleConstructor(constructor, properties, required))
+                foreach (ConstructorInfo constructor in
+                    constructors.OrderByDescending(t => t.GetParameters().Length))
                 {
-                    return constructor;
+                    if (IsCompatibleConstructor(constructor, fields, required))
+                    {
+                        return constructor;
+                    }
                 }
             }
 
@@ -55,7 +59,6 @@ namespace HotChocolate.Utilities.Serialization
             IReadOnlyDictionary<string, InputField> fields,
             ISet<string> required)
         {
-            CollectReadOnlyProperties(fields, required);
             return IsCompatibleConstructor(
                 constructor.GetParameters(),
                 fields,
@@ -70,7 +73,7 @@ namespace HotChocolate.Utilities.Serialization
             foreach (var parameter in parameters)
             {
                 if (fields.TryGetValue(parameter.Name!, out InputField? field) &&
-                    parameter.ParameterType ==  field.Property.PropertyType)
+                    parameter.ParameterType == field.Property!.PropertyType)
                 {
                     required.Remove(field.Name);
                 }
@@ -91,9 +94,9 @@ namespace HotChocolate.Utilities.Serialization
 
             foreach (KeyValuePair<string, InputField> item in fields)
             {
-                if (!item.Value.Property.CanWrite)
+                if (!item.Value.Property!.CanWrite)
                 {
-                    required.Add(item.Key);
+                    required.Add(item.Value.Name);
                 }
             }
         }

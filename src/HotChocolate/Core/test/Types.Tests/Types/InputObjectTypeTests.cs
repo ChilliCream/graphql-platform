@@ -118,7 +118,7 @@ namespace HotChocolate.Types
                 t => Assert.Equal("id", t.Name),
                 t => Assert.Equal("name", t.Name));
         }
-        
+
         [Fact]
         public void EnsureInputObjectTypeKindIsCorrect()
         {
@@ -465,21 +465,15 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Convert_Parts_Of_The_Input_Graph()
+        public async Task Convert_Parts_Of_The_Input_Graph()
         {
             // arrange
-            ServiceProvider services = new ServiceCollection()
-                .AddSingleton<ITypeConverter, DefaultTypeConverter>()
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
                 .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
                 .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
-                .BuildServiceProvider();
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(services)
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
+                .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = executor.Execute(

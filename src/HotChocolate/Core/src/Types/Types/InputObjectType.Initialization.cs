@@ -19,6 +19,7 @@ namespace HotChocolate.Types
     {
         private Action<IInputObjectTypeDescriptor>? _configure;
         private Func<object?[], object> _createInstance = default!;
+        private Action<object, object?[]> _getFieldValues = default!;
 
         /// <summary>
         /// Initializes a new  instance of <see cref="InputObjectType"/>.
@@ -101,8 +102,6 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            ITypeConverter converter = context.Services.GetTypeConverter();
-
             SyntaxNode = definition.SyntaxNode;
 
             var fields = new InputField[definition.Fields.Count];
@@ -112,21 +111,13 @@ namespace HotChocolate.Types
 
             if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
-                _createInstance = fieldValues =>
-                {
-                    var dictionary = new Dictionary<string, object?>();
-
-                    foreach (var field in fields)
-                    {
-                        dictionary.Add(field.Name, fieldValues[field.Index]);
-                    }
-
-                    return dictionary;
-                };
+                _createInstance = CreateDictionaryInstance;
+                _getFieldValues = CreateDictionaryGetValues;
             }
             else
             {
                 _createInstance = CompileFactory(this);
+                _getFieldValues = CompileGetFieldValues(this);
             }
         }
 
@@ -152,6 +143,31 @@ namespace HotChocolate.Types
             if (fields.Length > index)
             {
                 Array.Resize(ref fields, index);
+            }
+        }
+
+        private object CreateDictionaryInstance(object?[] fieldValues)
+        {
+            var dictionary = new Dictionary<string, object?>();
+
+            foreach (var field in Fields)
+            {
+                dictionary.Add(field.Name, fieldValues[field.Index]);
+            }
+
+            return dictionary;
+        }
+
+        private void CreateDictionaryGetValues(object obj, object?[] fieldValues)
+        {
+            var map = (Dictionary<string, object?>)obj;
+
+            foreach (var field in Fields)
+            {
+                if (map.TryGetValue(field.Name, out var val))
+                {
+                    fieldValues[field.Index] = val;
+                }
             }
         }
     }

@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                     .Value;
 
                 if (argumentValue is VariableNode variable &&
-                    _valueCollection.TryGetVariable(variable.Name.Value, out T castedVariable))
+                    _valueCollection.TryGetVariable(variable.Name.Value, out T? castedVariable))
                 {
                     value = castedVariable;
                     return true;
@@ -108,9 +108,9 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                     try
                     {
                         if (_inputParser.ParseLiteral(
-                            argumentValue,
-                            argument.Type,
-                            Path.New(argument.Name)) is T castedArgument)
+                            argumentValue, 
+                            argument, 
+                            typeof(T)) is T castedArgument)
                         {
                             value = castedArgument;
                             return true;
