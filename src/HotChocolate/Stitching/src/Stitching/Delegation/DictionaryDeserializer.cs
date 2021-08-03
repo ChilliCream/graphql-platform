@@ -39,7 +39,7 @@ namespace HotChocolate.Stitching.Delegation
                     var elementType = (IInputType)inputType.ElementType();
                     var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
 
-                    foreach (object? item in list)
+                    foreach (var item in list)
                     {
                         deserializedList.Add(DeserializeEnumResult(elementType, item));
                     }

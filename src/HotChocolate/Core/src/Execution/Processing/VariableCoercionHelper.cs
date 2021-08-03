@@ -94,6 +94,10 @@ namespace HotChocolate.Execution.Processing
                         _inputParser.ParseLiteral(valueLiteral, variableType, root),
                         valueLiteral);
                 }
+                catch (GraphQLException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
@@ -154,7 +158,7 @@ namespace HotChocolate.Execution.Processing
             {
                 ObjectFieldNode current = node.Fields[i];
 
-                if(!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
+                if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
                 {
                     continue;
                 }

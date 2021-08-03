@@ -62,7 +62,7 @@ namespace HotChocolate.Types
         public override Type RuntimeType => _runtimeType;
 
         /// <summary>
-        /// The position of this field in the type field list.
+        /// The position of this field in the declaring type`s field list.
         /// </summary>
         internal int Index { get; }
 

@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                         {
                             if (TrySerializeCoordinates(
                                 collection.Geometries[i].Coordinates,
-                                out object? coords))
+                                out var coords))
                             {
                                 geometryCoords[i] = coords;
                             }

@@ -5,7 +5,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 #nullable enable
