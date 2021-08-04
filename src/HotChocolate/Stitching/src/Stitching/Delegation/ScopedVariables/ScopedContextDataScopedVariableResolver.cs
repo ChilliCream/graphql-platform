@@ -37,13 +37,14 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     nameof(variable));
             }
 
-            context.ScopedContextData.TryGetValue(variable.Name.Value, out object? data);
+            context.ScopedContextData.TryGetValue(variable.Name.Value, out var data);
+            InputFormatter formatter = context.Service<InputFormatter>();
 
             IValueNode literal = data switch
             {
                 IValueNode l => l,
                 null => NullValueNode.Default,
-                _ => targetType.ParseValue(data)
+                _ => formatter.FormatLiteral(data, targetType, Path.New(variable.Name.Value))
             };
 
             return new ScopedVariableValue

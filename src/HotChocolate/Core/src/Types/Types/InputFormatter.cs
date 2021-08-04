@@ -10,8 +10,10 @@ namespace HotChocolate.Types
 {
     public class InputFormatter
     {
-        public IValueNode FormatLiteral(object? runtimeValue, IType type, Path path)
+        public IValueNode FormatLiteral(object? runtimeValue, IType type, Path? path = null)
         {
+            path ??= Path.New("root");
+
             if (runtimeValue is null)
             {
                 if (type.Kind == TypeKind.NonNull)
@@ -51,7 +53,7 @@ namespace HotChocolate.Types
             for (var i = 0; i < fieldValues.Length; i++)
             {
                 InputField field = type.Fields[i];
-                object? fieldValue = fieldValues[i];
+                var fieldValue = fieldValues[i];
                 Path fieldPath = path.Append(field.Name);
 
                 if (field.IsOptional)

@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Stitching.ThrowHelper;
 
 namespace HotChocolate.Stitching.Requests
@@ -92,6 +93,7 @@ namespace HotChocolate.Stitching.Requests
             if (request.VariableValues is { Count: > 0 })
             {
                 ITypeConverter converter = schema.Services.GetTypeConverter();
+                InputFormatter formatter = schema.Services.GetRequiredService<InputFormatter>();
                 var builder = QueryRequestBuilder.From(request);
 
                 foreach (KeyValuePair<string, object?> variable in request.VariableValues)
@@ -105,7 +107,8 @@ namespace HotChocolate.Stitching.Requests
                                 variable.Key,
                                 variable.Value,
                                 schema,
-                                converter));
+                                converter,
+                                formatter));
                     }
                 }
 
@@ -120,7 +123,8 @@ namespace HotChocolate.Stitching.Requests
             string name,
             object? value,
             ISchema schema,
-            ITypeConverter converter)
+            ITypeConverter converter,
+            InputFormatter inputFormatter)
         {
             VariableDefinitionNode? variableDefinition =
                 operation.VariableDefinitions.FirstOrDefault(t =>
@@ -139,12 +143,15 @@ namespace HotChocolate.Stitching.Requests
                         value.GetType(),
                         variableType.RuntimeType,
                         value,
-                        out object? converted))
+                        out var converted))
                 {
                     value = converted;
                 }
 
-                return variableType.ParseValue(value);
+                return inputFormatter.FormatLiteral(
+                    value,
+                    variableType,
+                    Path.New(variableDefinition.Variable.Name.Value));
             }
 
             throw BufferedRequest_VariableDoesNotExist(name);

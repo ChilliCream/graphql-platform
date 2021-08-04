@@ -39,15 +39,17 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                 IValueNode? valueLiteral = null;
 
                 if (parent is IReadOnlyDictionary<string, object> dict &&
-                    dict.TryGetValue(field.Name, out object? value))
+                    dict.TryGetValue(field.Name, out var value))
                 {
+                    InputFormatter formatter = context.Service<InputFormatter>();
+
                     if (value is IValueNode v)
                     {
                         valueLiteral = v;
                     }
                     else if(field.Type.IsInputType() && field.Type is IInputType type)
                     {
-                        valueLiteral = type.ParseValue(value);
+                        valueLiteral = formatter.FormatLiteral(value, type, field.Name);
                     }
                 }
 
