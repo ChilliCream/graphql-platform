@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Globalization;
-using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -13,16 +12,11 @@ namespace HotChocolate.Types
     /// <summary>
     /// Represents a field or directive argument.
     /// </summary>
-    public class Argument
-        : FieldBase<IInputType, ArgumentDefinition>
-        , IInputField
+    public class Argument : FieldBase<IInputType, ArgumentDefinition>, IInputField
     {
-        public Argument(
-            ArgumentDefinition definition,
-            FieldCoordinate fieldCoordinate)
-            : base(definition, fieldCoordinate)
+        public Argument(ArgumentDefinition definition, int index)
+            : base(definition, index)
         {
-            SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
             IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
@@ -39,12 +33,20 @@ namespace HotChocolate.Types
             {
                 Formatter = new AggregateInputValueFormatter(formatters);
             }
+
+            DeclaringMember = default!;
         }
 
         /// <summary>
         /// The associated syntax node from the GraphQL SDL.
         /// </summary>
-        public InputValueDefinitionNode? SyntaxNode { get; }
+        public new InputValueDefinitionNode? SyntaxNode
+            => (InputValueDefinitionNode?)base.SyntaxNode;
+
+        /// <summary>
+        /// Gets the type system member that declares this argument.
+        /// </summary>
+        public ITypeSystemMember DeclaringMember { get; private set; }
 
         /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
@@ -54,6 +56,7 @@ namespace HotChocolate.Types
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             ArgumentDefinition definition)
         {
             if (definition.Type is null)
@@ -65,13 +68,13 @@ namespace HotChocolate.Types
                         definition.Name))
                     .SetTypeSystemObject(context.Type)
                     .Build());
+                return;
             }
-            else
-            {
-                base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(
-                    context, definition, Type, Coordinate);
-            }
+
+            base.OnCompleteField(context, declaringMember, definition);
+            DefaultValue = FieldInitHelper.CreateDefaultValue(
+                context, definition, Type, Coordinate);
+            DeclaringMember = declaringMember;
         }
     }
 }

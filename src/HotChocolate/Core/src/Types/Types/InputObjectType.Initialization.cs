@@ -135,7 +135,7 @@ namespace HotChocolate.Types
             var index = 0;
             foreach (var fieldDefinition in fieldDefs)
             {
-                fields[index] = new(fieldDefinition, new(Name, fieldDefinition.Name), index);
+                fields[index] = new(fieldDefinition, index);
                 index++;
             }
 

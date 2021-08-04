@@ -2,46 +2,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 #nullable enable
 
 namespace HotChocolate.Types
 {
-    public class FieldCollection<T>
-        : IFieldCollection<T>
-        where T : class, IField
+    public class FieldCollection<T> : IFieldCollection<T> where T : class, IField
     {
         private readonly Dictionary<NameString, T> _fieldsLookup;
         private readonly T[] _fields;
 
-        public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
-        {
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            _fields = sortByName
-                ? fields.OrderBy(t => t.Name).ToArray()
-                : fields is T[] array ? array : fields.ToArray();
-
-            _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
-
-            foreach (var field in _fields)
-            {
-                _fieldsLookup.Add(field.Name, field);
-            }
-        }
-
         internal FieldCollection(T[] fields)
         {
-            if (fields is null)
-            {
-                throw new ArgumentNullException(nameof(fields));
-            }
-
-            _fields = fields;
+            _fields = fields ?? throw new ArgumentNullException(nameof(fields));
             _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
 
             foreach (var field in _fields)
@@ -56,22 +29,8 @@ namespace HotChocolate.Types
 
         public int Count => _fields.Length;
 
-        [Obsolete("This method will be removed soon.")]
-        public int IndexOfField(NameString fieldName)
-        {
-            for (var i = 0; i < _fields.Length; i++)
-            {
-                if (fieldName.Equals(_fields[i].Name))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public bool ContainsField(NameString fieldName) =>
-            _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
+        public bool ContainsField(NameString fieldName)
+            => _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
 
         public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field)
         {
@@ -87,32 +46,12 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public IEnumerator<T> GetEnumerator() =>
-            _fields.Length == 0
+        public IEnumerator<T> GetEnumerator()
+            => _fields.Length == 0
                 ? EmptyFieldEnumerator.Instance
                 : new FieldEnumerator(_fields);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public static FieldCollection<T> From(IEnumerable<T> fields, bool sortByName = false)
-        {
-            if (fields is IReadOnlyCollection<T> collection)
-            {
-                if (collection.Count == 0)
-                {
-                    return Empty;
-                }
-
-                return new FieldCollection<T>(fields, sortByName);
-            }
-
-            if (fields.Any())
-            {
-                return new FieldCollection<T>(fields, sortByName);
-            }
-
-            return Empty;
-        }
 
         public static FieldCollection<T> Empty { get; } = new(Array.Empty<T>());
 
@@ -164,7 +103,7 @@ namespace HotChocolate.Types
 
             public void Reset() { }
 
-            public T Current { get; } = default!;
+            public T Current => default!;
 
             object IEnumerator.Current => Current;
 

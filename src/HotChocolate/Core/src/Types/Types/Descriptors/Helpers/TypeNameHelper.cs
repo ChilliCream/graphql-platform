@@ -35,7 +35,6 @@ namespace HotChocolate.Types.Descriptors
                     nameof(dependency));
             }
 
-
             if (!dependency.IsSchemaType())
             {
                 throw new ArgumentException(

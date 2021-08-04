@@ -195,14 +195,10 @@ namespace HotChocolate.Types
                 SyntaxNode = definition.SyntaxNode;
 
                 // create fields with the specified sorting settings ...
-                var sortByName = context.DescriptorContext.Options.SortFieldsByName;
-
-                var fields = definition.Fields
-                    .Where(t => !t.Ignore)
-                    .Select(t => new ObjectField(t, new(Name, t.Name), sortByName))
-                    .ToList();
-
-                Fields = FieldCollection<ObjectField>.From(fields, sortByName);
+                var fields = new ObjectField[definition.Fields.Count];
+                OnCompleteFields(context, definition, ref fields);
+                Fields = new FieldCollection<ObjectField>(fields);
+                CompleteFields(context, definition, Fields);
 
                 // resolve interface references
                 IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
@@ -221,9 +217,33 @@ namespace HotChocolate.Types
                     _implements = implements.ToArray();
                 }
 
-                // complete the type resolver and fields
+                // Complete the instance of check.
                 CompleteTypeResolver(context);
-                CompleteFields(context, definition, Fields);
+            }
+        }
+
+        protected virtual void OnCompleteFields(
+            ITypeCompletionContext context,
+            ObjectTypeDefinition definition,
+            ref ObjectField[] fields)
+        {
+            IEnumerable<ObjectFieldDefinition> fieldDefs = definition.Fields.Where(t => !t.Ignore);
+
+            if (context.DescriptorContext.Options.SortFieldsByName)
+            {
+                fieldDefs = fieldDefs.OrderBy(t => t.Name);
+            }
+
+            var index = 0;
+            foreach (var fieldDefinition in fieldDefs)
+            {
+                fields[index] = new(fieldDefinition, index);
+                index++;
+            }
+
+            if (fields.Length > index)
+            {
+                Array.Resize(ref fields, index);
             }
         }
 

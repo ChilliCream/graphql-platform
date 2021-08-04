@@ -23,7 +23,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class DirectiveType
         : TypeSystemObjectBase<DirectiveTypeDefinition>
-            , IHasRuntimeType
+        , IHasRuntimeType
     {
         // see: http://spec.graphql.org/draft/#ExecutableDirectiveLocation
         private static readonly HashSet<DirectiveLocation> _executableLocations =
@@ -246,6 +246,31 @@ namespace HotChocolate.Types
             IsTypeSystemDirective = _typeSystemLocations.Overlaps(Locations);
 
             FieldInitHelper.CompleteFields(context, definition, Arguments);
+        }
+
+        protected virtual void OnCompleteFields(
+            ITypeCompletionContext context,
+            DirectiveTypeDefinition definition,
+            ref Argument[] fields)
+        {
+            IEnumerable<ArgumentDefinition> fieldDefs = definition.Arguments.Where(t => !t.Ignore);
+
+            if (context.DescriptorContext.Options.SortFieldsByName)
+            {
+                fieldDefs = fieldDefs.OrderBy(t => t.Name);
+            }
+
+            var index = 0;
+            foreach (var fieldDefinition in fieldDefs)
+            {
+                fields[index] = new(fieldDefinition, index);
+                index++;
+            }
+
+            if (fields.Length > index)
+            {
+                Array.Resize(ref fields, index);
+            }
         }
 
         internal IValueNode SerializeArgument(Argument argument, object? obj)

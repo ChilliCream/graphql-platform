@@ -238,15 +238,11 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
-            var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
 
-            Fields = FieldCollection<InterfaceField>.From(
-                definition.Fields.Where(t => !t.Ignore).Select(
-                    t => new InterfaceField(
-                        t,
-                        new FieldCoordinate(Name, t.Name),
-                        sortFieldsByName)),
-                sortFieldsByName);
+
+            OnCompleteFields(context, definition, ref fields);
+            Fields = new FieldCollection<InterfaceField>(fields);
+            Fields = FieldInitHelper.CompleteFields(context, this, definition.Fields, CreateField);
 
             CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
 
@@ -266,7 +262,34 @@ namespace HotChocolate.Types
                 _implements = implements.ToArray();
             }
 
-            FieldInitHelper.CompleteFields(context, definition, Fields);
+            static InterfaceField CreateField(InterfaceFieldDefinition fieldDef, int index)
+                => new(fieldDef, index);
+        }
+
+        protected virtual void OnCompleteFields(
+            ITypeCompletionContext context,
+            InterfaceTypeDefinition definition,
+            ref InterfaceField[] fields)
+        {
+            IEnumerable<InterfaceFieldDefinition> fieldDefs =
+                definition.Fields.Where(t => !t.Ignore);
+
+            if (context.DescriptorContext.Options.SortFieldsByName)
+            {
+                fieldDefs = fieldDefs.OrderBy(t => t.Name);
+            }
+
+            var index = 0;
+            foreach (var fieldDefinition in fieldDefs)
+            {
+                fields[index] = new(fieldDefinition, index);
+                index++;
+            }
+
+            if (fields.Length > index)
+            {
+                Array.Resize(ref fields, index);
+            }
         }
 
         private void CompleteAbstractTypeResolver(

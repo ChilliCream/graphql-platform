@@ -22,11 +22,8 @@ namespace HotChocolate.Types
         private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
         private IDirective[] _executableDirectives = Array.Empty<IDirective>();
 
-        internal ObjectField(
-            ObjectFieldDefinition definition,
-            FieldCoordinate fieldCoordinate,
-            bool sortArgumentsByName = false)
-            : base(definition, fieldCoordinate, sortArgumentsByName)
+        internal ObjectField(ObjectFieldDefinition definition, int index)
+            : base(definition, index)
         {
             Member = definition.Member;
             ResolverMember = definition.ResolverMember ?? definition.Member;
@@ -112,9 +109,10 @@ namespace HotChocolate.Types
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             ObjectFieldDefinition definition)
         {
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
 
             CompleteExecutableDirectives(context);
             CompleteResolver(context, definition);
