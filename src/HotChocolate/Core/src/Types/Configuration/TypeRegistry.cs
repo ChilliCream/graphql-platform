@@ -154,15 +154,30 @@ namespace HotChocolate.Configuration
                 _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
             }
 
-            if (registeredType.Kind == TypeKind.Directive)
+            if (!registeredType.IsExtension)
             {
-                throw new NotImplementedException();
+                if (registeredType.IsNamedType &&
+                    registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
+                    !_nameRefs.ContainsKey(typeDef.Name))
+                {
+                    _nameRefs.Add(typeDef.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Scalar &&
+                    registeredType.Type is ScalarType scalar)
+                {
+                    _nameRefs.Add(scalar.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Directive &&
+                    registeredType.Type is DirectiveType directive &&
+                    !_nameRefs.ContainsKey(directive.Definition.Name))
+                {
+                    _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
+                }
             }
 
-            if (registeredType.IsNamedType)
-            {
 
-            }
+
+
         }
 
         public void Register(NameString typeName, ExtendedTypeReference typeReference)
