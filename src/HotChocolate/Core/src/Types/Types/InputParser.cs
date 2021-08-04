@@ -38,7 +38,7 @@ namespace HotChocolate.Types
             return ConvertValue(targetType ?? field.RuntimeType, runtimeValue);
         }
 
-        public object? ParseLiteral(IValueNode value, IType type, Path path)
+        public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
         {
             if (value is null)
             {
@@ -47,15 +47,10 @@ namespace HotChocolate.Types
 
             if (type is null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            if (path is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            return ParseLiteralInternal(value, type, path, 0, true);
+            return ParseLiteralInternal(value, type, path ?? Path.New("root"), 0, true);
         }
 
         private object? ParseLiteralInternal(

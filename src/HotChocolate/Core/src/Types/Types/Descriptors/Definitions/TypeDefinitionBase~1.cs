@@ -26,6 +26,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         /// <summary>
+        /// Specifies that this type system object needs an explicit name completion since it
+        /// depends on another type system object to complete its name.
+        /// </summary>
+        public bool NeedsNameCompletion { get; set; }
+
+        /// <summary>
         /// Gets or sets the .net type representation of this type.
         /// </summary>
         public virtual Type RuntimeType

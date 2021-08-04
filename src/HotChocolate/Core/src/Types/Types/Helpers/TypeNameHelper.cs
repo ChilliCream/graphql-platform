@@ -3,7 +3,7 @@ using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Helpers
 {
     public static class TypeNameHelper
     {
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor<TDefinition> descriptor,
             Func<INamedType, NameString> createName,
             Type dependency)
-            where TDefinition : DefinitionBase
+            where TDefinition : DefinitionBase, ITypeDefinition
         {
             if (descriptor is null)
             {
@@ -41,6 +41,8 @@ namespace HotChocolate.Types.Descriptors
                     TypeResources.TypeNameHelper_InvalidTypeStructure,
                     nameof(dependency));
             }
+
+            descriptor.Extend().Definition.NeedsNameCompletion = true;
 
             descriptor
                 .Extend()

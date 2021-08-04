@@ -60,8 +60,7 @@ namespace HotChocolate.Types.Sorting
         {
             base.OnCompleteType(context, definition);
 
-            if (definition is SortInputTypeDefinition ft &&
-                ft.EntityType is { })
+            if (definition is SortInputTypeDefinition { EntityType: { } } ft)
             {
                 EntityType = ft.EntityType;
             }

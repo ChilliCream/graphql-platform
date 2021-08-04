@@ -1,6 +1,6 @@
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Types.Descriptors.Helpers
+namespace HotChocolate.Types.Helpers
 {
     internal interface IFieldCompletion
     {

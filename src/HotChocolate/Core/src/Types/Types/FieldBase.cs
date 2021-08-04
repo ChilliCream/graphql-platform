@@ -3,7 +3,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Helpers;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 

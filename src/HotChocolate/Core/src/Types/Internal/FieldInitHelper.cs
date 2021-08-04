@@ -7,7 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Descriptors.Helpers;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 

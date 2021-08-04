@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Parent>>(sp =>
+                .AddSingleton(_ =>
                 {
                     IMongoDatabase database = _mongoResource.CreateDatabase();
                     IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");

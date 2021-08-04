@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -151,6 +152,16 @@ namespace HotChocolate.Configuration
             {
                 _types.Add(registeredType);
                 _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
+            }
+
+            if (registeredType.Kind == TypeKind.Directive)
+            {
+                throw new NotImplementedException();
+            }
+
+            if (registeredType.IsNamedType)
+            {
+
             }
         }
 
