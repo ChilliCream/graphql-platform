@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -258,7 +259,5 @@ namespace HotChocolate.Types
 
             return resolvers;
         }
-
-        public override string ToString() => $"{Name}:{Type.Visualize()}";
     }
 }

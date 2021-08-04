@@ -1,21 +1,20 @@
-using System.Collections.Generic;
 using System;
-using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Configuration;
-using HotChocolate.Properties;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using HotChocolate.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Descriptors.Helpers;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Helpers
 {
     internal static class FieldInitHelper
     {
-
-
-        public static IValueNode CreateDefaultValue(
+        public static IValueNode? CompleteDefaultValue(
             ITypeCompletionContext context,
             ArgumentDefinition argumentDefinition,
             IInputType argumentType,
@@ -45,15 +44,13 @@ namespace HotChocolate.Types
             }
         }
 
-        public static FieldCollection<TField> CompleteFields<TFieldDefinition, TField, TFieldType>(
+        public static FieldCollection<TField> CompleteFields<TFieldDefinition, TField>(
             ITypeCompletionContext context,
             ITypeSystemMember declaringMember,
             IReadOnlyList<TFieldDefinition> fieldDefinitions,
             Func<TFieldDefinition, int, TField> fieldFactory)
             where TFieldDefinition : FieldDefinitionBase, IHasSyntaxNode
-            where TField : FieldBase<TFieldType, TFieldDefinition>
-            where TFieldType : IType
-
+            where TField : class, IField, IFieldCompletion
         {
             IEnumerable<TFieldDefinition> fieldDefs = fieldDefinitions.Where(t => !t.Ignore);
 
@@ -76,19 +73,7 @@ namespace HotChocolate.Types
                 Array.Resize(ref fields, index);
             }
 
-            var fieldCollection = new FieldCollection<InterfaceField>(fields);
-        }
-
-        private static void CompleteFields<TTypeDef, TFieldType, TFieldDef>(
-            ITypeCompletionContext context,
-            ITypeSystemMember declaringMember,
-            TTypeDef definition,
-            IReadOnlyCollection<FieldBase<TFieldType, TFieldDef>> fields)
-            where TTypeDef : DefinitionBase
-            where TFieldType : IType
-            where TFieldDef : FieldDefinitionBase, IHasSyntaxNode
-        {
-            if (context.Type is IType type && fields.Count == 0)
+            if (declaringMember is IType type && fields.Length == 0)
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
@@ -100,13 +85,33 @@ namespace HotChocolate.Types
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode((type as IHasSyntaxNode)?.SyntaxNode)
                     .Build());
-                return;
+                return FieldCollection<TField>.Empty;
             }
 
-            foreach (FieldBase<TFieldType, TFieldDef> field in fields)
+            foreach (TField field in fields)
             {
                 field.CompleteField(context, declaringMember);
             }
+
+            return new FieldCollection<TField>(fields);
+        }
+
+        public static Type CompleteRuntimeType(IType type, Type? runtimeType)
+            => CompleteRuntimeType(type, runtimeType, out _);
+
+        public static Type CompleteRuntimeType(IType type, Type? runtimeType, out bool isOptional)
+        {
+            runtimeType ??= (type as IHasRuntimeType)?.RuntimeType ?? typeof(object);
+
+            if (runtimeType.IsGenericType &&
+                runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
+            {
+                isOptional = true;
+                return runtimeType.GetGenericArguments()[0];
+            }
+
+            isOptional = false;
+            return runtimeType;
         }
     }
 }

@@ -1,24 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Helpers.FieldInitHelper;
 
 #nullable enable
 
 namespace HotChocolate.Types
 {
     public class OutputFieldBase<TDefinition>
-        : FieldBase<IOutputType, TDefinition>
+        : FieldBase<TDefinition>
         , IOutputField
         where TDefinition : OutputFieldDefinitionBase
     {
+        private Type _runtimeType = default!;
+
         internal OutputFieldBase(TDefinition definition, int index) : base(definition, index)
         {
             IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
             DeprecationReason = definition.DeprecationReason;
-            Arguments = default!;
         }
 
         /// <inheritdoc />
@@ -26,7 +26,14 @@ namespace HotChocolate.Types
 
         public new FieldDefinitionNode? SyntaxNode => (FieldDefinitionNode?)base.SyntaxNode;
 
-        public FieldCollection<Argument> Arguments { get; private set; }
+        /// <inheritdoc />
+        public IOutputType Type { get; private set; } = default!;
+
+        /// <inheritdoc />
+        public override Type RuntimeType => _runtimeType;
+
+        public FieldCollection<Argument> Arguments { get; private set; } = 
+            FieldCollection<Argument>.Empty;
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
@@ -48,42 +55,20 @@ namespace HotChocolate.Types
         {
             base.OnCompleteField(context, declaringMember, definition);
 
-            Arguments = FieldCollection<Argument>.From(
-                definition
-                    .GetArguments()
-                    .Where(t => !t.Ignore)
-                    .Select(t => new Argument(t, Coordinate.With(argumentName: t.Name))),
-                context.DescriptorContext.Options.SortFieldsByName);
+            Type = context.GetType<IOutputType>(definition.Type!);
+            _runtimeType = CompleteRuntimeType(Type, null);
+            Arguments = CompleteFields(context, this, definition.GetArguments(), CreateArgument);
 
-            foreach (Argument argument in Arguments)
-            {
-                argument.CompleteField(context);
-            }
+            static Argument CreateArgument(ArgumentDefinition argDef, int index)
+                => new(argDef, index);
         }
 
-        protected virtual void OnCompleteFields(
-            ITypeCompletionContext context,
-            TDefinition definition,
-            ref Argument[] fields)
-        {
-            IEnumerable<ArgumentDefinition> fieldDefs = definition.Arguments.Where(t => !t.Ignore);
-
-            if (context.DescriptorContext.Options.SortFieldsByName)
-            {
-                fieldDefs = fieldDefs.OrderBy(t => t.Name);
-            }
-
-            var index = 0;
-            foreach (var fieldDefinition in fieldDefs)
-            {
-                fields[index] = new(fieldDefinition, index);
-                index++;
-            }
-
-            if (fields.Length > index)
-            {
-                Array.Resize(ref fields, index);
-            }
-        }
+        /// <summary>
+        /// Returns a string that represents the current field.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current field.
+        /// </returns>
+        public override string ToString() => $"{Name}:{Type.Print()}";
     }
 }

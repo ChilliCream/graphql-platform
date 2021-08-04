@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Helpers.FieldInitHelper;
 
 #nullable enable
 
@@ -220,12 +221,7 @@ namespace HotChocolate.Types
 
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.GetLocations().ToList().AsReadOnly();
-            Arguments = FieldCollection<Argument>.From(
-                definition
-                    .GetArguments()
-                    .Where(t => !t.Ignore)
-                    .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
-                context.DescriptorContext.Options.SortFieldsByName);
+            Arguments = CompleteFields(context, this, definition.GetArguments(), CreateArgument);
             HasMiddleware = MiddlewareComponents.Count > 0;
             IsPublic = definition.IsPublic;
 
@@ -245,7 +241,8 @@ namespace HotChocolate.Types
             IsExecutableDirective = _executableLocations.Overlaps(Locations);
             IsTypeSystemDirective = _typeSystemLocations.Overlaps(Locations);
 
-            FieldInitHelper.CompleteFields(context, definition, Arguments);
+            static Argument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+                => new(argDef, index);
         }
 
         protected virtual void OnCompleteFields(

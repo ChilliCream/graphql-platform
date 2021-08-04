@@ -3,13 +3,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Helpers;
 
 #nullable enable
 
 namespace HotChocolate.Types
 {
-    public abstract class FieldBase<TType, TDefinition> : IField
-        where TType : IType
+    public abstract class FieldBase<TDefinition>
+        : IField
+        , IFieldCompletion
         where TDefinition : FieldDefinitionBase, IHasSyntaxNode
     {
         private TDefinition? _definition;
@@ -23,10 +25,8 @@ namespace HotChocolate.Types
             Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
             Description = definition.Description;
             DeclaringType = default!;
-            Type = default!;
             ContextData = default!;
             Directives = default!;
-            RuntimeType = default!;
         }
 
         /// <inheritdoc />
@@ -47,13 +47,11 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public int Index { get; }
 
-        public TType Type { get; private set; }
-
         /// <inheritdoc />
         public IDirectiveCollection Directives { get; private set; }
 
         /// <inheritdoc />
-        public virtual Type RuntimeType { get; private set; }
+        public abstract Type RuntimeType { get; }
 
         /// <inheritdoc />
         public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
@@ -74,13 +72,16 @@ namespace HotChocolate.Types
             TDefinition definition)
         {
             DeclaringType = context.Type;
-            Type = context.GetType<TType>(definition.Type!);
-            RuntimeType = Type is IHasRuntimeType hrt ? hrt.RuntimeType : typeof(object);
             Coordinate = declaringMember is IField field
                 ? new FieldCoordinate(context.Type.Name, field.Name, definition.Name)
                 : new FieldCoordinate(context.Type.Name, definition.Name);
             Directives = DirectiveCollection.CreateAndComplete(
                 context, this, definition.GetDirectives());
         }
+
+        void IFieldCompletion.CompleteField(
+            ITypeCompletionContext context,
+            ITypeSystemMember declaringMember)
+            => CompleteField(context, declaringMember);
     }
 }

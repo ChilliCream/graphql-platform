@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -22,6 +23,41 @@ namespace HotChocolate.Types
         : NamedTypeBase<InputObjectTypeDefinition>
         , IInputObjectType
     {
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
+        protected InputObjectType()
+        {
+            _configure = Configure;
+        }
+
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
+        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        {
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+        }
+
+        /// <summary>
+        /// Create an input object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The input object type definition that specifies the properties of the
+        /// newly created input object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created input object type.
+        /// </returns>
+        public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
+            => new() { Definition = definition};
+
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.InputObject;
 
@@ -43,5 +79,15 @@ namespace HotChocolate.Types
 
         internal void GetFieldValues(object runtimeValue, object?[] fieldValues)
             => _getFieldValues(runtimeValue, fieldValues);
+
+        /// <summary>
+        /// Override this to configure the type.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor allows to configure the interface type.
+        /// </param>
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+        }
     }
 }

@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.CompleteInterfacesHelper;
 
 #nullable enable
 
@@ -51,21 +47,16 @@ namespace HotChocolate.Types
     /// }
     /// </code>
     /// </summary>
-    public class InterfaceType
+    public partial class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
     {
-        private InterfaceType[] _implements = Array.Empty<InterfaceType>();
-        private Action<IInterfaceTypeDescriptor>? _configure;
-        private ResolveAbstractType? _resolveAbstractType;
-
         /// <summary>
         /// Initializes a new  instance of <see cref="InterfaceType"/>.
         /// </summary>
         protected InterfaceType()
         {
             _configure = Configure;
-            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         /// <summary>
@@ -80,7 +71,6 @@ namespace HotChocolate.Types
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
         {
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
-            Fields = FieldCollection<InterfaceField>.Empty;
         }
 
         /// <summary>
@@ -114,7 +104,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the field that this type exposes.
         /// </summary>
-        public FieldCollection<InterfaceField> Fields { get; private set; }
+        public FieldCollection<InterfaceField> Fields { get; private set; } = default!;
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
@@ -197,135 +187,14 @@ namespace HotChocolate.Types
             object resolverResult) =>
             ResolveConcreteType(context, resolverResult);
 
-        protected override InterfaceTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        {
-            try
-            {
-                if (Definition is null)
-                {
-                    var descriptor = InterfaceTypeDescriptor.FromSchemaType(
-                        context.DescriptorContext,
-                        GetType());
-                    _configure!(descriptor);
-                    return descriptor.CreateDefinition();
-                }
-
-                return Definition;
-            }
-            finally
-            {
-                _configure = null;
-            }
-        }
-
+        /// <summary>
+        /// Override this to configure the type.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor allows to configure the interface type.
+        /// </param>
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor)
         {
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InterfaceTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(InterfaceType<>));
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            InterfaceTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            SyntaxNode = definition.SyntaxNode;
-
-
-            OnCompleteFields(context, definition, ref fields);
-            Fields = new FieldCollection<InterfaceField>(fields);
-            Fields = FieldInitHelper.CompleteFields(context, this, definition.Fields, CreateField);
-
-            CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
-
-            IReadOnlyList<ITypeReference> interfaces = definition.GetInterfaces();
-
-            if (interfaces.Count > 0)
-            {
-                var implements = new List<InterfaceType>();
-
-                CompleteInterfaces(
-                    context,
-                    interfaces,
-                    implements,
-                    this,
-                    SyntaxNode);
-
-                _implements = implements.ToArray();
-            }
-
-            static InterfaceField CreateField(InterfaceFieldDefinition fieldDef, int index)
-                => new(fieldDef, index);
-        }
-
-        protected virtual void OnCompleteFields(
-            ITypeCompletionContext context,
-            InterfaceTypeDefinition definition,
-            ref InterfaceField[] fields)
-        {
-            IEnumerable<InterfaceFieldDefinition> fieldDefs =
-                definition.Fields.Where(t => !t.Ignore);
-
-            if (context.DescriptorContext.Options.SortFieldsByName)
-            {
-                fieldDefs = fieldDefs.OrderBy(t => t.Name);
-            }
-
-            var index = 0;
-            foreach (var fieldDefinition in fieldDefs)
-            {
-                fields[index] = new(fieldDefinition, index);
-                index++;
-            }
-
-            if (fields.Length > index)
-            {
-                Array.Resize(ref fields, index);
-            }
-        }
-
-        private void CompleteAbstractTypeResolver(
-            ITypeCompletionContext context,
-            ResolveAbstractType? resolveAbstractType)
-        {
-            if (resolveAbstractType is null)
-            {
-                Func<ISchema> schemaResolver = context.GetSchemaResolver();
-
-                // if there is no custom type resolver we will use this default
-                // abstract type resolver.
-                IReadOnlyCollection<ObjectType>? types = null;
-                _resolveAbstractType = (c, r) =>
-                {
-                    if (types is null)
-                    {
-                        ISchema schema = schemaResolver.Invoke();
-                        types = schema.GetPossibleTypes(this);
-                    }
-
-                    foreach (ObjectType type in types)
-                    {
-                        if (type.IsInstanceOfType(c, r))
-                        {
-                            return type;
-                        }
-                    }
-
-                    return null;
-                };
-            }
-            else
-            {
-                _resolveAbstractType = resolveAbstractType;
-            }
         }
     }
 }

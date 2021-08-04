@@ -2,19 +2,19 @@
 
 namespace HotChocolate.Types
 {
-    public static class TypeVisualizer
+    public static class TypeNamePrinter
     {
         private const int _maxTypeDepth = 6;
 
-        public static string Print(this IType type)
-        {
-            return Print(type, 0);
-        }
-
-        public static string Visualize(this IType type) => Print(type);
+        public static string Print(this IType type) => Print(type, 0);
 
         private static string Print(IType type, int count)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (count > _maxTypeDepth)
             {
                 throw new InvalidOperationException(

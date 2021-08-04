@@ -4,14 +4,13 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Helpers.FieldInitHelper;
 
 #nullable enable
 
 namespace HotChocolate.Types
 {
-    public class InputField
-        : FieldBase<IInputType, InputFieldDefinition>
-        , IInputField
+    public class InputField : FieldBase<InputFieldDefinition>, IInputField
     {
         private Type _runtimeType = default!;
 
@@ -37,21 +36,31 @@ namespace HotChocolate.Types
             (InputValueDefinitionNode?)base.SyntaxNode;
 
         /// <inheritdoc />
+        public IInputType Type { get; private set; } = default!;
+
+        /// <summary>
+        /// Gets the type that declares this field.
+        /// </summary>
+        public new InputObjectType DeclaringType => (InputObjectType)base.DeclaringType;
+
+        /// <inheritdoc />
+        public override Type RuntimeType => _runtimeType;
+
+        /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
 
         /// <inheritdoc />
         public IInputValueFormatter? Formatter { get; }
-
-        public new InputObjectType DeclaringType =>
-            (InputObjectType)base.DeclaringType;
-
-        public override Type RuntimeType => _runtimeType;
 
         /// <summary>
         /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
         /// </summary>
         internal bool IsOptional { get; private set; }
 
+        /// <summary>
+        /// If this field is bound to a property on a concrete model,
+        /// then this property exposes this property.
+        /// </summary>
         protected internal PropertyInfo? Property { get; }
 
         protected override void OnCompleteField(
@@ -61,17 +70,19 @@ namespace HotChocolate.Types
         {
             base.OnCompleteField(context, declaringMember, definition);
 
-            _runtimeType = definition.Property?.PropertyType ?? typeof(object);
-
-            if (_runtimeType is { IsGenericType: true } &&
-                _runtimeType.GetGenericTypeDefinition() == typeof(Optional<>))
-            {
-                IsOptional = true;
-                _runtimeType = _runtimeType.GetGenericArguments()[0];
-            }
-
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type, Coordinate);
+            Type = context.GetType<IInputType>(definition.Type!);
+            _runtimeType = definition.Property?.PropertyType!;
+            _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
+            DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+            IsOptional = isOptional;
         }
+
+        /// <summary>
+        /// Returns a string that represents the current field.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current field.
+        /// </returns>
+        public override string ToString() => $"{Name}:{Type.Print()}";
     }
 }

@@ -5,7 +5,9 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
+using static HotChocolate.Types.Helpers.FieldInitHelper;
 
 #nullable enable
 
@@ -19,51 +21,6 @@ namespace HotChocolate.Types
         private Action<IInputObjectTypeDescriptor>? _configure;
         private Func<object?[], object> _createInstance = default!;
         private Action<object, object?[]> _getFieldValues = default!;
-
-        /// <summary>
-        /// Initializes a new  instance of <see cref="InputObjectType"/>.
-        /// </summary>
-        protected InputObjectType()
-        {
-            _configure = Configure;
-        }
-
-        /// <summary>
-        /// Initializes a new  instance of <see cref="InputObjectType"/>.
-        /// </summary>
-        /// <param name="configure">
-        /// A delegate to specify the properties of this type.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="configure"/> is <c>null</c>.
-        /// </exception>
-        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
-        {
-            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
-        }
-
-        /// <summary>
-        /// Create an input object type from a type definition.
-        /// </summary>
-        /// <param name="definition">
-        /// The input object type definition that specifies the properties of the
-        /// newly created input object type.
-        /// </param>
-        /// <returns>
-        /// Returns the newly created input object type.
-        /// </returns>
-        public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
-            => new() { Definition = definition};
-
-        /// <summary>
-        /// Override this in order to specify the type configuration explicitly.
-        /// </summary>
-        /// <param name="descriptor">
-        /// The descriptor of this type lets you express the type configuration.
-        /// </param>
-        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
-        {
-        }
 
         protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
@@ -102,11 +59,7 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
-
-            var fields = new InputField[definition.Fields.Count];
-            OnCompleteFields(context, definition, ref fields);
-            Fields = new FieldCollection<InputField>(fields);
-            FieldInitHelper.CompleteFields(context, definition, Fields);
+            Fields = CompleteFields(context, this, definition.Fields, CreateField);
 
             if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
@@ -118,31 +71,9 @@ namespace HotChocolate.Types
                 _createInstance = CompileFactory(this);
                 _getFieldValues = CompileGetFieldValues(this);
             }
-        }
 
-        protected virtual void OnCompleteFields(
-            ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ref InputField[] fields)
-        {
-            IEnumerable<InputFieldDefinition> fieldDefs = definition.Fields.Where(t => !t.Ignore);
-
-            if (context.DescriptorContext.Options.SortFieldsByName)
-            {
-                fieldDefs = fieldDefs.OrderBy(t => t.Name);
-            }
-
-            var index = 0;
-            foreach (var fieldDefinition in fieldDefs)
-            {
-                fields[index] = new(fieldDefinition, index);
-                index++;
-            }
-
-            if (fields.Length > index)
-            {
-                Array.Resize(ref fields, index);
-            }
+            static InputField CreateField(InputFieldDefinition fieldDef, int index)
+                => new(fieldDef, index);
         }
 
         private object CreateDictionaryInstance(object?[] fieldValues)

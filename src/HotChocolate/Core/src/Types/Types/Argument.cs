@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Helpers.FieldInitHelper;
 
 #nullable enable
 
@@ -12,8 +13,10 @@ namespace HotChocolate.Types
     /// <summary>
     /// Represents a field or directive argument.
     /// </summary>
-    public class Argument : FieldBase<IInputType, ArgumentDefinition>, IInputField
+    public class Argument : FieldBase<ArgumentDefinition>, IInputField
     {
+        private Type _runtimeType = default!;
+
         public Argument(ArgumentDefinition definition, int index)
             : base(definition, index)
         {
@@ -33,8 +36,6 @@ namespace HotChocolate.Types
             {
                 Formatter = new AggregateInputValueFormatter(formatters);
             }
-
-            DeclaringMember = default!;
         }
 
         /// <summary>
@@ -46,13 +47,24 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the type system member that declares this argument.
         /// </summary>
-        public ITypeSystemMember DeclaringMember { get; private set; }
+        public ITypeSystemMember DeclaringMember { get; private set; } = default!;
+
+        /// <inheritdoc />
+        public IInputType Type { get; private set; } = default!;
+
+        /// <inheritdoc />
+        public override Type RuntimeType => _runtimeType;
 
         /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
 
         /// <inheritdoc />
         public IInputValueFormatter? Formatter { get; }
+
+        /// <summary>
+        /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
+        /// </summary>
+        internal bool IsOptional { get; private set; }
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
@@ -62,19 +74,30 @@ namespace HotChocolate.Types
             if (definition.Type is null)
             {
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.Argument_TypeIsNull,
-                        definition.Name))
+                    .SetMessage(TypeResources.Argument_TypeIsNull, definition.Name)
                     .SetTypeSystemObject(context.Type)
+                    .SetExtension("declaringMember", declaringMember)
+                    .SetExtension("name", definition.Name.ToString())
                     .Build());
                 return;
             }
 
             base.OnCompleteField(context, declaringMember, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type, Coordinate);
+;
+            Type = context.GetType<IInputType>(definition.Type!);
+            _runtimeType = definition.Parameter?.ParameterType!;
+            _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
+            DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+            IsOptional = isOptional;
             DeclaringMember = declaringMember;
         }
+
+        /// <summary>
+        /// Returns a string that represents the current argument.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current argument.
+        /// </returns>
+        public override string ToString() => $"{Name}:{Type.Print()}";
     }
 }

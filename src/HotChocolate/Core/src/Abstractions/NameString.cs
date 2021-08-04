@@ -71,7 +71,7 @@ namespace HotChocolate
         /// <returns>The combined <see cref="NameString"/>.</returns>
         public NameString Add(NameString other)
         {
-            return new NameString(Value + other.Value);
+            return new(Value + other.Value);
         }
 
         /// <summary>

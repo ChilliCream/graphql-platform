@@ -139,7 +139,8 @@ namespace HotChocolate.Types
 
                         case ObjectFieldBindingType.Property:
                             if (typeDef.Fields.FirstOrDefault(
-                                t => binding.Name.Equals(t.Member?.Name)) is { } p)
+                                t => t.Member != null &&
+                                    binding.Name.Equals(t.Member.Name)) is { } p)
                             {
                                 fields.Add(p);
                             }

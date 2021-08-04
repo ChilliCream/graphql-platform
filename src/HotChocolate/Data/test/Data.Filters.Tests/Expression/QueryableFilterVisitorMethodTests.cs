@@ -115,7 +115,7 @@ namespace HotChocolate.Data.Filters.Expressions
                                 "The provided value for filter `{0}` of type {1} is invalid. " +
                                 "Null values are not supported.",
                                 context.Operations.Peek().Name,
-                                field.Type.Visualize())
+                                field.Type.Print())
                             .Build());
 
                     action = SyntaxVisitor.Skip;
@@ -162,7 +162,7 @@ namespace HotChocolate.Data.Filters.Expressions
                                 "The provided value for filter `{0}` of type {1} is invalid. " +
                                 "Null values are not supported.",
                                 context.Operations.Peek().Name,
-                                field.Type.Visualize())
+                                field.Type.Print())
                             .Build());
 
                     action = SyntaxVisitor.Skip;

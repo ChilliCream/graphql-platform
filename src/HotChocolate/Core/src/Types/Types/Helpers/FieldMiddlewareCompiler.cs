@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Helpers
 {
     internal static class FieldMiddlewareCompiler
     {
