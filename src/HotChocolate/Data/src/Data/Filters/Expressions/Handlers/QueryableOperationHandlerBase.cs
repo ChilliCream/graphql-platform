@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -12,7 +13,7 @@ namespace HotChocolate.Data.Filters.Expressions
             QueryableFilterContext context,
             IFilterOperationField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out Expression result)
+            [NotNullWhen(true)] out Expression? result)
         {
             IValueNode value = node.Value;
             object? parsedValue = field.Type.ParseLiteral(value);
@@ -28,9 +29,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (field.Type.IsInstanceOfType(value))
             {
-                result = HandleOperation(
-                    context, field, value, parsedValue);
-
+                result = HandleOperation(context, field, value, parsedValue);
                 return true;
             }
 

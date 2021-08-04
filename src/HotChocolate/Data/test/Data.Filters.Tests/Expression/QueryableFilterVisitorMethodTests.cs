@@ -12,8 +12,7 @@ using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    public class QueryableFilterVisitorMethodTests
-        : FilterVisitorTestBase
+    public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     {
         [Fact]
         public void Create_MethodSimple_Expression()
@@ -131,10 +130,10 @@ namespace HotChocolate.Data.Filters.Expressions
             }
         }
 
-        private class QueryableComplexMethodTest
-            : QueryableDefaultFieldHandler
+        private class QueryableComplexMethodTest : QueryableDefaultFieldHandler
         {
-            private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Complex))!;
+            private static readonly MethodInfo _method =
+                typeof(Foo).GetMethod(nameof(Foo.Complex))!;
 
             private IExtendedType _extendedType = null!;
 
@@ -143,8 +142,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {
-                _extendedType ??= context.TypeInspector.GetReturnType(Method);
-
+                _extendedType ??= context.TypeInspector.GetReturnType(_method);
                 return fieldDefinition is FilterOperationFieldDefinition { Id: 156 };
             }
 
@@ -192,7 +190,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
                     Expression nestedProperty = Expression.Call(
                         context.GetInstance(),
-                        Method,
+                        _method,
                         Expression.Constant(value));
 
                     context.PushInstance(nestedProperty);
