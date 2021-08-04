@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Data.Filters
 {
@@ -69,32 +70,47 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        protected override void OnCompleteFields(
+        protected override FieldCollection<InputField> OnCompleteFields(
             ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
+            InputObjectTypeDefinition definition)
         {
+            var fields = new InputField[definition.Fields.Count + 2];
+            var index = 0;
+
             if (definition is FilterInputTypeDefinition { UseAnd: true } def)
             {
-                fields.Add(new AndField(context.DescriptorContext, def.Scope));
+                fields[index] = new AndField(context.DescriptorContext, index, def.Scope);
+                index++;
             }
 
             if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
             {
-                fields.Add(new OrField(context.DescriptorContext, defOr.Scope));
+                fields[index] = new OrField(context.DescriptorContext, index, defOr.Scope);
+                index++;
             }
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {
-                if (fieldDefinition is FilterOperationFieldDefinition operation)
+                switch (fieldDefinition)
                 {
-                    fields.Add(new FilterOperationField(operation));
-                }
-                else if (fieldDefinition is FilterFieldDefinition field)
-                {
-                    fields.Add(new FilterField(field));
+                    case FilterOperationFieldDefinition operation:
+                        fields[index] = new FilterOperationField(operation);
+                        index++;
+                        break;
+
+                    case FilterFieldDefinition field:
+                        fields[index] = new FilterField(field);
+                        index++;
+                        break;
                 }
             }
+
+            if (fields.Length > index)
+            {
+                Array.Resize(ref fields, index);
+            }
+
+            return CompleteFields(context, this, fields);
         }
 
         // we are disabling the default configure method so

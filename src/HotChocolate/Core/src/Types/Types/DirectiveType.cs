@@ -9,7 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using static HotChocolate.Types.Helpers.FieldInitHelper;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -70,7 +70,7 @@ namespace HotChocolate.Types
         public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
             _configure = configure ??
-                         throw new ArgumentNullException(nameof(configure));
+                throw new ArgumentNullException(nameof(configure));
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace HotChocolate.Types
 
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.GetLocations().ToList().AsReadOnly();
-            Arguments = CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+            Arguments = OnCompleteFields(context, definition);
             HasMiddleware = MiddlewareComponents.Count > 0;
             IsPublic = definition.IsPublic;
 
@@ -240,34 +240,15 @@ namespace HotChocolate.Types
 
             IsExecutableDirective = _executableLocations.Overlaps(Locations);
             IsTypeSystemDirective = _typeSystemLocations.Overlaps(Locations);
-
-            static Argument CreateArgument(DirectiveArgumentDefinition argDef, int index)
-                => new(argDef, index);
         }
 
-        protected virtual void OnCompleteFields(
+        protected virtual FieldCollection<Argument> OnCompleteFields(
             ITypeCompletionContext context,
-            DirectiveTypeDefinition definition,
-            ref Argument[] fields)
+            DirectiveTypeDefinition definition)
         {
-            IEnumerable<ArgumentDefinition> fieldDefs = definition.Arguments.Where(t => !t.Ignore);
-
-            if (context.DescriptorContext.Options.SortFieldsByName)
-            {
-                fieldDefs = fieldDefs.OrderBy(t => t.Name);
-            }
-
-            var index = 0;
-            foreach (var fieldDefinition in fieldDefs)
-            {
-                fields[index] = new(fieldDefinition, index);
-                index++;
-            }
-
-            if (fields.Length > index)
-            {
-                Array.Resize(ref fields, index);
-            }
+            return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+            static Argument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+                => new(argDef, index);
         }
 
         internal IValueNode SerializeArgument(Argument argument, object? obj)

@@ -5,11 +5,8 @@ namespace HotChocolate.Types.Sorting
     [Obsolete("Use HotChocolate.Data.")]
     internal sealed class SortOperationField : InputField
     {
-        public SortOperationField(
-            SortOperationDefintion definition,
-            FieldCoordinate coordinate,
-            int index)
-            : base(definition, coordinate, index)
+        public SortOperationField(SortOperationDefintion definition, int index)
+            : base(definition, index)
         {
             Operation = definition.Operation;
         }

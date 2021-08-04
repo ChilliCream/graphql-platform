@@ -280,6 +280,24 @@ namespace HotChocolate.Utilities
                 type,
                 path);
 
+        public static SerializationException ParseInputObject_InvalidObjectKind(
+            InputObjectType type,
+            Type objectType,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                .SetMessage(
+                    "The input object `{1}` must to be serialized as `{2}` or as " +
+                    "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
+                    objectType.FullName ?? objectType.Name,
+                    type.Name.Value,
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .SetPath(path)
+                .SetExtension(nameof(type), type.Name.Value)
+                .Build(),
+                type,
+                path);
+
 
         public static SerializationException ParseNestedList_InvalidSyntaxKind(
             ListType type,

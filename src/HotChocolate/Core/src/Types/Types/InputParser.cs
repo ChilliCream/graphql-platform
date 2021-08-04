@@ -310,7 +310,7 @@ namespace HotChocolate.Types
 
                 case TypeKind.InputObject:
                     return DeserializeObject(
-                        (IReadOnlyDictionary<string, object?>)resultValue,
+                        resultValue,
                         (InputObjectType)type,
                         path);
 
@@ -335,61 +335,69 @@ namespace HotChocolate.Types
             return list;
         }
 
-        private object DeserializeObject(
-            IReadOnlyDictionary<string, object?> resultValue,
-            InputObjectType type,
-            Path path)
+        private object DeserializeObject(object resultValue, InputObjectType type, Path path)
         {
-            var fieldValues = new object?[type.Fields.Count];
-            var consumed = 0;
-
-            for (var i = 0; i < type.Fields.Count; i++)
+            if (resultValue is IReadOnlyDictionary<string, object?> map)
             {
-                InputField field = type.Fields[i];
 
-                if (resultValue.TryGetValue(field.Name.Value, out var fieldValue))
+                var fieldValues = new object?[type.Fields.Count];
+                var consumed = 0;
+
+                for (var i = 0; i < type.Fields.Count; i++)
                 {
-                    Path fieldPath = path.Append(field.Name);
+                    InputField field = type.Fields[i];
 
-                    if (fieldValue is null && field.Type.Kind == TypeKind.NonNull)
+                    if (map.TryGetValue(field.Name.Value, out var fieldValue))
                     {
-                        throw NonNullInputViolation(type, fieldPath, field);
+                        Path fieldPath = path.Append(field.Name);
+
+                        if (fieldValue is null && field.Type.Kind == TypeKind.NonNull)
+                        {
+                            throw NonNullInputViolation(type, fieldPath, field);
+                        }
+
+                        var value = Deserialize(fieldValue, field.Type, fieldPath);
+                        value = FormatValue(field, value);
+                        value = ConvertValue(field.RuntimeType, value);
+
+                        if (field.IsOptional)
+                        {
+                            value = new Optional(value, true);
+                        }
+
+                        fieldValues[i] = value;
+                        consumed++;
+                    }
+                    else
+                    {
+                        fieldValues[i] = CreateDefaultValue(field, path.Append(field.Name), 0);
+                    }
+                }
+
+                if (consumed < map.Count)
+                {
+                    var invalidFieldNames = new List<string>();
+
+                    foreach (string key in map.Keys)
+                    {
+                        if (!type.Fields.ContainsField(key))
+                        {
+                            invalidFieldNames.Add(key);
+                        }
                     }
 
-                    var value = Deserialize(fieldValue, field.Type, fieldPath);
-                    value = FormatValue(field, value);
-                    value = ConvertValue(field.RuntimeType, value);
-
-                    if (field.IsOptional)
-                    {
-                        value = new Optional(value, true);
-                    }
-
-                    fieldValues[i] = value;
-                    consumed++;
+                    throw InvalidInputFieldNames(type, invalidFieldNames, path);
                 }
-                else
-                {
-                    fieldValues[i] = CreateDefaultValue(field, path.Append(field.Name), 0);
-                }
+
+                return type.CreateInstance(fieldValues);
             }
 
-            if (consumed < resultValue.Count)
+            if (type.RuntimeType.IsInstanceOfType(resultValue))
             {
-                var invalidFieldNames = new List<string>();
-
-                foreach (string key in resultValue.Keys)
-                {
-                    if (!type.Fields.ContainsField(key))
-                    {
-                        invalidFieldNames.Add(key);
-                    }
-                }
-
-                throw InvalidInputFieldNames(type, invalidFieldNames, path);
+                return resultValue;
             }
 
-            return type.CreateInstance(fieldValues);
+            throw ParseInputObject_InvalidObjectKind(type, resultValue.GetType(), path);
         }
 
         private object? DeserializeLeaf(object resultValue, ILeafType type, Path path)

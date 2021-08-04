@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Helpers.FieldInitHelper;
+using static HotChocolate.Internal.FieldInitHelper;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 using static HotChocolate.Utilities.ErrorHelper;
 
@@ -61,38 +60,19 @@ namespace HotChocolate.Types
             {
                 _isOfType = definition.IsOfType;
                 SyntaxNode = definition.SyntaxNode;
-                Fields = CompleteFields(context, this, definition.Fields, CreateField);
+                Fields = OnCompleteFields(context, definition);
                 _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
                 CompleteTypeResolver(context);
             }
-
-            static ObjectField CreateField(ObjectFieldDefinition fieldDef, int index)
-                => new(fieldDef, index);
         }
 
-        protected virtual void OnCompleteFields(
+        protected virtual FieldCollection<ObjectField> OnCompleteFields(
             ITypeCompletionContext context,
-            ObjectTypeDefinition definition,
-            ref ObjectField[] fields)
+            ObjectTypeDefinition definition)
         {
-            IEnumerable<ObjectFieldDefinition> fieldDefs = definition.Fields.Where(t => !t.Ignore);
-
-            if (context.DescriptorContext.Options.SortFieldsByName)
-            {
-                fieldDefs = fieldDefs.OrderBy(t => t.Name);
-            }
-
-            var index = 0;
-            foreach (var fieldDefinition in fieldDefs)
-            {
-                fields[index] = new(fieldDefinition, index);
-                index++;
-            }
-
-            if (fields.Length > index)
-            {
-                Array.Resize(ref fields, index);
-            }
+            return CompleteFields(context, this, definition.Fields, CreateField);
+            static ObjectField CreateField(ObjectFieldDefinition fieldDef, int index)
+                => new(fieldDef, index);
         }
 
         private void CompleteTypeResolver(ITypeCompletionContext context)

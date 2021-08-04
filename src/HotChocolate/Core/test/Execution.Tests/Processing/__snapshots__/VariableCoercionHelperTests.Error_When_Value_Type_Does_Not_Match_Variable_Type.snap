@@ -1,14 +1,10 @@
 ﻿[
   {
-    "Message": "Variable `abc` got an invalid value.",
-    "Code": "HC0016",
+    "Message": "String cannot parse the given literal of type `IntValueNode`.",
+    "Code": null,
     "Path": null,
     "Locations": null,
-    "Extensions": {
-      "code": "HC0016",
-      "variable": "abc",
-      "underlyingError": "String cannot parse the given literal of type `IntValueNode`."
-    },
+    "Extensions": null,
     "Exception": null,
     "SyntaxNode": null
   }

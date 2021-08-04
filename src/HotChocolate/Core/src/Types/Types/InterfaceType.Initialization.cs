@@ -5,7 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
-using static HotChocolate.Types.Helpers.FieldInitHelper;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -55,11 +55,17 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
-            Fields = CompleteFields(context, this, definition.Fields, CreateField);
+            Fields = OnCompleteFields(context, definition);
 
             CompleteAbstractTypeResolver(context, definition.ResolveAbstractType);
             _implements = CompleteInterfaces(context, definition.GetInterfaces(), this);
+        }
 
+        protected virtual FieldCollection<InterfaceField> OnCompleteFields(
+            ITypeCompletionContext context,
+            InterfaceTypeDefinition definition)
+        {
+            return CompleteFields(context, this, definition.Fields, CreateField);
             static InterfaceField CreateField(InterfaceFieldDefinition fieldDef, int index)
                 => new(fieldDef, index);
         }

@@ -508,7 +508,7 @@ namespace HotChocolate.Execution.Processing
                 schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Throws<GraphQLException>(Action)
+            Assert.Throws<SerializationException>(Action)
                 .Errors.Select(t => t.RemoveException())
                 .ToList()
                 .MatchSnapshot();
@@ -531,7 +531,7 @@ namespace HotChocolate.Execution.Processing
 
             var variableValues = new Dictionary<string, object>
             {
-                {"abc", 1}
+                { "abc", 1 }
             };
 
             var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -542,7 +542,7 @@ namespace HotChocolate.Execution.Processing
                 schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Throws<GraphQLException>(Action).Errors.MatchSnapshot();
+            Assert.Throws<SerializationException>(Action).Errors.MatchSnapshot();
         }
 
         [Fact]
@@ -562,7 +562,7 @@ namespace HotChocolate.Execution.Processing
 
             var variableValues = new Dictionary<string, object>
             {
-                {"abc", 1}
+                { "abc", 1 }
             };
 
             var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
@@ -604,7 +604,7 @@ namespace HotChocolate.Execution.Processing
                 schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Throws<GraphQLException>(Action)
+            Assert.Throws<SerializationException>(Action)
                 .Errors.Select(t => t.RemoveException())
                 .ToList()
                 .MatchSnapshot();

@@ -5,9 +5,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
-using static HotChocolate.Types.Helpers.FieldInitHelper;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -59,7 +58,7 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
-            Fields = CompleteFields(context, this, definition.Fields, CreateField);
+            Fields = OnCompleteFields(context, definition);
 
             if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
@@ -71,7 +70,13 @@ namespace HotChocolate.Types
                 _createInstance = CompileFactory(this);
                 _getFieldValues = CompileGetFieldValues(this);
             }
+        }
 
+        protected virtual FieldCollection<InputField> OnCompleteFields(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+        {
+            return CompleteFields(context, this, definition.Fields, CreateField);
             static InputField CreateField(InputFieldDefinition fieldDef, int index)
                 => new(fieldDef, index);
         }

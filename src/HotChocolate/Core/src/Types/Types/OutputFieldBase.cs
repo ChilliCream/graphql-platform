@@ -2,7 +2,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Helpers.FieldInitHelper;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public override Type RuntimeType => _runtimeType;
 
-        public FieldCollection<Argument> Arguments { get; private set; } = 
+        public FieldCollection<Argument> Arguments { get; private set; } =
             FieldCollection<Argument>.Empty;
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
@@ -57,8 +57,17 @@ namespace HotChocolate.Types
 
             Type = context.GetType<IOutputType>(definition.Type!);
             _runtimeType = CompleteRuntimeType(Type, null);
-            Arguments = CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+            Arguments = OnCompleteFields(context, definition);
 
+            static Argument CreateArgument(ArgumentDefinition argDef, int index)
+                => new(argDef, index);
+        }
+
+        protected virtual FieldCollection<Argument> OnCompleteFields(
+            ITypeCompletionContext context,
+            TDefinition definition)
+        {
+            return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
             static Argument CreateArgument(ArgumentDefinition argDef, int index)
                 => new(argDef, index);
         }
