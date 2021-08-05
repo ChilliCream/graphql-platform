@@ -136,6 +136,12 @@ namespace HotChocolate.Data.Filters.Expressions
                 typeof(Foo).GetMethod(nameof(Foo.Complex))!;
 
             private IExtendedType _extendedType = null!;
+            private readonly InputParser _inputParser;
+
+            public QueryableComplexMethodTest(InputParser inputParser)
+            {
+                _inputParser = inputParser;
+            }
 
             public override bool CanHandle(
                 ITypeCompletionContext context,
@@ -185,8 +191,9 @@ namespace HotChocolate.Data.Filters.Expressions
                         throw new InvalidOperationException();
                     }
 
-                    object value =
-                        operationType.Fields["parameter"].Type.ParseLiteral(parameterNode);
+                    object? value =
+                        _inputParser
+                            .ParseLiteral(parameterNode, operationType.Fields["parameter"].Type);
 
                     Expression nestedProperty = Expression.Call(
                         context.GetInstance(),
@@ -216,8 +223,7 @@ namespace HotChocolate.Data.Filters.Expressions
         private class FooFilterInput
             : FilterInputType<Foo>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Ignore();
                 descriptor.Operation(156).Type<TestComplexFilterInputType>();
