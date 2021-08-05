@@ -268,19 +268,14 @@ namespace HotChocolate.Types
             }
         }
 
-        public object? ParseResult(object? resultValue, IType type, Path path)
+        public object? ParseResult(object? resultValue, IType type, Path? path = null)
         {
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (path is null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            return Deserialize(resultValue, type, path);
+            return Deserialize(resultValue, type, path ?? Path.New("root"));
         }
 
         private object? Deserialize(object? resultValue, IType type, Path path)

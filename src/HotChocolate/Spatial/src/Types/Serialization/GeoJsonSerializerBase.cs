@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -22,9 +23,19 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public abstract IValueNode ParseValue(object? runtimeValue);
 
+        public virtual object CreateInstance(object[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void GetFieldData(object runtimeValue, object[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual object? Serialize(object? runtimeValue)
         {
-            if (TrySerialize(runtimeValue, out object? serialized))
+            if (TrySerialize(runtimeValue, out var serialized))
             {
                 return serialized;
             }
@@ -34,7 +45,7 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public virtual object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object? deserialized))
+            if (TryDeserialize(resultValue, out var deserialized))
             {
                 return deserialized;
             }
@@ -101,10 +112,11 @@ namespace HotChocolate.Types.Spatial.Serialization
             object? coordinates = null;
             int? crs = null;
 
-            for (var i = 0; i < obj.Fields.Count; i++)
+            foreach (var field in obj.Fields)
             {
-                var fieldName = obj.Fields[i].Name.Value;
-                IValueNode syntaxNode = obj.Fields[i].Value;
+                var fieldName = field.Name.Value;
+                IValueNode syntaxNode = field.Value;
+
                 if (TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     type = GeoJsonTypeSerializer.Default.ParseLiteral(syntaxNode)

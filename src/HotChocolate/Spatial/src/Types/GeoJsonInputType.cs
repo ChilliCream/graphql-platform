@@ -1,4 +1,5 @@
-using HotChocolate.Language;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial
@@ -14,76 +15,14 @@ namespace HotChocolate.Types.Spatial
             _serializer = GeoJsonSerializers.Serializers[geometryType];
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            try
-            {
-                return _serializer.IsInstanceOfType(literal);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            InputObjectTypeDefinition definition = base.CreateDefinition(context);
 
-        public override bool IsInstanceOfType(object? value)
-        {
-            try
-            {
-                return _serializer.IsInstanceOfType(value);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            definition.CreateInstance = _serializer.CreateInstance;
+            definition.GetFieldData = _serializer.GetFieldData;
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            try
-            {
-                return _serializer.ParseLiteral(valueSyntax, withDefaults);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
-
-        public override IValueNode ParseValue(object? runtimeValue)
-        {
-            try
-            {
-                return _serializer.ParseValue(runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
-
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-        {
-            try
-            {
-                return _serializer.TryDeserialize(resultValue, out runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
-
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            try
-            {
-                return _serializer.TrySerialize(runtimeValue, out resultValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
+            return definition;
         }
     }
 }

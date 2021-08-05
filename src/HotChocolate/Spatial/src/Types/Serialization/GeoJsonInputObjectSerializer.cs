@@ -120,7 +120,7 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             valueSyntax.EnsureObjectValueNode(out ObjectValueNode obj);
 
-            (GeoJsonGeometryType type, var coordinates, int? crs) = ParseFields(obj);
+            (GeoJsonGeometryType type, var coordinates, var crs) = ParseFields(obj);
 
             if (type != _geometryType)
             {
@@ -212,34 +212,34 @@ namespace HotChocolate.Types.Spatial.Serialization
         {
             try
             {
-                if (resultValue is null)
+                switch (resultValue)
                 {
-                    runtimeValue = null;
-                    return true;
-                }
-
-                if (resultValue is IReadOnlyDictionary<string, object> dict)
-                {
-                    (GeoJsonGeometryType type, var coordinates, var crs) = ParseFields(dict);
-
-                    if (type != _geometryType)
-                    {
+                    case null:
                         runtimeValue = null;
-                        return false;
+                        return true;
+
+                    case IReadOnlyDictionary<string, object> dict:
+                    {
+                        (GeoJsonGeometryType type, var coordinates, var crs) = ParseFields(dict);
+
+                        if (type != _geometryType)
+                        {
+                            runtimeValue = null;
+                            return false;
+                        }
+
+                        runtimeValue = CreateGeometry(coordinates, crs);
+                        return true;
                     }
 
-                    runtimeValue = CreateGeometry(coordinates, crs);
-                    return true;
-                }
+                    case T:
+                        runtimeValue = resultValue;
+                        return true;
 
-                if (resultValue is T)
-                {
-                    runtimeValue = resultValue;
-                    return true;
+                    default:
+                        runtimeValue = null;
+                        return false;
                 }
-
-                runtimeValue = null;
-                return false;
             }
             catch
             {
@@ -256,8 +256,8 @@ namespace HotChocolate.Types.Spatial.Serialization
             for (var i = 0; i < result.Length; i++)
             {
                 if (GeoJsonPositionSerializer.Default.TrySerialize(
-                        runtimeValue[i],
-                        out object? serialized) &&
+                    runtimeValue[i],
+                    out var serialized) &&
                     serialized is double[] points)
                 {
                     result[i] = points;
@@ -278,9 +278,7 @@ namespace HotChocolate.Types.Spatial.Serialization
             var result = new IValueNode[runtimeValue.Count];
             for (var i = 0; i < result.Length; i++)
             {
-                if (runtimeValue[i] is IList nested &&
-                    nested.Count > 0 &&
-                    nested[0] is IList)
+                if (runtimeValue[i] is IList { Count: > 0 } nested && nested[0] is IList)
                 {
                     result[i] = ParseCoordinates(nested);
                 }

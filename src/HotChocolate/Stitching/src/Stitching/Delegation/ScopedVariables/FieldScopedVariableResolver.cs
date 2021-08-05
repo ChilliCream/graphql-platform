@@ -49,7 +49,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     }
                     else if(field.Type.IsInputType() && field.Type is IInputType type)
                     {
-                        valueLiteral = formatter.FormatLiteral(value, type, field.Name);
+                        valueLiteral = formatter.FormatValue(value, type, field.Name);
                     }
                 }
 

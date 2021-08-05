@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonMultiLineStringInputTests
     {
-        private readonly ListValueNode _multiLinestring = new ListValueNode(
+        private readonly ListValueNode _multiLinestring = new(
             new ListValueNode(
                 new ListValueNode(
                     new IntValueNode(10),

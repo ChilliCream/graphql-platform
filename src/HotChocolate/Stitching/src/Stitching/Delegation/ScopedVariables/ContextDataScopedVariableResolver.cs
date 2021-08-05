@@ -43,7 +43,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             {
                 IValueNode l => l,
                 null => NullValueNode.Default,
-                _ => formatter.FormatLiteral(data, targetType, Path.New(variable.Name.Value))
+                _ => formatter.FormatValue(data, targetType, Path.New(variable.Name.Value))
             };
 
             return new ScopedVariableValue

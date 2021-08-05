@@ -122,5 +122,21 @@ namespace HotChocolate.Types.Spatial.Serialization
         /// into a GraphQL value syntax representation of this type.
         /// </exception>
         IValueNode ParseResult(object? resultValue);
+
+        /// <summary>
+        /// Creates a new runtime value from already parsed field values.
+        /// </summary>
+        /// <param name="fieldValues">The parsed field values.</param>
+        /// <returns>
+        /// Returns the runtime value.
+        /// </returns>
+        object CreateInstance(object?[] fieldValues);
+
+        /// <summary>
+        /// Copies the field values from the provided runtime value.
+        /// </summary>
+        /// <param name="runtimeValue">The runtime value.</param>
+        /// <param name="fieldValues">The field values array.</param>
+        void GetFieldData(object runtimeValue, object?[] fieldValues);
     }
 }

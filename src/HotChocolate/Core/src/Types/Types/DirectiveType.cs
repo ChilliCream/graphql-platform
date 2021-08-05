@@ -258,7 +258,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            return _inputFormatter.FormatLiteral(obj, argument.Type, Path.New(argument.Name));
+            return _inputFormatter.FormatValue(obj, argument.Type, Path.New(argument.Name));
         }
 
         internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)

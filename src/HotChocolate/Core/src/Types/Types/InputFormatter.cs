@@ -10,7 +10,7 @@ namespace HotChocolate.Types
 {
     public class InputFormatter
     {
-        public IValueNode FormatLiteral(object? runtimeValue, IType type, Path? path = null)
+        public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
         {
             path ??= Path.New("root");
 
@@ -27,24 +27,24 @@ namespace HotChocolate.Types
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    return FormatLiteral(runtimeValue, ((NonNullType)type).Type, path);
+                    return FormatValue(runtimeValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
-                    return FormatLiteralList((IList)runtimeValue, (ListType)type, path);
+                    return FormatValueList((IList)runtimeValue, (ListType)type, path);
 
                 case TypeKind.InputObject:
-                    return FormatLiteralObject(runtimeValue, (InputObjectType)type, path);
+                    return FormatValueObject(runtimeValue, (InputObjectType)type, path);
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
-                    return FormatLiteralLeaf(runtimeValue, (ILeafType)type, path);
+                    return FormatValueLeaf(runtimeValue, (ILeafType)type, path);
 
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        private ObjectValueNode FormatLiteralObject(object runtimeValue, InputObjectType type, Path path)
+        private ObjectValueNode FormatValueObject(object runtimeValue, InputObjectType type, Path path)
         {
             var fields = new List<ObjectFieldNode>();
             var fieldValues = new object?[type.Fields.Count];
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
 
                 if (field.IsOptional)
                 {
-                    IOptional optional = ((IOptional)fieldValue!);
+                    IOptional optional = (IOptional)fieldValue!;
                     if (optional.HasValue)
                     {
                         AddField(optional.Value, field.Name, field.Type, fieldPath);
@@ -74,24 +74,24 @@ namespace HotChocolate.Types
 
             void AddField(object? fieldValue, NameString fieldName, IInputType fieldType, Path fieldPath)
             {
-                IValueNode value = FormatLiteral(fieldValue, fieldType, fieldPath);
+                IValueNode value = FormatValue(fieldValue, fieldType, fieldPath);
                 fields.Add(new ObjectFieldNode(fieldName, value));
             }
         }
 
-        private ListValueNode FormatLiteralList(IList runtimeValue, ListType type, Path path)
+        private ListValueNode FormatValueList(IList runtimeValue, ListType type, Path path)
         {
             var items = new List<IValueNode>();
 
             for (var i = 0; i < runtimeValue.Count; i++)
             {
-                items.Add(FormatLiteral(runtimeValue[i], type.ElementType, path.Append(i)));
+                items.Add(FormatValue(runtimeValue[i], type.ElementType, path.Append(i)));
             }
 
             return new ListValueNode(items);
         }
 
-        private IValueNode FormatLiteralLeaf(object runtimeValue, ILeafType type, Path path)
+        private IValueNode FormatValueLeaf(object runtimeValue, ILeafType type, Path path)
         {
             try
             {
@@ -103,8 +103,10 @@ namespace HotChocolate.Types
             }
         }
 
-        public IValueNode FormatResult(object? resultValue, IType type, Path path)
+        public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
         {
+            path ??= Path.New("root");
+
             if (resultValue is null)
             {
                 if (type.Kind == TypeKind.NonNull)

@@ -24,7 +24,7 @@ namespace HotChocolate.Internal
             try
             {
                 return argumentDefinition.RuntimeDefaultValue != null
-                    ? context.DescriptorContext.InputFormatter.FormatLiteral(
+                    ? context.DescriptorContext.InputFormatter.FormatValue(
                         argumentDefinition.RuntimeDefaultValue,
                         argumentType,
                         Path.Root)

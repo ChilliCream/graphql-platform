@@ -456,6 +456,16 @@ namespace HotChocolate.Types
 
         public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
             if (type.Kind == TypeKind.NonNull)
             {
                 if (literal.Kind == SyntaxKind.NullValue)
@@ -470,7 +480,7 @@ namespace HotChocolate.Types
             {
                 if (literal.Kind == SyntaxKind.ListValue)
                 {
-                    var list = ((ListValueNode)literal);
+                    var list = (ListValueNode)literal;
 
                     if (list.Items.Count == 0)
                     {

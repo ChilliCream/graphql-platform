@@ -148,7 +148,7 @@ namespace HotChocolate.Stitching.Requests
                     value = converted;
                 }
 
-                return inputFormatter.FormatLiteral(
+                return inputFormatter.FormatValue(
                     value,
                     variableType,
                     Path.New(variableDefinition.Variable.Name.Value));

@@ -91,7 +91,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             throw Serializer_CouldNotParseValue();
         }
 
-
         public IValueNode ParseValue(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -201,6 +200,16 @@ namespace HotChocolate.Types.Spatial.Serialization
             }
         }
 
+        public object CreateInstance(object?[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GetFieldData(object runtimeValue, object?[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
         private IGeoJsonSerializer GetGeometrySerializer(IValueNode valueSyntax)
         {
             valueSyntax.EnsureObjectValueNode(out var obj);
@@ -243,7 +252,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             return false;
         }
 
-        public static readonly GeoJsonGeometrySerializer Default =
-            new GeoJsonGeometrySerializer();
+        public static readonly GeoJsonGeometrySerializer Default = new();
     }
 }
