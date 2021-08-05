@@ -9,6 +9,13 @@ namespace HotChocolate.Data.Filters.Expressions
     public abstract class QueryableOperationHandlerBase
         : FilterOperationHandler<QueryableFilterContext, Expression>
     {
+        protected QueryableOperationHandlerBase(InputParser inputParser)
+        {
+            InputParser = inputParser;
+        }
+
+        protected InputParser InputParser { get; }
+
         public override bool TryHandleOperation(
             QueryableFilterContext context,
             IFilterOperationField field,
@@ -16,7 +23,7 @@ namespace HotChocolate.Data.Filters.Expressions
             [NotNullWhen(true)] out Expression? result)
         {
             IValueNode value = node.Value;
-            object? parsedValue = field.Type.ParseLiteral(value);
+            var parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
 
             if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) && parsedValue is null)
             {
@@ -42,6 +49,6 @@ namespace HotChocolate.Data.Filters.Expressions
             QueryableFilterContext context,
             IFilterOperationField field,
             IValueNode value,
-            object parsedValue);
+            object? parsedValue);
     }
 }
