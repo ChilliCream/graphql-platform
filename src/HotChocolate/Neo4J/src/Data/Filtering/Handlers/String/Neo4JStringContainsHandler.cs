@@ -2,13 +2,15 @@ using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JStringContainsHandler
         : Neo4JStringOperationHandler
     {
-        public Neo4JStringContainsHandler()
+        public Neo4JStringContainsHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }
