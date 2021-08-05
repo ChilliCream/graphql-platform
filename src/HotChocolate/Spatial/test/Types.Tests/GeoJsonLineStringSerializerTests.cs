@@ -322,26 +322,12 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Pass_When_NullValue(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Equal(NullValueNode.Default, type.ParseValue(null));
-        }
-
-        [Theory]
-        [InlineData(LineStringInputName)]
-        public void ParseValue_Should_Pass_When_Serialized(string typeName)
-        {
-            // arrange
-            INamedInputType type = CreateInputType(typeName);
-            object? serialized = type.Serialize(_geometry);
-
-            // act
-            IValueNode literal = type.ParseValue(serialized);
-
-            // assert
-            literal.ToString().MatchSnapshot();
+            Assert.Equal(NullValueNode.Default, inputFormatter.FormatValue(null, type));
         }
 
         [Theory]
@@ -350,10 +336,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Pass_When_Value(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
-            IValueNode literal = type.ParseValue(_geometry);
+            IValueNode literal = inputFormatter.FormatValue(_geometry, type);
 
             // assert
             literal.ToString().MatchSnapshot();
@@ -365,11 +352,12 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseValue(""));
+            Assert.Throws<SerializationException>(() => inputFormatter.FormatValue("", type));
         }
 
         [Theory]
@@ -377,21 +365,21 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
-            Assert.Null(type.Deserialize(null));
+            Assert.Null(inputParser.ParseResult(null, type));
         }
 
         [Theory]
-        [InlineData(LineStringInputName)]
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
-            object? serialized = type.Serialize(_geometry);
+            ILeafType type = CreateLeafType(typeName);
+            var serialized = type.Serialize(_geometry);
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = type.Deserialize(serialized);
 
             // assert
             Assert.True(Assert.IsAssignableFrom<Geometry>(result).Equals(_geometry));
@@ -403,10 +391,11 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
-            object? result = type.Deserialize(_geometry);
+            var result = inputParser.ParseResult(_geometry, type);
 
             // assert
             Assert.Equal(result, _geometry);
