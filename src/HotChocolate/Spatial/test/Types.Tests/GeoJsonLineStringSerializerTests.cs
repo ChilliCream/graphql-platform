@@ -407,11 +407,12 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(""));
+            Assert.Throws<SerializationException>(() => inputParser.ParseResult("", type));
         }
 
         [Theory]
@@ -420,6 +421,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_AllFieldsInDictionary(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -429,7 +431,7 @@ namespace HotChocolate.Types.Spatial
             };
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = inputParser.ParseResult(serialized, type);
 
             // assert
             AssertGeometry(result, 26912);
@@ -441,6 +443,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_CrsIsMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -449,7 +452,7 @@ namespace HotChocolate.Types.Spatial
             };
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = inputParser.ParseResult(serialized, type);
 
             // assert
             AssertGeometry(result);
@@ -461,6 +464,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Fail_When_TypeNameIsMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -470,7 +474,8 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(
+                () => inputParser.ParseResult(serialized, type));
         }
 
         [Theory]
@@ -479,6 +484,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_When_CoordinatesAreMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -488,7 +494,8 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(
+                () => inputParser.ParseResult(serialized, type));
         }
 
         [Theory]
@@ -496,6 +503,8 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void LineString_IsCoordinateValid_Should_Fail_When_LessThanTwoPoint(string typeName)
         {
+            // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new ListValueNode(
@@ -507,7 +516,8 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(
+                () => inputParser.ParseLiteral(valueNode, type));
         }
 
         private ISchema CreateSchema() => SchemaBuilder.New()

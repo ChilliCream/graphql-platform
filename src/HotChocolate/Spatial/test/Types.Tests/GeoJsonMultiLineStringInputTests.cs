@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -40,15 +41,17 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_MultiLineString_With_Valid_Coordinates()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(
+            var result = inputParser.ParseResult(
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
                         new EnumValueNode("MultiLineString")),
-                    new ObjectFieldNode("coordinates", _multiLinestring)));
+                    new ObjectFieldNode("coordinates", _multiLinestring)),
+                type);
 
             // assert
             Assert.Equal(2, Assert.IsType<MultiLineString>(result).NumGeometries);
@@ -66,16 +69,18 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_MultiLineString_With_Valid_Coordinates_And_CRS()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(
+            var result = inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
                         new EnumValueNode("MultiLineString")),
                     new ObjectFieldNode("coordinates", _multiLinestring),
-                    new ObjectFieldNode("crs", 26912)));
+                    new ObjectFieldNode("crs", 26912)),
+                type);
 
             // assert
             Assert.Equal(2, Assert.IsType<MultiLineString>(result).NumGeometries);
@@ -94,10 +99,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_MultiLineString_Is_Null()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(NullValueNode.Default);
+            var result = inputParser.ParseLiteral(NullValueNode.Default, type);
 
             // assert
             Assert.Null(result);
@@ -107,59 +113,66 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_MultiLineString_Is_Not_ObjectType_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<InvalidOperationException>(
-                () => type.ParseLiteral(new ListValueNode()));
+                () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 
         [Fact]
         public void ParseLiteral_MultiLineString_With_Missing_Fields_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode("coordinates", _multiLinestring),
-                        new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored"))),
+                    type));
         }
 
         [Fact]
         public void ParseLiteral_MultiLineString_With_Empty_Coordinates_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode(
                             "type",
                             new EnumValueNode("MultiLineString")),
-                        new ObjectFieldNode("coordinates", new ListValueNode()))));
+                        new ObjectFieldNode("coordinates", new ListValueNode())),
+                    type));
         }
 
         [Fact]
         public void ParseLiteral_MultiLineString_With_Wrong_Geometry_Type_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
-                        new ObjectFieldNode("coordinates", _multiLinestring))));
+                        new ObjectFieldNode("coordinates", _multiLinestring)),
+                    type));
         }
 
         [Fact]
@@ -171,7 +184,7 @@ namespace HotChocolate.Types.Spatial
                     .Name("Query")
                     .Field("test")
                     .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
-                    .Resolver(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
+                    .Resolve(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -197,7 +210,7 @@ namespace HotChocolate.Types.Spatial
                 .Name("Query")
                 .Field("test")
                 .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
-                .Resolver("ghi"))
+                .Resolve("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()

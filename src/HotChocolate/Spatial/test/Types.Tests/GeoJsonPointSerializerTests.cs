@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -21,12 +22,11 @@ namespace HotChocolate.Types.Spatial
         private readonly object _geometryParsed = new[] { 30.0, 10.0 };
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -34,43 +34,40 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_Dictionary(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
             var dictionary = new Dictionary<string, object>();
 
             // act
-            object? result = type.Serialize(dictionary);
+            var result = type.Serialize(dictionary);
 
             // assert
             Assert.Equal(dictionary, result);
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
-            object? result = type.Serialize(_geometry);
+            var result = type.Serialize(_geometry);
 
             // assert
             result.MatchSnapshot();
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -121,7 +118,7 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -137,7 +134,7 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -150,7 +147,7 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -163,7 +160,7 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Pass_When_NullValueNode(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
+            ILeafType type = CreateLeafType(typeName);
 
             // act
             // assert
@@ -176,12 +173,13 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Throw_When_NotObjectValueNode(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
             Assert.Throws<InvalidOperationException>(
-                () => type.ParseLiteral(new ListValueNode()));
+                () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 
         [Theory]
@@ -190,6 +188,7 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Pass_When_CorrectGeometry(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
@@ -199,7 +198,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, coordField, crsField);
 
             // act
-            object? parsedResult = type.ParseLiteral(valueNode);
+            var parsedResult = inputParser.ParseLiteral(valueNode, type);
 
             // assert
             AssertGeometry(parsedResult, 26912);
@@ -211,6 +210,7 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Throw_When_NoGeometryType(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -220,7 +220,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
         }
 
         [Theory]
@@ -229,6 +229,7 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Throw_When_NoCoordinates(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
@@ -236,7 +237,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
         }
 
         [Theory]
@@ -245,6 +246,7 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Pass_When_NoCrs(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
@@ -253,7 +255,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, coordField);
 
             // act
-            object? parsedResult = type.ParseLiteral(valueNode);
+            object? parsedResult = inputParser.ParseLiteral(valueNode, type);
 
             // assert
             AssertGeometry(parsedResult);
@@ -265,21 +267,21 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Pass_When_NullValue(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Equal(NullValueNode.Default, type.ParseValue(null));
+            Assert.Equal(NullValueNode.Default, inputFormatter.FormatValue(null, type));
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void ParseResult_Should_Pass_When_Serialized(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
-            object? serialized = type.Serialize(_geometry);
+            ILeafType type = CreateLeafType(typeName);
+            var serialized = type.Serialize(_geometry);
 
             // act
             IValueNode literal = type.ParseResult(serialized);
@@ -294,10 +296,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Pass_When_Value(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
-            IValueNode literal = type.ParseResult(_geometry);
+            IValueNode literal = inputFormatter.FormatResult(_geometry, type);
 
             // assert
             literal.ToString().MatchSnapshot();
@@ -309,11 +312,12 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseResult(""));
+            Assert.Throws<SerializationException>(() => inputFormatter.FormatResult("", type));
         }
 
         [Theory]
@@ -322,21 +326,21 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Pass_When_NullValue(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Equal(NullValueNode.Default, type.ParseValue(null));
+            Assert.Equal(NullValueNode.Default, inputFormatter.FormatValue(null, type));
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void ParseValue_Should_Pass_When_Serialized(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
-            object? serialized = type.Serialize(_geometry);
+            ILeafType type = CreateLeafType(typeName);
+            var serialized = type.Serialize(_geometry);
 
             // act
             IValueNode literal = type.ParseValue(serialized);
@@ -351,10 +355,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Pass_When_Value(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
-            IValueNode literal = type.ParseValue(_geometry);
+            IValueNode literal = inputFormatter.FormatValue(_geometry, type);
 
             // assert
             literal.ToString().MatchSnapshot();
@@ -366,11 +371,12 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            var inputFormatter = new InputFormatter();
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseValue(""));
+            Assert.Throws<SerializationException>(() => inputFormatter.FormatValue("", type));
         }
 
         [Theory]
@@ -379,24 +385,24 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Null(type.Deserialize(null));
+            Assert.Null(inputParser.ParseResult(null, type));
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
         {
             // arrange
-            INamedInputType type = CreateInputType(typeName);
-            object? serialized = type.Serialize(_geometry);
+            ILeafType type = CreateLeafType(typeName);
+            var serialized = type.Serialize(_geometry);
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = type.Deserialize(serialized);
 
             // assert
             Assert.True(Assert.IsAssignableFrom<Geometry>(result).Equals(_geometry));
@@ -408,10 +414,11 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
-            object? result = type.Deserialize(_geometry);
+            var result = inputParser.ParseResult(_geometry, type);
 
             // assert
             Assert.Equal(result, _geometry);
@@ -423,11 +430,12 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(""));
+            Assert.Throws<SerializationException>(() => inputParser.ParseResult("", type));
         }
 
         [Theory]
@@ -436,6 +444,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_AllFieldsInDictionary(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -445,7 +454,7 @@ namespace HotChocolate.Types.Spatial
             };
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = inputParser.ParseResult(serialized, type);
 
             // assert
             AssertGeometry(result, 26912);
@@ -457,6 +466,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_Pass_When_CrsIsMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -465,7 +475,7 @@ namespace HotChocolate.Types.Spatial
             };
 
             // act
-            object? result = type.Deserialize(serialized);
+            var result = inputParser.ParseResult(serialized, type);
 
             // assert
             AssertGeometry(result);
@@ -474,9 +484,10 @@ namespace HotChocolate.Types.Spatial
         [Theory]
         [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
-        public void Deserialize_Should_Fail_WhentypeNameIsMissing(string typeName)
+        public void Deserialize_Should_Fail_WhenTypeNameIsMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -486,7 +497,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
         }
 
         [Theory]
@@ -495,6 +506,7 @@ namespace HotChocolate.Types.Spatial
         public void Deserialize_Should_When_CoordinatesAreMissing(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
@@ -504,7 +516,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(() => inputParser.ParseResult(serialized, type));
         }
 
         [Theory]
@@ -513,6 +525,7 @@ namespace HotChocolate.Types.Spatial
         public void Point_IsCoordinateValid_Should_Fail_When_MultiArray(string typeName)
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new ListValueNode(
@@ -524,7 +537,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => inputParser.ParseLiteral(valueNode, type));
         }
 
         private ISchema CreateSchema() => SchemaBuilder.New()
@@ -533,7 +546,7 @@ namespace HotChocolate.Types.Spatial
                 .Name("Query")
                 .Field("test")
                 .Argument("arg", a => a.Type<StringType>())
-                .Resolver("ghi"))
+                .Resolve("ghi"))
             .Create();
 
         private static void AssertGeometry(object? obj, int? crs = null)
@@ -549,8 +562,12 @@ namespace HotChocolate.Types.Spatial
 
         private INamedInputType CreateInputType(string typeName)
         {
-            ISchema schema = CreateSchema();
-            return schema.GetType<INamedInputType>(typeName);
+            return CreateSchema().GetType<INamedInputType>(typeName);
+        }
+
+        private ILeafType CreateLeafType(string typeName)
+        {
+            return CreateSchema().GetType<ILeafType>(typeName);
         }
     }
 }
