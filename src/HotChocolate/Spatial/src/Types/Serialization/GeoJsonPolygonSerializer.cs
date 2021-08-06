@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -16,7 +18,14 @@ namespace HotChocolate.Types.Spatial.Serialization
             object? coordinates,
             int? crs)
         {
-            if (!(coordinates is Coordinate[] coords))
+            if (coordinates is List<Coordinate> list)
+            {
+                coordinates = list.Count == 0
+                    ? Array.Empty<Coordinate>()
+                    : list.ToArray();
+            }
+
+            if (coordinates is not Coordinate[] coords)
             {
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }
@@ -34,17 +43,24 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new Polygon(ring);
         }
 
-        public static readonly GeoJsonPolygonSerializer Default =
-            new GeoJsonPolygonSerializer();
-
         public override object CreateInstance(object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            if (fieldValues[0] is not GeoJsonGeometryType.Polygon)
+            {
+                throw Geometry_Parse_InvalidType();
+            }
+
+            return CreateGeometry(fieldValues[1], (int?)fieldValues[2]);
         }
 
         public override void GetFieldData(object runtimeValue, object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            var lineString = (LineString)runtimeValue;
+            fieldValues[0] = GeoJsonGeometryType.Polygon;
+            fieldValues[1] = lineString.Coordinates;
+            fieldValues[2] = lineString.SRID;
         }
+
+        public static readonly GeoJsonPolygonSerializer Default = new();
     }
 }

@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                     : list.ToArray();
             }
 
-            if (!(coordinates is Coordinate[] coords) || coords.Length < 2)
+            if (coordinates is not Coordinate[] coords || coords.Length < 2)
             {
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }

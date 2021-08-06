@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -16,20 +18,37 @@ namespace HotChocolate.Types.Spatial.Serialization
             object? coordinates,
             int? crs)
         {
-            if (!(coordinates is Coordinate[][] parts))
+            Polygon[]? geometries;
+
+            if (coordinates is List<List<Coordinate>> list)
             {
-                throw Serializer_Parse_CoordinatesIsInvalid();
+                geometries = new Polygon[list.Count];
+
+                for (var i = 0; i < list.Count; i++)
+                {
+                    geometries[i] =
+                        GeoJsonPolygonSerializer.Default.CreateGeometry(list[i].ToArray(), crs);
+                }
+
+                goto Success;
             }
 
-            var lineCount = parts.Length;
-            var geometries = new Polygon[lineCount];
-
-            for (var i = 0; i < lineCount; i++)
+            if (coordinates is Coordinate[][] parts)
             {
-                geometries[i] = GeoJsonPolygonSerializer.Default
-                    .CreateGeometry(parts[i], crs);
+                geometries = new Polygon[parts.Length];
+
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    geometries[i] =
+                        GeoJsonPolygonSerializer.Default.CreateGeometry(parts[i], crs);
+                }
+
+                goto Success;
             }
 
+            goto Error;
+
+            Success:
             if (crs is not null)
             {
                 GeometryFactory factory =
@@ -39,19 +58,29 @@ namespace HotChocolate.Types.Spatial.Serialization
             }
 
             return new MultiPolygon(geometries);
-        }
 
-        public static readonly GeoJsonMultiPolygonSerializer Default =
-            new GeoJsonMultiPolygonSerializer();
+            Error:
+            throw Serializer_Parse_CoordinatesIsInvalid();
+        }
 
         public override object CreateInstance(object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
+            {
+                throw Geometry_Parse_InvalidType();
+            }
+
+            return CreateGeometry(fieldValues[1], (int?)fieldValues[2]);
         }
 
         public override void GetFieldData(object runtimeValue, object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            var lineString = (LineString)runtimeValue;
+            fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
+            fieldValues[1] = lineString.Coordinates;
+            fieldValues[2] = lineString.SRID;
         }
+
+        public static readonly GeoJsonMultiPolygonSerializer Default = new();
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using NetTopologySuite;
@@ -33,7 +34,12 @@ namespace HotChocolate.Types.Spatial.Serialization
             object? coordinates,
             int? crs)
         {
-            if (!(coordinates is Coordinate coordinate))
+            if (coordinates is List<Coordinate> { Count: 1 } list)
+            {
+                coordinates = list[0];
+            }
+
+            if (coordinates is not Coordinate coordinate)
             {
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }
@@ -51,7 +57,7 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         protected override IValueNode ParseCoordinates(IList runtimeValue)
         {
-            if ((runtimeValue.Count > 0 && runtimeValue[0] is IList) ||
+            if (runtimeValue.Count > 0 && runtimeValue[0] is IList ||
                 runtimeValue is Coordinate[])
             {
                 return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[0]);
@@ -60,15 +66,24 @@ namespace HotChocolate.Types.Spatial.Serialization
             return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue);
         }
 
-        public static readonly GeoJsonPointSerializer Default = new GeoJsonPointSerializer();
         public override object CreateInstance(object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            if (fieldValues[0] is not GeoJsonGeometryType.Point)
+            {
+                throw Geometry_Parse_InvalidType();
+            }
+
+            return CreateGeometry(fieldValues[1], (int?)fieldValues[2]);
         }
 
         public override void GetFieldData(object runtimeValue, object?[] fieldValues)
         {
-            throw new System.NotImplementedException();
+            var lineString = (LineString)runtimeValue;
+            fieldValues[0] = GeoJsonGeometryType.Point;
+            fieldValues[1] = lineString.Coordinates;
+            fieldValues[2] = lineString.SRID;
         }
+
+        public static readonly GeoJsonPointSerializer Default = new();
     }
 }

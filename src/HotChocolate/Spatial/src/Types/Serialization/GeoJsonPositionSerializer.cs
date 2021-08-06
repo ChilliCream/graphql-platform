@@ -251,6 +251,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             return true;
         }
 
-        public static readonly GeoJsonPositionSerializer Default = new GeoJsonPositionSerializer();
+        public static readonly GeoJsonPositionSerializer Default = new();
     }
 }
