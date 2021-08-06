@@ -105,7 +105,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             var runtimeValue = _inputParser.ParseResult(value, variableType, root);
-            IValueNode literal = _inputFormatter.FormatValue(runtimeValue, variableType, root);
+            IValueNode literal = _inputFormatter.FormatResult(value, variableType, root);
             return new VariableValueOrLiteral(variableType, runtimeValue, literal);
         }
 
