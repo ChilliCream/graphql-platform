@@ -155,6 +155,7 @@ namespace HotChocolate.Execution.Processing.Plan
             _plan = default!;
             _running = default;
             _serial = default;
+            _context = default!;
         }
 
         private bool Activate(QueryPlanStep step)
@@ -163,8 +164,9 @@ namespace HotChocolate.Execution.Processing.Plan
             {
                 if (!step.Initialize(_context))
                 {
-                    SetActiveStatus(step.Id, true);
-                    SetActiveStatus(step.Id, false);
+                    State state = _state[step.Id];
+                    state.Id = step.Id;
+                    state.IsActive = false;
                     return false;
                 }
 
@@ -172,16 +174,16 @@ namespace HotChocolate.Execution.Processing.Plan
                 {
                     _serial++;
                     Strategy = ExecutionStrategy.Serial;
+                    SetActiveStatus(step.Id, true);
+                    break;
                 }
-
-                if (step is SequenceQueryPlanStep sequence)
+                else if (step is SequenceQueryPlanStep sequence)
                 {
                     SetActiveStatus(sequence.Id, true);
                     step = sequence.Steps[0];
                     continue;
                 }
-
-                if (step is ParallelQueryPlanStep parallel)
+                else if (step is ParallelQueryPlanStep parallel)
                 {
                     SetActiveStatus(parallel.Id, true);
 
@@ -308,7 +310,7 @@ TryAgain:
             {
                 state.Id = step.Id;
                 state.IsSerial = step is ResolverQueryPlanStep
-                    { Strategy: ExecutionStrategy.Serial };
+                { Strategy: ExecutionStrategy.Serial };
                 state.IsInitialized = true;
             }
 
