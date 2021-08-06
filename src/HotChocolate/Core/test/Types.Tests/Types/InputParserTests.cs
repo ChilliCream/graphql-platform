@@ -293,6 +293,35 @@ namespace HotChocolate.Types
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
         }
 
+        [Fact]
+        public void Parse_InputObject_NullableEnumList()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<FooInput>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            var type = new NonNullType(schema.GetType<InputObjectType>("FooInput"));
+
+            var listData = new ListValueNode(
+                NullValueNode.Default,
+                new EnumValueNode("BAZ"));
+
+            var fieldData = new ObjectValueNode(
+                new ObjectFieldNode("bars", listData));
+
+            // act
+            var parser = new InputParser();
+            var runtimeData = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<FooInput>(runtimeData).Bars,
+                t => Assert.Null(t),
+                t => Assert.Equal(Bar.Baz, t));
+        }
+
         public class TestInput
         {
             public string? Field1 { get; set; }
@@ -323,6 +352,16 @@ namespace HotChocolate.Types
             public string Field1 { get; }
 
             public int? Field2 { get; set; }
+        }
+
+        public class FooInput
+        {
+            public List<Bar?> Bars { get; set; } = new();
+        }
+
+        public enum Bar
+        {
+            Baz
         }
     }
 }

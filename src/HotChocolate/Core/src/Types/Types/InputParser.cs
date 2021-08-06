@@ -394,7 +394,7 @@ namespace HotChocolate.Types
                 return type.CreateInstance(fieldValues);
             }
 
-            if (type.RuntimeType != typeof(object) && 
+            if (type.RuntimeType != typeof(object) &&
                 type.RuntimeType.IsInstanceOfType(resultValue))
             {
                 return resultValue;
@@ -490,16 +490,7 @@ namespace HotChocolate.Types
         }
 
         private static IList CreateList(ListType type)
-            => (IList)Activator.CreateInstance(CreateRuntimeType(type))!;
-
-        private static Type CreateRuntimeType(IType type)
-            => type.Kind switch
-            {
-                TypeKind.NonNull => CreateRuntimeType(((NonNullType)type).Type),
-                TypeKind.List => typeof(List<>).MakeGenericType(
-                    CreateRuntimeType(((ListType)type).ElementType)),
-                _ => ((INamedType)type).ToRuntimeType()
-            };
+            => (IList)Activator.CreateInstance(type.ToRuntimeType())!;
 
         private readonly struct Optional : IOptional
         {
