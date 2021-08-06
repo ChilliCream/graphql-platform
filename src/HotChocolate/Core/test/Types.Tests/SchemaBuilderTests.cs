@@ -806,7 +806,7 @@ namespace HotChocolate
             Assert.NotNull(type);
 
             var context = new Mock<IResolverContext>();
-            Assert.Equal("test", await type.Fields["foo"].Resolver(context.Object));
+            Assert.Equal("test", await type.Fields["foo"].Resolver!(context.Object));
         }
 
         [Fact]

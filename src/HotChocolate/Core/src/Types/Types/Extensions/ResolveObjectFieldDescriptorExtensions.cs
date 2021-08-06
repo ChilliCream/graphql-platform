@@ -7,7 +7,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    public static partial class ResolveObjectFieldDescriptorExtensions
+    public static class ResolveObjectFieldDescriptorExtensions
     {
         // Resolve(IResolverContext)
 

@@ -8,7 +8,7 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Types
 {
     [Obsolete("Use Resolve(...)")]
-    public static partial class ResolverObjectFieldDescriptorExtensions
+    public static class ResolverObjectFieldDescriptorExtensions
     {
         // Resolver(IResolverContext)
 
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx => new ValueTask<object?>(resolver(ctx)));
+            return descriptor.Resolve(ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
         [Obsolete("Use Resolve(...)")]
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(async ctx =>
+            return descriptor.Resolve(async ctx =>
             {
                 Task<object?> resolverTask = resolver(ctx);
                 if (resolverTask is null)
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
 
             return descriptor
                 .Type<NativeType<TResult>>()
-                .Resolver(
+                .Resolve(
                     ctx => new ValueTask<object?>(resolver(ctx)),
                     typeof(NativeType<TResult>));
         }
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(
+            return descriptor.Resolve(
                 async ctx =>
                 {
                     Task<TResult> resolverTask = resolver(ctx);
@@ -123,7 +123,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx => new ValueTask<object?>(resolver()));
+            return descriptor.Resolve(_ => new ValueTask<object?>(resolver()));
         }
 
         [Obsolete("Use Resolve(...)")]
@@ -141,7 +141,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(async ctx => await resolver().ConfigureAwait(false));
+            return descriptor.Resolve(async _ => await resolver().ConfigureAwait(false));
         }
 
         [Obsolete("Use Resolve(...)")]
@@ -159,7 +159,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx =>
+            return descriptor.Resolve(_ =>
                 new ValueTask<object?>(resolver()),
                 typeof(NativeType<TResult>));
         }
@@ -179,8 +179,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(
-                async ctx =>
+            return descriptor.Resolve(
+                async _ =>
                 {
                     Task<TResult> resolverTask = resolver();
                     if (resolverTask is null)
@@ -209,7 +209,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(
+            return descriptor.Resolve(
                 ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
@@ -228,7 +228,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(
+            return descriptor.Resolve(
                 ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)),
                 typeof(NativeType<TResult>));
         }
@@ -248,7 +248,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(
+            return descriptor.Resolve(
                  async ctx =>
                 {
                     Task<TResult> resolverTask = resolver(ctx, ctx.RequestAborted);
@@ -273,8 +273,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Resolver(
-                ctx => new ValueTask<object?>(constantResult));
+            return descriptor.Resolve(
+                _ => new ValueTask<object?>(constantResult));
         }
 
         [Obsolete("Use Resolve(...)")]
@@ -287,8 +287,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Resolver(
-                ctx => new ValueTask<object?>(constantResult),
+            return descriptor.Resolve(
+                _ => new ValueTask<object?>(constantResult),
                 typeof(NativeType<TResult>));
         }
     }

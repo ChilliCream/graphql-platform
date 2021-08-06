@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Sorting
                 .AddQueryType(ctx =>
                 {
                     ctx.Field("foo")
-                    .Resolver(data)
+                    .Resolve(data)
                     .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                     .UseSorting();
                 })

@@ -183,7 +183,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                     {
                         descriptor
                             .Field("foos")
-                            .Resolver(BuildResolver(_resource, foos))
+                            .Resolve(BuildResolver(_resource, foos))
                             .Type<ListType<ObjectType<Foo>>>()
                             .Use(
                                 next => async context =>

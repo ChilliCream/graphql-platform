@@ -15,7 +15,7 @@ namespace HotChocolate.Utilities
         public static ArgumentException String_NullOrEmpty(
             string parameterName) =>
             new ArgumentException(
-                $"'{parameterName}' cannot be null or empty",
+                $@"'{parameterName}' cannot be null or empty",
                 parameterName);
 
         public static GraphQLException EventMessage_InvalidCast(
@@ -255,14 +255,19 @@ namespace HotChocolate.Utilities
             IType type,
             Path? path,
             InputField? field = null)
-            => new(ErrorBuilder.New()
+        {
+            IErrorBuilder builder = ErrorBuilder.New()
                 .SetMessage("Cannot accept null for non-nullable input.")
                 .SetCode(ErrorCodes.Execution.NonNullViolation)
-                .SetPath(path)
-                .SetExtension(nameof(field), field.Coordinate.ToString())
-                .Build(),
-                type,
-                path);
+                .SetPath(path);
+
+            if (field is not null)
+            {
+                builder.SetExtension(nameof(field), field.Coordinate.ToString());
+            }
+
+            return new(builder.Build(), type, path);
+        }
 
         public static SerializationException ParseInputObject_InvalidSyntaxKind(
             InputObjectType type,
@@ -306,12 +311,12 @@ namespace HotChocolate.Utilities
             => new SerializationException(
                 ErrorBuilder.New()
                 .SetMessage(
-                    "The item syntax node for a nested list must be " + 
+                    "The item syntax node for a nested list must be " +
                     "`ListValue` but the parser found `{0}`.",
                     kind)
                 .SetPath(path)
                 .SetExtension(
-                    "specifiedBy", 
+                    "specifiedBy",
                     "https://spec.graphql.org/June2018/#sec-Type-System.List")
                 .Build(),
                 type,

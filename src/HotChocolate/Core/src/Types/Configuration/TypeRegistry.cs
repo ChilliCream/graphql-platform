@@ -169,15 +169,11 @@ namespace HotChocolate.Configuration
                 }
                 else if (registeredType.Kind == TypeKind.Directive &&
                     registeredType.Type is DirectiveType directive &&
-                    !_nameRefs.ContainsKey(directive.Definition.Name))
+                    !_nameRefs.ContainsKey(directive.Definition!.Name))
                 {
                     _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
                 }
             }
-
-
-
-
         }
 
         public void Register(NameString typeName, ExtendedTypeReference typeReference)

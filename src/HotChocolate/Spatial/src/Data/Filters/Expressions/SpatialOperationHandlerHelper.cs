@@ -10,6 +10,7 @@ namespace HotChocolate.Data.Filters.Spatial
             IFilterField parentField,
             IValueNode node,
             string fieldName,
+            InputParser inputParser,
             [NotNullWhen(true)] out T fieldNode)
         {
             if (parentField.Type is InputObjectType inputType &&
@@ -19,8 +20,10 @@ namespace HotChocolate.Data.Filters.Spatial
                 {
                     if (objectValueNode.Fields[i].Name.Value == fieldName)
                     {
-                        ObjectFieldNode field = objectValueNode.Fields[i];
-                        if (inputType.Fields[fieldName].Type.ParseLiteral(field.Value) is T val)
+                        ObjectFieldNode fieldValue = objectValueNode.Fields[i];
+                        IInputField field = inputType.Fields[fieldName];
+
+                        if (inputParser.ParseLiteral(fieldValue.Value, field) is T val)
                         {
                             fieldNode = val;
                             return true;

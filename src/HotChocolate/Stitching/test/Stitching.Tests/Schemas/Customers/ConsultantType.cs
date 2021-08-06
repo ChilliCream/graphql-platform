@@ -23,7 +23,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field("customers")
                 .UsePaging<CustomerType>()
-                .Resolver(ctx =>
+                .Resolve(ctx =>
                 {
                     Consultant consultant = ctx.Parent<Consultant>();
                     return ctx.Service<CustomerRepository>().Customers

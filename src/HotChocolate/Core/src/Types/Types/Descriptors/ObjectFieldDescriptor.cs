@@ -60,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name!));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)

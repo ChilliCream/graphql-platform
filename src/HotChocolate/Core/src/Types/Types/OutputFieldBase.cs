@@ -58,9 +58,6 @@ namespace HotChocolate.Types
             Type = context.GetType<IOutputType>(definition.Type!);
             _runtimeType = CompleteRuntimeType(Type, null);
             Arguments = OnCompleteFields(context, definition);
-
-            static Argument CreateArgument(ArgumentDefinition argDef, int index)
-                => new(argDef, index);
         }
 
         protected virtual FieldCollection<Argument> OnCompleteFields(
