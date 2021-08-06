@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
@@ -89,7 +90,8 @@ namespace HotChocolate.Data.Filters
                 index++;
             }
 
-            foreach (InputFieldDefinition fieldDefinition in definition.Fields)
+            foreach (InputFieldDefinition fieldDefinition in
+                definition.Fields.Where(t => !t.Ignore))
             {
                 switch (fieldDefinition)
                 {

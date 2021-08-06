@@ -78,7 +78,7 @@ namespace HotChocolate.Data.Sorting
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {
-                if (fieldDefinition is SortFieldDefinition field)
+                if (fieldDefinition is SortFieldDefinition { Ignore: false } field)
                 {
                     fields[index] = new SortField(field, index);
                     index++;
