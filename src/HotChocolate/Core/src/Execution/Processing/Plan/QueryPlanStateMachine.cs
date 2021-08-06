@@ -177,13 +177,15 @@ namespace HotChocolate.Execution.Processing.Plan
                     SetActiveStatus(step.Id, true);
                     break;
                 }
-                else if (step is SequenceQueryPlanStep sequence)
+
+                if (step is SequenceQueryPlanStep sequence)
                 {
                     SetActiveStatus(sequence.Id, true);
                     step = sequence.Steps[0];
                     continue;
                 }
-                else if (step is ParallelQueryPlanStep parallel)
+
+                if (step is ParallelQueryPlanStep parallel)
                 {
                     SetActiveStatus(parallel.Id, true);
 

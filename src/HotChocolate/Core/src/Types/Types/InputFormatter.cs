@@ -155,9 +155,17 @@ namespace HotChocolate.Types
 
         public IValueNode FormatResult(object? resultValue, IType type, Path? path = null)
         {
-            path ??= Path.New("root");
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
-            if (resultValue is null)
+            return FormatResultInternal(resultValue, type, path ?? Path.New("root"));
+        }
+
+        private IValueNode FormatResultInternal(object? resultValue, IType type, Path path)
+        {
+            if (resultValue is null or NullValueNode)
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
@@ -170,7 +178,7 @@ namespace HotChocolate.Types
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    return FormatResult(resultValue, ((NonNullType)type).Type, path);
+                    return FormatResultInternal(resultValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
                     return FormatResultList(resultValue, (ListType)type, path);
@@ -201,7 +209,7 @@ namespace HotChocolate.Types
                 {
                     if (map.TryGetValue(field.Name, out var fieldValue))
                     {
-                        IValueNode value = FormatResult(fieldValue, field.Type, path);
+                        IValueNode value = FormatResultInternal(fieldValue, field.Type, path);
                         fields.Add(new ObjectFieldNode(field.Name, value));
                         processed++;
                     }
@@ -225,6 +233,11 @@ namespace HotChocolate.Types
                 return new ObjectValueNode(fields);
             }
 
+            if (resultValue is ObjectValueNode node)
+            {
+                return node;
+            }
+
             if (type.RuntimeType != typeof(object) &&
                 type.RuntimeType.IsInstanceOfType(resultValue))
             {
@@ -242,10 +255,15 @@ namespace HotChocolate.Types
 
                 for (var i = 0; i < resultList.Count; i++)
                 {
-                    items.Add(FormatResult(resultList[i], type.ElementType, path.Append(i)));
+                    items.Add(FormatResultInternal(resultList[i], type.ElementType, path.Append(i)));
                 }
 
                 return new ListValueNode(items);
+            }
+
+            if (resultValue is ListValueNode node)
+            {
+                return node;
             }
 
             throw FormatResultList_InvalidObjectKind(type, resultValue.GetType(), path);
@@ -253,6 +271,16 @@ namespace HotChocolate.Types
 
         private IValueNode FormatResultLeaf(object resultValue, ILeafType type, Path path)
         {
+            if (resultValue is IValueNode node)
+            {
+                if (type.IsInstanceOfType(node))
+                {
+                    return node;
+                }
+
+                throw FormatResultLeaf_InvalidSyntaxKind(type, node.Kind, path);
+            }
+
             try
             {
                 return type.ParseResult(resultValue);

@@ -35,7 +35,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(field));
             }
 
-            var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true);
+            var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true, field);
             runtimeValue = FormatValue(field, runtimeValue);
             return ConvertValue(targetType ?? field.RuntimeType, runtimeValue);
         }
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return ParseLiteralInternal(value, type, path ?? Path.New("root"), 0, true);
+            return ParseLiteralInternal(value, type, path ?? Path.New("root"), 0, true, null);
         }
 
         private object? ParseLiteralInternal(
@@ -60,7 +60,8 @@ namespace HotChocolate.Types
             IType type,
             Path path,
             int stack,
-            bool defaults)
+            bool defaults,
+            IInputField? field)
         {
             if (value.Kind == SyntaxKind.NullValue)
             {
@@ -80,17 +81,18 @@ namespace HotChocolate.Types
                         ((NonNullType)type).Type,
                         path,
                         stack,
-                        defaults);
+                        defaults,
+                        field);
 
                 case TypeKind.List:
-                    return ParseList(value, (ListType)type, path, stack, defaults);
+                    return ParseList(value, (ListType)type, path, stack, defaults, field);
 
                 case TypeKind.InputObject:
                     return ParseObject(value, (InputObjectType)type, path, stack, defaults);
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
-                    return ParseLeaf(value, (ILeafType)type, path);
+                    return ParseLeaf(value, (ILeafType)type, path, field);
 
                 default:
                     throw new NotSupportedException();
@@ -102,7 +104,8 @@ namespace HotChocolate.Types
             ListType type,
             Path path,
             int stack,
-            bool defaults)
+            bool defaults,
+            IInputField? field)
         {
             if (resultValue.Kind == SyntaxKind.ListValue)
             {
@@ -120,7 +123,8 @@ namespace HotChocolate.Types
                             elementType,
                             path.Append(i),
                             stack,
-                            defaults));
+                            defaults,
+                            field));
                     }
                 }
                 else
@@ -140,7 +144,8 @@ namespace HotChocolate.Types
                             elementType,
                             itemPath,
                             stack,
-                            defaults));
+                            defaults,
+                            field));
                     }
                 }
 
@@ -154,7 +159,7 @@ namespace HotChocolate.Types
                     type.ElementType,
                     path.Append(0),
                     stack,
-                    defaults));
+                    defaults, field));
                 return list;
             }
         }
@@ -206,7 +211,8 @@ namespace HotChocolate.Types
                                 field.Type,
                                 fieldPath,
                                 stack,
-                                defaults);
+                                defaults,
+                                field);
                             value = FormatValue(field, value);
                             value = ConvertValue(field.RuntimeType, value);
 
@@ -258,7 +264,11 @@ namespace HotChocolate.Types
             throw ParseInputObject_InvalidSyntaxKind(type, resultValue.Kind, path);
         }
 
-        private object? ParseLeaf(IValueNode resultValue, ILeafType type, Path path)
+        private object? ParseLeaf(
+            IValueNode resultValue,
+            ILeafType type,
+            Path path,
+            IInputField? field)
         {
             try
             {
@@ -266,7 +276,18 @@ namespace HotChocolate.Types
             }
             catch (SerializationException ex)
             {
-                throw new SerializationException(ex.Errors[0], ex.Type, path);
+                if (field is null)
+                {
+                    throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+                }
+
+                IError error = ErrorBuilder.FromError(ex.Errors[0])
+                    .SetPath(path)
+                    .SetExtension(nameof(field), field.Coordinate.ToString())
+                    .SetExtension("fieldType", type.Name.Value)
+                    .Build();
+
+                throw new SerializationException(error, ex.Type, path);
             }
         }
 
@@ -277,10 +298,10 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return Deserialize(resultValue, type, path ?? Path.New("root"));
+            return Deserialize(resultValue, type, path ?? Path.New("root"), null);
         }
 
-        private object? Deserialize(object? resultValue, IType type, Path path)
+        private object? Deserialize(object? resultValue, IType type, Path path, IInputField? field)
         {
             if (resultValue is null or NullValueNode)
             {
@@ -295,10 +316,10 @@ namespace HotChocolate.Types
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    return Deserialize(resultValue, ((NonNullType)type).Type, path);
+                    return Deserialize(resultValue, ((NonNullType)type).Type, path, field);
 
                 case TypeKind.List:
-                    return DeserializeList(resultValue, (ListType)type, path);
+                    return DeserializeList(resultValue, (ListType)type, path, field);
 
                 case TypeKind.InputObject:
                     return DeserializeObject(
@@ -308,14 +329,18 @@ namespace HotChocolate.Types
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
-                    return DeserializeLeaf(resultValue, (ILeafType)type, path);
+                    return DeserializeLeaf(resultValue, (ILeafType)type, path, field);
 
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        private object DeserializeList(object resultValue, ListType type, Path path)
+        private object DeserializeList(
+            object resultValue,
+            ListType type,
+            Path path,
+            IInputField? field)
         {
             if (resultValue is IList serializedList)
             {
@@ -323,7 +348,8 @@ namespace HotChocolate.Types
 
                 for (var i = 0; i < serializedList.Count; i++)
                 {
-                    list.Add(Deserialize(serializedList[i], type.ElementType, path.Append(i)));
+                    list.Add(
+                        Deserialize(serializedList[i], type.ElementType, path.Append(i), field));
                 }
 
                 return list;
@@ -331,7 +357,7 @@ namespace HotChocolate.Types
 
             if (resultValue is ListValueNode node)
             {
-                return ParseList(node, type, path, 0, true);
+                return ParseList(node, type, path, 0, true, field);
             }
 
             throw ParseList_InvalidObjectKind(type, resultValue.GetType(), path);
@@ -358,7 +384,7 @@ namespace HotChocolate.Types
                             throw NonNullInputViolation(type, fieldPath, field);
                         }
 
-                        var value = Deserialize(fieldValue, field.Type, fieldPath);
+                        var value = Deserialize(fieldValue, field.Type, fieldPath, field);
                         value = FormatValue(field, value);
                         value = ConvertValue(field.RuntimeType, value);
 
@@ -408,11 +434,15 @@ namespace HotChocolate.Types
             throw ParseInputObject_InvalidObjectKind(type, resultValue.GetType(), path);
         }
 
-        private object? DeserializeLeaf(object resultValue, ILeafType type, Path path)
+        private object? DeserializeLeaf(
+            object resultValue,
+            ILeafType type,
+            Path path,
+            IInputField? field)
         {
             if (resultValue is IValueNode node)
             {
-                return ParseLeaf(node, type, path);
+                return ParseLeaf(node, type, path, field);
             }
 
             try
@@ -421,7 +451,18 @@ namespace HotChocolate.Types
             }
             catch (SerializationException ex)
             {
-                throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+                if (field is null)
+                {
+                    throw new SerializationException(ex.Errors[0].WithPath(path), ex.Type, path);
+                }
+
+                IError error = ErrorBuilder.FromError(ex.Errors[0])
+                    .SetPath(path)
+                    .SetExtension(nameof(field), field.Coordinate.ToString())
+                    .SetExtension("fieldType", type.Name.Value)
+                    .Build();
+
+                throw new SerializationException(error, ex.Type, path);
             }
         }
 
@@ -441,7 +482,13 @@ namespace HotChocolate.Types
 
             try
             {
-                value = ParseLiteralInternal(field.DefaultValue, field.Type, path, stack, false);
+                value = ParseLiteralInternal(
+                    field.DefaultValue,
+                    field.Type,
+                    path,
+                    stack,
+                    false,
+                    field);
             }
             catch (SerializationException ex)
             {

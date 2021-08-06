@@ -387,5 +387,20 @@ namespace HotChocolate.Utilities
                     .Build(),
                 type,
                 path);
+
+        public static SerializationException FormatResultLeaf_InvalidSyntaxKind(
+            IType type,
+            SyntaxKind kind,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The type `{0}` does mot expect `{1}`.",
+                        type.Print(),
+                        kind)
+                    .SetPath(path)
+                    .Build(),
+                type,
+                path);
     }
 }
