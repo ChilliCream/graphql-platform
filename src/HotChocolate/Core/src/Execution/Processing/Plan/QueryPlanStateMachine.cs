@@ -8,10 +8,6 @@ namespace HotChocolate.Execution.Processing.Plan
         // by default we will have 8 slots to store state on.
         private State[] _state = { new(), new(), new(), new(), new(), new(), new(), new() };
 
-        // since it is likely that we hit one specific state multiple time we keep the last touched
-        // cached for faster access.
-        private State? _current;
-
         // the count of active query plan steps.
         private int _running;
 
@@ -82,7 +78,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (step is QueryPlanStep s)
             {
-                InitializeState(s, out State state);
+                State state = GetState(s);
 
                 state.Tasks++;
                 task.State = step;
@@ -97,7 +93,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                InitializeState(step, out State state);
+                State state = GetState(step);
 
                 state.Tasks++;
                 task.State = step;
@@ -112,7 +108,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                InitializeState(step, out State state);
+                State state = GetState(step);
 
                 if (--state.Tasks == 0)
                 {
@@ -127,7 +123,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (taskState is QueryPlanStep step)
             {
-                InitializeState(step, out State state);
+                State state = GetState(step);
 
                 if (--state.Tasks == 0)
                 {
@@ -142,7 +138,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (task.State is QueryPlanStep step)
             {
-                InitializeState(step, out State state);
+                State state = GetState(step);
                 return !state.IsActive;
             }
 
@@ -156,7 +152,6 @@ namespace HotChocolate.Execution.Processing.Plan
                 _state[i].Clear();
             }
 
-            _current = _state[0];
             _plan = default!;
             _running = default;
             _serial = default;
@@ -290,14 +285,8 @@ TryAgain:
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetActiveStatus(int stepId, bool active)
         {
-            State? state = _current;
-
-            if (state is null || state.Id != stepId)
-            {
-                _current = state = _state[stepId];
-                state.Id = stepId;
-            }
-
+            State state = _state[stepId];
+            state.Id = stepId;
             state.IsActive = active;
 
             if (active)
@@ -311,21 +300,19 @@ TryAgain:
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void InitializeState(QueryPlanStep step, out State state)
+        private State GetState(QueryPlanStep step)
         {
-            state = _current!;
+            State state = _state[step.Id];
 
-            if (state is null! || state.Id != step.Id || !state.IsInitialized)
+            if (!state.IsInitialized)
             {
-                _current = state = _state[step.Id];
-                if (!state.IsInitialized)
-                {
-                    state.Id = step.Id;
-                    state.IsSerial = step is ResolverQueryPlanStep
-                        { Strategy: ExecutionStrategy.Serial };
-                    state.IsInitialized = true;
-                }
+                state.Id = step.Id;
+                state.IsSerial = step is ResolverQueryPlanStep
+                    { Strategy: ExecutionStrategy.Serial };
+                state.IsInitialized = true;
             }
+
+            return state;
         }
 
         private sealed class State
