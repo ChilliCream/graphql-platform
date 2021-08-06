@@ -61,5 +61,14 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public static readonly GeoJsonPointSerializer Default = new GeoJsonPointSerializer();
+        public override object CreateInstance(object?[] fieldValues)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

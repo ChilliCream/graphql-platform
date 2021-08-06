@@ -105,6 +105,16 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new ListValueNode(xNode, yNode);
         }
 
+        public override object CreateInstance(object?[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IValueNode ParseResult(object? resultValue)
         {
             if (resultValue is null)

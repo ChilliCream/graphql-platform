@@ -36,5 +36,15 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public static readonly GeoJsonPolygonSerializer Default =
             new GeoJsonPolygonSerializer();
+
+        public override object CreateInstance(object?[] fieldValues)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

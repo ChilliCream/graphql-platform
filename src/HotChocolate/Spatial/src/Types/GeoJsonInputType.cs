@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Spatial.Serialization;
@@ -15,14 +16,38 @@ namespace HotChocolate.Types.Spatial
             _serializer = GeoJsonSerializers.Serializers[geometryType];
         }
 
-        protected override InputObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        protected override Func<object?[], object> OnCompleteCreateInstance(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+            => CreateInstance;
+
+        private object CreateInstance(object?[] fieldValues)
         {
-            InputObjectTypeDefinition definition = base.CreateDefinition(context);
+            try
+            {
+                return _serializer.CreateInstance(fieldValues);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
 
-            definition.CreateInstance = _serializer.CreateInstance;
-            definition.GetFieldData = _serializer.GetFieldData;
+        protected override Action<object, object?[]> OnCompleteGetFieldValues(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+            => GetFieldData;
 
-            return definition;
+        private void GetFieldData(object runtimeValue, object?[] fieldValues)
+        {
+            try
+            {
+                _serializer.GetFieldData(runtimeValue, fieldValues);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
     }
 }

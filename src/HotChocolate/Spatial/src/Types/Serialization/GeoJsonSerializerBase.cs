@@ -23,15 +23,9 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public abstract IValueNode ParseValue(object? runtimeValue);
 
-        public virtual object CreateInstance(object[] fieldValues)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract object CreateInstance(object?[] fieldValues);
 
-        public virtual void GetFieldData(object runtimeValue, object[] fieldValues)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void GetFieldData(object runtimeValue, object?[] fieldValues);
 
         public virtual object? Serialize(object? runtimeValue)
         {

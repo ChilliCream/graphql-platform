@@ -237,6 +237,7 @@ namespace HotChocolate.Types.Spatial.Serialization
             out GeoJsonGeometryType geometryType)
         {
             IReadOnlyList<ObjectFieldNode> fields = valueSyntax.Fields;
+
             for (var i = 0; i < fields.Count; i++)
             {
                 if (fields[i].Name.Value == TypeFieldName &&
