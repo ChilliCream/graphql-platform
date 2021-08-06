@@ -1,5 +1,8 @@
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Specifies the GraphQL type kind.
+    /// </summary>
     public enum TypeKind
     {
         /// <summary>

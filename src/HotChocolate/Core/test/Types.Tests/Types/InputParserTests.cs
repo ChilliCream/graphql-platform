@@ -251,6 +251,48 @@ namespace HotChocolate.Types
             Assert.Throws<SerializationException>(Action).MatchSnapshot();
         }
 
+        [Fact]
+        public void Parse_InputObject_WithDefault_Values()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<Test3Input>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            InputObjectType type = schema.GetType<InputObjectType>("Test3Input");
+
+            var fieldData = new ObjectValueNode(
+                new ObjectFieldNode("field2", 123));
+
+            // act
+            var parser = new InputParser();
+            var obj = parser.ParseLiteral(fieldData, type, Path.Root.Append("root"));
+
+            // assert
+            Assert.Equal("DefaultAbc", Assert.IsType<Test3Input>(obj).Field1);
+        }
+
+        [Fact]
+        public void Parse_InputObject_NonNullViolation()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddInputObjectType<Test3Input>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            var type = new NonNullType(schema.GetType<InputObjectType>("Test3Input"));
+
+            // act
+            var parser = new InputParser();
+            void Action()
+                => parser.ParseLiteral(NullValueNode.Default, type, Path.Root.Append("root"));
+
+            // assert
+            Assert.Throws<SerializationException>(Action).MatchSnapshot();
+        }
+
         public class TestInput
         {
             public string? Field1 { get; set; }
@@ -265,6 +307,19 @@ namespace HotChocolate.Types
                 Field1 = field1;
             }
 
+            public string Field1 { get; }
+
+            public int? Field2 { get; set; }
+        }
+
+        public class Test3Input
+        {
+            public Test3Input(string field1)
+            {
+                Field1 = field1;
+            }
+
+            [DefaultValue("DefaultAbc")]
             public string Field1 { get; }
 
             public int? Field2 { get; set; }

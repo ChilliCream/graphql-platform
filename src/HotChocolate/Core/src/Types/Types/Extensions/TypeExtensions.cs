@@ -466,13 +466,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(literal));
             }
 
+            if (literal.Kind == SyntaxKind.NullValue)
+            {
+                return type.Kind is not TypeKind.NonNull;
+            }
+
             if (type.Kind == TypeKind.NonNull)
             {
-                if (literal.Kind == SyntaxKind.NullValue)
-                {
-                    return false;
-                }
-
                 return IsInstanceOfType((IInputType)((NonNullType)type).Type, literal);
             }
 
