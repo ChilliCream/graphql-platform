@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Descriptors
             InputParser = services.GetService<InputParser>() ??
                 new InputParser(Services.GetTypeConverter());
             InputFormatter = services.GetService<InputFormatter>() ??
-                new InputFormatter();
+                new InputFormatter(Services.GetTypeConverter());
 
             schema.Completed += OnSchemaOnCompleted;
 

@@ -321,5 +321,71 @@ namespace HotChocolate.Utilities
                 .Build(),
                 type,
                 path);
+
+        public static SerializationException ParseList_InvalidObjectKind(
+            ListType type,
+            Type listType,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                .SetMessage(
+                    "The list `{1}` must to be serialized as `{2}` or as " +
+                    "`IList` but not as `{0}`.",
+                    listType.FullName ?? listType.Name,
+                    type.Print(),
+                    type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                .Build(),
+                type,
+                path);
+
+        public static SerializationException FormatValueList_InvalidObjectKind(
+            ListType type,
+            Type listType,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The list runtime value of {0} must implement IEnumerable or IList " +
+                        "but is of the type {1}.",
+                        type.Print(),
+                        listType.FullName ?? listType.Name)
+                    .SetPath(path)
+                    .Build(),
+                type,
+                path);
+
+        public static SerializationException FormatResultObject_InvalidObjectKind(
+            InputObjectType type,
+            Type objectType,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The input object `{1}` must to be of type `{2}` or serialized as " +
+                        "`IReadOnlyDictionary<string. object?>` but not as `{0}`.",
+                        objectType.FullName ?? objectType.Name,
+                        type.Name.Value,
+                        type.RuntimeType.FullName ?? type.RuntimeType.Name)
+                    .SetPath(path)
+                    .SetExtension(nameof(type), type.Name.Value)
+                    .Build(),
+                type,
+                path);
+
+        public static SerializationException FormatResultList_InvalidObjectKind(
+            ListType type,
+            Type listType,
+            Path path)
+            => new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "The list result value of {0} must implement IList " +
+                        "but is of the type {1}.",
+                        type.Print(),
+                        listType.FullName ?? listType.Name)
+                    .SetPath(path)
+                    .Build(),
+                type,
+                path);
     }
 }

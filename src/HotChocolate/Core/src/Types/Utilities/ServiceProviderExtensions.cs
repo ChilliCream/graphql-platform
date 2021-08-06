@@ -23,8 +23,8 @@ namespace HotChocolate.Utilities
             this IServiceProvider services,
             Func<T> defaultService)
         {
-            object service = services?.GetService(typeof(T));
-            
+            var service = services?.GetService(typeof(T));
+
             if (service is null)
             {
                 return defaultService();

@@ -93,14 +93,14 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddInputFormatter(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<InputFormatter>();
+            services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
             return services;
         }
 
         internal static IServiceCollection TryAddInputParser(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<InputParser>();
+            services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
             return services;
         }
 

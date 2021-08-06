@@ -15,6 +15,8 @@ namespace HotChocolate.Types
         private readonly ITypeConverter _converter;
         private readonly DictionaryToObjectConverter _dictToObjConverter;
 
+        public InputParser() : this(new DefaultTypeConverter()) { }
+
         public InputParser(ITypeConverter converter)
         {
             _converter = converter ?? throw new ArgumentNullException(nameof(converter));
@@ -280,7 +282,7 @@ namespace HotChocolate.Types
 
         private object? Deserialize(object? resultValue, IType type, Path path)
         {
-            if (resultValue is null)
+            if (resultValue is null or NullValueNode)
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
@@ -296,7 +298,7 @@ namespace HotChocolate.Types
                     return Deserialize(resultValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
-                    return DeserializeList((IList)resultValue, (ListType)type, path);
+                    return DeserializeList(resultValue, (ListType)type, path);
 
                 case TypeKind.InputObject:
                     return DeserializeObject(
@@ -313,16 +315,26 @@ namespace HotChocolate.Types
             }
         }
 
-        private List<object?> DeserializeList(IList resultValue, ListType type, Path path)
+        private object DeserializeList(object resultValue, ListType type, Path path)
         {
-            var list = new List<object?>();
-
-            for (var i = 0; i < resultValue.Count; i++)
+            if (resultValue is IList serializedList)
             {
-                list.Add(Deserialize(resultValue[i], type.ElementType, path.Append(i)));
+                IList list = CreateList(type);
+
+                for (var i = 0; i < serializedList.Count; i++)
+                {
+                    list.Add(Deserialize(serializedList[i], type.ElementType, path.Append(i)));
+                }
+
+                return list;
             }
 
-            return list;
+            if (resultValue is ListValueNode node)
+            {
+                return ParseList(node, type, path, 0, true);
+            }
+
+            throw ParseList_InvalidObjectKind(type, resultValue.GetType(), path);
         }
 
         private object DeserializeObject(object resultValue, InputObjectType type, Path path)
@@ -382,9 +394,15 @@ namespace HotChocolate.Types
                 return type.CreateInstance(fieldValues);
             }
 
-            if (type.RuntimeType.IsInstanceOfType(resultValue))
+            if (type.RuntimeType != typeof(object) && 
+                type.RuntimeType.IsInstanceOfType(resultValue))
             {
                 return resultValue;
+            }
+
+            if (resultValue is ObjectValueNode node)
+            {
+                return ParseObject(node, type, path, 0, true);
             }
 
             throw ParseInputObject_InvalidObjectKind(type, resultValue.GetType(), path);
@@ -392,6 +410,11 @@ namespace HotChocolate.Types
 
         private object? DeserializeLeaf(object resultValue, ILeafType type, Path path)
         {
+            if (resultValue is IValueNode node)
+            {
+                return ParseLeaf(node, type, path);
+            }
+
             try
             {
                 return type.Deserialize(resultValue);

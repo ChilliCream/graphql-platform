@@ -2,7 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
+using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -10,15 +11,32 @@ namespace HotChocolate.Types
 {
     public class InputFormatter
     {
+        private readonly ITypeConverter _converter;
+
+        public InputFormatter() : this(new DefaultTypeConverter()) { }
+
+        public InputFormatter(ITypeConverter converter)
+        {
+            _converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        }
+
         public IValueNode FormatValue(object? runtimeValue, IType type, Path? path = null)
         {
-            path ??= Path.New("root");
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
+            return FormatValueInternal(runtimeValue, type, path ?? Path.New("root"));
+        }
+
+        private IValueNode FormatValueInternal(object? runtimeValue, IType type, Path path)
+        {
             if (runtimeValue is null)
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
-                    throw ThrowHelper.NonNullInputViolation(type, path);
+                    throw NonNullInputViolation(type, path);
                 }
 
                 return NullValueNode.Default;
@@ -27,10 +45,10 @@ namespace HotChocolate.Types
             switch (type.Kind)
             {
                 case TypeKind.NonNull:
-                    return FormatValue(runtimeValue, ((NonNullType)type).Type, path);
+                    return FormatValueInternal(runtimeValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
-                    return FormatValueList((IList)runtimeValue, (ListType)type, path);
+                    return FormatValueList(runtimeValue, (ListType)type, path);
 
                 case TypeKind.InputObject:
                     return FormatValueObject(runtimeValue, (InputObjectType)type, path);
@@ -44,7 +62,10 @@ namespace HotChocolate.Types
             }
         }
 
-        private ObjectValueNode FormatValueObject(object runtimeValue, InputObjectType type, Path path)
+        private ObjectValueNode FormatValueObject(
+            object runtimeValue,
+            InputObjectType type,
+            Path path)
         {
             var fields = new List<ObjectFieldNode>();
             var fieldValues = new object?[type.Fields.Count];
@@ -72,29 +93,58 @@ namespace HotChocolate.Types
 
             return new ObjectValueNode(fields);
 
-            void AddField(object? fieldValue, NameString fieldName, IInputType fieldType, Path fieldPath)
+            void AddField(
+                object? fieldValue,
+                NameString fieldName,
+                IInputType fieldType,
+                Path fieldPath)
             {
-                IValueNode value = FormatValue(fieldValue, fieldType, fieldPath);
+                IValueNode value = FormatValueInternal(fieldValue, fieldType, fieldPath);
                 fields.Add(new ObjectFieldNode(fieldName, value));
             }
         }
 
-        private ListValueNode FormatValueList(IList runtimeValue, ListType type, Path path)
+        private ListValueNode FormatValueList(object runtimeValue, ListType type, Path path)
         {
-            var items = new List<IValueNode>();
-
-            for (var i = 0; i < runtimeValue.Count; i++)
+            if (runtimeValue is IList runtimeList)
             {
-                items.Add(FormatValue(runtimeValue[i], type.ElementType, path.Append(i)));
+                var items = new List<IValueNode>();
+
+                for (var i = 0; i < runtimeList.Count; i++)
+                {
+                    items.Add(
+                        FormatValueInternal(runtimeList[i], type.ElementType, path.Append(i)));
+                }
+
+                return new ListValueNode(items);
             }
 
-            return new ListValueNode(items);
+            if (runtimeValue is IEnumerable enumerable)
+            {
+                var items = new List<IValueNode>();
+                var i = 0;
+
+                foreach (var item in enumerable)
+                {
+                    items.Add(FormatValueInternal(item, type.ElementType, path.Append(i)));
+                }
+
+                return new ListValueNode(items);
+            }
+
+            throw FormatValueList_InvalidObjectKind(type, runtimeValue.GetType(), path);
         }
 
         private IValueNode FormatValueLeaf(object runtimeValue, ILeafType type, Path path)
         {
             try
             {
+                if (runtimeValue.GetType() != type.RuntimeType &&
+                    _converter.TryConvert(type.RuntimeType, runtimeValue, out var converted))
+                {
+                    runtimeValue = converted;
+                }
+
                 return type.ParseValue(runtimeValue);
             }
             catch (SerializationException ex)
@@ -111,7 +161,7 @@ namespace HotChocolate.Types
             {
                 if (type.Kind == TypeKind.NonNull)
                 {
-                    throw ThrowHelper.NonNullInputViolation(type, path);
+                    throw NonNullInputViolation(type, path);
                 }
 
                 return NullValueNode.Default;
@@ -123,10 +173,10 @@ namespace HotChocolate.Types
                     return FormatResult(resultValue, ((NonNullType)type).Type, path);
 
                 case TypeKind.List:
-                    return FormatResultList((IList)resultValue, (ListType)type, path);
+                    return FormatResultList(resultValue, (ListType)type, path);
 
                 case TypeKind.InputObject:
-                    return FormatResultObject((IReadOnlyDictionary<string, object?>)resultValue, (InputObjectType)type, path);
+                    return FormatResultObject(resultValue, (InputObjectType)type, path);
 
                 case TypeKind.Enum:
                 case TypeKind.Scalar:
@@ -137,49 +187,68 @@ namespace HotChocolate.Types
             }
         }
 
-        private ObjectValueNode FormatResultObject(IReadOnlyDictionary<string, object?> resultValue, InputObjectType type, Path path)
+        private ObjectValueNode FormatResultObject(
+            object resultValue,
+            InputObjectType type,
+            Path path)
         {
-            var fields = new List<ObjectFieldNode>();
-            var processed = 0;
-
-            foreach (var field in type.Fields)
+            if (resultValue is IReadOnlyDictionary<string, object?> map)
             {
-                if (resultValue.TryGetValue(field.Name, out var fieldValue))
-                {
-                    IValueNode value = FormatResult(fieldValue, field.Type, path);
-                    fields.Add(new ObjectFieldNode(field.Name, value));
-                    processed++;
-                }
-            }
+                var fields = new List<ObjectFieldNode>();
+                var processed = 0;
 
-            if (processed < resultValue.Count)
-            {
-                var invalidFieldNames = new List<string>();
-
-                foreach (KeyValuePair<string, object?> item in resultValue)
+                foreach (var field in type.Fields)
                 {
-                    if (!type.Fields.ContainsField(item.Key))
+                    if (map.TryGetValue(field.Name, out var fieldValue))
                     {
-                        invalidFieldNames.Add(item.Key);
+                        IValueNode value = FormatResult(fieldValue, field.Type, path);
+                        fields.Add(new ObjectFieldNode(field.Name, value));
+                        processed++;
                     }
                 }
 
-                throw ThrowHelper.InvalidInputFieldNames(type, invalidFieldNames, path);
+                if (processed < map.Count)
+                {
+                    var invalidFieldNames = new List<string>();
+
+                    foreach (KeyValuePair<string, object?> item in map)
+                    {
+                        if (!type.Fields.ContainsField(item.Key))
+                        {
+                            invalidFieldNames.Add(item.Key);
+                        }
+                    }
+
+                    throw InvalidInputFieldNames(type, invalidFieldNames, path);
+                }
+
+                return new ObjectValueNode(fields);
             }
 
-            return new ObjectValueNode(fields);
+            if (type.RuntimeType != typeof(object) &&
+                type.RuntimeType.IsInstanceOfType(resultValue))
+            {
+                return FormatValueObject(resultValue, type, path);
+            }
+
+            throw FormatResultObject_InvalidObjectKind(type, resultValue.GetType(), path);
         }
 
-        private ListValueNode FormatResultList(IList runtimeValue, ListType type, Path path)
+        private ListValueNode FormatResultList(object resultValue, ListType type, Path path)
         {
-            var items = new List<IValueNode>();
-
-            for (var i = 0; i < runtimeValue.Count; i++)
+            if (resultValue is IList resultList)
             {
-                items.Add(FormatResult(runtimeValue[i], type.ElementType, path.Append(i)));
+                var items = new List<IValueNode>();
+
+                for (var i = 0; i < resultList.Count; i++)
+                {
+                    items.Add(FormatResult(resultList[i], type.ElementType, path.Append(i)));
+                }
+
+                return new ListValueNode(items);
             }
 
-            return new ListValueNode(items);
+            throw FormatResultList_InvalidObjectKind(type, resultValue.GetType(), path);
         }
 
         private IValueNode FormatResultLeaf(object resultValue, ILeafType type, Path path)
