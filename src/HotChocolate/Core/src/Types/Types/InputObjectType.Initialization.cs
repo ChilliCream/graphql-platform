@@ -60,16 +60,8 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             Fields = OnCompleteFields(context, definition);
 
-            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
-            {
-                _createInstance = CreateDictionaryInstance;
-                _getFieldValues = CreateDictionaryGetValues;
-            }
-            else
-            {
-                _createInstance = CompileFactory(this);
-                _getFieldValues = CompileGetFieldValues(this);
-            }
+            _createInstance = OnCompleteCreateInstance(context, definition);
+            _getFieldValues = OnCompleteGetFieldValues(context, definition);
         }
 
         protected virtual FieldCollection<InputField> OnCompleteFields(
@@ -79,6 +71,52 @@ namespace HotChocolate.Types
             return CompleteFields(context, this, definition.Fields, CreateField);
             static InputField CreateField(InputFieldDefinition fieldDef, int index)
                 => new(fieldDef, index);
+        }
+
+        protected virtual Func<object?[], object> OnCompleteCreateInstance(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+        {
+            Func<object?[], object>? createInstance = null;
+
+            if (definition.CreateInstance is not null)
+            {
+                createInstance = definition.CreateInstance;
+            }
+
+            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
+            {
+                createInstance ??= CreateDictionaryInstance;
+            }
+            else
+            {
+                createInstance ??= CompileFactory(this);
+            }
+
+            return createInstance;
+        }
+
+        protected virtual Action<object, object?[]> OnCompleteGetFieldValues(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+        {
+            Action<object, object?[]>? getFieldValues = null;
+
+            if (definition.GetFieldData is not null)
+            {
+                getFieldValues = definition.GetFieldData;
+            }
+
+            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
+            {
+                getFieldValues ??= CreateDictionaryGetValues;
+            }
+            else
+            {
+                getFieldValues ??= CompileGetFieldValues(this);
+            }
+
+            return getFieldValues;
         }
 
         private object CreateDictionaryInstance(object?[] fieldValues)
