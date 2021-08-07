@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -31,12 +32,10 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Deprecated()
         {
-            Definition.DeprecationReason =
-                WellKnownDirectives.DeprecationDefaultReason;
+            Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
         }
 
-        protected void SyntaxNode(
-            InputValueDefinitionNode inputValueDefinition)
+        protected void SyntaxNode(InputValueDefinitionNode inputValueDefinition)
         {
             Definition.SyntaxNode = inputValueDefinition;
         }
@@ -90,7 +89,6 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-
             Definition.Type = typeReference;
         }
 
@@ -119,9 +117,8 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.SetMoreSpecificType(
-                    Context.TypeInspector.GetType(value.GetType()),
-                    TypeContext.Input);
+                IExtendedType type = Context.TypeInspector.GetType(value.GetType());
+                Definition.SetMoreSpecificType(type, TypeContext.Input);
                 Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
             }

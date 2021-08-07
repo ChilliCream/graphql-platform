@@ -31,8 +31,7 @@ namespace HotChocolate.Internal
                 {
                     if (extensionField.IsDeprecated)
                     {
-                        typeField.DeprecationReason =
-                            extensionField.DeprecationReason;
+                        typeField.DeprecationReason = extensionField.DeprecationReason;
                     }
                 });
         }

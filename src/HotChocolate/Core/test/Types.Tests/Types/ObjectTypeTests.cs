@@ -1943,43 +1943,6 @@ namespace HotChocolate.Types
             }
         }
 
-        public class Example
-        {
-            public string Foo { get; set; }
-        }
-
-        public interface ISomeService
-        {
-            string GetFoo();
-        }
-
-        public class ExampleType : ObjectType<Example>
-        {
-            protected override void Configure(IObjectTypeDescriptor<Example> descriptor)
-            {
-                // Resolver accessing the parent
-                descriptor
-                    .Field(x => x.Foo)
-                    .Resolve(context => context.Parent<Example>().Foo);
-
-                // Resolver with static value
-                descriptor
-                    .Field(x => x.Foo)
-                    .Resolve("Static Value");
-
-                // Resolver accessing service
-                descriptor
-                    .Field(x => x.Foo)
-                    .Resolve(context => context.Service<ISomeService>().GetFoo());
-
-                // Resolver accessing argument
-                descriptor
-                    .Field(x => x.Foo)
-                    .Argument("arg1", x => x.Type<StringType>())
-                    .Resolve(context => context.ArgumentValue<string>("arg1"));
-            }
-        }
-
         public class AnnotatedNestedList
         {
             [GraphQLNonNullType(true, false, false)]
