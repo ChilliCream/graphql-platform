@@ -64,9 +64,7 @@ namespace HotChocolate.Data.SqlKata.Filters
                     else
                     {
                         context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(Query),
-                                whereQuery);
+                            context.LocalContextData.SetItem(nameof(Query), whereQuery);
 
                         await next(context).ConfigureAwait(false);
 

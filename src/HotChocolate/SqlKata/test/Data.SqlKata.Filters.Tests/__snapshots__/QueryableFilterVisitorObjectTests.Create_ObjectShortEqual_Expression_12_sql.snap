@@ -1,0 +1,2 @@
+﻿SELECT * FROM "ExampleParent" 
+LEFT JOIN "ExampleData" AS "1_v" ON "ExampleParent"."FooId" = "1_v"."Id" WHERE "1_v"."BarShort" = @p0

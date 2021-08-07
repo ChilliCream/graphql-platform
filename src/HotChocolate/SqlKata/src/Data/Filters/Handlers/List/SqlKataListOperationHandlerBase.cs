@@ -80,7 +80,7 @@ namespace HotChocolate.Data.SqlKata.Filters
             if (context.TryCreateQuery(out Query? query) &&
                 context.Scopes.Pop() is SqlKataFilterScope scope)
             {
-                var path = context.GetMongoFilterScope().GetPath();
+                var path = context.GetSqlKataFilterScope().GetColumnName();
                 Query combinedOperations = HandleListOperation(
                     context,
                     field,

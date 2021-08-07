@@ -29,7 +29,7 @@ namespace HotChocolate.Data.SqlKata.Filters
             IValueNode value,
             object? parsedValue)
         {
-            var column = context.GetMongoFilterScope().GetPath();
+            var column = context.GetSqlKataFilterScope().GetColumnName();
             if (context.RuntimeTypes.Peek().IsNullable)
             {
                 if (parsedValue is null)

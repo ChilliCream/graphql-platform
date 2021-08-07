@@ -29,7 +29,7 @@ namespace HotChocolate.Data.SqlKata.Filters
         {
             if (parsedValue is {})
             {
-                var column = context.GetMongoFilterScope().GetPath();
+                var column = context.GetSqlKataFilterScope().GetColumnName();
                 Query? query =  context.GetInstance().WhereNot(column, ">", parsedValue);
                 if (context.RuntimeTypes.Peek().IsNullable)
                 {

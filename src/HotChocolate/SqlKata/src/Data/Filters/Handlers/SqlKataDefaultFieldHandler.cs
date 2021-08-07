@@ -4,6 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Utilities;
 using SqlKata;
 
 namespace HotChocolate.Data.SqlKata.Filters
@@ -49,14 +50,39 @@ namespace HotChocolate.Data.SqlKata.Filters
                 return false;
             }
 
-            context.AddScope();
-            if (context.Scopes.Count > 1)
+            SqlKataFilterScope scope = context.GetSqlKataFilterScope();
+            string tableName = context.GetTableName(field);
+            string alias = context.GetTableName(field);
+            if (scope.TableInfo.TryPeekElement(out var tableInfo))
             {
-                context.GetInstance().Join()
-
+                //alias = context.GetTableAlias();
+                if (field.HasForeignKey())
+                {
+                    context
+                        .GetInstance()
+                        .LeftJoin(
+                            $"{tableName} as {alias}",
+                            $"{tableInfo.Alias}.{context.GetKey(scope.Fields.Peek())}",
+                            $"{alias}.{field.GetForeignKey()}");
+                }
+                else
+                {
+                    context
+                        .GetInstance()
+                        .LeftJoin(
+                            tableName,
+                         //   $"{tableName} as {alias}",
+                            $"{tableInfo.Alias}.{scope.Fields.Peek().GetForeignKey()}",
+                            $"{alias}.{context.GetKey(scope.Fields.Peek())}");
+                }
             }
-            context.GetMongoFilterScope().Path.Push(field.GetColumnName());
-            context.PushInstance(new Query(context.GetTableName(field)));
+            else
+            {
+                context.GetInstance().From(tableName);
+            }
+
+            scope.Fields.Push(field);
+            scope.TableInfo.Push(new TableInfo(tableName, alias));
             context.RuntimeTypes.Push(field.RuntimeType);
             action = SyntaxVisitor.Continue;
             return true;
@@ -70,9 +96,9 @@ namespace HotChocolate.Data.SqlKata.Filters
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             context.RuntimeTypes.Pop();
-            context.GetMongoFilterScope().Path.Pop();
-            FilterScope<Query> lastScope = context.PopScope();
-            context.GetInstance().Clauses.AddRange(lastScope.Instance.Peek().Clauses);
+            SqlKataFilterScope scope = context.GetSqlKataFilterScope();
+            scope.Fields.Pop();
+            scope.TableInfo.Pop();
 
             action = SyntaxVisitor.Continue;
             return true;

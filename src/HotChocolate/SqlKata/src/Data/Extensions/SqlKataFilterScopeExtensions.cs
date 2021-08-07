@@ -6,8 +6,11 @@ namespace HotChocolate.Data.SqlKata.Filters
 {
     internal static class SqlKataFilterScopeExtensions
     {
-        public static string GetPath(this SqlKataFilterScope scope) =>
-            string.Join(".", scope.Path.Reverse());
+        public static string GetColumnName(this SqlKataFilterScope scope) =>
+            $"{scope.TableInfo.Peek().Alias}.{scope.Fields.Peek().GetColumnName()}";
+
+        public static string GetForeignKey(this SqlKataFilterScope scope) =>
+            $"{scope.TableInfo.Peek().Alias}.{scope.Fields.Peek().GetForeignKey()}";
 
         public static bool TryCreateQuery(
             this SqlKataFilterScope scope,

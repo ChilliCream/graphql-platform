@@ -9,12 +9,13 @@ namespace HotChocolate.Data.SqlKata.Filters
     public class SqlKataFilterVisitorContext
         : FilterVisitorContext<Query>
     {
+        private int _aliasCount;
+
         public SqlKataFilterVisitorContext(IFilterInputType initialType)
             : base(initialType)
         {
             RuntimeTypes = new Stack<IExtendedType>();
             RuntimeTypes.Push(initialType.EntityType);
-            Query = new Query();
         }
 
         /// <summary>
@@ -22,9 +23,18 @@ namespace HotChocolate.Data.SqlKata.Filters
         /// </summary>
         public Stack<IExtendedType> RuntimeTypes { get; }
 
-        public Query Query { get; }
-
         /// <inheritdoc />
-        public override FilterScope<Query> CreateScope() => new SqlKataFilterScope();
+        public override FilterScope<Query> CreateScope()
+        {
+            SqlKataFilterScope scope = new();
+            scope.Instance.Push(new Query());
+            return scope;
+        }
+
+        public string GetTableAlias()
+        {
+            _aliasCount++;
+            return _aliasCount + "_v";
+        }
     }
 }

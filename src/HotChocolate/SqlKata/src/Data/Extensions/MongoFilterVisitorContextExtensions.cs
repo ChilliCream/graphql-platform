@@ -11,7 +11,7 @@ namespace HotChocolate.Data.SqlKata.Filters
         /// </summary>
         /// <param name="context">The context</param>
         /// <returns>The current scope</returns>
-        public static SqlKataFilterScope GetMongoFilterScope(
+        public static SqlKataFilterScope GetSqlKataFilterScope(
             this SqlKataFilterVisitorContext context) =>
             (SqlKataFilterScope)context.GetScope();
 
@@ -25,7 +25,7 @@ namespace HotChocolate.Data.SqlKata.Filters
             this SqlKataFilterVisitorContext context,
             [NotNullWhen(true)] out Query? query)
         {
-            return context.GetMongoFilterScope().TryCreateQuery(out query);
+            return context.GetSqlKataFilterScope().TryCreateQuery(out query);
         }
     }
 }

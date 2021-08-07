@@ -131,15 +131,7 @@ namespace HotChocolate.Data.SqlKata.Filters
 
                     if (context.Result is IExecutable queryable)
                     {
-                        try
-                        {
-                            context.ContextData["sql"] = queryable.Print();
-                        }
-                        catch (Exception)
-                        {
-                            context.ContextData["sql"] =
-                                "EF Core 3.1 does not support ToQueryString";
-                        }
+                        context.ContextData["sql"] = queryable.Print();
                     }
                 });
 

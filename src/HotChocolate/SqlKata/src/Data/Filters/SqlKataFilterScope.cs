@@ -8,9 +8,21 @@ namespace HotChocolate.Data.SqlKata.Filters
     public class SqlKataFilterScope
         : FilterScope<Query>
     {
-        /// <summary>
-        /// The path from the root to the current position in the input object
-        /// </summary>
-        public Stack<string> Path { get; } = new Stack<string>();
+        public Stack<TableInfo> TableInfo { get; } = new();
+
+        public Stack<IFilterField> Fields { get; } = new();
+    }
+
+    public class TableInfo
+    {
+        public TableInfo(string tableName, string alias)
+        {
+            TableName = tableName;
+            Alias = alias;
+        }
+
+        public string TableName { get; }
+
+        public string Alias { get; }
     }
 }

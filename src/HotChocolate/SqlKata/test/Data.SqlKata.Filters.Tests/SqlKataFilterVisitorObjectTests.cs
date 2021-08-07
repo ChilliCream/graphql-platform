@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
@@ -110,7 +111,7 @@ namespace HotChocolate.Data.SqlKata.Filters
             }
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+        private readonly SchemaCache _cache = new();
 
         [Fact]
         public async Task Create_ObjectShortEqual_Expression()
@@ -608,6 +609,7 @@ namespace HotChocolate.Data.SqlKata.Filters
         [Table("ExampleData")]
         public class Foo
         {
+            [Key]
             public int Id { get; set; }
 
             public short BarShort { get; set; }
@@ -624,6 +626,7 @@ namespace HotChocolate.Data.SqlKata.Filters
         [Table("ExampleData")]
         public class FooNullable
         {
+            [Key]
             public int Id { get; set; }
 
             public short? BarShort { get; set; }
@@ -637,17 +640,23 @@ namespace HotChocolate.Data.SqlKata.Filters
             public List<BarNullable>? ObjectArray { get; set; }
         }
 
+        [Table("ExampleParent")]
         public class Bar
         {
+            [Key]
             public int Id { get; set; }
 
+            [ForeignKey("FooId")]
             public Foo Foo { get; set; }
         }
 
+        [Table("ExampleParent")]
         public class BarNullable
         {
+            [Key]
             public int Id { get; set; }
 
+            [ForeignKey("FooId")]
             public FooNullable? Foo { get; set; }
         }
 
