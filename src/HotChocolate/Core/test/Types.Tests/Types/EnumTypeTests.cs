@@ -518,6 +518,17 @@ namespace HotChocolate.Types
                .MatchSnapshot();
         }
 
+        [Fact]
+        public void ValueContainingUnderline_Should_NotResultInDoubleUnderline()
+        {
+            SchemaBuilder.New()
+               .AddEnumType<FooUnderline>()
+               .ModifyOptions(o => o.StrictValidation = false)
+               .Create()
+               .ToString()
+               .MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -547,6 +558,11 @@ namespace HotChocolate.Types
             Bar1,
             [GraphQLName("BAR_2")]
             Bar2
+        }
+
+        public enum FooUnderline
+        {
+            Creating_Instance = 1
         }
 
         public class SomeQueryType : ObjectType
