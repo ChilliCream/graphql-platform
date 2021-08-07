@@ -5,6 +5,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// A fluent configuration API for GraphQL fields.
+    /// </summary>
     public class InputFieldDescriptor
         : ArgumentDescriptorBase<InputFieldDefinition>
         , IInputFieldDescriptor
@@ -42,6 +45,11 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.RuntimeDefaultValue = defaultValue;
             }
+
+            if (context.Naming.IsDeprecated(property, out var reason))
+            {
+                Deprecated(reason);
+            }
         }
 
         protected override void OnCreateDefinition(InputFieldDefinition definition)
@@ -58,6 +66,7 @@ namespace HotChocolate.Types.Descriptors
             base.OnCreateDefinition(definition);
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -65,18 +74,35 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public IInputFieldDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Description(string value)
         {
             base.Description(value);
             return this;
         }
 
+        /// <inheritdoc />
+        public new IInputFieldDescriptor Deprecated(string? reason)
+        {
+            base.Deprecated(reason);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public new IInputFieldDescriptor Deprecated()
+        {
+            base.Deprecated();
+            return this;
+        }
+
+        /// <inheritdoc />
         public new IInputFieldDescriptor Type<TInputType>()
             where TInputType : IInputType
         {
@@ -84,6 +110,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Type<TInputType>(
             TInputType inputType)
             where TInputType : class, IInputType
@@ -92,12 +119,14 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Type(ITypeNode typeNode)
         {
             base.Type(typeNode);
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Type(Type type)
         {
             base.Type(type);
@@ -110,6 +139,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor DefaultValue(
             IValueNode value)
         {
@@ -117,6 +147,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor DefaultValue(
             object value)
         {
@@ -124,6 +155,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
@@ -132,6 +164,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
@@ -139,6 +172,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IInputFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)

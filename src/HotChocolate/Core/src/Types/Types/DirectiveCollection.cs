@@ -38,10 +38,13 @@ namespace HotChocolate.Types
             _location = DirectiveHelper.InferDirectiveLocation(source);
         }
 
+        /// <inheritdoc />
         public int Count => _directives.Length;
 
+        /// <inheritdoc />
         public IEnumerable<IDirective> this[NameString key] => _lookup[key];
 
+        /// <inheritdoc />
         public bool Contains(NameString key) => _lookup.Contains(key);
 
         public void CompleteCollection(ITypeCompletionContext context)

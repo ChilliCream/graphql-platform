@@ -34,15 +34,20 @@ namespace HotChocolate.Types
             Name = directiveType.Name;
         }
 
+        /// <inheritdoc />
         public NameString Name { get; }
 
+        /// <inheritdoc />
         public DirectiveType Type { get; }
 
+        /// <inheritdoc />
         public object Source { get; }
 
+        /// <inheritdoc />
         public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
             Type.MiddlewareComponents;
 
+        /// <inheritdoc />
         public T ToObject<T>()
         {
             if (_customDirective is T d)
@@ -60,8 +65,10 @@ namespace HotChocolate.Types
             return CreateCustomDirective<T>();
         }
 
+        /// <inheritdoc />
         public DirectiveNode ToNode() => ToNode(false);
 
+        /// <inheritdoc />
         public DirectiveNode ToNode(bool removeNullArguments)
         {
             if (_parsedDirective is null!)
@@ -89,6 +96,7 @@ namespace HotChocolate.Types
             return _parsedDirective;
         }
 
+        /// <inheritdoc />
         public T GetArgument<T>(string argumentName)
         {
             if (string.IsNullOrEmpty(argumentName))
@@ -112,7 +120,6 @@ namespace HotChocolate.Types
                 TypeResources.Directive_GetArgument_ArgumentNameIsInvalid,
                 nameof(argumentName));
         }
-
 
         private T CreateCustomDirective<T>()
         {

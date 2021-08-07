@@ -132,6 +132,11 @@ namespace HotChocolate.Types.Factories
                     argumentDefinition.SyntaxNode = argument;
                 }
 
+                if (argument.DeprecationReason() is { Length: > 0 } reason)
+                {
+                    argumentDefinition.DeprecationReason = reason;
+                }
+
                 parent.Arguments.Add(argumentDefinition);
             }
         }

@@ -12,8 +12,19 @@ namespace HotChocolate.Types.Descriptors.Definitions
         : DefinitionBase
         , IHasDirectiveDefinition
         , IHasIgnore
+        , ICanBeDeprecated
     {
         private List<DirectiveDefinition>? _directives;
+
+        /// <summary>
+        /// Describes why this syntax node is deprecated.
+        /// </summary>
+        public string? DeprecationReason { get; set; }
+
+        /// <summary>
+        /// If true, the field is deprecated
+        /// </summary>
+        public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
         /// <summary>
         /// Gets the field type.

@@ -79,7 +79,19 @@ namespace HotChocolate.Types.Introspection
                     },
                     new(Names.InputFields,
                         type: inputValueListType,
-                        pureResolver: Resolvers.InputFields),
+                        pureResolver: Resolvers.InputFields)
+                    {
+                        Arguments =
+                        {
+                            new()
+                            {
+                                Name = Names.IncludeDeprecated,
+                                Type = booleanType,
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
                     new(Names.OfType,
                         type: typeType,
                         pureResolver: Resolvers.OfType),
@@ -146,7 +158,11 @@ namespace HotChocolate.Types.Introspection
                     : null;
 
             public static object? InputFields(IPureResolverContext context)
-                => context.Parent<IType>() is IInputObjectType iot ? iot.Fields : null;
+                => context.Parent<IType>() is IInputObjectType of
+                    ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                        ? of.Fields
+                        : of.Fields.Where(t => !t.IsDeprecated)
+                    : null;
 
             public static object? OfType(IPureResolverContext context)
                 => context.Parent<IType>() switch

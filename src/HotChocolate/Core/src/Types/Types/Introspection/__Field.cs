@@ -1,6 +1,7 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -20,6 +21,7 @@ namespace HotChocolate.Types.Introspection
             SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
             SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
             SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+            SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
             SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
             SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
@@ -33,7 +35,17 @@ namespace HotChocolate.Types.Introspection
                 {
                     new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                     new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
-                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments),
+                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: booleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
                     new(Names.Type, type: nonNullTypeType, pureResolver: Resolvers.Type),
                     new(Names.IsDeprecated, type: nonNullBooleanType,
                         pureResolver: Resolvers.IsDeprecated),
@@ -60,8 +72,12 @@ namespace HotChocolate.Types.Introspection
             public static string? Description(IPureResolverContext context)
                 => context.Parent<IOutputField>().Description;
 
-            public static IFieldCollection<IInputField> Arguments(IPureResolverContext context)
-                => context.Parent<IOutputField>().Arguments;
+            public static object? Arguments(IPureResolverContext context)
+                => context.Parent<IOutputField>() is {} of
+                    ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                        ? of.Arguments
+                        : of.Arguments.Where(t => !t.IsDeprecated)
+                    : null;
 
             public static IType Type(IPureResolverContext context)
                 => context.Parent<IOutputField>().Type;
@@ -88,6 +104,7 @@ namespace HotChocolate.Types.Introspection
             public const string IsDeprecated = "isDeprecated";
             public const string DeprecationReason = "deprecationReason";
             public const string AppliedDirectives = "appliedDirectives";
+            public const string IncludeDeprecated = "includeDeprecated";
         }
     }
 }

@@ -27,7 +27,14 @@ namespace HotChocolate.Internal
             IList<InputFieldDefinition> typeFields)
         {
             MergeFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
+                (fields, extensionField, typeField) =>
+                {
+                    if (extensionField.IsDeprecated)
+                    {
+                        typeField.DeprecationReason =
+                            extensionField.DeprecationReason;
+                    }
+                });
         }
 
         private static void MergeOutputFields<T>(

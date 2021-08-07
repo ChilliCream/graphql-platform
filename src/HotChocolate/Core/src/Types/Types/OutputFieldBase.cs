@@ -27,21 +27,29 @@ namespace HotChocolate.Types
             DeprecationReason = definition.DeprecationReason;
         }
 
+        /// <inheritdoc />
         public new IComplexOutputType DeclaringType => (IComplexOutputType)base.DeclaringType;
 
+        /// <summary>
+        /// Gets the field arguments.
+        /// </summary>
         public FieldDefinitionNode SyntaxNode { get; }
 
+        /// <summary>
+        /// Gets the field arguments.
+        /// </summary>
         public FieldCollection<Argument> Arguments { get; }
 
+        /// <inheritdoc />
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
-        /// <summary>
-        /// Defines if this field as a introspection field.
-        /// </summary>
+        /// <inheritdoc />
         public virtual bool IsIntrospectionField => false;
 
+        /// <inheritdoc />
         public bool IsDeprecated { get; }
 
+        /// <inheritdoc />
         public string DeprecationReason { get; }
 
         protected override void OnCompleteField(

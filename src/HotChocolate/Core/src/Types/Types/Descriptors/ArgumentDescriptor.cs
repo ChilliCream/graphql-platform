@@ -5,6 +5,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// A fluent configuration API for GraphQL arguments.
+    /// </summary>
     public class ArgumentDescriptor
         : ArgumentDescriptorBase<ArgumentDefinition>
         , IArgumentDescriptor
@@ -46,6 +49,11 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.RuntimeDefaultValue = defaultValue;
             }
+
+            if (context.Naming.IsDeprecated(parameter, out var reason))
+            {
+                Deprecated(reason);
+            }
         }
 
         protected internal ArgumentDescriptor(
@@ -70,6 +78,7 @@ namespace HotChocolate.Types.Descriptors
             base.OnCreateDefinition(definition);
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -77,12 +86,28 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Description(string value)
         {
             base.Description(value);
             return this;
         }
 
+        /// <inheritdoc />
+        public new IArgumentDescriptor Deprecated(string reason)
+        {
+            base.Deprecated(reason);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public new IArgumentDescriptor Deprecated()
+        {
+            base.Deprecated();
+            return this;
+        }
+
+        /// <inheritdoc />
         public new IArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType
         {
@@ -90,6 +115,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Type<TInputType>(
             TInputType inputType)
             where TInputType : class, IInputType
@@ -98,6 +124,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Type(
             ITypeNode typeNode)
         {
@@ -105,6 +132,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Type(
             Type type)
         {
@@ -112,18 +140,21 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor DefaultValue(IValueNode value)
         {
             base.DefaultValue(value);
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor DefaultValue(object value)
         {
             base.DefaultValue(value);
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class
@@ -132,6 +163,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
@@ -139,6 +171,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
         public new IArgumentDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)

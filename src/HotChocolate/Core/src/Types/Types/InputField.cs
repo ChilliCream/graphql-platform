@@ -38,6 +38,9 @@ namespace HotChocolate.Types
             {
                 IsOptional = true;
             }
+
+            IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+            DeprecationReason = definition.DeprecationReason;
         }
 
         /// <summary>
@@ -54,6 +57,12 @@ namespace HotChocolate.Types
         protected internal PropertyInfo? Property { get; }
 
         protected internal bool IsOptional { get; }
+
+        /// <inheritdoc />
+        public bool IsDeprecated { get; }
+
+        /// <inheritdoc />
+        public string? DeprecationReason { get; }
 
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;

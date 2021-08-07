@@ -19,6 +19,8 @@ namespace HotChocolate.Types
                 .Name(Names.Deprecated)
                 .Description(TypeResources.DeprecatedDirectiveType_TypeDescription)
                 .Location(DirectiveLocation.FieldDefinition)
+                .Location(DirectiveLocation.ArgumentDefinition)
+                .Location(DirectiveLocation.InputFieldDefinition)
                 .Location(DirectiveLocation.EnumValue);
 
             descriptor

@@ -1,6 +1,8 @@
 #pragma warning disable IDE1006 // Naming Styles
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -19,6 +21,7 @@ namespace HotChocolate.Types.Introspection
             SyntaxTypeReference stringType = Create(ScalarNames.String);
             SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
             SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+            SyntaxTypeReference booleanType = Parse($"{ScalarNames.Boolean}");
             SyntaxTypeReference argumentListType = Parse($"[{nameof(__InputValue)}!]!");
             SyntaxTypeReference locationListType = Parse($"[{nameof(__DirectiveLocation)}!]!");
 
@@ -32,7 +35,17 @@ namespace HotChocolate.Types.Introspection
                     new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                     new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
                     new(Names.Locations, type: locationListType, pureResolver: Resolvers.Locations),
-                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments),
+                    new(Names.Args, type: argumentListType, pureResolver: Resolvers.Arguments)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: booleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
                     new(Names.IsRepeatable,
                         type: nonNullBooleanType,
                         pureResolver: Resolvers.IsRepeatable),
@@ -72,8 +85,12 @@ namespace HotChocolate.Types.Introspection
             public static object Locations(IPureResolverContext context)
                 => context.Parent<DirectiveType>().Locations;
 
-            public static object Arguments(IPureResolverContext context)
-                => context.Parent<DirectiveType>().Arguments;
+            public static object? Arguments(IPureResolverContext context)
+                => context.Parent<DirectiveType>() is {} of
+                    ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                        ? of.Arguments
+                        : of.Arguments.Where(t => !t.IsDeprecated)
+                    : null;
 
             public static object OnOperation(IPureResolverContext context)
             {
@@ -115,6 +132,7 @@ namespace HotChocolate.Types.Introspection
             public const string OnOperation = "onOperation";
             public const string OnFragment = "onFragment";
             public const string OnField = "onField";
+            public const string IncludeDeprecated = "includeDeprecated";
         }
     }
 }

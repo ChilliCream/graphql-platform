@@ -39,6 +39,9 @@ namespace HotChocolate.Types
             {
                 Formatter = new AggregateInputValueFormatter(formatters);
             }
+
+            IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
+            DeprecationReason = definition.DeprecationReason;
         }
 
         /// <summary>
@@ -52,6 +55,13 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public IInputValueFormatter? Formatter { get; }
 
+        /// <inheritdoc />
+        public bool IsDeprecated { get; }
+
+        /// <inheritdoc />
+        public string? DeprecationReason { get; }
+
+        /// <inheritdoc />
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             ArgumentDefinition definition)

@@ -14,6 +14,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// A fluent configuration API for GraphQL fields.
+    /// </summary>
     public class ObjectFieldDescriptor
         : OutputFieldDescriptorBase<ObjectFieldDefinition>
         , IObjectFieldDescriptor

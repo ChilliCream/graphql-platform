@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.MemberKind;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -22,16 +23,22 @@ namespace HotChocolate.Types.Descriptors
             PropertyInfo property)
             : base(context)
         {
-            Definition.Name = context.Naming.GetMemberName(
-                property, MemberKind.DirectiveArgument);
-            Definition.Description = context.Naming.GetMemberDescription(
-                property, MemberKind.DirectiveArgument);
+            Definition.Name =
+                context.Naming.GetMemberName(property, DirectiveArgument);
+            Definition.Description =
+                context.Naming.GetMemberDescription(property, DirectiveArgument);
+
             Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
             Definition.Property = property;
 
             if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
                 Definition.RuntimeDefaultValue = defaultValue;
+            }
+
+            if (context.Naming.IsDeprecated(property, out var reason))
+            {
+                Deprecated(reason);
             }
         }
 
@@ -57,6 +64,7 @@ namespace HotChocolate.Types.Descriptors
             base.OnCreateDefinition(definition);
         }
 
+        /// <inheritdoc />
         public new IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
@@ -64,18 +72,21 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Name(
-            NameString value)
+        /// <inheritdoc />
+        public IDirectiveArgumentDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
+
+        /// <inheritdoc />
         public new IDirectiveArgumentDescriptor Description(string value)
         {
             base.Description(value);
             return this;
         }
 
+        /// <inheritdoc />
         public new IDirectiveArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType
         {
@@ -83,42 +94,57 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IDirectiveArgumentDescriptor Type<TInputType>(
-            TInputType inputType)
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
             base.Type(inputType);
             return this;
         }
 
-        public new IDirectiveArgumentDescriptor Type(
-            ITypeNode typeNode)
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor Type(ITypeNode typeNode)
         {
             base.Type(typeNode);
             return this;
         }
 
-        public new IDirectiveArgumentDescriptor Type(
-          Type type)
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor Type(Type type)
         {
             base.Type(type);
             return this;
         }
 
-        public new IDirectiveArgumentDescriptor DefaultValue(
-            IValueNode value)
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor DefaultValue(IValueNode value)
         {
             base.DefaultValue(value);
             return this;
         }
 
-        public new IDirectiveArgumentDescriptor DefaultValue(
-            object value)
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor DefaultValue(object value)
         {
             base.DefaultValue(value);
             return this;
         }
 
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor Deprecated(string value)
+        {
+            base.Deprecated(value);
+            return this;
+        }
+
+        /// <inheritdoc />
+        public new IDirectiveArgumentDescriptor Deprecated()
+        {
+            base.Deprecated();
+            return this;
+        }
+
+        /// <inheritdoc />
         public IDirectiveArgumentDescriptor Ignore(bool ignore = true)
         {
             Definition.Ignore = ignore;

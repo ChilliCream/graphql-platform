@@ -20,6 +20,7 @@ namespace HotChocolate.Types.Introspection
         {
             SyntaxTypeReference stringType = Create(ScalarNames.String);
             SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+            SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
             SyntaxTypeReference nonNullTypeType = Parse($"{nameof(__Type)}!");
             SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
@@ -37,6 +38,12 @@ namespace HotChocolate.Types.Introspection
                         InputValue_DefaultValue,
                         stringType,
                         pureResolver: Resolvers.DefaultValue),
+                    new(Names.IsDeprecated,
+                        type: nonNullBooleanType,
+                        pureResolver: Resolvers.IsDeprecated),
+                    new(Names.DeprecationReason,
+                        type: stringType,
+                        pureResolver: Resolvers.DeprecationReason),
                 }
             };
 
@@ -62,6 +69,12 @@ namespace HotChocolate.Types.Introspection
             public static object Type(IPureResolverContext context)
                 => context.Parent<IInputField>().Type;
 
+            public static object IsDeprecated(IPureResolverContext context)
+                => context.Parent<IInputField>().IsDeprecated;
+
+            public static object? DeprecationReason(IPureResolverContext context)
+                => context.Parent<IInputField>().DeprecationReason;
+
             public static object? DefaultValue(IPureResolverContext context)
             {
                 IInputField field = context.Parent<IInputField>();
@@ -82,6 +95,8 @@ namespace HotChocolate.Types.Introspection
             public const string DefaultValue = "defaultValue";
             public const string Type = "type";
             public const string AppliedDirectives = "appliedDirectives";
+            public const string IsDeprecated = "isDeprecated";
+            public const string DeprecationReason = "deprecationReason";
         }
     }
 }

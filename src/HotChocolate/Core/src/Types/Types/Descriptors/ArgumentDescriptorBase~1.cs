@@ -17,6 +17,24 @@ namespace HotChocolate.Types.Descriptors
 
         protected internal override T Definition { get; protected set; }
 
+        protected void Deprecated(string? reason)
+        {
+            if (string.IsNullOrEmpty(reason))
+            {
+                Deprecated();
+            }
+            else
+            {
+                Definition.DeprecationReason = reason;
+            }
+        }
+
+        protected void Deprecated()
+        {
+            Definition.DeprecationReason =
+                WellKnownDirectives.DeprecationDefaultReason;
+        }
+
         protected void SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {

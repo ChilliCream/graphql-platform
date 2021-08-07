@@ -9,13 +9,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class OutputFieldDefinitionBase
         : FieldDefinitionBase<FieldDefinitionNode>
-        , ICanBeDeprecated
     {
         private List<ArgumentDefinition>? _arguments;
-
-        public string? DeprecationReason { get; set; }
-
-        public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
         public IList<ArgumentDefinition> Arguments =>
             _arguments ??= new List<ArgumentDefinition>();

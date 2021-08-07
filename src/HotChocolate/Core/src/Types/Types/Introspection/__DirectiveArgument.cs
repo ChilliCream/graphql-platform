@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Introspection
                 Fields =
                 {
                     new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
-                    new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value)
+                    new(Names.Value, type: nonNullStringType, pureResolver: Resolvers.Value),
                 }
             };
         }

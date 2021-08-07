@@ -105,46 +105,279 @@ namespace HotChocolate.Types
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
+        /// <summary>
+        /// Ignores the field of the type
+        /// </summary>
+        /// <param name="ignore">
+        /// when true the field is ignored, when false the field is not ignored
+        /// </param>
         IObjectFieldDescriptor Ignore(bool ignore = true);
 
+        /// <summary>
+        /// Adds a resolver to the field. A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="fieldResolver">The resolver of the field</param>
+        /// <example>
+        /// Resolver accessing the parent
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Parent<Example>().Foo);
+        /// ]]>
+        /// </code>
+        /// Resolver with static value
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve("Static Value");
+        /// ]]>
+        /// </code>
+        /// Resolver accessing service
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Service<ISomeService>().GetFoo());
+        /// ]]>
+        /// </code>
+        /// Resolver accessing argument
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Argument("arg1", x => x.Type<StringType>())
+        ///     .Resolve(context => context.ArgumentValue<string>("arg1"));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         [Obsolete("Use Resolve(...)")]
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver);
 
+        /// <summary>
+        /// Adds a resolver to the field. A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="fieldResolver">The resolver of the field</param>
+        /// <param name="resultType">The result type of the resolver</param>
+        /// <example>
+        /// Resolver accessing the parent
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Parent<Example>().Foo, typeof(string));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         [Obsolete("Use Resolve(...)")]
         IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType);
 
+        /// <summary>
+        /// Adds a resolver to the field. A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="fieldResolver">The resolver of the field</param>
+        /// <example>
+        /// Resolver accessing the parent
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Parent<Example>().Foo);
+        /// ]]>
+        /// </code>
+        /// Resolver with static value
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve("Static Value");
+        /// ]]>
+        /// </code>
+        /// Resolver accessing service
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Service<ISomeService>().GetFoo());
+        /// ]]>
+        /// </code>
+        /// Resolver accessing argument
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Argument("arg1", x => x.Type<StringType>())
+        ///     .Resolve(context => context.ArgumentValue<string>("arg1"));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver);
 
+        /// <summary>
+        /// Adds a resolver to the field. A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="fieldResolver">The resolver of the field</param>
+        /// <param name="resultType">The result type of the resolver</param>
+        /// <example>
+        /// Resolver accessing the parent
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Resolve(context => context.Parent<Example>().Foo, typeof(string));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver,
             Type? resultType);
 
+        /// <summary>
+        /// Adds a resolver based on a method to the field.
+        /// A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="propertyOrMethod">The resolver of the field</param>
+        /// <example>
+        /// Given the following resolvers class
+        /// <code>
+        /// <![CDATA[
+        /// private class Resolvers
+        /// {
+        ///    public ValueTask<string> GetFoo(
+        ///        [Service] IFooService service,
+        ///        CancellationToken cancellationToken) =>
+        ///        service.GetFooAsync(cancellationToken);
+        /// }
+        /// ]]>
+        /// </code>
+        /// The GetFoo method cann be mapped like:
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .ResolveWith<Resolvers>(t => t.GetFoo(default!, default));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod);
 
+        /// <summary>
+        /// Adds a resolver based on a method to the field.
+        /// A resolver is a method that resolves the value for a
+        /// field. The resolver can access parent object, arguments, services and more through the
+        /// <see cref="IResolverContext"/>.
+        /// </summary>
+        /// <param name="propertyOrMethod">The resolver of the field</param>
+        /// <example>
+        /// Given the following resolvers class
+        /// <code>
+        /// <![CDATA[
+        /// private class Resolvers
+        /// {
+        ///    public ValueTask<string> GetFoo(
+        ///        [Service] IFooService service,
+        ///        CancellationToken cancellationToken) =>
+        ///        service.GetFooAsync(cancellationToken);
+        /// }
+        /// ]]>
+        /// </code>
+        /// The GetFoo method cann be mapped like:
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .ResolveWith<Resolvers>(typeof(Resolvers).GetMethod("GetFoo"));
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns></returns>
         IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
+        /// <summary>
+        /// Adds a subscription resolver to to the field
+        /// </summary>
+        /// <param name="subscribeResolver">The subscription resolver</param>
+        /// <returns></returns>
         IObjectFieldDescriptor Subscribe(
             SubscribeResolverDelegate subscribeResolver);
 
+        /// <summary>
+        /// Registers a middleware on the field. The middleware is integrated in the resolver
+        /// pipeline and is executed before the resolver itself
+        /// </summary>
+        /// <param name="middleware">The middleware</param>
+        /// <example>
+        /// <code>
+        /// <![CDATA[
+        /// descriptor
+        ///     .Field(x => x.Foo)
+        ///     .Use(next => async context =>
+        ///     {
+        ///         // before the resolver
+        ///         await next(context);
+        ///         // after the resolver
+        ///     });
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <returns>The descriptor</returns>
         IObjectFieldDescriptor Use(
             FieldMiddleware middleware);
 
+        /// <summary>
+        /// Registers a directive on the field
+        /// </summary>
+        /// <param name="directiveInstance">The instance of the directive</param>
+        /// <typeparam name="T">The type of the directive</typeparam>
+        /// <returns>The descriptor</returns>
         IObjectFieldDescriptor Directive<T>(
             T directiveInstance)
             where T : class;
 
+        /// <summary>
+        /// Registers a directive on the field
+        /// </summary>
+        /// <typeparam name="T">The type of the directive</typeparam>
+        /// <returns>The descriptor</returns>
         IObjectFieldDescriptor Directive<T>()
             where T : class, new();
 
+        /// <summary>
+        /// Registers a directive on the field
+        /// </summary>
+        /// <param name="name">The name of the directive</param>
+        /// <param name="arguments">The arguments of the directive</param>
+        /// <returns>The descriptor</returns>
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
 
+        /// <summary>
+        /// Configures the context data of the field
+        /// </summary>
+        /// <param name="configure">A delegate to configure the context data</param>
+        /// <returns>The descriptor</returns>
         IObjectFieldDescriptor ConfigureContextData(Action<ExtensionData> configure);
     }
 }
