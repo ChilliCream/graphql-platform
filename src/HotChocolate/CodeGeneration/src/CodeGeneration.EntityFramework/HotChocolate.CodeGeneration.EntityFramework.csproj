@@ -5,9 +5,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.CodeGeneration.Neo4J</AssemblyName>
-    <RootNamespace>HotChocolate.CodeGeneration.Neo4J</RootNamespace>
-    <Description>Contains source generators for Neo4J.</Description>
+    <AssemblyName>HotChocolate.CodeGeneration.EntityFramework</AssemblyName>
+    <RootNamespace>HotChocolate.CodeGeneration.EntityFramework</RootNamespace>
+    <Description>Contains source generators for Entity Framework Core.</Description>
   </PropertyGroup>
 
   <ItemGroup>
