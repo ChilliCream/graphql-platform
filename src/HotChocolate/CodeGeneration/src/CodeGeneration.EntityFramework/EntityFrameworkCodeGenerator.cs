@@ -59,7 +59,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 GenerateModel(
                     result,
                     usePluralizedTableNames: usePluralizedTableNames,
-                    dbContextClass,
+                    ref dbContextClass,
                     @namespace,
                     objectType);
             }
@@ -71,7 +71,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         private static void GenerateModel(
             CodeGenerationResult result,
             bool usePluralizedTableNames,
-            ClassDeclarationSyntax dbContextClass,
+            ref ClassDeclarationSyntax dbContextClass,
             string @namespace,
             IObjectType objectType)
         {
