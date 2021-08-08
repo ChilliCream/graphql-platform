@@ -1,0 +1,56 @@
+type Customer {
+  Id: Int! @key(name: "PK_CustomerId")# @autoIncrement
+  FirstName: String! @index
+  LastName: String! @index
+  User: User @oneToOne(foreignKey: "CustomerId", inverseField: "Customer")
+  ShippingAddresses: [Address!]!
+  Orders: [Order!]! @oneToMany(foreignKey: "CustomerId")
+}
+
+type User @table(name: "ChilliCreamUsers") {
+  UserId: Int! @key
+  Username: String! @index
+  Email: String! @index
+  CreatedAt: DateTime
+  ModifiedAt: DateTime
+  CustomerId: Int @foreignKey(to: "Customer")
+  Customer: Customer
+}
+
+type Address
+# TODO: At a later stage: @json
+{
+  Street: String!
+  City: String!
+  State: String!
+  Country: String!
+}
+
+type Order {
+  OrderId: Int! @key
+  CustomerId: Int! @foreignKey(to: "Customer")
+  Customer: Customer!
+  Products: [Product!]!
+    @manyToMany(
+      joinTable: "ProductOrders"
+      foreignKey: "OrderId"
+      inverseField: "Orders"
+    )
+  OrderDate: DateTime
+  TotalValue: Float!
+}
+
+type Product {
+  ProductId: Int! @key
+  Name: String!
+  Description: String
+  Sku: String
+  Price: Float
+  Orders: [Order!]!
+    @manyToMany(
+      joinTable: "ProductOrders"
+      foreignKey: "ProductId"
+      inverseField: "Products"
+    )
+  IsFeatured: Boolean
+}

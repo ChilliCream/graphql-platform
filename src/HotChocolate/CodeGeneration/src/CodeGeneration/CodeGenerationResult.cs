@@ -19,20 +19,20 @@ namespace HotChocolate.CodeGeneration
             AddSource($"{@namespace}.{className}.cs", source);
         }
 
-        public void AddClass(string @namespace, string className, ClassDeclarationSyntax classDeclarationSyntax)
+        public void AddClass(string @namespace, string className, ClassDeclarationSyntax @class)
         {
-            AddSource($"{@namespace}.{className}.cs", classDeclarationSyntax.ToFullString());
+            AddSource($"{@namespace}.{className}.cs", @class.NormalizeWhitespace().ToFullString());
         }
 
         public void AddClass(
             string @namespace,
             string className,
-            ClassDeclarationSyntax classDeclaration,
+            ClassDeclarationSyntax @class,
             UsingDirectiveSyntax[] usings)
         {
             NamespaceDeclarationSyntax namespaceDeclaration =
                 NamespaceDeclaration(IdentifierName(@namespace))
-                    .AddMembers(classDeclaration);
+                    .AddMembers(@class);
 
             CompilationUnitSyntax compilationUnit =
                 CompilationUnit()

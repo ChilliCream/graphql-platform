@@ -1,0 +1,39 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class Customer
+{
+    public global::System.Int32 Id
+    {
+        get;
+        set;
+    }
+
+    public global::System.String FirstName
+    {
+        get;
+        set;
+    }
+
+    public global::System.String LastName
+    {
+        get;
+        set;
+    }
+
+    public global::CompanyName.EFCore.User User
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Address> ShippingAddresses
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Order> Orders
+    {
+        get;
+        set;
+    }
+}

@@ -1,0 +1,45 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class User
+{
+    public global::System.Int32 UserId
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Username
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Email
+    {
+        get;
+        set;
+    }
+
+    public global::System.DateTimeOffset CreatedAt
+    {
+        get;
+        set;
+    }
+
+    public global::System.DateTimeOffset ModifiedAt
+    {
+        get;
+        set;
+    }
+
+    public global::System.Int32 CustomerId
+    {
+        get;
+        set;
+    }
+
+    public global::CompanyName.EFCore.Customer Customer
+    {
+        get;
+        set;
+    }
+}

@@ -1,0 +1,45 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class Product
+{
+    public global::System.Int32 ProductId
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Name
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Description
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Sku
+    {
+        get;
+        set;
+    }
+
+    public global::System.Double Price
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Order> Orders
+    {
+        get;
+        set;
+    }
+
+    public global::System.Boolean IsFeatured
+    {
+        get;
+        set;
+    }
+}

@@ -1,0 +1,27 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class Address
+{
+    public global::System.String Street
+    {
+        get;
+        set;
+    }
+
+    public global::System.String City
+    {
+        get;
+        set;
+    }
+
+    public global::System.String State
+    {
+        get;
+        set;
+    }
+
+    public global::System.String Country
+    {
+        get;
+        set;
+    }
+}

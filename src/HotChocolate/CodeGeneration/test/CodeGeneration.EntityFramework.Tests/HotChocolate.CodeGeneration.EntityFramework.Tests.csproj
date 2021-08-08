@@ -1,14 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>HotChocolate.CodeGeneration.Neo4J.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.CodeGeneration.Neo4J</RootNamespace>
+    <AssemblyName>HotChocolate.CodeGeneration.EntityFramework.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.CodeGeneration.EntityFramework</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\CodeGeneration.Neo4J\HotChocolate.CodeGeneration.Neo4J.csproj" />
+    <None Remove="Schema.graphql" />
+    <EmbeddedResource Include="Schema.graphql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CodeGeneration.EntityFramework\HotChocolate.CodeGeneration.EntityFramework.csproj" />
   </ItemGroup>
 
   <ItemGroup>

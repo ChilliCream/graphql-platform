@@ -85,10 +85,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             JsonDirective? jsonDirective =
                 objectType.GetFirstDirective<JsonDirective>(JsonDirectiveType.NameConst);
 
-            var tableName = tableDirective is not null || jsonDirective is null
-                ? tableDirective?.Name ?? DeriveTableName(objectType.Name.Value, usePluralizedTableNames) // TODO: Use Humanizer or something I guess
-                : null;
-            var pluralizedTableName = tableName.Pluralize(inputIsKnownToBeSingular: false);
+            var tableName = GetTableName(objectType, tableDirective, jsonDirective, usePluralizedTableNames);
+            var hasTable = tableName != null;
+            var singularName = tableName.Singularize(inputIsKnownToBePlural: usePluralizedTableNames);
+            var pluralizedName = tableName.Pluralize(inputIsKnownToBeSingular: !usePluralizedTableNames);
 
             ClassDeclarationSyntax modelDeclaration =
                 ClassDeclaration(modelName)
@@ -126,17 +126,43 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             result.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
 
             // Add it on to the DbContext
-            GenericNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
-            dbContextClass = dbContextClass.AddProperty(
-                pluralizedTableName,
-                dbSetType,
-                description: null,
-                setable: true);
+            if (hasTable)
+            {
+                GenericNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
+                dbContextClass = dbContextClass.AddProperty(
+                    pluralizedName,
+                    dbSetType,
+                    description: null,
+                    setable: true);
+            }
         }
 
-        private static string DeriveTableName(string objectTypeName, bool usePluralizedTableNames)
+        private static string? GetTableName(
+            IObjectType objectType,
+            TableDirective? tableDirective,
+            JsonDirective? jsonDirective,
+            bool usePluralizedTableNames)
         {
-            return objectTypeName + "s"; // TODO: Leverage Humanizer 
+            // If it's got a json directive, it's a nested entity
+            if (jsonDirective is not null)
+            {
+                return null;
+            }
+
+            // If there's a table directive explicitly stating a name, use that
+            if (tableDirective is not null &&
+                !string.IsNullOrWhiteSpace(tableDirective.Name))
+            {
+                return tableDirective.Name;
+            }
+
+            // Else derive something from the type's name
+            var tableName = objectType.Name.Value;
+            if (usePluralizedTableNames)
+            {
+                tableName = tableName.Pluralize(inputIsKnownToBeSingular: false);
+            }
+            return tableName;
         }
 
         private static readonly QualifiedNameSyntax _msEfCoreQualifiedNameForNs =
@@ -187,7 +213,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                         Token(SyntaxKind.PublicKeyword)))
                 .WithParameterList(
                     ParameterList(
-                        SingletonSeparatedList<ParameterSyntax>(
+                        SingletonSeparatedList(
                             Parameter(
                                 Identifier("builder"))
                             .WithType(
@@ -208,38 +234,6 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             return _dbSetGenericName.WithTypeArgumentList(
                 TypeArgumentList(
                     SingletonSeparatedList<TypeSyntax>(fullModelTypeName)));
-        }
-    }
-
-    public static class ExtensionsToRefactorElsewhere
-    {
-        public static void AddClass(
-            this GeneratorExecutionContext context,
-            string @namespace,
-            string className,
-            ClassDeclarationSyntax classDeclaration)
-        {
-            context.AddClass(@namespace, className, classDeclaration, Array.Empty<UsingDirectiveSyntax>());
-        }
-
-        public static void AddClass(
-            this GeneratorExecutionContext context,
-            string @namespace,
-            string className,
-            ClassDeclarationSyntax classDeclaration,
-            UsingDirectiveSyntax[] usings)
-        {
-            NamespaceDeclarationSyntax namespaceDeclaration =
-                NamespaceDeclaration(IdentifierName(@namespace))
-                    .AddMembers(classDeclaration);
-
-            CompilationUnitSyntax compilationUnit =
-                CompilationUnit()
-                    .AddMembers(namespaceDeclaration)
-                    .AddUsings(usings)
-                    .NormalizeWhitespace(elasticTrivia: true);
-
-            context.AddSource(@namespace + $".{className}.cs", compilationUnit.ToFullString());
         }
     }
 }

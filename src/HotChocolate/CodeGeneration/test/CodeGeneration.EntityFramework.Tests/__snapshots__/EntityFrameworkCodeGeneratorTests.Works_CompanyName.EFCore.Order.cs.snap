@@ -1,0 +1,39 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class Order
+{
+    public global::System.Int32 OrderId
+    {
+        get;
+        set;
+    }
+
+    public global::System.Int32 CustomerId
+    {
+        get;
+        set;
+    }
+
+    public global::CompanyName.EFCore.Customer Customer
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Product> Products
+    {
+        get;
+        set;
+    }
+
+    public global::System.DateTimeOffset OrderDate
+    {
+        get;
+        set;
+    }
+
+    public global::System.Double TotalValue
+    {
+        get;
+        set;
+    }
+}

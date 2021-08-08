@@ -22,6 +22,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
                 // TODO: Would we want to support this on a field too?
                 // In fact, perhaps on a field is the only way we'd want to support it.
+
+                // Docs on how this is supported in npgsql:
+                // https://www.npgsql.org/efcore/mapping/json.html
                 /*
                  * 
                  * type Customer {
