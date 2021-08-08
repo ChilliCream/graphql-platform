@@ -128,7 +128,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             // Add it on to the DbContext
             if (hasTable)
             {
-                GenericNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
+                QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
                 dbContextClass = dbContextClass.AddProperty(
                     pluralizedName,
                     dbSetType,
@@ -226,14 +226,16 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 .WithBody(
                     Block()));
 
-        private static GenericNameSyntax GetDbSetTypeName(string @namespace, string modelTypeName)
+        private static QualifiedNameSyntax GetDbSetTypeName(string @namespace, string modelTypeName)
         {
             IdentifierNameSyntax fullModelTypeName =
                 IdentifierName(Global(@namespace + "." + modelTypeName));
 
-            return _dbSetGenericName.WithTypeArgumentList(
-                TypeArgumentList(
-                    SingletonSeparatedList<TypeSyntax>(fullModelTypeName)));
+            return QualifiedName(
+                _msEfCoreQualifiedName,
+                _dbSetGenericName.WithTypeArgumentList(
+                    TypeArgumentList(
+                        SingletonSeparatedList<TypeSyntax>(fullModelTypeName))));
         }
     }
 }

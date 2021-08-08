@@ -1,31 +1,31 @@
 ﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
 public partial class AppDbContext
 {
-    public DbSet<global::CompanyName.EFCore.Customer> Customers
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Customer> Customers
     {
         get;
         set;
     }
 
-    public DbSet<global::CompanyName.EFCore.User> ChilliCreamUsers
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.User> ChilliCreamUsers
     {
         get;
         set;
     }
 
-    public DbSet<global::CompanyName.EFCore.Address> Addresses
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Address> Addresses
     {
         get;
         set;
     }
 
-    public DbSet<global::CompanyName.EFCore.Order> Orders
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Order> Orders
     {
         get;
         set;
     }
 
-    public DbSet<global::CompanyName.EFCore.Product> Products
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Product> Products
     {
         get;
         set;
