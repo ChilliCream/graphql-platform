@@ -108,10 +108,10 @@ namespace HotChocolate.Types
             // arrange
             // act
             var fooType = new InputObjectType<SimpleInput>(d =>
-               {
-                   d.Field(f => f.Id).Ignore();
-                   d.Field(f => f.Id).Ignore(false);
-               });
+            {
+                d.Field(f => f.Id).Ignore();
+                d.Field(f => f.Id).Ignore(false);
+            });
 
             // assert
             fooType = CreateType(fooType);
@@ -191,10 +191,10 @@ namespace HotChocolate.Types
             // arrange
             // act
             var fooType = new InputObjectType<SimpleInput>(d => d
-                    .Name("Bar")
-                    .Directive(new DirectiveNode("foo"))
-                    .Field(f => f.Id)
-                    .Directive(new DirectiveNode("foo")));
+                .Name("Bar")
+                .Directive(new DirectiveNode("foo"))
+                .Field(f => f.Id)
+                .Directive(new DirectiveNode("foo")));
 
             // assert
             fooType = CreateType(fooType,
@@ -406,7 +406,8 @@ namespace HotChocolate.Types
             // assert
             Exception ex =
                 Assert.Throws<SchemaException>(Action)
-                   .Errors.First().Exception;
+                    .Errors.First()
+                    .Exception;
 
             Assert.Equal(
                 "inputType",
@@ -711,11 +712,7 @@ namespace HotChocolate.Types
 
             // act
             IValueNode valueNode = type.ParseValue(
-                new SimpleInput
-                {
-                    Id = 1,
-                    Name = "foo"
-                });
+                new SimpleInput { Id = 1, Name = "foo" });
 
             // assert
             valueNode.Print().MatchSnapshot();
@@ -858,11 +855,7 @@ namespace HotChocolate.Types
 
             // act
             var serialized = type.Serialize(
-                new SimpleInput
-                {
-                    Id = 1,
-                    Name = "foo"
-                });
+                new SimpleInput { Id = 1, Name = "foo" });
 
             // assert
             serialized.MatchSnapshot();
@@ -887,10 +880,7 @@ namespace HotChocolate.Types
 
             // act
             var serialized = type.Serialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                });
+                new Dictionary<string, object> { { "name", "foo" } });
 
             // assert
             serialized.MatchSnapshot();
@@ -940,10 +930,7 @@ namespace HotChocolate.Types
 
             // act
             var result = type.TryDeserialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                },
+                new Dictionary<string, object> { { "name", "foo" } },
                 out var value);
 
             // assert
@@ -972,10 +959,7 @@ namespace HotChocolate.Types
 
             // act
             var result = type.TryDeserialize(
-                new Dictionary<string, object>
-                {
-                    { "name", "foo" }
-                },
+                new Dictionary<string, object> { { "name", "foo" } },
                 out var value);
 
             // assert
@@ -1090,6 +1074,23 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void InputObjectType_InInputObjectType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            Exception ex = Record.Exception(
+                () => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<InputObjectType<InputObjectType<Foo>>>()
+                    .Create());
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+            ex.Message.MatchSnapshot();
+        }
+
         public class InputWithInterfaceType : InputObjectType<InputWithInterface>
         {
             protected override void Configure(
@@ -1136,8 +1137,7 @@ namespace HotChocolate.Types
 
         public class FooDirectiveType : DirectiveType<FooDirective>
         {
-            protected override void Configure(
-                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            protected override void Configure(IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
                 descriptor.Name("foo");
                 descriptor.Location(DirectiveLocation.InputObject)
@@ -1145,7 +1145,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public class FooDirective { }
+        public class FooDirective
+        {
+        }
 
         public class QueryType : ObjectType
         {
@@ -1161,8 +1163,7 @@ namespace HotChocolate.Types
 
         public class FooInputType : InputObjectType<Foo>
         {
-            protected override void Configure(
-                IInputObjectTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IInputObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Type<BazInputType>();
             }
@@ -1201,9 +1202,7 @@ namespace HotChocolate.Types
             {
                 return new FooPayload
                 {
-                    IsBarSet = input.Bar.HasValue,
-                    Bar = input.Bar,
-                    Baz = input.Baz
+                    IsBarSet = input.Bar.HasValue, Bar = input.Bar, Baz = input.Baz
                 };
             }
         }

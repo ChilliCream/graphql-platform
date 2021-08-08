@@ -116,7 +116,8 @@ namespace HotChocolate.Types
 
             // assert
             IType argumentType = fooType.Fields["bar"]
-                .Arguments.First().Type;
+                .Arguments.First()
+                .Type;
 
             Assert.NotNull(argumentType);
             Assert.True(argumentType.IsNonNullType());
@@ -132,9 +133,9 @@ namespace HotChocolate.Types
 
             // act
             ObjectType fooType = CreateType(new ObjectType(c => c
-                .Name("Foo")
-                .Field("bar")
-                .Resolve(() => "baz")),
+                    .Name("Foo")
+                    .Field("bar")
+                    .Resolve(() => "baz")),
                 b => b.Use(next => async context =>
                 {
                     await next(context);
@@ -1184,7 +1185,6 @@ namespace HotChocolate.Types
             Assert.Collection(
                 fooType.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
-
         }
 
         [Fact]
@@ -1204,7 +1204,6 @@ namespace HotChocolate.Types
                 fooType.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("description", t.Name),
                 t => Assert.Equal("foo", t.Name));
-
         }
 
         [Fact]
@@ -1245,7 +1244,8 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<SchemaException>(Action)
-                .Errors[0].Message.MatchSnapshot();
+                .Errors[0]
+                .Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1262,7 +1262,8 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<SchemaException>(Action)
-                .Errors[0].Message.MatchSnapshot();
+                .Errors[0]
+                .Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1306,7 +1307,8 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<SchemaException>(Action)
-                .Errors[0].Message.MatchSnapshot();
+                .Errors[0]
+                .Message.MatchSnapshot();
         }
 
         [Fact]
@@ -1430,11 +1432,7 @@ namespace HotChocolate.Types
             IExecutionResult result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ bar baz }")
-                    .SetInitialValue(new FooStruct
-                    {
-                        Qux = "Qux_Value",
-                        Baz = "Baz_Value"
-                    })
+                    .SetInitialValue(new FooStruct { Qux = "Qux_Value", Baz = "Baz_Value" })
                     .Create());
             // assert
             result.ToJson().MatchSnapshot();
@@ -1737,6 +1735,23 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void ObjectType_InObjectType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            Exception ex = Record.Exception(
+                () => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<ObjectType<ObjectType<Foo>>>()
+                    .Create());
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+            ex.Message.MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1783,14 +1798,10 @@ namespace HotChocolate.Types
         public class Baz
         {
             public string Qux(
-                [GraphQLName("arg2")]
-                [GraphQLDescription("argdesc")]
-                [GraphQLNonNullType]
+                [GraphQLName("arg2")] [GraphQLDescription("argdesc")] [GraphQLNonNullType]
                 string arg) => arg;
 
-            public string Quux(
-                [GraphQLType(typeof(ListType<StringType>))]
-                string arg) => arg;
+            public string Quux([GraphQLType(typeof(ListType<StringType>))] string arg) => arg;
         }
 
         public class FooType
@@ -1815,6 +1826,7 @@ namespace HotChocolate.Types
         {
             [GraphQLIgnore]
             public string Bar() => "foo";
+
             public string Baz() => "foo";
         }
 
@@ -1932,8 +1944,8 @@ namespace HotChocolate.Types
             }
         }
 
-       public class ResolveWithNonGenericObjectType : ObjectType
-       {
+        public class ResolveWithNonGenericObjectType : ObjectType
+        {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 Type type = typeof(ResolveWithQuery);
@@ -1944,7 +1956,7 @@ namespace HotChocolate.Types
                     .Type<IntType>()
                     .ResolveWith(type.GetProperty("Foo"));
             }
-       }
+        }
 
         public class AnnotatedNestedList
         {

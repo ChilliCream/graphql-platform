@@ -1352,5 +1352,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_MiddlewareOrderInvalid", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_NoSchemaTypesAllowedAsRuntimeType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSchemaTypesAllowedAsRuntimeType", resourceCulture);
+            }
+        }
     }
 }

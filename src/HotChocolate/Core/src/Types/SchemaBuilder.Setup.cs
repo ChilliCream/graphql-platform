@@ -59,11 +59,7 @@ namespace HotChocolate
                         CreateTypeReferences(builder, context);
 
                     TypeRegistry typeRegistry =
-                        InitializeTypes(
-                            builder,
-                            context,
-                            typeReferences,
-                            lazySchema);
+                        InitializeTypes(builder, context, typeReferences, lazySchema);
 
                     return CompleteSchema(builder, context, lazySchema, typeRegistry);
                 }

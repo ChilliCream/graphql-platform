@@ -1,4 +1,6 @@
+using System;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -203,6 +205,23 @@ namespace HotChocolate.Types
 
             // assert
             Assert.NotEmpty(fooBarType.Directives["foo"]);
+        }
+
+        [Fact]
+        public void UnionType_InUnionType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            Exception ex = Record.Exception(
+                () => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<UnionType<UnionType<Foo>>>()
+                    .Create());
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+            ex.Message.MatchSnapshot();
         }
 
         public class FooType : ObjectType<Foo>
