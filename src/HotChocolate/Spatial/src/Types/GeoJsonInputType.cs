@@ -22,16 +22,7 @@ namespace HotChocolate.Types.Spatial
             => CreateInstance;
 
         private object CreateInstance(object?[] fieldValues)
-        {
-            try
-            {
-                return _serializer.CreateInstance(fieldValues);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => _serializer.CreateInstance(this, fieldValues);
 
         protected override Action<object, object?[]> OnCompleteGetFieldValues(
             ITypeCompletionContext context,
@@ -39,15 +30,6 @@ namespace HotChocolate.Types.Spatial
             => GetFieldData;
 
         private void GetFieldData(object runtimeValue, object?[] fieldValues)
-        {
-            try
-            {
-                _serializer.GetFieldData(runtimeValue, fieldValues);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => _serializer.GetFieldData(this, runtimeValue, fieldValues);
     }
 }

@@ -113,7 +113,6 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
         {
@@ -178,7 +177,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(
+            Assert.Throws<SerializationException>(
                 () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 

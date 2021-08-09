@@ -70,7 +70,6 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(MultiPointInputName)]
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
         {
@@ -184,7 +183,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(
+            Assert.Throws<SerializationException>(
                 () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 

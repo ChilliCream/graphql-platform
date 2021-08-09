@@ -104,10 +104,7 @@ namespace HotChocolate.Types
         /// to the .net representation of this type.
         /// </summary>
         /// <param name="valueSyntax">
-        /// The literal that shall be parsed.
-        /// </param>
-        /// <param name="withDefaults">
-        /// Can be ignored on leaf types.
+        ///     The literal that shall be parsed.
         /// </param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">
@@ -117,7 +114,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="valueSyntax" /> cannot be parsed
         /// by this scalar.
         /// </exception>
-        public abstract object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true);
+        public abstract object? ParseLiteral(IValueNode valueSyntax);
 
         /// <summary>
         /// Parses the .net value representation to a value literal.

@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(
+            Assert.Throws<SerializationException>(
                 () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 

@@ -32,16 +32,24 @@ namespace HotChocolate.Types.Spatial.Serialization
                 { GeometryCollection, nameof(GeometryCollection) },
             };
 
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        public override bool TrySerialize(
+            IType type,
+            object? runtimeValue,
+            out object? resultValue)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (runtimeValue is null)
             {
                 resultValue = null;
                 return true;
             }
 
-            if (runtimeValue is GeoJsonGeometryType type &&
-                _valueLookup.TryGetValue(type, out var enumValue))
+            if (runtimeValue is GeoJsonGeometryType geometryType &&
+                _valueLookup.TryGetValue(geometryType, out var enumValue))
             {
                 resultValue = enumValue;
                 return true;
@@ -51,8 +59,13 @@ namespace HotChocolate.Types.Spatial.Serialization
             return false;
         }
 
-        public override bool IsInstanceOfType(IValueNode valueSyntax)
+        public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (valueSyntax is null)
             {
                 throw new ArgumentNullException(nameof(valueSyntax));
@@ -76,8 +89,13 @@ namespace HotChocolate.Types.Spatial.Serialization
             return false;
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public override object? ParseLiteral(IType type, IValueNode valueSyntax)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (valueSyntax is null)
             {
                 throw new ArgumentNullException(nameof(valueSyntax));
@@ -100,11 +118,16 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return null;
             }
 
-            throw Serializer_CouldNotParseLiteral();
+            throw Serializer_CouldNotParseLiteral(type);
         }
 
-        public override IValueNode ParseValue(object? runtimeValue)
+        public override IValueNode ParseValue(IType type, object? runtimeValue)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (runtimeValue is null)
             {
                 return NullValueNode.Default;
@@ -116,21 +139,26 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return new EnumValueNode(enumValue);
             }
 
-            throw Serializer_CouldNotParseValue();
+            throw Serializer_CouldNotParseValue(type);
         }
 
-        public override object CreateInstance(object?[] fieldValues)
+        public override object CreateInstance(IType type, object?[] fieldValues)
         {
             throw new NotImplementedException();
         }
 
-        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
         {
             throw new NotImplementedException();
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        public override IValueNode ParseResult(IType type, object? resultValue)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (resultValue is null)
             {
                 return NullValueNode.Default;
@@ -154,19 +182,32 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return new EnumValueNode(name);
             }
 
-            throw Serializer_CouldNotParseValue();
+            throw Serializer_CouldNotParseValue(type);
         }
 
-        public override bool IsInstanceOfType(object? runtimeValue)
+        public override bool IsInstanceOfType(IType type, object? runtimeValue)
         {
-            return runtimeValue is null || runtimeValue is GeoJsonGeometryType;
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return runtimeValue is null or GeoJsonGeometryType;
         }
 
         public bool TryParseString(string type, out GeoJsonGeometryType geometryType) =>
             _nameLookup.TryGetValue(type, out geometryType);
 
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        public override bool TryDeserialize(
+            IType type,
+            object? resultValue,
+            out object? runtimeValue)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (resultValue is null)
             {
                 runtimeValue = null;
@@ -180,18 +221,17 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return true;
             }
 
-            if (resultValue is NameString n &&
-                n.HasValue &&
+            if (resultValue is NameString { HasValue: true } n &&
                 _nameLookup.TryGetValue(n.Value, out enumValue))
             {
                 runtimeValue = enumValue;
                 return true;
             }
 
-            if (resultValue is GeoJsonGeometryType type &&
-                _valueLookup.ContainsKey(type))
+            if (resultValue is GeoJsonGeometryType geometryType &&
+                _valueLookup.ContainsKey(geometryType))
             {
-                runtimeValue = type;
+                runtimeValue = geometryType;
                 return true;
             }
 
@@ -199,6 +239,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             return false;
         }
 
-        public static readonly GeoJsonTypeSerializer Default = new GeoJsonTypeSerializer();
+        public static readonly GeoJsonTypeSerializer Default = new();
     }
 }

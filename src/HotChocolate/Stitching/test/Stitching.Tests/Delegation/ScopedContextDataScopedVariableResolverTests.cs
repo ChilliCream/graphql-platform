@@ -51,6 +51,8 @@ namespace HotChocolate.Stitching.Delegation
         public void ContextDataEntryDoesNotExist()
         {
             // arrange
+            var inputFormatter = new InputFormatter();
+
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
                 .Use(_ => _)
@@ -62,6 +64,7 @@ namespace HotChocolate.Stitching.Delegation
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ScopedContextData).Returns(contextData);
+            context.Setup(t => t.Service<InputFormatter>()).Returns(inputFormatter);
 
             var scopedVariable = new ScopedVariableNode(
                 null,

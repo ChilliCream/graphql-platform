@@ -277,7 +277,7 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryDispatchBatchesUnsafe()
         {
-            if (IsEmpty && _batchDispatcher.HasTasks)
+            if (_work.IsEmpty && _batchDispatcher.HasTasks)
             {
                 using (_diagnosticEvents.DispatchBatch(_requestContext))
                 {

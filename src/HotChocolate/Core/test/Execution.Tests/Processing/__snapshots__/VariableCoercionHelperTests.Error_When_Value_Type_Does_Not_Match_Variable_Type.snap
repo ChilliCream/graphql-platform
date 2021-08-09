@@ -2,7 +2,11 @@
   {
     "Message": "String cannot parse the given literal of type `IntValueNode`.",
     "Code": null,
-    "Path": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "abc"
+    },
     "Locations": null,
     "Extensions": null,
     "Exception": null,

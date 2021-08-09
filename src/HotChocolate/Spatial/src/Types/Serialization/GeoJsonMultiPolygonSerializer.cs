@@ -15,32 +15,40 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public override MultiPolygon CreateGeometry(
+            IType type,
             object? coordinates,
             int? crs)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             Polygon[]? geometries;
 
-            if (coordinates is List<List<Coordinate>> list)
+            if (coordinates is List<List<Coordinate>> { Count: > 0 } list)
             {
                 geometries = new Polygon[list.Count];
 
                 for (var i = 0; i < list.Count; i++)
                 {
                     geometries[i] =
-                        GeoJsonPolygonSerializer.Default.CreateGeometry(list[i].ToArray(), crs);
+                        GeoJsonPolygonSerializer.Default
+                            .CreateGeometry(type, list[i].ToArray(), crs);
                 }
 
                 goto Success;
             }
 
-            if (coordinates is Coordinate[][] parts)
+            if (coordinates is Coordinate[][] { Length: > 0 } parts)
             {
                 geometries = new Polygon[parts.Length];
 
                 for (var i = 0; i < parts.Length; i++)
                 {
                     geometries[i] =
-                        GeoJsonPolygonSerializer.Default.CreateGeometry(parts[i], crs);
+                        GeoJsonPolygonSerializer.Default
+                            .CreateGeometry(type, parts[i], crs);
                 }
 
                 goto Success;
@@ -60,25 +68,39 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new MultiPolygon(geometries);
 
             Error:
-            throw Serializer_Parse_CoordinatesIsInvalid();
+            throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
 
-        public override object CreateInstance(object?[] fieldValues)
+        public override object CreateInstance(IType type, object?[] fieldValues)
         {
-            if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
+            if (type is null)
             {
-                throw Geometry_Parse_InvalidType();
+                throw new ArgumentNullException(nameof(type));
             }
 
-            return CreateGeometry(fieldValues[1], (int?)fieldValues[2]);
+            if (fieldValues[0] is not GeoJsonGeometryType.MultiPolygon)
+            {
+                throw Geometry_Parse_InvalidType(type);
+            }
+
+            return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
         }
 
-        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
         {
-            var lineString = (LineString)runtimeValue;
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (runtimeValue is not Geometry geometry)
+            {
+                throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
+            }
+
             fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
-            fieldValues[1] = lineString.Coordinates;
-            fieldValues[2] = lineString.SRID;
+            fieldValues[1] = geometry.Coordinates;
+            fieldValues[2] = geometry.SRID;
         }
 
         public static readonly GeoJsonMultiPolygonSerializer Default = new();

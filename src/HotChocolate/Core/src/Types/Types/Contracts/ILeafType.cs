@@ -37,15 +37,12 @@ namespace HotChocolate.Types
         /// Parses the GraphQL value syntax of this type into a runtime value representation.
         /// </summary>
         /// <param name="valueSyntax">
-        /// A GraphQL value syntax representation of this type.
-        /// </param>
-        /// <param name="withDefaults">
-        /// Specifies if default values shall be used if a field value us not provided.
+        ///     A GraphQL value syntax representation of this type.
         /// </param>
         /// <returns>
         /// Returns a runtime value representation of this type.
         /// </returns>
-        object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true);
+        object? ParseLiteral(IValueNode valueSyntax);
 
         /// <summary>
         /// Parses a runtime value of this type into a GraphQL value syntax representation.

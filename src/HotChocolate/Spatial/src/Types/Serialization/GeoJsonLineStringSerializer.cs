@@ -14,9 +14,15 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public override LineString CreateGeometry(
+            IType type,
             object? coordinates,
             int? crs)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (coordinates is List<Coordinate> list)
             {
                 coordinates = list.Count == 0
@@ -26,7 +32,7 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             if (coordinates is not Coordinate[] coords || coords.Length < 2)
             {
-                throw Serializer_Parse_CoordinatesIsInvalid();
+                throw Serializer_Parse_CoordinatesIsInvalid(type);
             }
 
             if (crs is not null)
@@ -40,22 +46,36 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new LineString(coords);
         }
 
-        public override object CreateInstance(object?[] fieldValues)
+        public override object CreateInstance(IType type, object?[] fieldValues)
         {
-            if (fieldValues[0] is not GeoJsonGeometryType.LineString)
+            if (type is null)
             {
-                throw Geometry_Parse_InvalidType();
+                throw new ArgumentNullException(nameof(type));
             }
 
-            return CreateGeometry(fieldValues[1], (int?)fieldValues[2]);
+            if (fieldValues[0] is not GeoJsonGeometryType.LineString)
+            {
+                throw Geometry_Parse_InvalidType(type);
+            }
+
+            return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
         }
 
-        public override void GetFieldData(object runtimeValue, object?[] fieldValues)
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
         {
-            var lineString = (LineString)runtimeValue;
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (runtimeValue is not Geometry geometry)
+            {
+                throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
+            }
+
             fieldValues[0] = GeoJsonGeometryType.LineString;
-            fieldValues[1] = lineString.Coordinates;
-            fieldValues[2] = lineString.SRID;
+            fieldValues[1] = geometry.Coordinates;
+            fieldValues[2] = geometry.SRID;
         }
 
         public static readonly GeoJsonLineStringSerializer Default = new();
