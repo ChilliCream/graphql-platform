@@ -242,7 +242,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(
+            Assert.Throws<SerializationException>(
                 () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 
