@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Language;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial.Serialization
 {
@@ -93,14 +96,56 @@ namespace HotChocolate.Types.Spatial.Serialization
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (runtimeValue is not Geometry geometry)
+            if (runtimeValue is not MultiPolygon geometry)
             {
                 throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
             }
 
             fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
-            fieldValues[1] = geometry.Coordinates;
+            fieldValues[1] = geometry.Geometries.Select(t => t.Coordinates);
             fieldValues[2] = geometry.SRID;
+        }
+
+        public override IValueNode ParseValue(IType type, object? runtimeValue)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (runtimeValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (runtimeValue is IReadOnlyDictionary<string, object> dict)
+            {
+                return ParseResult(type, dict);
+            }
+
+            if (runtimeValue is MultiPolygon geometry)
+            {
+                var list = new List<ObjectFieldNode>
+                {
+                    new ObjectFieldNode(
+                        TypeFieldName,
+                        GeoJsonTypeSerializer.Default.ParseResult(
+                            type,
+                            GeoJsonGeometryType.MultiPolygon)),
+                    new ObjectFieldNode(
+                        CoordinatesFieldName,
+                        ParseCoordinates(
+                            type,
+                            geometry.Geometries.Select(t => t.Coordinates).ToArray())),
+                    new ObjectFieldNode(
+                        CrsFieldName,
+                        new IntValueNode(geometry.SRID))
+                };
+
+                return new ObjectValueNode(list);
+            }
+
+            throw Serializer_CouldNotParseValue(type);
         }
 
         public static readonly GeoJsonMultiPolygonSerializer Default = new();

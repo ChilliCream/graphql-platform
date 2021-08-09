@@ -128,7 +128,6 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
         {
@@ -141,7 +140,6 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
         {
@@ -154,7 +152,6 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Theory]
-        [InlineData(PointInputName)]
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Pass_When_NullValueNode(string typeName)
         {

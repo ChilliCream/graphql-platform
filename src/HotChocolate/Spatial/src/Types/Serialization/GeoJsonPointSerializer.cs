@@ -96,13 +96,13 @@ namespace HotChocolate.Types.Spatial.Serialization
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (runtimeValue is not Geometry geometry)
+            if (runtimeValue is not Point geometry)
             {
                 throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
             }
 
             fieldValues[0] = GeoJsonGeometryType.Point;
-            fieldValues[1] = geometry.Coordinates;
+            fieldValues[1] = geometry.Coordinate;
             fieldValues[2] = geometry.SRID;
         }
 

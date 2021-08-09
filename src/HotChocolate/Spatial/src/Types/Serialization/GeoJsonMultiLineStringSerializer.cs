@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (coordinates is List<List<Coordinate>> list)
+            if (coordinates is List<List<Coordinate>> { Count: > 0 } list)
             {
                 if (list.Count == 0)
                 {
@@ -46,7 +46,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 }
             }
 
-            if (coordinates is not Coordinate[][] parts)
+            if (coordinates is not Coordinate[][] { Length: > 0 } parts)
             {
                 throw Serializer_Parse_CoordinatesIsInvalid(type);
             }
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Spatial.Serialization
             {
                 throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
             }
-            
+
             fieldValues[0] = GeoJsonGeometryType.MultiLineString;
             fieldValues[1] = geometry.Geometries.Select(t => t.Coordinates);
             fieldValues[2] = geometry.SRID;
@@ -127,12 +127,12 @@ namespace HotChocolate.Types.Spatial.Serialization
                     new ObjectFieldNode(
                         TypeFieldName,
                         GeoJsonTypeSerializer.Default.ParseResult(
-                            type, 
+                            type,
                             GeoJsonGeometryType.MultiLineString)),
                     new ObjectFieldNode(
                         CoordinatesFieldName,
                         ParseCoordinates(
-                            type, 
+                            type,
                             geometry.Geometries.Select(t => t.Coordinates).ToArray())),
                     new ObjectFieldNode(
                         CrsFieldName,
