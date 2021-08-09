@@ -53,5 +53,38 @@ namespace HotChocolate.Lodash
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public static bool TryConvertToComparable(
+            this JsonElement jsonElement,
+            [NotNullWhen(true)] out IComparable? converted)
+        {
+            converted = null;
+            switch (jsonElement.ValueKind)
+            {
+                case JsonValueKind.Undefined:
+                    return false;
+                case JsonValueKind.Object:
+                    return false;
+                case JsonValueKind.Array:
+                    return false;
+                case JsonValueKind.String:
+                    //TODO : DateTime?
+                    converted = jsonElement.GetString() ?? string.Empty;
+                    return true;
+                case JsonValueKind.Number:
+                    converted = jsonElement.GetDouble().ToString(CultureInfo.InvariantCulture);
+                    return true;
+                case JsonValueKind.True:
+                    converted = true;
+                    return true;
+                case JsonValueKind.False:
+                    converted = false;
+                    return true;
+                case JsonValueKind.Null:
+                    return false;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }

@@ -18,7 +18,9 @@ namespace HotChocolate.Lodash
             LodashTakeOperation.Factory,
             LodashTakeRightOperation.Factory,
             LodashDropOperation.Factory,
-            LodashDropRightOperation.Factory
+            LodashDropRightOperation.Factory,
+            LodashMinByOperation.Factory,
+            LodashMaxByOperation.Factory
         };
 
         private IReadOnlyList<LodashOperation> CreateOperations(

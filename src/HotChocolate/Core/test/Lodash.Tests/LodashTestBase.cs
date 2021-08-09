@@ -20,6 +20,7 @@ namespace HotChocolate.Lodash
         {
             new Foo
             {
+                Id = 1,
                 Baz = "foo_baz_1",
                 Bar = _bars[0],
                 BarList = _bars,
@@ -29,6 +30,7 @@ namespace HotChocolate.Lodash
             },
             new Foo
             {
+                Id = 2,
                 Baz = "foo_baz_2",
                 Bar = _bars[1],
                 BarList = _bars,
@@ -38,6 +40,7 @@ namespace HotChocolate.Lodash
             },
             new Foo
             {
+                Id = 3,
                 Baz = "foo_baz_3",
                 Bar = _bars[2],
                 BarList = _bars,
@@ -47,6 +50,7 @@ namespace HotChocolate.Lodash
             },
             new Foo
             {
+                Id = 4,
                 Baz = "foo_baz_4",
                 Bar = _bars[3],
                 BarList = _bars,
@@ -102,13 +106,18 @@ namespace HotChocolate.Lodash
 
         public class Foo
         {
+            public int Id { get; set; }
+
             public string? Baz { get; set; }
+
             public string? CountBy { get; set; }
 
             public int? Num { get; set; }
 
             public DateTime? DateTime { get; set; }
+
             public Bar? Bar { get; set; }
+
             public Bar?[]? BarList { get; set; }
         }
 
