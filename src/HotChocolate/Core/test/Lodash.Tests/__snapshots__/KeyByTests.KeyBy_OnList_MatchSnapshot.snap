@@ -1,0 +1,13 @@
+﻿{
+  "list": {
+    "c": {
+      "countBy": "c"
+    },
+    "b": {
+      "countBy": "b"
+    },
+    "a": {
+      "countBy": "a"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+﻿{
+  "nullableList": [
+    {
+      "bar": {
+        "foos": [
+          {
+            "bar": "bar_baz_1"
+          },
+          {
+            "bar": "bar_baz_2"
+          },
+          {
+            "bar": "bar_baz_3"
+          },
+          {
+            "bar": "bar_baz_4"
+          }
+        ]
+      }
+    },
+    {},
+    {
+      "bar": {
+        "foos": [
+          {
+            "bar": "bar_baz_1"
+          },
+          {
+            "bar": "bar_baz_2"
+          },
+          {
+            "bar": "bar_baz_3"
+          },
+          {
+            "bar": "bar_baz_4"
+          }
+        ]
+      }
+    },
+    {
+      "bar": {
+        "foos": [
+          {
+            "bar": "bar_baz_1"
+          },
+          {
+            "bar": "bar_baz_2"
+          },
+          {
+            "bar": "bar_baz_3"
+          },
+          {
+            "bar": "bar_baz_4"
+          }
+        ]
+      }
+    },
+    null
+  ]
+}
