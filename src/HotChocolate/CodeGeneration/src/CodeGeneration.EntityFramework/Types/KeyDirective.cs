@@ -2,11 +2,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
-    public class KeyDirective : IEntityFrameworkDirective
+    public class KeyDirective : IModelConfiguringDirective
     {
         public string? Name { get; set; }
 
-        public object AsConfiguration()
+        public object AsConfigurationStatement()
         {
             return null!;
         }

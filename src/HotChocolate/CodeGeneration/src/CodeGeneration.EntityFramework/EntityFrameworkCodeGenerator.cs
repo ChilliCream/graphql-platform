@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using HotChocolate.CodeGeneration.EntityFramework.Types;
 using HotChocolate.CodeGeneration.Types;
@@ -38,17 +37,19 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         {
             var @namespace = generatorContext.Namespace;
 
-            var typeName = "AppDbContext";
+            var schemaType = schema.Types.SingleOrDefault(t => t.Name.Value == "Schema") as ObjectType;
+            SchemaConventionsDirective schemaConventions = schemaType?.GetFirstDirective(
+                SchemaConventionsDirective.DirectiveName,
+                new SchemaConventionsDirective())
+                ?? new SchemaConventionsDirective();
 
-            var usePluralizedTableNames = true; // TODO: Grab from a @tableNamingConvention or something directive on Schema type.
+            var dbContextClassName = schemaConventions.DbContextName;
 
-            ClassDeclarationSyntax dbContextClass =
-                ClassDeclaration(typeName)
-                    .AddGeneratedAttribute()
-                    .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.PartialKeyword)); // TODO: Should it be partial?
+            ClassDeclarationSyntax dbContextClass = GenerateDbContext(
+                dbContextClassName,
+                schemaType);
 
+            // Generates models
             var objectTypes = schema.Types
                 .OfType<ObjectType>()
                 .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
@@ -56,19 +57,47 @@ namespace HotChocolate.CodeGeneration.EntityFramework
 
             foreach (ObjectType objectType in objectTypes)
             {
-                GenerateModel(
+                ProcessObjectType(
                     result,
-                    usePluralizedTableNames: usePluralizedTableNames,
+                    usePluralizedTableNames: schemaConventions.UsePluralizedTableNames,
                     ref dbContextClass,
                     @namespace,
                     objectType);
             }
 
             // Generate DbContext class
-            result.AddClass(@namespace, "AppDbContext", dbContextClass);
+            result.AddClass(@namespace, dbContextClassName, dbContextClass);
         }
 
-        private static void GenerateModel(
+        private static ClassDeclarationSyntax GenerateDbContext(
+            string dbContextClassName,
+            ObjectType? schemaType)
+        {
+            ClassDeclarationSyntax dbContextClass = ClassDeclaration(dbContextClassName)
+                .AddGeneratedAttribute()
+                .AddModifiers(
+                    Token(SyntaxKind.PublicKeyword));
+
+            if (schemaType is not null)
+            {
+                SyntaxList<StatementSyntax> configurationStatements;
+
+                foreach (IDbContextConfiguringDirective? dbContextConfiguringDirective in schemaType
+                    .Directives
+                    .OfType<IDbContextConfiguringDirective>())
+                {
+                    configurationStatements.Add(
+                        dbContextConfiguringDirective.AsConfigurationStatement());
+                }
+
+                // TODO: Generate an OnModelConfiguring method and add it
+                //dbContextClass = dbContextClass.
+            }
+
+            return dbContextClass;
+        }
+
+        private static void ProcessObjectType(
             CodeGenerationResult result,
             bool usePluralizedTableNames,
             ref ClassDeclarationSyntax dbContextClass,
@@ -90,26 +119,69 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             var singularName = tableName.Singularize(inputIsKnownToBePlural: usePluralizedTableNames);
             var pluralizedName = tableName.Pluralize(inputIsKnownToBeSingular: !usePluralizedTableNames);
 
+            // Generate model class
+            GenerateModel(result, @namespace, objectType, modelName);
+
+            // If we've got a table, need to do a few more things
+            if (hasTable)
+            {
+                // Generate model configurer class
+                GenerateModelConfigurer(result, @namespace, objectType, modelName, modelConfigurerName);
+
+                // Add it on to the DbContext
+                QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
+                dbContextClass = dbContextClass.AddProperty(
+                    pluralizedName,
+                    dbSetType,
+                    description: null,
+                    setable: true);
+            }
+        }
+
+        private static void GenerateModelConfigurer(
+            CodeGenerationResult result,
+            string @namespace,
+            IObjectType objectType,
+            string modelName,
+            string modelConfigurerName)
+        {
+            ClassDeclarationSyntax modelConfigurerDeclaration =
+                ClassDeclaration(modelConfigurerName)
+                    .AddGeneratedAttribute()
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword))
+                    .WithBaseList(GetModelConfigurerBaseList(modelName));
+
+            SyntaxList<StatementSyntax> configurationStatements;
+
+            foreach (IModelConfiguringDirective directive in objectType.Directives
+                .OfType<IModelConfiguringDirective>())
+            {
+                configurationStatements.Add(directive.AsConfigurationStatement());
+            }
+
+            MemberDeclarationSyntax configureMethod = GetModelConfigurerConfigureMethod(
+                modelName,
+                configurationStatements);
+
+            modelConfigurerDeclaration = modelConfigurerDeclaration
+                .WithMembers(SingletonList(configureMethod));
+
+            result.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
+        }
+
+        private static void GenerateModel(
+            CodeGenerationResult result,
+            string @namespace,
+            IObjectType objectType,
+            string modelName)
+        {
             ClassDeclarationSyntax modelDeclaration =
                 ClassDeclaration(modelName)
                     .AddGeneratedAttribute()
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword));
-
-            ClassDeclarationSyntax modelConfigurerDeclaration =
-                ClassDeclaration(modelConfigurerName)
-                    .AddGeneratedAttribute()
-                    .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword))
-                    .WithBaseList(GetModelConfigurerBaseList(modelName))
-                    .WithMembers(GetModelConfigurerConfigureMethod(modelName));
-
-            foreach (IEntityFrameworkDirective directive in objectType.Directives
-                .OfType<IEntityFrameworkDirective>())
-            {
-
-            }
 
             foreach (IObjectField field in objectType.Fields.Where(t => !t.IsIntrospectionField))
             {
@@ -121,20 +193,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                         setable: true);
             }
 
-            // Generate model and model configurer classes
             result.AddClass(@namespace, modelName, modelDeclaration);
-            result.AddClass(@namespace, modelConfigurerName, modelConfigurerDeclaration, _modelConfigurerUsings);
-
-            // Add it on to the DbContext
-            if (hasTable)
-            {
-                QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
-                dbContextClass = dbContextClass.AddProperty(
-                    pluralizedName,
-                    dbSetType,
-                    description: null,
-                    setable: true);
-            }
         }
 
         private static string? GetTableName(
@@ -202,29 +261,30 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                                 SingletonSeparatedList<TypeSyntax>(
                                     IdentifierName(modelTypeName)))))));
 
-        private static SyntaxList<MemberDeclarationSyntax> GetModelConfigurerConfigureMethod(string modelTypeName) =>
-            SingletonList<MemberDeclarationSyntax>(
-                MethodDeclaration(
-                    PredefinedType(
-                        Token(SyntaxKind.VoidKeyword)),
-                    Identifier("Configure"))
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PublicKeyword)))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(
-                                Identifier("builder"))
-                            .WithType(
-                                GenericName(
-                                    Identifier("EntityTypeBuilder"))
-                                .WithTypeArgumentList(
-                                    TypeArgumentList(
-                                        SingletonSeparatedList<TypeSyntax>(
-                                            IdentifierName(modelTypeName))))))))
-                .WithBody(
-                    Block()));
+        private static MemberDeclarationSyntax GetModelConfigurerConfigureMethod(
+            string modelTypeName,
+            SyntaxList<StatementSyntax> statements) =>
+            MethodDeclaration(
+                PredefinedType(
+                    Token(SyntaxKind.VoidKeyword)),
+                Identifier("Configure"))
+            .WithModifiers(
+                TokenList(
+                    Token(SyntaxKind.PublicKeyword)))
+            .WithParameterList(
+                ParameterList(
+                    SingletonSeparatedList(
+                        Parameter(
+                            Identifier("builder"))
+                        .WithType(
+                            GenericName(
+                                Identifier("EntityTypeBuilder"))
+                            .WithTypeArgumentList(
+                                TypeArgumentList(
+                                    SingletonSeparatedList<TypeSyntax>(
+                                        IdentifierName(modelTypeName))))))))
+            .WithBody(
+                Block().WithStatements(statements));
 
         private static QualifiedNameSyntax GetDbSetTypeName(string @namespace, string modelTypeName)
         {

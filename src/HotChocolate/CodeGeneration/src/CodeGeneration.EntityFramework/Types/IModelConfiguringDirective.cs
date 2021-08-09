@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
@@ -8,8 +6,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
     /// A marker interface for directives that will result in configuration
     /// of the model via an EntityTypeBuilder of T.
     /// </summary>
-    public interface IEntityFrameworkDirective
+    public interface IModelConfiguringDirective
     {
-        object AsConfiguration();
+        StatementSyntax AsConfigurationStatement();
     }
 }
