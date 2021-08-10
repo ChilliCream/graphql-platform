@@ -77,8 +77,8 @@ namespace HotChocolate.Types.Sorting
                 CreateField,
                 definition.Fields.Count);
 
-            static InputField CreateField(InputFieldDefinition fieldDef, int index)
-                => new(fieldDef, index);
+            static InputField CreateField(SortOperationDefintion fieldDef, int index)
+                => new SortOperationField(fieldDef, index);
         }
 
         // we are disabling the default configure method so
