@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -181,6 +182,58 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 // assert
                 Assert.True(testInterceptor.CloseWasCalled);
             });
+        }
+
+        [Fact]
+        public Task Should_InjectServicesIntoInterceptor()
+        {
+            return TryTest(async () =>
+            {
+                // arrange
+                using TestServer testServer = CreateStarWarsServer(configureServices: sp =>
+                {
+                    sp.AddSingleton<ExampleService>();
+                    sp
+                        .AddGraphQLServer()
+                        .AddSocketSessionInterceptor<SocketInterceptor>();
+                });
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+                TestSocketSessionInterceptor testInterceptor =
+                    testServer.Services.GetRequiredService<TestSocketSessionInterceptor>();
+
+                DocumentNode document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                // act
+                await webSocket.SendSubscriptionStopAsync(subscriptionId);
+
+                // assert
+                Assert.NotNull(SocketInterceptor.Instance.Service);
+            });
+        }
+
+        public class ExampleService
+        {
+        }
+
+        public class SocketInterceptor : DefaultSocketSessionInterceptor
+        {
+            public static SocketInterceptor Instance;
+
+            public SocketInterceptor(ExampleService service)
+            {
+                Service = service;
+                Instance = this;
+            }
+
+            public ExampleService Service { get; }
         }
     }
 }
