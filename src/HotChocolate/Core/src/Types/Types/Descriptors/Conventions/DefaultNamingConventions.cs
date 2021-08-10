@@ -234,15 +234,18 @@ namespace HotChocolate.Types.Descriptors
                 var p = 0;
                 buffer[p++] = char.ToUpper(name[0]);
 
+                bool lastWasUnderline = false;
                 for (var i = 1; i < name.Length; i++)
                 {
-                    if (char.IsUpper(name[i]) &&
+                    if (!lastWasUnderline &&
+                        char.IsUpper(name[i]) &&
                         (!char.IsUpper(name[i - 1]) ||
                             (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                     {
                         buffer[p++] = '_';
                     }
                     buffer[p++] = char.ToUpper(name[i]);
+                    lastWasUnderline = name[i] == '_';
                 }
 
                 fixed (char* charPtr = buffer)
