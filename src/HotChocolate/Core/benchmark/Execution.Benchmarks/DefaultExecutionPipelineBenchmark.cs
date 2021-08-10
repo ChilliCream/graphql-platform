@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace HotChocolate.Execution.Benchmarks
         private readonly IRequestExecutor _executor;
         private readonly IReadOnlyQueryRequest _getHeroRequest;
         private readonly IReadOnlyQueryRequest _getHeroWithFriendsRequest;
-        private readonly IReadOnlyQueryRequest _getTwoHerosWithFriendsRequest;
+        private readonly IReadOnlyQueryRequest _getTwoHeroesWithFriendsRequest;
         private readonly IReadOnlyQueryRequest _largeQuery;
         private readonly IReadOnlyQueryRequest _introspectionRequest;
 
@@ -26,6 +27,7 @@ namespace HotChocolate.Execution.Benchmarks
                 .AddStarWarsRepositories()
                 .AddGraphQL()
                 .AddStarWarsTypes()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .Services
                 .BuildServiceProvider();
 
@@ -35,7 +37,7 @@ namespace HotChocolate.Execution.Benchmarks
                 .Result;
             _getHeroRequest = CreateRequest(md5, resources, "GetHeroQuery.graphql");
             _getHeroWithFriendsRequest = CreateRequest(md5, resources, "GetHeroWithFriendsQuery.graphql");
-            _getTwoHerosWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHerosWithFriendsQuery.graphql");
+            _getTwoHeroesWithFriendsRequest = CreateRequest(md5, resources, "GetTwoHeroesWithFriendsRequest.graphql");
             _largeQuery = CreateRequest(md5, resources, "LargeQuery.graphql");
             _introspectionRequest = CreateRequest(md5, resources, "IntrospectionQuery.graphql");
 
@@ -47,8 +49,8 @@ namespace HotChocolate.Execution.Benchmarks
             ResourceHelper resources,
             string resourceName)
         {
-            string query = resources.GetResourceString(resourceName);
-            string hash = md5.ComputeHash(Encoding.UTF8.GetBytes(query).AsSpan());
+            var query = resources.GetResourceString(resourceName);
+            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(query).AsSpan());
             DocumentNode document = Utf8GraphQLParser.Parse(query);
 
             return QueryRequestBuilder.New()
@@ -101,13 +103,13 @@ namespace HotChocolate.Execution.Benchmarks
         [Benchmark]
         public Task GetTwoHerosWithFriends()
         {
-            return OneRequest(_executor, _getTwoHerosWithFriendsRequest);
+            return OneRequest(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
         [Benchmark]
-        public Task GetTwoHerosWithFriendsFiveParallelRequests()
+        public Task GetTwoHeroesWithFriendsFiveParallelRequests()
         {
-            return FiveRequestsInParallel(_executor, _getTwoHerosWithFriendsRequest);
+            return FiveRequestsInParallel(_executor, _getTwoHeroesWithFriendsRequest);
         }
 
         // note : large query
@@ -124,13 +126,17 @@ namespace HotChocolate.Execution.Benchmarks
         }
 
         private static async Task OneRequest(
-            IRequestExecutor executer,
+            IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            IExecutionResult result = await executer.ExecuteAsync(request);
+            IExecutionResult result = await executor.ExecuteAsync(request);
 
-            if(result.Errors != null && result.Errors.Count > 0) 
+            if (result.Errors is { Count: > 0 })
             {
+                await File.AppendAllTextAsync(
+                    "/Users/michael/local/hc-1/src/HotChocolate/Core/benchmark/err.log",
+                    result.ToJson());
+
                 throw new InvalidOperationException(result.Errors[0].Message);
             }
 
@@ -140,14 +146,14 @@ namespace HotChocolate.Execution.Benchmarks
         }
 
         private static async Task FiveRequestsInParallel(
-            IRequestExecutor executer,
+            IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            Task task1 = OneRequest(executer, request);
-            Task task2 = OneRequest(executer, request);
-            Task task3 = OneRequest(executer, request);
-            Task task4 = OneRequest(executer, request);
-            Task task5 = OneRequest(executer, request);
+            Task task1 = OneRequest(executor, request);
+            Task task2 = OneRequest(executor, request);
+            Task task3 = OneRequest(executor, request);
+            Task task4 = OneRequest(executor, request);
+            Task task5 = OneRequest(executor, request);
 
             await WaitForTask(task1);
             await WaitForTask(task2);

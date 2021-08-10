@@ -54,7 +54,7 @@ namespace HotChocolate.Data.MongoDb.Projections
                         {
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
+                                c.Field(x => x.Root).Resolve(resolver),
                                 usePaging,
                                 useOffsetPaging);
                         }))

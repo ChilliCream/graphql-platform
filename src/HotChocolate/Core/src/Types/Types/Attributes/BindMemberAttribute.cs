@@ -38,7 +38,7 @@ namespace HotChocolate.Types
             if (!string.IsNullOrEmpty(Name))
             {
                 descriptor.Extend().OnBeforeCreate(
-                    d => d.BindTo = new ObjectFieldBinding(
+                    d => d.BindToField = new ObjectFieldBinding(
                         Name,
                         ObjectFieldBindingType.Property,
                         Replace));

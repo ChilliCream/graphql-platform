@@ -16,10 +16,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
         where T : class, ISyntaxNode
     {
         private List<DirectiveDefinition>? _directives;
+        private Type _runtimeType = typeof(object);
 
         protected TypeDefinitionBase() { }
 
-        private Type _runtimeType = typeof(object);
+        protected TypeDefinitionBase(Type runtimeType)
+        {
+            _runtimeType = runtimeType;
+        }
+
+        /// <summary>
+        /// Specifies that this type system object needs an explicit name completion since it
+        /// depends on another type system object to complete its name.
+        /// </summary>
+        public bool NeedsNameCompletion { get; set; }
 
         /// <summary>
         /// Gets or sets the .net type representation of this type.

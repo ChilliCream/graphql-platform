@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -13,10 +14,14 @@ namespace HotChocolate.Execution.Pipeline.Complexity
 {
     internal sealed class ComplexityAnalyzerCompilerVisitor : TypeDocumentValidatorVisitor
     {
+        private static readonly MethodInfo _getService =
+            typeof(IServiceProvider).GetMethod("GetService")!;
         private readonly Expression _settings;
         private readonly Expression _zero = Constant(0, typeof(int));
         private readonly ParameterExpression _variables =
             Parameter(typeof(IVariableValueCollection), "variables");
+        private readonly ParameterExpression _services =
+            Parameter(typeof(IServiceProvider), "services");
 
         public ComplexityAnalyzerCompilerVisitor(ComplexityAnalyzerSettings settings)
         {
@@ -48,7 +53,10 @@ namespace HotChocolate.Execution.Pipeline.Complexity
 
             analyzers.Add(new OperationComplexityAnalyzer(
                 node,
-                Lambda<ComplexityAnalyzerDelegate>(Combine(expressions), _variables).Compile()));
+                Lambda<ComplexityAnalyzerDelegate>(
+                    Combine(expressions),
+                    _services,
+                    _variables).Compile()));
 
             return base.Leave(node, context);
         }
@@ -119,8 +127,14 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                 Constant(context.Path.Count + 1, typeof(int)),
                 childComplexity,
                 _variables,
+                GetInputParser(),
                 _settings);
         }
+
+        private Expression GetInputParser()
+            => Convert(
+                Call(_services, _getService, Constant(typeof(InputParser))),
+                typeof(InputParser));
 
         private Expression Combine(IReadOnlyList<Expression> expressions)
         {
@@ -147,6 +161,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                 int nodeDepth,
                 int childComplexity,
                 IVariableValueCollection variables,
+                InputParser inputParser,
                 ComplexityAnalyzerSettings analyzerSettings)
             {
                 return analyzerSettings.Calculation.Invoke(
@@ -158,7 +173,8 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                         nodeDepth,
                         childComplexity,
                         analyzerSettings.DefaultComplexity,
-                        variables));
+                        variables,
+                        inputParser));
             }
         }
     }

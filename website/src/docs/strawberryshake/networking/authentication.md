@@ -20,7 +20,7 @@ The generated extension method to register the client on the serivce collection,
     .ConfigureHttpClient(client =>
     {
         client.BaseAddress =
-            new Uri("https://hc-conference-app.azurewebsites.net/graphql/");
+            new Uri("https://workshop.chillicream.cloud/graphql/");
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", "Your Oauth token");
     });
@@ -56,7 +56,7 @@ In case you want to configure the `HttpClient` directly on the `ServiceCollectio
 services.AddHttpClient(
     ConferenceClient.ClientName,
     client => client.BaseAddress =
-        new Uri("https://hc-conference-app.azurewebsites.net/graphql/"));
+        new Uri("https://workshop.chillicream.cloud/graphql/"));
 
 services.AddConferenceClient();
 ```
@@ -116,7 +116,7 @@ services
     .AddWebSocketClient(
         ConferenceClient.ClientName,
         client => client.Uri =
-            new Uri("wss://hc-conference-app.azurewebsites.net/graphql/"));
+            new Uri("wss://workshop.chillicream.cloud/graphql/"));
 
 services.AddConferenceClient();
 ```
@@ -127,7 +127,7 @@ On a `IWebSocketClient` you can configure the `Uri` of your endpoint. You can al
 
 ```csharp
 IWebSocketClient client;
-client.Uri = new Uri("wss://hc-conference-app.azurewebsites.net/graphql/");
+client.Uri = new Uri("wss://workshop.chillicream.cloud/graphql/");
 client.Socket.Options.SetRequestHeader("Authorization", "Bearer …");
 client.ConnectionInterceptor = new CustomConnectionInterceptor();
 ```

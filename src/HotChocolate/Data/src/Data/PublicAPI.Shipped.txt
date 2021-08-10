@@ -3,7 +3,6 @@ abstract HotChocolate.Data.Filters.Expressions.QueryableBooleanOperationHandler.
 abstract HotChocolate.Data.Filters.Expressions.QueryableComparableOperationHandler.Operation.get -> int
 abstract HotChocolate.Data.Filters.Expressions.QueryableListOperationHandlerBase.HandleListOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, System.Type! closureType, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
 abstract HotChocolate.Data.Filters.Expressions.QueryableListOperationHandlerBase.Operation.get -> int
-abstract HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object! parsedValue) -> System.Linq.Expressions.Expression!
 abstract HotChocolate.Data.Filters.Expressions.QueryableStringOperationHandler.Operation.get -> int
 abstract HotChocolate.Data.Filters.FilterFieldDescriptorAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Data.Filters.IFilterFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
 abstract HotChocolate.Data.Filters.FilterFieldHandler<TContext, T>.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
@@ -81,53 +80,33 @@ HotChocolate.Data.Filters.EnumOperationFilterInputType<T>
 HotChocolate.Data.Filters.EnumOperationFilterInputType<T>.EnumOperationFilterInputType() -> void
 HotChocolate.Data.Filters.Expressions.FilterExpressionBuilder
 HotChocolate.Data.Filters.Expressions.QueryableBooleanEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableBooleanEqualsHandler.QueryableBooleanEqualsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableBooleanNotEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableBooleanNotEqualsHandler.QueryableBooleanNotEqualsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableBooleanOperationHandler
-HotChocolate.Data.Filters.Expressions.QueryableBooleanOperationHandler.QueryableBooleanOperationHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableCombinator
 HotChocolate.Data.Filters.Expressions.QueryableCombinator.QueryableCombinator() -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableEqualsHandler.QueryableComparableEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableGreaterThanHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableGreaterThanHandler.QueryableComparableGreaterThanHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableGreaterThanOrEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableGreaterThanOrEqualsHandler.QueryableComparableGreaterThanOrEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableInHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableInHandler.QueryableComparableInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableLowerThanHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableLowerThanHandler.QueryableComparableLowerThanHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableLowerThanOrEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableLowerThanOrEqualsHandler.QueryableComparableLowerThanOrEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotEqualsHandler.QueryableComparableNotEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotGreaterThanHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotGreaterThanHandler.QueryableComparableNotGreaterThanHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotGreaterThanOrEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotGreaterThanOrEqualsHandler.QueryableComparableNotGreaterThanOrEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotInHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotInHandler.QueryableComparableNotInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotLowerThanHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotLowerThanHandler.QueryableComparableNotLowerThanHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableNotLowerThanOrEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableComparableNotLowerThanOrEqualsHandler.QueryableComparableNotLowerThanOrEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableOperationHandler
 HotChocolate.Data.Filters.Expressions.QueryableComparableOperationHandler.ParseValue(HotChocolate.Language.IValueNode! node, object? parsedValue, HotChocolate.Types.IType! type, HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context) -> object?
-HotChocolate.Data.Filters.Expressions.QueryableComparableOperationHandler.QueryableComparableOperationHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableComparableOperationHandler.TypeConverter.get -> HotChocolate.Utilities.ITypeConverter!
 HotChocolate.Data.Filters.Expressions.QueryableDataOperationHandler
 HotChocolate.Data.Filters.Expressions.QueryableDataOperationHandler.QueryableDataOperationHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableDefaultFieldHandler
 HotChocolate.Data.Filters.Expressions.QueryableDefaultFieldHandler.QueryableDefaultFieldHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableEnumEqualsHandler.QueryableEnumEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumInHandler
-HotChocolate.Data.Filters.Expressions.QueryableEnumInHandler.QueryableEnumInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumNotEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableEnumNotEqualsHandler.QueryableEnumNotEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumNotInHandler
-HotChocolate.Data.Filters.Expressions.QueryableEnumNotInHandler.QueryableEnumNotInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableFilterContext
 HotChocolate.Data.Filters.Expressions.QueryableFilterContext.InMemory.get -> bool
 HotChocolate.Data.Filters.Expressions.QueryableFilterContext.QueryableFilterContext(HotChocolate.Data.Filters.IFilterInputType! initialType, bool inMemory) -> void
@@ -142,7 +121,6 @@ HotChocolate.Data.Filters.Expressions.QueryableFilterVisitorContextExtensions
 HotChocolate.Data.Filters.Expressions.QueryableListAllOperationHandler
 HotChocolate.Data.Filters.Expressions.QueryableListAllOperationHandler.QueryableListAllOperationHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler
-HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.QueryableListAnyOperationHandler(HotChocolate.Utilities.ITypeConverter! typeConverter) -> void
 HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.TypeConverter.get -> HotChocolate.Utilities.ITypeConverter!
 HotChocolate.Data.Filters.Expressions.QueryableListNoneOperationHandler
 HotChocolate.Data.Filters.Expressions.QueryableListNoneOperationHandler.QueryableListNoneOperationHandler() -> void
@@ -153,33 +131,21 @@ HotChocolate.Data.Filters.Expressions.QueryableListSomeOperationHandler.Queryabl
 HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase
 HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.CanBeNull.get -> bool
 HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.CanBeNull.set -> void
-HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.QueryableOperationHandlerBase() -> void
 HotChocolate.Data.Filters.Expressions.QueryableScope
 HotChocolate.Data.Filters.Expressions.QueryableScope.InMemory.get -> bool
 HotChocolate.Data.Filters.Expressions.QueryableScope.Parameter.get -> System.Linq.Expressions.ParameterExpression!
 HotChocolate.Data.Filters.Expressions.QueryableScope.QueryableScope(HotChocolate.Internal.IExtendedType! type, string! parameterName, bool inMemory) -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringContainsHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringContainsHandler.QueryableStringContainsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringEndsWithHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringEndsWithHandler.QueryableStringEndsWithHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringEqualsHandler.QueryableStringEqualsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringInHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringInHandler.QueryableStringInHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringNotContainsHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringNotContainsHandler.QueryableStringNotContainsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringNotEndsWithHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringNotEndsWithHandler.QueryableStringNotEndsWithHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringNotEqualsHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringNotEqualsHandler.QueryableStringNotEqualsHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringNotInHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringNotInHandler.QueryableStringNotInHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringNotStartsWithHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringNotStartsWithHandler.QueryableStringNotStartsWithHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringOperationHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringOperationHandler.QueryableStringOperationHandler() -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringStartsWithHandler
-HotChocolate.Data.Filters.Expressions.QueryableStringStartsWithHandler.QueryableStringStartsWithHandler() -> void
 HotChocolate.Data.Filters.Expressions.VisitFilterArgument
 HotChocolate.Data.Filters.FilterCombinator
 HotChocolate.Data.Filters.FilterCombinator.And = 0 -> HotChocolate.Data.Filters.FilterCombinator
@@ -1281,7 +1247,6 @@ override HotChocolate.Data.Filters.Expressions.QueryableFilterProvider.CreateExe
 override HotChocolate.Data.Filters.Expressions.QueryableListAllOperationHandler.HandleListOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, System.Type! closureType, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableListAllOperationHandler.Operation.get -> int
 override HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
-override HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object! parsedValue) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableListNoneOperationHandler.HandleListOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, System.Type! closureType, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableListNoneOperationHandler.Operation.get -> int
 override HotChocolate.Data.Filters.Expressions.QueryableListOperationHandlerBase.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Data.Filters.IFilterInputTypeDefinition! typeDefinition, HotChocolate.Data.Filters.IFilterFieldDefinition! fieldDefinition) -> bool
@@ -1289,7 +1254,6 @@ override HotChocolate.Data.Filters.Expressions.QueryableListOperationHandlerBase
 override HotChocolate.Data.Filters.Expressions.QueryableListOperationHandlerBase.TryHandleLeave(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
 override HotChocolate.Data.Filters.Expressions.QueryableListSomeOperationHandler.HandleListOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterField! field, HotChocolate.Language.ObjectFieldNode! node, System.Type! closureType, System.Linq.Expressions.LambdaExpression! lambda) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableListSomeOperationHandler.Operation.get -> int
-override HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.ObjectFieldNode! node, out System.Linq.Expressions.Expression! result) -> bool
 override HotChocolate.Data.Filters.Expressions.QueryableStringContainsHandler.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object! parsedValue) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableStringContainsHandler.Operation.get -> int
 override HotChocolate.Data.Filters.Expressions.QueryableStringEndsWithHandler.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object! parsedValue) -> System.Linq.Expressions.Expression!
@@ -1317,7 +1281,6 @@ override HotChocolate.Data.Filters.FilterConventionExtension.CreateDefinition(Ho
 override HotChocolate.Data.Filters.FilterConventionExtension.Merge(HotChocolate.Types.Descriptors.IConventionContext! context, HotChocolate.Types.Descriptors.Convention! convention) -> void
 override HotChocolate.Data.Filters.FilterFieldDescriptor.OnCreateDefinition(HotChocolate.Data.Filters.FilterFieldDefinition! definition) -> void
 override HotChocolate.Data.Filters.FilterInputType.CreateDefinition(HotChocolate.Configuration.ITypeDiscoveryContext! context) -> HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition!
-override HotChocolate.Data.Filters.FilterInputType.OnCompleteFields(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition, System.Collections.Generic.ICollection<HotChocolate.Types.InputField!>! fields) -> void
 override HotChocolate.Data.Filters.FilterInputType.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Data.Filters.FilterInputType.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Data.Filters.FilterInputType<T>.CreateDefinition(HotChocolate.Configuration.ITypeDiscoveryContext! context) -> HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition!
@@ -1404,7 +1367,6 @@ override HotChocolate.Data.Sorting.SortEnumTypeDescriptor.Definition.set -> void
 override HotChocolate.Data.Sorting.SortEnumTypeDescriptor.OnCreateDefinition(HotChocolate.Data.Sorting.SortEnumTypeDefinition! definition) -> void
 override HotChocolate.Data.Sorting.SortFieldDescriptor.OnCreateDefinition(HotChocolate.Data.Sorting.SortFieldDefinition! definition) -> void
 override HotChocolate.Data.Sorting.SortInputType.CreateDefinition(HotChocolate.Configuration.ITypeDiscoveryContext! context) -> HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition!
-override HotChocolate.Data.Sorting.SortInputType.OnCompleteFields(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition, System.Collections.Generic.ICollection<HotChocolate.Types.InputField!>! fields) -> void
 override HotChocolate.Data.Sorting.SortInputType.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Data.Sorting.SortInputType.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Data.Sorting.SortInputType<T>.CreateDefinition(HotChocolate.Configuration.ITypeDiscoveryContext! context) -> HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition!
@@ -1417,9 +1379,6 @@ override HotChocolate.Data.Sorting.SortProvider<TContext>.CreateDefinition(HotCh
 override HotChocolate.Data.Sorting.SortProviderExtensions<TContext>.CreateDefinition(HotChocolate.Types.Descriptors.IConventionContext! context) -> HotChocolate.Data.Sorting.SortProviderDefinition!
 override HotChocolate.Data.Sorting.SortProviderExtensions<TContext>.Merge(HotChocolate.Types.Descriptors.IConventionContext! context, HotChocolate.Types.Descriptors.Convention! convention) -> void
 override HotChocolate.Data.Sorting.SortTypeInterceptor.CanHandle(HotChocolate.Configuration.ITypeSystemObjectContext! context) -> bool
-override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeCompleteName(HotChocolate.Configuration.ITypeCompletionContext! completionContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase! definition, System.Collections.Generic.IDictionary<string!, object!>! contextData) -> void
-override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeCompleteType(HotChocolate.Configuration.ITypeCompletionContext! completionContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase! definition, System.Collections.Generic.IDictionary<string!, object!>! contextData) -> void
-override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! discoveryContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase! definition, System.Collections.Generic.IDictionary<string!, object!>! contextData) -> void
 override HotChocolate.Data.Sorting.SortVisitor<TContext, T>.OnFieldEnter(TContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Language.ObjectFieldNode! node) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
 override HotChocolate.Data.Sorting.SortVisitor<TContext, T>.OnFieldLeave(TContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Language.ObjectFieldNode! node) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
 override HotChocolate.Data.Sorting.SortVisitor<TContext, T>.OnOperationEnter(TContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Data.Sorting.ISortEnumValue? sortValue, HotChocolate.Language.EnumValueNode! valueNode) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
@@ -1611,7 +1570,6 @@ virtual HotChocolate.Data.Filters.FilterFieldHandler<TContext, T>.TryHandleLeave
 virtual HotChocolate.Data.Filters.FilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
 virtual HotChocolate.Data.Filters.FilterInputType<T>.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor<T>! descriptor) -> void
 virtual HotChocolate.Data.Filters.FilterInputTypeDescriptor.OnCompleteFields(System.Collections.Generic.IDictionary<HotChocolate.NameString, HotChocolate.Data.Filters.FilterFieldDefinition!>! fields, System.Collections.Generic.ISet<System.Reflection.MemberInfo!>! handledProperties) -> void
-virtual HotChocolate.Data.Filters.FilterOperationHandler<TContext, T>.TryHandleOperation(TContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.ObjectFieldNode! node, out T result) -> bool
 virtual HotChocolate.Data.Filters.FilterProvider<TContext>.Configure(HotChocolate.Data.Filters.IFilterProviderDescriptor<TContext>! descriptor) -> void
 virtual HotChocolate.Data.Filters.FilterProvider<TContext>.ConfigureField(HotChocolate.NameString argumentName, HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> void
 virtual HotChocolate.Data.Filters.FilterProviderExtensions<TContext>.Configure(HotChocolate.Data.Filters.IFilterProviderDescriptor<TContext>! descriptor) -> void

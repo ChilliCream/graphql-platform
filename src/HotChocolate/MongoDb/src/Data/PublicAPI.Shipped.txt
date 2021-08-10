@@ -14,27 +14,17 @@ abstract HotChocolate.Data.MongoDb.MongoDbProjectionDefinition.Render(MongoDB.Bs
 abstract HotChocolate.Data.MongoDb.MongoDbSortDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
 HotChocolate.Data.MongoDb.Filters.FilterConventionDescriptorMongoDbExtensions
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.MongoDbComparableGreaterThanHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanOrEqualsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanOrEqualsHandler.MongoDbComparableGreaterThanOrEqualsHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanHandler.MongoDbComparableLowerThanHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanOrEqualsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanOrEqualsHandler.MongoDbComparableLowerThanOrEqualsHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanHandler.MongoDbComparableNotGreaterThanHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanOrEqualsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanOrEqualsHandler.MongoDbComparableNotGreaterThanOrEqualsHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanHandler.MongoDbComparableNotLowerThanHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanOrEqualsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanOrEqualsHandler.MongoDbComparableNotLowerThanOrEqualsHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbComparableOperationHandler.MongoDbComparableOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbDefaultFieldHandler
 HotChocolate.Data.MongoDb.Filters.MongoDbDefaultFieldHandler.MongoDbDefaultFieldHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbEqualsOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbEqualsOperationHandler.MongoDbEqualsOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbFilterCombinator
 HotChocolate.Data.MongoDb.Filters.MongoDbFilterCombinator.MongoDbFilterCombinator() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbFilterConventionDescriptorExtensions
@@ -48,11 +38,10 @@ HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext
 HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext.MongoDbFilterVisitorContext(HotChocolate.Data.Filters.IFilterInputType! initialType) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext.RuntimeTypes.get -> System.Collections.Generic.Stack<HotChocolate.Internal.IExtendedType!>!
 HotChocolate.Data.MongoDb.Filters.MongoDbInOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbInOperationHandler.MongoDbInOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbListAllOperationHandler
 HotChocolate.Data.MongoDb.Filters.MongoDbListAllOperationHandler.MongoDbListAllOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbListAnyOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbListAnyOperationHandler.MongoDbListAnyOperationHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbListNoneOperationHandler
 HotChocolate.Data.MongoDb.Filters.MongoDbListNoneOperationHandler.MongoDbListNoneOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbListOperationHandlerBase
@@ -60,27 +49,25 @@ HotChocolate.Data.MongoDb.Filters.MongoDbListOperationHandlerBase.MongoDbListOpe
 HotChocolate.Data.MongoDb.Filters.MongoDbListSomeOperationHandler
 HotChocolate.Data.MongoDb.Filters.MongoDbListSomeOperationHandler.MongoDbListSomeOperationHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbNotEqualsOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbNotEqualsOperationHandler.MongoDbNotEqualsOperationHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbNotInOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbNotInOperationHandler.MongoDbNotInOperationHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase
 HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.CanBeNull.get -> bool
 HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.CanBeNull.set -> void
-HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.MongoDbOperationHandlerBase() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringContainsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringContainsHandler.MongoDbStringContainsHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringEndsWithHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringEndsWithHandler.MongoDbStringEndsWithHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringNotContainsHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringNotContainsHandler.MongoDbStringNotContainsHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringNotEndsWithHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringNotEndsWithHandler.MongoDbStringNotEndsWithHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler() -> void
+
 HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler
-HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler() -> void
 HotChocolate.Data.MongoDb.Filters.MongoFilterVisitorContextExtensions
 HotChocolate.Data.MongoDb.IMongoDbExecutable
 HotChocolate.Data.MongoDb.IMongoDbExecutable.WithFiltering(HotChocolate.Data.MongoDb.MongoDbFilterDefinition! filters) -> HotChocolate.Data.MongoDb.IMongoDbExecutable!

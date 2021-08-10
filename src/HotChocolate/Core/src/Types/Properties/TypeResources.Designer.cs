@@ -1248,9 +1248,39 @@ namespace HotChocolate.Properties {
         internal static string CostDirective_DefaultMultiplierCannotBeBelowTwo {
             get {
                 return ResourceManager.GetString("CostDirective_DefaultMultiplierCannotBeBelowTwo", resourceCulture);
-                }
+            }
         }
-
+        
+        internal static string EventMessageParameterExpressionBuilder_MessageNotFound {
+            get {
+                return ResourceManager.GetString("EventMessageParameterExpressionBuilder_MessageNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultResolverCompilerService_CreateResolver_ArgumentValudationError {
+            get {
+                return ResourceManager.GetString("DefaultResolverCompilerService_CreateResolver_ArgumentValudationError", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed {
+            get {
+                return ResourceManager.GetString("DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddResolverConfig_ContextInvalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolverConfig_ContextInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddResolver_EmptyCooridnates {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_EmptyCooridnates", resourceCulture);
+            }
+        }
+        
         internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
             get {
                 return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
@@ -1266,6 +1296,66 @@ namespace HotChocolate.Properties {
         internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
             get {
                 return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
+            }
+        }
+        
+        internal static string ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound {
+            get {
+                return ResourceManager.GetString("ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound", resourceCulture);
+            }
+        }
+        
+        internal static string DirectiveLocation_VariableDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_VariableDefinition", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddResolver_TypeConditionNotMet {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddResolver_TypeConditionNotMet", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodeField_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodeField_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodeField_Id_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodeField_Id_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodesField_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodesField_Description", resourceCulture);
+            }
+        }
+        
+        internal static string Relay_NodesField_Ids_Description {
+            get {
+                return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_MiddlewareOrderInvalid {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MiddlewareOrderInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string FieldInitHelper_CompleteFields_MaxFieldCountToSmall {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);
             }
         }
     }

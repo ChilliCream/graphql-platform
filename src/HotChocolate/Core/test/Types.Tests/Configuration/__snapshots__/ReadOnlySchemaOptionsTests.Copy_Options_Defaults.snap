@@ -12,5 +12,6 @@
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",
   "AllowInlining": true,
-  "DefaultResolverStrategy": "Parallel"
+  "DefaultResolverStrategy": "Parallel",
+  "ValidatePipelineOrder": true
 }

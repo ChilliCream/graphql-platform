@@ -49,22 +49,24 @@ namespace HotChocolate.Data.Projections
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
             bool useOffsetPaging = false,
-            ObjectType<TEntity>? objectType = null)
+            INamedType? objectType = null,
+            Action<ISchemaBuilder>? configure = null)
             where TEntity : class
         {
             provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
             var convention = new ProjectionConvention(x => x.Provider(provider));
 
-            Func<IResolverContext, IQueryable<TEntity>> resolver = BuildResolver(
-                onModelCreating,
-                entities);
+            Func<IResolverContext, IQueryable<TEntity>> resolver =
+                BuildResolver(onModelCreating, entities);
 
             ISchemaBuilder builder = SchemaBuilder.New();
 
-            if (objectType is {})
+            if (objectType is not null)
             {
                 builder.AddType(objectType);
             }
+
+            configure?.Invoke(builder);
 
             builder
                 .AddConvention<IProjectionConvention>(convention)
@@ -76,24 +78,25 @@ namespace HotChocolate.Data.Projections
                         c =>
                         {
                             c.Name("Query");
+
                             ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
+                                c.Field(x => x.Root).Resolve(resolver),
                                 usePaging,
                                 useOffsetPaging);
 
                             ApplyConfigurationToFieldDescriptor<TEntity>(
                                 c.Field("rootExecutable")
-                                    .Resolver(ctx => resolver(ctx).AsExecutable()),
+                                    .Resolve(ctx => resolver(ctx).AsExecutable()),
                                 usePaging,
                                 useOffsetPaging);
                         }));
 
+            builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
+
             ISchema schema = builder.Create();
 
             return new ServiceCollection()
-                .Configure<RequestExecutorSetup>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
+                .Configure<RequestExecutorSetup>(Schema.DefaultName, o => o.Schema = schema)
                 .AddGraphQL()
                 .UseRequest(
                     next => async context =>
@@ -142,8 +145,7 @@ namespace HotChocolate.Data.Projections
                         {
                             try
                             {
-                                context.ContextData["sql"] =
-                                    queryable.ToQueryString();
+                                context.ContextData["sql"] = queryable.ToQueryString();
                             }
                             catch (Exception ex)
                             {
@@ -165,9 +167,9 @@ namespace HotChocolate.Data.Projections
                             }
                         }
                     })
+                .UseProjection()
                 .UseFiltering()
-                .UseSorting()
-                .UseProjection();
+                .UseSorting();
         }
 
         public class StubObject<T>

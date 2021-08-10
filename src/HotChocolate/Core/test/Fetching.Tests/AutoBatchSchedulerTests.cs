@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Fetching;
 using Xunit;
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -10,40 +11,49 @@ namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
-        private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
-        private readonly IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
-        private readonly IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+        private IReadOnlyCollection<TypeInterceptor> _typeInterceptors;
+        private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
+        private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
+        private IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
+        private IReadOnlyCollection<ITypeInitializationFlowInterceptor> _flowInterceptors;
+        private IReadOnlyCollection<ITypeRegistryInterceptor> _registryInterceptors;
+        private bool _triggerAggregations;
 
         public AggregateTypeInterceptor()
         {
+            _typeInterceptors = Array.Empty<TypeInterceptor>();
             _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
             _flowInterceptors = Array.Empty<ITypeInitializationFlowInterceptor>();
             _registryInterceptors = Array.Empty<ITypeRegistryInterceptor>();
-            TriggerAggregations = false;
+            _triggerAggregations = false;
         }
 
-        public AggregateTypeInterceptor(object interceptor)
-            : this(new[] { interceptor })
+        public void SetInterceptors(IReadOnlyCollection<object> interceptors)
         {
-        }
-
-        public AggregateTypeInterceptor(IReadOnlyCollection<object> interceptors)
-        {
+            _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToList();
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
             _flowInterceptors = interceptors.OfType<ITypeInitializationFlowInterceptor>().ToList();
             _registryInterceptors = interceptors.OfType<ITypeRegistryInterceptor>().ToList();
-            TriggerAggregations = _agrInterceptors.Count > 0;
+            _triggerAggregations = _agrInterceptors.Count > 0;
         }
 
-        public override bool TriggerAggregations { get; }
+        public override bool TriggerAggregations => _triggerAggregations;
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        internal override void InitializeContext(
+            IDescriptorContext context,
+            TypeReferenceResolver typeReferenceResolver)
+        {
+            foreach (TypeInterceptor interceptor in _typeInterceptors)
+            {
+                interceptor.InitializeContext(context, typeReferenceResolver);
+            }
+        }
 
         public override void OnBeforeDiscoverTypes()
         {
@@ -274,6 +284,20 @@ namespace HotChocolate.Configuration
                 if (interceptor.CanHandle(completionContext))
                 {
                     interceptor.OnAfterCompleteType(completionContext, definition, contextData);
+                }
+            }
+        }
+
+        public override void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            {
+                if (interceptor.CanHandle(validationContext))
+                {
+                    interceptor.OnValidateType(validationContext, definition, contextData);
                 }
             }
         }

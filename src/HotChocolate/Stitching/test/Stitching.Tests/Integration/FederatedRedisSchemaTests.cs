@@ -166,7 +166,7 @@ namespace HotChocolate.Stitching.Integration
                 new ServiceCollection()
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
-                    .AddQueryType(d => d.Name("Query").Field("foo").Resolver("foo"))
+                    .AddQueryType(d => d.Name("Query").Field("foo").Resolve("foo"))
                     .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                     .Services
                     .BuildServiceProvider();

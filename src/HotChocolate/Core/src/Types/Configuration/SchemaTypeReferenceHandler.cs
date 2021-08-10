@@ -7,8 +7,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class SchemaTypeReferenceHandler
-        : ITypeRegistrarHandler
+    internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
     {
         public void Register(
             ITypeRegistrar typeRegistrar,

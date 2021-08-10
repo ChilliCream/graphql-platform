@@ -13,22 +13,22 @@ namespace HotChocolate.Execution
         private const string _line = "line";
         private const string _column = "column";
 
-        public static IReadOnlyDictionary<string, object> ToDictionary(
+        public static IReadOnlyDictionary<string, object?> ToDictionary(
             IReadOnlyQueryResult result)
         {
             var formatted = new OrderedDictionary();
 
-            if (result.Errors is { } && result.Errors.Count > 0)
+            if (result.Errors is { Count: > 0 })
             {
                 formatted[_errors] = SerializeErrors(result.Errors);
             }
 
-            if (result.Data is { } && result.Data.Count > 0)
+            if (result.Data is { Count: > 0 })
             {
                 formatted[_data] = result.Data;
             }
 
-            if (result.Extensions is { } && result.Extensions.Count > 0)
+            if (result.Extensions is { Count: > 0 })
             {
                 formatted[_extensions] = result.Extensions;
             }
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             {
                 var formattedError = new OrderedDictionary {[_message] = error.Message};
 
-                if (error.Locations is { } && error.Locations.Count > 0)
+                if (error.Locations is { Count: > 0 })
                 {
                     formattedError[_locations] = SerializeLocations(error.Locations);
                 }
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
                     formattedError[_path] = error.Path.ToList();
                 }
 
-                if (error.Extensions is { } && error.Extensions.Count > 0)
+                if (error.Extensions is { Count: > 0 })
                 {
                     formattedError[_extensions] = error.Extensions;
                 }

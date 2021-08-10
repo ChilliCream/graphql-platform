@@ -6,6 +6,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Internal
 {
     public static class TypeExtensionHelper
@@ -33,7 +35,7 @@ namespace HotChocolate.Internal
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
+            Action<T>? onBeforeAdd = null)
             where T : OutputFieldDefinitionBase
         {
             MergeFields(context, extensionFields, typeFields,
@@ -61,13 +63,12 @@ namespace HotChocolate.Internal
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
+            Action<T>? onBeforeAdd = null)
             where T : FieldDefinitionBase
         {
             foreach (T extensionField in extensionFields)
             {
-                T typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Equals(extensionField.Name));
+                T? typeField = typeFields.FirstOrDefault(t => t.Name.Equals(extensionField.Name));
 
                 if (typeField is null)
                 {
@@ -163,7 +164,8 @@ namespace HotChocolate.Internal
                 }
             }
 
-            if (extension.FieldBindingType != typeof(object))
+            if (extension.FieldBindingType != null &&
+                extension.FieldBindingType != typeof(object))
             {
                 type.KnownRuntimeTypes.Add(extension.FieldBindingType);
             }

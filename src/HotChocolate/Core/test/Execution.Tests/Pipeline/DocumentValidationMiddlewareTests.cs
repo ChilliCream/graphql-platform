@@ -19,7 +19,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.Is<bool>(b => true)))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -45,7 +46,8 @@ namespace HotChocolate.Execution.Pipeline
             await middleware.InvokeAsync(requestContext.Object);
 
             // assert
-            Assert.Equal(validationResult, requestContext.Object.ValidationResult);
+            Assert.NotEqual(validationResult, requestContext.Object.ValidationResult);
+            Assert.False(requestContext.Object.ValidationResult!.HasErrors);
         }
 
         [Fact]
@@ -56,7 +58,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
@@ -96,7 +99,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                     It.IsAny<ISchema>(),
                     It.IsAny<DocumentNode>(),
-                    It.IsAny<IDictionary<string, object>>()))
+                    It.IsAny<IDictionary<string, object>>(),
+                    It.IsAny<bool>()))
                 .Returns(validationResult);
 
             var middleware = new DocumentValidationMiddleware(
@@ -135,7 +139,8 @@ namespace HotChocolate.Execution.Pipeline
             validator.Setup(t => t.Validate(
                 It.IsAny<ISchema>(),
                 It.IsAny<DocumentNode>(),
-                It.IsAny<IDictionary<string, object>>()))
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(

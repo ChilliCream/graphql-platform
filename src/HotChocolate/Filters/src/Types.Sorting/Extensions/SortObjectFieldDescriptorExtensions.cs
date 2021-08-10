@@ -69,19 +69,22 @@ namespace HotChocolate.Types
             Type? sortType,
             ITypeSystemMember? sortTypeInstance = null)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate((c,definition) =>
                 {
                     Type argumentType = GetArgumentType(definition, sortType, c.TypeInspector);
 
                     ITypeReference argumentTypeReference = sortTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                        ? c.TypeInspector.GetTypeRef(
                             argumentType,
                             TypeContext.Input)
                         : TypeReference.Create(sortTypeInstance);
@@ -96,11 +99,11 @@ namespace HotChocolate.Types
                         LazyTypeConfigurationBuilder
                             .New<ArgumentDefinition>()
                             .Definition(argumentDefinition)
-                            .Configure((context, definition) =>
+                            .Configure((context, d) =>
                                 {
                                     ISortingNamingConvention convention =
                                         context.DescriptorContext.GetSortingNamingConvention();
-                                    definition.Name = convention.ArgumentName;
+                                    d.Name = convention.ArgumentName;
                                 })
                            .On(ApplyConfigurationOn.Completion)
                            .Build();
@@ -112,10 +115,10 @@ namespace HotChocolate.Types
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, definition) =>
+                            .Configure((context, d) =>
                                 CompileMiddleware(
                                     context,
-                                    definition,
+                                    d,
                                     argumentTypeReference,
                                     placeholder))
                             .On(ApplyConfigurationOn.Completion)
@@ -170,7 +173,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             ISortingNamingConvention convention =
                 context.DescriptorContext.GetSortingNamingConvention();
@@ -186,8 +189,9 @@ namespace HotChocolate.Types
                         SortMiddlewareContext.Create(convention.ArgumentName
                     )));
 
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Sorting);
         }
     }
 }

@@ -24,18 +24,28 @@ namespace HotChocolate.Types.Introspection
             };
 
         internal static IReadOnlyList<ITypeReference> CreateReferences(
-            ITypeInspector typeInspector) =>
-            new List<ITypeReference>
+            IDescriptorContext context)
+        {
+            var types = new List<ITypeReference>
             {
-                typeInspector.GetTypeRef(typeof(__Directive)),
-                typeInspector.GetTypeRef(typeof(__DirectiveLocation)),
-                typeInspector.GetTypeRef(typeof(__EnumValue)),
-                typeInspector.GetTypeRef(typeof(__Field)),
-                typeInspector.GetTypeRef(typeof(__InputValue)),
-                typeInspector.GetTypeRef(typeof(__Schema)),
-                typeInspector.GetTypeRef(typeof(__Type)),
-                typeInspector.GetTypeRef(typeof(__TypeKind))
+                context.TypeInspector.GetTypeRef(typeof(__Directive)),
+                context.TypeInspector.GetTypeRef(typeof(__DirectiveLocation)),
+                context.TypeInspector.GetTypeRef(typeof(__EnumValue)),
+                context.TypeInspector.GetTypeRef(typeof(__Field)),
+                context.TypeInspector.GetTypeRef(typeof(__InputValue)),
+                context.TypeInspector.GetTypeRef(typeof(__Schema)),
+                context.TypeInspector.GetTypeRef(typeof(__Type)),
+                context.TypeInspector.GetTypeRef(typeof(__TypeKind))
             };
+
+            if (context.Options.EnableDirectiveIntrospection)
+            {
+                types.Add(context.TypeInspector.GetTypeRef(typeof(__AppliedDirective)));
+                types.Add(context.TypeInspector.GetTypeRef(typeof(__DirectiveArgument)));
+            }
+
+            return types;
+        }
 
         /// <summary>
         /// Defines if the type name represents an introspection type.

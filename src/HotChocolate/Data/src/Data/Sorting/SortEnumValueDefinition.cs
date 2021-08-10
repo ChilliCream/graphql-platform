@@ -10,8 +10,8 @@ namespace HotChocolate.Data.Sorting
 
         public new object Value
         {
-            get => base.Value!;
-            set => base.Value = value;
+            get => base.RuntimeValue!;
+            set => base.RuntimeValue = value;
         }
     }
 }

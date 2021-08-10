@@ -11,37 +11,71 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// This is not a full type and is used to split the type configuration into multiple part.
-    /// Any type extension instance is will not survive the initialization and instead is
-    /// merged into the target type.
+    /// Union type extensions are used to represent a union type which has been extended
+    /// from some original union type. For example, this might be used to represent additional
+    /// local data, or by a GraphQL service which is itself an extension of another
+    /// GraphQL service.
     /// </summary>
     public class UnionTypeExtension : NamedTypeExtensionBase<UnionTypeDefinition>
     {
         private Action<IUnionTypeDescriptor>? _configure;
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="UnionTypeExtension"/>.
+        /// </summary>
         public UnionTypeExtension()
         {
             _configure = Configure;
         }
 
+        /// <summary>
+        /// Initializes a new  instance of <see cref="UnionTypeExtension"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
         public UnionTypeExtension(Action<IUnionTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
+        /// <summary>
+        /// Create a union type extension from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The union type definition that specifies the properties of the
+        /// newly created union type extension.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created union type extension.
+        /// </returns>
+        public static UnionTypeExtension CreateUnsafe(UnionTypeDefinition definition)
+            => new() { Definition = definition };
+
+        /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Union;
 
-        protected override UnionTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
+        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            var descriptor =
-                UnionTypeDescriptor.New(context.DescriptorContext);
+            try
+            {
+                if (Definition is null)
+                {
+                    var descriptor = UnionTypeDescriptor.New(context.DescriptorContext);
+                    _configure!(descriptor);
+                    return descriptor.CreateDefinition();
+                }
 
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
+                return Definition;
+            }
+            finally
+            {
+                _configure = null;
+            }
         }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
@@ -67,7 +101,7 @@ namespace HotChocolate.Types
         {
             if (type is UnionType unionType)
             {
-                // we first assert that extension and type are mutable and by 
+                // we first assert that extension and type are mutable and by
                 // this that they do have a type definition.
                 AssertMutable();
                 unionType.AssertMutable();

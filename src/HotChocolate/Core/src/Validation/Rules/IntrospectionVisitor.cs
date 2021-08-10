@@ -15,7 +15,7 @@ namespace HotChocolate.Validation.Rules
             OperationDefinitionNode node,
             IDocumentValidatorContext context)
         {
-            if (node.Operation == OperationType.Query &&
+            if (node.Operation is OperationType.Query &&
                 !context.ContextData.ContainsKey(WellKnownContextData.IntrospectionAllowed))
             {
                 return base.Enter(node, context);

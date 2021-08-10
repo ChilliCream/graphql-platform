@@ -53,6 +53,42 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_FieldName()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddMutationType<Mutation>()
+                .EnableRelaySupport(new RelayOptions
+                {
+                    AddQueryFieldToMutationPayloads = true,
+                    QueryFieldName = "rootQuery"
+                })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_PayloadPredicate()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .AddMutationType<Mutation2>()
+                .EnableRelaySupport(new RelayOptions
+                {
+                    AddQueryFieldToMutationPayloads = true,
+                    MutationPayloadPredicate = type => type.Name.Value.EndsWith("Result")
+                })
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId()
         {
             Snapshot.FullName();
@@ -88,7 +124,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("some")
                     .Type<SomeType>()
-                    .Resolver(new object());
+                    .Resolve(new object());
             }
         }
 
@@ -104,7 +140,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("id")
                     .Type<NonNullType<IdType>>()
-                    .Resolver("bar");
+                    .Resolve("bar");
             }
         }
 
@@ -126,6 +162,13 @@ namespace HotChocolate.Types.Relay
             public FooPayload Foo() => new();
         }
 
+        public class Mutation2
+        {
+            public BazPayload Baz() => new();
+
+            public BarResult Bar() => new();
+        }
+
         [ExtendObjectType("Mutation")]
         public class MutationExtension
         {
@@ -133,5 +176,12 @@ namespace HotChocolate.Types.Relay
         }
 
         public class FooPayload { }
+
+        public class BazPayload
+        {
+            public string Some { get; set; }
+        }
+
+        public class BarResult { }
     }
 }

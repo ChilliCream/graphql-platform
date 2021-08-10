@@ -6,21 +6,24 @@ namespace HotChocolate.Types
     public static class Directives
     {
         private static readonly HashSet<NameString> _directiveNames =
-            new HashSet<NameString>
+            new()
             {
                 WellKnownDirectives.Skip,
                 WellKnownDirectives.Include,
-                WellKnownDirectives.Deprecated
+                WellKnownDirectives.Deprecated,
+                WellKnownDirectives.Stream,
+                WellKnownDirectives.Defer
             };
 
         internal static IReadOnlyList<ITypeReference> CreateReferences(
             ITypeInspector typeInspector) =>
             new ITypeReference[]
             {
-                typeInspector.GetTypeRef(typeof(SkipDirectiveType), TypeContext.None),
-                typeInspector.GetTypeRef(typeof(IncludeDirectiveType), TypeContext.None),
-                typeInspector.GetTypeRef(typeof(DeferDirectiveType), TypeContext.None),
-                typeInspector.GetTypeRef(typeof(StreamDirectiveType), TypeContext.None),
+                typeInspector.GetTypeRef(typeof(SkipDirectiveType)),
+                typeInspector.GetTypeRef(typeof(IncludeDirectiveType)),
+                typeInspector.GetTypeRef(typeof(DeferDirectiveType)),
+                typeInspector.GetTypeRef(typeof(StreamDirectiveType)),
+                typeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
             };
 
         public static bool IsBuiltIn(NameString typeName)

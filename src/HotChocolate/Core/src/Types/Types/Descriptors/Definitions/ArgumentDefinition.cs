@@ -7,13 +7,38 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// Defines the properties of a GraphQL argument type.
+    /// </summary>
     public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+        /// </summary>
+        public ArgumentDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="ArgumentDefinition"/>.
+        /// </summary>
+        public ArgumentDefinition(
+            NameString name,
+            string? description = null,
+            ITypeReference? type = null,
+            IValueNode? defaultValue = null,
+            object? runtimeDefaultValue = null)
+        {
+            Name = name;
+            Description = description;
+            Type = type;
+            DefaultValue = defaultValue;
+            RuntimeDefaultValue = runtimeDefaultValue;
+        }
+
         private List<IInputValueFormatter>? _formatters;
 
         public IValueNode? DefaultValue { get; set; }
 
-        public object? NativeDefaultValue { get; set; }
+        public object? RuntimeDefaultValue { get; set; }
 
         public ParameterInfo? Parameter { get; set; }
 
@@ -36,7 +61,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             target._formatters = _formatters;
             target.DefaultValue = DefaultValue;
-            target.NativeDefaultValue = NativeDefaultValue;
+            target.RuntimeDefaultValue = RuntimeDefaultValue;
             target.Parameter = Parameter;
         }
 
@@ -55,9 +80,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.DefaultValue = DefaultValue;
             }
 
-            if (NativeDefaultValue is not null)
+            if (RuntimeDefaultValue is not null)
             {
-                target.NativeDefaultValue = NativeDefaultValue;
+                target.RuntimeDefaultValue = RuntimeDefaultValue;
             }
 
             if (Parameter is not null)

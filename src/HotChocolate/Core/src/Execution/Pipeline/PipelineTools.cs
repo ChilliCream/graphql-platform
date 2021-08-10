@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -8,6 +10,8 @@ namespace HotChocolate.Execution.Pipeline
     {
         private static readonly IReadOnlyDictionary<string, object?> _empty =
             new Dictionary<string, object?>();
+        private static readonly VariableValueCollection _noVariables =
+            VariableValueCollection.Empty;
 
         public static string CreateOperationId(string documentId, string? operationName) =>
             operationName is null ? documentId : $"{documentId}+{operationName}";
@@ -24,7 +28,7 @@ namespace HotChocolate.Execution.Pipeline
             {
                 if (variableDefinitions.Count == 0)
                 {
-                    context.Variables = VariableValueCollection.Empty;
+                    context.Variables = _noVariables;
                 }
                 else
                 {

@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
 namespace HotChocolate.Types
 {
-    public interface IFieldCollection<out T>
-        : IReadOnlyCollection<T>
-        where T : class, IField
+    public interface IFieldCollection<out T> : IReadOnlyCollection<T> where T : class, IField
     {
         T this[string fieldName] { get; }
 
         T this[int index] { get; }
-
-        [Obsolete("This method will be remove soon.")]
-        int IndexOfField(NameString fieldName);
 
         bool ContainsField(NameString fieldName);
     }

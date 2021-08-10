@@ -253,11 +253,9 @@ public class Subscription
     public ValueTask<ISourceStream<Book>> BookPublished(string author,
         [Service] ITopicEventReceiver receiver)
     {
-        string topic = $"{author}_PublishedBook";
-        ISourceStream<Book> stream =
-            receiver.SubscribeAsync<string, Book>(topic);
+        var topic = $"{author}_PublishedBook";
 
-        return stream;
+        return receiver.SubscribeAsync<string, Book>(topic);
     }
 }
 
@@ -279,9 +277,7 @@ public class Subscription
         => receiver.SubscribeAsync<string, Book>("ExampleTopic");
 
     [Subscribe(With = nameof(SubscribeToBooks))]
-    public ValueTask<ISourceStream<Book>> BookAdded([EventMessage] Book book)
+    public Book BookAdded([EventMessage] Book book)
         => book;
 }
 ```
-
-<!-- todo: arguments with Subscribe(With = "...") -->

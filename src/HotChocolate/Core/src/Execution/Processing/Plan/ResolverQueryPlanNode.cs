@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using HotChocolate.Utilities;
 using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProperties;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -15,7 +14,6 @@ namespace HotChocolate.Execution.Processing.Plan
         private const string _fieldProp = "field";
         private const string _responseNameProp = "responseName";
         private const string _pureProp = "pure";
-        private const string _inlineProp = "inline";
 
         public ResolverQueryPlanNode(
             ISelection first,
@@ -81,11 +79,6 @@ namespace HotChocolate.Execution.Processing.Plan
                     writer.WriteBoolean(_pureProp, true);
                 }
 
-                if (selection.Strategy is SelectionExecutionStrategy.Inline)
-                {
-                    writer.WriteBoolean(_inlineProp, true);
-                }
-
                 writer.WriteEndObject();
             }
             writer.WriteEndArray();
@@ -127,11 +120,6 @@ namespace HotChocolate.Execution.Processing.Plan
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
                     serializedSelection[_pureProp] = true;
-                }
-
-                if (selection.Strategy is SelectionExecutionStrategy.Inline)
-                {
-                    serializedSelection[_inlineProp] = true;
                 }
 
                 selections.Add(serializedSelection);

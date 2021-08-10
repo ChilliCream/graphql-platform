@@ -99,7 +99,7 @@ namespace HotChocolate.Types
         /// The field argument name.
         /// </param>
         /// <param name="argumentDescriptor">
-        /// The argument descriptor to specify the argument configuration. 
+        /// The argument descriptor to specify the argument configuration.
         /// </param>
         IObjectFieldDescriptor Argument(
             NameString argumentName,
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver,
-            Type resultType);
+            Type? resultType);
 
         IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod);

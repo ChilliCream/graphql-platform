@@ -12,8 +12,7 @@ using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeRegistrar
-        : ITypeRegistrar
+    internal sealed class TypeRegistrar : ITypeRegistrar
     {
         private readonly ServiceFactory _serviceFactory = new();
         private readonly HashSet<ITypeReference> _unresolved = new();
@@ -54,7 +53,7 @@ namespace HotChocolate.Configuration
 
             if (registeredType.References.Count > 0)
             {
-                ResolveReferences(registeredType);
+                RegisterTypeAndResolveReferences(registeredType);
 
                 if (typeSystemObject is IHasRuntimeType hasRuntimeType
                     && hasRuntimeType.RuntimeType != typeof(object))
@@ -77,7 +76,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void ResolveReferences(RegisteredType registeredType)
+        private void RegisterTypeAndResolveReferences(RegisteredType registeredType)
         {
             _typeRegistry.Register(registeredType);
 
@@ -166,9 +165,7 @@ namespace HotChocolate.Configuration
                 // not already registered it.
                 TypeReference instanceRef = TypeReference.Create(typeSystemObject, scope);
 
-                if (_typeRegistry.TryGetType(
-                    instanceRef,
-                    out RegisteredType? registeredType))
+                if (_typeRegistry.TryGetType(instanceRef, out RegisteredType? registeredType))
                 {
                     // if we already no this object we will short-circuit here and just return the
                     // already registered instance.

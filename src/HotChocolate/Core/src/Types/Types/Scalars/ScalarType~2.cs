@@ -85,8 +85,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public sealed override object? ParseLiteral(
-            IValueNode valueSyntax, bool withDefaults = true)
+        public sealed override object? ParseLiteral(IValueNode valueSyntax)
         {
             if (valueSyntax is null)
             {

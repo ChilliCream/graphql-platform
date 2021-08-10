@@ -114,10 +114,10 @@ namespace HotChocolate.Types.Spatial.Transformation
                         .Description(Transformation_Argument_Crs_Description);
 
                     field.Arguments.Add(argument.CreateDefinition());
-                    field.MiddlewareComponents.Insert(0,
-                        FieldClassMiddlewareFactory.Create<GeometryTransformationMiddleware>(
+                    field.MiddlewareDefinitions.Insert(0,
+                        new(FieldClassMiddlewareFactory.Create<GeometryTransformationMiddleware>(
                             (typeof(IGeometryTransformerFactory), convention.TransformerFactory),
-                            (typeof(int), convention.DefaultSrid)));
+                            (typeof(int), convention.DefaultSrid))));
                 }
             }
         }

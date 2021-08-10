@@ -28,10 +28,13 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            Helpers.TryDelete(AllSolutionFile);
+            
+            DotNetBuildSonarSolution(
+                AllSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             DotNetBuild(c => c
                 .SetProjectFile(AllSolutionFile)
@@ -40,15 +43,17 @@ partial class Build : NukeBuild
                 .SetProperty("RequireDocumentationOfPublicApiChanges", true));
         });
 
-    Target AddUnshipped => _ => _
-        .DependsOn(Restore)
+    Target AddUnshippedApi => _ => _
+        .DependsOn(Restore) 
         .Executes(() =>
         {
-            // first we ensure that the All.sln exists.
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            TryDelete(AllSolutionFile);
+
+            DotNetBuildSonarSolution(
+                AllSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             // new we restore our local dotnet tools including dotnet-format
             DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
@@ -122,6 +127,17 @@ partial class Build : NukeBuild
     Target MarkApiShipped => _ => _
         .Executes(async () =>
         {
+            Colorful.Console.WriteLine("This is only supposed to be executed after a release has been published.", Color.Yellow);
+            Colorful.Console.WriteLine("If you just want to stage your API changes, use the AddUnshippedApi script.", Color.Yellow);
+            Colorful.Console.WriteLine("Continue? (y/n)", Color.Yellow);
+
+            if (Colorful.Console.ReadKey().Key != ConsoleKey.Y)
+            {
+                return;
+            }
+
+            Colorful.Console.WriteLine();
+
             var shippedFiles = Directory.GetFiles(SourceDirectory, _shippedApiFile, SearchOption.AllDirectories);
 
             foreach (var shippedFile in shippedFiles)

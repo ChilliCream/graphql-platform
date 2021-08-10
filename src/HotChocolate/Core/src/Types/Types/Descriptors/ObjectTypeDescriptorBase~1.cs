@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -160,13 +161,6 @@ namespace HotChocolate.Types.Descriptors
         public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type)
         {
             base.Implements(type);
-            return this;
-        }
-
-        [Obsolete("Use ObjectTypeExtension API.")]
-        public new IObjectTypeDescriptor<T> Include<TResolver>()
-        {
-            base.Include<TResolver>();
             return this;
         }
 

@@ -99,12 +99,15 @@ namespace HotChocolate.Types
             Type? sortType,
             string? scope)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (c, definition) =>
@@ -169,8 +172,8 @@ namespace HotChocolate.Types
                                 .New<ArgumentDefinition>()
                                 .Definition(argumentDefinition)
                                 .Configure(
-                                    (context, argumentDefinition) =>
-                                        argumentDefinition.Name =
+                                    (context, argDef) =>
+                                        argDef.Name =
                                             context.GetSortConvention(scope).GetArgumentName())
                                 .On(ApplyConfigurationOn.Naming)
                                 .Build());
@@ -183,7 +186,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             string? scope)
         {
             IType resolvedType = context.GetType<IType>(argumentTypeReference);
@@ -199,8 +202,9 @@ namespace HotChocolate.Types
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Sorting);
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(

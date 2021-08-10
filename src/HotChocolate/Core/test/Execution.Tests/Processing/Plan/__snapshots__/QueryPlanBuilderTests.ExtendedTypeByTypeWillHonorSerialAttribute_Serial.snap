@@ -1,0 +1,30 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Sequence",
+    "nodes": [
+      {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 0,
+            "field": "Query.bars",
+            "responseName": "bars"
+          }
+        ]
+      },
+      {
+        "type": "Resolver",
+        "strategy": "Serial",
+        "selections": [
+          {
+            "id": 1,
+            "field": "Foo.foo",
+            "responseName": "foo"
+          }
+        ]
+      }
+    ]
+  }
+}

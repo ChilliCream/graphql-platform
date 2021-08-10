@@ -127,7 +127,7 @@ namespace HotChocolate.Validation.Rules
             {
                 ArgumentNode argument = argumentNodes[i];
 
-                if (arguments.TryGetField(argument.Name.Value, out IInputField arg))
+                if (arguments.TryGetField(argument.Name.Value, out IInputField? arg))
                 {
                     if (!context.Names.Add(argument.Name.Value))
                     {

@@ -16,7 +16,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<QueryExecutor>();
-            services.TryAddSingleton<MutationExecutor>();
             services.TryAddSingleton(
                 sp => new SubscriptionExecutor(
                     sp.GetApplicationService<ObjectPool<OperationContext>>(),

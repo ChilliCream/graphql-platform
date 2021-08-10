@@ -11,17 +11,14 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeCompletionContext : ITypeCompletionContext
     {
-        private readonly HashSet<NameString> _alternateNames = new();
         private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeReferenceResolver _typeReferenceResolver;
-        private readonly IDictionary<FieldReference, RegisteredResolver> _resolvers;
         private readonly Func<ISchema> _schemaResolver;
 
         public TypeCompletionContext(
             TypeDiscoveryContext initializationContext,
             TypeReferenceResolver typeReferenceResolver,
             IList<FieldMiddleware> globalComponents,
-            IDictionary<FieldReference, RegisteredResolver> resolvers,
             IsOfTypeFallback isOfType,
             Func<ISchema> schemaResolver)
         {
@@ -29,13 +26,10 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(initializationContext));
             _typeReferenceResolver = typeReferenceResolver ??
                 throw new ArgumentNullException(nameof(typeReferenceResolver));
-            _resolvers = resolvers ??
-                throw new ArgumentNullException(nameof(resolvers));
             IsOfType = isOfType;
             _schemaResolver = schemaResolver ??
                 throw new ArgumentNullException(nameof(schemaResolver));
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(globalComponents);
-            _alternateNames.Add(_initializationContext.InternalName);
         }
 
         public TypeStatus Status { get; set; } = TypeStatus.Initialized;
@@ -65,8 +59,6 @@ namespace HotChocolate.Configuration
         public IServiceProvider Services => _initializationContext.Services;
 
         public IDictionary<string, object> ContextData => _initializationContext.ContextData;
-
-        public ISet<NameString> AlternateTypeNames => _alternateNames;
 
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
@@ -106,6 +98,9 @@ namespace HotChocolate.Configuration
             return type;
         }
 
+        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+            => _typeReferenceResolver.GetNamedTypeReference(typeRef);
+
         public bool TryGetDirectiveType(
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType directiveType) =>
@@ -118,50 +113,6 @@ namespace HotChocolate.Configuration
                 out DirectiveType directiveType)
                 ? directiveType
                 : null;
-        }
-
-        public FieldResolver GetResolver(NameString fieldName)
-        {
-            fieldName.EnsureNotEmpty(nameof(fieldName));
-
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
-            if (TryGetResolver(Type.Name, fieldName,
-                out FieldResolver resolver))
-            {
-                return resolver;
-            }
-
-            foreach (NameString alternateName in _alternateNames)
-            {
-                if (TryGetResolver(alternateName, fieldName, out resolver))
-                {
-                    return resolver;
-                }
-            }
-
-            return null;
-        }
-
-        private bool TryGetResolver(
-            NameString typeName,
-            NameString fieldName,
-            out FieldResolver resolver)
-        {
-            if (_resolvers.TryGetValue(
-                new FieldReference(typeName, fieldName),
-                out RegisteredResolver rr)
-                && rr.Field is FieldResolver r)
-            {
-                resolver = r;
-                return true;
-            }
-
-            resolver = null;
-            return false;
         }
 
         public Func<ISchema> GetSchemaResolver()

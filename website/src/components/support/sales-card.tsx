@@ -91,7 +91,7 @@ const Buy = styled.a`
   font-family: "Roboto", sans-serif;
   margin-top: 2rem;
   width: 100%;
-  color: #fff;
+  color: var(--text-color-contrast);
   padding: 0.5rem 0;
   font-size: 0.875rem;
   line-height: 1.25rem;

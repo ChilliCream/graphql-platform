@@ -27,11 +27,15 @@ namespace HotChocolate.Types
             }
         }
 
-        internal TDefinition? Definition
+        protected internal TDefinition? Definition
         {
             get
             {
                 return _definition;
+            }
+            protected set
+            {
+                _definition = value;
             }
         }
 
@@ -48,6 +52,12 @@ namespace HotChocolate.Types
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
+            // if we at this point already know the name we will just commit it.
+            if (_definition.Name.HasValue)
+            {
+                Name = _definition.Name;
             }
 
             RegisterConfigurationDependencies(context, _definition);
@@ -123,6 +133,7 @@ namespace HotChocolate.Types
             _definition = null;
 
             OnAfterCompleteType(context, definition, _contextData);
+            OnValidateType(context, definition, _contextData);
 
             MarkCompleted();
         }
@@ -245,15 +256,20 @@ namespace HotChocolate.Types
                 context, definition, contextData);
         }
 
+        protected virtual void OnValidateType(
+            ITypeSystemObjectContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnValidateType(
+                context, definition, contextData);
+        }
+
         private void AssertUninitialized()
         {
             Debug.Assert(
                 !IsInitialized,
                 "The type must be uninitialized.");
-
-            Debug.Assert(
-                _definition is null,
-                "The definition should not exist when the type has not been initialized.");
 
             if (IsInitialized)
             {

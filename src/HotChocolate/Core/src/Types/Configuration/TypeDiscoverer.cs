@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -57,10 +56,8 @@ namespace HotChocolate.Configuration
 
             if (includeSystemTypes)
             {
-                _unregistered.AddRange(
-                    IntrospectionTypes.CreateReferences(context.TypeInspector));
-                _unregistered.AddRange(
-                    Directives.CreateReferences(context.TypeInspector));
+                _unregistered.AddRange(IntrospectionTypes.CreateReferences(context));
+                _unregistered.AddRange(Directives.CreateReferences(context.TypeInspector));
             }
 
             _unregistered.AddRange(typeRegistry.GetTypeRefs());
@@ -147,7 +144,7 @@ namespace HotChocolate.Configuration
                     _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
+                    _typeInspector, unresolvedType, out ExtendedTypeReference? schemaType))
                 {
                     inferred = true;
 

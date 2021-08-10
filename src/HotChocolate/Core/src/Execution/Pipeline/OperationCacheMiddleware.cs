@@ -57,10 +57,10 @@ namespace HotChocolate.Execution.Pipeline
                 await _next(context).ConfigureAwait(false);
 
                 if (addToCache &&
-                    context.Operation is { } &&
-                    context.DocumentId is { } &&
-                    context.Document is { } &&
-                    context.ValidationResult is { HasErrors: false })
+                    context.Operation is not null &&
+                    context.DocumentId is not null &&
+                    context.Document is not null &&
+                    context.IsValidDocument)
                 {
                     _operationCache.TryAddOperation(cacheId, context.Operation);
                     _diagnosticEvents.AddedOperationToCache(context);

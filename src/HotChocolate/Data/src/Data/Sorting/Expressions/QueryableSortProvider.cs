@@ -58,12 +58,12 @@ namespace HotChocolate.Data.Sorting.Expressions
             return (context, input) =>
             {
                 // next we get the sort argument.
-                IInputField argument = context.Field.Arguments[argumentName];
+                IInputField argument = context.Selection.Field.Arguments[argumentName];
                 IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no sort is defined we can stop here and yield back control.
                 var skipSorting =
-                    context.LocalContextData.TryGetValue(SkipSortingKey, out object? skip) &&
+                    context.LocalContextData.TryGetValue(SkipSortingKey, out var skip) &&
                     skip is true;
 
                 // ensure sorting is only applied once
@@ -78,9 +78,9 @@ namespace HotChocolate.Data.Sorting.Expressions
                 if (argument.Type is ListType lt &&
                     lt.ElementType is NonNullType nn &&
                     nn.NamedType() is ISortInputType sortInput &&
-                    context.Field.ContextData.TryGetValue(
+                    context.Selection.Field.ContextData.TryGetValue(
                         ContextVisitSortArgumentKey,
-                        out object? executorObj) &&
+                        out var executorObj) &&
                     executorObj is VisitSortArgument executor)
                 {
                     var inMemory =

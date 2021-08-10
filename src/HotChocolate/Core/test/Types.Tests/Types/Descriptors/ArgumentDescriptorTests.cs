@@ -162,7 +162,7 @@ namespace HotChocolate.Types
             Assert.Equal(typeof(string),
                 Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("string",
-                description.NativeDefaultValue);
+                description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -177,7 +177,7 @@ namespace HotChocolate.Types
             // assert
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.Equal(NullValueNode.Default, description.DefaultValue);
-            Assert.Null(description.NativeDefaultValue);
+            Assert.Null(description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -194,7 +194,7 @@ namespace HotChocolate.Types
             // assert
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.Null(description.DefaultValue);
-            Assert.Equal("string", description.NativeDefaultValue);
+            Assert.Equal("string", description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -212,7 +212,7 @@ namespace HotChocolate.Types
             // assert
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.IsType<NullValueNode>(description.DefaultValue);
-            Assert.Null(description.NativeDefaultValue);
+            Assert.Null(description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -230,7 +230,7 @@ namespace HotChocolate.Types
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.IsType<StringValueNode>(description.DefaultValue);
             Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
-            Assert.Null(description.NativeDefaultValue);
+            Assert.Null(description.RuntimeDefaultValue);
         }
     }
 }

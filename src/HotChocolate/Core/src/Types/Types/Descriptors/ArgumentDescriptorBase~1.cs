@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -89,7 +90,7 @@ namespace HotChocolate.Types.Descriptors
         public void DefaultValue(IValueNode value)
         {
             Definition.DefaultValue = value ?? NullValueNode.Default;
-            Definition.NativeDefaultValue = null;
+            Definition.RuntimeDefaultValue = null;
         }
 
         public void DefaultValue(object value)
@@ -97,14 +98,14 @@ namespace HotChocolate.Types.Descriptors
             if (value is null)
             {
                 Definition.DefaultValue = NullValueNode.Default;
-                Definition.NativeDefaultValue = null;
+                Definition.RuntimeDefaultValue = null;
             }
             else
             {
                 Definition.SetMoreSpecificType(
                     Context.TypeInspector.GetType(value.GetType()),
                     TypeContext.Input);
-                Definition.NativeDefaultValue = value;
+                Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
             }
         }

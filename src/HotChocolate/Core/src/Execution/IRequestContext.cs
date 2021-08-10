@@ -2,7 +2,6 @@
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -94,6 +93,13 @@ namespace HotChocolate.Execution
         DocumentValidatorResult? ValidationResult { get; set; }
 
         /// <summary>
+        /// <c>true</c> if the document is valid.
+        /// <c>false</c> if the document was either not validated or of the document is not valid.
+        /// </summary>
+        /// <value></value>
+        bool IsValidDocument { get; }
+
+        /// <summary>
         /// Gets a unique identifier for a prepared operation.
         /// </summary>
         string? OperationId { get; set; }
@@ -117,5 +123,11 @@ namespace HotChocolate.Execution
         /// Gets or sets an unexpected execution exception.
         /// </summary>
         Exception? Exception { get; set; }
+
+        /// <summary>
+        /// Creates a copy of this request context.
+        /// </summary>
+        /// <returns></returns>
+        IRequestContext Clone();
     }
 }

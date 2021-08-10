@@ -38,13 +38,13 @@ namespace HotChocolate.Data.Sorting
                         c
                             .Name("Query")
                             .Field("root")
-                            .Resolver(resolver)
+                            .Resolve(resolver)
                             .UseSorting<T>();
 
                         c
                             .Name("Query")
                             .Field("rootExecutable")
-                            .Resolver(ctx => resolver(ctx).AsExecutable())
+                            .Resolve(ctx => resolver(ctx).AsExecutable())
                             .UseSorting<T>();
                     });
 

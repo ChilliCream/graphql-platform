@@ -14,6 +14,7 @@ class Helpers
         Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
@@ -94,5 +95,13 @@ class Helpers
         list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
+    }
+
+    public static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
     }
 }

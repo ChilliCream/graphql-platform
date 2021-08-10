@@ -64,9 +64,6 @@ HotChocolate.Types.Spatial.GeoJsonPolygonType
 HotChocolate.Types.Spatial.GeoJsonPolygonType.GeoJsonPolygonType() -> void
 HotChocolate.Types.Spatial.GeoJsonPositionType
 HotChocolate.Types.Spatial.GeoJsonPositionType.GeoJsonPositionType() -> void
-HotChocolate.Types.Spatial.GeoJsonSerializationException
-HotChocolate.Types.Spatial.GeoJsonSerializationException.GeoJsonSerializationException(string! message, params object![]! args) -> void
-HotChocolate.Types.Spatial.GeoJsonSerializationException.GeoJsonSerializationException(string! message) -> void
 HotChocolate.Types.Spatial.GeometryType
 HotChocolate.Types.Spatial.GeometryType.GeometryType() -> void
 HotChocolate.Types.Spatial.GeometryType.GeometryType(HotChocolate.NameString name, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
@@ -81,25 +78,16 @@ HotChocolate.Types.Spatial.Transformation.IGeometryTransformerFactory.HasCoordin
 Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions
 override HotChocolate.Types.Spatial.Configuration.SpatialConvention.Complete(HotChocolate.Types.Descriptors.IConventionContext! context) -> void
 override HotChocolate.Types.Spatial.Configuration.SpatialConvention.CreateDefinition(HotChocolate.Types.Descriptors.IConventionContext! context) -> HotChocolate.Types.Spatial.Configuration.SpatialConventionDefinition!
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.IsInstanceOfType(HotChocolate.Language.IValueNode! literal) -> bool
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.IsInstanceOfType(object? value) -> bool
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax, bool withDefaults = true) -> object?
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.ParseValue(object? runtimeValue) -> HotChocolate.Language.IValueNode!
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.TryDeserialize(object? resultValue, out object? runtimeValue) -> bool
-override HotChocolate.Types.Spatial.GeoJsonInputType<T>.TrySerialize(object? runtimeValue, out object? resultValue) -> bool
-override HotChocolate.Types.Spatial.GeoJsonPositionType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
-override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax, bool withDefaults = true) -> object?
+override HotChocolate.Types.Spatial.GeometryType.Deserialize(object? resultValue) -> object?
+override HotChocolate.Types.Spatial.GeometryType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
+override HotChocolate.Types.Spatial.GeometryType.IsInstanceOfType(object? runtimeValue) -> bool
+override HotChocolate.Types.Spatial.GeometryType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeometryType.ParseValue(object? runtimeValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeometryType.Serialize(object? runtimeValue) -> object?
 override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseValue(object? value) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.Spatial.GeoJsonPositionType.TryDeserialize(object? serialized, out object? value) -> bool
 override HotChocolate.Types.Spatial.GeoJsonPositionType.TrySerialize(object? value, out object? serialized) -> bool
-override HotChocolate.Types.Spatial.GeometryType.Deserialize(object? resultValue) -> object?
-override HotChocolate.Types.Spatial.GeometryType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
-override HotChocolate.Types.Spatial.GeometryType.IsInstanceOfType(object? runtimeValue) -> bool
-override HotChocolate.Types.Spatial.GeometryType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax, bool withDefaults = true) -> object?
-override HotChocolate.Types.Spatial.GeometryType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
-override HotChocolate.Types.Spatial.GeometryType.ParseValue(object? runtimeValue) -> HotChocolate.Language.IValueNode!
-override HotChocolate.Types.Spatial.GeometryType.Serialize(object? runtimeValue) -> object?
 static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder, System.Action<HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!>! descriptor) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder, System.Func<HotChocolate.Types.Spatial.Configuration.SpatialConvention!>! conventionFactory) -> HotChocolate.ISchemaBuilder!
 static HotChocolate.SpatialSchemaBuilderExtensions.AddSpatialTypes(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!

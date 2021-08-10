@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.WellKnownMiddleware;
 
 #nullable enable
 
@@ -28,10 +29,11 @@ namespace HotChocolate.Types.Pagination
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = _ => _ => default;
+            FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
@@ -54,7 +56,7 @@ namespace HotChocolate.Types.Pagination
             Type? entityType,
             GetPagingProvider? resolvePagingProvider,
             PagingOptions options,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             options = context.GetSettings(options);
             entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
@@ -65,8 +67,8 @@ namespace HotChocolate.Types.Pagination
             IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
 
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] = new(middleware, key: Paging);
         }
 
         private static IExtendedType GetSourceType(
@@ -125,7 +127,7 @@ namespace HotChocolate.Types.Pagination
                 if (SchemaTypeResolver.TryInferSchemaType(
                     typeInspector,
                     r.WithType(typeInspector.GetType(typeInfo.NamedType)),
-                    out ExtendedTypeReference schemaTypeRef))
+                    out ExtendedTypeReference? schemaTypeRef))
                 {
                     // if we are able to infer the type we will reconstruct its structure so that
                     // we can correctly extract from it the element type with the correct
@@ -149,8 +151,6 @@ namespace HotChocolate.Types.Pagination
                         return schemaType.ElementType!;
                     }
                 }
-
-
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))
