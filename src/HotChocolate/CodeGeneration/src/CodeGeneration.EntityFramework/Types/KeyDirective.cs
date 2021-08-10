@@ -2,14 +2,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
-    public class KeyDirective : IModelConfiguringDirective
+    public class KeyDirective
     {
         public string? Name { get; set; }
-
-        public object AsConfigurationStatement()
-        {
-            return null!;
-        }
     }
 
     public class KeyDirectiveType : DirectiveType<KeyDirective>
@@ -17,15 +12,15 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
         protected override void Configure(IDirectiveTypeDescriptor<KeyDirective> descriptor)
         {
             descriptor
-                .Name("key") // TODO: Wouldn't this be implied?
+                .Name("key")
                 .Location(DirectiveLocation.FieldDefinition);
 
             descriptor
                 .Argument(t => t.Name)
                 .Description(
                     "The name to use for the primary key in the database schema. " +
-                    "If none is provided, PK_TableName will be used.") // TODO: Could we use XML comments for descs?
-                .Type<StringType>(); // TODO: Wouldn't this be implied?
+                    "If none is provided, PK_TableName will be used.")
+                .Type<StringType>();
         }
     }
 }

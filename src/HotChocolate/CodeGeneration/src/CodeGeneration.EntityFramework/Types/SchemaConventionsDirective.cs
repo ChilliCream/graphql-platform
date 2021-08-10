@@ -1,5 +1,6 @@
 using HotChocolate.Types;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
@@ -13,7 +14,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
         public StatementSyntax AsConfigurationStatement()
         {
-            throw new System.NotImplementedException("TODO: First example of a ");
+            // Doesn't need to do anything yet
+            return Block();
         }
     }
 

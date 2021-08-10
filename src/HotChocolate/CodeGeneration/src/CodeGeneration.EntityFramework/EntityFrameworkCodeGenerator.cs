@@ -107,31 +107,31 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             TypeNameDirective? typeNameDirective =
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
             var modelName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var modelNamePluralized = typeNameDirective?.PluralName ?? objectType.Name.Value.Pluralize();
             var modelConfigurerName = $"{modelName}Configurer";
-
-            TableDirective? tableDirective =
-                objectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
-            JsonDirective? jsonDirective =
-                objectType.GetFirstDirective<JsonDirective>(JsonDirectiveType.NameConst);
-
-            var tableName = GetTableName(objectType, tableDirective, jsonDirective, usePluralizedTableNames);
-            var hasTable = tableName != null;
-            var singularName = tableName.Singularize(inputIsKnownToBePlural: usePluralizedTableNames);
-            var pluralizedName = tableName.Pluralize(inputIsKnownToBeSingular: !usePluralizedTableNames);
 
             // Generate model class
             GenerateModel(result, @namespace, objectType, modelName);
 
-            // If we've got a table, need to do a few more things
+            // Generate ancillary stuff
+            JsonDirective? jsonDirective =
+                objectType.GetFirstDirective<JsonDirective>(JsonDirectiveType.NameConst);
+            var hasTable = jsonDirective is null;
             if (hasTable)
             {
                 // Generate model configurer class
-                GenerateModelConfigurer(result, @namespace, objectType, modelName, modelConfigurerName);
+                GenerateModelConfigurer(
+                    result, @namespace,
+                    objectType,
+                    modelName,
+                    modelNamePluralized,
+                    modelConfigurerName,
+                    usePluralizedTableNames);
 
                 // Add it on to the DbContext
                 QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
                 dbContextClass = dbContextClass.AddProperty(
-                    pluralizedName,
+                    modelNamePluralized,
                     dbSetType,
                     description: null,
                     setable: true);
@@ -143,7 +143,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             string @namespace,
             IObjectType objectType,
             string modelName,
-            string modelConfigurerName)
+            string modelNamePluralized,
+            string modelConfigurerName,
+            bool usePluralizedTableNames)
         {
             ClassDeclarationSyntax modelConfigurerDeclaration =
                 ClassDeclaration(modelConfigurerName)
@@ -154,12 +156,32 @@ namespace HotChocolate.CodeGeneration.EntityFramework
 
             SyntaxList<StatementSyntax> configurationStatements;
 
+            TableDirective? tableDirective =
+                objectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
+
+            // Configure the table name explicitly if needed
+            // (EF uses the DbSet property's name by default, which we always set as modelNamePluralized)
+            var tableName = tableDirective?.Name
+                ?? (usePluralizedTableNames ? modelNamePluralized : modelName);
+            if (tableName != modelNamePluralized)
+            {
+                configurationStatements.Add(GetTableNameConfigurationExpression(tableName));
+            }
+
+            // Configure the primary key
+            // TODO:
+            //  1. Look for a field (or fields) explicitly marked as a PK with the @key directive
+            //  2. Then try find an field with name Id, ID or {modelName}Id and use that (only necessary if we do 3)
+            //  3. Create them an Id field 
+
+            // Run through other model configuring directives and build up statements 
             foreach (IModelConfiguringDirective directive in objectType.Directives
                 .OfType<IModelConfiguringDirective>())
             {
                 configurationStatements.Add(directive.AsConfigurationStatement());
             }
 
+            // Build and add the Configure method
             MemberDeclarationSyntax configureMethod = GetModelConfigurerConfigureMethod(
                 modelName,
                 configurationStatements);
@@ -194,34 +216,6 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             }
 
             result.AddClass(@namespace, modelName, modelDeclaration);
-        }
-
-        private static string? GetTableName(
-            IObjectType objectType,
-            TableDirective? tableDirective,
-            JsonDirective? jsonDirective,
-            bool usePluralizedTableNames)
-        {
-            // If it's got a json directive, it's a nested entity
-            if (jsonDirective is not null)
-            {
-                return null;
-            }
-
-            // If there's a table directive explicitly stating a name, use that
-            if (tableDirective is not null &&
-                !string.IsNullOrWhiteSpace(tableDirective.Name))
-            {
-                return tableDirective.Name;
-            }
-
-            // Else derive something from the type's name
-            var tableName = objectType.Name.Value;
-            if (usePluralizedTableNames)
-            {
-                tableName = tableName.Pluralize(inputIsKnownToBeSingular: false);
-            }
-            return tableName;
         }
 
         private static readonly QualifiedNameSyntax _msEfCoreQualifiedNameForNs =
@@ -261,6 +255,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                                 SingletonSeparatedList<TypeSyntax>(
                                     IdentifierName(modelTypeName)))))));
 
+        private const string BuilderArgumentName = "builder";
+
         private static MemberDeclarationSyntax GetModelConfigurerConfigureMethod(
             string modelTypeName,
             SyntaxList<StatementSyntax> statements) =>
@@ -275,7 +271,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 ParameterList(
                     SingletonSeparatedList(
                         Parameter(
-                            Identifier("builder"))
+                            Identifier(BuilderArgumentName))
                         .WithType(
                             GenericName(
                                 Identifier("EntityTypeBuilder"))
@@ -285,6 +281,22 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                                         IdentifierName(modelTypeName))))))))
             .WithBody(
                 Block().WithStatements(statements));
+
+        private static ExpressionStatementSyntax GetTableNameConfigurationExpression(
+            string tableName) =>
+            ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(BuilderArgumentName),
+                        IdentifierName("ToTable")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList(
+                            Argument(
+                                LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    Literal(tableName)))))));
 
         private static QualifiedNameSyntax GetDbSetTypeName(string @namespace, string modelTypeName)
         {
