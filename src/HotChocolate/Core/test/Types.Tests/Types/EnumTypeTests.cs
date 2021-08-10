@@ -191,6 +191,40 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumTypeT_Ignore_Fields()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnoredType>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumTypeT_Ignore_Fields_With_Extension()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnoredTypeWithExtension>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void ImplicitEnumType_OnlyBar1HasCustomName()
         {
             // act
@@ -498,6 +532,23 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Ignore_Fields_With_GraphQLIgnoreAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnore>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void EnumType_That_Is_Bound_To_String_Should_Not_Interfere_With_Scalar()
         {
             SchemaBuilder.New()
@@ -543,6 +594,29 @@ namespace HotChocolate.Types
 
             [Obsolete]
             Bar2
+        }
+
+        public enum FooIgnore
+        {
+            Bar1,
+            [GraphQLIgnore]
+            Bar2
+        }
+
+        public class FooIgnoredType : EnumType<Foo>
+        {
+            protected override void Configure(IEnumTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Value(Foo.Bar2).Ignore();
+            }
+        }
+
+        public class FooIgnoredTypeWithExtension : EnumType<Foo>
+        {
+            protected override void Configure(IEnumTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Ignore(Foo.Bar2);
+            }
         }
 
         public enum FooDeprecated
