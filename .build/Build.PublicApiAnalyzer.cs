@@ -28,7 +28,13 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetBuildSonarSolution(AllSolutionFile);
+            Helpers.TryDelete(AllSolutionFile);
+            
+            DotNetBuildSonarSolution(
+                AllSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             DotNetBuild(c => c
                 .SetProjectFile(AllSolutionFile)
@@ -38,10 +44,16 @@ partial class Build : NukeBuild
         });
 
     Target AddUnshippedApi => _ => _
-        .DependsOn(Restore)
+        .DependsOn(Restore) 
         .Executes(() =>
         {
-            DotNetBuildSonarSolution(AllSolutionFile);
+            TryDelete(AllSolutionFile);
+
+            DotNetBuildSonarSolution(
+                AllSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             // new we restore our local dotnet tools including dotnet-format
             DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
