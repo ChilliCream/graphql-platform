@@ -74,6 +74,9 @@ namespace HotChocolate.Types.Descriptors
                 if (!field.Definition.Ignore)
                     continue;
 
+                // if this definition is used for a type extension we need a 
+                // binding to a field which shall be ignored. In case this is a 
+                // definition for the type it will be ignored by the type initialization.
                 Definition.FieldIgnores.Add(new ObjectFieldBinding(
                     field.Definition.Name,
                     ObjectFieldBindingType.Field));
