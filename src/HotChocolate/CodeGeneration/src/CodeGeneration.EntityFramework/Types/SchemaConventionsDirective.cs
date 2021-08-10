@@ -9,11 +9,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
         internal string DbContextName { get; set; } = "AppDbContext";
 
-        public bool UsePluralizedTableNames { get; set; } = true;
-
         public StatementSyntax AsConfigurationStatement()
         {
-            throw new System.NotImplementedException("TODO: First example of a ");
+            Block()
         }
     }
 
@@ -24,13 +22,6 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
             descriptor
                 .Name(SchemaConventionsDirective.DirectiveName)
                 .Location(DirectiveLocation.Schema);
-
-            descriptor
-                .Argument(t => t.UsePluralizedTableNames)
-                .Description(
-                    "If true, table names will be pluralized (e.g. Users) " +
-                    "rather than singular (e.g. User). Default: true.")
-                .Type<NonNullType<BooleanType>>();
         }
     }
 }
