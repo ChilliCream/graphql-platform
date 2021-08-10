@@ -22,88 +22,107 @@ namespace HotChocolate.Types
     public class ObjectTypeExtensionTests
     {
         [Fact]
-        public void ObjectTypeExtension_AddField()
+        public async Task ObjectTypeExtension_AddField()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType<FooTypeExtension>()
-                .Create();
+                .AddTypeExtension<FooTypeExtension>()
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields.ContainsField("test"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_Infer_Field()
+        public async Task ObjectTypeExtension_Infer_Field()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType<GenericFooTypeExtension>()
-                .Create();
+                .AddTypeExtension<GenericFooTypeExtension>()
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields.ContainsField("test"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_Declare_Field()
+        public async Task ObjectTypeExtension_Declare_Field()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension<FooExtension>(d =>
+                .AddTypeExtension(new ObjectTypeExtension<FooExtension>(d =>
                 {
                     d.Name("Foo");
                     d.Field(t => t.Test).Type<IntType>();
                 }))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields.ContainsField("test"));
             Assert.IsType<IntType>(type.Fields["test"].Type);
         }
 
         [Fact]
-        public async Task ObjectTypeExtension_Execute_Infer_Field()
+        public async Task ObjectTypeExtension_Remove_Field_By_Name()
         {
-            // arrange
-            // act
-            IRequestExecutor executor = SchemaBuilder.New()
-                .AddQueryType<FooType>()
-                .AddType<GenericFooTypeExtension>()
-                .Create()
-                .MakeExecutable();
+            Snapshot.FullName();
 
-            // assert
-            IExecutionResult result = await executor.ExecuteAsync("{ test }");
-            result.ToJson().MatchSnapshot();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooType>()
+                .AddTypeExtension(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Ignore(true)))
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void ObjectTypeExtension_OverrideResolver()
+        public async Task ObjectTypeExtension_Remove_Field()
         {
-            // arrange
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooType>()
+                .AddTypeExtension(new ObjectTypeExtension<Foo>(d => d
+                    .Ignore(f => f.Description)))
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ObjectTypeExtension_Execute_Infer_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<FooType>()
+                .AddTypeExtension<GenericFooTypeExtension>()
+                .ExecuteRequestAsync("{ test }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ObjectTypeExtension_OverrideResolver()
+        {
             ValueTask<object?> Resolver(IResolverContext ctx) => new(null!);
 
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
                     .Resolve(Resolver)))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.Equal(Resolver, type.Fields["description"].Resolver);
         }
@@ -111,36 +130,35 @@ namespace HotChocolate.Types
         [Fact]
         public async Task ObjectTypeExtension_AddResolverType()
         {
-            // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.Setup(t => t.Resolver<FooResolver>())
                 .Returns(new FooResolver());
             context.Setup(t => t.RequestAborted)
                 .Returns(CancellationToken.None);
 
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field<FooResolver>(t => t.GetName2())
                     .Type<StringType>()))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             var value = await type.Fields["name2"].Resolver!.Invoke(context.Object);
             Assert.Equal("FooResolver.GetName2", value);
         }
 
         [Fact]
-        public void ObjectTypeExtension_AddMiddleware()
+        public async Task ObjectTypeExtension_AddMiddleware()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
@@ -149,49 +167,45 @@ namespace HotChocolate.Types
                         context.Result = "BAR";
                         return default;
                     })))
-                .Create();
-
-            // assert
-            IRequestExecutor executor = schema.MakeExecutable();
-            executor.Execute("{ description }").ToJson().MatchSnapshot();
+                .ExecuteRequestAsync("{ description }")
+                .ToJsonAsync()
+                .MatchSnapshotAsync();
         }
 
         [Obsolete]
         [Fact]
-        public void ObjectTypeExtension_DeprecateField_Obsolete()
+        public async Task ObjectTypeExtension_DeprecateField_Obsolete()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
                     .DeprecationReason("Foo")))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
         }
 
         [Fact]
-        public void ObjectTypeExtension_DeprecateField_With_Reason()
+        public async Task ObjectTypeExtension_DeprecateField_With_Reason()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
                     .Deprecated("Foo")))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
@@ -199,20 +213,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_DeprecateField_Without_Reason()
+        public async Task ObjectTypeExtension_DeprecateField_Without_Reason()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
                     .Deprecated()))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal(
@@ -222,51 +236,46 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetTypeContextData()
+        public async Task ObjectTypeExtension_SetTypeContextData()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.ContextData.ContainsKey("foo"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetFieldContextData()
+        public async Task ObjectTypeExtension_SetFieldContextData()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["description"]
                 .ContextData.ContainsKey("foo"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetArgumentContextData()
+        public async Task ObjectTypeExtension_SetArgumentContextData()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
                     .Type<StringType>()
@@ -274,87 +283,78 @@ namespace HotChocolate.Types
                         .Type<StringType>()
                         .Extend()
                         .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["name"].Arguments["a"]
                 .ContextData.ContainsKey("foo"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetDirectiveOnType()
+        public async Task ObjectTypeExtension_SetDirectiveOnType()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Directives.Contains("dummy"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetDirectiveOnField()
+        public async Task ObjectTypeExtension_SetDirectiveOnField()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["name"]
                 .Directives.Contains("dummy"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetDirectiveOnArgument()
+        public async Task ObjectTypeExtension_SetDirectiveOnArgument()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
                     .Argument("a", a => a.Directive("dummy"))))
                 .AddDirectiveType<DummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["name"].Arguments["a"]
                 .Directives.Contains("dummy"));
         }
 
         [Fact]
-        public void ObjectTypeExtension_CopyDependencies_ToType()
+        public async Task ObjectTypeExtension_CopyDependencies_ToType()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
                     .Argument("a", a => a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             var value = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_arg"]
@@ -363,67 +363,61 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_RepeatableDirectiveOnType()
+        public async Task ObjectTypeExtension_RepeatableDirectiveOnType()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType(new ObjectType<Foo>(t => t
                     .Directive("dummy_rep")))
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             var count = type.Directives["dummy_rep"].Count();
             Assert.Equal(2, count);
         }
 
         [Fact]
-        public void ObjectTypeExtension_RepeatableDirectiveOnField()
+        public async Task ObjectTypeExtension_RepeatableDirectiveOnField()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType(new ObjectType<Foo>(t => t
                     .Field(f => f.Description)
                     .Directive("dummy_rep")))
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("description")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             var count = type.Fields["description"].Directives["dummy_rep"].Count();
             Assert.Equal(2, count);
         }
 
         [Fact]
-        public void ObjectTypeExtension_RepeatableDirectiveOnArgument()
+        public async Task ObjectTypeExtension_RepeatableDirectiveOnArgument()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType(new ObjectType<Foo>(t => t
                     .Field(f => f.GetName(default!))
                     .Argument("a", a => a
                         .Type<StringType>()
                         .Directive("dummy_rep", new ArgumentNode("a", "a")))))
-                .AddType(new ObjectTypeExtension(d => d
+                .AddTypeExtension(new ObjectTypeExtension(d => d
                     .Name("Foo")
                     .Field("name")
                     .Argument("a", a =>
                         a.Directive("dummy_rep", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<RepeatableDummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             var count = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_rep"]
@@ -432,121 +426,112 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ObjectTypeExtension_SetDirectiveOnArgument_Sdl_First()
+        public async Task ObjectTypeExtension_SetDirectiveOnArgument_Sdl_First()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<FooType>()
                 .AddDocumentFromString(
                     @"extend type Foo {
                         name(a: String @dummy): String
                     }")
                 .AddDirectiveType<DummyDirective>()
-                .Create();
+                .BuildSchemaAsync();
 
-            // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["name"].Arguments["a"].Directives.Contains("dummy"));
         }
 
         [Fact]
-        public void BindByType()
+        public async Task BindByType()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddType<Query>()
-                .AddType<Extensions>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<Extensions>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void BindResolver_With_Property()
+        public async Task BindResolver_With_Property()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<BindResolver_With_Property_PersonDto>()
-                .AddType<BindResolver_With_Property_PersonResolvers>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<BindResolver_With_Property_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Remove_Properties_Globally()
+        public async Task Remove_Properties_Globally()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<Remove_Properties_Globally_PersonDto>()
-                .AddType<Remove_Properties_Globally_PersonResolvers>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<Remove_Properties_Globally_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Remove_Fields_Globally()
+        public async Task Remove_Fields_Globally()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<Remove_Fields_Globally_PersonDto>()
-                .AddType<Remove_Fields_Globally_PersonResolvers>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<Remove_Fields_Globally_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Remove_Fields()
+        public async Task Remove_Fields()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<Remove_Fields_PersonDto>()
-                .AddType<Remove_Fields_PersonResolvers>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<Remove_Fields_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Remove_Fields_BindField()
+        public async Task Remove_Fields_BindField()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
                 .AddQueryType<Remove_Fields_BindProperty_PersonDto>()
-                .AddType<Remove_Fields_BindProperty_PersonResolvers>()
-                .Create();
-
-            // assert
-            schema.Print().MatchSnapshot();
+                .AddTypeExtension<Remove_Fields_BindProperty_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Replace_Field()
+        public async Task Replace_Field()
         {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Replace_Field_PersonDto>()
-                .AddType<Replace_Field_PersonResolvers>()
-                .Create();
+            Snapshot.FullName();
 
-            // assert
-            schema.Print().MatchSnapshot();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Replace_Field_PersonDto>()
+                .AddTypeExtension<Replace_Field_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         [Fact]
