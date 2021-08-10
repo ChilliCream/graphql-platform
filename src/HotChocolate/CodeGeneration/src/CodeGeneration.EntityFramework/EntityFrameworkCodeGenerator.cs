@@ -59,6 +59,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             {
                 ProcessObjectType(
                     result,
+                    usePluralizedTableNames: schemaConventions.UsePluralizedTableNames,
                     ref dbContextClass,
                     @namespace,
                     objectType);
@@ -98,40 +99,31 @@ namespace HotChocolate.CodeGeneration.EntityFramework
 
         private static void ProcessObjectType(
             CodeGenerationResult result,
+            bool usePluralizedTableNames,
             ref ClassDeclarationSyntax dbContextClass,
             string @namespace,
             IObjectType objectType)
         {
+            TypeNameDirective? typeNameDirective =
+                objectType.GetFirstDirective<TypeNameDirective>("typeName");
+            var modelName = typeNameDirective?.Name ?? objectType.Name.Value;
+            var modelConfigurerName = $"{modelName}Configurer";
+
             TableDirective? tableDirective =
                 objectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
             JsonDirective? jsonDirective =
                 objectType.GetFirstDirective<JsonDirective>(JsonDirectiveType.NameConst);
 
-            if (tableDirective is not null && jsonDirective is not null)
-            {
-                // TODO: Think about how we do detailed errors
-                throw new System.Exception("Can't have a type that's both a table and a nested JSON document.");
-            }
-
-            TypeNameDirective? typeNameDirective =
-                objectType.GetFirstDirective<TypeNameDirective>("typeName");
-
-            var modelName = tableDirective?.Name.Singularize(inputIsKnownToBePlural: false)
-                ?? typeNameDirective?.Name
-                ?? objectType.Name.Value;
-            var modelNamePluralized = tableDirective?.Name.Pluralize(inputIsKnownToBeSingular: false)
-                ?? typeNameDirective?.PluralName
-                ?? typeNameDirective?.Name.Pluralize()
-                ?? objectType.Name.Value.Pluralize();
-            var modelConfigurerName = $"{modelName}Configurer";
-
-            var isBackedByTable = jsonDirective is null;
+            var tableName = GetTableName(objectType, tableDirective, jsonDirective, usePluralizedTableNames);
+            var hasTable = tableName != null;
+            var singularName = tableName.Singularize(inputIsKnownToBePlural: usePluralizedTableNames);
+            var pluralizedName = tableName.Pluralize(inputIsKnownToBeSingular: !usePluralizedTableNames);
 
             // Generate model class
             GenerateModel(result, @namespace, objectType, modelName);
 
             // If we've got a table, need to do a few more things
-            if (isBackedByTable)
+            if (hasTable)
             {
                 // Generate model configurer class
                 GenerateModelConfigurer(result, @namespace, objectType, modelName, modelConfigurerName);
@@ -139,7 +131,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 // Add it on to the DbContext
                 QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelName);
                 dbContextClass = dbContextClass.AddProperty(
-                    modelNamePluralized,
+                    pluralizedName,
                     dbSetType,
                     description: null,
                     setable: true);
@@ -202,6 +194,34 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             }
 
             result.AddClass(@namespace, modelName, modelDeclaration);
+        }
+
+        private static string? GetTableName(
+            IObjectType objectType,
+            TableDirective? tableDirective,
+            JsonDirective? jsonDirective,
+            bool usePluralizedTableNames)
+        {
+            // If it's got a json directive, it's a nested entity
+            if (jsonDirective is not null)
+            {
+                return null;
+            }
+
+            // If there's a table directive explicitly stating a name, use that
+            if (tableDirective is not null &&
+                !string.IsNullOrWhiteSpace(tableDirective.Name))
+            {
+                return tableDirective.Name;
+            }
+
+            // Else derive something from the type's name
+            var tableName = objectType.Name.Value;
+            if (usePluralizedTableNames)
+            {
+                tableName = tableName.Pluralize(inputIsKnownToBeSingular: false);
+            }
+            return tableName;
         }
 
         private static readonly QualifiedNameSyntax _msEfCoreQualifiedNameForNs =

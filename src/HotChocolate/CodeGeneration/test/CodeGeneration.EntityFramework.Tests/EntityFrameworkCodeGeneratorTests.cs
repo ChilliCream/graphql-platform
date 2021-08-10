@@ -34,6 +34,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             // Assert
             foreach (SourceFile sourceFile in result.SourceFiles)
             {
+                //var name = System.IO.Path.GetFileNameWithoutExtension(sourceFile.Name);
                 Snapshot.Match(sourceFile.Source, new SnapshotNameExtension(sourceFile.Name));
             }
         }
