@@ -5,10 +5,11 @@ using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;
+using static HotChocolate.Types.Spatial.Properties.Resources;
 
 namespace HotChocolate.Types.Spatial.Serialization
 {
-    internal class GeoJsonGeometrySerializer : IGeoJsonSerializer
+    internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
     {
         public bool TrySerialize(IType type, object? runtimeValue, out object? resultValue)
         {
@@ -257,24 +258,12 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public object CreateInstance(IType type, object?[] fieldValues)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            throw new NotImplementedException();
-        }
+            => throw new NotSupportedException(
+                GeoJsonGeometrySerializer_CreateInstance_NotSupported);
 
         public void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            throw new NotImplementedException();
-        }
+            => throw new NotSupportedException(
+                GeoJsonGeometrySerializer_GetFieldData_NotSupported);
 
         private IGeoJsonSerializer GetGeometrySerializer(
             IType type,

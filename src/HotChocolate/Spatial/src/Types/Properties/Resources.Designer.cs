@@ -260,5 +260,17 @@ namespace HotChocolate.Types.Spatial.Properties {
                 return ResourceManager.GetString("Transformation_CoordinateMNotSupported", resourceCulture);
             }
         }
+        
+        internal static string GeoJsonGeometrySerializer_GetFieldData_NotSupported {
+            get {
+                return ResourceManager.GetString("GeoJsonGeometrySerializer_GetFieldData_NotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJsonGeometrySerializer_CreateInstance_NotSupported {
+            get {
+                return ResourceManager.GetString("GeoJsonGeometrySerializer_CreateInstance_NotSupported", resourceCulture);
+            }
+        }
     }
 }
