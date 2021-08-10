@@ -94,6 +94,17 @@ namespace HotChocolate.Lodash
 
         public class Query
         {
+            public int[] Scalars => new int[]
+            {
+                1,
+                1,
+                2,
+                2,
+                3,
+                3,
+                4,
+                4
+            };
             public Foo Single => _foos[0];
             public Foo[] List => _foos;
             public Foo[][] NestedList => _foos.Select(x => _foos).ToArray();

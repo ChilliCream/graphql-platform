@@ -22,7 +22,8 @@ namespace HotChocolate.Lodash
             LodashMinByOperation.Factory,
             LodashMaxByOperation.Factory,
             LodashSumByOperation.Factory,
-            LodashMeanByOperation.Factory
+            LodashMeanByOperation.Factory,
+            LodashUniqOperation.Factory
         };
 
         private IReadOnlyList<LodashOperation> CreateOperations(
