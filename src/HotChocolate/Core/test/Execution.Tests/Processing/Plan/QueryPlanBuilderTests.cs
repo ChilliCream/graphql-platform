@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -46,7 +47,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -97,7 +99,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -135,7 +138,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType!);
+                    schema.MutationType!,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -177,7 +181,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType!);
+                    schema.MutationType!,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -224,7 +229,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.MutationType!);
+                    schema.MutationType!,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -259,7 +265,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -294,7 +301,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -329,7 +337,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
@@ -362,7 +371,8 @@ namespace HotChocolate.Execution.Processing.Plan
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // act
             QueryPlanNode root = QueryPlanBuilder.Prepare(operation);

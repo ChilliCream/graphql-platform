@@ -231,4 +231,10 @@
   <data name="Transformation_CoordinateMNotSupported" xml:space="preserve">
     <value>Coordinates with M values cannot be transformed</value>
   </data>
+  <data name="GeoJsonGeometrySerializer_GetFieldData_NotSupported" xml:space="preserve">
+    <value>GetFieldData is only supported on concreted serializers.</value>
+  </data>
+  <data name="GeoJsonGeometrySerializer_CreateInstance_NotSupported" xml:space="preserve">
+    <value>CreateInstance is only supported on concreted serializers.</value>
+  </data>
 </root>

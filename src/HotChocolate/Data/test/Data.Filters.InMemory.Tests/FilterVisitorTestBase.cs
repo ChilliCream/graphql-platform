@@ -46,7 +46,7 @@ namespace HotChocolate.Data.Filters
                         IObjectFieldDescriptor field = c
                             .Name("Query")
                             .Field("root")
-                            .Resolver(resolver);
+                            .Resolve(resolver);
 
                         if (withPaging)
                         {
@@ -58,7 +58,7 @@ namespace HotChocolate.Data.Filters
                         field = c
                             .Name("Query")
                             .Field("rootExecutable")
-                            .Resolver(ctx => resolver(ctx).AsExecutable());
+                            .Resolve(ctx => resolver(ctx).AsExecutable());
 
                         if (withPaging)
                         {

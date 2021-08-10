@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object parserValue = type.ParseLiteral(value);
+                var parserValue = context.InputParser.ParseLiteral(value, type);
 
                 if (operation.Kind == FilterOperationKind.Equals)
                 {

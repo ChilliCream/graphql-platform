@@ -467,7 +467,7 @@ namespace HotChocolate.Data.Projections
                 IObjectFieldDescriptor descriptor,
                 MemberInfo member)
             {
-                descriptor.Resolver(
+                descriptor.Resolve(
                     new List<Bar>
                     {
                         new Bar { BarBaz = "a_a", BarQux = "a_c" },

@@ -92,14 +92,14 @@ namespace HotChocolate.Types
             // arrange
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField).GetProperty("Arguments")!,
                 typeof(ObjectField));
 
             // act
             descriptor
                .Name("args")
                .Type<NonNullType<ListType<NonNullType<__InputValue>>>>()
-                .Resolver(c => c.Parent<ObjectField>().Arguments);
+                .Resolve(c => c.Parent<ObjectField>().Arguments);
 
             // assert
             ObjectFieldDefinition description = descriptor.CreateDefinition();
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
             // arrange
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField).GetProperty("Arguments")!,
                 typeof(ObjectField));
 
             // act
@@ -129,10 +129,10 @@ namespace HotChocolate.Types
         public void SetDescription()
         {
             // arrange
-            string expectedDescription = Guid.NewGuid().ToString();
+            var expectedDescription = Guid.NewGuid().ToString();
             var descriptor = ObjectFieldDescriptor.New(
                 Context,
-                typeof(ObjectField).GetProperty("Arguments"),
+                typeof(ObjectField).GetProperty("Arguments")!,
                 typeof(ObjectField));
 
             // act
@@ -150,11 +150,11 @@ namespace HotChocolate.Types
             var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
-                    typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField).GetProperty("Arguments")!,
                     typeof(ObjectField));
 
             // act
-            descriptor.Resolver(() => "ThisIsAString");
+            descriptor.Resolve(() => "ThisIsAString");
 
             // assert
             ObjectFieldDefinition description = descriptor.CreateDefinition();
@@ -177,13 +177,13 @@ namespace HotChocolate.Types
             var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
-                    typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField).GetProperty("Arguments")!,
                     typeof(ObjectField));
 
             // act
             descriptor
                 .Type<__Type>()
-                .Resolver(ctx => ctx.Schema
+                .Resolve(ctx => ctx.Schema
                     .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
 
             // assert
@@ -203,7 +203,7 @@ namespace HotChocolate.Types
             var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
-                    typeof(ObjectField).GetProperty("Arguments"),
+                    typeof(ObjectField).GetProperty("Arguments")!,
                     typeof(ObjectField),
                     typeof(string));
 

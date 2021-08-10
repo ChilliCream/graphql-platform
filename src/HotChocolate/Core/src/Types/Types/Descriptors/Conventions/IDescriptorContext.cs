@@ -50,6 +50,16 @@ namespace HotChocolate.Types.Descriptors
         IResolverCompiler ResolverCompiler { get; }
 
         /// <summary>
+        /// Gets the input parser.
+        /// </summary>
+        InputParser InputParser { get; }
+
+        /// <summary>
+        /// Gets the input formatter.
+        /// </summary>
+        InputFormatter InputFormatter { get; }
+
+        /// <summary>
         /// Gets a custom convention.
         /// </summary>
         /// <param name="defaultConvention">The default contention.</param>

@@ -33,7 +33,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 .Argument("input", a =>
                     a.Type<NonNullType<InputObjectType<SayInput>>>())
                 .Type<StringType>()
-                .Resolver(ctx => string.Join(", ",
+                .Resolve(ctx => string.Join(", ",
                     ctx.ArgumentValue<SayInput>("input").Words));
 
             descriptor.Field("complexArg")

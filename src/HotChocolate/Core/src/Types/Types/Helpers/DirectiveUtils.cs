@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Helpers
 {
     public static class DirectiveUtils
     {

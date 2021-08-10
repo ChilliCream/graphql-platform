@@ -198,7 +198,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
             results.MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Temp")]
         public async Task StackedDataLoader()
         {
             // arrange

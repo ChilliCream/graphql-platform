@@ -65,7 +65,7 @@ namespace HotChocolate.Data.MongoDb.Projections
                 objectType: new ObjectType<Foo>(
                     x => x
                         .Field("foo")
-                        .Resolver(
+                        .Resolve(
                             new[]
                             {
                                 "foo"

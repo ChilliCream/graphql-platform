@@ -124,7 +124,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("some")
                     .Type<SomeType>()
-                    .Resolver(new object());
+                    .Resolve(new object());
             }
         }
 
@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Relay
                 descriptor
                     .Field("id")
                     .Type<NonNullType<IdType>>()
-                    .Resolver("bar");
+                    .Resolve("bar");
             }
         }
 

@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     /// Represents a named GraphQL type.
     /// </summary>
     public interface INamedType
-        : INullableType
+        : IType
         , IHasName
         , IHasDescription
         , IHasSyntaxNode

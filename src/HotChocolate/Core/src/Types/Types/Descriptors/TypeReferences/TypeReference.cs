@@ -106,8 +106,9 @@ namespace HotChocolate.Types.Descriptors
 
         public static SyntaxTypeReference Parse(
             string sourceText,
-            TypeContext context = TypeContext.None) =>
-            new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context);
+            TypeContext context = TypeContext.None,
+            string? scope = null) =>
+            new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context, scope);
 
         public static ExtendedTypeReference Create(
             IExtendedType type,

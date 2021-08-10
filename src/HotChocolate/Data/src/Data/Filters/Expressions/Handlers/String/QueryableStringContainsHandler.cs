@@ -1,11 +1,13 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringContainsHandler : QueryableStringOperationHandler
     {
-        public QueryableStringContainsHandler()
+        public QueryableStringContainsHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }
@@ -16,7 +18,7 @@ namespace HotChocolate.Data.Filters.Expressions
             QueryableFilterContext context,
             IFilterOperationField field,
             IValueNode value,
-            object parsedValue)
+            object? parsedValue)
         {
             Expression property = context.GetInstance();
             return FilterExpressionBuilder.Contains(property, parsedValue);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -18,17 +19,16 @@ namespace HotChocolate.Types.Sorting
             SortMiddlewareContext contextData)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _contextData = contextData
-                 ?? throw new ArgumentNullException(nameof(contextData));
+            _contextData = contextData ?? throw new ArgumentNullException(nameof(contextData));
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
 
-            IValueNode sortArgument = context.ArgumentLiteral<IValueNode>(_contextData.ArgumentName);
+            IValueNode sortArg = context.ArgumentLiteral<IValueNode>(_contextData.ArgumentName);
 
-            if (sortArgument is NullValueNode)
+            if (sortArg is NullValueNode)
             {
                 return;
             }
@@ -49,11 +49,12 @@ namespace HotChocolate.Types.Sorting
                 iot is ISortInputType { EntityType: not null! } fit)
             {
                 var visitorCtx = new QueryableSortVisitorContext(
+                    context.Service<InputParser>(),
                     iot,
                     fit.EntityType,
                     source is EnumerableQuery);
 
-                QueryableSortVisitor.Default.Visit(sortArgument, visitorCtx);
+                QueryableSortVisitor.Default.Visit(sortArg, visitorCtx);
 
                 source = visitorCtx.Sort(source);
                 context.Result = source;

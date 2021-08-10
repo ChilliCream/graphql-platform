@@ -2,6 +2,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -12,6 +13,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public class Neo4JEqualsOperationHandler
         : Neo4JFilterOperationHandlerBase
     {
+        public Neo4JEqualsOperationHandler(InputParser inputParser)
+            : base(inputParser)
+        {
+        }
+
         /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,

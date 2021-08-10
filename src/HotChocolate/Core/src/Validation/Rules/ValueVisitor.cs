@@ -359,7 +359,7 @@ namespace HotChocolate.Validation.Rules
 
             IInputType internalType = inputType;
 
-            if (internalType.IsNonNullType())
+            if (internalType.Kind == TypeKind.NonNull)
             {
                 internalType = (IInputType)internalType.InnerType();
                 if (value.IsNull())
@@ -382,13 +382,34 @@ namespace HotChocolate.Validation.Rules
                 return true;
             }
 
-            if (inputType.IsEnumType() &&
-                value is StringValueNode)
+            if (value.Kind is SyntaxKind.NullValue)
+            {
+                return true;
+            }
+
+            if (inputType.Kind == TypeKind.NonNull && value.Kind == SyntaxKind.NullValue)
             {
                 return false;
             }
 
-            return internalType.IsInstanceOfType(value);
+            inputType = (INamedInputType)inputType.NamedType();
+
+            if (inputType.IsEnumType())
+            {
+                if (value is StringValueNode)
+                {
+                    return false;
+                }
+
+                return ((EnumType)inputType).IsInstanceOfType(value);
+            }
+
+            if (inputType.IsScalarType())
+            {
+                return ((ScalarType)inputType).IsInstanceOfType(value);
+            }
+
+            return value.Kind is SyntaxKind.ObjectValue;
         }
 
         private bool IsTypeCompatible(IType left, ITypeNode right)

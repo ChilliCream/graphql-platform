@@ -114,7 +114,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public object? ParseLiteral(IValueNode valueSyntax)
         {
             if (valueSyntax is null)
             {
