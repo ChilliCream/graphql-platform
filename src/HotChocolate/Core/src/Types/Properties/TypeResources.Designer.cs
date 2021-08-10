@@ -1352,5 +1352,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_MiddlewareOrderInvalid", resourceCulture);
             }
         }
+        
+        internal static string FieldInitHelper_CompleteFields_MaxFieldCountToSmall {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);
+            }
+        }
     }
 }

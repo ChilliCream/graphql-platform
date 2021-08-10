@@ -48,6 +48,11 @@ namespace HotChocolate.Types.Descriptors
             ResolverCompiler = new DefaultResolverCompiler(
                 services.GetService<IEnumerable<IParameterExpressionBuilder>>());
 
+            InputParser = services.GetService<InputParser>() ??
+                new InputParser(Services.GetTypeConverter());
+            InputFormatter = services.GetService<InputFormatter>() ??
+                new InputFormatter(Services.GetTypeConverter());
+
             schema.Completed += OnSchemaOnCompleted;
 
             void OnSchemaOnCompleted(object? sender, EventArgs args)
@@ -109,6 +114,12 @@ namespace HotChocolate.Types.Descriptors
 
         /// <inheritdoc />
         public IResolverCompiler ResolverCompiler { get; }
+
+        /// <inheritdoc />
+        public InputParser InputParser { get; }
+
+        /// <inheritdoc />
+        public InputFormatter InputFormatter { get; }
 
         /// <inheritdoc />
         public IDictionary<string, object?> ContextData { get; }

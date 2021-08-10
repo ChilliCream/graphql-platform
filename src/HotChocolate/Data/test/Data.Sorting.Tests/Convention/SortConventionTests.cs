@@ -383,7 +383,7 @@ namespace HotChocolate.Data.Sorting
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)
@@ -407,7 +407,7 @@ namespace HotChocolate.Data.Sorting
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)

@@ -4,13 +4,15 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
     public class MongoDbStringNotStartsWithHandler
         : MongoDbStringOperationHandler
     {
-        public MongoDbStringNotStartsWithHandler()
+        public MongoDbStringNotStartsWithHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }

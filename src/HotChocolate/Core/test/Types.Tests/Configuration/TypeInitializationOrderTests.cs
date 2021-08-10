@@ -42,7 +42,7 @@ namespace HotChocolate.Configuration
                 descriptor.Name("Query")
                     .Field("words")
                     .Type<ListType<ObjectType<Word>>>()
-                    .Resolver(
+                    .Resolve(
                         new Word[] { new Word { Value = "Hello" }, new Word { Value = "World" } })
                     .Extend()
                     .OnBeforeCreate((c,d) =>
@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
                 descriptor.Name("Query")
                     .Field("greeting")
                     .Type<StringType>()
-                    .Resolver("Hello world!");
+                    .Resolve("Hello world!");
             }
         }
 

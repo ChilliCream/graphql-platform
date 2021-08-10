@@ -165,12 +165,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (!_fieldErrors.Contains(violation.Selection))
                 {
-                    _errors.Add(ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode("EXEC_NON_NULL_VIOLATION")
-                        .SetPath(path)
-                        .AddLocation(violation.Selection)
-                        .Build());
+                    _errors.Add(ErrorHelper.NonNullOutputFieldViolation(path, violation.Selection));
                 }
 
                 while (parent != null)

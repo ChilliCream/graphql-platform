@@ -5,6 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using GreenDonut;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
@@ -13,6 +14,7 @@ using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
@@ -85,6 +87,20 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddSingleton<ITypeConverter>(
                 sp => new DefaultTypeConverter(sp.GetServices<IChangeTypeProvider>()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddInputFormatter(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddInputParser(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
             return services;
         }
 

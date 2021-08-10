@@ -68,9 +68,11 @@ namespace HotChocolate.Execution.Processing.Tasks
             _selection = default!;
             _resolverContext.Clean();
             IsCompleted = false;
+            IsSerial = false;
             Parent = null;
             Next = null;
             Previous = null;
+            State = null;
             _taskBuffer.Clear();
             return true;
         }

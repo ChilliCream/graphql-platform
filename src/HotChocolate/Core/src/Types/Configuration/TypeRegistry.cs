@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -151,6 +152,27 @@ namespace HotChocolate.Configuration
             {
                 _types.Add(registeredType);
                 _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
+            }
+
+            if (!registeredType.IsExtension)
+            {
+                if (registeredType.IsNamedType &&
+                    registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
+                    !_nameRefs.ContainsKey(typeDef.Name))
+                {
+                    _nameRefs.Add(typeDef.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Scalar &&
+                    registeredType.Type is ScalarType scalar)
+                {
+                    _nameRefs.Add(scalar.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Directive &&
+                    registeredType.Type is DirectiveType directive &&
+                    !_nameRefs.ContainsKey(directive.Definition!.Name))
+                {
+                    _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
+                }
             }
         }
 

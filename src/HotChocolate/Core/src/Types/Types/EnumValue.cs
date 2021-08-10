@@ -37,7 +37,7 @@ namespace HotChocolate.Types
             SyntaxNode = enumValueDefinition.SyntaxNode;
             Name = enumValueDefinition.Name.HasValue
                 ? enumValueDefinition.Name
-                : (NameString)enumValueDefinition.RuntimeValue.ToString();
+                : (NameString)enumValueDefinition.RuntimeValue.ToString()!;
             Description = enumValueDefinition.Description;
             DeprecationReason = enumValueDefinition.DeprecationReason;
             IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);

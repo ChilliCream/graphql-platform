@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Filters
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
             if (field is IFilterOperationField filterOperationField &&
-                TryHandleOperation(context, filterOperationField,  node, out T result))
+                TryHandleOperation(context, filterOperationField,  node, out T? result))
             {
                 context.GetLevel().Enqueue(result);
                 action = SyntaxVisitor.SkipAndLeave;
@@ -47,7 +47,7 @@ namespace HotChocolate.Data.Filters
             TContext context,
             IFilterOperationField field,
             ObjectFieldNode node,
-            [NotNullWhen(true)] out T result)
+            [NotNullWhen(true)] out T? result)
         {
             result = default!;
             return false;

@@ -15,7 +15,7 @@ namespace HotChocolate.Utilities
 
         public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
         {
-            if (providers is { })
+            if (providers is not null)
             {
                 _changeTypeProvider.AddRange(providers);
             }

@@ -19,7 +19,6 @@ namespace HotChocolate.Configuration
         private readonly List<FieldMiddleware> _globalComps = new();
         private readonly List<ISchemaError> _errors = new();
         private readonly IDescriptorContext _context;
-        private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
@@ -46,10 +45,10 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(_getTypeKind));
 
             _interceptor = descriptorContext.TypeInterceptor;
-            _typeInspector = descriptorContext.TypeInspector;
-            _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
+            ITypeInspector typeInspector = descriptorContext.TypeInspector;
+            _typeLookup = new TypeLookup(typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
-                _typeInspector, _typeRegistry, _typeLookup);
+                typeInspector, _typeRegistry, _typeLookup);
 
             _interceptor.InitializeContext(descriptorContext, _typeReferenceResolver);
         }

@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Tests
 {
@@ -114,6 +113,11 @@ namespace HotChocolate.Tests
         {
             IExecutionResult result = await task;
             return await result.ToJsonAsync();
+        }
+
+        public static void MatchSnapshot(this GraphQLException ex)
+        {
+            QueryResultBuilder.CreateError(ex.Errors).ToJson().MatchSnapshot();
         }
     }
 }

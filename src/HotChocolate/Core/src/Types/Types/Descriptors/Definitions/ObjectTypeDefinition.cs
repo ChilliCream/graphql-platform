@@ -158,6 +158,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target._fieldIgnores = new List<ObjectFieldBinding>(_fieldIgnores);
             }
 
+            if (Fields is { Count: > 0 })
+            {
+                target.Fields.Clear();
+
+                foreach (var field in Fields)
+                {
+                    target.Fields.Add(field);
+                }
+            }
+
             target.FieldBindingType = FieldBindingType;
             target.IsOfType = IsOfType;
             target.IsExtension = IsExtension;

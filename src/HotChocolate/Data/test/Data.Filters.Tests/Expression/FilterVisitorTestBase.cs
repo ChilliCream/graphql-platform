@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Filters.Expressions
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             builder.Create();
@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddType(type);
 
             return builder.Create();

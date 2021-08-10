@@ -9,8 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class DirectiveTests
-        : TypeTestBase
+    public class DirectiveTests : TypeTestBase
     {
         private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
 

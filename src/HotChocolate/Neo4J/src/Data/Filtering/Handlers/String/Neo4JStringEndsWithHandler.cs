@@ -2,13 +2,15 @@ using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JStringEndsWithHandler
         : Neo4JStringOperationHandler
     {
-        public Neo4JStringEndsWithHandler()
+        public Neo4JStringEndsWithHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }

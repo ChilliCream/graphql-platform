@@ -232,7 +232,7 @@ namespace HotChocolate.Types
             {
                 t.Name("Bar");
                 t.Directive("foo", new ArgumentNode("a", "1"));
-                t.Field("foo").Resolver(() => "baz")
+                t.Field("foo").Resolve(() => "baz")
                     .Directive("foo", new ArgumentNode("a", "2"));
             });
 

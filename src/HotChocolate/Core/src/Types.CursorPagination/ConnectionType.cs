@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Pagination
                 .Name("nodes")
                 .Description("A flattened list of the nodes.")
                 .Type<ListType<T>>()
-                .Resolver(ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node))
+                .Resolve(ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node))
                 .Extend()
                 .OnBeforeCreate(
                     d => d.PureResolver =

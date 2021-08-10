@@ -109,7 +109,7 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 throw ResolverContext_LiteralNotCompatible(
-                    _selection.SyntaxNode, _path, name,  typeof(TValueNode), literal.GetType());
+                    _selection.SyntaxNode, _path, name, typeof(TValueNode), literal.GetType());
             }
 
             public Optional<T> ArgumentOptional<T>(NameString name)
@@ -148,10 +148,10 @@ namespace HotChocolate.Execution.Processing
                 // runtime version we can skip over parsing it.
                 if (!argument.IsFinal)
                 {
-                    value = argument.Type.ParseLiteral(argument.ValueLiteral!);
-                    value = argument.Formatter is not null
-                        ? argument.Formatter.OnAfterDeserialize(value)
-                        : value;
+                    value = _parentContext._parser.ParseLiteral(
+                        argument.ValueLiteral!, 
+                        argument.Argument,
+                        typeof(T));
                 }
 
                 if (value is null)

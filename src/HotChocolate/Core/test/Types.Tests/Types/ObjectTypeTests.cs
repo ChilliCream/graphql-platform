@@ -19,10 +19,6 @@ namespace HotChocolate.Types
 {
     public class ObjectTypeTests : TypeTestBase
     {
-        public ObjectTypeTests()
-        {
-        }
-
         [Fact]
         public void ObjectType_DynamicName()
         {

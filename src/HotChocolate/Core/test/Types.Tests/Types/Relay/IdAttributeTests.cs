@@ -24,7 +24,9 @@ namespace HotChocolate.Types.Relay
             var idSerializer = new IdSerializer();
             var intId = idSerializer.Serialize("Query", 1);
             var stringId = idSerializer.Serialize("Query", "abc");
-            var guidId = idSerializer.Serialize("Query", new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
+            var guidId = idSerializer.Serialize(
+                "Query", 
+                new Guid("26a2dc8f-4dab-408c-88c6-523a0a89a2b5"));
 
             // act
             IExecutionResult result =
@@ -155,10 +157,14 @@ namespace HotChocolate.Types.Relay
                     .ExecuteAsync(
                         QueryRequestBuilder.New()
                             .SetQuery(
-                                @"query foo ($someId: ID! $someIntId: ID! $someNullableId: ID $someNullableIntId: ID) {
+                                @"query foo (
+                                    $someId: ID! $someIntId: ID! 
+                                    $someNullableId: ID 
+                                    $someNullableIntId: ID) {
                                     foo(input: {
                                         someId: $someId someIds: [$someIntId]
-                                        someNullableId: $someNullableId someNullableIds: [$someNullableIntId, $someIntId] })
+                                        someNullableId: $someNullableId 
+                                        someNullableIds: [$someNullableIntId, $someIntId] })
                                     {
                                         someId
                                         someNullableId
