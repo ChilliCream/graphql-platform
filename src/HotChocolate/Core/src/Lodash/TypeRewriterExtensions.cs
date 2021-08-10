@@ -86,5 +86,34 @@ namespace HotChocolate.Lodash
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public static bool TryConvertToNumber(
+            this JsonElement jsonElement,
+            out double number)
+        {
+            number = 0;
+            switch (jsonElement.ValueKind)
+            {
+                case JsonValueKind.Undefined:
+                    return false;
+                case JsonValueKind.Object:
+                    return false;
+                case JsonValueKind.Array:
+                    return false;
+                case JsonValueKind.String:
+                    return false;
+                case JsonValueKind.Number:
+                    number = jsonElement.GetDouble();
+                    return true;
+                case JsonValueKind.True:
+                    return false;
+                case JsonValueKind.False:
+                    return false;
+                case JsonValueKind.Null:
+                    return false;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 }
