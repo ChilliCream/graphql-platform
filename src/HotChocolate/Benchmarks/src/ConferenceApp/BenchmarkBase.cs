@@ -20,6 +20,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.ConferencePlanner
 {
@@ -88,7 +89,8 @@ namespace HotChocolate.ConferencePlanner
                     document,
                     operation,
                     executor.Schema,
-                    executor.Schema.GetOperationType(operation.Operation));
+                    executor.Schema.GetOperationType(operation.Operation),
+                    new InputParser());
 
             string serialized = preparedOperation.Print();
             Console.WriteLine(serialized);
