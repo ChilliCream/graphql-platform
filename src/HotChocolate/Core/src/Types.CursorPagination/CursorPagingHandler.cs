@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Pagination
         {
             DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+            RequirePagingBoundaries = options.RequirePagingBoundaries ?? false;
 
             if (MaxPageSize < DefaultPageSize)
             {
@@ -17,14 +18,35 @@ namespace HotChocolate.Types.Pagination
             }
         }
 
+        /// <summary>
+        /// Gets the default page size.
+        /// </summary>
         protected int DefaultPageSize { get; }
 
+        /// <summary>
+        /// Gets max allowed page size.
+        /// </summary>
         protected int MaxPageSize { get; }
+
+        /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        protected bool RequirePagingBoundaries { get; }
 
         public void ValidateContext(IResolverContext context)
         {
-            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+            var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
+            var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+
+            if (RequirePagingBoundaries && first is null && last is null)
+            {
+                // TODO : Error resources
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("You must provide a `first` or `last` value to properly paginate the `{0}` connection.")
+                        .Build());
+            }
 
             if (first > MaxPageSize || last > MaxPageSize)
             {
@@ -36,8 +58,8 @@ namespace HotChocolate.Types.Pagination
             IResolverContext context,
             object source)
         {
-            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+            var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
+            var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
 
             if (first is null && last is null)
             {

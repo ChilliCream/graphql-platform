@@ -25,5 +25,11 @@ namespace HotChocolate.Types.Pagination
         /// Defines if backward pagination is allowed or deactivated
         /// </summary>
         public bool? AllowBackwardPagination { get; set; }
+
+        /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        public bool? RequirePagingBoundaries { get; set; }
     }
 }
