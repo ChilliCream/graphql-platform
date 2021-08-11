@@ -89,6 +89,7 @@ namespace HotChocolate.Lodash
             return new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
+                .AddAggregationDirectives()
                 .BuildRequestExecutorAsync();
         }
 
@@ -105,6 +106,31 @@ namespace HotChocolate.Lodash
                 4,
                 4
             };
+
+            public int[][] NestedScalars => new[]
+            {
+                new[]
+                {
+                    1,
+                    1
+                },
+                new[]
+                {
+                    2,
+                    2
+                },
+                new[]
+                {
+                    3,
+                    3
+                },
+                new[]
+                {
+                    4,
+                    4
+                }
+            };
+
             public Foo Single => _foos[0];
             public Foo[] List => _foos;
             public Foo[][] NestedList => _foos.Select(x => _foos).ToArray();

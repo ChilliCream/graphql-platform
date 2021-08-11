@@ -17,7 +17,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    list @_(map: ""baz""){
+                    list @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -25,12 +25,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    single @_(map: ""baz""){
+                    single @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -55,12 +55,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Lodash
                 {
                     list {
                         bar {
-                            foos @_(map: ""baz"") {
+                            foos @map(key: ""baz"") {
                                 baz
                             }
                         }
@@ -89,12 +89,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -114,7 +114,7 @@ namespace HotChocolate.Lodash
                     list {
                         bar {
                             foos {
-                                bar @_(map: ""baz"") {
+                                bar @map(key: ""baz"") {
                                     baz
                                 }
                             }
@@ -125,12 +125,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -147,7 +147,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    nestedList @_(map: ""baz""){
+                    nestedList @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -155,12 +155,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -177,7 +177,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    nullableList @_(map: ""baz""){
+                    nullableList @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -185,12 +185,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -207,7 +207,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    nullable @_(map: ""baz""){
+                    nullable @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -215,12 +215,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -239,7 +239,7 @@ namespace HotChocolate.Lodash
                 {
                     nullableList {
                         bar {
-                            foos @_(map: ""baz"") {
+                            foos @map(key: ""baz"") {
                                 baz
                             }
                         }
@@ -249,12 +249,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -274,7 +274,7 @@ namespace HotChocolate.Lodash
                     nullableList {
                         bar {
                             foos {
-                                bar @_(map: ""baz"") {
+                                bar @map(key: ""baz"") {
                                     baz
                                 }
                             }
@@ -285,12 +285,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -307,7 +307,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    nullableNestedList @_(map: ""baz""){
+                    nullableNestedList @map(key: ""baz""){
                         baz
                     }
                 }";
@@ -315,12 +315,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 

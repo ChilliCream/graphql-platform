@@ -17,7 +17,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    single @_(keys: none){
+                    single @keys {
                         countBy
                         id
                         baz
@@ -27,12 +27,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 

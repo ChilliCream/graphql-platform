@@ -17,7 +17,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    list @_(takeRight: 2){
+                    list @takeRight(count: 2){
                         countBy
                     }
                 }";
@@ -25,12 +25,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Lodash
             string query =
                 @"
                 {
-                    list @_(takeRight: 10){
+                    list @takeRight(count: 10){
                         countBy
                     }
                 }";
@@ -55,12 +55,12 @@ namespace HotChocolate.Lodash
             DocumentNode parsed = Utf8GraphQLParser.Parse(query);
             IReadOnlyQueryRequest request = QueryRequestBuilder
                 .New()
-                .SetQuery(parsed.RemoveLodash())
+                .SetQuery(parsed.RemoveLodash(executor.Schema))
                 .Create();
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // act
-            LodashJsonRewriter lodashRewriter = parsed.CreateRewriter();
+            AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(executor.Schema);
             JsonNode? data = JsonNode.Parse(result.ToJson())?.AsObject()["data"];
             JsonNode? rewritten = lodashRewriter.Rewrite(data);
 
