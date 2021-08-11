@@ -105,6 +105,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         {
             ClassDeclarationSyntax dbContextClass = ClassDeclaration(dbContextClassName)
                 .AddGeneratedAttribute()
+                .WithBaseList(DbContextBaseList)
                 .AddModifiers(
                     Token(SyntaxKind.PublicKeyword));
 
@@ -134,7 +135,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 IdentifierName(Global(@namespace + "." + modelTypeName));
 
             return QualifiedName(
-                MsEfCoreQualifiedName,
+                EFCoreQualifiedName,
                 DbSetGenericName.WithTypeArgumentList(
                     TypeArgumentList(
                         SingletonSeparatedList<TypeSyntax>(fullModelTypeName))));

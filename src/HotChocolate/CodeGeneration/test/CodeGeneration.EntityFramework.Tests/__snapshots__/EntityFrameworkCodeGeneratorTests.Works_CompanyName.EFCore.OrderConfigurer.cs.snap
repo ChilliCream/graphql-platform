@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace CompanyName.EFCore
 {
     [global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
-    public class OrderConfigurer : IEntityTypeConfiguration<Order>
+    public class OrderConfigurer : global::Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<Order>
     {
-        public void Configure(EntityTypeBuilder<Order> builder)
+        public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Order> builder)
         {
         }
     }

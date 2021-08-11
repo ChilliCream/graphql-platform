@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace CompanyName.EFCore
 {
     [global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
-    public class ProductConfigurer : IEntityTypeConfiguration<Product>
+    public class ProductConfigurer : global::Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<Product>
     {
-        public void Configure(EntityTypeBuilder<Product> builder)
+        public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Product> builder)
         {
         }
     }

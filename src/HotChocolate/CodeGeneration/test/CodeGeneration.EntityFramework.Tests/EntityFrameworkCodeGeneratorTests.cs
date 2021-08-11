@@ -39,6 +39,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             }
         }
 
+        // TODO:
+        // * test for pluralized naming convention
+        // * test for custom table name
+
         private static DocumentNode GetDocumentFromFile(string fileName)
         {
             var resourceName = $"{_currentNamespace}.{fileName}.graphql";

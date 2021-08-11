@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static HotChocolate.CodeGeneration.EntityFramework.SyntaxConstants;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 {
@@ -158,12 +159,13 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             BaseList(
                 SingletonSeparatedList<BaseTypeSyntax>(
                     SimpleBaseType(
-                        GenericName(
-                            Identifier("IEntityTypeConfiguration"))
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    IdentifierName(modelTypeName)))))));
+                        QualifiedName(
+                            EFCoreQualifiedName,
+                            GenericName(
+                                Identifier("IEntityTypeConfiguration"),
+                                TypeArgumentList(
+                                    SingletonSeparatedList<TypeSyntax>(
+                                        IdentifierName(modelTypeName))))))));
 
         private const string BuilderArgumentName = "builder";
 
@@ -183,12 +185,13 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                         Parameter(
                             Identifier(BuilderArgumentName))
                         .WithType(
-                            GenericName(
-                                Identifier("EntityTypeBuilder"))
-                            .WithTypeArgumentList(
-                                TypeArgumentList(
-                                    SingletonSeparatedList<TypeSyntax>(
-                                        IdentifierName(modelTypeName))))))))
+                            QualifiedName(
+                                EFCoreMetadataBuildersQualifiedName,
+                                GenericName(
+                                    Identifier("EntityTypeBuilder"),
+                                    TypeArgumentList(
+                                        SingletonSeparatedList<TypeSyntax>(
+                                            IdentifierName(modelTypeName)))))))))
             .WithBody(
                 Block().WithStatements(statements));
 
