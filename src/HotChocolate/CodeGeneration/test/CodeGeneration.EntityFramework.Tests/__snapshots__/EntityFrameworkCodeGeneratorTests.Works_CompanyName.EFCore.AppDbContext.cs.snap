@@ -1,5 +1,5 @@
 ﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
-public partial class AppDbContext
+public class AppDbContext
 {
     public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Customer> Customers
     {
@@ -7,7 +7,7 @@ public partial class AppDbContext
         set;
     }
 
-    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.User> ChilliCreamUsers
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.User> Users
     {
         get;
         set;

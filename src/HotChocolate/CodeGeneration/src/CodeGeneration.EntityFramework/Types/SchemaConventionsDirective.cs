@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -9,6 +10,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
         internal const string DirectiveName = "schemaConventions";
 
         internal string DbContextName { get; set; } = "AppDbContext";
+
+        public string GeneratedIdFieldName { get; set; } = "Id";
+
+        public Type GeneratedIdRuntimeType { get; set; } = typeof(int);
 
         public bool UsePluralizedTableNames { get; set; } = true;
 
