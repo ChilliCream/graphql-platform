@@ -61,17 +61,18 @@ namespace HotChocolate.Types.Pagination
 
             if (RequirePagingBoundaries && take is null)
             {
-                // TODO : Error resources
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage("You must provide take to properly paginate the `{0}` segment.")
-                        .Set
-                        .Build());
+                throw ThrowHelper.OffsetPagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
             }
 
             if (take > MaxPageSize)
             {
-                throw ThrowHelper.OffsetPagingHandler_MaxPageSize();
+                throw ThrowHelper.OffsetPagingHandler_MaxPageSize(
+                    take.Value,
+                    MaxPageSize,
+                    context.Selection.Field,
+                    context.Path);
             }
         }
 

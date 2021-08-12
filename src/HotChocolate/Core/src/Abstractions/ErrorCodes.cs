@@ -226,7 +226,7 @@ namespace HotChocolate
             /// explicitly specify the element type or that the return type of your resolver
             /// is an iterable type.
             /// </summary>
-            public const string NodeTypeUnkown = "HC0031";
+            public const string NodeTypeUnknown = "HC0031";
 
             /// <summary>
             /// The element schema type for pagination must be a valid GraphQL output type
@@ -235,12 +235,12 @@ namespace HotChocolate
             public const string SchemaTypeInvalid = "HC0032";
 
             /// <summary>
-            ///
+            /// The maximum allowed items per page were exceeded.
             /// </summary>
             public const string MaxPaginationItems = "HC0051";
 
             /// <summary>
-            ///
+            /// You must provide a `first` or `last` value to properly paginate the connection.
             /// </summary>
             public const string NoPagingBoundaries = "HC0052";
         }

@@ -12,7 +12,7 @@ namespace HotChocolate.Utilities
             Path path)
             => new GraphQLException(
                 ErrorBuilder.New()
-                    .SetMessage("The maximum allowed items per page were exceeded.")
+                    .SetMessage(ThrowHelper_PagingHandler_MaxPageSize)
                     .SetCode(ErrorCodes.Paging.MaxPaginationItems)
                     .SetPath(path)
                     .SetSyntaxNode(field.SyntaxNode)
@@ -24,10 +24,10 @@ namespace HotChocolate.Utilities
         public static GraphQLException PagingHandler_NoBoundariesSet(
             IObjectField field,
             Path path)
-            => throw new GraphQLException(
+            => new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "You must provide a `first` or `last` value to properly paginate the `{0}`",
+                        ThrowHelper_PagingHandler_NoBoundariesSet,
                         field.Type.NamedType().Name.Value)
                     .SetCode(ErrorCodes.Paging.NoPagingBoundaries)
                     .SetPath(path)
@@ -39,7 +39,7 @@ namespace HotChocolate.Utilities
             => new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid)
-                    .SetCode(ErrorCodes.Types.SchemaTypeInvalid)
+                    .SetCode(ErrorCodes.Paging.SchemaTypeInvalid)
                     .Build());
     }
 }

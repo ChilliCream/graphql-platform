@@ -36,4 +36,10 @@
   <data name="PagingArguments_Before_Description" xml:space="preserve">
     <value>Returns the elements in the list that come before the specified cursor.</value>
   </data>
+  <data name="ThrowHelper_PagingHandler_MaxPageSize" xml:space="preserve">
+    <value>The maximum allowed items per page were exceeded.</value>
+  </data>
+  <data name="ThrowHelper_PagingHandler_NoBoundariesSet" xml:space="preserve">
+    <value>You must provide a `first` or `last` value to properly paginate the `{0}`.</value>
+  </data>
 </root>
