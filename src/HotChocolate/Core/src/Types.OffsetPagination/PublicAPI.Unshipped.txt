@@ -3,3 +3,4 @@
 *REMOVED*virtual HotChocolate.Types.Pagination.QueryableOffsetPagingHandler<TItemType>.ExecuteQueryableAsync(System.Linq.IQueryable<TItemType>! queryable, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.List<TItemType>!>
 HotChocolate.Types.Pagination.OffsetPagingArguments.OffsetPagingArguments(int? skip, int? take) -> void
 HotChocolate.Types.Pagination.OffsetPagingArguments.Take.get -> int?
+HotChocolate.Types.Pagination.OffsetPagingHandler.RequirePagingBoundaries.get -> bool

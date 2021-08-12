@@ -2,6 +2,7 @@
 *REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.ExecuteQueryableAsync(System.Linq.IQueryable<TEntity>! queryable, int offset, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Pagination.IndexEdge<TEntity>!>!>
 *REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetFirstEdges(System.Linq.IQueryable<TEntity>! edges, int first, ref int offset) -> System.Linq.IQueryable<TEntity>!
 *REMOVED*virtual HotChocolate.Types.Pagination.QueryableCursorPagingHandler<TEntity>.GetLastEdges(System.Linq.IQueryable<TEntity>! edges, int last, ref int offset) -> System.Linq.IQueryable<TEntity>!
+HotChocolate.Types.Pagination.CursorPagingHandler.RequirePagingBoundaries.get -> bool
 HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.get -> bool
 HotChocolate.Types.UsePagingAttribute.AllowBackwardPagination.set -> void
 static HotChocolate.Types.PagingObjectFieldDescriptorExtensions.AddPagingArguments(this HotChocolate.Types.IInterfaceFieldDescriptor! descriptor, bool allowBackwardPagination) -> HotChocolate.Types.IInterfaceFieldDescriptor!
