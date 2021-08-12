@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Execution.Options;
 using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
 
@@ -41,16 +42,18 @@ namespace HotChocolate.Types.Pagination
 
             if (RequirePagingBoundaries && first is null && last is null)
             {
-                // TODO : Error resources
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage("You must provide a `first` or `last` value to properly paginate the `{0}` connection.")
-                        .Build());
+                throw ThrowHelper.PagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
             }
 
             if (first > MaxPageSize || last > MaxPageSize)
             {
-                throw ThrowHelper.ConnectionMiddleware_MaxPageSize();
+                throw ThrowHelper.PagingHandler_MaxPageSize(
+                    (first > last ? first : last) ?? MaxPageSize,
+                    MaxPageSize,
+                    context.Selection.Field,
+                    context.Path);
             }
         }
 

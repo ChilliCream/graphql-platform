@@ -203,7 +203,21 @@ namespace HotChocolate
             public const string NodeFieldWasNotFound = "HC0028";
         }
 
-        public static class Types
+        /// <summary>
+        /// Error codes relating to the document validation.
+        /// </summary>
+        public static class Validation
+        {
+            /// <summary>
+            /// The introspection is not allowed for the current request
+            /// </summary>
+            public const string IntrospectionNotAllowed = "HC0046";
+        }
+
+        /// <summary>
+        /// Error codes related to paging compinents
+        /// </summary>
+        public static class Paging
         {
             /// <summary>
             /// Unable to infer the element type from the current resolver.
@@ -219,17 +233,16 @@ namespace HotChocolate
             /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
             /// </summary>
             public const string SchemaTypeInvalid = "HC0032";
-        }
 
-        /// <summary>
-        /// Error codes relating to the document validation.
-        /// </summary>
-        public static class Validation
-        {
             /// <summary>
-            /// The introspection is not allowed for the current request
+            ///
             /// </summary>
-            public const string IntrospectionNotAllowed = "HC0046";
+            public const string MaxPaginationItems = "HC0051";
+
+            /// <summary>
+            ///
+            /// </summary>
+            public const string NoPagingBoundaries = "HC0052";
         }
     }
 }

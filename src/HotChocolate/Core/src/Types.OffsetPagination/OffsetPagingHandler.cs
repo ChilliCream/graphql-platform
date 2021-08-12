@@ -65,6 +65,7 @@ namespace HotChocolate.Types.Pagination
                 throw new GraphQLException(
                     ErrorBuilder.New()
                         .SetMessage("You must provide take to properly paginate the `{0}` segment.")
+                        .Set
                         .Build());
             }
 
