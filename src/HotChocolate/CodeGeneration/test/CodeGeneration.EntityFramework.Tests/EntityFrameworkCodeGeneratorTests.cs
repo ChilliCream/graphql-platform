@@ -75,8 +75,35 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             }
         }
 
+        [Fact]
+        public void Should_Respect_TableDirective()
+        {
+            // Arrange
+            DocumentNode doc = Utf8GraphQLParser.Parse(@"
+                type Booking @table(name: ""BookingCustom"") {
+                    id: Int!
+                }");
+
+            var docs = new List<DocumentNode>() { doc };
+
+            var context = new CodeGeneratorContext(
+                "MyEFCore",
+                "EFCoreDatabase",
+                "CompanyName.EFCore",
+                docs);
+
+            // Act
+            CodeGenerationResult? result = new EntityFrameworkCodeGenerator().Generate(context);
+
+            // Assert
+            foreach (SourceFile sourceFile in result.SourceFiles)
+            {
+                Snapshot.Match(sourceFile.Source, new SnapshotNameExtension(sourceFile.Name));
+            }
+        }
+
         // TODO:
-        // * test for custom table name
+        // * test for PK behaviour
 
         private static DocumentNode GetDocumentFromFile(string fileName)
         {

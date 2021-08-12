@@ -1,0 +1,9 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public class AppDbContext : global::Microsoft.EntityFrameworkCore.DbContext
+{
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.Booking> Bookings
+    {
+        get;
+        set;
+    }
+}
