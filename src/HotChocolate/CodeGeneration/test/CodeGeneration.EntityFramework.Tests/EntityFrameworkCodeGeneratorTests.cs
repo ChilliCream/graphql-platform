@@ -34,13 +34,48 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             // Assert
             foreach (SourceFile sourceFile in result.SourceFiles)
             {
-                //var name = System.IO.Path.GetFileNameWithoutExtension(sourceFile.Name);
+                Snapshot.Match(sourceFile.Source, new SnapshotNameExtension(sourceFile.Name));
+            }
+        }
+
+        [Fact]
+        public void Should_Respect_UsePluralizedTableNames_Convention()
+        {
+            // Arrange
+            DocumentNode doc = Utf8GraphQLParser.Parse(@"
+                schema
+                    @schemaConventions(usePluralizedTableNames: false)
+                {
+                    query: Query
+                }
+
+                type Query {
+                    booking: Booking
+                }
+
+                type Booking {
+                    id: Int!
+                }");
+
+            var docs = new List<DocumentNode>() { doc };
+
+            var context = new CodeGeneratorContext(
+                "MyEFCore",
+                "EFCoreDatabase",
+                "CompanyName.EFCore",
+                docs);
+
+            // Act
+            CodeGenerationResult? result = new EntityFrameworkCodeGenerator().Generate(context);
+
+            // Assert
+            foreach (SourceFile sourceFile in result.SourceFiles)
+            {
                 Snapshot.Match(sourceFile.Source, new SnapshotNameExtension(sourceFile.Name));
             }
         }
 
         // TODO:
-        // * test for pluralized naming convention
         // * test for custom table name
 
         private static DocumentNode GetDocumentFromFile(string fileName)

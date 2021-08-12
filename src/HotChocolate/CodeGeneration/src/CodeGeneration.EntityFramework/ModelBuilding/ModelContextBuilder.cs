@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static HotChocolate.CodeGeneration.EntityFramework.SyntaxConstants;
+using System.Collections.Generic;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 {
@@ -123,7 +124,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                         Token(SyntaxKind.PublicKeyword))
                     .WithBaseList(GetModelConfigurerBaseList(context.RequiredModelName));
 
-            SyntaxList<StatementSyntax> configurationStatements;
+            var configurationStatements = new List<StatementSyntax>();
 
             context.TableDirective =
                 context.ObjectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
@@ -149,7 +150,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             // Build and add the Configure method
             MemberDeclarationSyntax configureMethod = GetModelConfigurerConfigureMethod(
                 context.RequiredModelName,
-                configurationStatements);
+                configurationStatements.ToArray());
 
             context.ModelConfigurerClass = context.ModelConfigurerClass
                 .WithMembers(SingletonList(configureMethod));
@@ -171,7 +172,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
         private static MemberDeclarationSyntax GetModelConfigurerConfigureMethod(
             string modelTypeName,
-            SyntaxList<StatementSyntax> statements) =>
+            StatementSyntax[] statements) =>
             MethodDeclaration(
                 PredefinedType(
                     Token(SyntaxKind.VoidKeyword)),
@@ -192,8 +193,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                                     TypeArgumentList(
                                         SingletonSeparatedList<TypeSyntax>(
                                             IdentifierName(modelTypeName)))))))))
-            .WithBody(
-                Block().WithStatements(statements));
+            .AddBodyStatements(statements);
 
         private static ExpressionStatementSyntax GetTableNameConfigurationExpression(
             string tableName) =>

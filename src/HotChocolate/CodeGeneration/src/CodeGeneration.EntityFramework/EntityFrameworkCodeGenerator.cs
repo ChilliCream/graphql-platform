@@ -12,8 +12,17 @@ using SyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace HotChocolate.CodeGeneration.EntityFramework
 {
-    public partial class EntityFrameworkCodeGenerator : ICodeGenerator
+    public class EntityFrameworkCodeGenerator : ICodeGenerator
     {
+        // TODO: Review this. Are these actually reserved in the spec or can someone
+        // define whatever type name they want in which case we need to be smarter and crawl?
+        private static readonly string[] _operationTypeNames = new[]
+        {
+            OperationTypeNames.Query,
+            OperationTypeNames.Mutation,
+            OperationTypeNames.Subscription
+        };
+
         public CodeGenerationResult Generate(CodeGeneratorContext context)
         {
             var result = new CodeGenerationResult();
@@ -37,8 +46,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         {
             var @namespace = generatorContext.Namespace;
 
-            var schemaType = schema.Types.SingleOrDefault(t => t.Name.Value == "Schema") as ObjectType;
-            SchemaConventionsDirective schemaConventions = schemaType?.GetFirstDirective(
+            SchemaConventionsDirective schemaConventions = schema.GetFirstDirective(
                 SchemaConventionsDirective.DirectiveName,
                 new SchemaConventionsDirective())
                 ?? new SchemaConventionsDirective();
@@ -47,12 +55,14 @@ namespace HotChocolate.CodeGeneration.EntityFramework
 
             ClassDeclarationSyntax dbContextClass = GenerateDbContext(
                 dbContextClassName,
-                schemaType);
+                schema);
 
             // Process models
             var objectTypes = schema.Types
                 .OfType<ObjectType>()
-                .Where(type => !IntrospectionTypes.IsIntrospectionType(type))
+                .Where(type =>
+                    !IntrospectionTypes.IsIntrospectionType(type) &&
+                    !_operationTypeNames.Contains(type.Name.Value))
                 .ToList();
 
             foreach (ObjectType objectType in objectTypes)
@@ -101,7 +111,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
 
         private static ClassDeclarationSyntax GenerateDbContext(
             string dbContextClassName,
-            ObjectType? schemaType)
+            ISchema schema)
         {
             ClassDeclarationSyntax dbContextClass = ClassDeclaration(dbContextClassName)
                 .AddGeneratedAttribute()
@@ -114,7 +124,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             //{
             //    SyntaxList<StatementSyntax> configurationStatements;
 
-            //    foreach (IDbContextConfiguringDirective? dbContextConfiguringDirective in schemaType
+            //    foreach (IDbContextConfiguringDirective? dbContextConfiguringDirective in schema
             //        .Directives
             //        .OfType<IDbContextConfiguringDirective>())
             //    {

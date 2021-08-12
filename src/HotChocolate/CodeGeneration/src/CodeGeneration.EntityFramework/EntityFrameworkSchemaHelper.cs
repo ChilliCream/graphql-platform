@@ -20,6 +20,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             schemaBuilder.AddDirectiveType<PagingDirectiveType>();
             schemaBuilder.AddDirectiveType<TypeNameDirectiveType>();
 
+            // Conventions
+            schemaBuilder.AddDirectiveType<SchemaConventionsDirectiveType>();
+
             // Relational
             schemaBuilder.AddDirectiveType<TableDirectiveType>();
             schemaBuilder.AddDirectiveType<JsonDirectiveType>();
@@ -29,6 +32,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             schemaBuilder.AddDirectiveType<OneToOneDirectiveType>();
             schemaBuilder.AddDirectiveType<OneToManyDirectiveType>();
             schemaBuilder.AddDirectiveType<ManyToManyDirectiveType>();
+
+            // EntityFramework
 
             schemaBuilder.ModifyOptions(o => o.StrictValidation = false);
             schemaBuilder.Use(next => next);

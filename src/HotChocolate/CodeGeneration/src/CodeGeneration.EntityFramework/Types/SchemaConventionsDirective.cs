@@ -11,9 +11,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
         internal string DbContextName { get; set; } = "AppDbContext";
 
-        public string GeneratedIdFieldName { get; set; } = "Id";
+        internal string GeneratedIdFieldName { get; set; } = "id";
 
-        public Type GeneratedIdRuntimeType { get; set; } = typeof(int);
+        internal Type GeneratedIdRuntimeType { get; set; } = typeof(int);
 
         public bool UsePluralizedTableNames { get; set; } = true;
 
@@ -37,7 +37,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
                 .Description(
                     "If true, table names will be pluralized (e.g. Users) " +
                     "rather than singular (e.g. User). Default: true.")
-                .Type<NonNullType<BooleanType>>();
+                .Type<BooleanType>();
         }
     }
 }
