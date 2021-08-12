@@ -25,5 +25,40 @@ namespace HotChocolate.Types.Pagination
         /// Defines if backward pagination is allowed or deactivated
         /// </summary>
         public bool? AllowBackwardPagination { get; set; }
+
+        /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        public bool? RequirePagingBoundaries { get; set; }
+
+        /// <summary>
+        /// Merges the <paramref name="other"/> options into this options instance wherever
+        /// a property is not set.
+        /// </summary>
+        /// <param name="other">
+        /// The other options class that shall override unset props.
+        /// </param>
+        internal void Merge(PagingOptions other)
+        {
+            DefaultPageSize ??= other.DefaultPageSize;
+            MaxPageSize ??= other.MaxPageSize;
+            IncludeTotalCount ??= other.IncludeTotalCount;
+            AllowBackwardPagination ??= other.AllowBackwardPagination;
+            RequirePagingBoundaries ??= other.RequirePagingBoundaries;
+        }
+
+        /// <summary>
+        /// Creates a copy of the current options instance.
+        /// </summary>
+        internal PagingOptions Copy()
+            => new()
+            {
+                DefaultPageSize = DefaultPageSize,
+                MaxPageSize = MaxPageSize,
+                IncludeTotalCount = IncludeTotalCount,
+                AllowBackwardPagination = AllowBackwardPagination,
+                RequirePagingBoundaries = RequirePagingBoundaries
+            };
     }
 }

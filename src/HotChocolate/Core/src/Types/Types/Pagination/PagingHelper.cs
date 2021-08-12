@@ -170,19 +170,15 @@ namespace HotChocolate.Types.Pagination
             this IDescriptorContext context,
             PagingOptions options)
         {
-            PagingOptions global = default;
+            options = options.Copy();
+
             if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) &&
-                o is PagingOptions casted)
+                o is PagingOptions global)
             {
-                global = casted;
+                options.Merge(global);
             }
 
-            return new PagingOptions
-            {
-                DefaultPageSize = options.DefaultPageSize ?? global.DefaultPageSize,
-                MaxPageSize = options.MaxPageSize ?? global.MaxPageSize,
-                IncludeTotalCount = options.IncludeTotalCount ?? global.IncludeTotalCount,
-            };
+            return options;
         }
 
         private static IPagingProvider ResolvePagingProvider(
