@@ -14,11 +14,12 @@ namespace HotChocolate.Lodash
 
         public string Key { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             HashSet<object> values = new();
@@ -60,7 +61,8 @@ namespace HotChocolate.Lodash
 
             UniqByField(node);
 
-            return array;
+            rewritten = array;
+            return true;
         }
     }
 }

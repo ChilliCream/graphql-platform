@@ -1,92 +1,148 @@
 using System;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Lodash
 {
+    [XmlRoot("test")]
+    public class TestCase
+    {
+        [XmlElement("data")]
+        public TestData? Data { get; set; }
+
+        [XmlElement("query")]
+        public string? Query { get; set; }
+
+        [XmlElement("result")]
+        public TestResult? Result { get; set; }
+
+        public static bool TryParse(
+            string fileName,
+            [NotNullWhen(true)] out TestCase? testCase)
+        {
+            SnapshotFullName name = new XunitSnapshotFullNameReader().ReadSnapshotFullName();
+            var filePath = System.IO.Path.Combine(
+                name.FolderPath,
+                "__operations__",
+                $"{fileName}.xml");
+
+            using FileStream fileStream = File.Open(filePath, FileMode.Open);
+
+            XmlSerializer serializer = new(typeof(TestCase));
+            testCase = (TestCase?)serializer.Deserialize(fileStream);
+            return testCase is not null;
+        }
+    }
+
+    public class TestData
+    {
+        [XmlElement("json")]
+        public string Json { get; set; } = null!;
+    }
+
+    public class TestResult
+    {
+        [XmlElement("json")]
+        public string? Json { get; set; }
+
+        [XmlElement("error-code")]
+        public string? ErrorCode { get; set; }
+    }
+
     public class LodashTestBase
     {
-        private static Bar[] _bars =
-        {
-            new Bar { Baz = "bar_baz_1" },
-            new Bar { Baz = "bar_baz_2" },
-            new Bar { Baz = "bar_baz_3" },
-            new Bar { Baz = "bar_baz_4" },
-        };
+        private static ISchema? _schema;
 
-        private static Foo[] _foos =
+        protected async ValueTask RunTestByDefinition(string testName)
         {
-            new Foo
+            if (!TestCase.TryParse(testName, out TestCase? testCase))
             {
-                Id = 1,
-                Baz = "foo_baz_1",
-                Bar = _bars[0],
-                BarList = _bars,
-                CountBy = "a",
-                Num = 1,
-                DateTime = DateTime.Parse("2012-12-12T12:00:00Z")
-            },
-            new Foo
-            {
-                Id = 2,
-                Baz = "foo_baz_2",
-                Bar = _bars[1],
-                BarList = _bars,
-                CountBy = "a",
-                Num = 2,
-                DateTime = DateTime.Parse("2013-12-12T12:00:00Z")
-            },
-            new Foo
-            {
-                Id = 3,
-                Baz = "foo_baz_3",
-                Bar = _bars[2],
-                BarList = _bars,
-                CountBy = "b",
-                Num = 1,
-                DateTime = DateTime.Parse("2014-12-12T12:00:00Z")
-            },
-            new Foo
-            {
-                Id = 4,
-                Baz = "foo_baz_4",
-                Bar = _bars[3],
-                BarList = _bars,
-                CountBy = "c",
-                Num = 4,
-                DateTime = DateTime.Parse("2014-12-12T12:00:00Z")
-            },
-        };
+                throw new InvalidOperationException("This test configuration is invalid");
+            }
 
-        private static Bar?[] _nullableBars =
-        {
-            new Bar { Baz = "bar_baz_1" },
-            new Bar { },
-            new Bar { Baz = "bar_baz_2" },
-            new Bar { },
-            null,
-        };
-
-        private static Foo?[] _nullableFoos =
-        {
-            new Foo { Bar = _bars[0], BarList = _nullableBars, CountBy = "a" },
-            new Foo { Baz = "foo_baz_1", BarList = _nullableBars, CountBy = "a" },
-            new Foo { Baz = "foo_baz_2", Bar = _nullableBars[2], CountBy = null },
-            new Foo
+            if (testCase.Data is null)
             {
-                Baz = "foo_baz_3",
-                Bar = _nullableBars[3],
-                BarList = _nullableBars,
-                CountBy = "c"
-            },
-            null,
-        };
+                throw new InvalidOperationException("This test is missing <data>");
+            }
+
+            if (testCase.Query is null)
+            {
+                throw new InvalidOperationException("This test is missing <query>");
+            }
+
+            if (testCase.Result is null)
+            {
+                throw new InvalidOperationException("This test is missing <result>");
+            }
+
+            // arrange
+            ISchema? schema = await GetSchema();
+            DocumentNode parsed = Utf8GraphQLParser.Parse(testCase.Query);
+            JsonNode data = JsonNode.Parse(testCase.Data.Json) ??
+                throw new InvalidOperationException(
+                    "This test has invalid json in <data><json/></data>");
+            if (testCase.Result.Json is { } json)
+            {
+                JsonNode result = JsonNode.Parse(json) ??
+                    throw new InvalidOperationException(
+                        "This test has invalid json in <result><json/></result>");
+
+                // act
+                AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(schema);
+                JsonNode? rewritten = lodashRewriter.Rewrite(data);
+
+                // assert
+                Assert.NotNull(rewritten);
+                JsonSerializerOptions options = new() { WriteIndented = true };
+                Assert.Equal<object?>(
+                    result.ToJsonString(options),
+                    rewritten?.ToJsonString(options));
+            }
+            else if (testCase.Result.ErrorCode is { } error)
+            {
+                // act
+                AggregationJsonRewriter lodashRewriter = parsed.CreateRewriter(schema);
+                JsonAggregationException? ex = Assert.Throws<JsonAggregationException>(() =>
+                {
+                    lodashRewriter.Rewrite(data);
+                });
+
+                // assert
+                Assert.NotNull(ex);
+                Assert.Equal<object>(error, ex.Code);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    "Configure either <result><json/></result> or <result><error-code/></result>");
+            }
+        }
+
+        private async ValueTask<ISchema> GetSchema()
+        {
+            if (_schema is null)
+            {
+                IRequestExecutor? executor = await CreateExecutor();
+                _schema = executor.Schema;
+            }
+
+            return _schema;
+        }
 
         protected ValueTask<IRequestExecutor> CreateExecutor()
         {
             return new ServiceCollection()
+                .AddScoped(sp => new Query())
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddAggregationDirectives()
@@ -95,74 +151,48 @@ namespace HotChocolate.Lodash
 
         public class Query
         {
-            public int[] Scalars => new int[]
-            {
-                1,
-                1,
-                2,
-                2,
-                3,
-                3,
-                4,
-                4
-            };
+            public string? String { get; set; }
 
-            public int[][] NestedScalars => new[]
-            {
-                new[]
-                {
-                    1,
-                    1
-                },
-                new[]
-                {
-                    2,
-                    2
-                },
-                new[]
-                {
-                    3,
-                    3
-                },
-                new[]
-                {
-                    4,
-                    4
-                }
-            };
+            public int? Int { get; set; }
 
-            public Foo Single => _foos[0];
-            public Foo[] List => _foos;
-            public Foo[][] NestedList => _foos.Select(x => _foos).ToArray();
-            public Foo? Nullable => null;
-            public Foo?[] NullableList => _nullableFoos;
-
-            public Foo?[]?[] NullableNestedList =>
-                _nullableFoos.Select(x => x is null ? null : _nullableFoos).ToArray();
-        }
-
-        public class Foo
-        {
-            public int Id { get; set; }
-
-            public string? Baz { get; set; }
-
-            public string? CountBy { get; set; }
-
-            public int? Num { get; set; }
+            public double? Float { get; set; }
 
             public DateTime? DateTime { get; set; }
 
-            public Bar? Bar { get; set; }
+            public ExampleEnum? Enum { get; set; }
 
-            public Bar?[]? BarList { get; set; }
+            public string?[]? StringList { get; set; }
+
+            public int?[]? IntList { get; set; }
+
+            public double?[]? FloatList { get; set; }
+
+            public DateTime?[]? DateTimeList { get; set; }
+
+            public ExampleEnum?[]? EnumList { get; set; }
+
+            public string?[]?[]? StringNestedList { get; set; }
+
+            public int?[]?[]? IntNestedList { get; set; }
+
+            public double?[]?[]? FloatNestedList { get; set; }
+
+            public DateTime?[]?[]? DateTimeNestedList { get; set; }
+
+            public ExampleEnum?[]?[]? EnumNestedList { get; set; }
+
+            public Query? Single { get; set; }
+
+            public Query?[]? List { get; set; }
+
+            public Query?[]?[]? NestedList { get; set; }
         }
 
-        public class Bar
+        public enum ExampleEnum
         {
-            public string? Baz { get; set; }
-
-            public Foo?[]? Foos => _foos;
+            First,
+            Second,
+            Third
         }
     }
 }

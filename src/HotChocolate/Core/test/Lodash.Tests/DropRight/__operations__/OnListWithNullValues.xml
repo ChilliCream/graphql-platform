@@ -1,0 +1,33 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          null,
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @dropRight(count: 2){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          null
+        ]
+      }
+    </json>
+  </result>
+</test>

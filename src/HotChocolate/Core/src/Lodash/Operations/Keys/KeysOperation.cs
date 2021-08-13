@@ -6,11 +6,12 @@ namespace HotChocolate.Lodash
 {
     public class KeysOperation : AggregationOperation
     {
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             if (node is JsonArray)
@@ -27,7 +28,8 @@ namespace HotChocolate.Lodash
                     result.Add(pair.Key);
                 }
 
-                return result;
+                rewritten = result;
+                return true;
             }
 
             throw ThrowHelper.ExpectObjectButReceivedScalar(node.GetPath());

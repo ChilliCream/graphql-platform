@@ -11,11 +11,12 @@ namespace HotChocolate.Lodash
 
         public int Count { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             JsonArray result = new();
@@ -46,7 +47,8 @@ namespace HotChocolate.Lodash
 
             Flatten(node, 0);
 
-            return result;
+            rewritten = result;
+            return true;
         }
     }
 }

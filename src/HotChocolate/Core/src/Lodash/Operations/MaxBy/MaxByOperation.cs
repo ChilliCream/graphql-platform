@@ -13,11 +13,12 @@ namespace HotChocolate.Lodash
 
         public string Key { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             IComparable? result = null;
@@ -62,7 +63,9 @@ namespace HotChocolate.Lodash
 
             MaxByField(node);
 
-            return resultNode;
+
+            rewritten = resultNode;
+            return true;
         }
     }
 }

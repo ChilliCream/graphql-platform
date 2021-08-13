@@ -4,6 +4,6 @@ namespace HotChocolate.Lodash
 {
     public abstract class AggregationOperation
     {
-        public abstract JsonNode? Rewrite(JsonNode? node);
+        public abstract bool Rewrite(JsonNode? node, out JsonNode? rewritten);
     }
 }

@@ -1,0 +1,17 @@
+<test>
+  <data>
+    <json>
+      {
+        "string": "a"
+      }
+    </json>
+  </data>
+  <query>
+    {
+      string @dropRight(count: 2)
+    }
+  </query>
+  <result>
+    <error-code>AG0004</error-code>
+  </result>
+</test>

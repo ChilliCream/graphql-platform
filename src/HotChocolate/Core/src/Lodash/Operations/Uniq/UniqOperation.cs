@@ -7,11 +7,12 @@ namespace HotChocolate.Lodash
 {
     public class UniqOperation : AggregationOperation
     {
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             if (node is JsonArray arr)
@@ -44,7 +45,8 @@ namespace HotChocolate.Lodash
                     }
                 }
 
-                return array;
+                rewritten = array;
+                return true;
             }
 
             throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());

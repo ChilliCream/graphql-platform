@@ -13,7 +13,7 @@ namespace HotChocolate.Lodash
 
         public string Key { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             Dictionary<string, List<JsonNode?>> data = new();
             GroupByField(node, data);
@@ -24,7 +24,8 @@ namespace HotChocolate.Lodash
                 jsonObject[pair.Key] = new JsonArray(pair.Value.ToArray());
             }
 
-            return jsonObject;
+            rewritten = jsonObject;
+            return true;
         }
 
         private void GroupByField(JsonNode? node, IDictionary<string, List<JsonNode?>> data)

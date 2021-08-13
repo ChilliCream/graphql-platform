@@ -15,12 +15,18 @@ namespace HotChocolate.Lodash
         {
             for (var i = 0; i < Root.Next.Count && node is not null; i++)
             {
-                node = Root.Next[i].Rewrite(node);
+                if (Root.Next[i].Rewrite(node, out JsonNode? newNode))
+                {
+                    node = newNode;
+                }
             }
 
             for (var i = 0; i < Root.Operations.Count && node is not null; i++)
             {
-                node = Root.Operations[i].Rewrite(node);
+                if (Root.Operations[i].Rewrite(node, out JsonNode? newNode))
+                {
+                    node = newNode;
+                }
             }
 
             return node;

@@ -12,11 +12,12 @@ namespace HotChocolate.Lodash
 
         public string Key { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             double result = 0;
@@ -50,7 +51,8 @@ namespace HotChocolate.Lodash
 
             SumByField(node);
 
-            return result;
+            rewritten = result;
+            return true;
         }
     }
 }

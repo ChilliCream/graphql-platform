@@ -11,18 +11,20 @@ namespace HotChocolate.Lodash
 
         public int Count { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             if (node is JsonArray arr)
             {
                 if (Count > arr.Count)
                 {
-                    return new JsonArray();
+                    rewritten = new JsonArray();
+                    return true;
                 }
 
                 for (var count = Count - 1; count >= 0; count--)
@@ -30,10 +32,16 @@ namespace HotChocolate.Lodash
                     arr.RemoveAt(0);
                 }
 
-                return arr;
+                rewritten = arr;
+                return true;
             }
 
-            throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            if (node is JsonObject)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
         }
     }
 }

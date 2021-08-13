@@ -21,23 +21,42 @@ namespace HotChocolate.Lodash
 
         public IReadOnlyList<AggregationRewriterStep> Next { get; }
 
-        public JsonNode? Rewrite(JsonNode? node)
+        public bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is JsonObject obj)
             {
                 if (obj.TryGetPropertyValue(FieldName, out JsonNode? jsonNode))
                 {
-                    for (var i = 0; i < Next.Count && jsonNode is not null; i++)
+                    var omitProperty = false;
+                    for (var i = 0;
+                        i < Next.Count && jsonNode is not null && !omitProperty;
+                        i++)
                     {
-                        jsonNode = Next[i].Rewrite(jsonNode);
+                        if (Next[i].Rewrite(jsonNode, out JsonNode? newNode))
+                        {
+                            jsonNode = newNode;
+                        }
+                        else
+                        {
+                            omitProperty = true;
+                        }
                     }
 
-                    for (var i = 0; i < Operations.Count && jsonNode is not null; i++)
+                    for (var i = 0;
+                        i < Operations.Count && jsonNode is not null && !omitProperty;
+                        i++)
                     {
-                        jsonNode = Operations[i].Rewrite(jsonNode);
+                        if (Operations[i].Rewrite(jsonNode, out JsonNode? newNode))
+                        {
+                            jsonNode = newNode;
+                        }
+                        else
+                        {
+                            omitProperty = true;
+                        }
                     }
 
-                    if (jsonNode is not null)
+                    if (!omitProperty)
                     {
                         obj[FieldName] = jsonNode;
                     }
@@ -52,15 +71,16 @@ namespace HotChocolate.Lodash
                 for (var index = arr.Count - 1; index >= 0; index--)
                 {
                     JsonNode? item = arr[index];
-                    if (Rewrite(item) is { } newNode)
+                    arr.RemoveAt(index);
+                    if (Rewrite(item, out JsonNode? newNode))
                     {
-                        arr.RemoveAt(index);
                         arr.Insert(index, newNode);
                     }
                 }
             }
 
-            return node;
+            rewritten = node;
+            return true;
         }
     }
 }

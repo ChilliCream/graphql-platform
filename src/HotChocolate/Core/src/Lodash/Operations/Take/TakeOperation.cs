@@ -11,11 +11,12 @@ namespace HotChocolate.Lodash
 
         public int Count { get; }
 
-        public override JsonNode? Rewrite(JsonNode? node)
+        public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
             if (node is null)
             {
-                return null;
+                rewritten = null;
+                return false;
             }
 
             if (node is JsonArray arr)
@@ -29,7 +30,8 @@ namespace HotChocolate.Lodash
                     newArray.Add(element);
                 }
 
-                return newArray;
+                rewritten = newArray;
+                return true;
             }
 
             throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());

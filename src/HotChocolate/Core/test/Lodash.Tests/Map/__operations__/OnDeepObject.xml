@@ -1,0 +1,53 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "single": {
+                "string": "a"
+              }
+            }
+          },
+          {
+            "single": {
+              "single": {
+                "string": "b"
+              }
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          single @map(key: "string") {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "single": "a"
+            }
+          },
+          {
+            "single": {
+              "single": "b"
+            }
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>
