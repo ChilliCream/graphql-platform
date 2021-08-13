@@ -1,5 +1,10 @@
 trigger:
-- develop
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - website
 
 pool:
   vmImage: "ubuntu-20.04"
