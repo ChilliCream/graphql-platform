@@ -36,7 +36,7 @@
 <h6><a href="#sec-Map.Directive" title="link to this subsection">Directive</a></h6>
 <pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@map</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
 </code></pre>
-<p><code>@map</code> can be applied to objects or list of objects of any depth. If <code>@map</code> is applied on an object, it pulls the field <code>key</code> up. If <code>@map</code> is applied on a list, the algorithm is applied for each element of this list.</p>
+<p><dfn id="-map"><a href="#-map" data-name="-map">@map</a></dfn> can be applied to objects or list of objects of any depth. If <span class="spec-ref"><a href="#-map" data-name="-map">@map</a></span> is applied on an object, it pulls the field <code>key</code> up. If <span class="spec-ref"><a href="#-map" data-name="-map">@map</a></span> is applied on a list, the algorithm is applied for each element of this list.</p>
 <p>Given the following data:</p>
 <pre id="example-ac729" class="spec-example" data-language="json"><a href="#example-ac729">Example № 1</a><code><span class="token punctuation">{</span>
   <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -71,13 +71,13 @@
 </section>
 <section id="sec-Map.Execution" class="subsec">
 <h6><a href="#sec-Map.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
 <div class="spec-algo" id="RewriteMap()">
 <span class="spec-call"><a href="#RewriteMap()" data-name="RewriteMap">RewriteMap</a>(<var data-name="node">node</var>)</span><ol>
-<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
 <li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
-<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
-<li>If Exists(value, key)<ol>
-<li>Let <var data-name="valueOfKey">valueOfKey</var> be Get(value, key)</li>
+<li>If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>If Exists(node, key)<ol>
+<li>Let <var data-name="valueOfKey">valueOfKey</var> be Get(node, key)</li>
 <li>Retrun <var data-name="valueOfKey">valueOfKey</var></li>
 </ol>
 </li>
@@ -87,9 +87,9 @@
 </li>
 </ol>
 </li>
-<li>Otherwise If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ListValue">ListValue</span></span><ol>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ListValue">ListValue</span></span><ol>
 <li>Let <var data-name="listResult">listResult</var> be a empty list</li>
-<li>For each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
+<li>For each <var data-name="element">element</var> in <var data-name="node">node</var><ol>
 <li>Let <var data-name="rewritten">rewritten</var> be the result of <span class="spec-call"><span data-name="Rewrite">Rewrite</span>(<var data-name="element">element</var>)</span></li>
 <li>If <var data-name="rewritten">rewritten</var> is NOT <span class="spec-keyword">null</span><ol>
 <li>Add <var data-name="rewritten">rewritten</var> to <var data-name="listResult">listResult</var></li>
@@ -114,7 +114,7 @@
 <h6><a href="#sec-Chunk.Directive" title="link to this subsection">Directive</a></h6>
 <pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@chunk</span><span class="token punctuation">(</span><span class="token attr-name">size</span><span class="token punctuation">:</span> <span class="token scalar">Int</span><span class="token operator">!</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
 </code></pre>
-<p><code>@chunk</code> can be applied on list values of any depth. <code>@chunk</code> splits the list into groups the length of <code>size</code>. If the list cannot be split evenly, the final chunk will contain the remaining elements.</p>
+<p><dfn id="-chunk"><a href="#-chunk" data-name="-chunk">@chunk</a></dfn> can be applied on list values of any depth. <span class="spec-ref"><a href="#-chunk" data-name="-chunk">@chunk</a></span> splits the list into groups the length of <code>size</code>. If the list cannot be split evenly, the final chunk will contain the remaining elements.</p>
 <p>Given the following data:</p>
 <pre id="example-b4138" class="spec-example" data-language="json"><a href="#example-b4138">Example № 4</a><code><span class="token punctuation">{</span>
   <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -159,28 +159,28 @@
 </section>
 <section id="sec-Chunk.Execution" class="subsec">
 <h6><a href="#sec-Chunk.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
 <div class="spec-algo" id="RewriteChunk()">
 <span class="spec-call"><a href="#RewriteChunk()" data-name="RewriteChunk">RewriteChunk</a>(<var data-name="node">node</var>)</span><ol>
-<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
 <li>Let <var data-name="size">size</var> be the value of the argument <code>size</code> of the directive</li>
 <li>If <var data-name="size">size</var> is &lt; 1<ol>
 <li>Assert: <span class="spec-nt"><span data-name="AG0005">AG0005</span></span> </li>
 </ol>
 </li>
-<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
 <li>Assert: <span class="spec-nt"><span data-name="AG0001">AG0001</span></span></li>
 </ol>
 </li>
-<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
+<li>If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
 <li>Assert: <span class="spec-nt"><span data-name="AG0004">AG0004</span></span></li>
 </ol>
 </li>
 <li>Otherwise<ol>
 <li>Let <var data-name="chunks">chunks</var> be an empty list</li>
 <li>Let <var data-name="currentChunk">currentChunk</var> be an empty list</li>
-<li>While count of <var data-name="value">value</var> is NOT 0<ol>
-<li>Let <var data-name="element">element</var> be the value of the first element of <var data-name="value">value</var></li>
-<li>Remove the first element of <var data-name="value">value</var></li>
+<li>While count of <var data-name="node">node</var> is NOT 0<ol>
+<li>Let <var data-name="element">element</var> be the value of the first element of <var data-name="node">node</var></li>
+<li>Remove the first element of <var data-name="node">node</var></li>
 <li>Add <var data-name="element">element</var> to <var data-name="currentChunk">currentChunk</var></li>
 <li>If count of <var data-name="currentChunk">currentChunk</var> is <var data-name="size">size</var><ol>
 <li>Add <var data-name="currentChunk">currentChunk</var> to <var data-name="chunks">chunks</var></li>
@@ -206,7 +206,7 @@
 <h6><a href="#sec-CountBy.Directive" title="link to this subsection">Directive</a></h6>
 <pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@countBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
 </code></pre>
-<p><code>@countBy</code> can only be applied list of objects of depth 1. Nested lists can be flattened with <code>@flatten</code> first. <code>countBy</code> returns an object where the keys are the values of the field selected with <code>key</code>. The values are the number of times the key was found.</p>
+<p><dfn id="-countby"><a href="#-countby" data-name="-countby">@countBy</a></dfn> can only be applied list of objects of depth 1. Nested lists can be flattened with <em>@flatten</em> first. <span class="spec-ref"><a href="#-countby" data-name="-countby">@countBy</a></span> returns an object where the keys are the values of the field selected with <code>key</code>. The values are the number of times the key was found.</p>
 <p>Given the following data:</p>
 <pre id="example-346c8" class="spec-example" data-language="json"><a href="#example-346c8">Example № 7</a><code><span class="token punctuation">{</span>
   <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -240,15 +240,16 @@
 </section>
 <section id="sec-CountBy.Execution" class="subsec">
 <h6><a href="#sec-CountBy.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
 <div class="spec-algo" id="RewriteCountBy()">
 <span class="spec-call"><a href="#RewriteCountBy()" data-name="RewriteCountBy">RewriteCountBy</a>(<var data-name="node">node</var>)</span><ol>
-<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
+<li>Let <var data-name="node">node</var> be the value node where the directive is applied</li>
 <li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
-<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
 <li>Assert: <span class="spec-nt"><span data-name="AG0001">AG0001</span></span></li>
 </ol>
 </li>
-<li>Otherwise If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
 <li>Assert: <span class="spec-nt"><span data-name="AG0004">AG0004</span></span></li>
 </ol>
 </li>
@@ -433,6 +434,9 @@
 <h1>
 <span class="spec-secid" title="link to the index"><a href="#index">§</a></span>Index</h1>
 <ol>
+<li><a href="#-chunk">@chunk</a></li>
+<li><a href="#-countby">@countBy</a></li>
+<li><a href="#-map">@map</a></li>
 <li><a href="#ag0001-">AG0001 </a></li>
 <li><a href="#ag0002-">AG0002 </a></li>
 <li><a href="#ag0003-">AG0003 </a></li>

@@ -7,9 +7,9 @@
 directive @map(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 ```
 
-`@map` can be applied to objects or list of objects of any depth. 
-If `@map` is applied on an object, it pulls the field `key` up.  
-If `@map` is applied on a list, the algorithm is applied for each element of this list.
+:: *@map* can be applied to objects or list of objects of any depth. 
+If *@map* is applied on an object, it pulls the field `key` up.  
+If *@map* is applied on a list, the algorithm is applied for each element of this list.
 
 Given the following data:
 
@@ -53,19 +53,19 @@ will retrun the following result:
 
 **Execution**
 
-RewriteMap(node):
+{node} is the value node where the directive is applied
 
-* Let {value} be the value node where the directive is applied
+RewriteMap(node):
 * Let {key} be the value of the argument `key` of the directive
-* If {value} is {ObjectValue}
-  * If Exists(value, key)
-    * Let {valueOfKey} be Get(value, key)
+* If {node} is {ObjectValue}
+  * If Exists(node, key)
+    * Let {valueOfKey} be Get(node, key)
     * Retrun {valueOfKey}
   * Otherwise
     * Return {null}
-* Otherwise If {value} is {ListValue}
+* Otherwise If {node} is {ListValue}
   * Let {listResult} be a empty list
-  * For each {element} in {value}
+  * For each {element} in {node}
     * Let {rewritten} be the result of {Rewrite(element)}
     * If {rewritten} is NOT {null}
       * Add {rewritten} to {listResult}
@@ -80,8 +80,8 @@ RewriteMap(node):
 directive @chunk(size: Int! = 1) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 ```
 
-`@chunk` can be applied on list values of any depth. 
-`@chunk` splits the list into groups the length of `size`. 
+:: *@chunk* can be applied on list values of any depth. 
+*@chunk* splits the list into groups the length of `size`. 
 If the list cannot be split evenly, the final chunk will contain the remaining elements.
 
 Given the following data:
@@ -136,22 +136,22 @@ will retrun the following result:
 
 **Execution**
 
-RewriteChunk(node):
+{node} is the value node where the directive is applied
 
-* Let {value} be the value node where the directive is applied
+RewriteChunk(node):
 * Let {size} be the value of the argument `size` of the directive
 * If {size} is < 1
   * Assert: {AG0005} 
-* If {value} is {ObjectValue}
+* If {node} is {ObjectValue}
   * Assert: {AG0001}
-* If {value} is {ScalarValue}
+* If {node} is {ScalarValue}
   * Assert: {AG0004}
 * Otherwise
   * Let {chunks} be an empty list
   * Let {currentChunk} be an empty list
-  * While count of {value} is NOT 0
-    * Let {element} be the value of the first element of {value}
-    * Remove the first element of {value}
+  * While count of {node} is NOT 0
+    * Let {element} be the value of the first element of {node}
+    * Remove the first element of {node}
     * Add {element} to {currentChunk}
     * If count of {currentChunk} is {size}
       * Add {currentChunk} to {chunks}
@@ -167,9 +167,9 @@ RewriteChunk(node):
 directive @countBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 ```
 
-`@countBy` can only be applied list of objects of depth 1. 
-Nested lists can be flattened with `@flatten` first.
-`countBy` returns an object where the keys are the values of the field selected with `key`. 
+:: *@countBy* can only be applied list of objects of depth 1. 
+Nested lists can be flattened with *@flatten* first.
+*@countBy* returns an object where the keys are the values of the field selected with `key`. 
 The values are the number of times the key was found.
 
 Given the following data:
@@ -213,13 +213,14 @@ will retrun the following result:
 
 **Execution**
 
-RewriteCountBy(node):
+{node} is the value node where the directive is applied
 
-* Let {value} be the value node where the directive is applied
+RewriteCountBy(node):
+* Let {node} be the value node where the directive is applied
 * Let {key} be the value of the argument `key` of the directive
-* If {value} is {ObjectValue}
+* If {node} is {ObjectValue}
   * Assert: {AG0001}
-* Otherwise If {value} is {ScalarValue}
+* Otherwise If {node} is {ScalarValue}
   * Assert: {AG0004}
 * Otherwise 
   * Return {RewriteCountByArray(node)}
