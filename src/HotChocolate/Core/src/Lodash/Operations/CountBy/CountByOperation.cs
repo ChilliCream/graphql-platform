@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -15,47 +16,62 @@ namespace HotChocolate.Lodash
 
         public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
-            Dictionary<string, int> data = new();
-            CountByField(node, data);
-
-            var jsonObject = new JsonObject();
-            foreach (KeyValuePair<string, int> pair in data)
+            if (node is null)
             {
-                jsonObject[pair.Key] = pair.Value;
+                rewritten = null;
+                return false;
             }
 
-            rewritten = jsonObject;
-            return true;
+            if (node is JsonObject)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+
+            if (node is JsonArray arr)
+            {
+                rewritten = RewriteArray(arr);
+                return true;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(node));
         }
 
-        private void CountByField(JsonNode? node, IDictionary<string, int> data)
+        private JsonObject RewriteArray(JsonArray value)
         {
-            if (node is JsonObject obj)
+            Dictionary<string, int> result = new();
+
+            foreach (JsonNode? element in value)
             {
-                if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode))
+                switch (element)
                 {
-                    if (jsonNode is not null &&
-                        jsonNode.GetValue<JsonElement>().TryConvertToString(out string? converted))
+                    case JsonArray:
+                        throw ThrowHelper.ExpectObjectButReceivedArray(element.GetPath());
+                    case JsonValue:
+                        throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
+                    case JsonObject obj:
                     {
-                        if (!data.ContainsKey(converted))
+                        if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) &&
+                            jsonNode.TryConvertToString(out string? convertedValue))
                         {
-                            data[converted] = 0;
+                            if (!result.ContainsKey(convertedValue))
+                            {
+                                result[convertedValue] = 0;
+                            }
+
+                            result[convertedValue]++;
                         }
 
-                        data[converted]++;
+                        break;
                     }
-                    // throw?
-                }
-                // throw?
-            }
-            else if (node is JsonArray arr)
-            {
-                for (var i = arr.Count - 1; i >= 0; i--)
-                {
-                    CountByField(arr[i], data);
                 }
             }
-        }
 
+            return result.ToJsonNode();
+        }
     }
 }

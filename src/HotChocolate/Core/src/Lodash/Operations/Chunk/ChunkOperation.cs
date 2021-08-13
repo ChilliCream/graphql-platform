@@ -20,32 +20,34 @@ namespace HotChocolate.Lodash
                 return false;
             }
 
+            if (Count < 1)
+            {
+                throw ThrowHelper.ChunkCountCannotBeLowerThanOne(node.GetPath());
+            }
+
             if (node is JsonArray arr)
             {
                 JsonArray chunks = new();
-                JsonArray currentChunk = null!;
+                JsonArray? currentChunk = null;
 
-                int index = 0;
-                int chunkIndex = 0;
-                for (var i = 0; i < arr.Count; i++)
+                while (arr.Count > 0)
                 {
-                    JsonNode? element = arr[i];
-                    arr.RemoveAt(i--);
+                    currentChunk ??= new JsonArray();
 
-                    if (chunkIndex == Count)
-                    {
-                        index++;
-                        chunkIndex = 0;
-                    }
-
-                    if (chunks.Count <= index)
-                    {
-                        currentChunk = new JsonArray();
-                        chunks.Add(currentChunk);
-                    }
-
+                    JsonNode? element = arr[0];
+                    arr.RemoveAt(0);
                     currentChunk.Add(element);
-                    chunkIndex++;
+
+                    if (currentChunk.Count == Count)
+                    {
+                        chunks.Add(currentChunk);
+                        currentChunk = null;
+                    }
+                }
+
+                if (currentChunk is not null)
+                {
+                    chunks.Add(currentChunk);
                 }
 
                 rewritten = chunks;

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<!-- Built with spec-md https://spec-md.com -->
+<html>
+<head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>GraphQL Aggregation Directives</title>
+<style>/** * prism.js default theme for JavaScript, CSS and HTML * Based on dabblet (http://dabblet.com) * @author Lea Verou */ code[class*="language-"], pre[class*="language-"] { 	color: black; 	background: none; 	text-shadow: 0 1px white; 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; 	font-size: 1em; 	text-align: left; 	white-space: pre; 	word-spacing: normal; 	word-break: normal; 	word-wrap: normal; 	line-height: 1.5; 	-moz-tab-size: 4; 	-o-tab-size: 4; 	tab-size: 4; 	-webkit-hyphens: none; 	-moz-hyphens: none; 	-ms-hyphens: none; 	hyphens: none; } pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection, code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection { 	text-shadow: none; 	background: #b3d4fc; } pre[class*="language-"]::selection, pre[class*="language-"] ::selection, code[class*="language-"]::selection, code[class*="language-"] ::selection { 	text-shadow: none; 	background: #b3d4fc; } @media print { 	code[class*="language-"], 	pre[class*="language-"] { 		text-shadow: none; 	} } /* Code blocks */ pre[class*="language-"] { 	padding: 1em; 	margin: .5em 0; 	overflow: auto; } :not(pre) > code[class*="language-"], pre[class*="language-"] { 	background: #f5f2f0; } /* Inline code */ :not(pre) > code[class*="language-"] { 	padding: .1em; 	border-radius: .3em; 	white-space: normal; } .token.comment, .token.prolog, .token.doctype, .token.cdata { 	color: slategray; } .token.punctuation { 	color: #999; } .token.namespace { 	opacity: .7; } .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { 	color: #905; } .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { 	color: #690; } .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { 	color: #9a6e3a; 	/* This background color was intended by the author of this theme. */ 	background: hsla(0, 0%, 100%, .5); } .token.atrule, .token.attr-value, .token.keyword { 	color: #07a; } .token.function, .token.class-name { 	color: #DD4A68; } .token.regex, .token.important, .token.variable { 	color: #e90; } .token.important, .token.bold { 	font-weight: bold; } .token.italic { 	font-style: italic; } .token.entity { 	cursor: help; }</style>
+<style>:root{color:#333;font-family:Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;font-size:15px;line-height:1.5;--mono-font-size: 13px;--indent: 1rem;--list-indent: 1.5rem;--dfn-indent: 0rem}@media (min-width: 720px){:root{font-size:17px;--mono-font-size: 15px;--indent: 2rem;--list-indent: 2rem;--dfn-indent: 2rem}}body{margin:3rem 0 3rem}article{margin:0 1rem}@media (min-width: 720px){body{margin:6rem auto 3rem;max-width:800px;padding-left:75px;padding-right:clamp(0px,calc((100vw - 800px) * .25),75px)}}.source-link{display:none}@media screen and (min-width: 720px){.source-link{display:block;position:absolute;width:18px;fill:#ccc;opacity:.3}.source-link:hover{opacity:1}}.outdated-selection-link,.selection-link{position:absolute;display:block;color:#fff;--selection-background-color: #cacee0;background:var(--selection-background-color);border-radius:4px;font-size:36px;height:23px;line-height:48px;text-align:center;text-decoration:none;width:25px;user-select:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.outdated-selection-link:hover,.selection-link:hover{text-decoration:none}.outdated-selection-link:before,.selection-link:before{border:5px solid transparent;content:"";height:0;margin-top:-5px;margin-right:-5px;position:absolute;right:1px;top:50%;width:0}@media (max-width: 719px){.outdated-selection-link:before,.selection-link:before{border-bottom-color:var(--selection-background-color);border-top:0;right:50%;top:1px}}@media (min-width: 720px){.outdated-selection-link:before,.selection-link:before{border-left-color:var(--selection-background-color);border-right:0;right:1px;top:50%}}.selection-link:hover{--selection-background-color: #3b5998}.outdated-selection-link{--selection-background-color: #f0babe;font-size:21px;font-weight:800;line-height:27px}.outdated-selection-link:hover:after{content:"This selection content has changed since this link was created.";font:9pt/11pt Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;position:absolute;display:block;white-space:nowrap;padding:2px 5px 1px;top:-20px;background:black;color:#fff}a{color:#3b5998;text-decoration:none}a:hover{text-decoration:underline}img{max-width:100%}dl{margin:1rem 0 1rem var(--dfn-indent)}dd{margin:.25em 0 .5em var(--indent)}dd+dd{margin-top:1rem}dfn,.spec-ref{font-style:italic}dfn>a,.spec-ref>a{color:inherit}h1,h2,h3,h4,h5,h6{font-weight:bold;margin:3em 0 1em;position:relative}@media (min-width: 720px){header>h1{margin:6em 0 3em}}h1{font-size:1.5em;margin-top:5em}h2,h3{font-size:1.25em}h4,h5,h6{font-size:1em}section{padding-top:1rem;margin-top:-1rem}section.subsec>h6{margin-top:2em}section.subsec>h6>a{color:#333}section .spec-secid{margin-right:1ex}@media (min-width: 720px){section .spec-secid{position:absolute;right:100%;text-align:right;white-space:nowrap}}footer{font-size:75%;opacity:.5;text-align:center;margin-top:12rem}.spec-toc{margin:1rem 0 3rem}.spec-toc .title{content:"Contents";display:block;font-weight:bold;margin:5em 0 1em}.spec-toc .spec-secid{margin-right:1ex}.spec-toc ol{list-style:none;padding-left:0;margin-top:0;margin-bottom:0}.spec-toc ol ol{list-style:none;padding-left:2ex;margin-bottom:.25em}.spec-toc li{position:relative;padding:5px 0 0 30px;margin:-5px 0 0 -30px}.spec-toc a{color:#333}.spec-toc a:hover{text-decoration:none}.spec-toc a .spec-secid{color:#3b5998}.spec-toc a:hover .spec-secid{text-decoration:underline}.spec-toc .toggle{display:none}.spec-toc .toggle+label{cursor:pointer;left:6px;opacity:1;padding:5px 6px 5px 7px;position:absolute;top:6px;transform:rotate(0deg);transition:all .18s ease-in-out}.spec-toc .toggle+label:after{border-color:transparent transparent transparent #bbc;border-style:solid;border-width:6px 0 6px 7px;content:" ";display:block;height:0;width:0}@media (pointer: fine){.spec-toc .toggle+label{left:10px;padding:3px 5px 3px 6px;top:8px}}.spec-toc .toggle:checked+label{transform:rotate(90deg)}@media (hover: hover){.spec-toc li:not(:hover)>.toggle:checked+label{opacity:0}}.spec-toc .toggle:not(:checked)~ol{max-height:0;overflow:hidden;margin:0}.spec-sidebar-toggle{display:none}.spec-sidebar-toggle+label>.spec-sidebar-button{position:fixed;right:0;top:0;padding:10px 15px;font-size:30px;color:#000000b3;z-index:2;cursor:pointer;user-select:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.spec-sidebar-toggle:checked+label:after{content:"";position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}.spec-sidebar{display:none;position:fixed;right:0;top:0;width:min(320px,calc(100vw - 48px));font-size:14px;line-height:1.75;overflow-y:scroll;height:100%;padding:0 0 5rem 30px;box-sizing:border-box;background:#f0f0f0;box-shadow:inset 1px 0 rgba(0,0,0,.05),-4px 0 8px -2px rgba(0,0,0,.04);overscroll-behavior:contain}.spec-sidebar{user-select:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none}.spec-sidebar-toggle:checked~.spec-sidebar{display:block}.spec-sidebar .viewing>a:after{color:#8b9;content:"\2022";margin-left:1ex}@media (min-width: 1220px){.spec-sidebar-toggle+label{display:none}.spec-sidebar{display:block;box-shadow:inset 1px 0 rgba(0,0,0,.05),inset 4px 0 8px -2px rgba(0,0,0,.08)!important}body{padding-right:345px}}.spec-note{background:#FEFEF3;border-left:solid 4px #F4E925;margin:1rem -1rem;min-width:70vw;padding:8px 1rem 12px calc(1rem - 4px);width:-moz-fit-content;width:-webkit-fit-content;width:fit-content}@media (min-width: 720px){.spec-note{min-width:416px}}.spec-note>a:first-child{color:#6c6613;display:block;font:italic 11pt/18pt Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;opacity:.6;user-select:none}.spec-todo{color:#666;margin:1em 0 1em 5em;min-height:1em}.spec-todo::before{content:"todo";display:block;float:left;margin-left:-5em;text-transform:uppercase}.spec-index ol{list-style-type:none;margin:0 0 0 var(--indent);padding:0;column-width:210px;column-gap:var(--indent)}.spec-index ol li{width:min-content;white-space:nowrap}pre,code{font-family:Consolas,Monaco,"Andale Mono","Ubuntu Mono",monospace;font-size:var(--mono-font-size);font-weight:inherit}code{background:rgba(0,0,0,.03);margin:-2px -1px;padding:3px 3px;white-space:pre-wrap}pre>code{background:none;font-weight:inherit;margin:0;padding:0;white-space:pre}pre{background:#FAFAFA;border-left:solid 4px #E9E9E9;margin:1rem -1rem;min-width:70vw;padding:12px 1rem 12px calc(1rem - 4px);width:-moz-fit-content;width:-webkit-fit-content;width:fit-content;max-width:calc(100vw - 2rem);overflow-y:scroll}@media (min-width: 720px){pre{min-width:40ch}}.spec-example{background:#FAFAFF;border-left:solid 4px #BBBBFF;padding-top:8px}.spec-counter-example{background:#FFFAFA;border-left:solid 4px #FFBBBB;padding-top:8px}.spec-example>a,.spec-counter-example>a{display:block;font:italic 11pt/18pt Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;opacity:.6;user-select:none}.spec-counter-example>a{color:#98593b}table{border-collapse:collapse}th{background-color:#f9f9f9}td,th{border:1px solid #D0D0D0;padding:.4em;vertical-align:baseline}ol,ul{padding-left:var(--list-indent)}li>ol,li>ul{margin-top:.25em;margin-bottom:.5em}li+li{margin-top:.25em}li.task{list-style-type:none;position:relative}li.task>input:first-child{margin-left:0;position:absolute;transform:translateX(calc(-100% - 1ch))}ins{background-color:#00c81e14;text-decoration:none}del{background-color:#c8000014}.spec-added,.spec-removed{border-left:4px solid;margin-left:-18px;padding-left:14px}.spec-added{border-color:#396}.spec-removed{border-color:#933;text-decoration:line-through}.spec-keyword{font-weight:bold}.spec-string{font-family:Consolas,Monaco,monospace;font-size:85%;white-space:pre}var{font-style:italic}*[data-name]{transition:.15s background ease-out;border-radius:2px;padding:0 3px;margin:0 -3px}.spec-semantic,.spec-algo{margin:1rem 0 1rem var(--dfn-indent)}.spec-semantic>.spec-nt::after,.spec-algo>.spec-call:first-child::after{content:":";font-style:normal;font-weight:bold;margin-left:1ex}.spec-semantic ol,.spec-semantic ol ol ol ol,.spec-algo ol,.spec-algo ol ol ol ol{list-style-type:decimal}.spec-semantic ol ol,.spec-semantic ol ol ol ol ol,.spec-algo ol ol,.spec-algo ol ol ol ol ol{list-style-type:lower-alpha}.spec-semantic ol ol ol,.spec-semantic ol ol ol ol ol ol,.spec-algo ol ol ol,.spec-algo ol ol ol ol ol ol{list-style-type:lower-roman}.spec-call>a{color:inherit}.spec-production{margin:1rem 0 1rem var(--dfn-indent)}.spec-production>.spec-nt::after{content:":";font-style:normal;font-weight:bold;margin:0 1ex}.spec-semantic.d2>.spec-nt::after,.spec-production.d2>.spec-nt::after{content:"::"}.spec-semantic.d3>.spec-nt::after,.spec-production.d3>.spec-nt::after{content:":::"}.spec-production>.spec-rhs{line-height:1.1;margin:.25em 0 .5em calc(2 * var(--indent));text-indent:calc(-1 * var(--indent))}.spec-semantic>.spec-rhs{display:inline-block;text-indent:calc(-1 * var(--indent));margin-left:calc(1ex + var(--indent))}.spec-rhs>*{text-indent:0}.spec-oneof{display:inline}.spec-oneof::before{content:"one of";font-style:normal;font-weight:bold}.spec-oneof-grid{max-width:calc(100vw - 2rem);overflow:scroll;margin:-1ex -1rem;padding:1ex 1rem}.spec-oneof-grid>table{margin-left:var(--indent)}.spec-oneof .spec-rhs{border:none;margin:0;padding:0 0 0 1rem;vertical-align:baseline;white-space:pre}.spec-oneof .spec-rhs:first-child{padding:0}.spec-rhs .spec-constrained:not(:first-child),.spec-rhs .spec-quantified:not(:first-child),.spec-rhs .spec-nt:not(:first-child),.spec-rhs .spec-t:not(:first-child),.spec-rhs .spec-rx:not(:first-child),.spec-rhs .spec-prose:not(:first-child),.spec-rhs .spec-empty:not(:first-child),.spec-rhs .spec-lookahead:not(:first-child){margin-left:1ex;display:inline-block}.spec-condition{font-size:85%}.spec-condition::before{content:"[if "}.spec-condition.not::before{content:"[if not "}.spec-condition::after{content:"]"}.spec-empty,.spec-prose{color:#666}.spec-nt{font-style:italic}.spec-nt>a{color:inherit}.spec-quantifiers,.spec-params{font-size:65%;font-style:normal;vertical-align:sub}.spec-quantifier.list{color:#3348d3}.spec-quantifier.optional{color:#83238e}.spec-params,.spec-condition{color:#1c7758}.spec-params::before{content:"["}.spec-params::after{content:"]"}.spec-quantifier:not(:last-child)::after,.spec-param:not(:last-child)::after{color:#666;content:", "}.spec-param.conditional::before{content:"?"}.spec-param.negated::before{content:"!"}.spec-t,.spec-rx{color:#333;font-family:monospace;font-weight:bold}.spec-butnot::before{color:#666;content:"but not";font-family:Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;font-weight:normal;margin-right:1ex}.spec-butnot>*:not(:first-child)::before{color:#666;content:"or";font-family:Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;font-weight:normal;margin-right:1ex}.spec-rhs .spec-oneof::before,.spec-rhs .spec-butnot::before{margin-left:1ex}.spec-lookahead>*{margin:0!important}.spec-lookahead>*:not(:first-child)::before{color:#666;content:", ";font-family:Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;font-style:normal;font-weight:normal}.spec-lookahead::before{color:#666;content:"[lookahead = ";font-family:Cambria,"Palatino Linotype",Palatino,"Liberation Serif",serif;font-style:normal;font-weight:normal}.spec-lookahead.not::before{content:"[lookahead \2260  "}.spec-lookahead.set::before{content:"[lookahead \2208  {";margin-right:0}.spec-lookahead.set.not::before{content:"[lookahead \2209  {"}.spec-lookahead.ntset::before{content:"[lookahead \2208  ";margin-right:0}.spec-lookahead.ntset.not::before{content:"[lookahead \2209  "}.spec-lookahead::after{color:#666;content:"]"}.spec-lookahead.set::after{content:"}]"}.token.atrule,.token.attr-value,.token.keyword,.token.property,.token.selector,.token.attr-name,.token.builtin,.token.entity,.token.url,.token.inserted{color:#1b1994b0;background:none}.token.tag,.token.boolean,.token.number,.token.string,.token.char,.token.constant,.token.symbol,.token.regex,.token.important,.token.variable,.token.function,.token.class-name,.token.deleted{color:#a20764bd}.token.comment,.token.prolog,.token.doctype,.token.cdata,.token.description{color:inherit;opacity:.3}.token.punctuation{color:inherit;opacity:.5}.token.operator,.token.namespace{color:inherit;opacity:.7}</style>
+<script>(function(){var r,a=[];document.addEventListener("readystatechange",function(){document.readyState==="interactive"&&u()});function u(){var n=document.querySelector('label[for="spec-sidebar-toggle"]');n.addEventListener("scroll",o),n.addEventListener("touchmove",o);function o(d){d.preventDefault()}for(var t=document.getElementsByTagName("section"),e=0;e<t.length;e++)t[e].getAttribute("secid")&&a.push(t[e]);var i=window.scrollY,c=!1;window.addEventListener("scroll",function(d){i=window.scrollY,c||(c=!0,window.requestAnimationFrame(function(){s(i),c=!1}))})}function s(n){for(var o=n+document.documentElement.clientHeight/4,t,e=a.length-1;e>=0;e--)if(a[e].offsetTop<o){t=a[e];break}var i=t&&t.getAttribute("secid");i!==r&&(r&&l(r,!1),i&&l(i,!0),r=i)}function l(n,o){document.getElementById("_sidebar_"+n).className=o?"viewing":"";for(var t=n.split(".");t.length;){var e=document.getElementById("_toggle_"+t.join("."));e&&(e.checked=o),t.pop()}}s(window.scrollY);})();</script>
+<script>(function(){var n=document.getElementsByTagName("style")[0].sheet,e;function u(){e&&(n.deleteRule(e),e=void 0)}function d(t){u(),e=n.insertRule('*[data-name="'+t+'"] { background: rgba(230,215,0,0.12); }',n.cssRules.length)}document.documentElement.addEventListener("mouseover",function(t){var a=t.target.attributes["data-name"];a&&d(a.value)});document.documentElement.addEventListener("mouseout",u);})();</script>
+<script>(function(){var R="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",o,p,r,g;document.addEventListener("selectionchange",E);window.addEventListener("resize",C);window.addEventListener("hashchange",x);window.addEventListener("load",x);function S(n){y(new URL(n.target.href))}function x(){y(window.location)}function y(n){var e=n.hash.match(/^#sel-([A-Za-z0-9-_]+)$/);if(!!e){g=e[1],r=k(g);var t=r.getBoundingClientRect(),d=Math.max(20,Math.floor((window.innerHeight-t.height)*.4));window.scrollTo(0,window.scrollY+t.y-d);var c=document.getSelection();c.empty(),c.addRange(r),C()}}function E(n){var e=document.getSelection();if(e.isCollapsed)o&&(o.parentNode.removeChild(o),o=null);else{var t=e.getRangeAt(0);(!r||t.compareBoundaryPoints(Range.START_TO_START,r)!==0||t.compareBoundaryPoints(Range.END_TO_END,r)!==0)&&(r=t,g=B(r),C())}}function C(){if(!!r){p||(p=document.getElementsByTagName("article")[0]),o||(o=document.createElement("a"),document.body.appendChild(o)),o.href="#sel-"+g,o.onclick=S,o.className=r.isOutdated?"outdated-selection-link":"selection-link",o.innerText=r.isOutdated?"!":"\u201F";var n=window.innerWidth<720,e=r.getBoundingClientRect();if(n)o.style.left=Math.floor(e.x+e.width/2+window.scrollX-13)+"px",o.style.top=Math.floor(e.bottom+window.scrollY+10)+"px";else{var t=p.getBoundingClientRect().x;o.style.left=Math.floor(t+window.scrollX-37)+"px",o.style.top=Math.floor(e.y+window.scrollY-3)+"px"}}}function B(n){var e="",t=N(n.startContainer),d=N(n.endContainer),c=M(t,d);return l(c),l(t.slice(c.length).concat(n.startOffset)),l(d.slice(c.length).concat(n.endOffset)),i(L(n.toString())),e;function i(a){do e+=R[a&31|(a>31?32:0)],a>>=5;while(a>0)}function l(a){i(a.length);for(var h=0;h<a.length;h++)i(a[h])}}function k(n){for(var e=new Array(64),t=0;t<64;t++)e[R.charCodeAt(t)]=t;var d=0,c=m(),i=m(),l=m(),a=w(),h=i.pop(),P=O(c.concat(i)),T=l.pop(),A=O(c.concat(l)),u=document.createRange();return u.setStart(P,h),u.setEnd(A,T),u.isOutdated=a!==void 0&&a!==L(u.toString()),u;function w(){for(var s=0,v=0;d<n.length;){var f=e[n.charCodeAt(d++)];if(s|=(f&31)<<v,v+=5,f<32)return s}}function m(){var s=w();if(s!=null){for(var v=new Array(s),f=0;f<s;f++)v[f]=w();return v}}}function N(n){for(var e=[];n!=document.body;){var t=n.parentNode;e.push(Array.prototype.indexOf.call(t.childNodes,n)),n=t}return e.reverse()}function O(n){for(var e=document.body,t=0;t<n.length&&e;t++)e=e.childNodes[n[t]];return e}function M(n,e){for(var t=0;t<n.length&&t<e.length&&n[t]===e[t];)t++;return n.slice(0,t)}function L(n){for(var e=2166136261,t=0;t<n.length;++t)e^=n.charCodeAt(t),e+=(e<<1)+(e<<4)+(e<<7)+(e<<8)+(e<<24);return(e>>15^e)&32767}})();</script>
+</head>
+<body><article>
+<header>
+<h1>GraphQL Aggregation Directives</h1>
+<nav class="spec-toc">
+<div class="title">Contents</div>
+<ol>
+<li><a href="#sec-Operations"><span class="spec-secid">1</span>Operations</a><ol>
+<li><a href="#sec-Map"><span class="spec-secid">1.1</span>Map</a></li>
+<li><a href="#sec-Chunk"><span class="spec-secid">1.2</span>Chunk</a></li>
+<li><a href="#sec-CountBy"><span class="spec-secid">1.3</span>CountBy</a></li>
+</ol>
+</li>
+<li><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
+<li><a href="#sec-Definitions"><span class="spec-secid">3</span>Definitions</a></li>
+<li><a href="#sec-Errors"><span class="spec-secid">4</span>Errors</a></li>
+<li><a href="#index"><span class="spec-secid">§</span>Index</a></li>
+</ol>
+</nav>
+</header>
+<section id="sec-Operations" secid="1">
+<h1><span class="spec-secid" title="link to this section"><a href="#sec-Operations">1</a></span>Operations</h1>
+<section id="sec-Map" secid="1.1">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-Map">1.1</a></span>Map</h2>
+<section id="sec-Map.Directive" class="subsec">
+<h6><a href="#sec-Map.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@map</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><code>@map</code> can be applied to objects or list of objects of any depth. If <code>@map</code> is applied on an object, it pulls the field <code>key</code> up. If <code>@map</code> is applied on a list, the algorithm is applied for each element of this list.</p>
+<p>Given the following data:</p>
+<pre id="example-ac729" class="spec-example" data-language="json"><a href="#example-ac729">Example № 1</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-9f91d" class="spec-example" data-language="graphql"><a href="#example-9f91d">Example № 2</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@map</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-6e303" class="spec-example" data-language="json"><a href="#example-6e303">Example № 3</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"a"</span><span class="token punctuation">,</span>
+    <span class="token string">"b"</span><span class="token punctuation">,</span>
+    <span class="token string">"c"</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-Map.Execution" class="subsec">
+<h6><a href="#sec-Map.Execution" title="link to this subsection">Execution</a></h6>
+<div class="spec-algo" id="RewriteMap()">
+<span class="spec-call"><a href="#RewriteMap()" data-name="RewriteMap">RewriteMap</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
+<li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
+<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>If Exists(value, key)<ol>
+<li>Let <var data-name="valueOfKey">valueOfKey</var> be Get(value, key)</li>
+<li>Retrun <var data-name="valueOfKey">valueOfKey</var></li>
+</ol>
+</li>
+<li>Otherwise<ol>
+<li>Return <span class="spec-keyword">null</span></li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ListValue">ListValue</span></span><ol>
+<li>Let <var data-name="listResult">listResult</var> be a empty list</li>
+<li>For each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
+<li>Let <var data-name="rewritten">rewritten</var> be the result of <span class="spec-call"><span data-name="Rewrite">Rewrite</span>(<var data-name="element">element</var>)</span></li>
+<li>If <var data-name="rewritten">rewritten</var> is NOT <span class="spec-keyword">null</span><ol>
+<li>Add <var data-name="rewritten">rewritten</var> to <var data-name="listResult">listResult</var></li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return <var data-name="listResult">listResult</var></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0002">AG0002</span></span></li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+</section>
+<section id="sec-Chunk" secid="1.2">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-Chunk">1.2</a></span>Chunk</h2>
+<section id="sec-Chunk.Directive" class="subsec">
+<h6><a href="#sec-Chunk.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@chunk</span><span class="token punctuation">(</span><span class="token attr-name">size</span><span class="token punctuation">:</span> <span class="token scalar">Int</span><span class="token operator">!</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><code>@chunk</code> can be applied on list values of any depth. <code>@chunk</code> splits the list into groups the length of <code>size</code>. If the list cannot be split evenly, the final chunk will contain the remaining elements.</p>
+<p>Given the following data:</p>
+<pre id="example-b4138" class="spec-example" data-language="json"><a href="#example-b4138">Example № 4</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-f20d0" class="spec-example" data-language="graphql"><a href="#example-f20d0">Example № 5</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@chunk</span><span class="token punctuation">(</span><span class="token attr-name">size</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-a4034" class="spec-example" data-language="json"><a href="#example-a4034">Example № 6</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span>
+        <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+      <span class="token punctuation">}</span><span class="token punctuation">,</span>
+      <span class="token punctuation">{</span>
+        <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">[</span>
+      <span class="token punctuation">{</span>
+        <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">]</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-Chunk.Execution" class="subsec">
+<h6><a href="#sec-Chunk.Execution" title="link to this subsection">Execution</a></h6>
+<div class="spec-algo" id="RewriteChunk()">
+<span class="spec-call"><a href="#RewriteChunk()" data-name="RewriteChunk">RewriteChunk</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
+<li>Let <var data-name="size">size</var> be the value of the argument <code>size</code> of the directive</li>
+<li>If <var data-name="size">size</var> is &lt; 1<ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0005">AG0005</span></span> </li>
+</ol>
+</li>
+<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0001">AG0001</span></span></li>
+</ol>
+</li>
+<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0004">AG0004</span></span></li>
+</ol>
+</li>
+<li>Otherwise<ol>
+<li>Let <var data-name="chunks">chunks</var> be an empty list</li>
+<li>Let <var data-name="currentChunk">currentChunk</var> be an empty list</li>
+<li>While count of <var data-name="value">value</var> is NOT 0<ol>
+<li>Let <var data-name="element">element</var> be the value of the first element of <var data-name="value">value</var></li>
+<li>Remove the first element of <var data-name="value">value</var></li>
+<li>Add <var data-name="element">element</var> to <var data-name="currentChunk">currentChunk</var></li>
+<li>If count of <var data-name="currentChunk">currentChunk</var> is <var data-name="size">size</var><ol>
+<li>Add <var data-name="currentChunk">currentChunk</var> to <var data-name="chunks">chunks</var></li>
+<li>Let <var data-name="currentChunk">currentChunk</var> be an empty list</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>If count of <var data-name="currentChunk">currentChunk</var> is NOT 0<ol>
+<li>Add <var data-name="currentChunk">currentChunk</var> to <var data-name="chunks">chunks</var></li>
+</ol>
+</li>
+<li>Retrun <var data-name="chunks">chunks</var></li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+</section>
+<section id="sec-CountBy" secid="1.3">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-CountBy">1.3</a></span>CountBy</h2>
+<section id="sec-CountBy.Directive" class="subsec">
+<h6><a href="#sec-CountBy.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@countBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><code>@countBy</code> can only be applied list of objects of depth 1. Nested lists can be flattened with <code>@flatten</code> first. <code>countBy</code> returns an object where the keys are the values of the field selected with <code>key</code>. The values are the number of times the key was found.</p>
+<p>Given the following data:</p>
+<pre id="example-346c8" class="spec-example" data-language="json"><a href="#example-346c8">Example № 7</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-87530" class="spec-example" data-language="graphql"><a href="#example-87530">Example № 8</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@countBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-7ac3c" class="spec-example" data-language="json"><a href="#example-7ac3c">Example № 9</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"a"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+    <span class="token property">"c"</span><span class="token operator">:</span> <span class="token number">1</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-CountBy.Execution" class="subsec">
+<h6><a href="#sec-CountBy.Execution" title="link to this subsection">Execution</a></h6>
+<div class="spec-algo" id="RewriteCountBy()">
+<span class="spec-call"><a href="#RewriteCountBy()" data-name="RewriteCountBy">RewriteCountBy</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="value">value</var> be the value node where the directive is applied</li>
+<li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
+<li>If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0001">AG0001</span></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="value">value</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0004">AG0004</span></span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Return <span class="spec-call"><a href="#RewriteCountByArray()" data-name="RewriteCountByArray">RewriteCountByArray</a>(<var data-name="node">node</var>)</span></li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="spec-algo" id="RewriteCountByArray()">
+<span class="spec-call"><a href="#RewriteCountByArray()" data-name="RewriteCountByArray">RewriteCountByArray</a>(<var data-name="value">value</var>)</span><ol>
+<li>Let <var data-name="result">result</var> be a unordered map</li>
+<li>For each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
+<li>If <var data-name="element">element</var> is <span class="spec-nt"><span data-name="ListValue">ListValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0003">AG0003</span></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-nt"><span data-name="ScalarValue">ScalarValue</span></span><ol>
+<li>Assert: <span class="spec-nt"><span data-name="AG0002">AG0002</span></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span><ol>
+<li>If <span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span> <ol>
+<li>Let <var data-name="fieldValue">fieldValue</var> be <span class="spec-call"><a href="#Get()" data-name="Get">Get</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span></li>
+<li>If <span class="spec-call"><a href="#IsConvertibleToString()" data-name="IsConvertibleToString">IsConvertibleToString</a>(<var data-name="fieldValue">fieldValue</var>)</span><ol>
+<li>Let <var data-name="convertedValue">convertedValue</var> be <span class="spec-call"><a href="#ConvertToString()" data-name="ConvertToString">ConvertToString</a>(<var data-name="fieldValue">fieldValue</var>)</span></li>
+<li>If NOT Exists(result, convertedValue)<ol>
+<li>Set value of <var data-name="convertedValue">convertedValue</var> in <var data-name="result">result</var> to 0</li>
+</ol>
+</li>
+<li>Increase <var data-name="convertedValue">convertedValue</var> in <var data-name="result">result</var> by 1</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return <var data-name="result">result</var></li>
+</ol>
+</div>
+</section>
+</section>
+</section>
+<section id="sec-Transformations" secid="2">
+<h1><span class="spec-secid" title="link to this section"><a href="#sec-Transformations">2</a></span>Transformations</h1>
+<div class="spec-algo" id="Exists()">
+<span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="node">node</var>, <var data-name="key">key</var>)</span><ol>
+<li>If <var data-name="node">node</var> is <span class="spec-nt"><span data-name="ObjectValue">ObjectValue</span></span> AND field <var data-name="key">key</var> exists in <var data-name="node">node</var><ol>
+<li>return <span class="spec-keyword">true</span></li>
+</ol>
+</li>
+<li>Otherwise<ol>
+<li>return <span class="spec-keyword">false</span></li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="spec-algo" id="Get()">
+<span class="spec-call"><a href="#Get()" data-name="Get">Get</a>(<var data-name="node">node</var>, <var data-name="key">key</var>)</span><ol>
+<li>If <span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="node">node</var>, <var data-name="key">key</var>)</span><ol>
+<li>return value of field <var data-name="key">key</var> in <var data-name="node">node</var></li>
+</ol>
+</li>
+<li>Otherwise<ol>
+<li>Assert: Field <var data-name="key">key</var> is not present in <var data-name="node">node</var></li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="spec-algo" id="ConvertToString()">
+<span class="spec-call"><a href="#ConvertToString()" data-name="ConvertToString">ConvertToString</a>(<var data-name="node">node</var>)</span><ol>
+<li>If <var data-name="node">node</var> is <var data-name="string">string</var><ol>
+<li>return <var data-name="node">node</var></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <var data-name="number">number</var><ol>
+<li>return <var data-name="number">number</var> as string</li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <var data-name="boolean">boolean</var><ol>
+<li>return <var data-name="boolean">boolean</var> as string</li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-keyword">null</span><ol>
+<li>return <code>"null"</code></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>return <span class="spec-keyword">null</span></li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="spec-algo" id="IsConvertibleToString()">
+<span class="spec-call"><a href="#IsConvertibleToString()" data-name="IsConvertibleToString">IsConvertibleToString</a>(<var data-name="node">node</var>)</span><ol>
+<li>If <var data-name="node">node</var> is <var data-name="string">string</var><ol>
+<li>return <span class="spec-keyword">true</span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <var data-name="number">number</var><ol>
+<li>return <span class="spec-keyword">true</span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <var data-name="boolean">boolean</var><ol>
+<li>return <span class="spec-keyword">true</span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-keyword">null</span><ol>
+<li>return <span class="spec-keyword">true</span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>return <span class="spec-keyword">false</span></li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+<section id="sec-Definitions" secid="3">
+<h1><span class="spec-secid" title="link to this section"><a href="#sec-Definitions">3</a></span>Definitions</h1>
+<dl>
+<dt><dfn id="objectvalue"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></dfn></dt>
+<dd>Key Value pair</dd>
+</dl>
+<pre id="example-4da16" class="spec-example" data-language="json"><a href="#example-4da16">Example № 10</a><code><span class="token punctuation">{</span>
+   <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
+   <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+   <span class="token property">"float"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<dl>
+<dt><dfn id="scalarvalue"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></dfn></dt>
+<dd>A primitive leaf value</dd>
+</dl>
+<pre id="example-ad9f2" class="spec-example" data-language="json"><a href="#example-ad9f2">Example № 11</a><code><span class="token string">"string"</span>
+</code></pre>
+<pre id="example-091b1" class="spec-example" data-language="json"><a href="#example-091b1">Example № 12</a><code><span class="token number">1</span>
+</code></pre>
+<dl>
+<dt><dfn id="listvalue"><a href="#listvalue" data-name="listvalue">ListValue</a></dfn></dt>
+<dd>A collection of either <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span>, <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span> or <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span></dd>
+</dl>
+<pre id="example-7d9f8" class="spec-example" data-language="json"><a href="#example-7d9f8">Example № 13</a><code><span class="token punctuation">[</span> 
+  <span class="token punctuation">{</span>
+   <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+     <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">]</span>
+</code></pre>
+</section>
+<section id="sec-Errors" secid="4">
+<h1><span class="spec-secid" title="link to this section"><a href="#sec-Errors">4</a></span>Errors</h1>
+<dl>
+<dt><dfn id="ag0001-"><a href="#ag0001-" data-name="ag0001-">AG0001 </a></dfn></dt>
+<dd>The field <em>path</em> expects a list but received an object</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0002-"><a href="#ag0002-" data-name="ag0002-">AG0002 </a></dfn></dt>
+<dd>The field <em>path</em> expects a object but received a scalar</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0003-"><a href="#ag0003-" data-name="ag0003-">AG0003 </a></dfn></dt>
+<dd>The field <em>path</em> expects a object but received an list</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0004-"><a href="#ag0004-" data-name="ag0004-">AG0004 </a></dfn></dt>
+<dd>The field <em>path</em> expects a list but received a scalar</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0005-"><a href="#ag0005-" data-name="ag0005-">AG0005 </a></dfn></dt>
+<dd>The argument size of chunk on field <em>path</em> must be greater than 0 </dd>
+</dl>
+</section>
+<section id="index" secid="index" class="spec-index">
+<h1>
+<span class="spec-secid" title="link to the index"><a href="#index">§</a></span>Index</h1>
+<ol>
+<li><a href="#ag0001-">AG0001 </a></li>
+<li><a href="#ag0002-">AG0002 </a></li>
+<li><a href="#ag0003-">AG0003 </a></li>
+<li><a href="#ag0004-">AG0004 </a></li>
+<li><a href="#ag0005-">AG0005 </a></li>
+<li><a href="#ConvertToString()">ConvertToString</a></li>
+<li><a href="#Exists()">Exists</a></li>
+<li><a href="#Get()">Get</a></li>
+<li><a href="#IsConvertibleToString()">IsConvertibleToString</a></li>
+<li><a href="#listvalue">ListValue</a></li>
+<li><a href="#objectvalue">ObjectValue</a></li>
+<li><a href="#RewriteChunk()">RewriteChunk</a></li>
+<li><a href="#RewriteCountBy()">RewriteCountBy</a></li>
+<li><a href="#RewriteCountByArray()">RewriteCountByArray</a></li>
+<li><a href="#RewriteMap()">RewriteMap</a></li>
+<li><a href="#scalarvalue">ScalarValue</a></li>
+</ol>
+</section>
+</article>
+<footer>
+Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</footer>
+<input hidden class="spec-sidebar-toggle" type="checkbox" id="spec-sidebar-toggle" aria-hidden /><label for="spec-sidebar-toggle" aria-hidden><div class="spec-sidebar-button">&#x2630;</div></label>
+<div class="spec-sidebar" aria-hidden>
+<div class="spec-toc">
+<div class="title"><a href="#">GraphQL Aggregation Directives</a></div>
+<ol><li id="_sidebar_1"><a href="#sec-Operations"><span class="spec-secid">1</span>Operations</a>
+<input hidden class="toggle" type="checkbox" id="_toggle_1" /><label for="_toggle_1"></label>
+<ol>
+<li id="_sidebar_1.1"><a href="#sec-Map"><span class="spec-secid">1.1</span>Map</a></li>
+<li id="_sidebar_1.2"><a href="#sec-Chunk"><span class="spec-secid">1.2</span>Chunk</a></li>
+<li id="_sidebar_1.3"><a href="#sec-CountBy"><span class="spec-secid">1.3</span>CountBy</a></li>
+</ol>
+</li>
+<li id="_sidebar_2"><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
+<li id="_sidebar_3"><a href="#sec-Definitions"><span class="spec-secid">3</span>Definitions</a></li>
+<li id="_sidebar_4"><a href="#sec-Errors"><span class="spec-secid">4</span>Errors</a></li>
+<li id="_sidebar_index"><a href="#index"><span class="spec-secid">§</span>Index</a></li>
+</ol>
+</div>
+</div>
+</body>
+</html>

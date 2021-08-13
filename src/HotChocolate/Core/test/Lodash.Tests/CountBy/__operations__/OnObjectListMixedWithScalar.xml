@@ -1,0 +1,36 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "a"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @countBy(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "a": 2,
+          "c": 1
+        }
+      }
+    </json>
+  </result>
+</test>

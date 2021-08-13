@@ -4,7 +4,7 @@ namespace HotChocolate.Lodash
 {
     public class ChunkDirective
     {
-        [DefaultValue(0)]
+        [DefaultValue(1)]
         public int? Size { get; set; }
     }
 }

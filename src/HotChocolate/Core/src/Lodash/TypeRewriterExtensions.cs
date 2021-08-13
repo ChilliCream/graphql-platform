@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace HotChocolate.Lodash
 {
@@ -18,6 +19,19 @@ namespace HotChocolate.Lodash
 
             converted = null;
             return false;
+        }
+
+        public static bool TryConvertToString(
+            this JsonNode? jsonNode,
+            [NotNullWhen(true)] out string? converted)
+        {
+            if (jsonNode is null)
+            {
+                converted = "null";
+                return true;
+            }
+
+            return jsonNode.GetValue<JsonElement>().TryConvertToString(out converted);
         }
 
         public static bool TryConvertToString(
