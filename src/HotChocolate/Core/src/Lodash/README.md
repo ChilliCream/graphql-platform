@@ -7,6 +7,7 @@
 ### [DropRight](Operations/Drop/DropRight.md)
 ### [Flatten](Operations/Flatten/Flatten.md)
 ### [GroupBy](Operations/GroupBy/GroupBy.md)
+### [KeyBy](Operations/KeyBy/KeyBy.md)
 
 ## Transformations
 Exists(node, key):
