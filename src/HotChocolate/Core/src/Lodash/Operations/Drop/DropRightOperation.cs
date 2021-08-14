@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Nodes;
 
 namespace HotChocolate.Lodash
@@ -19,6 +20,16 @@ namespace HotChocolate.Lodash
                 return false;
             }
 
+            if (node is JsonObject)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+
             if (node is JsonArray arr)
             {
                 if (Count > arr.Count)
@@ -38,12 +49,7 @@ namespace HotChocolate.Lodash
                 return true;
             }
 
-            if (node is JsonObject)
-            {
-                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
-            }
-
-            throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            throw new ArgumentOutOfRangeException(nameof(node));
         }
     }
 }
