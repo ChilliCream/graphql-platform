@@ -1,0 +1,24 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "string": "a"
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @groupBy(key: "missingProperty"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+      }
+    </json>
+  </result>
+</test>

@@ -15,5 +15,16 @@ namespace HotChocolate.Lodash
 
             return result;
         }
+
+        public static JsonObject ToJsonNode(this IDictionary<string, List<JsonNode?>> dictionary)
+        {
+            JsonObject result = new();
+            foreach (KeyValuePair<string, List<JsonNode?>> pair in dictionary)
+            {
+                result[pair.Key] = new JsonArray(pair.Value.ToArray());
+            }
+
+            return result;
+        }
     }
 }

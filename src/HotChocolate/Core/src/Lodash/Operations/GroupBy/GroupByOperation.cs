@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -15,47 +16,55 @@ namespace HotChocolate.Lodash
 
         public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
-            Dictionary<string, List<JsonNode?>> data = new();
-            GroupByField(node, data);
-
-            var jsonObject = new JsonObject();
-            foreach (KeyValuePair<string, List<JsonNode?>> pair in data)
+            if (node is JsonObject)
             {
-                jsonObject[pair.Key] = new JsonArray(pair.Value.ToArray());
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
             }
 
-            rewritten = jsonObject;
-            return true;
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+            if (node is JsonArray arr)
+            {
+                rewritten = RewriteArray(arr);
+                return true;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(node));
         }
 
-        private void GroupByField(JsonNode? node, IDictionary<string, List<JsonNode?>> data)
+        private JsonObject RewriteArray(JsonArray value)
         {
-            if (node is JsonObject obj)
+            Dictionary<string, List<JsonNode?>> result = new();
+
+            foreach (JsonNode? element in value)
             {
-                if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode))
+                switch (element)
                 {
-                    if (jsonNode is not null &&
-                        jsonNode.GetValue<JsonElement>().TryConvertToString(out string? converted))
+                    case JsonArray:
+                        throw ThrowHelper.ExpectObjectButReceivedArray(element.GetPath());
+                    case JsonValue:
+                        throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
+                    case JsonObject obj:
                     {
-                        if (!data.ContainsKey(converted))
+                        if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) &&
+                            jsonNode.TryConvertToString(out string? convertedValue))
                         {
-                            data[converted] = new List<JsonNode?>();
+                            if (!result.ContainsKey(convertedValue))
+                            {
+                                result[convertedValue] = new List<JsonNode?>();
+                            }
+
+                            result[convertedValue].Add(jsonNode);
                         }
 
-                        data[converted].Add(obj);
+                        break;
                     }
-                    // throw?
-                }
-                // throw?
-            }
-            else if (node is JsonArray arr)
-            {
-                for (var i = arr.Count - 1; i >= 0; i--)
-                {
-                    GroupByField(arr[i], data);
-                    arr.RemoveAt(i);
                 }
             }
+
+            return result.ToJsonNode();
         }
     }
 }

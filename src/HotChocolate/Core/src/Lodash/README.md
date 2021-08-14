@@ -6,6 +6,7 @@
 ### [Drop](Operations/Drop/Drop.md)
 ### [DropRight](Operations/Drop/DropRight.md)
 ### [Flatten](Operations/Flatten/Flatten.md)
+### [GroupBy](Operations/GroupBy/GroupBy.md)
 
 ## Transformations
 Exists(node, key):
