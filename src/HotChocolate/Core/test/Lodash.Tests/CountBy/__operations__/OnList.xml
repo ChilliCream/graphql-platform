@@ -6,11 +6,9 @@
           {
             "string": "a"
           },
-          [
-            {
-              "string": "a"
-            }
-          ],
+          {
+            "string": "a"
+          },
           {
             "string": "c"
           }
@@ -26,6 +24,13 @@
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <json>
+      {
+        "list": {
+          "a": 2,
+          "c": 1
+        }
+      }
+    </json>
   </result>
 </test>

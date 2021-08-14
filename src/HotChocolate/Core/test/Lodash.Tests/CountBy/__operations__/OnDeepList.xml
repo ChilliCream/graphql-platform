@@ -1,0 +1,72 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          list @countBy(key: "string") {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": {
+                "a": 1,
+                "b": 1
+              }
+            }
+          },
+          {
+            "single": {
+              "list": {
+                "a": 2,
+                "b": 1
+              }
+            }
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

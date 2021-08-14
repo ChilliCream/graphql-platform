@@ -2,23 +2,16 @@
   <data>
     <json>
       {
-        "list": [
-          {
-            "string": "a"
-          },
+        "stringList": [
           "a",
-          {
-            "string": "c"
-          }
+          "b"
         ]
       }
     </json>
   </data>
   <query>
     {
-      list @countBy(key: "string"){
-        string
-      }
+      stringList @countBy(key: "string")
     }
   </query>
   <result>

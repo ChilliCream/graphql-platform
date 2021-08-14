@@ -6,11 +6,9 @@
           {
             "string": "a"
           },
-          [
-            {
-              "string": "a"
-            }
-          ],
+          {
+            "string": "b"
+          },
           {
             "string": "c"
           }
@@ -20,12 +18,16 @@
   </data>
   <query>
     {
-      list @countBy(key: "string"){
+      list @countBy(key: "someOtherProperty"){
         string
       }
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <json>
+      {
+        "list": {}
+      }
+    </json>
   </result>
 </test>

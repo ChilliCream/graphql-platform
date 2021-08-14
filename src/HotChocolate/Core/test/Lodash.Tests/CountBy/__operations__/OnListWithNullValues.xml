@@ -4,13 +4,12 @@
       {
         "list": [
           {
-            "string": "a"
+            "string": null
           },
-          [
-            {
-              "string": "a"
-            }
-          ],
+          null,
+          {
+            "string": "b"
+          },
           {
             "string": "c"
           }
@@ -26,6 +25,14 @@
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <json>
+      {
+        "list": {
+          "null": 1,
+          "b": 1,
+          "c": 1
+        }
+      }
+    </json>
   </result>
 </test>
