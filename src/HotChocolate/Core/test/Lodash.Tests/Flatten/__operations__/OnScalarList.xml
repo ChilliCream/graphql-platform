@@ -1,0 +1,29 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @flatten(depth: 2)
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </result>
+</test>

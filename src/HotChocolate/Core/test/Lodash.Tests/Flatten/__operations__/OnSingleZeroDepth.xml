@@ -1,0 +1,21 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "string": "a"
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @flatten(depth: 0) {
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0006</error-code>
+  </result>
+</test>

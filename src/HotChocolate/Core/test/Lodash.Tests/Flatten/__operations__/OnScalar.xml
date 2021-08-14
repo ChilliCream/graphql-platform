@@ -1,0 +1,23 @@
+<test>
+  <data>
+    <json>
+      {
+        "string": "a"
+      }
+    </json>
+  </data>
+  <query>
+    {
+      string @flatten(depth: 2)
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "string": [
+          "a"
+        ]
+      }
+    </json>
+  </result>
+</test>
