@@ -5,7 +5,7 @@ namespace HotChocolate.CodeGeneration
         public const string Types = "HotChocolate." + nameof(Types);
         public const string Data = "HotChocolate." + nameof(Data);
         public const string Configuration = "HotChocolate.Execution.Configuration";
-        public const string DependencyInjection = "Microsoft.Extensions.DependencyInjection";
+        public const string MsExtDependencyInjection = "Microsoft.Extensions.DependencyInjection";
         public const string SystemCollections = "System.Collections.Generic";
         public const string UsePagingAttribute = Types + "." + nameof(UsePagingAttribute);
         public const string UseOffsetPagingAttribute = Types + "." + 
@@ -16,7 +16,7 @@ namespace HotChocolate.CodeGeneration
         public const string List = SystemCollections + "." + nameof(List);
         public const string IRequestExecutorBuilder = Configuration + "." + 
             nameof(IRequestExecutorBuilder); 
-        public const string SchemaRequestExecutorBuilderExtensions = DependencyInjection + "." +
+        public const string SchemaRequestExecutorBuilderExtensions = MsExtDependencyInjection + "." +
             nameof(SchemaRequestExecutorBuilderExtensions);
 
         public static string Global(string s)

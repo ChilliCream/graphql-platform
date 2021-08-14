@@ -13,7 +13,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 {
-    public static partial class ModelContextBuilder
+    public static partial class EntityBuilder
     {
         private static readonly string[] IdFieldNames = new[]
         {
@@ -22,15 +22,15 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             "id"
         };
 
-        public static void Process(ModelContext context)
+        public static void Process(EntityBuilderContext context)
         {
             ObjectType objectType = context.ObjectType;
 
             // Determine naming
             TypeNameDirective? typeNameDirective =
                 objectType.GetFirstDirective<TypeNameDirective>("typeName");
-            context.ModelName = typeNameDirective?.Name ?? objectType.Name.Value;
-            context.ModelNamePluralized = typeNameDirective?.PluralName ?? objectType.Name.Value.Pluralize();
+            context.EntityName = typeNameDirective?.Name ?? objectType.Name.Value;
+            context.EntityNamePluralized = typeNameDirective?.PluralName ?? objectType.Name.Value.Pluralize();
 
             // Determine if table
             JsonDirective? jsonDirective =
@@ -53,7 +53,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             }
         }
 
-        private static void SetPrimaryKey(ModelContext context, ObjectType objectType)
+        private static void SetPrimaryKey(EntityBuilderContext context, ObjectType objectType)
         {
             IObjectField[] fieldsMarkedAsKey = objectType.Fields
                             .Where(f => f.Directives.Any(d => d is KeyDirective))
@@ -65,7 +65,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             else // try find one
             {
                 var possibleKeyFieldNames = IdFieldNames
-                    .Concat(IdFieldNames.Select(name => $"{context.ModelName}{name}"))
+                    .Concat(IdFieldNames.Select(name => $"{context.EntityName}{name}"))
                     .ToArray();
 
                 IObjectField[] possibleKeyFields = objectType.Fields
@@ -95,10 +95,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             }
         }
 
-        private static void SetModelClass(ModelContext context)
+        private static void SetModelClass(EntityBuilderContext context)
         {
-            context.ModelClass =
-                ClassDeclaration(context.RequiredModelName)
+            context.EntityClass =
+                ClassDeclaration(context.RequiredEntityName)
                     .AddGeneratedAttribute()
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
@@ -106,8 +106,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
             foreach (IObjectField field in context.ObjectType.Fields.Where(t => !t.IsIntrospectionField))
             {
-                context.ModelClass =
-                    context.ModelClass.AddProperty(
+                context.EntityClass =
+                    context.EntityClass.AddProperty(
                         field.GetPropertyName(),
                         IdentifierName(field.GetTypeName(context.Namespace)),
                         field.Description,
@@ -115,14 +115,14 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             }
         }
 
-        private static void SetModelConfigurerClass(ModelContext context)
+        private static void SetModelConfigurerClass(EntityBuilderContext context)
         {
-            context.ModelConfigurerClass =
-                ClassDeclaration(context.RequiredModelConfigurerName)
+            context.EntityConfigurerClass =
+                ClassDeclaration(context.RequiredEntityConfigurerName)
                     .AddGeneratedAttribute()
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword))
-                    .WithBaseList(GetModelConfigurerBaseList(context.RequiredModelName));
+                    .WithBaseList(GetModelConfigurerBaseList(context.RequiredEntityName));
 
             var configurationStatements = new List<StatementSyntax>();
 
@@ -133,9 +133,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             // (EF uses the DbSet property's name by default, which we always set as modelNamePluralized)
             var tableName = context.TableDirective?.Name
                 ?? (context.Conventions.UsePluralizedTableNames
-                    ? context.RequiredModelNamePluralized
-                    : context.RequiredModelName);
-            if (tableName != context.RequiredModelNamePluralized)
+                    ? context.RequiredEntityNamePluralized
+                    : context.RequiredEntityName);
+            if (tableName != context.RequiredEntityNamePluralized)
             {
                 configurationStatements.Add(GetTableNameConfigurationExpression(tableName));
             }
@@ -149,10 +149,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
             // Build and add the Configure method
             MemberDeclarationSyntax configureMethod = GetModelConfigurerConfigureMethod(
-                context.RequiredModelName,
+                context.RequiredEntityName,
                 configurationStatements.ToArray());
 
-            context.ModelConfigurerClass = context.ModelConfigurerClass
+            context.EntityConfigurerClass = context.EntityConfigurerClass
                 .WithMembers(SingletonList(configureMethod));
         }
 

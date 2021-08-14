@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.CodeGeneration.DependencyInjection;
 using HotChocolate.CodeGeneration.Neo4J.Types;
 using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Types;
@@ -196,73 +197,17 @@ namespace HotChocolate.CodeGeneration.Neo4J
             CodeGenerationResult result,
             CodeGeneratorContext generatorContext)
         {
-            var typeName = generatorContext.Name + "RequestExecutorBuilderExtensions";
-
-            ClassDeclarationSyntax dependencyInjectionCode =
-                ClassDeclaration(typeName)
-                    .AddModifiers(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.StaticKeyword),
-                        Token(SyntaxKind.PartialKeyword))
-                    .AddGeneratedAttribute();
-
-            var statements = new List<StatementSyntax>
+            var additionalStatements = new List<StatementSyntax>
             {
-                AddTypeExtension(Global(generatorContext.Namespace + ".Query")),
                 AddNeo4JFiltering(),
                 AddNeo4JSorting(),
-                AddNeo4JProjections(),
-                ReturnStatement(IdentifierName("builder"))
+                AddNeo4JProjections()
             };
 
-            MethodDeclarationSyntax addTypes =
-                MethodDeclaration(
-                    IdentifierName(Global(IRequestExecutorBuilder)),
-                    Identifier("Add" + generatorContext.Name + "Types"))
-                .WithModifiers(
-                    TokenList(
-                        Token(SyntaxKind.PublicKeyword),
-                        Token(SyntaxKind.StaticKeyword)))
-                .WithParameterList(
-                    ParameterList(
-                        SingletonSeparatedList(
-                            Parameter(Identifier("builder"))
-                                .WithModifiers(TokenList(Token(SyntaxKind.ThisKeyword)))
-                                .WithType(IdentifierName(Global(IRequestExecutorBuilder))))))
-                .WithBody(Block(statements));
-
-            dependencyInjectionCode =
-                dependencyInjectionCode.AddMembers(addTypes);
-
-            NamespaceDeclarationSyntax namespaceDeclaration =
-                NamespaceDeclaration(IdentifierName(DependencyInjection))
-                    .AddMembers(dependencyInjectionCode);
-
-            CompilationUnitSyntax compilationUnit =
-                CompilationUnit()
-                    .AddMembers(namespaceDeclaration);
-
-            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
-
-            result.AddClass(DependencyInjection, typeName, compilationUnit.ToFullString());
-        }
-
-        private static ExpressionStatementSyntax AddTypeExtension(string typeExtensions)
-        {
-            return ExpressionStatement(
-                InvocationExpression(
-                    MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        IdentifierName(Global(SchemaRequestExecutorBuilderExtensions)),
-                        GenericName(Identifier("AddTypeExtension"))
-                        .WithTypeArgumentList(
-                            TypeArgumentList(
-                                SingletonSeparatedList<TypeSyntax>(
-                                    IdentifierName(typeExtensions))))))
-                .WithArgumentList(
-                    ArgumentList(
-                        SingletonSeparatedList<ArgumentSyntax>(
-                            Argument(IdentifierName("builder"))))));
+            DependencyInjectionHelper.GenerateDependencyInjectionCode(
+                result,
+                generatorContext,
+                additionalStatements);
         }
 
         private static ExpressionStatementSyntax AddNeo4JFiltering()

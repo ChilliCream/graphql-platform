@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.CodeGeneration.DependencyInjection;
 using HotChocolate.CodeGeneration.EntityFramework.ModelBuilding;
 using HotChocolate.CodeGeneration.EntityFramework.Types;
 using HotChocolate.CodeGeneration.Types;
 using HotChocolate.Types;
 using HotChocolate.Types.Introspection;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static HotChocolate.CodeGeneration.EntityFramework.SyntaxConstants;
 using static HotChocolate.CodeGeneration.TypeNames;
@@ -16,9 +19,11 @@ namespace HotChocolate.CodeGeneration.EntityFramework
     {
         // TODO: Review this. Are these actually reserved in the spec or can someone
         // define whatever type name they want in which case we need to be smarter and crawl?
+        // (There's a todo in the Neo4J generator to take it from config)
+        private static readonly string _queryTypeName = OperationTypeNames.Query;
         private static readonly string[] _operationTypeNames = new[]
         {
-            OperationTypeNames.Query,
+            _queryTypeName,
             OperationTypeNames.Mutation,
             OperationTypeNames.Subscription
         };
@@ -51,13 +56,27 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 new SchemaConventionsDirective())
                 ?? new SchemaConventionsDirective();
 
+            List<EntityBuilderContext> entities =
+                GenerateEFModel(result, schema, @namespace, schemaConventions);
+
+            GenerateQueryType(result, dataContext, generatorContext, entities);
+
+            GenerateDependencyInjectionCode(result, generatorContext);
+        }
+
+        private static List<EntityBuilderContext> GenerateEFModel(
+            CodeGenerationResult result,
+            ISchema schema,
+            string @namespace,
+            SchemaConventionsDirective schemaConventions)
+        {
             var dbContextClassName = schemaConventions.DbContextName;
 
             ClassDeclarationSyntax dbContextClass = GenerateDbContext(
                 dbContextClassName,
                 schema);
 
-            // Process models
+            // Process object types
             var objectTypes = schema.Types
                 .OfType<ObjectType>()
                 .Where(type =>
@@ -65,48 +84,57 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                     !_operationTypeNames.Contains(type.Name.Value))
                 .ToList();
 
+            var entities = new List<EntityBuilderContext>();
+
             foreach (ObjectType objectType in objectTypes)
             {
-                var modelContext = new ModelContext(
+                var entityBuilderContext = new EntityBuilderContext(
                     schemaConventions,
                     @namespace,
                     objectType);
 
-                ModelContextBuilder.Process(modelContext);
+                EntityBuilder.Process(entityBuilderContext);
 
-                // Model
-                if (modelContext.ModelClass is not null)
+                // Entity
+                if (entityBuilderContext.EntityClass is not null)
                 {
                     result.AddClass(
-                        modelContext.Namespace,
-                        modelContext.RequiredModelName,
-                        modelContext.ModelClass);
+                        entityBuilderContext.Namespace,
+                        entityBuilderContext.RequiredEntityName,
+                        entityBuilderContext.EntityClass);
                 }
 
                 // Configurer
-                if (modelContext.ModelConfigurerClass is not null)
+                if (entityBuilderContext.EntityConfigurerClass is not null)
                 {
                     result.AddClass(
-                        modelContext.Namespace,
-                        modelContext.RequiredModelConfigurerName,
-                        modelContext.ModelConfigurerClass,
-                        modelContext.ModelConfigurerUsings);
+                        entityBuilderContext.Namespace,
+                        entityBuilderContext.RequiredEntityConfigurerName,
+                        entityBuilderContext.EntityConfigurerClass,
+                        entityBuilderContext.EntityConfigurerUsings);
                 }
 
                 // DbSet
-                if (modelContext.IsBackedByTable)
+                if (entityBuilderContext.IsBackedByTable)
                 {
-                    QualifiedNameSyntax? dbSetType = GetDbSetTypeName(@namespace, modelContext.RequiredModelName);
+                    QualifiedNameSyntax? dbSetType = GetDbSetTypeName(
+                        @namespace,
+                        entityBuilderContext.RequiredEntityName);
+
                     dbContextClass = dbContextClass.AddProperty(
-                        modelContext.RequiredModelNamePluralized,
+                        entityBuilderContext.RequiredEntityNamePluralized,
                         dbSetType,
                         description: null,
                         setable: true);
+
+                    entities.Add(entityBuilderContext);
                 }
             }
 
             // Generate DbContext class
             result.AddClass(@namespace, dbContextClassName, dbContextClass);
+
+            return entities;
         }
 
         private static ClassDeclarationSyntax GenerateDbContext(
@@ -149,6 +177,65 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 DbSetGenericName.WithTypeArgumentList(
                     TypeArgumentList(
                         SingletonSeparatedList<TypeSyntax>(fullModelTypeName))));
+        }
+
+        private static void GenerateQueryType(
+            CodeGenerationResult result,
+            DataGeneratorContext dataContext,
+            CodeGeneratorContext generatorContext,
+            List<EntityBuilderContext> entities)
+        {
+            ClassDeclarationSyntax queryDeclaration =
+                ClassDeclaration(_queryTypeName)
+                    .AddModifiers(
+                        Token(SyntaxKind.PublicKeyword),
+                        Token(SyntaxKind.PartialKeyword))
+                    .AddGeneratedAttribute()
+                    .AddExtendObjectTypeAttribute(_queryTypeName);
+
+            // TODO: Discuss what should be generated here...
+            //foreach (EntityBuilderContext entity in entities)
+            //{
+            //    queryDeclaration = queryDeclaration.AddMembers(
+            //        CreateQueryResolver(dataContext, generatorContext, entity));
+            //}
+
+            NamespaceDeclarationSyntax namespaceDeclaration =
+                NamespaceDeclaration(IdentifierName(generatorContext.Namespace!))
+                    .AddMembers(queryDeclaration);
+
+            CompilationUnitSyntax compilationUnit =
+                CompilationUnit()
+                    .AddMembers(namespaceDeclaration);
+
+            compilationUnit = compilationUnit.NormalizeWhitespace(elasticTrivia: true);
+
+            result.AddClass(generatorContext.Namespace, _queryTypeName, compilationUnit.ToFullString());
+        }
+
+        //private static MethodDeclarationSyntax CreateQueryResolver(
+        //    DataGeneratorContext dataContext,
+        //    CodeGeneratorContext generatorContext,
+        //    EntityBuilderContext entity)
+        //{
+
+        //}
+
+        private static void GenerateDependencyInjectionCode(
+            CodeGenerationResult result,
+            CodeGeneratorContext generatorContext)
+        {
+            var additionalStatements = new List<StatementSyntax>
+            {
+                //AddEFCoreFiltering(),?
+                //AddEFCoreSorting(),
+                //AddEFCoreProjections()
+            };
+
+            DependencyInjectionHelper.GenerateDependencyInjectionCode(
+                result,
+                generatorContext,
+                additionalStatements);
         }
     }
 }

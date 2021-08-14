@@ -9,10 +9,10 @@ using Xunit;
 
 namespace HotChocolate.CodeGeneration.EntityFramework
 {
-    public class EntityFrameworkCodeGeneratorTests
+    public class CodeGeneratorTests
     {
         private static readonly Assembly _currentAssembly = Assembly.GetExecutingAssembly();
-        private static readonly string _currentNamespace = typeof(EntityFrameworkCodeGeneratorTests).Namespace!;
+        private static readonly string _currentNamespace = typeof(CodeGeneratorTests).Namespace!;
 
         [Fact]
         public void Works()
@@ -39,7 +39,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         }
 
         [Fact]
-        public void Should_Respect_UsePluralizedTableNames_Convention()
+        public void Respects_UsePluralizedTableNames()
         {
             // Arrange
             DocumentNode doc = Utf8GraphQLParser.Parse(@"
@@ -76,7 +76,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
         }
 
         [Fact]
-        public void Should_Respect_TableDirective()
+        public void Respects_TableDirective()
         {
             // Arrange
             DocumentNode doc = Utf8GraphQLParser.Parse(@"

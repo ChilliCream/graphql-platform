@@ -8,6 +8,7 @@ namespace CompanyName.EFCore
     {
         public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<User> builder)
         {
+            builder.ToTable("ChilliCreamUsers");
         }
     }
 }

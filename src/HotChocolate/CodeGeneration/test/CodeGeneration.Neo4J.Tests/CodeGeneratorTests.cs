@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.CodeGeneration.Neo4J
 {
-    public class Neo4JCodeGeneratorTests
+    public class CodeGeneratorTests
     {
         [Fact]
         public void Works()

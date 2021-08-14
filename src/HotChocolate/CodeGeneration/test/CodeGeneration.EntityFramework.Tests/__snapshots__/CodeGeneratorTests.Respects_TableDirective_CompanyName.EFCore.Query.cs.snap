@@ -1,0 +1,7 @@
+﻿namespace CompanyName.EFCore
+{
+    [global::HotChocolate.Types.ExtendObjectType("Query")]
+    public partial class Query
+    {
+    }
+}
