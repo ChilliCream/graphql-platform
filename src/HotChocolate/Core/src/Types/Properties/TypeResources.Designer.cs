@@ -1358,5 +1358,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);
             }
         }
+        
+        internal static string RegisteredType_Completion_NotYetReady {
+            get {
+                return ResourceManager.GetString("RegisteredType_Completion_NotYetReady", resourceCulture);
+            }
+        }
     }
 }

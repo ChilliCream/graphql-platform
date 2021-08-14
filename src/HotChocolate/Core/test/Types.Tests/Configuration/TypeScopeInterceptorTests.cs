@@ -97,7 +97,7 @@ namespace HotChocolate.Configuration
                 {
                     foreach (ObjectFieldDefinition field in def.Fields)
                     {
-                        if (field.Type.Scope is null)
+                        if (field.Type is not null && field.Type.Scope is null)
                         {
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
                         }
@@ -122,7 +122,7 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            public bool TryCreateScope(
+            public override bool TryCreateScope(
                 ITypeDiscoveryContext discoveryContext,
                 out IReadOnlyList<TypeDependency> typeDependencies)
             {
@@ -130,7 +130,7 @@ namespace HotChocolate.Configuration
                 {
                     var list = new List<TypeDependency>();
 
-                    foreach (TypeDependency typeDependency in discoveryContext.TypeDependencies)
+                    foreach (TypeDependency typeDependency in discoveryContext.Dependencies)
                     {
                         if (!discoveryContext.TryPredictTypeKind(
                             typeDependency.TypeReference,

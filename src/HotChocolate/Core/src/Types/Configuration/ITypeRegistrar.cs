@@ -10,7 +10,7 @@ namespace HotChocolate.Configuration
     internal interface ITypeRegistrar
     {
         void Register(
-            TypeSystemObjectBase typeSystemObject, 
+            TypeSystemObjectBase typeSystemObject,
             string? scope,
             bool isInferred = false);
 
@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
 
         TypeSystemObjectBase CreateInstance(Type namedSchemaType);
 
-        IReadOnlyCollection<ITypeReference> GetUnresolved();
+        IReadOnlyCollection<ITypeReference> Unresolved { get; }
 
         IReadOnlyCollection<ITypeReference> GetUnhandled();
     }

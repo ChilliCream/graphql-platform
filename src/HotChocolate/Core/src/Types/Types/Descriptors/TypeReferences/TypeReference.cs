@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -9,27 +10,27 @@ namespace HotChocolate.Types.Descriptors
 {
     /// <summary>
     /// A type reference is used to refer to a type in the type system.
-    /// This allows us to loosly couple types.
+    /// This allows us to loosely couple types during schema creation.
     /// </summary>
     public abstract class TypeReference : ITypeReference
     {
         protected TypeReference(
+            TypeReferenceKind kind,
             TypeContext context,
             string? scope)
         {
+            Kind = kind;
             Context = context;
             Scope = scope;
         }
 
-        /// <summary>
-        /// The context in which the type reference was created.
-        /// </summary>
+        /// <inheritdoc />
+        public TypeReferenceKind Kind { get; }
+
+        /// <inheritdoc />
         public TypeContext Context { get; }
 
-        /// <summary>
-        /// The scope in which the type reference was created.
-        /// </summary>
-        /// <value></value>
+        /// <inheritdoc />
         public string? Scope { get; }
 
         protected bool IsEqual(ITypeReference other)
@@ -95,20 +96,23 @@ namespace HotChocolate.Types.Descriptors
         public static SyntaxTypeReference Create(
             ITypeNode type,
             TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            new(type, context, scope);
+            string? scope = null,
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+            new(type, context, scope, factory);
 
         public static SyntaxTypeReference Create(
             NameString typeName,
             TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            new(new NamedTypeNode(typeName), context, scope);
+            string? scope = null,
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+            new(new NamedTypeNode(typeName), context, scope, factory);
 
         public static SyntaxTypeReference Parse(
             string sourceText,
             TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context, scope);
+            string? scope = null,
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null) =>
+            new(Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText), context, scope, factory);
 
         public static ExtendedTypeReference Create(
             IExtendedType type,

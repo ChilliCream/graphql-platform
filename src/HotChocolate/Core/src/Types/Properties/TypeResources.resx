@@ -780,4 +780,7 @@ Type: `{0}`</value>
   <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
     <value>The max expected field count cannot be smaller then 1.</value>
   </data>
+  <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
+    <value>The object is not yet ready for this action.</value>
+  </data>
 </root>

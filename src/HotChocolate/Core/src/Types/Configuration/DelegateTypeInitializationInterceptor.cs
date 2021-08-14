@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -55,7 +57,10 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData) =>
             _onAfterInitialize?.Invoke(discoveryContext, definition, contextData);
 
-
+        public IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts) =>
+            Enumerable.Empty<ITypeReference>();
+        
         public void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,

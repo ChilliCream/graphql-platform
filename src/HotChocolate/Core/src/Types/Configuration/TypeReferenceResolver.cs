@@ -175,7 +175,7 @@ namespace HotChocolate.Configuration
                 {
                     case TypeComponentKind.List:
                         flags <<= 1;
-                        flags = flags | 1;
+                        flags |= 1;
                         break;
 
                     case TypeComponentKind.NonNull:
@@ -197,7 +197,7 @@ namespace HotChocolate.Configuration
                 if (current is ListTypeNode listType)
                 {
                     flags <<= 1;
-                    flags = flags | 1;
+                    flags |= 1;
                     current = listType.Type;
                 }
                 else if (current is NonNullTypeNode nonNullType)

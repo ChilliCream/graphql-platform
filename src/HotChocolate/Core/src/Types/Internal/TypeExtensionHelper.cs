@@ -98,8 +98,12 @@ namespace HotChocolate.Internal
 
             foreach (DirectiveDefinition directive in type)
             {
-                DirectiveType directiveType = context.GetDirectiveType(directive.Reference);
-                directives.Add((directiveType, directive));
+                if (context.TryGetDirectiveType(
+                    directive.Reference,
+                    out DirectiveType? directiveType))
+                {
+                    directives.Add((directiveType, directive));
+                }
             }
 
             foreach (DirectiveDefinition directive in extension)

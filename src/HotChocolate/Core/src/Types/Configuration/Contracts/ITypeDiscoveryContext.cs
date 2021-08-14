@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// The collected type dependencies.
         /// </summary>
-        IReadOnlyList<TypeDependency> TypeDependencies { get; }
+        IReadOnlyList<TypeDependency> Dependencies { get; }
 
         /// <summary>
         /// Register a reference to a type on which <see cref="Type" /> depends.
