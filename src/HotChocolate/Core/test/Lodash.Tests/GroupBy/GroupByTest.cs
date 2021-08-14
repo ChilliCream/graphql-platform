@@ -15,7 +15,6 @@ namespace HotChocolate.Lodash.GroupBy
         [InlineData("OnScalar")]
         [InlineData("OnScalarList")]
         [InlineData("OnSingle")]
-        [InlineData("OnSingleMissingProperty")]
         [InlineData("OnSingleWithNullValues")]
         public async Task ExecuteTest(string definition)
         {

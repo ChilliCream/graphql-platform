@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Lodash
 {
     public class FlattenDirective

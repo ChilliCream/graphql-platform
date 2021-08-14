@@ -38,8 +38,10 @@ namespace HotChocolate.Lodash
         {
             Dictionary<string, List<JsonNode?>> result = new();
 
-            foreach (JsonNode? element in value)
+            while (value.Count > 0)
             {
+                JsonNode? element = value[0];
+                value.RemoveAt(0);
                 switch (element)
                 {
                     case JsonArray:
@@ -56,7 +58,7 @@ namespace HotChocolate.Lodash
                                 result[convertedValue] = new List<JsonNode?>();
                             }
 
-                            result[convertedValue].Add(jsonNode);
+                            result[convertedValue].Add(obj);
                         }
 
                         break;

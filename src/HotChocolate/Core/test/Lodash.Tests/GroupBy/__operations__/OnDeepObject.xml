@@ -33,6 +33,6 @@
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <error-code>AG0001</error-code>
   </result>
 </test>
