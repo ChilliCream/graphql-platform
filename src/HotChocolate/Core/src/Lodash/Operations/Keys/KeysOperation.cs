@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -12,6 +13,11 @@ namespace HotChocolate.Lodash
             {
                 rewritten = null;
                 return false;
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectObjectButReceivedScalar(node.GetPath());
             }
 
             if (node is JsonArray)
@@ -32,7 +38,7 @@ namespace HotChocolate.Lodash
                 return true;
             }
 
-            throw ThrowHelper.ExpectObjectButReceivedScalar(node.GetPath());
+            throw new ArgumentOutOfRangeException(nameof(node));
         }
     }
 }

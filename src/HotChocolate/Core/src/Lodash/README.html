@@ -24,6 +24,7 @@
 <li><a href="#sec-Flatten"><span class="spec-secid">1.6</span>Flatten</a></li>
 <li><a href="#sec-GroupBy"><span class="spec-secid">1.7</span>GroupBy</a></li>
 <li><a href="#sec-KeyBy"><span class="spec-secid">1.8</span>KeyBy</a></li>
+<li><a href="#sec-Keys"><span class="spec-secid">1.9</span>Keys</a></li>
 </ol>
 </li>
 <li><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
@@ -722,6 +723,64 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 </div>
 </section>
 </section>
+<section id="sec-Keys" secid="1.9">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-Keys">1.9</a></span>Keys</h2>
+<section id="sec-Keys.Directive" class="subsec">
+<h6><a href="#sec-Keys.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@keys</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><dfn id="-keys"><a href="#-keys" data-name="-keys">@keys</a></dfn> can only be to objects. <span class="spec-ref"><a href="#-keys" data-name="-keys">@keys</a></span> returns a list of all fields in this object. </p>
+<p>Given the following data:</p>
+<pre id="example-be500" class="spec-example" data-language="json"><a href="#example-be500">Example № 25</a><code><span class="token punctuation">{</span>
+  <span class="token property">"single"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"id"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+    <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-0b4fe" class="spec-example" data-language="graphql"><a href="#example-0b4fe">Example № 26</a><code><span class="token punctuation">{</span>
+  <span class="token property">single</span> <span class="token directive function">@keys</span> <span class="token punctuation">{</span>
+    <span class="token property">id</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-802b0" class="spec-example" data-language="json"><a href="#example-802b0">Example № 27</a><code><span class="token punctuation">{</span>
+  <span class="token property">"single"</span><span class="token operator">:</span> <span class="token punctuation">[</span> 
+    <span class="token string">"id"</span><span class="token punctuation">,</span> 
+    <span class="token string">"string"</span><span class="token punctuation">,</span> 
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-Keys.Execution" class="subsec">
+<h6><a href="#sec-Keys.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
+<div class="spec-algo" id="RewriteKeys()">
+<span class="spec-call"><a href="#RewriteKeys()" data-name="RewriteKeys">RewriteKeys</a>(<var data-name="node">node</var>)</span><ol>
+<li>If <var data-name="node">node</var> is <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0003" data-name="ag0003">AG0003</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0002" data-name="ag0002">AG0002</a></span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Let <var data-name="result">result</var> be a empty list</li>
+<li>For each <var data-name="key">key</var> in keys of <var data-name="value">value</var><ol>
+<li>Add <var data-name="key">key</var> to <var data-name="result">result</var></li>
+</ol>
+</li>
+<li>Return <var data-name="result">result</var> </li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+</section>
 </section>
 <section id="sec-Transformations" secid="2">
 <h1><span class="spec-secid" title="link to this section"><a href="#sec-Transformations">2</a></span>Transformations</h1>
@@ -804,7 +863,7 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <dt><dfn id="objectvalue"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></dfn></dt>
 <dd>Key Value pair</dd>
 </dl>
-<pre id="example-4da16" class="spec-example" data-language="json"><a href="#example-4da16">Example № 25</a><code><span class="token punctuation">{</span>
+<pre id="example-4da16" class="spec-example" data-language="json"><a href="#example-4da16">Example № 28</a><code><span class="token punctuation">{</span>
    <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
    <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
    <span class="token property">"float"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
@@ -814,15 +873,15 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <dt><dfn id="scalarvalue"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></dfn></dt>
 <dd>A primitive leaf value</dd>
 </dl>
-<pre id="example-ad9f2" class="spec-example" data-language="json"><a href="#example-ad9f2">Example № 26</a><code><span class="token string">"string"</span>
+<pre id="example-ad9f2" class="spec-example" data-language="json"><a href="#example-ad9f2">Example № 29</a><code><span class="token string">"string"</span>
 </code></pre>
-<pre id="example-091b1" class="spec-example" data-language="json"><a href="#example-091b1">Example № 27</a><code><span class="token number">1</span>
+<pre id="example-091b1" class="spec-example" data-language="json"><a href="#example-091b1">Example № 30</a><code><span class="token number">1</span>
 </code></pre>
 <dl>
 <dt><dfn id="listvalue"><a href="#listvalue" data-name="listvalue">ListValue</a></dfn></dt>
 <dd>A collection of either <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span>, <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span> or <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span></dd>
 </dl>
-<pre id="example-7d9f8" class="spec-example" data-language="json"><a href="#example-7d9f8">Example № 28</a><code><span class="token punctuation">[</span> 
+<pre id="example-7d9f8" class="spec-example" data-language="json"><a href="#example-7d9f8">Example № 31</a><code><span class="token punctuation">[</span> 
   <span class="token punctuation">{</span>
    <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -873,6 +932,7 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <li><a href="#-flatten">@flatten</a></li>
 <li><a href="#-groupby">@groupBy</a></li>
 <li><a href="#-keyby">@keyBy</a></li>
+<li><a href="#-keys">@keys</a></li>
 <li><a href="#-map">@map</a></li>
 <li><a href="#ag0001">AG0001</a></li>
 <li><a href="#ag0002">AG0002</a></li>
@@ -897,6 +957,7 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <li><a href="#RewriteGroupByArray()">RewriteGroupByArray</a></li>
 <li><a href="#RewriteKeyBy()">RewriteKeyBy</a></li>
 <li><a href="#RewriteKeyByArray()">RewriteKeyByArray</a></li>
+<li><a href="#RewriteKeys()">RewriteKeys</a></li>
 <li><a href="#RewriteMap()">RewriteMap</a></li>
 <li><a href="#scalarvalue">ScalarValue</a></li>
 </ol>
@@ -919,6 +980,7 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_1.6"><a href="#sec-Flatten"><span class="spec-secid">1.6</span>Flatten</a></li>
 <li id="_sidebar_1.7"><a href="#sec-GroupBy"><span class="spec-secid">1.7</span>GroupBy</a></li>
 <li id="_sidebar_1.8"><a href="#sec-KeyBy"><span class="spec-secid">1.8</span>KeyBy</a></li>
+<li id="_sidebar_1.9"><a href="#sec-Keys"><span class="spec-secid">1.9</span>Keys</a></li>
 </ol>
 </li>
 <li id="_sidebar_2"><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>

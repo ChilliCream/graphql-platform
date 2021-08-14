@@ -1,0 +1,42 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            }
+          ],
+          [
+            {
+              "string": "b"
+            },
+            {
+              "string": "c"
+            },
+            {
+              "string": "c"
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @keys {
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

@@ -1,0 +1,32 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "id": 1,
+            "string": "a"
+          },
+          {
+            "id": 2,
+            "string": "a"
+          },
+          {
+            "id": 3,
+            "string": "b"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @keys {
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>
