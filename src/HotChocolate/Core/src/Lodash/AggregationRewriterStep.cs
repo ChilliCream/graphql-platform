@@ -27,6 +27,7 @@ namespace HotChocolate.Lodash
             {
                 if (obj.TryGetPropertyValue(FieldName, out JsonNode? jsonNode))
                 {
+                    obj.Remove(FieldName);
                     var omitProperty = false;
                     for (var i = 0;
                         i < Next.Count && jsonNode is not null && !omitProperty;
@@ -59,10 +60,6 @@ namespace HotChocolate.Lodash
                     if (!omitProperty)
                     {
                         obj[FieldName] = jsonNode;
-                    }
-                    else
-                    {
-                        obj.Remove(FieldName);
                     }
                 }
             }

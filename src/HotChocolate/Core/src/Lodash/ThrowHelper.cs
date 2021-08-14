@@ -49,5 +49,14 @@ namespace HotChocolate.Lodash
                 "AG0005",
                 "The argument size of chunk on field {0} must be greater than 0",
                 path);
+
+        /// <summary>
+        /// ErrorCode: AG0006
+        /// </summary>
+        public static Exception FlattenDepthCannotBeLowerThanOne(string path) =>
+            JsonAggregationException.Create(
+                "AG0006",
+                "The argument size of flatten on field {0} must be greater than 0",
+                path);
     }
 }
