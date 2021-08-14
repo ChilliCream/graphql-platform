@@ -121,46 +121,6 @@ namespace HotChocolate.Configuration
                     _types.Add(context.Type);
                 }
             }
-
-            public override bool TryCreateScope(
-                ITypeDiscoveryContext discoveryContext,
-                out IReadOnlyList<TypeDependency> typeDependencies)
-            {
-                if (discoveryContext is { Scope: not null })
-                {
-                    var list = new List<TypeDependency>();
-
-                    foreach (TypeDependency typeDependency in discoveryContext.Dependencies)
-                    {
-                        if (!discoveryContext.TryPredictTypeKind(
-                            typeDependency.TypeReference,
-                            out TypeKind kind) ||
-                            kind == TypeKind.Scalar)
-                        {
-                            list.Add(typeDependency);
-                            continue;
-                        }
-
-                        var typeReference = (ExtendedTypeReference)typeDependency.TypeReference;
-
-                        if (typeDependency.TypeReference.Scope is null)
-                        {
-                            typeReference = typeReference.WithScope(discoveryContext.Scope);
-                            list.Add(typeDependency.With(typeReference));
-                        }
-                        else
-                        {
-                            list.Add(typeDependency);
-                        }
-
-                        typeDependencies = list;
-                        return true;
-                    }
-                }
-
-                typeDependencies = null;
-                return false;
-            }
         }
     }
 }

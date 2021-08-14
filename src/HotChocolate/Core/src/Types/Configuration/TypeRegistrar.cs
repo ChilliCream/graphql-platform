@@ -188,15 +188,16 @@ namespace HotChocolate.Configuration
 
                 if (!isInferred)
                 {
-                    registeredType.References.Add(instanceRef);
+                    registeredType.References.TryAdd(instanceRef);
                 }
 
                 if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    registeredType.References.Add(_context.TypeInspector.GetTypeRef(
-                        typeSystemObject.GetType(),
-                        SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope));
+                    registeredType.References.TryAdd(
+                        _context.TypeInspector.GetTypeRef(
+                            typeSystemObject.GetType(),
+                            SchemaTypeReference.InferTypeContext(typeSystemObject),
+                            scope));
                 }
 
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
@@ -208,10 +209,7 @@ namespace HotChocolate.Configuration
                             SchemaTypeReference.InferTypeContext(typeSystemObject),
                             scope);
 
-                    if (!registeredType.References.Contains(reference))
-                    {
-                        registeredType.References.Add(reference);
-                    }
+                    registeredType.References.TryAdd(reference);
                 }
 
                 if (_interceptor.TryCreateScope(

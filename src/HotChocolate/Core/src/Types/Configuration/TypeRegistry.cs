@@ -221,14 +221,14 @@ namespace HotChocolate.Configuration
             foreach (RegisteredType registeredType in _types)
             {
                 ITypeReference reference = TypeReference.Create(registeredType.Type);
-                registeredType.References.Add(reference);
+                registeredType.References.TryAdd(reference);
 
                 _typeRegister[reference] = registeredType;
 
                 if (registeredType.Type.Scope is { } s)
                 {
                     reference = TypeReference.Create(registeredType.Type, s);
-                    registeredType.References.Add(reference);
+                    registeredType.References.TryAdd(reference);
 
                     _typeRegister[reference] = registeredType;
                 }
