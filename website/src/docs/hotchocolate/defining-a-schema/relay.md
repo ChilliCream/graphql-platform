@@ -8,20 +8,24 @@ TODO
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
-## Global identifiers
+# Global identifiers
 
 If an output type contains an `id: ID!` field, [Relay](https://relay.dev) and other GraphQL clients will consider this the unique identifier of the entity and might use it to construct a flat cache. This can be problematic, since we could have the same identifier for two of our types. When using SQL for example, a `Foo` and `Bar` type could both contain a row with the identifier `1` in their respective tables.
 
 We could switch to a database technology that uses unique identifiers across tables/collections, but as soon as we introduce a different data source, we might be facing the same problem again.
 
-Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate. The name of the type as well as the actual Id can automatically be combined to create an identifier that's unique within the schema.
+Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate: Global identifiers.
 
-TODO: switch in output and input type
+TODO: maybe explain the feature is a middleware here already and how it doesnt affect business layer logic, types dont matter, etc.
+
+## Usage in Output Types
+
+When returning an Id in an output type, Hot Chocolate can automatically combine its value with another value to form a unique Id. Per default this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
+
+We can opt Ids into this behavior like the following.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
-
-In the Annotation-based approach, we just need to annotate fields and arguments using the `[GlobalId]` attribute.
 
 ```csharp
 public class Product
@@ -29,20 +33,14 @@ public class Product
     [GlobalId]
     public int Id { get; set; }
 }
-
-public class Query
-{
-    public Product GetProduct([GlobalId] int id)
-        => new() { Id = id };
-}
 ```
 
-If no arguments are passed to the `[GlobalId]` attribute on a field, it will use the schema name of the type to produce the unique identifier.
+If no arguments are passed to the `[GlobalId]` attribute, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-We can also specify a custom string that should be used to produce the unique identifier.
+If we do not want to use the name of the output type, we can specify a string of our choice.
 
 ```csharp
-[ID("Foo")]
+[GlobalId("Foo")]
 public int Id { get; set; }
 ```
 
@@ -62,32 +60,11 @@ public class ProductType : ObjectType<Product>
         descriptor.Field(f => f.Id).GlobalId();
     }
 }
-
-public class QueryType : ObjectType
-{
-    protected override void Configure(IObjectTypeDescriptor descriptor)
-    {
-        descriptor.Name(OperationTypeNames.Query);
-
-        descriptor
-            .Field("product")
-            .Argument("id", a => a.Type<NonNullType<IdType>>().GlobalId())
-            .Type<ProductType>()
-            .Resolve(context =>
-            {
-                var id = context.ArgumentValue<int>("id");
-
-                return new Product { Id = id };
-            });
-    }
-}
 ```
 
-> Note: `GlobalId()` can only be used on fields and arguments with a concrete type. Otherwise type modifiers like non-null or list can not be correctly rewritten.
+If no arguments are passed to `GlobalId()`, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-If no arguments are passed to `GlobalId()`, it will use the schema name of the type to produce the unique identifier.
-
-We can also specify a custom string that should be used to produce the unique identifier.
+If we do not want to use the name of the output type, we can specify a string of our choice.
 
 ```csharp
 descriptor.Field(f => f.Id).GlobalId("Foo");
@@ -101,9 +78,88 @@ TODO
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-Fields and arguments defined like above are still represented using the `ID` scalar, but now they are Base64 encoded and contain the name of the type as well as the actual Id.
+The type of fields specified as `GlobalId` is also automatically switched to the ID scalar.
 
-Similar to the regular coercion of the `ID` scalar, the Id values are encoded when used in an output type, and decoded when used in an input type.
+[Learn more about the ID scalar](/docs/hotchocolate/defining-a-schema/scalars#id)
+
+## Usage in Input Types
+
+If our `Product` output type returns a serialized Id, all arguments and fields on input object types, accepting a `Product` Id, need to be able to interpret the serialized Id.
+Therefore we also need to define them as `GlobalId`, in order to deserialize the serialized Id to the actual Id.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    public Product GetProduct([GlobalId] int id)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+In input object types we can use the `[GlobalId]` attribute on specific fields.
+
+```csharp
+public class ProductInput
+{
+    [GlobalId]
+    public int ProductId { get; set; }
+}
+```
+
+Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to the `[GlobalId]` attribute.
+
+```csharp
+public Product GetProduct([GlobalId(nameof(Product))] int id)
+```
+
+This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+descriptor
+    .Field("product")
+    .Argument("id", a => a.Type<NonNullType<IdType>>().GlobalId())
+    .Type<ProductType>()
+    .Resolve(context =>
+    {
+        var id = context.ArgumentValue<int>("id");
+
+        // Omitted code for brevity
+    });
+```
+
+> Note: `GlobalId()` can only be used on fields and arguments with a concrete type. Otherwise type modifiers like non-null or list can not be correctly rewritten.
+
+In input object types we can use `GlobalId()` on specific fields.
+
+```csharp
+descriptor
+    .Field("id")
+    .Type<NonNullType<IdType>>()
+    .GlobalId();
+```
+
+Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to `GlobalId()`.
+
+```csharp
+.Argument("id", a => a.Type<NonNullType<IdType>>().GlobalId(nameof(Product)))
+```
+
+This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+TODO
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 ## Id Serializer
 
@@ -150,9 +206,7 @@ type Query {
 }
 ```
 
-<!-- todo: code to automatically open all external links in a new tab: <a target="_blank" rel="noopener noreferrer" href="link">...</a> -->
-
-[Learn more about Global Object Identification](https://graphql.org/learn/global-object-identification)
+## Usage
 
 In Hot Chocolate we can enable Global Object Identification, by calling `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
 
@@ -171,7 +225,7 @@ public class Startup
 
 This registers the `Node` interface type and adds the `node(id: ID!): Node` field to our query type, as explained above.
 
-> ⚠️ Note: Using `AddGlobalObjectIdentification()` in two stitched services does currently not work.
+> ⚠️ Note: Using `AddGlobalObjectIdentification()` in two upstream stitched services does currently not work out of the box.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -214,6 +268,8 @@ TODO
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+TODO: How to resolve in different type / other options of GOI
 
 Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.
 
@@ -292,6 +348,8 @@ mutation {
   }
 }
 ```
+
+## Usage
 
 Hot Chocolate allows us to automatically add this `query` field to all of our mutation payload types:
 
