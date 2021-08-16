@@ -82,6 +82,9 @@ namespace HotChocolate.Configuration
         public IReadOnlyList<ISchemaError> DiscoverTypes()
         {
             const int max = 1000;
+            var processed = new HashSet<ITypeReference>();
+
+DISCOVER:
             var tries = 0;
             var resolved = false;
 
@@ -107,7 +110,22 @@ namespace HotChocolate.Configuration
             }
             while (resolved && tries < max && _errors.Count == 0);
 
-            _interceptor.RegisterMoreTypes(_typeRegistry.Types);
+            if (_errors.Count == 0 && _unregistered.Count == 0)
+            {
+                foreach (ITypeReference typeReference in
+                    _interceptor.RegisterMoreTypes(_typeRegistry.Types))
+                {
+                    if (processed.Add(typeReference))
+                    {
+                        _unregistered.Add(typeReference);
+                    }
+                }
+
+                if (_unregistered.Count > 0)
+                {
+                    goto DISCOVER;
+                }
+            }
 
             CollectErrors();
 

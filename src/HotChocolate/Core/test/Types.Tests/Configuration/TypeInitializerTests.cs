@@ -201,18 +201,61 @@ namespace HotChocolate.Configuration
             Assert.Equal(1, interceptor.Count);
         }
 
-        public class FooType
-            : ObjectType<Foo>
+        [Fact]
+        public void InitializeFactoryTypeRefOnce()
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
-            }
+            // arrange
+            SyntaxTypeReference typeRef1 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            SyntaxTypeReference typeRef2 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+
+            // act
+            ISchema schema =
+                SchemaBuilder.New()
+                    .TryAddTypeInterceptor(interceptor)
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        [Fact]
+        public void FactoryAndNameRefsAreRecognizedAsTheSameType()
+        {
+            // arrange
+            SyntaxTypeReference typeRef1 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            SyntaxTypeReference typeRef2 = TypeReference.Parse("Abc");
+
+            var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+
+            // act
+            ISchema schema =
+                SchemaBuilder.New()
+                    .TryAddTypeInterceptor(interceptor)
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        public class FooType : ObjectType<Foo>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+                => descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
+        }
+
+        public class BarType : ObjectType<Bar>
         {
         }
 
@@ -256,6 +299,20 @@ namespace HotChocolate.Configuration
                     Count++;
                 }
             }
+        }
+
+        private class InjectTypes : TypeInterceptor
+        {
+            private readonly List<ITypeReference> _typeReferences;
+
+            public InjectTypes(IEnumerable<ITypeReference> typeReferences)
+                => _typeReferences = typeReferences.ToList();
+
+            public override bool TriggerAggregations => true;
+
+            public override IEnumerable<ITypeReference> RegisterMoreTypes(
+                IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+                => _typeReferences;
         }
     }
 }
