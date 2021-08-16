@@ -90,9 +90,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            var configs = new List<ITypeSystemMemberConfiguration>();
 
             configs.AddRange(Configurations);
 
@@ -200,7 +200,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 ObjectFieldDefinition? targetField = field switch
                 {
                     { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                        target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name)),
+                        target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name!)),
                     { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
                     _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))

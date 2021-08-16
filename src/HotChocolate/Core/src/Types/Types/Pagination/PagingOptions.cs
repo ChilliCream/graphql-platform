@@ -33,6 +33,12 @@ namespace HotChocolate.Types.Pagination
         public bool? RequirePagingBoundaries { get; set; }
 
         /// <summary>
+        /// Connection names are by default inferred from the field name to 
+        /// which they are bound to as opposed to the node type name.
+        /// </summary>
+        public bool? InferConnectionNameFromField { get; set; }
+
+        /// <summary>
         /// Merges the <paramref name="other"/> options into this options instance wherever
         /// a property is not set.
         /// </summary>
@@ -46,6 +52,7 @@ namespace HotChocolate.Types.Pagination
             IncludeTotalCount ??= other.IncludeTotalCount;
             AllowBackwardPagination ??= other.AllowBackwardPagination;
             RequirePagingBoundaries ??= other.RequirePagingBoundaries;
+            InferConnectionNameFromField ??= other.InferConnectionNameFromField;
         }
 
         /// <summary>
@@ -58,7 +65,8 @@ namespace HotChocolate.Types.Pagination
                 MaxPageSize = MaxPageSize,
                 IncludeTotalCount = IncludeTotalCount,
                 AllowBackwardPagination = AllowBackwardPagination,
-                RequirePagingBoundaries = RequirePagingBoundaries
+                RequirePagingBoundaries = RequirePagingBoundaries,
+                InferConnectionNameFromField = InferConnectionNameFromField
             };
     }
 }

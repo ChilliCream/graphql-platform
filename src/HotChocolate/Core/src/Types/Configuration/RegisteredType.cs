@@ -81,6 +81,19 @@ namespace HotChocolate.Configuration
 
         public List<ISchemaError> Errors => _errors ??= new();
 
-        public override string? ToString() => Type.ToString();
+        public override string? ToString()
+        {
+            if (IsSchema)
+            {
+                return "Schema";
+            }
+
+            if (Type is IHasName { Name: { IsEmpty: false } } hasName)
+            {
+                return IsDirective ? $"@{hasName.Name}" : hasName.Name;
+            }
+            
+            return Type.ToString();
+        }
     }
 }

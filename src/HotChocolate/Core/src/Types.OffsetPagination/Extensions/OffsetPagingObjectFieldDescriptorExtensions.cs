@@ -89,7 +89,6 @@ namespace HotChocolate.Types
 
             PagingHelper.UsePaging(
                 descriptor,
-                type,
                 itemType,
                 (services, source) => resolvePagingProvider(services, source),
                 options);
@@ -98,7 +97,7 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeCreate((c, d) =>
                 {
-                    MemberInfo resolverMember = d.ResolverMember ?? d.Member;
+                    MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                     d.Type = CreateTypeRef(c, resolverMember, type, options);
                     d.CustomSettings.Add(typeof(CollectionSegment));
                 });

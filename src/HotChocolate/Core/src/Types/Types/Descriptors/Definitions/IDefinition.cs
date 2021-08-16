@@ -42,8 +42,18 @@ namespace HotChocolate.Types.Descriptors.Definitions
         IList<TypeDependency> Dependencies { get; }
 
         /// <summary>
+        /// Defines if this type has dependencies.
+        /// </summary>
+        bool HasDependencies { get; }
+
+        /// <summary>
         /// Gets configurations that shall be applied at a later point.
         /// </summary>
-        IList<ILazyTypeConfiguration> Configurations { get; }
+        IList<ITypeSystemMemberConfiguration> Configurations { get; }
+
+        /// <summary>
+        /// Defines if this type has configurations.
+        /// </summary>
+        bool HasConfigurations { get; }
     }
 }

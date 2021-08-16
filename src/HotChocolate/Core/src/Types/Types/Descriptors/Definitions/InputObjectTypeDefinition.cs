@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Language;
 
 #nullable enable
@@ -47,9 +46,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// </summary>
         public Action<object, object?[]>? GetFieldData { get; set; }
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            var configs = new List<ITypeSystemMemberConfiguration>();
 
             configs.AddRange(Configurations);
 

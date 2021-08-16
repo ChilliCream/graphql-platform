@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true})
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -678,6 +678,22 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Infer_ConnectionName_From_Field()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<InferConnectionNameFromFieldType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -811,6 +827,23 @@ namespace HotChocolate.Types.Pagination
         {
             [UsePaging(typeof(NonNullType<StringType>))]
             public string[] ExplicitType();
+        }
+
+        public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<InferConnectionNameFromField> descriptor)
+            {
+                descriptor
+                    .Field(t => t.Names())
+                    .UsePaging(options: new() { InferConnectionNameFromField = true });
+
+            }
+        }
+
+        public class InferConnectionNameFromField
+        {
+            public string[] Names() => new[] { "a", "b" };
         }
     }
 

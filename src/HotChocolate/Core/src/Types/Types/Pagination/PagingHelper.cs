@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Pagination
     {
         public static IObjectFieldDescriptor UsePaging(
             IObjectFieldDescriptor descriptor,
-            Type? type,
             Type? entityType = null,
             GetPagingProvider? resolvePagingProvider = null,
             PagingOptions options = default)
@@ -31,21 +30,19 @@ namespace HotChocolate.Types.Pagination
 
             FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
 
-            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
-
-            descriptor
-                .Extend()
-                .OnBeforeCreate(definition =>
-                {
-                    definition.Configurations.Add(
-                        new TypeConfiguration<ObjectFieldDefinition>
-                        {
-                            Definition = definition,
-                            On = ApplyConfigurationOn.Completion,
-                            Configure = (c, d) => ApplyConfiguration(
-                                c, d, entityType, resolvePagingProvider, options, placeholder)
-                        });
-                });
+            ObjectFieldDefinition definition = descriptor.Extend().Definition;
+            definition.MiddlewareDefinitions.Add(placeholder);
+            definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, d) => ApplyConfiguration(
+                        c,
+                        (ObjectFieldDefinition)d,
+                        entityType,
+                        resolvePagingProvider,
+                        options,
+                        placeholder),
+                    definition,
+                    ApplyConfigurationOn.Completion));
 
             return descriptor;
         }

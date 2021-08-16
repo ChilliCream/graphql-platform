@@ -33,7 +33,16 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
-            Type? type = null,
+            Type? schemaType = null,
+            Type? entityType = null,
+            GetCursorPagingProvider? resolvePagingProvider = null,
+            PagingOptions options = default)
+            => UsePagingInternal(descriptor, null, schemaType, entityType, resolvePagingProvider, options);
+
+        private static IObjectFieldDescriptor UsePagingInternal(
+            this IObjectFieldDescriptor descriptor,
+            NameString? connectionName = null,
+            object? nodeType = null,
             Type? entityType = null,
             GetCursorPagingProvider? resolvePagingProvider = null,
             PagingOptions options = default)
@@ -47,7 +56,6 @@ namespace HotChocolate.Types
 
             PagingHelper.UsePaging(
                 descriptor,
-                type,
                 entityType,
                 (services, source) => resolvePagingProvider(services, source),
                 options);
@@ -56,28 +64,33 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeCreate((c, d) =>
                 {
-                    if (!(c.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var obj) &&
-                       obj is PagingOptions pagingOptions))
-                    {
-                        pagingOptions = default;
-                    }
-
+                    var pagingOptions = c.GetSettings(options);
                     var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
 
                     var field = ObjectFieldDescriptor.From(c, d);
                     field.AddPagingArguments(backward);
                     field.CreateDefinition();
-                });
 
-            descriptor
-                .Extend()
-                .OnBeforeCreate(
-                    (c, d) =>
+                    if (connectionName is null or { IsEmpty: true })
                     {
-                        MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
-                        d.Type = CreateConnectionTypeRef(c, resolverMember, type, options);
-                        d.CustomSettings.Add(typeof(Connection));
-                    });
+                        connectionName =
+                            pagingOptions.InferConnectionNameFromField ??
+                                InferConnectionNameFromField
+                                    ? EnsureConnectionNameCasing(d.Name)
+                                    : throw new NotImplementedException("We still need something on the type system for this.");
+                    }
+
+                    ITypeReference? typeRef = nodeType switch
+                    {
+                        Type type => c.TypeInspector.GetTypeRef(type),
+                        ITypeReference typeReference => typeReference,
+                        _ => null
+                    };
+
+                    MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
+                    d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName.Value, typeRef, options);
+                    d.CustomSettings.Add(typeof(Connection));
+                });
 
             return descriptor;
         }
@@ -115,10 +128,6 @@ namespace HotChocolate.Types
                     field.CreateDefinition();
                 });
 
-            descriptor
-                .Extend()
-                .OnBeforeCreate(
-                    (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, options));
 
             return descriptor;
         }
@@ -201,36 +210,30 @@ namespace HotChocolate.Types
         private static ITypeReference CreateConnectionTypeRef(
             IDescriptorContext context,
             MemberInfo? resolverMember,
-            Type? type,
+            NameString connectionName,
+            ITypeReference? nodeType,
             PagingOptions options)
         {
-            // first we will try and infer the schema type from the collection.
-            IExtendedType schemaType = PagingHelper.GetSchemaType(
-                context.TypeInspector,
-                resolverMember,
-                type);
-
-            // we need to ensure that the schema type is a valid output type. For this we create a
-            // type info which decomposes the type into its logical type components and is able
-            // to check if the named type component is really an output type.
-            if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
-                !typeInfo.IsOutputType())
+            if (nodeType is null)
             {
-                throw PagingObjectFieldDescriptorExtensions_InvalidType();
+                // if there is no explict node type provided we will try and 
+                // infer the schema type from the resolver member.
+                nodeType = TypeReference.Create(
+                    PagingHelper.GetSchemaType(
+                        context.TypeInspector,
+                        resolverMember,
+                        null),
+                    TypeContext.Output);
             }
 
             options = context.GetSettings(options);
 
-            // once we have identified the correct type we will create the
-            // paging result type from it.
-            IExtendedType connectionType = context.TypeInspector.GetType(
-                options.IncludeTotalCount ?? false
-                    ? typeof(ConnectionCountType<>).MakeGenericType(schemaType.Source)
-                    : typeof(ConnectionType<>).MakeGenericType(schemaType.Source));
-
             // last but not leas we create a type reference that can be put on the field definition
             // to tell the type discovery that this field needs this result type.
-            return TypeReference.Create(connectionType, TypeContext.Output);
+            return CreateConnectionType(
+                connectionName,
+                nodeType,
+                options.IncludeTotalCount ?? false);
         }
 
         private static CursorPagingProvider ResolvePagingProvider(
@@ -252,6 +255,27 @@ namespace HotChocolate.Types
             }
 
             return new QueryableCursorPagingProvider();
+        }
+
+        private static ITypeReference CreateConnectionType(
+            NameString connectionName,
+            ITypeReference nodeType,
+            bool withTotalCount)
+        {
+            return TypeReference.Create(
+                connectionName + "Connection",
+                TypeContext.Output,
+                factory: _ => new ConnectionType(connectionName, nodeType, withTotalCount));
+        }
+
+        private static NameString EnsureConnectionNameCasing(string connectionName)
+        {
+            if (char.IsUpper(connectionName[0]))
+            {
+                return connectionName;
+            }
+
+            return string.Concat(char.ToUpper(connectionName[0]), connectionName.Substring(1));
         }
     }
 }

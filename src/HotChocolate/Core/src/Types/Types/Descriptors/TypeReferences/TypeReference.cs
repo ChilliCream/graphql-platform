@@ -82,11 +82,19 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        public static DependencyTypeReference Create(
+            string name,
+            ITypeReference dependency,
+            TypeContext context = TypeContext.None,
+            string? scope = null,
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+            => throw new NotImplementedException();
+
         public static SchemaTypeReference Create(
             ITypeSystemMember type,
             string? scope = null)
         {
-            if (scope is null && type is IHasScope withScope && withScope.Scope is { })
+            if (scope is null && type is IHasScope { Scope: not null } withScope)
             {
                 scope = withScope.Scope;
             }
