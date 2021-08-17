@@ -126,6 +126,10 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> ⚠️ Note: Only **one** subscription type can be registered using `AddSubscriptionType()`. If we want to split up our subscription type into multiple classes, we can do so using type extensions.
+>
+> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
 # Transport
 
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
