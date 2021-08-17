@@ -35,7 +35,7 @@ dotnet tool install StrawberryShake.Tools --local
 
 ## Step 2: Create a console project
 
-Next, we will create our Blazor project so that we have a little playground.
+Next, we will create our console project so that we have a little playground.
 
 1. First, a new solution called `Demo.sln`.
 
@@ -89,7 +89,7 @@ dotnet add Demo package Microsoft.Extensions.Http
 
 To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
-In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our Blazor application.
+In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 
 > If you want to have a look at our GraphQL workshop head over [here](https://github.com/ChilliCream/graphql-workshop).
 

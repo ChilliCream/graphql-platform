@@ -27,6 +27,8 @@ namespace HotChocolate.Types.Descriptors
 
         protected internal abstract T Definition { get; protected set; }
 
+        T IDescriptorExtension<T>.Definition => Definition;
+
         public IDescriptorExtension<T> Extend()
         {
             return this;

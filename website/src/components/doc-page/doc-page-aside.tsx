@@ -1,17 +1,17 @@
-import React, { FunctionComponent, useCallback } from "react";
+import React, { FC, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { State } from "../../state";
-import { toggleAside } from "../../state/common";
-import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
-import { DocPagePaneHeader } from "./doc-page-pane-header";
 import styled from "styled-components";
 import {
   BoxShadow,
   IsSmallDesktop,
   SmallDesktopBreakpointNumber,
 } from "../../shared-style";
+import { State } from "../../state";
+import { toggleAside } from "../../state/common";
+import { BodyStyle, DocPageStickySideBarStyle } from "./doc-page-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 
-export const DocPageAside: FunctionComponent = ({ children }) => {
+export const DocPageAside: FC = ({ children }) => {
   const showAside = useSelector<State, boolean>(
     (state) => state.common.showAside
   );

@@ -119,7 +119,7 @@ public class Startup
                   addBook(input: BookInput): Book
                 }
 
-                type BookInput {
+                input BookInput {
                   title: String
                   author: String
                 }

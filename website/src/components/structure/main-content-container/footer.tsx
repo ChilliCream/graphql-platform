@@ -1,5 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../../graphql-types";
 import LogoTextSvg from "../../../images/chillicream-text.svg";
@@ -10,7 +10,7 @@ import TwitterIconSvg from "../../../images/twitter.svg";
 import { IconContainer } from "../../misc/icon-container";
 import { Link } from "../../misc/link";
 
-export const Footer: FunctionComponent = () => {
+export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
     query getFooterData {
       site {
@@ -54,9 +54,9 @@ export const Footer: FunctionComponent = () => {
           <Description>
             We at ChilliCream build the ultimate GraphQL platform.
             <br />
-            Most of our code is open-source and remains forever open-source.
+            Most of our code is open-source and will forever remain open-source.
             <br />
-            You can be part of it by helping us starting today.
+            You can be a valued member of our team. Start helping us today.
           </Description>
           <Connect>
             <ConnectLink to={tools!.github!}>

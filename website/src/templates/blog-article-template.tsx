@@ -1,17 +1,15 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { BlogArticleFragment } from "../../graphql-types";
 import { BlogArticle } from "../components/blog-article/blog-article";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-interface BlogArticleTemplateProperties {
+interface BlogArticleTemplateProps {
   data: BlogArticleFragment;
 }
 
-const BlogArticleTemplate: FunctionComponent<BlogArticleTemplateProperties> = ({
-  data,
-}) => {
+const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
   return (
     <Layout>
       <SEO

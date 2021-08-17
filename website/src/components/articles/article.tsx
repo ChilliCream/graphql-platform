@@ -1,7 +1,7 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-export const Article: FunctionComponent = ({ children }) => {
+export const Article: FC = ({ children }) => {
   return <ArticleElement>{children}</ArticleElement>;
 };
 

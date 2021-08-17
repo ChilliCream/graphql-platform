@@ -97,7 +97,7 @@ You can also use federations without a Redis cache. In this case, you cannot hot
 The configuration is very much the same as in Redis except the `PublishToRedis` part.
 Your schema will expose an additional field. This field is used by the Gateway to fetch the schema definition.
 
-You will need to add a package reference to `HotChocolate.Stitching.Redis` to all your services:
+You will need to add a package reference to `HotChocolate.Stitching` to all your services:
 
 ```cli
 dotnet add package HotChocolate.Stitching
