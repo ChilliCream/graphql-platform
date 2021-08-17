@@ -178,24 +178,12 @@ namespace HotChocolate.Types
             TDefinition definition,
             ApplyConfigurationOn on)
         {
-            if (definition.HasConfigurations)
+            foreach (ITypeSystemMemberConfiguration config in definition.GetConfigurations())
             {
-                IList<ITypeSystemMemberConfiguration> configurations = definition.Configurations;
-                var i = 0;
-                do
+                if (config.On == on)
                 {
-                    ITypeSystemMemberConfiguration config = configurations[i];
-
-                    if (config.On == on)
-                    {
-                        ((CompleteConfiguration)config).Configure(context);
-                        configurations.RemoveAt(i);
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                } while (i < configurations.Count);
+                    ((CompleteConfiguration)config).Configure(context);
+                }
             }
         }
 

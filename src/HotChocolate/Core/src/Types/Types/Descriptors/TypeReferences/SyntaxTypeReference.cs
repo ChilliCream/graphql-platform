@@ -39,6 +39,7 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         public Func<IDescriptorContext, TypeSystemObjectBase>? Factory { get; }
 
+        /// <inheritdoc />
         public bool Equals(SyntaxTypeReference? other)
         {
             if (other is null)
@@ -59,6 +60,7 @@ namespace HotChocolate.Types.Descriptors
             return Type.IsEqualTo(other.Type);
         }
 
+        /// <inheritdoc />
         public override bool Equals(ITypeReference? other)
         {
             if (other is null)
@@ -79,6 +81,7 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public override bool Equals(object? obj)
         {
             if (obj is null)
@@ -99,6 +102,7 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked
@@ -107,6 +111,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"{Context}: {Type}";
@@ -148,75 +153,6 @@ namespace HotChocolate.Types.Descriptors
                 context.HasValue ? context.Value : Context,
                 scope.HasValue ? scope.Value : Scope,
                 factory.HasValue ? factory.Value : Factory);
-        }
-    }
-
-    public sealed class DependencyTypeReference
-        : TypeReference
-        , IEquatable<DependencyTypeReference>
-    {
-        public DependencyTypeReference(
-            string name,
-            ITypeReference dependency,
-            TypeContext context,
-            string? scope = null,
-            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
-            : base(kind, context, scope)
-        {
-            Name = name;
-            Dependency = dependency;
-        }
-
-        public string Name { get; }
-
-        public ITypeReference Dependency { get; }
-
-        /// <summary>
-        /// Gets a factory to create this type. Note, a factory is optional.
-        /// </summary>
-        public Func<IDescriptorContext, TypeSystemObjectBase>? Factory { get; }
-
-        public override bool Equals(ITypeReference? other)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Equals(DependencyTypeReference? other)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj is DependencyTypeReference c)
-            {
-                return Equals(c);
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                return base.GetHashCode() ^ Type.GetHashCode() * 397;
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{Context}: {Name}";
         }
     }
 }

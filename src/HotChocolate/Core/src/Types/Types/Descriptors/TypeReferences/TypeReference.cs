@@ -82,13 +82,13 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public static DependencyTypeReference Create(
-            string name,
+        public static DependantFactoryTypeReference Create(
+            NameString name,
             ITypeReference dependency,
+            Func<IDescriptorContext, TypeSystemObjectBase> factory,
             TypeContext context = TypeContext.None,
-            string? scope = null,
-            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
-            => throw new NotImplementedException();
+            string? scope = null)
+            => new(name, dependency, factory, context, scope);
 
         public static SchemaTypeReference Create(
             ITypeSystemMember type,

@@ -73,6 +73,7 @@ namespace HotChocolate.Configuration
                 new SchemaTypeReferenceHandler(),
                 new SyntaxTypeReferenceHandler(context.TypeInspector),
                 new FactoryTypeReferenceHandler(context),
+                new DependantFactoryTypeReferenceHandler(context)
             };
 
             _typeInspector = context.TypeInspector;

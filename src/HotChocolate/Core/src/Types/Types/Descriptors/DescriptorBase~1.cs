@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -35,20 +36,31 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.HasConfigurations)
             {
-                IList<ITypeSystemMemberConfiguration> configurations = Definition.Configurations;
                 var i = 0;
+                var buffered = 0;
+                var length = Definition.Configurations.Count;
+                CreateConfiguration[] rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
+                IList<ITypeSystemMemberConfiguration> configurations = Definition.Configurations;
+
                 do
                 {
                     if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
                     {
-                        ((CreateConfiguration)config).Configure(Context);
                         configurations.RemoveAt(i);
+                        rented[buffered++] = (CreateConfiguration)config;
                     }
                     else
                     {
                         i++;
                     }
                 } while (i < configurations.Count);
+
+                for (i = 0; i < buffered; i++)
+                {
+                    rented[i].Configure(Context);
+                }
+
+                ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
             }
 
             return Definition;

@@ -102,7 +102,7 @@ namespace HotChocolate.Types
                 {
                     ifd.UsePaging(
                         Type,
-                        new PagingOptions
+                        options: new()
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,

@@ -92,21 +92,33 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ITypeSystemMemberConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (ObjectFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
+                if (field.HasConfigurations)
+                {
+                    configs ??= new();
+                    configs.AddRange(field.Configurations);
+                }
 
                 foreach (ArgumentDefinition argument in field.GetArguments())
                 {
-                    configs.AddRange(argument.Configurations);
+                    if (argument.HasConfigurations)
+                    {
+                        configs ??= new();
+                        configs.AddRange(argument.Configurations);
+                    }
                 }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
         internal IReadOnlyList<Type> GetKnownClrTypes()

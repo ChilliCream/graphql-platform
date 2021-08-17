@@ -9,90 +9,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class ConnectionType<T>
-        : ObjectType<Connection>
-        , IPageType
-        where T : class, IOutputType
-    {
-        public ConnectionType()
-        {
-        }
-
-        public ConnectionType(Action<IObjectTypeDescriptor<Connection>> configure)
-            : base(descriptor =>
-            {
-                ApplyConfig(descriptor);
-                configure(descriptor);
-            })
-        {
-        }
-
-        public IEdgeType EdgeType { get; private set; } = default!;
-
-        IOutputType IPageType.ItemType => EdgeType;
-
-        protected override void Configure(IObjectTypeDescriptor<Connection> descriptor) =>
-            ApplyConfig(descriptor);
-
-        protected static void ApplyConfig(IObjectTypeDescriptor<Connection> descriptor)
-        {
-            descriptor
-                .Name(dependency => $"{dependency.Name}Connection")
-                .DependsOn<T>()
-                .Description("A connection to a list of items.")
-                .BindFields(BindingBehavior.Explicit);
-
-            descriptor
-                .Field(t => t.Info)
-                .Name("pageInfo")
-                .Description("Information to aid in pagination.")
-                .Type<NonNullType<PageInfoType>>();
-
-            descriptor
-                .Field(t => t.Edges)
-                .Name("edges")
-                .Description("A list of edges.")
-                .Type<ListType<NonNullType<EdgeType<T>>>>();
-
-            descriptor
-                .Field(t => t.Edges.Select(t => t.Node))
-                .Name("nodes")
-                .Description("A flattened list of the nodes.")
-                .Type<ListType<T>>()
-                .Resolve(ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node))
-                .Extend()
-                .OnBeforeCreate(
-                    d => d.PureResolver =
-                        ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node));
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependency(
-                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)),
-                TypeDependencyKind.Default);
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            EdgeType = context.GetType<EdgeType<T>>(
-                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)));
-        }
-    }
-
     public class ConnectionType : ObjectType, IPageType
     {
-        private const string _edgesField = "HotChocolate.Types.Connection.Edges";
-        private const string _nodesField = "HotChocolate.Types.Connection.Nodes";
-
         internal ConnectionType(
             NameString connectionName,
             ITypeReference nodeType,
@@ -104,14 +22,16 @@ namespace HotChocolate.Types.Pagination
             }
 
             ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
+            NameString edgeTypeName = NameHelper.CreateEdgeName(connectionName);
 
-            SyntaxTypeReference edgeType =
+            SyntaxTypeReference edgesType =
                 TypeReference.Parse(
-                    $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
+                    $"[{edgeTypeName}!]",
                     TypeContext.Output,
-                    factory: _ => new EdgeType(ConnectionName, nodeType));
+                    factory: _ => new EdgeType(connectionName, nodeType));
 
-            Definition = CreateTypeDefinition(withTotalCount, edgeType);
+            Definition = CreateTypeDefinition(withTotalCount, edgesType);
+            Definition.Name = NameHelper.CreateConnectionName(connectionName);
             Definition.Dependencies.Add(new(nodeType));
             Definition.Configurations.Add(
                 new CompleteConfiguration(
@@ -127,6 +47,11 @@ namespace HotChocolate.Types.Pagination
                     ApplyConfigurationOn.Naming,
                     nodeType,
                     TypeDependencyKind.Named));
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, _) => EdgeType = c.GetType<IEdgeType>(TypeReference.Create(edgeTypeName)),
+                    Definition,
+                    ApplyConfigurationOn.Completion));
         }
 
         internal ConnectionType(ITypeReference nodeType, bool withTotalCount)
@@ -136,14 +61,16 @@ namespace HotChocolate.Types.Pagination
                 throw new ArgumentNullException(nameof(nodeType));
             }
 
-            SyntaxTypeReference edgeType =
-                TypeReference.Parse(
-                    $"Temp_{Guid.NewGuid():N}",
-                    TypeContext.Output,
-                    factory: _ => new EdgeType(nodeType));
+            DependantFactoryTypeReference edgeType =
+                TypeReference.Create(
+                    ContextDataKeys.EdgeType,
+                    nodeType,
+                    _ => new EdgeType(nodeType),
+                    TypeContext.Output);
 
             Definition = CreateTypeDefinition(withTotalCount);
             Definition.Dependencies.Add(new(nodeType));
+            Definition.Dependencies.Add(new(edgeType));
             Definition.NeedsNameCompletion = true;
 
             Definition.Configurations.Add(
@@ -157,9 +84,11 @@ namespace HotChocolate.Types.Pagination
                         ObjectFieldDefinition edges = definition.Fields.First(IsEdgesField);
                         ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
 
+                        definition.Name = NameHelper.CreateConnectionName(ConnectionName);
                         edges.Type = TypeReference.Parse(
                             $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
-                            TypeContext.Output);;
+                            TypeContext.Output);
+                        ;
                         nodes.Type = TypeReference.Parse(
                             $"[{type.Print()}]",
                             TypeContext.Output);
@@ -168,13 +97,24 @@ namespace HotChocolate.Types.Pagination
                     ApplyConfigurationOn.Naming,
                     nodeType,
                     TypeDependencyKind.Named));
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, _) =>
+                    {
+                        EdgeType = c.GetType<IEdgeType>(edgeType);
+                    },
+                    Definition,
+                    ApplyConfigurationOn.Completion));
         }
 
         /// <summary>
         /// Gets the connection name of this connection type.
         /// </summary>
-        public NameString ConnectionName { get; private set; } = default!;
+        public NameString ConnectionName { get; private set; }
 
+        /// <summary>
+        /// Gets the edge type of this connection.
+        /// </summary>
         public IEdgeType EdgeType { get; private set; } = default!;
 
         IOutputType IPageType.ItemType => EdgeType;
@@ -191,29 +131,6 @@ namespace HotChocolate.Types.Pagination
             base.OnBeforeRegisterDependencies(context, definition, contextData);
         }
 
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            EdgeType = context.GetType<IEdgeType>(
-                TypeReference.Create(
-                    NameHelper.CreateEdgeName(ConnectionName),
-                    TypeContext.Output));
-
-            ObjectFieldDefinition edges = definition.Fields.First(IsEdgesField);
-
-            ObjectFieldDefinition nodes = definition.Fields.First(IsNodesField);
-
-
-
-            base.OnCompleteType(context, definition);
-        }
-
-        private NameString CreateConnectionNameFromNodeType(
-            ITypeCompletionContext context,
-            ITypeReference nodeType)
-            => context.GetType<IType>(nodeType).NamedType().Name;
-
         private static ObjectTypeDefinition CreateTypeDefinition(
             bool withTotalCount,
             ITypeReference? edgesType = null)
@@ -224,29 +141,29 @@ namespace HotChocolate.Types.Pagination
                 typeof(Connection));
 
             definition.Fields.Add(new(
-                "pageInfo",
+                Names.PageInfo,
                 "Information to aid in pagination.",
                 TypeReference.Parse("PageInfo!"),
                 pureResolver: GetPagingInfo));
 
             definition.Fields.Add(new(
-                "edges",
+                Names.Edges,
                 "A list of edges.",
                 edgesType,
                 pureResolver: GetEdges)
-            { CustomSettings = { _edgesField } });
+            { CustomSettings = { ContextDataKeys.Edges } });
 
             definition.Fields.Add(new(
-                "nodes",
+                Names.Nodes,
                 "A flattened list of the nodes.",
                 pureResolver: GetNodes)
-            { CustomSettings = { _nodesField } });
+            { CustomSettings = { ContextDataKeys.Nodes } });
 
             if (withTotalCount)
             {
                 definition.Fields.Add(new(
-                    "totalCount",
-                    type: TypeReference.Parse("Int!"),
+                    Names.TotalCount,
+                    type: TypeReference.Parse($"{ScalarNames.Int}!"),
                     resolver: GetTotalCountAsync));
             }
 
@@ -254,10 +171,12 @@ namespace HotChocolate.Types.Pagination
         }
 
         private static bool IsEdgesField(ObjectFieldDefinition field)
-            => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(_edgesField);
+            => field.CustomSettings.Count > 0 && 
+               field.CustomSettings[0].Equals(ContextDataKeys.Edges);
 
         private static bool IsNodesField(ObjectFieldDefinition field)
-            => field.CustomSettings.Count > 0 && field.CustomSettings[0].Equals(_nodesField);
+            => field.CustomSettings.Count > 0 && 
+               field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
 
         private static IPageInfo GetPagingInfo(IPureResolverContext context)
             => context.Parent<Connection>().Info;
@@ -270,14 +189,20 @@ namespace HotChocolate.Types.Pagination
 
         private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
             => await context.Parent<Connection>().GetTotalCountAsync(context.RequestAborted);
-    }
 
-    internal static class NameHelper
-    {
-        public static string CreateConnectionName(NameString connectionName)
-            => connectionName + "Connection";
+        private static class Names
+        {
+            public const string PageInfo = "pageInfo";
+            public const string Edges = "edges";
+            public const string Nodes = "nodes";
+            public const string TotalCount = "totalCount";
+        }
 
-        public static string CreateEdgeName(NameString connectionName)
-            => connectionName + "Edge";
+        private static class ContextDataKeys
+        {
+            public const string EdgeType = "HotChocolate_Types_Edge";
+            public const string Edges = "HotChocolate.Types.Connection.Edges";
+            public const string Nodes = "HotChocolate.Types.Connection.Nodes";
+        }
     }
 }

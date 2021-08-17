@@ -1,59 +1,12 @@
 using System;
-using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class EdgeType<T>
-        : ObjectType<IEdge>
-        , IEdgeType
-        where T : class, IOutputType
-    {
-        public IOutputType NodeType { get; private set; } = default!;
-
-        [Obsolete("Use NodeType.")]
-        public IOutputType EntityType => NodeType;
-
-        protected override void Configure(
-            IObjectTypeDescriptor<IEdge> descriptor)
-        {
-            descriptor
-                .Name(dependency => dependency.Name + "Edge")
-                .DependsOn<T>()
-                .Description("An edge in a connection.")
-                .BindFields(BindingBehavior.Explicit);
-
-            descriptor
-                .Field(t => t.Cursor)
-                .Name("cursor")
-                .Description("A cursor for use in pagination.")
-                .Type<NonNullType<StringType>>();
-
-            descriptor
-                .Field(t => t.Node)
-                .Name("node")
-                .Description("The item at the end of the edge.")
-                .Type<T>();
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            NodeType = context.GetType<IOutputType>(
-                context.TypeInspector.GetTypeRef(typeof(T)));
-        }
-    }
-
     internal sealed class EdgeType : ObjectType, IEdgeType
     {
-        private static readonly string _nodeTag = Guid.NewGuid().ToString("N");
-
         internal EdgeType(
             NameString connectionName,
             ITypeReference nodeType)
@@ -64,36 +17,46 @@ namespace HotChocolate.Types.Pagination
             }
 
             ConnectionName = connectionName.EnsureNotEmpty(nameof(connectionName));
-
-            Definition = new(
-                connectionName + "Edge",
-                "An edge in a connection.",
-                typeof(IEdge));
-
-            Definition.Fields.Add(new(
-                "cursor",
-                "A cursor for use in pagination.",
-                TypeReference.Parse("String!"),
-                pureResolver: GetCursor));
-
-            Definition.Fields.Add(new(
-                "node",
-                "The item at the end of the edge.",
-                nodeType,
-                pureResolver: GetNode)
-            {
-                CustomSettings = { _nodeTag }
-            });
+            Definition = CreateTypeDefinition(nodeType);
+            Definition.Name = NameHelper.CreateEdgeName(connectionName);
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
+                    Definition,
+                    ApplyConfigurationOn.Completion));
         }
 
         internal EdgeType(ITypeReference nodeType)
         {
+            if (nodeType is null)
+            {
+                throw new ArgumentNullException(nameof(nodeType));
+            }
+
+            Definition = CreateTypeDefinition(nodeType);
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, d) =>
+                    {
+                        IType type = c.GetType<IType>(nodeType);
+                        ConnectionName = type.NamedType().Name;
+                        ((ObjectTypeDefinition)d).Name = NameHelper.CreateEdgeName(ConnectionName);
+                    },
+                    Definition,
+                    ApplyConfigurationOn.Naming,
+                    nodeType,
+                    TypeDependencyKind.Named));
+            Definition.Configurations.Add(
+                new CompleteConfiguration(
+                    (c, _) => NodeType = c.GetType<IOutputType>(nodeType),
+                    Definition,
+                    ApplyConfigurationOn.Completion));
         }
 
         /// <summary>
         /// Gets the connection name of this connection type.
         /// </summary>
-        public NameString ConnectionName { get; }
+        public NameString ConnectionName { get; private set; }
 
         /// <inheritdoc />
         public IOutputType NodeType { get; private set; } = default!;
@@ -102,16 +65,7 @@ namespace HotChocolate.Types.Pagination
         [Obsolete("Use NodeType.")]
         public IOutputType EntityType => NodeType;
 
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            NodeType = context.GetType<IOutputType>(
-                definition.Fields.First(IsNodeField).Type!);
-        }
-
+        /// <inheritdoc />
         public override bool IsInstanceOfType(IResolverContext context, object resolverResult)
         {
             if (resolverResult is IEdge { Node: not null } edge)
@@ -136,30 +90,39 @@ namespace HotChocolate.Types.Pagination
             return false;
         }
 
-        private static string? GetCursor(IPureResolverContext context)
+        private static ObjectTypeDefinition CreateTypeDefinition(ITypeReference nodeType)
+        {
+            // TODO : RESOURCES
+            var definition = new ObjectTypeDefinition(
+                default,
+                "An edge in a connection.",
+                typeof(IEdge));
+
+            definition.Fields.Add(new(
+                Names.Cursor,
+                "A cursor for use in pagination.",
+                TypeReference.Parse($"{ScalarNames.String}!"),
+                pureResolver: GetCursor));
+
+            definition.Fields.Add(new(
+                Names.Node,
+                "The item at the end of the edge.",
+                nodeType,
+                pureResolver: GetNode));
+
+            return definition;
+        }
+
+        private static string GetCursor(IPureResolverContext context)
             => context.Parent<IEdge>().Cursor;
 
         private static object? GetNode(IPureResolverContext context)
             => context.Parent<IEdge>().Node;
 
-        private static bool IsNodeField(ObjectFieldDefinition definition)
+        private static class Names
         {
-            var customSettings = definition.GetCustomSettings();
-
-            if (customSettings.Count == 0)
-            {
-                return false;
-            }
-
-            foreach (object obj in customSettings)
-            {
-                if (ReferenceEquals(obj, _nodeTag))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            public const string Cursor = "cursor";
+            public const string Node = "node";
         }
     }
 }

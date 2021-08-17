@@ -10,9 +10,10 @@ namespace HotChocolate.Configuration
     internal interface ITypeRegistrar
     {
         void Register(
-            TypeSystemObjectBase typeSystemObject,
+            TypeSystemObjectBase obj,
             string? scope,
-            bool isInferred = false);
+            bool inferred = false,
+            Action<RegisteredType>? configure = null);
 
         void MarkUnresolved(ITypeReference typeReference);
 

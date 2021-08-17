@@ -6,7 +6,31 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public sealed class CompleteConfiguration : ITypeSystemMemberConfiguration
+    public sealed class CompleteConfiguration<TDefinition>
+        : CompleteConfiguration
+        where TDefinition : IDefinition
+    {
+        public CompleteConfiguration(
+            Action<ITypeCompletionContext, TDefinition> configure,
+            TDefinition owner,
+            ApplyConfigurationOn on,
+            ITypeReference? typeReference = null,
+            TypeDependencyKind kind = TypeDependencyKind.Default)
+            : base((c, d) => configure(c, (TDefinition)d), owner, on, typeReference, kind)
+        {
+        }
+
+        public CompleteConfiguration(
+            Action<ITypeCompletionContext, TDefinition> configure,
+            TDefinition owner,
+            ApplyConfigurationOn on,
+            IEnumerable<TypeDependency> dependencies)
+            : base((c, d) => configure(c, (TDefinition)d), owner, @on, dependencies)
+        {
+        }
+    }
+
+    public class CompleteConfiguration : ITypeSystemMemberConfiguration
     {
         private readonly Action<ITypeCompletionContext, IDefinition> _configure;
         private List<TypeDependency>? _dependencies;
@@ -43,7 +67,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 throw new ArgumentOutOfRangeException(nameof(on));
             }
-            
+
             if (dependencies is null)
             {
                 throw new ArgumentNullException(nameof(dependencies));

@@ -33,10 +33,10 @@ namespace HotChocolate.Types.Pagination
             ObjectFieldDefinition definition = descriptor.Extend().Definition;
             definition.MiddlewareDefinitions.Add(placeholder);
             definition.Configurations.Add(
-                new CompleteConfiguration(
+                new CompleteConfiguration<ObjectFieldDefinition>(
                     (c, d) => ApplyConfiguration(
                         c,
-                        (ObjectFieldDefinition)d,
+                        d,
                         entityType,
                         resolvePagingProvider,
                         options,

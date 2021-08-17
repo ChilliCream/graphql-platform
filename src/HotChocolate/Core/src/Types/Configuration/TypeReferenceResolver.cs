@@ -98,6 +98,10 @@ namespace HotChocolate.Configuration
                     type = CreateType(namedType, r.Type);
                     return true;
 
+                case DependantFactoryTypeReference reference:
+                    type = namedType;
+                    return true;
+
                 default:
                     throw new NotSupportedException();
             }
@@ -158,6 +162,7 @@ namespace HotChocolate.Configuration
                     return new TypeId(namedTypeRef, CreateFlags(r.Type));
 
                 case SchemaTypeReference:
+                case DependantFactoryTypeReference:
                     return new TypeId(namedTypeRef, 1);
 
                 default:

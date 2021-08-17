@@ -39,32 +39,34 @@ namespace HotChocolate.Configuration
         }
 
         public void Register(
-            TypeSystemObjectBase typeSystemObject,
+            TypeSystemObjectBase obj,
             string? scope,
-            bool isInferred = false)
+            bool inferred = false,
+            Action<RegisteredType>? configure = null)
         {
-            if (typeSystemObject is null)
+            if (obj is null)
             {
-                throw new ArgumentNullException(nameof(typeSystemObject));
+                throw new ArgumentNullException(nameof(obj));
             }
 
-            RegisteredType registeredType = InitializeType(typeSystemObject, scope, isInferred);
+            RegisteredType registeredType = InitializeType(obj, scope, inferred);
+
+            configure?.Invoke(registeredType);
 
             if (registeredType.References.Count > 0)
             {
                 RegisterTypeAndResolveReferences(registeredType);
 
-                if (typeSystemObject is IHasRuntimeType hasRuntimeType
+                if (obj is IHasRuntimeType hasRuntimeType
                     && hasRuntimeType.RuntimeType != typeof(object))
                 {
                     ExtendedTypeReference runtimeTypeRef =
                         _context.TypeInspector.GetTypeRef(
                             hasRuntimeType.RuntimeType,
-                            SchemaTypeReference.InferTypeContext(typeSystemObject),
-                            scope: scope);
+                            SchemaTypeReference.InferTypeContext(obj),
+                            scope);
 
-                    var explicitBind = typeSystemObject is ScalarType scalar
-                        && scalar.Bind == BindingBehavior.Explicit;
+                    var explicitBind = obj is ScalarType { Bind: BindingBehavior.Explicit };
 
                     if (!explicitBind)
                     {

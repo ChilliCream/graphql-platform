@@ -5,25 +5,25 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
+    internal sealed class DependantFactoryTypeReferenceHandler : ITypeRegistrarHandler
     {
-        private readonly HashSet<string> _handled = new();
+        private readonly HashSet<DependantFactoryTypeReference> _handled = new();
         private readonly IDescriptorContext _context;
 
-        public FactoryTypeReferenceHandler(IDescriptorContext context)
+        public DependantFactoryTypeReferenceHandler(IDescriptorContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public TypeReferenceKind Kind => TypeReferenceKind.Factory;
+        public TypeReferenceKind Kind => TypeReferenceKind.DependantFactory;
 
         public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
         {
-            var typeRef = (SyntaxTypeReference)typeReference;
+            var typeRef = (DependantFactoryTypeReference)typeReference;
 
-            if (_handled.Add(typeRef.Name))
+            if (_handled.Add(typeRef))
             {
-                TypeSystemObjectBase obj = typeRef.Factory!(_context);
+                TypeSystemObjectBase obj = typeRef.Factory(_context);
                 typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
             }
 

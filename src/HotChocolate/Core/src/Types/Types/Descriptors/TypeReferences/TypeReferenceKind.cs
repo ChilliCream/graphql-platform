@@ -26,6 +26,11 @@ namespace HotChocolate.Types.Descriptors
         /// The type reference is represented by a <see cref="ITypeNode"/> and
         /// contains a factory to create the type.
         /// </summary>
-        Factory = 3
+        Factory = 3,
+
+        /// <summary>
+        /// The type reference refers to a type that is dependant on another type.
+        /// </summary>
+        DependantFactory = 4
     }
 }
