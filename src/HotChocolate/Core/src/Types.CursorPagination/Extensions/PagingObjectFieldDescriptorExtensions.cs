@@ -86,9 +86,7 @@ namespace HotChocolate.Types
                     PagingOptions pagingOptions = c.GetSettings(options);
                     var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
 
-                    var field = ObjectFieldDescriptor.From(c, d);
-                    field.AddPagingArguments(backward);
-                    field.CreateDefinition();
+                    CreatePagingArguments(d.Arguments, backward);
 
                     if (connectionName is null or { IsEmpty: true })
                     {
@@ -139,9 +137,7 @@ namespace HotChocolate.Types
                     PagingOptions pagingOptions = c.GetSettings(options);
                     var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
 
-                    var field = InterfaceFieldDescriptor.From(c, d);
-                    field.AddPagingArguments(backward);
-                    field.CreateDefinition();
+                    CreatePagingArguments(d.Arguments, backward);
 
                     if (connectionName is null or { IsEmpty: true })
                     {

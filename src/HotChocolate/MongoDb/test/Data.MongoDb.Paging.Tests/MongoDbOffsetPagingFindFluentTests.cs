@@ -193,7 +193,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                                         context.ContextData["query"] = executable.Print();
                                     }
                                 })
-                            .UseMongoDbOffsetPaging<ObjectType<Foo>>(
+                            .UseOffsetPaging<ObjectType<Foo>>(
                                 options: new PagingOptions { IncludeTotalCount = true });
                     })
                 .UseRequest(

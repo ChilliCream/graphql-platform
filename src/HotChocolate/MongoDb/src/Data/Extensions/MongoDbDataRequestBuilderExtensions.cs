@@ -1,5 +1,7 @@
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.MongoDb;
+using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Types.Pagination;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -14,6 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -28,6 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -42,6 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -49,5 +54,13 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             string? name = null) =>
             builder.ConfigureSchema(s => s.AddMongoDbProjections(name));
+
+        public static IRequestExecutorBuilder AddMongoDbPagingProviders(
+            this IRequestExecutorBuilder builder)
+        {
+            builder.Services.AddSingleton<CursorPagingProvider, MongoDbCursorPagingProvider>();
+            builder.Services.AddSingleton<OffsetPagingProvider, MongoDbOffsetPagingProvider>();
+            return builder;
+        }
     }
 }

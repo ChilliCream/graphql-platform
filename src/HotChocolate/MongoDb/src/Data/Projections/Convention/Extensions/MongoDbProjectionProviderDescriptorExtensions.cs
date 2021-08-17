@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Projections;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Projections.Handlers;

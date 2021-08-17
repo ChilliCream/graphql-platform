@@ -143,6 +143,11 @@ namespace HotChocolate.Types
         /// </summary>
         private static bool IsDataResolver(ObjectFieldDefinition field)
         {
+            if (field.PureResolver is not null && field.MiddlewareDefinitions.Count == 0)
+            {
+                return false;
+            }
+
             if (field.Resolver is not null)
             {
                 return true;

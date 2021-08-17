@@ -13,7 +13,7 @@ type NamesConnection {
   "A list of edges."
   edges: [NamesEdge!]
   "A flattened list of the nodes."
-  nodes: String!
+  nodes: [String!]
 }
 
 "An edge in a connection."

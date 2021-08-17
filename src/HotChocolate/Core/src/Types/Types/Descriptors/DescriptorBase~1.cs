@@ -123,7 +123,7 @@ namespace HotChocolate.Types.Descriptors
             var configuration = new CompleteConfiguration(
                 (c, d) => configure(c, (T)d),
                 Definition,
-                ApplyConfigurationOn.Completion);
+                ApplyConfigurationOn.Naming);
 
             Definition.Configurations.Add(configuration);
 
