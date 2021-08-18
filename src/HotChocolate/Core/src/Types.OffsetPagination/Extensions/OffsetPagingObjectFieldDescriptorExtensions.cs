@@ -90,7 +90,7 @@ namespace HotChocolate.Types
             PagingHelper.UsePaging(
                 descriptor,
                 itemType,
-                (services, source) => resolvePagingProvider(services, source),
+                (services, source, name) => resolvePagingProvider(services, source, name),
                 options);
 
             descriptor
@@ -228,14 +228,32 @@ namespace HotChocolate.Types
 
         private static OffsetPagingProvider ResolvePagingProvider(
             IServiceProvider services,
-            IExtendedType source)
+            IExtendedType source,
+            string? providerName)
         {
             try
             {
-                if (services.GetService<IEnumerable<OffsetPagingProvider>>() is { } providers &&
-                    providers.FirstOrDefault(p => p.CanHandle(source)) is { } provider)
+                Func<PagingProviderEntry, bool> predicate =
+                    providerName is null
+                        ? entry => entry.Provider.CanHandle(source)
+                        : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
+                PagingProviderEntry? defaultEntry = null;
+
+
+                foreach (var entry in services.GetServices<PagingProviderEntry>())
                 {
-                    return provider;
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+
+                if (defaultEntry is not null)
+                {
+                    return defaultEntry.Provider;
                 }
             }
             catch (InvalidOperationException)
@@ -244,6 +262,7 @@ namespace HotChocolate.Types
                 // in this case we will ignore the exception and return the default provider.
             }
 
+            // if no provider was added we will fallback to the queryable paging provider.
             return new QueryableOffsetPagingProvider();
         }
     }

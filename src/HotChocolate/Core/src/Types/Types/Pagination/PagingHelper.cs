@@ -38,6 +38,7 @@ namespace HotChocolate.Types.Pagination
                         c,
                         d,
                         entityType,
+                        options.ProviderName,
                         resolvePagingProvider,
                         options,
                         placeholder),
@@ -51,17 +52,17 @@ namespace HotChocolate.Types.Pagination
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             Type? entityType,
-            GetPagingProvider? resolvePagingProvider,
+            string? name,
+            GetPagingProvider resolvePagingProvider,
             PagingOptions options,
             FieldMiddlewareDefinition placeholder)
         {
             options = context.GetSettings(options);
             entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
-            resolvePagingProvider ??= ResolvePagingProvider;
 
-            IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, entityType);
-            IPagingProvider pagingProvider = resolvePagingProvider(context.Services, sourceType);
-            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
+            IExtendedType source = GetSourceType(context.TypeInspector, definition, entityType);
+            IPagingProvider pagingProvider = resolvePagingProvider(context.Services, source, name);
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(source, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
 
             var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
@@ -177,10 +178,5 @@ namespace HotChocolate.Types.Pagination
 
             return options;
         }
-
-        private static IPagingProvider ResolvePagingProvider(
-            IServiceProvider services,
-            IExtendedType source) =>
-            services.GetServices<IPagingProvider>().First(p => p.CanHandle(source));
     }
 }

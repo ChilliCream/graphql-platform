@@ -14,10 +14,14 @@ namespace HotChocolate.Types
     /// <param name="sourceType">
     /// The source type.
     /// </param>
+    /// <param name="providerName">
+    /// The paging provider name that shall be selected.
+    /// </param>
     /// <returns>
     /// Returns a paging provider for the specified <paramref name="sourceType"/>.
     /// </returns>
     public delegate OffsetPagingProvider GetOffsetPagingProvider(
         IServiceProvider services,
-        IExtendedType sourceType);
+        IExtendedType sourceType,
+        string? providerName);
 }

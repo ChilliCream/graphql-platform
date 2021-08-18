@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Types.Pagination
 {
     /// <summary>
@@ -33,10 +35,15 @@ namespace HotChocolate.Types.Pagination
         public bool? RequirePagingBoundaries { get; set; }
 
         /// <summary>
-        /// Connection names are by default inferred from the field name to 
+        /// Connection names are by default inferred from the field name to
         /// which they are bound to as opposed to the node type name.
         /// </summary>
         public bool? InferConnectionNameFromField { get; set; }
+
+        /// <summary>
+        /// The name of the paging provider that shall be used.
+        /// </summary>
+        public string? ProviderName { get; set; }
 
         /// <summary>
         /// Merges the <paramref name="other"/> options into this options instance wherever
@@ -53,6 +60,7 @@ namespace HotChocolate.Types.Pagination
             AllowBackwardPagination ??= other.AllowBackwardPagination;
             RequirePagingBoundaries ??= other.RequirePagingBoundaries;
             InferConnectionNameFromField ??= other.InferConnectionNameFromField;
+            ProviderName ??= other.ProviderName;
         }
 
         /// <summary>
@@ -66,7 +74,8 @@ namespace HotChocolate.Types.Pagination
                 IncludeTotalCount = IncludeTotalCount,
                 AllowBackwardPagination = AllowBackwardPagination,
                 RequirePagingBoundaries = RequirePagingBoundaries,
-                InferConnectionNameFromField = InferConnectionNameFromField
+                InferConnectionNameFromField = InferConnectionNameFromField,
+                ProviderName = ProviderName
             };
     }
 }

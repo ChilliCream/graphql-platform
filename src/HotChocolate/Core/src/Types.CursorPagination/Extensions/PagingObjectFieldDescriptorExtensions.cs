@@ -22,10 +22,10 @@ namespace HotChocolate.Types
             PagingOptions options = default)
             where TNodeType : class, IOutputType =>
             UsePaging<TNodeType>(
-                descriptor, 
-                typeof(TEntity), 
-                resolvePagingProvider, 
-                connectionName, 
+                descriptor,
+                typeof(TEntity),
+                resolvePagingProvider,
+                connectionName,
                 options);
 
         public static IObjectFieldDescriptor UsePaging<TNodeType>(
@@ -36,31 +36,16 @@ namespace HotChocolate.Types
             PagingOptions options = default)
             where TNodeType : class, IOutputType =>
             UsePaging(
-                descriptor, 
-                typeof(TNodeType), 
-                entityType, 
-                resolvePagingProvider, 
+                descriptor,
+                typeof(TNodeType),
+                entityType,
+                resolvePagingProvider,
                 connectionName,
                 options);
 
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
             Type? nodeType = null,
-            Type? entityType = null,
-            GetCursorPagingProvider? resolvePagingProvider = null,
-            NameString? connectionName = null,
-            PagingOptions options = default)
-            => UsePagingInternal(
-                descriptor, 
-                nodeType, 
-                entityType, 
-                resolvePagingProvider, 
-                connectionName,
-                options);
-
-        private static IObjectFieldDescriptor UsePagingInternal(
-            this IObjectFieldDescriptor descriptor,
-            object? nodeType = null,
             Type? entityType = null,
             GetCursorPagingProvider? resolvePagingProvider = null,
             NameString? connectionName = null,
@@ -76,7 +61,7 @@ namespace HotChocolate.Types
             PagingHelper.UsePaging(
                 descriptor,
                 entityType,
-                (services, source) => resolvePagingProvider(services, source),
+                (services, source, name) => resolvePagingProvider(services, source, name),
                 options);
 
             descriptor
@@ -97,12 +82,9 @@ namespace HotChocolate.Types
                                 : null;
                     }
 
-                    ITypeReference? typeRef = nodeType switch
-                    {
-                        Type type => c.TypeInspector.GetTypeRef(type),
-                        ITypeReference typeReference => typeReference,
-                        _ => null
-                    };
+                    ITypeReference? typeRef = nodeType is not null
+                        ? c.TypeInspector.GetTypeRef(nodeType)
+                        : null;
 
                     MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                     d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
@@ -148,7 +130,7 @@ namespace HotChocolate.Types
                                 : null;
                     }
 
-                    ITypeReference? typeRef = nodeType is not null 
+                    ITypeReference? typeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
 
@@ -265,14 +247,32 @@ namespace HotChocolate.Types
 
         private static CursorPagingProvider ResolvePagingProvider(
             IServiceProvider services,
-            IExtendedType source)
+            IExtendedType source,
+            string? providerName)
         {
             try
             {
-                if (services.GetService<IEnumerable<CursorPagingProvider>>() is { } providers &&
-                    providers.FirstOrDefault(p => p.CanHandle(source)) is { } provider)
+                Func<PagingProviderEntry, bool> predicate =
+                    providerName is null
+                        ? entry => entry.Provider.CanHandle(source)
+                        : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
+                PagingProviderEntry? defaultEntry = null;
+
+
+                foreach (var entry in services.GetServices<PagingProviderEntry>())
                 {
-                    return provider;
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+
+                if (defaultEntry is not null)
+                {
+                    return defaultEntry.Provider;
                 }
             }
             catch (InvalidOperationException)
@@ -281,6 +281,7 @@ namespace HotChocolate.Types
                 // in this case we will ignore the exception and return the default provider.
             }
 
+            // if no provider was added we will fallback to the queryable paging provider.
             return new QueryableCursorPagingProvider();
         }
 
@@ -299,8 +300,8 @@ namespace HotChocolate.Types
                     connectionName.Value + "Connection",
                     TypeContext.Output,
                     factory: _ => new ConnectionType(
-                        connectionName.Value, 
-                        nodeType, 
+                        connectionName.Value,
+                        nodeType,
                         withTotalCount));
         }
 

@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
@@ -55,11 +56,39 @@ namespace Microsoft.Extensions.DependencyInjection
             string? name = null) =>
             builder.ConfigureSchema(s => s.AddMongoDbProjections(name));
 
+        /// <summary>
+        /// Adds the MongoDB cursor and offset paging providers.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="providerName">
+        /// The name which shall be used to refer to this registration.
+        /// </param>
+        /// <param name="defaultProvider">
+        /// Defines if these providers shall be registered as default providers.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder for further configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddMongoDbPagingProviders(
-            this IRequestExecutorBuilder builder)
+            this IRequestExecutorBuilder builder,
+            string? providerName = null,
+            bool defaultProvider = false)
         {
-            builder.Services.AddSingleton<CursorPagingProvider, MongoDbCursorPagingProvider>();
-            builder.Services.AddSingleton<OffsetPagingProvider, MongoDbOffsetPagingProvider>();
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.AddCursorPagingProvider<MongoDbCursorPagingProvider>(
+                providerName,
+                defaultProvider);
+
+            builder.AddOffsetPagingProvider<MongoDbOffsetPagingProvider>(
+                providerName,
+                defaultProvider);
+
             return builder;
         }
     }
