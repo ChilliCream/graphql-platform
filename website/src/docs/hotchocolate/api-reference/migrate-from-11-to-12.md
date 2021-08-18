@@ -93,7 +93,7 @@ public class Person
 }
 ```
 
-## MongoDB Paging
+### MongoDB Paging
 
 In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
 
