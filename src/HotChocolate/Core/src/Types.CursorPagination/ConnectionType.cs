@@ -10,6 +10,9 @@ using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// The connection type.
+    /// </summary>
     internal class ConnectionType
         : ObjectType
         , IConnectionType
