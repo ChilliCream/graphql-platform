@@ -17,8 +17,6 @@ namespace HotChocolate.Types
         private TDefinition? _definition;
         private ExtensionData? _contextData;
 
-        protected TypeSystemObjectBase() { }
-
         public override IReadOnlyDictionary<string, object?> ContextData
         {
             get
@@ -178,12 +176,14 @@ namespace HotChocolate.Types
         private static void ExecuteConfigurations(
             ITypeCompletionContext context,
             TDefinition definition,
-            ApplyConfigurationOn kind)
+            ApplyConfigurationOn on)
         {
-            foreach (ILazyTypeConfiguration configuration in
-                definition.GetConfigurations().Where(t => t.On == kind))
+            foreach (ITypeSystemMemberConfiguration config in definition.GetConfigurations())
             {
-                configuration.Configure(context);
+                if (config.On == on)
+                {
+                    ((CompleteConfiguration)config).Configure(context);
+                }
             }
         }
 

@@ -10,8 +10,7 @@ namespace HotChocolate.Data.MongoDb.Projections
         : ProjectionVisitorTestBase
         , IDisposable
     {
-        private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache =
-            new ConcurrentDictionary<(Type, object), IRequestExecutor>();
+        private readonly ConcurrentDictionary<(Type, object), IRequestExecutor> _cache = new();
 
         private readonly MongoResource _resource;
 
@@ -30,7 +29,7 @@ namespace HotChocolate.Data.MongoDb.Projections
             (Type, T[] entites) key = (typeof(T), entities);
             return _cache.GetOrAdd(
                 key,
-                k => base.CreateSchema(
+                _ => base.CreateSchema(
                     entities,
                     usePaging: usePaging,
                     useOffsetPaging: useOffsetPaging,

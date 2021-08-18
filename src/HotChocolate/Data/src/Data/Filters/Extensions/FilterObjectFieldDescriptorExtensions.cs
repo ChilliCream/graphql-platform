@@ -177,31 +177,26 @@ namespace HotChocolate.Types
                         definition.Arguments.Add(argumentDefinition);
 
                         definition.Configurations.Add(
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (ctx, d) =>
-                                        CompileMiddleware(
-                                            ctx,
-                                            d,
-                                            argumentTypeReference,
-                                            placeholder,
-                                            scope))
-                                .On(ApplyConfigurationOn.Completion)
-                                .DependsOn(argumentTypeReference, true)
-                                .Build());
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (ctx, d) =>
+                                    CompileMiddleware(
+                                        ctx,
+                                        d,
+                                        argumentTypeReference,
+                                        placeholder,
+                                        scope),
+                                definition,
+                                ApplyConfigurationOn.Completion,
+                                argumentTypeReference,
+                                TypeDependencyKind.Completed));
 
                         argumentDefinition.Configurations.Add(
-                            LazyTypeConfigurationBuilder
-                                .New<ArgumentDefinition>()
-                                .Definition(argumentDefinition)
-                                .Configure(
-                                    (context, argDef) =>
-                                        argDef.Name =
-                                            context.GetFilterConvention(scope).GetArgumentName())
-                                .On(ApplyConfigurationOn.Naming)
-                                .Build());
+                            new CompleteConfiguration<ArgumentDefinition>(
+                                (context, argDef) =>
+                                    argDef.Name =
+                                        context.GetFilterConvention(scope).GetArgumentName(),
+                                argumentDefinition,
+                                ApplyConfigurationOn.Naming));
                     });
 
             return descriptor;

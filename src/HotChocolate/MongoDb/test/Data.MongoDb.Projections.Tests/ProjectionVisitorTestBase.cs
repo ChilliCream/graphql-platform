@@ -48,6 +48,7 @@ namespace HotChocolate.Data.MongoDb.Projections
                 .AddMongoDbProjections()
                 .AddMongoDbFiltering()
                 .AddMongoDbSorting()
+                .AddMongoDbPagingProviders()
                 .AddQueryType(
                     new ObjectType<StubObject<TEntity>>(
                         c =>
@@ -88,12 +89,12 @@ namespace HotChocolate.Data.MongoDb.Projections
         {
             if (usePaging)
             {
-                descriptor.UseMongoDbPaging<ObjectType<TEntity>>();
+                descriptor.UsePaging<ObjectType<TEntity>>();
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseMongoDbOffsetPaging<ObjectType<TEntity>>();
+                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
             }
 
             descriptor

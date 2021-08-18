@@ -161,7 +161,7 @@ namespace HotChocolate.Types
         /// Defines if instances of this directive type are publicly visible through introspection.
         /// </summary>
         internal bool IsPublic { get; private set; }
-
+        
         protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             try

@@ -1,10 +1,21 @@
 using System.Collections.Generic;
-using HotChocolate.Configuration;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public interface ILazyTypeConfiguration
+    /// <summary>
+    /// A configuration object that is applied to a type system member at a certain event
+    /// during the type system initialization.
+    /// </summary>
+    public interface ITypeSystemMemberConfiguration
     {
+        /// <summary>
+        /// The definition of the type system member that shall be configured.
+        /// </summary>
+        /// <value></value>
+        IDefinition Owner { get; }
+
         /// <summary>
         /// Defines on which type initialization step this
         /// configurations is applied on.
@@ -18,9 +29,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         IReadOnlyList<TypeDependency> Dependencies { get; }
 
         /// <summary>
-        /// Executes this configuration.
+        /// Adds an additional type dependency.
         /// </summary>
-        void Configure(ITypeCompletionContext context);
+        /// <param name="dependency">
+        /// The type dependency.
+        /// </param>
+        void AddDependency(TypeDependency dependency);
 
         /// <summary>
         /// Creates a copy of this object with the new <paramref name="newOwner"/>.
@@ -31,6 +45,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <returns>
         /// Returns the new configuration.
         /// </returns>
-        ILazyTypeConfiguration Copy(DefinitionBase newOwner);
+        ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner);
     }
 }

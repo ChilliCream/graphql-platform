@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -31,7 +33,7 @@ namespace HotChocolate.Configuration
             OnCompleteType<T>? onBeforeCompleteType = null,
             OnCompleteType<T>? onAfterCompleteType = null)
         {
-            _canHandle = canHandle ?? (c => true);
+            _canHandle = canHandle ?? (_ => true);
             _onBeforeInitialize = onBeforeInitialize;
             _onAfterInitialize = onAfterInitialize;
             _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
@@ -62,6 +64,10 @@ namespace HotChocolate.Configuration
                 _onAfterInitialize?.Invoke(discoveryContext, casted, contextData);
             }
         }
+
+        public IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            => Enumerable.Empty<ITypeReference>();
 
         public void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,

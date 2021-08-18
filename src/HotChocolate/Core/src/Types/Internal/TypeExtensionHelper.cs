@@ -18,7 +18,7 @@ namespace HotChocolate.Internal
             IList<InterfaceFieldDefinition> typeFields)
         {
             MergeOutputFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
+                (_, _, _) => { });
         }
 
         public static void MergeInputObjectFields(
@@ -27,7 +27,7 @@ namespace HotChocolate.Internal
             IList<InputFieldDefinition> typeFields)
         {
             MergeFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
+                (_, _, _) => { });
         }
 
         private static void MergeOutputFields<T>(
@@ -51,7 +51,7 @@ namespace HotChocolate.Internal
                         context,
                         extensionField.Arguments,
                         typeField.Arguments,
-                        (args, extensionArg, typeArg) => { });
+                        (_, _, _) => { });
 
                     action(fields, extensionField, typeField);
                 },
@@ -98,8 +98,12 @@ namespace HotChocolate.Internal
 
             foreach (DirectiveDefinition directive in type)
             {
-                DirectiveType directiveType = context.GetDirectiveType(directive.Reference);
-                directives.Add((directiveType, directive));
+                if (context.TryGetDirectiveType(
+                    directive.Reference,
+                    out DirectiveType? directiveType))
+                {
+                    directives.Add((directiveType, directive));
+                }
             }
 
             foreach (DirectiveDefinition directive in extension)
@@ -135,7 +139,7 @@ namespace HotChocolate.Internal
                     }
                     else
                     {
-                        int index = directives.IndexOf(entry);
+                        var index = directives.IndexOf(entry);
                         directives[index] = (directiveType, directive);
                     }
                 }
@@ -187,10 +191,10 @@ namespace HotChocolate.Internal
         }
 
         public static void MergeConfigurations(
-            ICollection<ILazyTypeConfiguration> extensionConfigurations,
-            ICollection<ILazyTypeConfiguration> typeConfigurations)
+            ICollection<ITypeSystemMemberConfiguration> extensionConfigurations,
+            ICollection<ITypeSystemMemberConfiguration> typeConfigurations)
         {
-            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
+            foreach (ITypeSystemMemberConfiguration configuration in extensionConfigurations)
             {
                 typeConfigurations.Add(configuration);
             }
