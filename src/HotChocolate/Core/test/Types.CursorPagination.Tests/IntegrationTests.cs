@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
@@ -709,6 +711,54 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task SelectProviderByName()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ProviderByName>()
+                    .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    abc {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SelectDefaultProvider()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ProviderByName>()
+                    .AddCursorPagingProvider<DummyProvider>()
+                    .AddCursorPagingProvider<Dummy2Provider>(defaultProvider: true)
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    abc {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -871,6 +921,64 @@ namespace HotChocolate.Types.Pagination
 
             [UsePaging]
             public string[] Ghi => throw new NotImplementedException();
+        }
+
+        public class ProviderByName
+        {
+            [UsePaging(ProviderName = "Abc")]
+            public string[] Abc => Array.Empty<string>();
+        }
+
+        public class DummyProvider : CursorPagingProvider
+        {
+            public override bool CanHandle(IExtendedType source) => false;
+
+            protected override CursorPagingHandler CreateHandler(
+                IExtendedType source,
+                PagingOptions options)
+                => new DummyHandler(options);
+        }
+
+        public class DummyHandler : CursorPagingHandler
+        {
+            public DummyHandler(PagingOptions options) : base(options)
+            {
+            }
+
+            protected override ValueTask<Connection> SliceAsync(
+                IResolverContext context,
+                object source,
+                CursorPagingArguments arguments)
+                => new(new Connection(
+                    new[] { new Edge<string>("a", "b") },
+                    new ConnectionPageInfo(false, false, null, null),
+                    _ => new(1)));
+        }
+
+        public class Dummy2Provider : CursorPagingProvider
+        {
+            public override bool CanHandle(IExtendedType source) => false;
+
+            protected override CursorPagingHandler CreateHandler(
+                IExtendedType source,
+                PagingOptions options)
+                => new Dummy2Handler(options);
+        }
+
+        public class Dummy2Handler : CursorPagingHandler
+        {
+            public Dummy2Handler(PagingOptions options) : base(options)
+            {
+            }
+
+            protected override ValueTask<Connection> SliceAsync(
+                IResolverContext context,
+                object source,
+                CursorPagingArguments arguments)
+                => new(new Connection(
+                    new[] { new Edge<string>("d", "e") },
+                    new ConnectionPageInfo(false, false, null, null),
+                    _ => new(1)));
         }
     }
 }

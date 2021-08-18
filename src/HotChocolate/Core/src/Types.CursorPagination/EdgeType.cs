@@ -2,9 +2,13 @@ using System;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// Represents an edge in a connection.
+    /// </summary>
     internal sealed class EdgeType : ObjectType, IEdgeType
     {
         internal EdgeType(
@@ -79,9 +83,8 @@ namespace HotChocolate.Types.Pagination
 
                 if (nodeType.Kind is not TypeKind.Object)
                 {
-                    // TODO : RESOURCES
                     throw new GraphQLException(
-                        "Edge types that have a non object node are not supported.");
+                        EdgeType_IsInstanceOfType_NonObject);
                 }
 
                 return ((ObjectType)nodeType).IsInstanceOfType(context, edge.Node);
@@ -91,27 +94,20 @@ namespace HotChocolate.Types.Pagination
         }
 
         private static ObjectTypeDefinition CreateTypeDefinition(ITypeReference nodeType)
-        {
-            // TODO : RESOURCES
-            var definition = new ObjectTypeDefinition(
-                default,
-                "An edge in a connection.",
-                typeof(IEdge));
-
-            definition.Fields.Add(new(
-                Names.Cursor,
-                "A cursor for use in pagination.",
-                TypeReference.Parse($"{ScalarNames.String}!"),
-                pureResolver: GetCursor));
-
-            definition.Fields.Add(new(
-                Names.Node,
-                "The item at the end of the edge.",
-                nodeType,
-                pureResolver: GetNode));
-
-            return definition;
-        }
+            => new(default, EdgeType_Description, typeof(IEdge))
+            {
+                Fields =
+                {
+                    new(Names.Cursor,
+                        EdgeType_Cursor_Description,
+                        TypeReference.Parse($"{ScalarNames.String}!"),
+                        pureResolver: GetCursor),
+                    new(Names.Node,
+                        EdgeType_Node_Description,
+                        nodeType,
+                        pureResolver: GetNode)
+                }
+            };
 
         private static string GetCursor(IPureResolverContext context)
             => context.Parent<IEdge>().Cursor;

@@ -6,10 +6,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class ConnectionType : ObjectType, IPageType
+    internal class ConnectionType
+        : ObjectType
+        , IConnectionType
+        , IPageType
     {
         internal ConnectionType(
             NameString connectionName,
@@ -88,7 +92,7 @@ namespace HotChocolate.Types.Pagination
                         edges.Type = TypeReference.Parse(
                             $"[{NameHelper.CreateEdgeName(ConnectionName)}!]",
                             TypeContext.Output);
-                        ;
+
                         nodes.Type = TypeReference.Parse(
                             $"[{type.Print()}]",
                             TypeContext.Output);
@@ -137,25 +141,25 @@ namespace HotChocolate.Types.Pagination
         {
             var definition = new ObjectTypeDefinition(
                 default,
-                "A connection to a list of items.",
+                ConnectionType_Description,
                 typeof(Connection));
 
             definition.Fields.Add(new(
                 Names.PageInfo,
-                "Information to aid in pagination.",
+                ConnectionType_PageInfo_Description,
                 TypeReference.Parse("PageInfo!"),
                 pureResolver: GetPagingInfo));
 
             definition.Fields.Add(new(
                 Names.Edges,
-                "A list of edges.",
+                ConnectionType_Edges_Description,
                 edgesType,
                 pureResolver: GetEdges)
             { CustomSettings = { ContextDataKeys.Edges } });
 
             definition.Fields.Add(new(
                 Names.Nodes,
-                "A flattened list of the nodes.",
+                ConnectionType_Nodes_Description,
                 pureResolver: GetNodes)
             { CustomSettings = { ContextDataKeys.Nodes } });
 
@@ -171,11 +175,11 @@ namespace HotChocolate.Types.Pagination
         }
 
         private static bool IsEdgesField(ObjectFieldDefinition field)
-            => field.CustomSettings.Count > 0 && 
+            => field.CustomSettings.Count > 0 &&
                field.CustomSettings[0].Equals(ContextDataKeys.Edges);
 
         private static bool IsNodesField(ObjectFieldDefinition field)
-            => field.CustomSettings.Count > 0 && 
+            => field.CustomSettings.Count > 0 &&
                field.CustomSettings[0].Equals(ContextDataKeys.Nodes);
 
         private static IPageInfo GetPagingInfo(IPureResolverContext context)

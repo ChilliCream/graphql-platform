@@ -783,4 +783,28 @@ Type: `{0}`</value>
   <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
     <value>The object is not yet ready for this action.</value>
   </data>
+  <data name="EdgeType_IsInstanceOfType_NonObject" xml:space="preserve">
+    <value>Edge types that have a non object node are not supported.</value>
+  </data>
+  <data name="EdgeType_Description" xml:space="preserve">
+    <value>An edge in a connection.</value>
+  </data>
+  <data name="EdgeType_Cursor_Description" xml:space="preserve">
+    <value>A cursor for use in pagination.</value>
+  </data>
+  <data name="EdgeType_Node_Description" xml:space="preserve">
+    <value>The item at the end of the edge.</value>
+  </data>
+  <data name="ConnectionType_Description" xml:space="preserve">
+    <value>A connection to a list of items.</value>
+  </data>
+  <data name="ConnectionType_PageInfo_Description" xml:space="preserve">
+    <value>Information to aid in pagination.</value>
+  </data>
+  <data name="ConnectionType_Edges_Description" xml:space="preserve">
+    <value>A list of edges.</value>
+  </data>
+  <data name="ConnectionType_Nodes_Description" xml:space="preserve">
+    <value>A flattened list of the nodes.</value>
+  </data>
 </root>

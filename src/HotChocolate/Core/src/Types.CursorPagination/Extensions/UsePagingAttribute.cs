@@ -102,7 +102,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// Connection names are by default inferred from the field name to 
+        /// Connection names are by default inferred from the field name to
         /// which they are bound to as opposed to the node type name.
         /// </summary>
         public bool InferConnectionNameFromField
@@ -110,6 +110,11 @@ namespace HotChocolate.Types
             get => _inferConnectionNameFromField ?? PagingDefaults.AllowBackwardPagination;
             set => _inferConnectionNameFromField = value;
         }
+
+        /// <summary>
+        /// Specifies the name of the paging provider that shall be used.
+        /// </summary>
+        public string? ProviderName { get; set; }
 
         protected internal override void TryConfigure(
             IDescriptorContext context,
@@ -122,8 +127,8 @@ namespace HotChocolate.Types
                 {
                     ofd.UsePaging(
                         Type,
-                        connectionName: string.IsNullOrEmpty(_connectionName) 
-                            ? default(NameString?) 
+                        connectionName: string.IsNullOrEmpty(_connectionName)
+                            ? default(NameString?)
                             : _connectionName,
                         options: new PagingOptions
                         {
@@ -132,15 +137,16 @@ namespace HotChocolate.Types
                             IncludeTotalCount = _includeTotalCount,
                             AllowBackwardPagination = _allowBackwardPagination,
                             RequirePagingBoundaries = _requirePagingBoundaries,
-                            InferConnectionNameFromField = _inferConnectionNameFromField
+                            InferConnectionNameFromField = _inferConnectionNameFromField,
+                            ProviderName = ProviderName
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
                 {
                     ifd.UsePaging(
                         Type,
-                        connectionName: string.IsNullOrEmpty(_connectionName) 
-                            ? default(NameString?) 
+                        connectionName: string.IsNullOrEmpty(_connectionName)
+                            ? default(NameString?)
                             : _connectionName,
                         options: new()
                         {
@@ -149,7 +155,8 @@ namespace HotChocolate.Types
                             IncludeTotalCount = _includeTotalCount,
                             AllowBackwardPagination = _allowBackwardPagination,
                             RequirePagingBoundaries = _requirePagingBoundaries,
-                            InferConnectionNameFromField = _inferConnectionNameFromField
+                            InferConnectionNameFromField = _inferConnectionNameFromField,
+                            ProviderName = ProviderName
                         });
                 }
             }
