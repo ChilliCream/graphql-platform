@@ -140,25 +140,6 @@ HotChocolate.Data.MongoDbProjectionConventionDescriptorExtensions
 HotChocolate.Data.MongoDbProjectionProviderDescriptorExtensions
 HotChocolate.Data.MongoSortingConventionDescriptorExtensions
 HotChocolate.Data.SortConventionDescriptorMongoExtensions
-HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.get -> int
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.set -> void
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.get -> bool
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.set -> void
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.get -> int
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.set -> void
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.Type.get -> System.Type?
-HotChocolate.Types.UseMongoDbOffsetPagingAttribute.UseMongoDbOffsetPagingAttribute(System.Type? type = null) -> void
-HotChocolate.Types.UseMongoDbPagingAttribute
-HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.get -> int
-HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.set -> void
-HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.get -> bool
-HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.set -> void
-HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.get -> int
-HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.set -> void
-HotChocolate.Types.UseMongoDbPagingAttribute.Type.get -> System.Type?
-HotChocolate.Types.UseMongoDbPagingAttribute.UseMongoDbPagingAttribute(System.Type? type = null) -> void
 Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions
 override HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.HandleOperation(HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> HotChocolate.Data.MongoDb.MongoDbFilterDefinition!
 override HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.Operation.get -> int
@@ -252,7 +233,6 @@ override HotChocolate.Data.MongoDb.Sorting.MongoDbDefaultSortFieldHandler.TryHan
 override HotChocolate.Data.MongoDb.Sorting.MongoDbSortOperationHandlerBase.CanHandle(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition! typeDefinition, HotChocolate.Data.Sorting.SortEnumValueDefinition! valueDefinition) -> bool
 override HotChocolate.Data.MongoDb.Sorting.MongoDbSortOperationHandlerBase.TryHandleEnter(HotChocolate.Data.MongoDb.Sorting.MongoDbSortVisitorContext! context, HotChocolate.Data.Sorting.ISortField! field, HotChocolate.Data.Sorting.ISortEnumValue? sortValue, HotChocolate.Language.EnumValueNode! node, out HotChocolate.Language.Visitors.ISyntaxVisitorAction? action) -> bool
 override HotChocolate.Data.MongoDb.Sorting.MongoDbSortProvider.CreateExecutor<TEntityType>(HotChocolate.NameString argumentName) -> HotChocolate.Resolvers.FieldMiddleware!
-override HotChocolate.Types.UseMongoDbOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
 static HotChocolate.Data.MongoDb.Filters.FilterConventionDescriptorMongoDbExtensions.AddDefaultMongoDbFieldHandlers(this HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext!>! descriptor) -> HotChocolate.Data.Filters.IFilterProviderDescriptor<HotChocolate.Data.MongoDb.Filters.MongoDbFilterVisitorContext!>!
 static HotChocolate.Data.MongoDb.Filters.FilterConventionDescriptorMongoDbExtensions.UseMongoDbProvider(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
 static HotChocolate.Data.MongoDb.Filters.MongoDbFilterConventionDescriptorExtensions.AddDefaultMongoDbOperations(this HotChocolate.Data.Filters.IFilterConventionDescriptor! descriptor) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
@@ -275,12 +255,6 @@ static HotChocolate.Data.MongoSortingConventionDescriptorExtensions.AddMongoDbDe
 static HotChocolate.Data.MongoSortingConventionDescriptorExtensions.BindDefaultMongoDbTypes(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
 static HotChocolate.Data.SortConventionDescriptorMongoExtensions.AddDefaultFieldHandlers(this HotChocolate.Data.Sorting.ISortProviderDescriptor<HotChocolate.Data.MongoDb.Sorting.MongoDbSortVisitorContext!>! descriptor) -> HotChocolate.Data.Sorting.ISortProviderDescriptor<HotChocolate.Data.MongoDb.Sorting.MongoDbSortVisitorContext!>!
 static HotChocolate.Data.SortConventionDescriptorMongoExtensions.UseMongoDbProvider(this HotChocolate.Data.Sorting.ISortConventionDescriptor! descriptor) -> HotChocolate.Data.Sorting.ISortConventionDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
 static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbFiltering(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbProjections(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbSorting(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? name = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!

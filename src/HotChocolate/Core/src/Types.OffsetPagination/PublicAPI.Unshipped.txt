@@ -4,3 +4,11 @@
 HotChocolate.Types.Pagination.OffsetPagingArguments.OffsetPagingArguments(int? skip, int? take) -> void
 HotChocolate.Types.Pagination.OffsetPagingArguments.Take.get -> int?
 HotChocolate.Types.Pagination.OffsetPagingHandler.RequirePagingBoundaries.get -> bool
+HotChocolate.Types.UseOffsetPagingAttribute.ProviderName.get -> string?
+HotChocolate.Types.UseOffsetPagingAttribute.ProviderName.set -> void
+HotChocolate.Types.UseOffsetPagingAttribute.RequirePagingBoundaries.get -> bool
+HotChocolate.Types.UseOffsetPagingAttribute.RequirePagingBoundaries.set -> void
+Microsoft.Extensions.DependencyInjection.OffsetPagingRequestExecutorBuilderExtension
+static Microsoft.Extensions.DependencyInjection.OffsetPagingRequestExecutorBuilderExtension.AddOffsetPagingProvider<TProvider>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.OffsetPagingRequestExecutorBuilderExtension.AddOffsetPagingProvider<TProvider>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<System.IServiceProvider!, TProvider!>! factory, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.OffsetPagingRequestExecutorBuilderExtension.AddQueryableOffsetPagingProvider(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
