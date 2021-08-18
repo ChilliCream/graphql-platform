@@ -10,6 +10,6 @@ namespace HotChocolate.Types.Pagination
 
         public const bool AllowBackwardPagination = true;
 
-        public const bool InferConnectionNameFromField = false;
+        public const bool InferConnectionNameFromField = true;
     }
 }

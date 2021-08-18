@@ -23,5 +23,5 @@ namespace HotChocolate.Types
     public delegate OffsetPagingProvider GetOffsetPagingProvider(
         IServiceProvider services,
         IExtendedType sourceType,
-        string? providerName);
+        string? providerName = null);
 }

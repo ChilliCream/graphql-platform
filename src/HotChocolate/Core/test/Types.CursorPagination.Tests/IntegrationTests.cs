@@ -721,6 +721,7 @@ namespace HotChocolate.Types.Pagination
                     .AddGraphQL()
                     .AddQueryType<ProviderByName>()
                     .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
+                    .SetPagingOptions(new PagingOptions{ InferConnectionNameFromField = false })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
