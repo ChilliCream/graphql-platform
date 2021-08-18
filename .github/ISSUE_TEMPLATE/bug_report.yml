@@ -1,0 +1,45 @@
+name: Bug Report
+description: Report a bug to help us improve
+labels: [🐛 bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Also tell us, what did you expect to happen?
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: how-to-reproduce
+    attributes:
+      label: How to reproduce the bug
+      description: Describe the steps that lead to this bug. If it cannot be described in simple steps, create a GitHub repository with code that clearly showcases the described bug. Include a link to the repository in the box below.
+      value: "1. ..."
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output / exception details. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which of our products is affected by this bug?
+      options:
+        - Hot Chocolate
+        - Strawberry Shake
+        - Banana Cake Pop
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of the selected product are you running?
+      placeholder: "12.0.0"
+    validations:
+      required: true
