@@ -1,7 +1,6 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -694,6 +693,22 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Explicit_ConnectionName()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ExplicitConnectionName>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -845,37 +860,17 @@ namespace HotChocolate.Types.Pagination
         {
             public string[] Names() => new[] { "a", "b" };
         }
-    }
 
-    public class MockExecutable<T> : IExecutable<T>
-    {
-        private readonly IQueryable<T> _source;
-
-        public MockExecutable(IQueryable<T> source)
+        public class ExplicitConnectionName
         {
-            _source = source;
-        }
+            [UsePaging(ConnectionName = "Connection1")]
+            public string[] Abc => throw new NotImplementedException();
 
-        public object Source => _source;
+            [UsePaging(ConnectionName = "Connection2")]
+            public string[] Def => throw new NotImplementedException();
 
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
-        {
-            return new(_source.ToList());
-        }
-
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new(_source.FirstOrDefault());
-        }
-
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
-        {
-            return new(_source.SingleOrDefault());
-        }
-
-        public string Print()
-        {
-            return _source.ToString()!;
+            [UsePaging]
+            public string[] Ghi => throw new NotImplementedException();
         }
     }
 }
