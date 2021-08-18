@@ -6187,7 +6187,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6352,7 +6352,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6548,7 +6548,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6722,7 +6722,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterConnection",
+          "name": "FriendsConnection",
           "description": "A connection to a list of items.",
           "fields": [
             {
@@ -6753,7 +6753,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "CharacterEdge",
+                    "name": "FriendsEdge",
                     "ofType": null
                   }
                 }
@@ -6955,7 +6955,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterEdge",
+          "name": "FriendsEdge",
           "description": "An edge in a connection.",
           "fields": [
             {
