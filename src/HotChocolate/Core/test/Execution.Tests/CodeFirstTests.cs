@@ -290,6 +290,22 @@ namespace HotChocolate.Execution
                 .MatchSnapshotAsync();
         }
 
+        // https://github.com/ChilliCream/hotchocolate/issues/2305
+        [Fact]
+        public async Task EnsureThatArgumentDefaultIsUsedWhenVariableValueIsOmitted()
+        {
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query($v: String) { foo(value: $v) }")
+                    .Create();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithDefaultValue>()
+                .ExecuteRequestAsync(request)
+                .MatchSnapshotAsync();
+        }
+
         private static ISchema CreateSchema()
             => SchemaBuilder.New()
                 .AddQueryType<QueryType>()
@@ -519,6 +535,11 @@ namespace HotChocolate.Execution
 
             [GraphQLDeprecated("This is deprecated")]
             public string YourFieldname { get; set; }
+        }
+
+        public class QueryWithDefaultValue
+        {
+            public string Foo(string value = "abc") => value;
         }
     }
 }

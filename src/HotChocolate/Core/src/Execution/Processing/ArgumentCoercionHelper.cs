@@ -48,7 +48,10 @@ namespace HotChocolate.Execution.Processing
                 else
                 {
                     IValueNode literal = VariableRewriter.Rewrite(
-                        argument.ValueLiteral!, resolverContext.Variables);
+                        argument.ValueLiteral!,
+                        argument.Type,
+                        argument.Argument.DefaultValue,
+                        resolverContext.Variables);
 
                     args.Add(argument.Argument.Name, new ArgumentValue(
                         argument.Argument,
