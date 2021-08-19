@@ -284,11 +284,11 @@ namespace HotChocolate.Configuration
             {
                 if (!ReferenceEquals(_watch, discoveryContext.Type))
                 {
-                    discoveryContext.RegisterDependency(
-                        new TypeDependency(TypeReference.Create(_watch)));
+                    discoveryContext.Dependencies.Add(
+                        new(TypeReference.Create(_watch)));
 
-                    discoveryContext.RegisterDependency(
-                        new TypeDependency(TypeReference.Create(new ListType(_watch))));
+                    discoveryContext.Dependencies.Add(
+                        new(TypeReference.Create(new ListType(_watch))));
                 }
             }
 

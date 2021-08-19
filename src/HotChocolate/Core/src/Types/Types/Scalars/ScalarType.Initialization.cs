@@ -16,7 +16,7 @@ namespace HotChocolate.Types
     /// </summary>
     public abstract partial class ScalarType
     {
-        private readonly ExtensionData _contextData = new ExtensionData();
+        private readonly ExtensionData _contextData = new();
         private ITypeConverter _converter = default!;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace HotChocolate.Types
 
             if (_specifiedBy is not null)
             {
-                context.RegisterDependency(
+                context.Dependencies.Add(
                     new TypeDependency(
                         context.TypeInspector.GetTypeRef(typeof(SpecifiedByDirectiveType)),
                         TypeDependencyKind.Completed));

@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Interceptors
                                 TypeContext.Output),
                             TypeDependencyKind.Completed)))
                     {
-                        typeInfo.Context.RegisterDependency(typeDependency);
+                        typeInfo.Context.Dependencies.Add(typeDependency);
                         typeInfo.Definition.Interfaces.Add(typeDependency.TypeReference);
                     }
                 }

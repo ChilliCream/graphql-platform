@@ -161,7 +161,7 @@ namespace HotChocolate.Types
         /// Defines if instances of this directive type are publicly visible through introspection.
         /// </summary>
         internal bool IsPublic { get; private set; }
-        
+
         protected override DirectiveTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             try
@@ -203,9 +203,13 @@ namespace HotChocolate.Types
             ITypeDiscoveryContext context,
             DirectiveTypeDefinition definition)
         {
-            context.RegisterDependencyRange(
-                definition.GetArguments().Select(t => t.Type),
-                TypeDependencyKind.Completed);
+            if (definition.HasArguments)
+            {
+                foreach (var argument in definition.Arguments)
+                {
+                    context.Dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
+                }
+            }
         }
 
         protected override void OnCompleteType(

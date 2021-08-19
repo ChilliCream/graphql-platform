@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 #nullable enable
@@ -37,16 +38,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ITypeSystemMemberConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (EnumValueDefinition value in Values)
             {
-                configs.AddRange(value.Configurations);
+                if (value.HasConfigurations)
+                {
+                    configs ??= new();
+                    configs.AddRange(value.Configurations);
+                }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
     }
 }

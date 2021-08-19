@@ -16,63 +16,7 @@ namespace HotChocolate.Configuration
         /// <summary>
         /// The collected type dependencies.
         /// </summary>
-        IReadOnlyList<TypeDependency> Dependencies { get; }
-
-        /// <summary>
-        /// Register a reference to a type on which <see cref="Type" /> depends.
-        /// Such a reference could for instance represent a type of a field that
-        /// <see cref="Type" /> exposes.
-        /// </summary>
-        /// <param name="reference">
-        /// A reference representing a type on which <see cref="Type" /> depends.
-        /// </param>
-        /// <param name="kind">
-        /// The type dependency context defines if this type for instance is
-        /// discovered in an input context.
-        /// </param>
-        void RegisterDependency(
-            ITypeReference reference,
-            TypeDependencyKind kind);
-
-        /// <summary>
-        /// Register a reference to a type on which <see cref="Type" /> depends.
-        /// Such a reference could for instance represent a type of a field that
-        /// <see cref="Type" /> exposes.
-        /// </summary>
-        /// <param name="dependency">
-        /// A type dependency containing the type reference and context representing
-        /// a type on which <see cref="Type" /> depends.
-        /// </param>
-        void RegisterDependency(
-            TypeDependency dependency);
-
-        /// <summary>
-        /// Register multiple references to types on which <see cref="Type" /> depends.
-        /// Such a reference could for instance represent a type of a field that
-        /// <see cref="Type" /> exposes.
-        /// </summary>
-        /// <param name="references">
-        /// Type references representing types on which <see cref="Type" /> depends.
-        /// </param>
-        /// <param name="kind">
-        /// The type dependency context defines if this type for instance is
-        /// discovered in an input context.
-        /// </param>
-        void RegisterDependencyRange(
-            IEnumerable<ITypeReference> references,
-            TypeDependencyKind kind);
-
-        /// <summary>
-        /// Register multiple references to types on which <see cref="Type" /> depends.
-        /// Such a reference could for instance represent a type of a field that
-        /// <see cref="Type" /> exposes.
-        /// </summary>
-        /// <param name="dependencies">
-        /// Type dependencies containing the type reference and context representing
-        /// a types on which <see cref="Type" /> depends.
-        /// </param>
-        void RegisterDependencyRange(
-            IEnumerable<TypeDependency> dependencies);
+        IList<TypeDependency> Dependencies { get; }
 
         /// <summary>
         /// Registers a reference to a directive on which <see cref="Type" /> depends.

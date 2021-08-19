@@ -86,13 +86,12 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.Types,
-                TypeDependencyKind.Default);
+            foreach (ITypeReference typeRef in definition.Types)
+            {
+                context.Dependencies.Add(new(typeRef));
+            }
 
-            context.RegisterDependencyRange(
-                definition.GetDirectives().Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            TypeDependencyHelper.CollectDirectiveDependencies(definition, context.Dependencies);
         }
 
         protected override void Merge(
