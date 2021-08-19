@@ -52,18 +52,27 @@ namespace HotChocolate.Execution.Processing
                 IInputType variableType = AssertInputType(schema, variableDefinition);
                 VariableValueOrLiteral coercedVariable;
 
-                if (!values.TryGetValue(variableName, out var value) &&
-                    variableDefinition.DefaultValue is { } defaultValue)
+                var hasValue = values.TryGetValue(variableName, out var value);
+
+                if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
                 {
                     value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
                 }
 
-                if (value is null || value is NullValueNode)
+                if (!hasValue || value is null || value is NullValueNode)
                 {
                     if (variableType.IsNonNullType())
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
+
+                    // if we do not have any value we will not create an entry to the
+                    // coerced variables.
+                    if (!hasValue)
+                    {
+                        continue;
+                    }
+
                     coercedVariable = new(variableType, null, NullValueNode.Default);
                 }
                 else
