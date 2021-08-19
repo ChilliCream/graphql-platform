@@ -137,14 +137,7 @@ namespace HotChocolate.Execution.Processing
             helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Collection(coercedValues,
-                t =>
-                {
-                    Assert.Equal("abc", t.Key);
-                    Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
-                    Assert.Equal("def", t.Value.Value);
-                    Assert.Equal("def", Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
-                });
+            Assert.Empty(coercedValues);
         }
 
         [Fact]
