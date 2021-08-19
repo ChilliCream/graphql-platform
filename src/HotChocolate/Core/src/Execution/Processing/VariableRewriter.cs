@@ -207,10 +207,17 @@ namespace HotChocolate.Execution.Processing
                     return true;
 
                 case SyntaxKind.ObjectValue:
+                    if (type.Kind != TypeKind.InputObject)
+                    {
+                        rewritten = null;
+                        return false;
+                    }
+
                     rewritten = Rewrite(
                         (ObjectValueNode)original,
                         (InputObjectType)type,
                         variableValues);
+
                     if (ReferenceEquals(rewritten, original))
                     {
                         rewritten = null;
@@ -219,7 +226,17 @@ namespace HotChocolate.Execution.Processing
                     return true;
 
                 case SyntaxKind.ListValue:
-                    rewritten = Rewrite((ListValueNode)original, (ListType)type, variableValues);
+                    if (type.Kind != TypeKind.List)
+                    {
+                        rewritten = null;
+                        return false;
+                    }
+
+                    rewritten = Rewrite(
+                        (ListValueNode)original,
+                        (ListType)type,
+                        variableValues);
+
                     if (ReferenceEquals(rewritten, original))
                     {
                         rewritten = null;
