@@ -48,16 +48,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ITypeSystemMemberConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (InputFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
+                if (field.HasConfigurations)
+                {
+                    configs ??= new();
+                    configs.AddRange(field.Configurations);
+                }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
         protected internal void CopyTo(InputObjectTypeDefinition target)

@@ -26,7 +26,7 @@ namespace HotChocolate.Configuration
 
         public ITypeInterceptor TypeInterceptor { get; }
 
-        IReadOnlyList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
+        IList<TypeDependency> ITypeDiscoveryContext.Dependencies => Dependencies;
 
         ITypeSystemObject ITypeSystemObjectContext.Type => Type;
 
@@ -88,51 +88,6 @@ namespace HotChocolate.Configuration
                     kind = default;
                     return false;
             }
-        }
-
-        public void RegisterDependency(ITypeReference reference, TypeDependencyKind kind)
-        {
-            if (reference is null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            Dependencies.Add(new TypeDependency(reference, kind));
-        }
-
-        public void RegisterDependency(TypeDependency dependency)
-        {
-            if (dependency is null)
-            {
-                throw new ArgumentNullException(nameof(dependency));
-            }
-
-            Dependencies.Add(dependency);
-        }
-
-        public void RegisterDependencyRange(
-            IEnumerable<ITypeReference> references,
-            TypeDependencyKind kind)
-        {
-            if (references is null)
-            {
-                throw new ArgumentNullException(nameof(references));
-            }
-
-            foreach (ITypeReference reference in references)
-            {
-                Dependencies.Add(new TypeDependency(reference, kind));
-            }
-        }
-
-        public void RegisterDependencyRange(IEnumerable<TypeDependency> dependencies)
-        {
-            if (dependencies is null)
-            {
-                throw new ArgumentNullException(nameof(dependencies));
-            }
-
-            Dependencies.AddRange(dependencies);
         }
 
         public void RegisterDependency(IDirectiveReference reference)

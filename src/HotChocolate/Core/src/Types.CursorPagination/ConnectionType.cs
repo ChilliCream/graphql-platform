@@ -131,9 +131,8 @@ namespace HotChocolate.Types.Pagination
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.RegisterDependency(
-                context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType)),
-                TypeDependencyKind.Default);
+            context.Dependencies.Add(new(
+                context.TypeInspector.GetOutputTypeRef(typeof(PageInfoType))));
 
             base.OnBeforeRegisterDependencies(context, definition, contextData);
         }

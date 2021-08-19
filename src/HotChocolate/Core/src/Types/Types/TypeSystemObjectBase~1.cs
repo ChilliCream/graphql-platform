@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -160,13 +159,12 @@ namespace HotChocolate.Types
         {
             OnBeforeRegisterDependencies(context, definition, definition.ContextData);
 
-            foreach (var group in definition.GetConfigurations()
-                .SelectMany(t => t.Dependencies)
-                .GroupBy(t => t.Kind))
+            foreach (var configuration in definition.GetConfigurations())
             {
-                context.RegisterDependencyRange(
-                    group.Select(t => t.TypeReference),
-                    group.Key);
+                foreach (TypeDependency dependency in configuration.Dependencies)
+                {
+                    context.Dependencies.Add(dependency);
+                }
             }
 
             OnRegisterDependencies(context, definition);

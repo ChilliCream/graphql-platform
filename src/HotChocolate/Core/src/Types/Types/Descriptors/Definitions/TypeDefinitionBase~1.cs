@@ -55,6 +55,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _directives ??= new List<DirectiveDefinition>();
 
         /// <summary>
+        /// Specifies if this definition has directives.
+        /// </summary>
+        public bool HasDirectives => _directives is { Count: > 0 };
+
+        /// <summary>
         /// Gets the list of directives that are annotated to this field.
         /// </summary>
         public IReadOnlyList<DirectiveDefinition> GetDirectives()
@@ -74,7 +79,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target._runtimeType = _runtimeType;
             target.ExtendsType = ExtendsType;
 
-            if (_directives is not null and { Count: > 0 })
+            if (_directives is { Count: > 0 })
             {
                 target._directives = new List<DirectiveDefinition>(_directives);
             }

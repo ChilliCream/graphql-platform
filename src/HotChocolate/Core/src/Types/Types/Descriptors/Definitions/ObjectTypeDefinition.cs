@@ -85,6 +85,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _interfaces ??= new List<ITypeReference>();
 
         /// <summary>
+        /// Specifies if this definition has interfaces.
+        /// </summary>
+        public bool HasInterfaces => _interfaces is { Count: > 0 };
+
+        /// <summary>
         /// Gets the fields of this object type.
         /// </summary>
         public IBindableList<ObjectFieldDefinition> Fields { get; } =

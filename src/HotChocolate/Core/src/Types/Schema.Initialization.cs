@@ -45,9 +45,15 @@ namespace HotChocolate
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.GetDirectives().Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            if (definition.HasDirectives)
+            {
+                foreach (DirectiveDefinition directive in definition.Directives)
+                {
+                    context.Dependencies.Add(new(
+                        directive.TypeReference,
+                        TypeDependencyKind.Completed));
+                }
+            }
 
             context.RegisterDependencyRange(
                 definition.GetDirectives().Select(t => t.Reference));

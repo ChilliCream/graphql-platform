@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             TDefinition owner,
             ApplyConfigurationOn on,
             IEnumerable<TypeDependency> dependencies)
-            : base((c, d) => configure(c, (TDefinition)d), owner, @on, dependencies)
+            : base((c, d) => configure(c, (TDefinition)d), owner, on, dependencies)
         {
         }
     }
