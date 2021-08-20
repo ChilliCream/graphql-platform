@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
@@ -82,12 +83,32 @@ namespace HotChocolate.Types
                                 : null;
                     }
 
-                    ITypeReference? typeRef = nodeType is not null
+                    ITypeReference? nodeTypeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
 
+                    if (nodeType is null && d.Type is SyntaxTypeReference syntaxTypeRef)
+                    {
+                        ITypeNode type = syntaxTypeRef.Type;
+
+                        if (type.Kind == SyntaxKind.NonNullType)
+                        {
+                            type = type.InnerType();
+                        }
+
+                        if (type.Kind == SyntaxKind.ListType)
+                        {
+                            nodeTypeRef = syntaxTypeRef.WithType(type.InnerType());
+                        }
+                    }
+
                     MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
-                    d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
+                    d.Type = CreateConnectionTypeRef(
+                        c,
+                        resolverMember,
+                        connectionName,
+                        nodeTypeRef,
+                        options);
                     d.CustomSettings.Add(typeof(Connection));
                 });
 
@@ -130,11 +151,31 @@ namespace HotChocolate.Types
                                 : null;
                     }
 
-                    ITypeReference? typeRef = nodeType is not null
+                    ITypeReference? nodeTypeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
 
-                    d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
+                    if (nodeType is null && d.Type is SyntaxTypeReference syntaxTypeRef)
+                    {
+                        ITypeNode type = syntaxTypeRef.Type;
+
+                        if (type.Kind == SyntaxKind.NonNullType)
+                        {
+                            type = type.InnerType();
+                        }
+
+                        if (type.Kind == SyntaxKind.ListType)
+                        {
+                            nodeTypeRef = syntaxTypeRef.WithType(type.InnerType());
+                        }
+                    }
+
+                    d.Type = CreateConnectionTypeRef(
+                        c,
+                        d.Member,
+                        connectionName,
+                        nodeTypeRef,
+                        options);
                 });
 
 

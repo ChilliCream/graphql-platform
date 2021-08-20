@@ -17,11 +17,11 @@ namespace HotChocolate.Types.Pagination
 {
     public static class PagingHelper
     {
-        public static IObjectFieldDescriptor UsePaging(
+        public static void UsePaging(
             IObjectFieldDescriptor descriptor,
-            Type? entityType = null,
-            GetPagingProvider? resolvePagingProvider = null,
-            PagingOptions options = default)
+            Type? entityType,
+            GetPagingProvider resolvePagingProvider,
+            PagingOptions options)
         {
             if (descriptor is null)
             {
@@ -44,8 +44,6 @@ namespace HotChocolate.Types.Pagination
                         placeholder),
                     definition,
                     ApplyConfigurationOn.Completion));
-
-            return descriptor;
         }
 
         private static void ApplyConfiguration(

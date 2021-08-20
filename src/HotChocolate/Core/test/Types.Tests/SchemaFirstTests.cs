@@ -319,6 +319,24 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task SchemaFirst_Cursor_Paging_ItemObject_With_Resolver()
+        {
+            // arrange
+            var sdl = "type Query { persons: [Person!] } type Person { name: String }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddResolver<QueryWithPersons>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Reference_Schema_First_Types_From_Code_First_Models()
         {
             // arrange
@@ -353,6 +371,12 @@ namespace HotChocolate
         {
             [GraphQLType("Person!")]
             public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class QueryWithPersons
+        {
+            [UsePaging]
+            public Person[] GetPersons() => new[] { new Person { Name = "Foo" } };
         }
 
         public class Person
