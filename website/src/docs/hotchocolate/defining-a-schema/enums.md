@@ -166,3 +166,72 @@ services
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+# Naming
+
+Unless specified explicitly, Hot Chocolate automatically infers the names of enums and their values. Per default the name of the enum becomes the name of the enum type. When using `EnumType<T>` in Code-first, the name of `T` is chosen as the name for the enum type.
+
+Enum values are automatically formatted to the UPPER_SNAIL_CASE according to the GraphQL specification:
+
+- `Guest` becomes `GUEST`
+- `HeadOfDepartment` becomes `HEAD_OF_DEPARTMENT`
+
+If we need to we can override these inferred names.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+The `[GraphQLName]` attribute allows us to specify an explicit name.
+
+```csharp
+[GraphQLName("Role")]
+public enum UserRole
+{
+    [GraphQLName("VISITOR")]
+    Guest,
+    Standard,
+    Administrator
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+The `Name` method on the `IEnumTypeDescriptor` / `IEnumValueDescriptor` allows us to specify an explicit name.
+
+```csharp
+public enum UserRole
+{
+    Guest,
+    Standard,
+    Administrator
+}
+
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.Name("Role");
+
+        descriptor.Value(UserRole.Guest).Name("VISITOR");
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Simply change the names in the schema.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+This would produce the following `Role` schema enum type:
+
+```sdl
+enum Role {
+  VISITOR,
+  STANDARD,
+  ADMINISTRATOR
+}
+```

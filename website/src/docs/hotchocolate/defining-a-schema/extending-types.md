@@ -352,8 +352,8 @@ public interface IPost
     string Title { get; set; }
 }
 
-// this extends every type that implements the IPost interface
-// note: the interface itself is not extended in the schema
+// this extends every type that implements the IPost interface,
+// not the interface type itself
 [ExtendObjectType(typeof(IPost))]
 public class PostExtensions
 {
@@ -366,3 +366,7 @@ public class PostExtensions
 
 > Note: The `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work.
 > We can use any base type, like `object` or an `abstract` base class, as an extension point without necessarily exposing the base type in our GraphQL schema.
+
+# Enum Types
+
+TODO
