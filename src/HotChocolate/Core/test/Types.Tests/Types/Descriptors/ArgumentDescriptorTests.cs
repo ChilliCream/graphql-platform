@@ -15,11 +15,10 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => new ArgumentDescriptor(
-                Context, "Type", null);
+            void Action() => new ArgumentDescriptor(Context, "Type", null);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -231,6 +230,20 @@ namespace HotChocolate.Types
             Assert.IsType<StringValueNode>(description.DefaultValue);
             Assert.Equal("123", ((StringValueNode)description.DefaultValue).Value);
             Assert.Null(description.RuntimeDefaultValue);
+        }
+
+        [Fact]
+        public void Type_Syntax_Type_Null()
+        {
+            void Error() => ArgumentDescriptor.New(Context, "foo").Type((string)null);
+            Assert.Throws<ArgumentNullException>(Error);
+        }
+
+        [Fact]
+        public void Type_Syntax_Descriptor_Null()
+        {
+            void Error() => default(ArgumentDescriptor).Type("foo");
+            Assert.Throws<ArgumentNullException>(Error);
         }
     }
 }

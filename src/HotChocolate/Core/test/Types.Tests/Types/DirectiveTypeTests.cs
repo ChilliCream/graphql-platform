@@ -508,6 +508,27 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddDirectiveType<DirectiveWithSyntaxTypeArg>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        public class DirectiveWithSyntaxTypeArg : DirectiveType
+        {
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("bar");
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Argument("a").Type("Int");
+            }
+        }
+
         public class CustomDirectiveType : DirectiveType<CustomDirective>
         {
             protected override void Configure(
