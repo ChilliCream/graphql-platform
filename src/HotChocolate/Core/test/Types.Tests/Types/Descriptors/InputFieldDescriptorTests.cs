@@ -250,5 +250,19 @@ namespace HotChocolate.Types
                 Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("arguments", description.Name);
         }
+
+        [Fact]
+        public void Type_Syntax_Type_Null()
+        {
+            void Error() => InputFieldDescriptor.New(Context, "foo").Type((string)null);
+            Assert.Throws<ArgumentNullException>(Error);
+        }
+
+        [Fact]
+        public void Type_Syntax_Descriptor_Null()
+        {
+            void Error() => default(InputFieldDescriptor).Type("foo");
+            Assert.Throws<ArgumentNullException>(Error);
+        }
     }
 }

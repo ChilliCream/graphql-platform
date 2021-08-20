@@ -1733,6 +1733,37 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Specify_Field_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo").Type("String").Resolve(_ => null);
+                })
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo")
+                        .Argument("a", t => t.Type("Int"))
+                        .Type("String")
+                        .Resolve(_ => null);
+                })
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }

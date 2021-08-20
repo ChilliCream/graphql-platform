@@ -318,6 +318,26 @@ namespace HotChocolate
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Reference_Schema_First_Types_From_Code_First_Models()
+        {
+            // arrange
+            var sdl = "type Person { name: String! }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+        }
+
         public class Query
         {
             public string Hello() => "World";
@@ -328,5 +348,15 @@ namespace HotChocolate
             [UsePaging]
             public string[] GetItems() => new[] { "a", "b" };
         }
-    }
+
+        public class QueryCodeFirst
+        {
+            [GraphQLType("Person!")]
+            public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+        }
 }
