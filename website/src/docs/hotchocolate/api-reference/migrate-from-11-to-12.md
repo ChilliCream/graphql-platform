@@ -46,9 +46,9 @@ services
     .AddType(() => new UrlType("Url"));
 ```
 
-## Pagination
+# Pagination
 
-### ConnectionType
+## ConnectionType
 
 We have changed the way we infer the name for the connection type when using cursor-based pagination. By default, the connection name is now inferred from the field name instead of the type name.
 
@@ -93,7 +93,7 @@ public class Person
 }
 ```
 
-### MongoDB Paging
+## MongoDB Paging
 
 In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
 
@@ -104,4 +104,12 @@ services
     .AddGraphQLServer()
     .AddMongoDbPagingProviders()
     ...
+```
+
+# Records
+
+With version 11, we added support for records and added the ability to infer attributes from parameters. This, in the end, leads to more errors than benefits. With version 12, we removed this feature. Use the official' property' keyword to write records in C# short-hand syntax when annotating properties.
+
+```csharp
+public record Foo([property: ID] string Id);
 ```
