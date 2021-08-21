@@ -19,7 +19,7 @@ type Book {
 
 Learn more about object types [here](https://graphql.org/learn/schema/#object-types-and-fields).
 
-# Usage
+# Definition
 
 Object types can be defined like the following.
 

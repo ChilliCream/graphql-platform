@@ -16,7 +16,7 @@ enum UserRole {
 
 Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-types).
 
-# Usage
+# Definition
 
 We can define enums like the following.
 
@@ -37,19 +37,6 @@ public class Query
     {
         // Omitted code for brevity
     }
-}
-```
-
-We can also specify different names for the type and values to be used in the schema.
-
-```csharp
-[GraphQLName("NewUserRole")]
-public enum UserRole
-{
-    Guest,
-    [GraphQLName("Default")]
-    Standard,
-    Administrator
 }
 ```
 
@@ -87,23 +74,7 @@ public class QueryType : ObjectType
 }
 ```
 
-We can also specify different names for the type and values to be used in the schema.
-
-```csharp
-public class UserRoleType : EnumType<UserRole>
-{
-    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
-    {
-        descriptor.Name("NewUserRole");
-
-        descriptor
-            .Value(UserRole.Standard)
-            .Name("Default");
-    }
-}
-```
-
-We can also bind the enumeration type to any other .NET type.
+We can also bind the enumeration type to any other .NET type, for example a `string`.
 
 ```csharp
 public class UserRoleType : EnumType<string>
@@ -292,7 +263,7 @@ public enum UserRole
 
 The `Name` method on the `IEnumTypeDescriptor` / `IEnumValueDescriptor` allows us to specify an explicit name.
 
-```csharp-
+```csharp
 public class UserRoleType : EnumType<UserRole>
 {
     protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
