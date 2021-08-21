@@ -4,7 +4,7 @@ title: "Enums"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-An Enum is a special kind of [scalar](/docs/hotchocolate/defining-a-schema/scalars) that is restricted to a particular set of allowed values.
+An Enum is a special kind of [scalar](/docs/hotchocolate/defining-a-schema/scalars) that is restricted to a particular set of allowed values. It can be used as both an input and an output type.
 
 ```sdl
 enum UserRole {
@@ -15,6 +15,71 @@ enum UserRole {
 ```
 
 Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-types).
+
+# Usage
+
+Given is the following schema:
+
+```sdl
+type Query {
+  role: UserRole
+  usersByRole(role: UserRole): [User]
+}
+```
+
+When querying for an enum value, it will be serialized as a string.
+
+**Request**
+
+```graphql
+{
+  role
+}
+```
+
+**Response**
+
+```json
+{
+  "data": {
+    "role": "STANDARD"
+  }
+}
+```
+
+When using an enum value as an argument, it is represented as a literal and **not** a string.
+
+**Request**
+
+```graphql
+{
+  usersByRole(role: ADMINISTRATOR) {
+    id
+  }
+}
+```
+
+When used as a type for a variable, it is represented as a string in the variables object, since JSON does not offer support for literals.
+
+**Request**
+
+Operation:
+
+```graphql
+query ($role: UserRole) {
+  usersByRole(role: $role) {
+    id
+  }
+}
+```
+
+Variables:
+
+```json
+{
+  "role": "ADMINISTRATOR"
+}
+```
 
 # Definition
 
