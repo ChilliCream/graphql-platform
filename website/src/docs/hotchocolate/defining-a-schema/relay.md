@@ -4,7 +4,11 @@ title: "Relay"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-TODO
+> Note: Even though they originated in Relay, the design principles described in this document are not exclusive to Relay. They lead to an overall better schema design, which is why we recommend them to **all** users of Hot Chocolate.
+
+[Relay](https://relay.dev) is a JavaScript framework for building data-driven React applications with GraphQL, which is developed and used by _Facebook_.
+
+As part of a specification Relay proposes some schema design principles for GraphQL servers in order to more efficiently fetch, refetch and cache entities on the client. In order to get the most performance out of Relay our GraphQL server needs to abide by these principles.
 
 [Learn more about the Relay GraphQL Server Specification](https://relay.dev/docs/guides/graphql-server-specification)
 
@@ -16,7 +20,7 @@ We could switch to a database technology that uses unique identifiers across tab
 
 Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate: Global identifiers.
 
-TODO: maybe explain the feature is a middleware here already and how it doesnt affect business layer logic, types dont matter, etc.
+With Global Identifiers, Hot Chocolate adds a middleware that automatically serializes our identifiers to be unique within the schema. The concern of globally unique identifiers is therefore kept separate from our business domain and we can continue using the "real" identifiers within our business code, without worrying about uniqueness for a client.
 
 ## Usage in Output Types
 
@@ -72,6 +76,8 @@ descriptor.Field(f => f.Id).ID("Foo");
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
+
+The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -153,6 +159,8 @@ This will result in an error if an Id, serialized using a different type name th
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
+
+The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -414,6 +422,8 @@ public class ProductNodeResolver
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
+
+The approach of either Annotation-based or Code-first can be used in conjunction with Schema-first.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
