@@ -167,6 +167,99 @@ services
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+# Binding behavior
+
+In the Annotation-based approach all enum values are implicitly included on the schema enum type. The same is true for `T` of `EnumType<T>` when using the Code-first approach.
+
+In the Code-first approach we can also enable explicit binding, where we have to opt-in enum values we want to include instead of them being implicitly included.
+
+<!-- todo: this should not be covered in each type documentation, rather once in a server configuration section -->
+
+We can configure our preferred binding behavior globally like the following.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .ModifyOptions(options =>
+    {
+        options.DefaultBindingBehavior = BindingBehavior.Explicit;
+    });
+```
+
+> ⚠️ Note: This changes the binding behavior for all types, not only enum types.
+
+We can also override it on a per type basis:
+
+```csharp
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.BindValues(BindingBehavior.Implicit);
+
+        // We could also use the following methods respectively
+        // descriptor.BindValuesExplicitly();
+        // descriptor.BindValuesImplicitly();
+    }
+}
+```
+
+## Ignoring values
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+In the Annotation-based approach we can ignore values using the `[GraphQLIgnore]` attribute.
+
+```csharp
+public enum UserRole
+{
+    [GraphQLIgnore]
+    Guest,
+    Standard,
+    Administrator
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+In the Code-first approach we can ignore values using the `Ignore` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is implicit.
+
+```csharp
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.Ignore(UserRole.Guest);
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+We do not have to ignore values in the Schema-first approach.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Including values
+
+In the Code-first approach we can explicitly include values using the `Value` method on the `IEnumTypeDescriptor`. This is only necessary, if the binding behavior of the enum type is explicit.
+
+```csharp
+public class UserRoleType : EnumType<UserRole>
+{
+    protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)
+    {
+        descriptor.BindValuesExplicitly();
+
+        descriptor.Value(UserRole.Guest);
+    }
+}
+```
+
 # Naming
 
 Unless specified explicitly, Hot Chocolate automatically infers the names of enums and their values. Per default the name of the enum becomes the name of the enum type. When using `EnumType<T>` in Code-first, the name of `T` is chosen as the name for the enum type.
@@ -199,14 +292,7 @@ public enum UserRole
 
 The `Name` method on the `IEnumTypeDescriptor` / `IEnumValueDescriptor` allows us to specify an explicit name.
 
-```csharp
-public enum UserRole
-{
-    Guest,
-    Standard,
-    Administrator
-}
-
+```csharp-
 public class UserRoleType : EnumType<UserRole>
 {
     protected override void Configure(IEnumTypeDescriptor<UserRole> descriptor)

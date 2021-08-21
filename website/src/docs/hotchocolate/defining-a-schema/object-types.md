@@ -63,7 +63,7 @@ public class AuthorType : ObjectType<Author>
 }
 ```
 
-The `descriptor` gives us the ability to configure the object type. We will cover how to use it in the following chapters.
+The `IObjectTypeDescriptor` gives us the ability to configure the object type. We will cover how to use it in the following chapters.
 
 Since there could be multiple types inheriting from `ObjectType<Author>`, but differing in their name and fields, it is not certain which of these types should be used when we return an `Author` CLR type from one of our resolvers.
 
@@ -129,9 +129,11 @@ public class Startup
 
 # Binding behavior
 
-In the Annotation-based approach all public properties and methods are implicitly mapped to fields of the schema object type.
+In the Annotation-based approach all public properties and methods are implicitly mapped to fields on the schema object type. The same is true for `T` of `ObjectType<T>` when using the Code-first approach.
 
-In the Code-first approach we have a little more control over this behavior. By default all public properties and methods of our POCO are mapped to fields of the schema object type. This behavior is called implicit binding. There is also an explicit binding behavior, where we have to opt-in properties we want to include.
+In the Code-first approach we can also enable explicit binding, where we have to opt-in properties and methods we want to include instead of them being implicitly included.
+
+<!-- todo: this should not be covered in each type documentation, rather once in a server configuration section -->
 
 We can configure our preferred binding behavior globally like the following.
 
@@ -143,6 +145,8 @@ services
         options.DefaultBindingBehavior = BindingBehavior.Explicit;
     });
 ```
+
+> ⚠️ Note: This changes the binding behavior for all types, not only object types.
 
 We can also override it on a per type basis:
 
@@ -180,7 +184,7 @@ public class Book
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-In the Code-first approach we can ignore certain properties of our POCO using the `Ignore` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is implicit.
+In the Code-first approach we can ignore fields of our POCO using the `Ignore` method on the `IObjectTypeDescriptor`. This is only necessary, if the binding behavior of the object type is implicit.
 
 ```csharp
 public class BookType : ObjectType<Book>
@@ -202,7 +206,7 @@ We do not have to ignore fields in the Schema-first approach.
 
 ## Including fields
 
-In the Code-first approach we can explicitly include certain properties of our POCO using the `Field` method on the `descriptor`. This is only necessary, if the binding behavior of the object type is explicit.
+In the Code-first approach we can explicitly include properties of our POCO using the `Field` method on the `IObjectTypeDescriptor`. This is only necessary, if the binding behavior of the object type is explicit.
 
 ```csharp
 public class BookType : ObjectType<Book>
