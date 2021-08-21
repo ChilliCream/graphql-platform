@@ -12,7 +12,7 @@ Banana Cake Pop is our brand new GraphQL IDE which works well with Hot Chocolate
 
 # Download
 
-Banana Cake Pop is currently in preview and the current version is `1.0.0-preview.2`.
+Banana Cake Pop is currently in preview and the current version is `1.0.0-preview.1`.
 
 - [macOS Installer](https://github.com/ChilliCream/bananacakepop/releases/download/v1.0.0-preview.1/BananaCakePop-1.0.0-preview.1.dmg)
 - [windows Installer](https://github.com/ChilliCream/bananacakepop/releases/download/v1.0.0-preview.1/BananaCakePop-1.0.0-preview.1.exe)
