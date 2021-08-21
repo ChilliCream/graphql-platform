@@ -39,7 +39,7 @@ When querying for an enum value, it will be serialized as a string.
 
 **Response**
 
-```json
+````json
 {
   "data": {
     "role": "STANDARD"
@@ -57,7 +57,7 @@ When using an enum value as an argument, it is represented as a literal and **no
     id
   }
 }
-```
+````
 
 When used as a type for a variable, it is represented as a string in the variables object, since JSON does not offer support for literals.
 
@@ -139,7 +139,37 @@ public class QueryType : ObjectType
 }
 ```
 
-We can also bind the enumeration type to any other .NET type, for example a `string`.
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddDocumentFromString(@"
+        type Query {
+          user(role: UserRole): User
+        }
+
+        enum UserRole {
+          GUEST,
+          DEFAULT,
+          ADMINISTRATOR
+        }
+    ")
+    .AddResolver("Query", "user", (context) =>-
+    {
+        var role = context.ArgumentValue<string>("role");
+
+        // Omitted code for brevity
+    })
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Non-enum values
+
+In Code-first we can also bind the enum type to any other .NET type, for example a `string`.
 
 ```csharp
 public class UserRoleType : EnumType<string>
@@ -174,34 +204,6 @@ public class QueryType : ObjectType
     }
 }
 ```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-services
-    .AddGraphQLServer()
-    .AddDocumentFromString(@"
-        type Query {
-          user(role: UserRole): User
-        }
-
-        enum UserRole {
-          GUEST,
-          DEFAULT,
-          ADMINISTRATOR
-        }
-    ")
-    .AddResolver("Query", "user", (context) =>
-    {
-        var role = context.ArgumentValue<string>("role");
-
-        // Omitted code for brevity
-    })
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
 
 # Binding behavior
 
