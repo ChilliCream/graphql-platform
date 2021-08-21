@@ -166,7 +166,7 @@ public class Query
 {
     public string Example([Service] IIdSerializer serializer)
     {
-        string serializedId = serializer.Serialize(null, "User", "123");
+        string serializedId = serializer.Serialize(null, "Product", "123");
 
         IdValue deserializedIdValue = serializer.Deserialize(serializedId);
         object deserializedId = deserializedIdValue.Value;
@@ -202,6 +202,15 @@ type Query {
 }
 ```
 
+While it is not part of the specification, Hot Chocolate also adds a `nodes` field allowing you to refetch multiple objects in one round trip.
+
+```sdl
+type Query {
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+}
+```
+
 ## Usage
 
 In Hot Chocolate we can enable Global Object Identification, by calling `AddGlobalObjectIdentification()` on the `IRequestExecutorBuilder`.
@@ -219,14 +228,78 @@ public class Startup
 }
 ```
 
-This registers the `Node` interface type and adds the `node(id: ID!): Node` field to our query type, as explained above.
+This registers the `Node` interface type and adds the `node(id: ID!): Node` and the `nodes(ids: [ID!]!): [Node]!` field to our query type. At least one type in our schema needs to implement the `Node` interface or an exception is raised.
 
 > ⚠️ Note: Using `AddGlobalObjectIdentification()` in two upstream stitched services does currently not work out of the box.
+
+Next we need to extend our object types with the `Global Object Identification` functionality. Therefore 3 cirteria need to be fulfilled:
+
+1. The type needs to implement the `Node` interface.
+2. On the type an `id` field needs to be present to properly implement the contract of the `Node` interface.
+3. A method responsible for refetching an object based on its `id` needs to be defined.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-TODO
+To declare an object type as a refetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
+
+There also needs to be a method responsible for the acutal refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
+
+- `Get`
+- `GetAsync`
+- `GetProduct`
+- `GetProductAsync`
+
+The method is expected to have a return type of either `Product` or `Task<Product>`. Furthermore the first argument of this method is expected to be of the same type as the `Id` property. At runtime Hot Chocolate will invoke this method with the `id` of the object that should be refetched. Special types, such as services, can be injected as arguments as well.
+
+```csharp
+[Node]
+public class Product
+{
+    public string Id { get; set; }
+
+    public static async Task<Product> Get(string id,
+        [Service] ProductService service)
+    {
+        Product product = await service.GetByIdAsync(id);
+
+        return product;
+    }
+}
+```
+
+If we need to influence the global identifier generation, we can annotate the `Id` property manually.
+
+```csharp
+[ID("Example")]
+public string Id { get; set; }
+```
+
+If our type does not have an `id` field, we can either [rename](/docs/hotchocolate/defining-a-schema/object-types#naming) it or specify the name of the property that should be the `id` field through the `[Node]` attribute. Hot Chocolate will then automatically rename this property to be `id` to properly implement the contract of the `Node` interface.
+
+```csharp
+[Node(IdField = nameof(ProductId))]
+public class Product
+{
+    public string ProductId { get; set; }
+
+    // Omitted code for brevity
+}
+```
+
+When wanting to place the `Node` functionality in an extension type, it is important to keep in mind that the `[Node]` attribute needs to be defined on the class extending the original type.
+
+```csharp
+[Node]
+[ExtendObjectType(typeof(Product))]
+public class ProductExtensions
+{
+    public Product GetProductAsync(string id)
+    {
+        // Omitted code for brevity
+    }
+}
+```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
@@ -313,7 +386,7 @@ type LikePostPayload {
 }
 ```
 
-This allows us to immediately use the affected entity in the client application responsible for the mutation.
+This allows us to immediately process the affected entity in the client application responsible for the mutation.
 
 Sometimes a mutation might also affect other parts of our application as well. Maybe the `likePost` mutation needs to update an Activity Feed.
 
