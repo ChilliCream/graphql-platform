@@ -30,17 +30,17 @@ We can opt Ids into this behavior like the following.
 ```csharp
 public class Product
 {
-    [GlobalId]
+    [ID]
     public int Id { get; set; }
 }
 ```
 
-If no arguments are passed to the `[GlobalId]` attribute, it will use the name of the output type, in this case `Product`, to serialize the Id.
+If no arguments are passed to the `[ID]` attribute, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
 If we do not want to use the name of the output type, we can specify a string of our choice.
 
 ```csharp
-[GlobalId("Foo")]
+[ID("Foo")]
 public int Id { get; set; }
 ```
 
@@ -57,35 +57,33 @@ public class ProductType : ObjectType<Product>
 {
     protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
-        descriptor.Field(f => f.Id).GlobalId();
+        descriptor.Field(f => f.Id).ID();
     }
 }
 ```
 
-If no arguments are passed to `GlobalId()`, it will use the name of the output type, in this case `Product`, to serialize the Id.
+If no arguments are passed to `ID()`, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
 If we do not want to use the name of the output type, we can specify a string of our choice.
 
 ```csharp
-descriptor.Field(f => f.Id).GlobalId("Foo");
+descriptor.Field(f => f.Id).ID("Foo");
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
-
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The type of fields specified as `GlobalId` is also automatically switched to the ID scalar.
+The type of fields specified as `ID` is also automatically switched to the ID scalar.
 
 [Learn more about the ID scalar](/docs/hotchocolate/defining-a-schema/scalars#id)
 
 ## Usage in Input Types
 
 If our `Product` output type returns a serialized Id, all arguments and fields on input object types, accepting a `Product` Id, need to be able to interpret the serialized Id.
-Therefore we also need to define them as `GlobalId`, in order to deserialize the serialized Id to the actual Id.
+Therefore we also need to define them as `ID`, in order to deserialize the serialized Id to the actual Id.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -93,27 +91,27 @@ Therefore we also need to define them as `GlobalId`, in order to deserialize the
 ```csharp
 public class Query
 {
-    public Product GetProduct([GlobalId] int id)
+    public Product GetProduct([ID] int id)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-In input object types we can use the `[GlobalId]` attribute on specific fields.
+In input object types we can use the `[ID]` attribute on specific fields.
 
 ```csharp
 public class ProductInput
 {
-    [GlobalId]
+    [ID]
     public int ProductId { get; set; }
 }
 ```
 
-Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to the `[GlobalId]` attribute.
+Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to the `[ID]` attribute.
 
 ```csharp
-public Product GetProduct([GlobalId(nameof(Product))] int id)
+public Product GetProduct([ID(nameof(Product))] int id)
 ```
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
@@ -124,7 +122,7 @@ This will result in an error if an Id, serialized using a different type name th
 ```csharp
 descriptor
     .Field("product")
-    .Argument("id", a => a.Type<NonNullType<IdType>>().GlobalId())
+    .Argument("id", a => a.Type<NonNullType<IdType>>().ID())
     .Type<ProductType>()
     .Resolve(context =>
     {
@@ -134,29 +132,27 @@ descriptor
     });
 ```
 
-> Note: `GlobalId()` can only be used on fields and arguments with a concrete type. Otherwise type modifiers like non-null or list can not be correctly rewritten.
+> Note: `ID()` can only be used on fields and arguments with a concrete type. Otherwise type modifiers like non-null or list can not be correctly rewritten.
 
-In input object types we can use `GlobalId()` on specific fields.
+In input object types we can use `ID()` on specific fields.
 
 ```csharp
 descriptor
     .Field("id")
     .Type<NonNullType<IdType>>()
-    .GlobalId();
+    .ID();
 ```
 
-Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to `GlobalId()`.
+Per default all serialized Ids are accepted. If we want to only accept Ids that have been serialized for the `Product` output type, we can specify the type name as argument to `ID()`.
 
 ```csharp
-.Argument("id", a => a.Type<NonNullType<IdType>>().GlobalId(nameof(Product)))
+.Argument("id", a => a.Type<NonNullType<IdType>>().ID(nameof(Product)))
 ```
 
 This will result in an error if an Id, serialized using a different type name than `Product`, is used as input.
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
-
-TODO
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -264,12 +260,10 @@ public class UserType : ObjectType<User>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-TODO
-
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-TODO: How to resolve in different type / other options of GOI
+<!-- todo: how to resolve in different type / other options of GOI -->
 
 Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.
 
