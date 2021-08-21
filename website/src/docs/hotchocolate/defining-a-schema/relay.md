@@ -243,7 +243,7 @@ Next we need to extend our object types with the `Global Object Identification` 
 
 To declare an object type as a refetchable, we need to annotate it using the `[Node]` attribute. This in turn causes the type to implement the `Node` interface and if present automatically turns the `id` field into a [global identifier](#global-identifiers).
 
-There also needs to be a method responsible for the acutal refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
+There also needs to be a method, a _node resolver_, responsible for the acutal refetching of the object. Assuming our class is called `Product`, Hot Chocolate looks for a static method, with one of the following names:
 
 - `Get`
 - `GetAsync`
@@ -275,7 +275,7 @@ If we need to influence the global identifier generation, we can annotate the `I
 public string Id { get; set; }
 ```
 
-If our type does not have an `id` field, we can either [rename](/docs/hotchocolate/defining-a-schema/object-types#naming) it or specify the name of the property that should be the `id` field through the `[Node]` attribute. Hot Chocolate will then automatically rename this property to be `id` to properly implement the contract of the `Node` interface.
+If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/defining-a-schema/object-types#naming) or specify the name of the property that should be the `id` field through the `[Node]` attribute. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
 
 ```csharp
 [Node(IdField = nameof(ProductId))]
@@ -284,6 +284,35 @@ public class Product
     public string ProductId { get; set; }
 
     // Omitted code for brevity
+}
+```
+
+If our _node resolver_ method doesn't follow the naming conventions laid out above, we can annotate it using the `[NodeResolver]` attribute to let Hot Chocolate know that this should be the method used for refetching the object.
+
+```csharp
+[NodeResolver]
+public static Product OtherMethod(string id)
+{
+    // Omitted code for brevity
+}
+```
+
+In case we want to resolve the object using another class, we can reference the class / method like the following.
+
+```csharp
+[Node(NodeResolverType = typeof(ProductNodeResolver),
+    NodeResolver = nameof(ProductNodeResolver.MethodName))]
+public class Product
+{
+    public string ProductId { get; set; }
+}
+
+public class ProductNodeResolver
+{
+    public static Product MethodName(string id)
+    {
+        // Omitted code for brevity
+    }
 }
 ```
 
@@ -301,31 +330,84 @@ public class ProductExtensions
 }
 ```
 
+[Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
+In the Code-first approach we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
+
+- `ImplementsNode`: Implements the `Node` interface.
+- `IdField`: Selects the property that represents the unique identifier of the object.
+- `ResolveNode` / `ResolveNodeWith`: Method that refetches the object by its Id, also called the _node resolver_. If these methods are chained after `IdField`, they automatically infer the correct type of the `id` argument.
+
 ```csharp
-public class User
+public class Product
 {
     public string Id { get; set; }
-
-    public string Name { get; set; }
 }
 
-public class UserType : ObjectType<User>
+public class ProductType : ObjectType<Product>
 {
-    protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
     {
         descriptor
             .ImplementsNode()
             .IdField(f => f.Id)
             .ResolveNode(async (context, id) =>
             {
-                User user =
-                    await context.Service<UserService>().GetByIdAsync(id);
+                Product product =
+                    await context.Service<ProductService>().GetByIdAsync(id);
 
-                return user;
+                return product;
             });
+    }
+}
+```
+
+If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/defining-a-schema/object-types#naming) or specify it through the `IdField` method on the `IObjectTypeDescriptor`. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
+
+```csharp
+public class Product
+{
+    public string ProductId { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor
+            .ImplementsNode()
+            .IdField(f => f.ProductId)
+            .ResolveNode((context, id) =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+In case we want to resolve the object using another class, we can do so using `ResolveNodeWith`.
+
+```csharp
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor
+            .ImplementsNode()
+            .IdField(f => f.ProductId)
+            .ResolveNodeWith<ProductNodeResolver>(r =>
+                r.GetProductAsync(default));
+    }
+}
+
+public class ProductNodeResolver
+{
+    public async Task<Product> GetProductAsync(string id)
+    {
+        // Omitted code for brevity
     }
 }
 ```
@@ -335,8 +417,6 @@ public class UserType : ObjectType<User>
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
-<!-- todo: how to resolve in different type / other options of GOI -->
 
 Since node resolvers resolve entities by their Id, they are the perfect place to start utilizing DataLoaders.
 
