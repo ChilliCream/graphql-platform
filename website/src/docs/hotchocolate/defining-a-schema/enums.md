@@ -139,6 +139,26 @@ public class QueryType : ObjectType
 }
 ```
 
+Since there could be multiple enum types inheriting from `EnumType<UserRole>`, but differing in their name and values, it is not certain which of these types should be used when we return a `UserRole` CLR type from one of our resolvers.
+
+**Therefore it's important to note that Code-first enum types are not automatically inferred. They need to be explicitly specified or registered.**
+
+We can either [explicitly specify the type on a per-resolver basis](/docs/hotchocolate/defining-a-schema/object-types#explicit-types) or we can register the type once globally:
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddType<UserRoleType>();
+    }
+}
+```
+
+With this configuration each `UserRole` CLR type we return from our resovlers would be assumed to be a `UserRoleType`.
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 

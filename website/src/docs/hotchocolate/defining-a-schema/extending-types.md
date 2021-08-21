@@ -366,7 +366,3 @@ public class PostExtensions
 
 > Note: The `IPost` is annotated with `[InterfaceType]` to include it in the GraphQL schema, but that isn't necessary for the type extension to work.
 > We can use any base type, like `object` or an `abstract` base class, as an extension point without necessarily exposing the base type in our GraphQL schema.
-
-# Enum Types
-
-TODO
