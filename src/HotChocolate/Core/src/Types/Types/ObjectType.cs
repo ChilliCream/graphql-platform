@@ -87,7 +87,7 @@ namespace HotChocolate.Types
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 
         /// <inheritdoc />
-        public bool IsInstanceOfType(IResolverContext context, object resolverResult)
+        public virtual bool IsInstanceOfType(IResolverContext context, object resolverResult)
         {
             if (context is null)
             {

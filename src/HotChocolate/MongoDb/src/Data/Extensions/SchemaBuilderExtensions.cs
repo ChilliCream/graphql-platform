@@ -14,6 +14,7 @@ namespace HotChocolate.Data.MongoDb
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
@@ -28,6 +29,7 @@ namespace HotChocolate.Data.MongoDb
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
@@ -42,6 +44,7 @@ namespace HotChocolate.Data.MongoDb
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>

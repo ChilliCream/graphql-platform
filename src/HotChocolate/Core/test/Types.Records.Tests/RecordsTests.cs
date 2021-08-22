@@ -58,14 +58,13 @@ namespace HotChocolate.Types
             public Person GetPerson() => new Person(1, "Michael");
         }
 
-        public record Person([GlobalId] int Id, string Name);
+        public record Person([property: GlobalId] int Id, string Name);
 
         public class Query2
         {
-            public DefaultValueTest GetPerson(DefaultValueTest? defaultValueTest) =>
-                new DefaultValueTest(1, "Test");
+            public DefaultValueTest GetPerson(DefaultValueTest? defaultValueTest) => new(1, "Test");
         }
 
-        public record DefaultValueTest([GlobalId] int Id, string Name = "ShouldBeDefaultValue");
+        public record DefaultValueTest([property: GlobalId] int Id, string Name = "ShouldBeDefaultValue");
     }
 }

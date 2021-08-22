@@ -203,9 +203,13 @@ namespace HotChocolate.Types
             ITypeDiscoveryContext context,
             DirectiveTypeDefinition definition)
         {
-            context.RegisterDependencyRange(
-                definition.GetArguments().Select(t => t.Type),
-                TypeDependencyKind.Completed);
+            if (definition.HasArguments)
+            {
+                foreach (var argument in definition.Arguments)
+                {
+                    context.Dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
+                }
+            }
         }
 
         protected override void OnCompleteType(

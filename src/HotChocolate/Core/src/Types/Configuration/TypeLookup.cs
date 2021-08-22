@@ -66,6 +66,11 @@ namespace HotChocolate.Configuration
                         return true;
                     }
                     break;
+
+                case DependantFactoryTypeReference r:
+                    _refs[typeRef] = r;
+                    namedTypeRef = r;
+                    return true;
             }
 
             namedTypeRef = null;

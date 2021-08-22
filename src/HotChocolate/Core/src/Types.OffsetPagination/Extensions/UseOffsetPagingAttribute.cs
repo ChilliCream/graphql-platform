@@ -14,6 +14,7 @@ namespace HotChocolate.Types
         private int? _defaultPageSize;
         private int? _maxPageSize;
         private bool? _includeTotalCount;
+        private bool? _requirePagingBoundaries;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.
@@ -58,6 +59,21 @@ namespace HotChocolate.Types
             set => _includeTotalCount = value;
         }
 
+        /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        public bool RequirePagingBoundaries
+        {
+            get => _requirePagingBoundaries ?? PagingDefaults.AllowBackwardPagination;
+            set => _requirePagingBoundaries = value;
+        }
+
+        /// <summary>
+        /// Specifies the name of the paging provider that shall be used.
+        /// </summary>
+        public string? ProviderName { get; set; }
+
         protected override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
@@ -71,7 +87,9 @@ namespace HotChocolate.Types
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,
-                        IncludeTotalCount = _includeTotalCount
+                        IncludeTotalCount = _includeTotalCount,
+                        RequirePagingBoundaries = _requirePagingBoundaries,
+                        ProviderName = ProviderName
                     });
             }
 
@@ -83,7 +101,9 @@ namespace HotChocolate.Types
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,
-                        IncludeTotalCount = _includeTotalCount
+                        IncludeTotalCount = _includeTotalCount,
+                        RequirePagingBoundaries = _requirePagingBoundaries,
+                        ProviderName = ProviderName
                     });
             }
         }

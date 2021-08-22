@@ -1,11 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -59,23 +56,18 @@ namespace HotChocolate.Types
                         definition.ResultType = selectionType;
                         definition.Type = context.TypeInspector.GetTypeRef(selectionType);
 
-                        ILazyTypeConfiguration lazyConfiguration =
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (_, definition) =>
-                                    {
-                                        CompileMiddleware(
-                                            selectionType,
-                                            definition,
-                                            placeholder,
-                                            middlewareDefinition);
-                                    })
-                                .On(ApplyConfigurationOn.Completion)
-                                .Build();
-
-                        definition.Configurations.Add(lazyConfiguration);
+                        definition.Configurations.Add(
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (_, d) =>
+                                {
+                                    CompileMiddleware(
+                                        selectionType,
+                                        d,
+                                        placeholder,
+                                        middlewareDefinition);
+                                },
+                                definition,
+                                ApplyConfigurationOn.Completion));
                     });
 
             return descriptor;

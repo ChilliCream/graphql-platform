@@ -28,6 +28,6 @@ namespace StrawberryShake.Serialization
             return uri;
         }
 
-        protected override string Format(Uri runtimeValue) => runtimeValue.AbsolutePath;
+        protected override string Format(Uri runtimeValue) => runtimeValue.ToString();
     }
 }

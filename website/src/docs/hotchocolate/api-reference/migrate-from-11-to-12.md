@@ -46,6 +46,74 @@ services
     .AddType(() => new UrlType("Url"));
 ```
 
+# Pagination
+
+## ConnectionType
+
+We have changed the way we infer the name for the connection type when using cursor-based pagination. By default, the connection name is now inferred from the field name instead of the type name.
+
+```SDL
+type Person {
+  friends: [Person]
+}
+```
+
+In version 11, we would have created a connection named `PersonConnection`.
+
+```SDL
+type Person {
+  friends(first: Int, last: Int, after: String, before: String): PersonConnection
+}
+```
+
+In version 12, we now will infer the connection name as `FriendsConnection`.
+
+```SDL
+type Person {
+  friends(first: Int, last: Int, after: String, before: String): FriendsConnection
+}
+```
+
+To keep your schema stable when you migrate, you can switch the behavior back to how you did in version 11.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .SetPagingOptions(new PagingOptions{ InferConnectionNameFromField = false })
+    ...
+```
+
+Moreover, you now can explicitly define the connection name per field.
+
+```csharp
+public class Person
+{
+    [UsePaging(ConnectionName = "Persons")]
+    public IQueryable<Person> GetFriends() => ...
+}
+```
+
+## MongoDB Paging
+
+In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
+
+To use these attributes with mongo, you need to register the mongo paging provider with your GraphQL configuration:
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders()
+    ...
+```
+
+# Records
+
+With version 11, we added support for records and added the ability to infer attributes from parameters. This, in the end, leads to more errors than benefits. With version 12, we removed this feature. Use the official' property' keyword to write records in C# short-hand syntax when annotating properties.
+
+```csharp
+public record Foo([property: ID] string Id);
+```
+
 # Relay
 
 ## Configuration

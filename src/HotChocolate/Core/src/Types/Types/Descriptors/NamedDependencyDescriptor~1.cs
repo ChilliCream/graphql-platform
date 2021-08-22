@@ -3,14 +3,13 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class NamedDependencyDescriptor<T>
-        : DependencyDescriptorBase<T>
+    internal class NamedDependencyDescriptor
+        : DependencyDescriptorBase
         , INamedDependencyDescriptor
-        where T : DefinitionBase
     {
         public NamedDependencyDescriptor(
             ITypeInspector typeInspector,
-            TypeConfiguration<T> configuration)
+            CompleteConfiguration configuration)
             : base(typeInspector, configuration)
         {
         }

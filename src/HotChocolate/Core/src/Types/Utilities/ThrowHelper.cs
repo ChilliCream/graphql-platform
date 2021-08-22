@@ -96,8 +96,8 @@ namespace HotChocolate.Utilities
             MemberInfo member) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage(TypeResources.ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
-                    .SetCode(ErrorCodes.Types.NodeTypeUnkown)
+                    .SetMessage(ThrowHelper_UsePagingAttribute_NodeTypeUnknown)
+                    .SetCode(ErrorCodes.Paging.NodeTypeUnknown)
                     .SetExtension(nameof(member), member)
                     .Build());
 

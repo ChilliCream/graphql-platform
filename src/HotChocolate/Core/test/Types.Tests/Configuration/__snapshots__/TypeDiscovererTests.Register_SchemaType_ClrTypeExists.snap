@@ -122,19 +122,19 @@
       ]
     },
     {
-      "type": "HotChocolate.Types.BooleanType",
-      "runtimeType": "System.Boolean",
-      "references": [
-        "None: HotChocolate.Types.BooleanType",
-        "None: BooleanType"
-      ]
-    },
-    {
       "type": "HotChocolate.Types.StringType",
       "runtimeType": "System.String",
       "references": [
         "None: HotChocolate.Types.StringType",
         "None: StringType"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.BooleanType",
+      "runtimeType": "System.Boolean",
+      "references": [
+        "None: HotChocolate.Types.BooleanType",
+        "None: BooleanType"
       ]
     },
     {
@@ -167,8 +167,8 @@
     "None: DeferDirective": "None: HotChocolate.Types.DeferDirectiveType",
     "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "Output: Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
-    "None: Boolean!": "None: HotChocolate.Types.BooleanType",
     "None: String": "None: HotChocolate.Types.StringType",
+    "None: Boolean!": "None: HotChocolate.Types.BooleanType",
     "None: Int32!": "None: HotChocolate.Types.IntType",
     "Output: Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
   }

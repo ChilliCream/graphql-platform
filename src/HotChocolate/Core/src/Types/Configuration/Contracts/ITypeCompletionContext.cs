@@ -55,7 +55,7 @@ namespace HotChocolate.Configuration
         /// <returns>
         /// <c>true</c> if the type has been resolved; otherwise, <c>false</c>.
         /// </returns>
-        bool TryGetType<T>(ITypeReference typeRef, [NotNullWhen(true)] out T type) where T : IType;
+        bool TryGetType<T>(ITypeReference typeRef, [NotNullWhen(true)] out T? type) where T : IType;
 
         /// <summary>
         /// Gets a type by it's type reference.
@@ -93,8 +93,6 @@ namespace HotChocolate.Configuration
         bool TryGetDirectiveType(
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType? directiveType);
-
-        DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
 
         Func<ISchema> GetSchemaResolver();
     }

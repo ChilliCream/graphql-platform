@@ -36,6 +36,8 @@ namespace HotChocolate.Types.Interceptors
             _runtimeTypes = runtimeTypes;
         }
 
+        public override bool TriggerAggregations => true;
+
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
         internal override void InitializeContext(
@@ -49,6 +51,53 @@ namespace HotChocolate.Types.Interceptors
             _typeReferenceResolver = typeReferenceResolver;
             _resolverTypes = _resolverTypeList.ToLookup(t => t.Item1, t => t.Item2);
             _configs = _fieldResolvers.ToLookup(t => t.Field.TypeName);
+        }
+
+        public override void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            if (!discoveryContext.IsIntrospectionType &&
+                discoveryContext.Type is IHasName namedType &&
+                definition is ITypeDefinition typeDef &&
+                !typeDef.NeedsNameCompletion)
+            {
+                if (typeDef.RuntimeType == typeof(object) &&
+                    _runtimeTypes.TryGetValue(typeDef.Name, out Type? type))
+                {
+                    typeDef.RuntimeType = type;
+                }
+
+                typeDef.Name = namedType.Name;
+                _typeDefs.Add(typeDef);
+            }
+        }
+
+        public override IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            var context = new CompletionContext(_typeDefs);
+            ApplyResolver(context);
+            ApplySourceMembers(context);
+
+            var list = new List<TypeDependency>();
+
+            foreach (var typeDef in _typeDefs)
+            {
+                switch (typeDef)
+                {
+                    case ObjectTypeDefinition otd:
+                        TypeDependencyHelper.CollectDependencies(otd, list);
+                        break;
+
+                    case InterfaceTypeDefinition itd:
+                        TypeDependencyHelper.CollectDependencies(itd, list);
+                        break;
+                }
+            }
+
+            return list.Select(t => t.TypeReference);
         }
 
         public override void OnAfterCompleteName(
@@ -74,7 +123,6 @@ namespace HotChocolate.Types.Interceptors
         public override void OnAfterCompleteTypeNames()
         {
             var context = new CompletionContext(_typeDefs);
-
             ApplyResolver(context);
             ApplySourceMembers(context);
         }
@@ -128,6 +176,8 @@ namespace HotChocolate.Types.Interceptors
                         context.Members.TryGetValue(field.Name, out MemberInfo? member))
                     {
                         field.ResolverMember = member;
+
+                        ObjectFieldDescriptor.From(_context, field).CreateDefinition();
 
                         field.Resolvers = _resolverCompiler.CompileResolve(
                             member,
@@ -185,6 +235,8 @@ namespace HotChocolate.Types.Interceptors
                     context.Members.TryGetValue(field.Name, out MemberInfo? member))
                 {
                     field.Member = member;
+
+                    ObjectFieldDescriptor.From(_context, field).CreateDefinition();
 
                     if (!field.Resolvers.HasResolvers)
                     {
@@ -269,7 +321,6 @@ namespace HotChocolate.Types.Interceptors
                     enumValue.RuntimeValue = info.Value;
                     enumValue.Member = info.Member;
                 }
-
             }
 
             context.Values.Clear();
