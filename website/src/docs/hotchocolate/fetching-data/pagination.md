@@ -445,9 +445,25 @@ var collectionSegment = new CollectionSegment<User>(
     getTotalCount: cancellationToken => ValueTask.FromResult(0));
 ```
 
+# PagingOptions
+
+`PagingOptions` can either be defined on a per-field basis or [globally](#pagination-defaults).
+
+The following options can be configured.
+
+| Property                       | Default | Description                                                                         |
+| ------------------------------ | ------- | ----------------------------------------------------------------------------------- |
+| `MaxPageSize`                  | `50`    | Maximum number of items a client can request via `first`, `last` or `take`.         |
+| `DefaultPageSize`              | `10`    | The default number of items, if a client does not specify`first`, `last` or `take`. |
+| `IncludeTotalCount`            | `false` | Add a `totalCount` field for clients to request the total number of items.          |
+| `AllowBackwardPagination`      | `true`  | Include `before` and `last` arguments on the connection.                            |
+| `RequirePagingBoundaries`      | `false` | Clients need to specify either `first`, `last` or `take`.                           |
+| `InferConnectionNameFromField` | `true`  | Infer the name of the connection from the field name rather than its type.          |
+| `ProviderName`                 | `null`  | The name of the pagination provider to use.                                         |
+
 # Pagination defaults
 
-If we want to enforce consistent pagination defaults throughout our app, we can do so, by setting the global `PagingOptions`.
+If we want to enforce consistent pagination defaults throughout our app, we can do so by setting the global `PagingOptions`.
 
 ```csharp
 public class Startup
@@ -456,14 +472,15 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            // ...
             .SetPagingOptions(new PagingOptions
             {
-                MaxPageSize = 50
+                MaxPageSize = 100
             });
     }
 }
 ```
+
+[Learn more about possible PagingOptions](#pagingoptions)
 
 # Types of pagination
 
