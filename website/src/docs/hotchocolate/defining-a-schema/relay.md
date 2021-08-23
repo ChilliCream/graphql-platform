@@ -24,7 +24,7 @@ With Global Identifiers, Hot Chocolate adds a middleware that automatically seri
 
 ## Usage in Output Types
 
-When returning an Id in an output type, Hot Chocolate can automatically combine its value with another value to form a unique Id. Per default this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
+When returning an Id in an output type, Hot Chocolate can automatically combine its value with another value to form a Global Id. Per default this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
 
 We can opt Ids into this behavior like the following.
 
