@@ -222,7 +222,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && CanBeLearnedMoreThanOnce == other.CanBeLearnedMoreThanOnce && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -629,7 +629,7 @@ namespace Foo.Bar
                 return false;
             }
 
-            return (Id == other.Id) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
+            return (Id.Equals(other.Id)) && Name.Equals(other.Name) && Level == other.Level && ((Special is null && other.Special is null) || Special != null && Special.Equals(other.Special)) && ((Trigger is null && other.Trigger is null) || Trigger != null && Trigger.Equals(other.Trigger)) && global::StrawberryShake.Helper.ComparisonHelper.SequenceEqual(Details, other.Details) && ActionType.Equals(other.ActionType);
         }
 
         public override global::System.Boolean Equals(global::System.Object? obj)
@@ -3526,7 +3526,7 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::Foo.Bar.SortEnumType> _sortEnumTypeParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Boolean, global::System.Boolean> _booleanParser;
         public GetFeatsPageBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatsPageResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
@@ -3536,7 +3536,7 @@ namespace Foo.Bar.State
             _sortEnumTypeParser = serializerResolver.GetLeafValueParser<global::System.String, global::Foo.Bar.SortEnumType>("SortEnumType") ?? throw new global::System.ArgumentException("No serializer for type `SortEnumType` found.");
             _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
-            _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid") ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
+            _uuidParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Guid>("Uuid") ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
             _booleanParser = serializerResolver.GetLeafValueParser<global::System.Boolean, global::System.Boolean>("Boolean") ?? throw new global::System.ArgumentException("No serializer for type `Boolean` found.");
         }
 
@@ -3663,7 +3663,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            return _uuidParser.Parse(obj.Value.GetGuid()!);
+            return _uuidParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
@@ -3736,7 +3736,7 @@ namespace Foo.Bar.State
         private readonly global::StrawberryShake.IEntityStore _entityStore;
         private readonly global::StrawberryShake.IEntityIdSerializer _idSerializer;
         private readonly global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult> _resultDataFactory;
-        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Guid, global::System.Guid> _uuidParser;
+        private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.Guid> _uuidParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.String, global::System.String> _stringParser;
         private readonly global::StrawberryShake.Serialization.ILeafValueParser<global::System.Int32, global::System.Int32> _intParser;
         public GetFeatByIdBuilder(global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer idSerializer, global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IGetFeatByIdResult> resultDataFactory, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
@@ -3744,7 +3744,7 @@ namespace Foo.Bar.State
             _entityStore = entityStore ?? throw new global::System.ArgumentNullException(nameof(entityStore));
             _idSerializer = idSerializer ?? throw new global::System.ArgumentNullException(nameof(idSerializer));
             _resultDataFactory = resultDataFactory ?? throw new global::System.ArgumentNullException(nameof(resultDataFactory));
-            _uuidParser = serializerResolver.GetLeafValueParser<global::System.Guid, global::System.Guid>("Uuid") ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
+            _uuidParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.Guid>("Uuid") ?? throw new global::System.ArgumentException("No serializer for type `Uuid` found.");
             _stringParser = serializerResolver.GetLeafValueParser<global::System.String, global::System.String>("String") ?? throw new global::System.ArgumentException("No serializer for type `String` found.");
             _intParser = serializerResolver.GetLeafValueParser<global::System.Int32, global::System.Int32>("Int") ?? throw new global::System.ArgumentException("No serializer for type `Int` found.");
         }
@@ -3862,7 +3862,7 @@ namespace Foo.Bar.State
                 throw new global::System.ArgumentNullException();
             }
 
-            return _uuidParser.Parse(obj.Value.GetGuid()!);
+            return _uuidParser.Parse(obj.Value.GetString()!);
         }
 
         private global::System.String DeserializeNonNullableString(global::System.Text.Json.JsonElement? obj)
@@ -4018,7 +4018,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseFeatEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatFeatEntityId(global::StrawberryShake.EntityId entityId)
@@ -4027,7 +4027,7 @@ namespace Foo.Bar.State
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
             return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
@@ -4035,7 +4035,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseFeatDetailsBlockEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatFeatDetailsBlockEntityId(global::StrawberryShake.EntityId entityId)
@@ -4044,7 +4044,7 @@ namespace Foo.Bar.State
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
             return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
@@ -4052,7 +4052,7 @@ namespace Foo.Bar.State
 
         private global::StrawberryShake.EntityId ParseActionTypeEntityId(global::System.Text.Json.JsonElement obj, global::System.String type)
         {
-            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetGuid()!);
+            return new global::StrawberryShake.EntityId(type, obj.GetProperty("id").GetString()!);
         }
 
         private global::System.String FormatActionTypeEntityId(global::StrawberryShake.EntityId entityId)
@@ -4061,7 +4061,7 @@ namespace Foo.Bar.State
             using var jsonWriter = new global::System.Text.Json.Utf8JsonWriter(writer, _options);
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("__typename", entityId.Name);
-            jsonWriter.WriteString("id", (global::System.Guid)entityId.Value);
+            jsonWriter.WriteString("id", (global::System.String)entityId.Value);
             jsonWriter.WriteEndObject();
             jsonWriter.Flush();
             return global::System.Text.Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);

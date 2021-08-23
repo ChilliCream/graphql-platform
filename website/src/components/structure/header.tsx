@@ -1,11 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import BarsIconSvg from "../../images/bars.svg";
@@ -20,7 +14,7 @@ import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
 
-export const Header: FunctionComponent = () => {
+export const Header: FC = () => {
   const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
@@ -180,14 +174,14 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const LogoText = styled(LogoTextSvg)`
   display: none;
   padding-left: 15px;
   height: 24px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 
   @media only screen and (min-width: 600px) {
     display: inline-block;
@@ -210,7 +204,7 @@ const HamburgerOpenButton = styled.div`
 
 const HamburgerOpenIcon = styled(BarsIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Navigation = styled.nav<{ open: boolean }>`
@@ -271,7 +265,7 @@ const HamburgerCloseButton = styled.div`
 
 const HamburgerCloseIcon = styled(TimesIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Nav = styled.ol`
@@ -307,11 +301,11 @@ const NavItem = styled.li`
 
 const NavLink = styled(Link)`
   flex: 0 0 auto;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 10px 15px;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  color: #fff;
+  color: var(--text-color-contrast);
   text-decoration: none;
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
@@ -366,15 +360,15 @@ const ToolLink = styled(Link)`
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;

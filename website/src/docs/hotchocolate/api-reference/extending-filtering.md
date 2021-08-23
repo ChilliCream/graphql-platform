@@ -152,7 +152,7 @@ you need on the `FilterConvention`.
 You can also override the configure method to have a (probably) familiar API experience.
 
 ```csharp
-public class CustomConvention : FilterConventio
+public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
@@ -176,7 +176,9 @@ The output of a translation is always some kind of _filter definition_. In case,
 In case, of MongoDB this is a `FilterDefinition`. Provider, visitor context and handler, operate on and produce this _filter definition_.
 
 To inspect and analyze the input object, the provider uses a visitor.
-What a visitor is and how you can write you own visitor, you can find here: [Visitor Documentation]()
+
+What a visitor is and how you can write you own visitor is explained [here](/docs/hotchocolate/api-reference/visitors)
+
 Visitors are a powerful yet complex concept, we tried our best to abstract it away.
 For most cases, you will not need to create a custom visitor.
 
@@ -403,7 +405,7 @@ services.AddGraphQLServer()
 ```
 
 To make this registration easier, Hot Chocolate also supports convention and provider extensions.
-Instead of creating a custom `FilterConvention`, you can also do the follwing:
+Instead of creating a custom `FilterConvention`, you can also do the following:
 
 ```csharp
 services

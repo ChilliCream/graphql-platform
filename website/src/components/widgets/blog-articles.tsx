@@ -1,6 +1,6 @@
 import { graphql } from "gatsby";
-import Img, { FluidObject } from "gatsby-image";
-import React, { FunctionComponent } from "react";
+import { GatsbyImage } from "gatsby-plugin-image";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticlesFragment } from "../../../graphql-types";
 import { ArticleTitle } from "../articles/article-elements";
@@ -9,13 +9,13 @@ import { BlogArticleTags } from "../blog-article/blog-article-tags";
 import { Link } from "../misc/link";
 import { Pagination } from "../misc/pagination";
 
-interface BlogArticlesProperties {
+interface BlogArticlesProps {
   currentPage?: number;
   data: BlogArticlesFragment;
   totalPages?: number;
 }
 
-export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
+export const BlogArticles: FC<BlogArticlesProps> = ({
   currentPage,
   data: { edges },
   totalPages,
@@ -29,13 +29,18 @@ export const BlogArticles: FunctionComponent<BlogArticlesProperties> = ({
                 (tag) => tag && tag.length > 0
               ) as string[])
             : [];
-          const featuredImage = node?.frontmatter!.featuredImage
-            ?.childImageSharp?.fluid as FluidObject;
+          const featuredImage =
+            node?.frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
           return (
             <Article key={`article-${node.id}`}>
               <Link to={node.frontmatter!.path!}>
-                {featuredImage && <Img fluid={featuredImage} />}
+                {featuredImage && (
+                  <GatsbyImage
+                    image={featuredImage}
+                    alt={node.frontmatter!.title}
+                  />
+                )}
                 <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
               </Link>
               <BlogArticleMetadata data={node!} />
@@ -63,9 +68,10 @@ export const BlogArticlesGraphQLFragment = graphql`
         frontmatter {
           featuredImage {
             childImageSharp {
-              fluid(maxWidth: 800, pngQuality: 90) {
-                ...GatsbyImageSharpFluid
-              }
+              gatsbyImageData(
+                layout: CONSTRAINED
+                width: 800
+              )
             }
           }
           path
@@ -91,11 +97,11 @@ const Container = styled.ul`
 const Article = styled.li`
   @media only screen and (min-width: 820px) {
     margin: 20px 0 0;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
     > a > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;

@@ -1,4 +1,5 @@
 using System;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
@@ -51,6 +52,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // the message processing was canceled.
+            }
+            catch (WebSocketException)
+            {
+                // we will just stop receiving
             }
         }
     }

@@ -42,7 +42,7 @@ To use projections with your GraphQL endpoint you have to register projections o
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddProjections();
 ```
 
@@ -194,8 +194,6 @@ FROM (
 LEFT JOIN "Address" AS "a" ON "t"."Id" = "a"."UserId"
 ORDER BY "t"."Name" DESC, "t"."Email" DESC, "t"."Id", "a"."Id"
 ```
-
-<!-- todo: the below two sections could be merged and simplified -->
 
 # Always Project Fields
 

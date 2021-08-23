@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
 export interface SalesCardProps {
@@ -8,7 +8,7 @@ export interface SalesCardProps {
   description: string;
 }
 
-export const SalesCard: FunctionComponent<SalesCardProps> = ({
+export const SalesCard: FC<SalesCardProps> = ({
   name,
   description,
   price,
@@ -91,7 +91,7 @@ const Buy = styled.a`
   font-family: "Roboto", sans-serif;
   margin-top: 2rem;
   width: 100%;
-  color: #fff;
+  color: var(--text-color-contrast);
   padding: 0.5rem 0;
   font-size: 0.875rem;
   line-height: 1.25rem;

@@ -32,6 +32,11 @@ namespace HotChocolate.Utilities
             _context = GetContext(GetNullableContextAttribute(type), _context);
         }
 
+        public static bool IsParameterNullable(ParameterInfo parameter) =>
+            new NullableHelper(parameter.ParameterType)
+                .GetFlags(parameter).FirstOrDefault() ??
+            false;
+
         public bool? GetContext(MemberInfo member)
         {
             NullableContextAttribute? attribute = GetNullableContextAttribute(member);
@@ -131,7 +136,7 @@ namespace HotChocolate.Utilities
             MethodInfo method)
         {
             object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
-            object? attribute = attributes.FirstOrDefault(t =>
+            var attribute = attributes.FirstOrDefault(t =>
                 t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (attribute is null)

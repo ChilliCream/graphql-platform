@@ -27,11 +27,19 @@ namespace HotChocolate.Execution.Pipeline
         public async ValueTask InvokeAsync(IRequestContext context)
         {
             using var timeout = new CancellationTokenSource(_timeout);
-            using var combined = CreateLinkedTokenSource(context.RequestAborted, timeout.Token);
+
+            // We do not dispose the combined token in this middleware at all times.
+            // The dispose is handled in the finally block.
+            CancellationTokenSource combined = CreateLinkedTokenSource(
+                context.RequestAborted, timeout.Token);
 
             try
             {
+                // Replace the request abort cancellation token with the newly created combined
+                // token. That now tracks our request timeout as well as the outer request
+                // cancellation token.
                 context.RequestAborted = combined.Token;
+
                 await _next(context).ConfigureAwait(false);
 
                 if (timeout.IsCancellationRequested)
@@ -48,6 +56,25 @@ namespace HotChocolate.Execution.Pipeline
                 }
 
                 context.Result = ErrorHelper.RequestTimeout(_timeout);
+            }
+            finally
+            {
+                // If we return a stream we want to keep the combined token alive until
+                // the stream is completed. By doing so we allow the initial cancellation token
+                // to still signal to resolvers in that stream that the request was canceled.
+                //
+                // In the case of a stream it is still ok that we disposed the timeout since the
+                // timeout is meant for the request processing itself which is finished at this
+                // stage.
+                if (context.Result is IResponseStream stream)
+                {
+                    stream.RegisterDisposable(combined);
+                }
+                else
+                {
+                    // if the result is not a stream than we can safely dispose.
+                    combined.Dispose();
+                }
             }
         }
     }

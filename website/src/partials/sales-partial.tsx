@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FC, useState } from "react";
 import styled from "styled-components";
 import { SalesCard } from "../components/support/sales-card";
 import { SalesCardPerk } from "../components/support/sales-card-perk";
@@ -8,7 +8,7 @@ import { IsMobile, IsPhablet, IsSmallDesktop } from "../shared-style";
 type Cycle = "monthly" | "biannually" | "annually";
 type Plan = "Basic" | "Enterprise";
 
-export const SalesPartial: FunctionComponent = () => {
+export const SalesPartial: FC = () => {
   const [cycle, setCycle] = useState<Cycle>("annually");
 
   const planPrices: Record<Plan, Record<Cycle, number>> = {
@@ -88,7 +88,7 @@ export const SalesPartial: FunctionComponent = () => {
           <SalesCardPerk>Two prioritized incidents per month</SalesCardPerk>
           <SalesCardPerk>
             12 hours per month at your free disposal
-            <PerkItemlistHeader>The time can be spend on:</PerkItemlistHeader>
+            <PerkItemlistHeader>The time can be spent on:</PerkItemlistHeader>
             <SalesCardPerkItem>
               Educating your team with workshops
             </SalesCardPerkItem>
@@ -135,7 +135,7 @@ const SwiterContainer = styled.div`
 const Title = styled.h1`
   flex: 0 0 auto;
   font-size: 1.75em;
-  color: #667;
+  color: var(--text-color);
   text-align: center;
 
   ${IsPhablet(`

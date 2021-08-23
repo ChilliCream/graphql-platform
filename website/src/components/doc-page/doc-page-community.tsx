@@ -1,19 +1,18 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { DocPageCommunityFragment } from "../../../graphql-types";
+import GitHubIconSvg from "../../images/github.svg";
+import SlackIconSvg from "../../images/slack.svg";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
-import GitHubIconSvg from "../../images/github.svg";
-import SlackIconSvg from "../../images/slack.svg";
-
-interface DocPageCommunityProperties {
+interface DocPageCommunityProps {
   data: DocPageCommunityFragment;
   originPath: string;
 }
 
-export const DocPageCommunity: FunctionComponent<DocPageCommunityProperties> = ({
+export const DocPageCommunity: FC<DocPageCommunityProps> = ({
   data,
   originPath,
 }) => {
@@ -92,13 +91,13 @@ const CommunityItem = styled.li`
 
 const CommunityLink = styled(Link)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
 
   > ${IconContainer} {
     margin-right: 10px;
 
     > svg {
-      fill: #666;
+      fill: var(--text-color);
     }
   }
 

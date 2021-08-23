@@ -1,12 +1,12 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img, { FluidObject } from "gatsby-image";
-import React, { FunctionComponent } from "react";
+import { GatsbyImage } from "gatsby-plugin-image";
+import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
+import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
@@ -42,13 +42,14 @@ import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
+import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
 
-const IndexPage: FunctionComponent = () => {
+const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
     query getIndexPageData {
       site {
@@ -74,9 +75,7 @@ const IndexPage: FunctionComponent = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  fluid(maxWidth: 800, pngQuality: 90) {
-                    ...GatsbyImageSharpFluid
-                  }
+                  gatsbyImageData(layout: CONSTRAINED, width: 800)
                 }
               }
               path
@@ -117,7 +116,7 @@ const IndexPage: FunctionComponent = () => {
           </Slide>
           <Slide>
             <Link to="/docs/bananacakepop">
-              <BananaCakePop />
+              <BananaCakePop shadow />
               <SlideContent>
                 <SlideTitle>Banana Cake Pop</SlideTitle>
                 <SlideDescription>
@@ -180,13 +179,19 @@ const IndexPage: FunctionComponent = () => {
             <SectionTitle centerAlways>From our Blog</SectionTitle>
             <Articles>
               {edges.map(({ node }) => {
-                const featuredImage = node?.frontmatter!.featuredImage
-                  ?.childImageSharp?.fluid as FluidObject;
+                const featuredImage =
+                  node?.frontmatter!.featuredImage?.childImageSharp
+                    ?.gatsbyImageData;
 
                 return (
                   <Article key={`article-${node.id}`}>
                     <Link to={node.frontmatter!.path!}>
-                      {featuredImage && <Img fluid={featuredImage} />}
+                      {featuredImage && (
+                        <GatsbyImage
+                          image={featuredImage}
+                          alt={node.frontmatter!.title}
+                        />
+                      )}
                       <ArticleMetadata>
                         {node.frontmatter!.date!} ・{" "}
                         {node.fields!.readingTime!.text!}
@@ -305,6 +310,11 @@ const IndexPage: FunctionComponent = () => {
                   <SytadelleLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={160}>
+                <Link to="https://xm.com">
+                  <XMLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={120}>
                 <Link to="https://www.ziosk.com">
                   <ZioskLogoSvg />
@@ -343,9 +353,6 @@ const IndexPage: FunctionComponent = () => {
 export default IndexPage;
 
 const Slideshow = styled(Carousel)`
-  flex: 0 0 auto;
-  width: 100%;
-
   ul,
   li {
     margin: 0;
@@ -361,10 +368,13 @@ const Slideshow = styled(Carousel)`
     }
 
     .control-dots {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+
       display: flex;
       flex-direction: row;
       justify-content: center;
-      margin-top: 20px;
       list-style: none;
 
       > .dot {
@@ -372,13 +382,13 @@ const Slideshow = styled(Carousel)`
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: #fff;
+        background-color: var(--text-color-contrast);
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: #fff;
+          background-color: var(--text-color-contrast);
           opacity: 1;
 
           &:hover {
@@ -396,6 +406,7 @@ const Slideshow = styled(Carousel)`
       position: relative;
       display: flex;
       list-style: none;
+      margin-bottom: 25px;
 
       > .slide {
         position: relative;
@@ -438,7 +449,7 @@ const SlideContent = styled.div`
     left: 20%;
     display: flex;
     flex-direction: column;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 20px;
     background-color: rgba(0, 0, 0, 0.6);
   }
@@ -469,7 +480,7 @@ const SlideTitle = styled.h2`
     margin-bottom: 10px;
     font-size: 1.667em;
     text-align: initial;
-    color: #fff;
+    color: var(--text-color-contrast);
   }
 `;
 
@@ -478,7 +489,7 @@ const SlideDescription = styled.p`
   flex: 0 0 auto;
   margin-bottom: 0;
   font-size: 1.111em;
-  color: #fff;
+  color: var(--text-color-contrast);
 
   @media only screen and (min-width: 768px) {
     display: initial;
@@ -503,7 +514,7 @@ const Article = styled.li`
   display: flex;
   margin: 20px 0 0;
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
   > a {
@@ -511,7 +522,7 @@ const Article = styled.li`
   }
 
   > a > .gatsby-image-wrapper {
-    border-radius: 4px 4px 0 0;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
   }
 
   @media only screen and (min-width: 820px) {
@@ -525,7 +536,7 @@ const ArticleMetadata = styled.div`
   align-items: center;
   margin: 15px 20px 7px;
   font-size: 0.778em;
-  color: #667;
+  color: var(--text-color);
 `;
 
 const ArticleTitle = styled.h1`
@@ -547,11 +558,11 @@ const Logo = styled.div<{ width?: number }>`
   width: ${({ width }) => width || 160}px;
 
   > a > svg {
-    fill: #667;
+    fill: var(--text-color);
     transition: fill 0.2s ease-in-out;
 
     &:hover {
-      fill: #333;
+      fill: var(--heading-text-color);
     }
   }
 `;

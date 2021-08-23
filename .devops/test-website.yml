@@ -1,0 +1,30 @@
+trigger:
+- develop
+
+pool:
+  vmImage: "ubuntu-20.04"
+
+steps:
+- task: NodeTool@0
+  displayName: 'Install Node.js'
+  inputs:
+    versionSpec: '14.x'
+    checkLatest: true
+
+- task: YarnInstaller@3
+  displayName: 'Install Yarn'
+  inputs:
+    versionSpec: '1.x'
+    checkLatest: true
+
+- task: Yarn@3
+  displayName: 'Install Packages'
+  inputs:
+    projectDirectory: 'website'
+    arguments: '--frozen-lockfile'
+
+- task: Yarn@3
+  displayName: 'Run yarn build'
+  inputs:
+    projectDirectory: 'website'
+    arguments: 'build --prefix-paths'
