@@ -1,0 +1,42 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            }
+          ],
+          [
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @sumBy(key: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

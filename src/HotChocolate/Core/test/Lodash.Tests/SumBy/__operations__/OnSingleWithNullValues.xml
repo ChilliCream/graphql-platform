@@ -1,0 +1,21 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "int": null
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @sumBy(key: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0001</error-code>
+  </result>
+</test>

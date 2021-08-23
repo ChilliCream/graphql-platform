@@ -12,6 +12,9 @@
 ### [MaxBy](Operations/MaxBy/MaxBy.md)
 ### [MeanBy](Operations/MeanBy/MeanBy.md)
 ### [MinBy](Operations/MinBy/MinBy.md)
+### [SumBy](Operations/SumBy/SumBy.md)
+### [Take](Operations/Take/Take.md)
+### [TakeRight](Operations/Take/TakeRight.md)
 
 ## Transformations
 Exists(node, key):

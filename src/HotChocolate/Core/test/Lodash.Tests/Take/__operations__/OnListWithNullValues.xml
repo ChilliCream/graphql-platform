@@ -1,0 +1,36 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          null,
+          {
+            "string": "b"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @take(count: 2){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          null
+        ]
+      }
+    </json>
+  </result>
+</test>

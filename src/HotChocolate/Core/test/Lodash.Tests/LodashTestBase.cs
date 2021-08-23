@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using HotChocolate.Execution;
@@ -36,11 +38,26 @@ namespace HotChocolate.Lodash
                 "__operations__",
                 $"{fileName}.xml");
 
-            using FileStream fileStream = File.Open(filePath, FileMode.Open);
+            RETRY:
+            try
+            {
+                using FileStream fileStream = File.Open(filePath, FileMode.Open);
 
-            XmlSerializer serializer = new(typeof(TestCase));
-            testCase = (TestCase?)serializer.Deserialize(fileStream);
-            return testCase is not null;
+                XmlSerializer serializer = new(typeof(TestCase));
+                testCase = (TestCase?)serializer.Deserialize(fileStream);
+                return testCase is not null;
+
+            }
+            catch (IOException exception)
+            {
+                if (exception.Message.Contains("because it is being used by another process"))
+                {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(50));
+                    goto RETRY;
+                }
+
+                throw;
+            }
         }
     }
 

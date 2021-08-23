@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -20,39 +21,52 @@ namespace HotChocolate.Lodash
                 return false;
             }
 
-            double result = 0;
-
-            void SumByField(JsonNode? node)
+            if (node is JsonObject)
             {
-                if (node is JsonObject obj)
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+
+            if (node is JsonArray arr)
+            {
+                rewritten = RewriteArray(arr);
+                return true;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(node));
+        }
+
+        private double? RewriteArray(JsonArray value)
+        {
+            double? sum = null;
+
+            foreach (JsonNode? element in value)
+            {
+                switch (element)
                 {
-                    if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode))
+                    case JsonArray:
+                        throw ThrowHelper.ExpectObjectButReceivedArray(element.GetPath());
+                    case JsonValue:
+                        throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
+                    case JsonObject obj:
                     {
-                        //TODO : String also?
-                        if (jsonNode is not null &&
-                            jsonNode.GetValue<JsonElement>()
-                                .TryConvertToNumber(out var number))
+                        if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) &&
+                            jsonNode.TryConvertToNumber(out double converted))
                         {
-                            result += number;
+                            sum ??= 0;
+                            sum += converted;
                         }
-                        // throw?
-                    }
-                    // throw?
-                }
-                else if (node is JsonArray arr)
-                {
-                    for (var i = arr.Count - 1; i >= 0; i--)
-                    {
-                        SumByField(arr[i]);
-                        arr.RemoveAt(i);
+
+                        break;
                     }
                 }
             }
 
-            SumByField(node);
-
-            rewritten = result;
-            return true;
+            return sum;
         }
     }
 }

@@ -28,6 +28,9 @@
 <li><a href="#sec-MaxBy"><span class="spec-secid">1.10</span>MaxBy</a></li>
 <li><a href="#sec-MeanBy"><span class="spec-secid">1.11</span>MeanBy</a></li>
 <li><a href="#sec-MinBy"><span class="spec-secid">1.12</span>MinBy</a></li>
+<li><a href="#sec-SumBy"><span class="spec-secid">1.13</span>SumBy</a></li>
+<li><a href="#sec-Take"><span class="spec-secid">1.14</span>Take</a></li>
+<li><a href="#sec-TakeRight"><span class="spec-secid">1.15</span>TakeRight</a></li>
 </ol>
 </li>
 <li><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
@@ -1087,6 +1090,225 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 </div>
 </section>
 </section>
+<section id="sec-SumBy" secid="1.13">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-SumBy">1.13</a></span>SumBy</h2>
+<section id="sec-SumBy.Directive" class="subsec">
+<h6><a href="#sec-SumBy.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@sumBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><dfn id="-sumby"><a href="#-sumby" data-name="-sumby">@sumBy</a></dfn> can only be applied list of objects of depth 1. Nested lists can be flattened with <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a></span> first. <span class="spec-ref"><a href="#-sumby" data-name="-sumby">@sumBy</a></span> returns the sum of all values of the fields with name <code>key</code>. If no value was found, <span class="spec-ref"><a href="#-sumby" data-name="-sumby">@sumBy</a></span> retruns null.</p>
+<p>Given the following data:</p>
+<pre id="example-28f4f" class="spec-example" data-language="json"><a href="#example-28f4f">Example № 37</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">1</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">2</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">3</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-d22ed" class="spec-example" data-language="graphql"><a href="#example-d22ed">Example № 38</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@sumBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token string">"int"</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">int</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-2f63d" class="spec-example" data-language="json"><a href="#example-2f63d">Example № 39</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token number">6</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-SumBy.Execution" class="subsec">
+<h6><a href="#sec-SumBy.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
+<div class="spec-algo" id="RewriteSumBy()">
+<span class="spec-call"><a href="#RewriteSumBy()" data-name="RewriteSumBy">RewriteSumBy</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
+<li>If <var data-name="node">node</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0001" data-name="ag0001">AG0001</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0004" data-name="ag0004">AG0004</a></span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Return <span class="spec-call"><a href="#RewriteSumByArray()" data-name="RewriteSumByArray">RewriteSumByArray</a>(<var data-name="node">node</var>)</span></li>
+</ol>
+</li>
+</ol>
+</div>
+<div class="spec-algo" id="RewriteSumByArray()">
+<span class="spec-call"><a href="#RewriteSumByArray()" data-name="RewriteSumByArray">RewriteSumByArray</a>(<var data-name="value">value</var>)</span><ol>
+<li>Let <var data-name="sum">sum</var> be <span class="spec-keyword">null</span></li>
+<li>For Each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
+<li>If <var data-name="element">element</var> is <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0003" data-name="ag0003">AG0003</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0002" data-name="ag0002">AG0002</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
+<li>If <span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span> <ol>
+<li>Let <var data-name="fieldValue">fieldValue</var> be <span class="spec-call"><a href="#Get()" data-name="Get">Get</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span></li>
+<li>If <span class="spec-call"><a href="#IsNumber()" data-name="IsNumber">IsNumber</a>(<var data-name="fieldValue">fieldValue</var>)</span><ol>
+<li>If <var data-name="sum">sum</var> is <span class="spec-keyword">null</span><ol>
+<li>Set <var data-name="sum">sum</var> to 0</li>
+</ol>
+</li>
+<li>Add <var data-name="fieldValue">fieldValue</var> to <var data-name="sum">sum</var></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return <var data-name="sum">sum</var> </li>
+</ol>
+</div>
+</section>
+</section>
+<section id="sec-Take" secid="1.14">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-Take">1.14</a></span>Take</h2>
+<section id="sec-Take.Directive" class="subsec">
+<h6><a href="#sec-Take.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@take</span><span class="token punctuation">(</span><span class="token attr-name">count</span><span class="token punctuation">:</span> <span class="token scalar">Int</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><dfn id="-take"><a href="#-take" data-name="-take">@take</a></dfn> can be applied a list any depth. <span class="spec-ref"><a href="#-take" data-name="-take">@take</a></span> returns the first <code>count</code> elements of the list. If there are less elements than <code>count</code> the list does not change.</p>
+<p>Given the following data:</p>
+<pre id="example-38af1" class="spec-example" data-language="json"><a href="#example-38af1">Example № 40</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-5cf8f" class="spec-example" data-language="graphql"><a href="#example-5cf8f">Example № 41</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@take</span><span class="token punctuation">(</span><span class="token attr-name">count</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-d0da2" class="spec-example" data-language="json"><a href="#example-d0da2">Example № 42</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-Take.Execution" class="subsec">
+<h6><a href="#sec-Take.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
+<div class="spec-algo" id="RewriteTake()">
+<span class="spec-call"><a href="#RewriteTake()" data-name="RewriteTake">RewriteTake</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="size">size</var> be the value of the argument <code>size</code> of the directive</li>
+<li>If <var data-name="node">node</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0001" data-name="ag0001">AG0001</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0004" data-name="ag0004">AG0004</a></span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Let <var data-name="result">result</var> be the a list of the first <var data-name="size">size</var> elements from the beginning of <var data-name="node">node</var></li>
+<li>Return <var data-name="result">result</var> </li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+</section>
+<section id="sec-TakeRight" secid="1.15">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-TakeRight">1.15</a></span>TakeRight</h2>
+<section id="sec-TakeRight.Directive" class="subsec">
+<h6><a href="#sec-TakeRight.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@takeRight</span><span class="token punctuation">(</span><span class="token attr-name">count</span><span class="token punctuation">:</span> <span class="token scalar">Int</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+</code></pre>
+<p><dfn id="-takeright"><a href="#-takeright" data-name="-takeright">@takeRight</a></dfn> can be applied a list any depth. <span class="spec-ref"><a href="#-takeright" data-name="-takeright">@takeRight</a></span> returns the last <code>count</code> elements of the list. If there are less elements than <code>count</code> the list does not change. </p>
+<p>Given the following data:</p>
+<pre id="example-215cf" class="spec-example" data-language="json"><a href="#example-215cf">Example № 43</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"a"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>The execution of the following query:</p>
+<pre id="example-34ec5" class="spec-example" data-language="graphql"><a href="#example-34ec5">Example № 44</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@takeRight</span><span class="token punctuation">(</span><span class="token attr-name">count</span><span class="token punctuation">:</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+    <span class="token property">string</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>will retrun the following result:</p>
+<pre id="example-46dcf" class="spec-example" data-language="json"><a href="#example-46dcf">Example № 45</a><code><span class="token punctuation">{</span>
+  <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"b"</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"c"</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</section>
+<section id="sec-TakeRight.Execution" class="subsec">
+<h6><a href="#sec-TakeRight.Execution" title="link to this subsection">Execution</a></h6>
+<p><var data-name="node">node</var> is the value node where the directive is applied</p>
+<div class="spec-algo" id="RewriteTakeRight()">
+<span class="spec-call"><a href="#RewriteTakeRight()" data-name="RewriteTakeRight">RewriteTakeRight</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="size">size</var> be the value of the argument <code>size</code> of the directive</li>
+<li>If <var data-name="node">node</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0001" data-name="ag0001">AG0001</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="node">node</var> is <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0004" data-name="ag0004">AG0004</a></span></li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>Let <var data-name="result">result</var> be the a list of the first <var data-name="size">size</var> elements from the end of <var data-name="node">node</var></li>
+<li>Return <var data-name="node">node</var> </li>
+</ol>
+</li>
+</ol>
+</div>
+</section>
+</section>
 </section>
 <section id="sec-Transformations" secid="2">
 <h1><span class="spec-secid" title="link to this section"><a href="#sec-Transformations">2</a></span>Transformations</h1>
@@ -1216,7 +1438,7 @@ TODO We might want to add support for datetime strings</div>
 <dt><dfn id="objectvalue"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></dfn></dt>
 <dd>Key Value pair</dd>
 </dl>
-<pre id="example-4da16" class="spec-example" data-language="json"><a href="#example-4da16">Example № 37</a><code><span class="token punctuation">{</span>
+<pre id="example-4da16" class="spec-example" data-language="json"><a href="#example-4da16">Example № 46</a><code><span class="token punctuation">{</span>
    <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
    <span class="token property">"int"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
    <span class="token property">"float"</span><span class="token operator">:</span> <span class="token number">2</span><span class="token punctuation">,</span>
@@ -1226,15 +1448,15 @@ TODO We might want to add support for datetime strings</div>
 <dt><dfn id="scalarvalue"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></dfn></dt>
 <dd>A primitive leaf value</dd>
 </dl>
-<pre id="example-ad9f2" class="spec-example" data-language="json"><a href="#example-ad9f2">Example № 38</a><code><span class="token string">"string"</span>
+<pre id="example-ad9f2" class="spec-example" data-language="json"><a href="#example-ad9f2">Example № 47</a><code><span class="token string">"string"</span>
 </code></pre>
-<pre id="example-091b1" class="spec-example" data-language="json"><a href="#example-091b1">Example № 39</a><code><span class="token number">1</span>
+<pre id="example-091b1" class="spec-example" data-language="json"><a href="#example-091b1">Example № 48</a><code><span class="token number">1</span>
 </code></pre>
 <dl>
 <dt><dfn id="listvalue"><a href="#listvalue" data-name="listvalue">ListValue</a></dfn></dt>
 <dd>A collection of either <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span>, <span class="spec-ref"><a href="#scalarvalue" data-name="scalarvalue">ScalarValue</a></span> or <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span></dd>
 </dl>
-<pre id="example-7d9f8" class="spec-example" data-language="json"><a href="#example-7d9f8">Example № 40</a><code><span class="token punctuation">[</span> 
+<pre id="example-7d9f8" class="spec-example" data-language="json"><a href="#example-7d9f8">Example № 49</a><code><span class="token punctuation">[</span> 
   <span class="token punctuation">{</span>
    <span class="token property">"string"</span><span class="token operator">:</span> <span class="token string">"string"</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">,</span>
@@ -1290,6 +1512,9 @@ TODO We might want to add support for datetime strings</div>
 <li><a href="#-maxby">@maxBy</a></li>
 <li><a href="#-meanby">@meanBy</a></li>
 <li><a href="#-minby">@minBy</a></li>
+<li><a href="#-sumby">@sumBy</a></li>
+<li><a href="#-take">@take</a></li>
+<li><a href="#-takeright">@takeRight</a></li>
 <li><a href="#ag0001">AG0001</a></li>
 <li><a href="#ag0002">AG0002</a></li>
 <li><a href="#ag0003">AG0003</a></li>
@@ -1324,6 +1549,10 @@ TODO We might want to add support for datetime strings</div>
 <li><a href="#RewriteMeanByArray()">RewriteMeanByArray</a></li>
 <li><a href="#RewriteMinBy()">RewriteMinBy</a></li>
 <li><a href="#RewriteMinByArray()">RewriteMinByArray</a></li>
+<li><a href="#RewriteSumBy()">RewriteSumBy</a></li>
+<li><a href="#RewriteSumByArray()">RewriteSumByArray</a></li>
+<li><a href="#RewriteTake()">RewriteTake</a></li>
+<li><a href="#RewriteTakeRight()">RewriteTakeRight</a></li>
 <li><a href="#scalarvalue">ScalarValue</a></li>
 </ol>
 </section>
@@ -1349,6 +1578,9 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_1.10"><a href="#sec-MaxBy"><span class="spec-secid">1.10</span>MaxBy</a></li>
 <li id="_sidebar_1.11"><a href="#sec-MeanBy"><span class="spec-secid">1.11</span>MeanBy</a></li>
 <li id="_sidebar_1.12"><a href="#sec-MinBy"><span class="spec-secid">1.12</span>MinBy</a></li>
+<li id="_sidebar_1.13"><a href="#sec-SumBy"><span class="spec-secid">1.13</span>SumBy</a></li>
+<li id="_sidebar_1.14"><a href="#sec-Take"><span class="spec-secid">1.14</span>Take</a></li>
+<li id="_sidebar_1.15"><a href="#sec-TakeRight"><span class="spec-secid">1.15</span>TakeRight</a></li>
 </ol>
 </li>
 <li id="_sidebar_2"><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
