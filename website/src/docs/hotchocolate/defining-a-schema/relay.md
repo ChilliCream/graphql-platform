@@ -240,7 +240,7 @@ This registers the `Node` interface type and adds the `node(id: ID!): Node` and 
 
 > ⚠️ Note: Using `AddGlobalObjectIdentification()` in two upstream stitched services does currently not work out of the box.
 
-Next we need to extend our object types with the `Global Object Identification` functionality. Therefore 3 cirteria need to be fulfilled:
+Next we need to extend our object types with the `Global Object Identification` functionality. Therefore 3 criteria need to be fulfilled:
 
 1. The type needs to implement the `Node` interface.
 2. On the type an `id` field needs to be present to properly implement the contract of the `Node` interface.
