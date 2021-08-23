@@ -92,7 +92,7 @@ namespace HotChocolate.Data.Projections
             IServiceProvider serviceProvider,
             ProjectionConventionDefinition definition)
         {
-            List<IProjectionProviderExtension> extensions = new List<IProjectionProviderExtension>();
+            List<IProjectionProviderExtension> extensions = new();
             extensions.AddRange(definition.ProviderExtensions);
             foreach (var extensionType in definition.ProviderExtensionsTypes)
             {

@@ -4,26 +4,175 @@ title: "Scalars"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-A GraphQL schema should be built as expressive as possible.
-Just from looking at the schema, a developer should know how to use the API.
-In GraphQL we are not limited to only describing the structure of a type, we can even describe value types.
-Scalar types represent types that can hold data of a specific kind.
-Scalars are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type.
+Scalar types are the primitives of our schema and can hold a specific type of data. They are leaf types, meaning we cannot use e.g. `{ fieldname }` to further drill down into the type. The main purpose of a scalar is to define how a value is serialized and deserialized.
 
-A scalar must only know how to serialize and deserialize the value of the field.
-GraphQL gives us the freedom to define custom scalar types.
-This makes them the perfect tool for expressive value types.
-We could, for example, create a scalar for `CreditCardNumber` or `NonEmptyString`.
+Besides basic scalars like `String` and `Int`, we can also create custom scalars like `CreditCardNumber` or `SocialSecurityNumber`. These custom scalars can greatly enhance the expressiveness of our schema and help new developers to get a grasp of our API.
 
-The GraphQL specification defines the following scalars
+# GraphQL scalars
 
-| Type      | Description                                                 |
-| --------- | ----------------------------------------------------------- |
-| `Int`     | Signed 32-bit numeric non-fractional value                  |
-| `Float`   | Double-precision fractional values as specified by IEEE 754 |
-| `String`  | UTF-8 character sequences                                   |
-| `Boolean` | Boolean type representing true or false                     |
-| `ID`      | Unique identifier                                           |
+The GraphQL specification defines the following scalars.
+
+## String
+
+```sdl
+type Product {
+  description: String;
+}
+```
+
+This scalar represents an UTF-8 character sequence.
+
+It is automatically inferred from the usage of the .NET [string type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type).
+
+## Boolean
+
+```sdl
+type Product {
+  purchasable: Boolean;
+}
+```
+
+This scalar represent a Boolean value, which can be either `true` or `false`.
+
+It is automatically inferred from the usage of the .NET [bool type](https://docs.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool).
+
+## Int
+
+```sdl
+type Product {
+  quantity: Int;
+}
+```
+
+This scalar represents a signed 32-bit numeric non-fractional value.
+
+It is automatically inferred from the usage of the .NET [int type](https://docs.microsoft.com/dotnet/api/system.int32).
+
+## Float
+
+```sdl
+type Product {
+  price: Float;
+}
+```
+
+This scalar represents double-precision fractional values, as specified by IEEE 754.
+
+It is automatically inferred from the usage of the .NET [float](https://docs.microsoft.com/dotnet/api/system.single) or [double type](https://docs.microsoft.com/dotnet/api/system.double).
+
+> Note: We introduced a separate `Decimal` scalar to handle `decimal` values.
+
+## ID
+
+```sdl
+type Product {
+  id: ID!;
+}
+```
+
+This scalar is used to facilitate technology-specific Ids, like `int`, `string` or `Guid`.
+
+It is **not** automatically inferred and the `IdType` needs to be [explicitly specified](/docs/hotchocolate/defining-a-schema/object-types#explicit-types).
+
+`ID` values are always represented as a [String](#string) in client-server communication, but can be coerced to their expected type on the server.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Product
+{
+    [GraphQLType(typeof(IdType))]
+    public int Id { get; set; }
+}
+
+public class Query
+{
+    public Product GetProduct([GraphQLType(typeof(IdType))] int id)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class ProductType : ObjectType<Product>
+{
+    protected override void Configure(IObjectTypeDescriptor<Product> descriptor)
+    {
+        descriptor.Name("Product");
+
+        descriptor.Field(f => f.Id).Type<IdType>();
+    }
+}
+
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name(OperationTypeNames.Query);
+
+        descriptor
+            .Field("product")
+            .Argument("id", a => a.Type<IdType>())
+            .Type<ProductType>()
+            .Resolve(context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+public class Product
+{
+    public int Id { get; set; }
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddDocumentFromString(@"
+               type Query {
+                 product(id: ID): Product
+               }
+
+               type Product {
+                 id: ID
+               }
+            ")
+            .BindComplexType<Product>()
+            .AddResolver("Query", "product", context =>
+            {
+                var id = context.ArgumentValue<int>("id");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+Notice how our code uses `int` for the `Id`, but in a request / response it would be serialized as a `string`. This allows us to switch the CLR type of our `Id`, without affecting the schema and our clients.
 
 # .NET Scalars
 
@@ -165,18 +314,75 @@ dotnet add package HotChocolate.Types.Scalars
 | PositiveInt      | Signed 32‐bit numeric non‐fractional value of at least the value 1                                                                                       |
 | PostalCode       | Postal code                                                                                                                                              |
 | Port             | TCP port within the range of 0 to 65535                                                                                                                  |
-| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                 |
-| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgb_colors)                                                |
+| Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
+| Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
 | UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
-[1]: https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#hsl_colors
+[1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
 [2]: https://tools.ietf.org/html/rfc3339
 [3]: https://tools.ietf.org/html/rfc7042#page-19
 [4]: https://tools.ietf.org/html/rfc7043
 
-These additional scalars are not mapped by Hot Chocolate automatically, we need to [specify them manually](/docs/hotchocolate/defining-a-schema/object-types/#explicit-types).
+Most of these scalars are built on top of native .NET types. An Email Address for example is represented as a `string`, but just returning a `string` from our resolver would result in Hot Chocolate interpreting it as a `StringType`. We need to explicitly specify that the returned type (`string`) should be treated as an `EmailAddressType`.
+
+```csharp
+[GraphQLType(typeof(EmailAddressType))]
+public string GetEmail() => "test@example.com";
+```
+
+[Learn more about explicitly specifying GraphQL types](/docs/hotchocolate/defining-a-schema/object-types#explicit-types)
+
+## NodaTime
+
+We also offer a package specifically for [NodaTime](https://github.com/nodatime/nodatime).
+
+It can be installed like the following.
+
+```bash
+dotnet add package HotChocolate.Types.NodaTime
+```
+
+**Available Scalars:**
+
+| Type           | Description                                                                               | Example                                       |
+| -------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------- |
+| DateTimeZone   | A [NodaTime DateTimeZone](https://nodatime.org/TimeZones)                                 | `"Europe/Rome"`                               |
+| Duration       | A [NodaTime Duration](https://nodatime.org/3.0.x/userguide/duration-patterns)             | `"-123:07:53:10.019"`                         |
+| Instant        | A [NodaTime Instant](https://nodatime.org/3.0.x/userguide/instant-patterns)               | `"2020-02-20T17:42:59Z"`                      |
+| IsoDayOfWeek   | A [NodaTime IsoDayOfWeek](https://nodatime.org/3.0.x/api/NodaTime.IsoDayOfWeek.html)      | `7`                                           |
+| LocalDate      | A [NodaTime LocalDate](https://nodatime.org/3.0.x/userguide/localdate-patterns)           | `"2020-12-25"`                                |
+| LocalDateTime  | A [NodaTime LocalDateTime](https://nodatime.org/3.0.x/userguide/localdatetime-patterns)   | `"2020-12-25T13:46:78"`                       |
+| LocalTime      | A [NodaTime LocalTime](https://nodatime.org/3.0.x/userguide/localtime-patterns)           | `"12:42:13.03101"`                            |
+| OffsetDateTime | A [NodaTime OffsetDateTime](https://nodatime.org/3.0.x/userguide/offsetdatetime-patterns) | `"2020-12-25T13:46:78+02:35"`                 |
+| OffsetDate     | A [NodaTime OffsetDate](https://nodatime.org/3.0.x/userguide/offsetdate-patterns)         | `"2020-12-25+02:35"`                          |
+| OffsetTime     | A [NodaTime OffsetTime](https://nodatime.org/3.0.x/userguide/offsettime-patterns)         | `"13:46:78+02:35"`                            |
+| Offset         | A [NodeTime Offset](https://nodatime.org/3.0.x/userguide/offset-patterns)                 | `"+02:35"`                                    |
+| Period         | A [NodeTime Period](https://nodatime.org/3.0.x/userguide/period-patterns)                 | `"P-3W3DT139t"`                               |
+| ZonedDateTime  | A [NodaTime ZonedDateTime](https://nodatime.org/3.0.x/userguide/zoneddatetime-patterns)   | `"2020-12-31T19:40:13 Asia/Kathmandu +05:45"` |
+
+When returning a NodaTime type from one of our resolvers, for example a `NodaTime.Duration`, we also need to explicitly register the corresponding scalar type. In the case of a `NodaTime.Duration` this would be the `DurationType` scalar.
+
+```csharp
+public class Query
+{
+    public Duration GetDuration() => Duration.FromMinutes(3);
+}
+
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Query>()
+            .AddType<DurationType>();
+    }
+}
+```
+
+This package was originally developed by [@shoooe](https://github.com/shoooe).
 
 # Binding behavior
 

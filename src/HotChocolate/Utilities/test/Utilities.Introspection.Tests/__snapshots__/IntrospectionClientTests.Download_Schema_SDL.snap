@@ -1,15 +1,18 @@
-﻿schema {
+﻿﻿schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
 }
 
 type Query {
+  hero(episode: Episode! = NEW_HOPE): Character
+  heroes(episodes: [Episode!]): [Character!]
   character(characterIds: [String]): [Character!]!
-  droid(id: String): Droid
-  hero(episode: Episode! = NEWHOPE): Character
-  human(id: String): Human
   search(text: String): [SearchResult]
+  human(id: String): Human
+  droid(id: String): Droid
+  time: Long!
+  evict: Boolean!
 }
 
 type Mutation {
@@ -18,86 +21,85 @@ type Mutation {
 
 type Subscription {
   onReview(episode: Episode!): Review!
+  onNext: String
 }
 
 type Human implements Character {
+  id: ID!
+  name: String!
   appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
-  id: ID!
-  name: String
 }
 
 type Droid implements Character {
-  appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
-  height(unit: Unit): Float
   id: ID!
-  name: String
+  name: String!
+  appearsIn: [Episode]
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  height(unit: Unit): Float
   primaryFunction: String
 }
 
 enum Episode {
-  NEWHOPE
+  NEW_HOPE
   EMPIRE
   JEDI
 }
 
 interface Character {
-  appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
-  height(unit: Unit): Float
   id: ID!
-  name: String
+  name: String!
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  appearsIn: [Episode]
+  height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
 
 type Review {
-  commentary: String
   stars: Int!
+  commentary: String
 }
 
 input ReviewInput {
-  commentary: String
   stars: Int!
+  commentary: String
 }
 
-scalar PaginationAmount
+"A connection to a list of items."
+type CharacterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CharacterEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+}
 
 enum Unit {
   FOOT
   METERS
 }
 
-"A connection to a list of items."
-type CharacterConnection {
-  "A list of edges."
-  edges: [CharacterEdge!]
-  "A flattened list of the nodes."
-  nodes: [Character]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  totalCount: Int!
-}
-
 type Starship {
-  id: String
-  length: Float!
-  name: String
+  id: ID!
+  name: String!
+  length(unit: Unit): Float!
 }
 
 "Information about pagination in a connection."
 type PageInfo {
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 "An edge in a connection."
@@ -107,5 +109,8 @@ type CharacterEdge {
   "The item at the end of the edge."
   node: Character
 }
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
 
 directive @export(as: String) on FIELD

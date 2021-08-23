@@ -19,6 +19,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
             yield return new GetCancellationTokenCompiler<T>();
             yield return new GetContextCompiler<T, IResolverContext>();
+            yield return new GetClaimsPrincipalCompiler<T>();
             yield return new GetGlobalStateCompiler<T>();
             yield return new SetGlobalStateCompiler<T>();
             yield return new GetScopedStateCompiler<T>();
@@ -28,6 +29,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             yield return new GetDataLoaderCompiler<T>();
             yield return new GetEventMessageCompiler<T>();
             yield return new GetFieldSelectionCompiler<T>();
+            yield return new GetPathCompiler<T>();
             yield return new GetObjectTypeCompiler<T>();
             yield return new GetOperationCompiler<T>();
             yield return new GetOutputFieldCompiler<T>();

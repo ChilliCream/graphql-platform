@@ -4,9 +4,9 @@ title: "Input Object Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-In GraphQL we distinguish between input- and output-types. We already learned about [object types](/docs/hotchocolate/defining-a-schema/object-types) which are the most prominent output-type and let us consume data. Further, we used simple [scalars](/docs/hotchocolate/defining-a-schema/scalars) like `String` to pass data into a field as an argument. GraphQL defines input object types in order to define complex structures of raw data that can be used as input data.
+We already looked at [arguments](/docs/hotchocolate/defining-a-schema/arguments), which allow us to use simple [scalars](/docs/hotchocolate/defining-a-schema/scalars) like `String` to pass data into a field. GraphQL defines input object types to allow us to use objects as arguments on our fields.
 
-Input object type definitions differ from object types only in the used keyword and in that their fields can not have arguments.
+Input object type definitions differ from [object types](/docs/hotchocolate/defining-a-schema/object-types) only in the used keyword and in that their fields can not have arguments.
 
 ```sdl
 input BookInput {
@@ -93,6 +93,11 @@ public class BookInput
 
 public class BookInputType : InputObjectType<BookInput>
 {
+    protected override void Configure(
+        IInputObjectTypeDescriptor<BookInput> descriptor)
+    {
+        // Omitted code for brevity
+    }
 }
 
 public class MutationType : ObjectType
@@ -113,6 +118,10 @@ public class MutationType : ObjectType
     }
 }
 ```
+
+The `IInputTypeDescriptor` is really similar to the `IObjectTypeDescriptor` and provides almost the same capabilities.
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -152,5 +161,38 @@ public class Startup
 }
 ```
 
+> ⚠ Note: Object types nested inside of an input object type need to also be declared as input object types.
+
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+## Immutable types
+
+If we want our input type classes to be immutable, or we are using [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references), we can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that
+
+1. The type of the argument must exactly match the property's type
+2. The name of the argument must match the property name (bar a lowercase first letter)
+3. No setters will be called, so you need to provide arguments for all the properties.
+
+Hot Chocolate validates any custom input constructor at schema build time, so we don't need to worry about breaking things during refactoring!
+
+```csharp
+public class BookInput
+{
+    // No need for the setters now
+    public string Title { get; }
+    public string Author { get; }
+
+    public BookingInput(string title, string author)
+    {
+        Title = title;
+        Author = author;
+    }
+}
+```
+
+We can also use record types, if we're on C# 9.0+. The equivalent to the above would be:
+
+```csharp
+public record BookingInput(string Title, string Author);
+```

@@ -52,7 +52,7 @@ To use filtering you need to register it on the schema:
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddFiltering();
 ```
 
@@ -199,12 +199,12 @@ public class QueryType : ObjectType<Query>
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-# AND / OR Filter
+# "and" / "or" Filter
 
 There are two built in fields.
 
-- `AND`: Every condition has to be valid
-- `OR` : At least one condition has to be valid
+- `and`: Every condition has to be valid
+- `or` : At least one condition has to be valid
 
 Example:
 
@@ -213,7 +213,7 @@ query {
   posts(
     first: 5
     where: {
-      OR: [{ title: { contains: "Doe" } }, { title: { contains: "John" } }]
+      or: [{ title: { contains: "Doe" } }, { title: { contains: "John" } }]
     }
   ) {
     edges {
@@ -226,13 +226,13 @@ query {
 }
 ```
 
-**⚠️ OR does not work when you use it like this: **
+**⚠️ `or` does not work when you use it like this: **
 
 ```graphql
 query {
   posts(
     first: 5
-    where: { title: { contains: "John", OR: { title: { contains: "Doe" } } } }
+    where: { title: { contains: "John", or: { title: { contains: "Doe" } } } }
   ) {
     edges {
       node {
@@ -246,9 +246,9 @@ query {
 
 In this case the filters are applied like `title.Contains("John") && title.Contains("Doe")` rather than `title.Contains("John") || title.Contains("Doe")` how you probably intended it.
 
-## Removing AND / OR
+## Removing "and" / "or"
 
-If you do not want to expose `AND` and `OR` you can remove these fields with the descriptor API:
+If you do not want to expose `and` and `or` you can remove these fields with the descriptor API:
 
 ```csharp
 public class UserFilterType : FilterInputType<User>

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Xunit;
 using HotChocolate.StarWars;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -63,6 +62,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
             var subscriptionSession = new SubscriptionSession(
+                new CancellationTokenSource(),
                 connection,
                 stream,
                 subscription.Object,

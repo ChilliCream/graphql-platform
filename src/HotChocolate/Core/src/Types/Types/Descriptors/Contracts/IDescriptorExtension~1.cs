@@ -11,6 +11,8 @@ namespace HotChocolate.Types
         : IHasDescriptorContext
         where T : DefinitionBase
     {
+        T Definition { get; }
+
         void OnBeforeCreate(Action<T> configure);
 
         void OnBeforeCreate(Action<IDescriptorContext, T> configure);

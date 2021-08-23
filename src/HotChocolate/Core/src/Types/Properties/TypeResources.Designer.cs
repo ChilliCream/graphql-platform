@@ -1232,5 +1232,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType", resourceCulture);
             }
         }
+        
+        internal static string ExpressionHelper_GetGlobalStateWithDefault_NoDefaults {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetGlobalStateWithDefault_NoDefaults", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue {
+            get {
+                return ResourceManager.GetString("ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue", resourceCulture);
+            }
+        }
     }
 }

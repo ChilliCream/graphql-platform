@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.IO.Pipelines;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -67,6 +68,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 }
             }
             catch(OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+            catch (WebSocketException)
+            {
+                // we will just stop receiving
+            }
             finally
             {
                 // reader should be completed always, so that related pipe writer can

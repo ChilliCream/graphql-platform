@@ -1,6 +1,6 @@
 import { graphql, Link } from "gatsby";
 import GithubSlugger from "github-slugger";
-import React, { FunctionComponent, useEffect, useMemo, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { asyncScheduler } from "rxjs";
 import { throttleTime } from "rxjs/operators";
@@ -12,18 +12,17 @@ import { MostProminentSection } from "../doc-page/doc-page-elements";
 
 const MAX_TOC_DEPTH = 2;
 
-interface ArticleSectionsProperties {
+interface ArticleSectionsProps {
   readonly data: ArticleSectionsFragment;
 }
 
-export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
-  data,
-}) => {
+export const ArticleSections: FC<ArticleSectionsProps> = ({ data }) => {
   const dispatch = useDispatch();
 
-  const tocItems = useMemo(() => getTocItemsFromHeadings(data.headings), [
-    data.headings,
-  ]);
+  const tocItems = useMemo(
+    () => getTocItemsFromHeadings(data.headings),
+    [data.headings]
+  );
 
   const activeHeadingLink = useActiveHeadingLink(tocItems);
 
@@ -51,7 +50,7 @@ interface TableOfContentProps {
   readonly activeHeadingLink?: string;
 }
 
-const TableOfContent: FunctionComponent<TableOfContentProps> = ({
+const TableOfContent: FC<TableOfContentProps> = ({
   items,
   activeHeadingLink,
 }) => {
@@ -116,18 +115,18 @@ const TocItemContainer = styled.ul`
 
 const TocLink = styled((props) => <Link {...props} />)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
 
   :hover {
     color: #000;
   }
 `;
 
-interface TocListItemProperties {
+interface TocListItemProps {
   readonly active: boolean;
 }
 
-const TocListItem = styled.li<TocListItemProperties>`
+const TocListItem = styled.li<TocListItemProps>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
