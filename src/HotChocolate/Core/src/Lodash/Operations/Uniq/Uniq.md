@@ -2,10 +2,10 @@
 **Directive**
 
 ```graphql
-directive @uniq(count: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @uniq repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 ```
 
-:: *@uniq* can be applied a list any depth.
+:: *@uniq* can be applied to a list any depth.
 *@uniq* returns a duplicate-free version of the list.
 
 Given the following data:
