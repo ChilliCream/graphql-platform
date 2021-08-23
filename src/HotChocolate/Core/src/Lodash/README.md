@@ -11,6 +11,7 @@
 ### [Keys](Operations/Keys/Keys.md)
 ### [MaxBy](Operations/MaxBy/MaxBy.md)
 ### [MeanBy](Operations/MeanBy/MeanBy.md)
+### [MinBy](Operations/MinBy/MinBy.md)
 
 ## Transformations
 Exists(node, key):

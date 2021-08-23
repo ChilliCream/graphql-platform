@@ -21,50 +21,65 @@ namespace HotChocolate.Lodash
                 return false;
             }
 
-            IComparable? result = null;
-            JsonNode? resultNode = null;
-
-            void MinByField(JsonNode? node)
+            if (node is JsonObject)
             {
-                if (node is JsonObject obj)
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+
+            if (node is JsonArray arr)
+            {
+                rewritten = RewriteArray(arr);
+                return true;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(node));
+        }
+
+        private JsonObject? RewriteArray(JsonArray value)
+        {
+            if (value.Count == 0)
+            {
+                return null;
+            }
+
+            IComparable? lastValue = null;
+            JsonObject? result = value[0] is JsonObject o ? o : null;
+
+            while (value.Count > 0)
+            {
+                JsonNode? element = value[0];
+                value.RemoveAt(0);
+                switch (element)
                 {
-                    if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode))
+                    case JsonArray:
+                        throw ThrowHelper.ExpectObjectButReceivedArray(element.GetPath());
+                    case JsonValue:
+                        throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
+                    case JsonObject obj:
                     {
-                        if (jsonNode is not null &&
-                            jsonNode.GetValue<JsonElement>()
-                                .TryConvertToComparable(out IComparable? converted))
+                        if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) &&
+                            jsonNode.TryConvertToComparable(out IComparable? converted))
                         {
-                            if (result is null)
+                            if (result is null ||
+                                lastValue is null ||
+                                lastValue.CompareTo(converted) > 0)
                             {
-                                result = converted;
-                                resultNode = obj;
-                            }
-                            else
-                            {
-                                if (result.CompareTo(converted) > 0)
-                                {
-                                    resultNode = obj;
-                                }
+                                lastValue = converted;
+                                result = obj;
                             }
                         }
-                        // throw?
-                    }
-                    // throw?
-                }
-                else if (node is JsonArray arr)
-                {
-                    for (var i = arr.Count - 1; i >= 0; i--)
-                    {
-                        MinByField(arr[i]);
-                        arr.RemoveAt(i);
+
+                        break;
                     }
                 }
             }
 
-            MinByField(node);
-
-            rewritten = resultNode;
-            return true;
+            return result;
         }
     }
 }
