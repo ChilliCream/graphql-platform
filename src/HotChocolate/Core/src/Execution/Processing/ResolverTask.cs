@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
@@ -34,6 +35,10 @@ namespace HotChocolate.Execution.Processing
                     CompleteValue(success, cancellationToken);
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                IsCanceled = true;
+            }
             catch
             {
                 IsCanceled = true;
@@ -52,10 +57,28 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
-                    _operationContext.Execution.TaskStats.TaskCompleted();
+                    try
+                    {
+                        _operationContext.Execution.TaskStats.TaskCompleted();
+                    }
+                    catch (ChannelClosedException)
+                    {
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
                 }
 
-                _operationContext.Execution.TaskPool.Return(this);
+                try
+                {
+                    _operationContext.Execution.TaskPool.Return(this);
+                }
+                catch (ChannelClosedException)
+                {
+                }
+                catch (ObjectDisposedException)
+                {
+                }
             }
         }
 

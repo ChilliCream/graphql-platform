@@ -35,7 +35,7 @@ dotnet tool install StrawberryShake.Tools --local
 
 ## Step 2: Create a console project
 
-Next, we will create our Blazor project so that we have a little playground.
+Next, we will create our console project so that we have a little playground.
 
 1. First, a new solution called `Demo.sln`.
 
@@ -89,14 +89,14 @@ dotnet add Demo package Microsoft.Extensions.Http
 
 To add a client to your project, you need to run the `dotnet graphql init {{ServerUrl}} -n {{ClientName}}`.
 
-In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our Blazor application.
+In this tutorial we will use our GraphQL workshop to create a list of sessions that we will add to our console application.
 
 > If you want to have a look at our GraphQL workshop head over [here](https://github.com/ChilliCream/graphql-workshop).
 
 1. Add the conference client to your console application.
 
 ```bash
-dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n ConferenceClient -p ./Demo
+dotnet graphql init https://workshop.chillicream.cloud/graphql/ -n ConferenceClient -p ./Demo
 ```
 
 2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
@@ -109,7 +109,7 @@ dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n Conf
     "strawberryShake": {
       "name": "ConferenceClient",
       "namespace": "Demo.GraphQL",
-      "url": "https://hc-conference-app.azurewebsites.net/graphql/",
+      "url": "https://workshop.chillicream.cloud/graphql/",
       "dependencyInjection": true
     }
   }
@@ -165,7 +165,7 @@ namespace Demo
 
             serviceCollection
                 .AddConferenceClient()
-                .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+                .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.cloud/graphql"));
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
 
@@ -190,7 +190,7 @@ static async Task Main(string[] args)
 
     serviceCollection
         .AddConferenceClient()
-        .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+        .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.cloud/graphql"));
 
     IServiceProvider services = serviceCollection.BuildServiceProvider();
 

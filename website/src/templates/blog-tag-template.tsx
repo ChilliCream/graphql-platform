@@ -1,18 +1,18 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { GetBlogArticlesByTagQuery } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticles } from "../components/widgets/blog-articles";
 
-interface BlogTagTemplateProperties {
+interface BlogTagTemplateProps {
   pageContext: {
     tag: string;
   };
   data: GetBlogArticlesByTagQuery;
 }
 
-const BlogTagTemplate: FunctionComponent<BlogTagTemplateProperties> = ({
+const BlogTagTemplate: FC<BlogTagTemplateProps> = ({
   pageContext: { tag },
   data: { allMdx },
 }) => {

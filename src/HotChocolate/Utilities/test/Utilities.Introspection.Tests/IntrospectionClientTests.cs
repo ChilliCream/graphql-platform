@@ -3,16 +3,15 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.AspNetCore.Utilities;
+using System.Net.Http;
 
 namespace HotChocolate.Utilities.Introspection
 {
-    public class IntrospectionClientTests
-        : ServerTestBase
+    public class IntrospectionClientTests: ServerTestBase
     {
         public IntrospectionClientTests(TestServerFactory serverFactory)
             : base(serverFactory)
@@ -24,12 +23,13 @@ namespace HotChocolate.Utilities.Introspection
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+            HttpClient client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
             var introspectionClient = new IntrospectionClient();
 
             // act
-            ISchemaFeatures features =
-                await introspectionClient.GetSchemaFeaturesAsync(
-                        server.CreateClient());
+            ISchemaFeatures features = await introspectionClient.GetSchemaFeaturesAsync(client);
 
             // assert
             Assert.True(features.HasDirectiveLocations);
@@ -55,15 +55,16 @@ namespace HotChocolate.Utilities.Introspection
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+            HttpClient client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
             var introspectionClient = new IntrospectionClient();
 
             // act
-            DocumentNode schema =
-                await introspectionClient.DownloadSchemaAsync(
-                        server.CreateClient());
+            DocumentNode schema = await introspectionClient.DownloadSchemaAsync(client);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema, true).MatchSnapshot();
+            schema.ToString(true).MatchSnapshot();
         }
 
         [Fact]
@@ -84,12 +85,14 @@ namespace HotChocolate.Utilities.Introspection
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+            HttpClient client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000/graphql");
+
             var introspectionClient = new IntrospectionClient();
             using var stream = new MemoryStream();
 
             // act
-            await introspectionClient.DownloadSchemaAsync(
-                server.CreateClient(), stream);
+            await introspectionClient.DownloadSchemaAsync(client, stream);
 
             // assert
             Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();

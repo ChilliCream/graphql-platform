@@ -717,4 +717,13 @@ Type: `{0}`</value>
   <data name="SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType" xml:space="preserve">
     <value>The specified type `{0}` is a GraphQL schema type. AddInputObjectType&lt;T&gt; is a helper method to register a runtime type as GraphQL input object type. Use AddType&lt;T&gt; to register GraphQL schema types.</value>
   </data>
+  <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
+  </data>
+  <data name="ExpressionHelper_ResolveScopedContextData_KeyDoesNotExist" xml:space="preserve">
+    <value>The specified context key does not exist.</value>
+  </data>
+  <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
+    <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
+  </data>
 </root>

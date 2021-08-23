@@ -110,7 +110,13 @@ namespace HotChocolate.Fetching
                 finally
                 {
                     IsCanceled = cancellationToken.IsCancellationRequested;
-                    _context.Completed();
+                    try
+                    {
+                        _context.Completed();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
                 }
             }
         }

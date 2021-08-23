@@ -1,3 +1,4 @@
+using System.IO;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
@@ -69,7 +70,26 @@ partial class Build : NukeBuild
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer)
-                .SetProperty("RequireDocumentationOfPublicApiChanges", true));
+                .SetVersion(GitVersion.SemVer));
         });
+
+    Target Reset => _ => _
+        .Executes(() =>
+        {
+            TryDelete(AllSolutionFile);
+            TryDelete(SonarSolutionFile);
+            TryDelete(TestSolutionFile);
+            TryDelete(PackSolutionFile);
+
+            DotNetBuildSonarSolution(AllSolutionFile);
+            DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
+        });
+
+    private static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
+    }
 }

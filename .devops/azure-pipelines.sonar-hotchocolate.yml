@@ -13,48 +13,25 @@ stages:
     pool:
       vmImage: "ubuntu-20.04"
     jobs:
-      - job: Cover
-        displayName: "Cover"
-        dependsOn: []
-        strategy:
-          parallel: 5
-        steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
-          - task: CmdLine@2
-            displayName: "Run Tests"
-            inputs:
-              script: "./build.cmd Cover --test-partition $(System.JobPositionInPhase)"
-          - task: PublishBuildArtifacts@1
-            displayName: "Upload Test Results"
-            inputs:
-              artifactName: test-results
-              pathtoPublish: "output/test-results"
-      - job: ReportCoverage
-        displayName: "ReportCoverage"
-        dependsOn: [Cover]
-        steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
-          - task: DownloadBuildArtifacts@0
-            displayName: "Download Test Results"
-            inputs:
-              artifactName: "test-results"
-              downloadPath: "$(Build.Repository.LocalPath)/output"
-          - task: CmdLine@2
-            displayName: "Create Coverage Report for Azure DevOps"
-            inputs:
-              script: "./build.cmd ReportCoverage --skip"
       - job: Sonar
         displayName: "Sonar"
-        dependsOn: [Cover]
+        dependsOn: [ ]
         steps:
+          - task: UseDotNet@2
+            displayName: "Install .NET Core 2.1"
+            inputs:
+              packageType: 'sdk'
+              version: '2.1.816'
+          - task: UseDotNet@2
+            displayName: "Install .NET Core 3.1"
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.409'
+          - task: UseDotNet@2
+            displayName: "Install .NET 5.0"
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.300'
           - task: UseDotNet@2
             displayName: "Install .NET Core"
             inputs:
@@ -67,12 +44,7 @@ stages:
               jdkArchitectureOption: "x64"
               jdkSourceOption: "PreInstalled"
               jdkDestinationDirectory: ./.java
-          - task: DownloadBuildArtifacts@0
-            displayName: "Download Test Results"
-            inputs:
-              artifactName: "test-results"
-              downloadPath: "$(Build.Repository.LocalPath)/output"
           - task: CmdLine@2
             displayName: "Run Sonar Analysis"
             inputs:
-              script: "./build.cmd Sonar --skip"
+              script: "./build.cmd Sonar"

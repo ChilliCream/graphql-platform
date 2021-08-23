@@ -1,10 +1,10 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
-import React, { FunctionComponent } from "react";
+import { GatsbyImage } from "gatsby-plugin-image";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetBlogPostVersion11ImageQuery } from "../../../graphql-types";
 
-export const BlogPostVersion11: FunctionComponent = () => {
+export const BlogPostVersion11: FC = () => {
   const data = useStaticQuery<GetBlogPostVersion11ImageQuery>(graphql`
     query getBlogPostVersion11Image {
       file(
@@ -14,9 +14,10 @@ export const BlogPostVersion11: FunctionComponent = () => {
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200, pngQuality: 90) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+          )
         }
       }
     }
@@ -24,7 +25,10 @@ export const BlogPostVersion11: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.file?.childImageSharp?.fluid as any} />
+      <GatsbyImage
+        image={data.file?.childImageSharp?.gatsbyImageData}
+        alt="Welcome Hot Chocolate 11"
+      />
     </Container>
   );
 };
@@ -33,7 +37,7 @@ const Container = styled.div`
   padding: 30px;
 
   .gatsby-image-wrapper {
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
   }
 `;
