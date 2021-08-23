@@ -29,7 +29,7 @@ enum ExampleEnum {
   THIRD
 }
 
-directive @chunk(size: Int! = 0) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @chunk(size: Int! = 1) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
 directive @countBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
@@ -40,7 +40,7 @@ directive @drop(count: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIE
 
 directive @dropRight(count: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
-directive @flatten(depth: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @flatten(depth: Int! = 1) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
 directive @groupBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
