@@ -7,7 +7,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Resolvers
 {
     /// <summary>
-    /// The middleware context represent the execution context for a field middleware.
+    /// Encapsulates all resolver-specific information about the execution of an individual field selection.
     /// </summary>
     public interface IMiddlewareContext : IResolverContext
     {

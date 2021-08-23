@@ -1,6 +1,5 @@
 ﻿using System;
 using HotChocolate.Language;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -73,10 +72,10 @@ namespace HotChocolate.Types
             var guid = Guid.NewGuid();
 
             // act
-            object? serializedValue = uuidType.Serialize(guid);
+            var serializedValue = uuidType.Serialize(guid);
 
             // assert
-            Assert.Equal(guid.ToString("N"), Assert.IsType<string>(serializedValue));
+            Assert.Equal(guid.ToString("D"), Assert.IsType<string>(serializedValue));
         }
 
         [Fact]
@@ -244,7 +243,7 @@ namespace HotChocolate.Types
             // arrange
             var uuidType = new UuidType();
             var expected = Guid.NewGuid();
-            var expectedLiteralValue = expected.ToString("N");
+            var expectedLiteralValue = expected.ToString("D");
 
             // act
             var stringLiteral = (StringValueNode)uuidType.ParseValue(expected);

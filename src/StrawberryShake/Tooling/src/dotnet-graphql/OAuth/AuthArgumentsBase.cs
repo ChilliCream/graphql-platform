@@ -17,7 +17,8 @@ namespace StrawberryShake.Tools.OAuth
             CommandOption tokenEndpoint,
             CommandOption clientId,
             CommandOption clientSecret,
-            CommandOption scopes)
+            CommandOption scopes,
+            CommandOption noScheme)
         {
             Token = token;
             Scheme = scheme;
@@ -25,10 +26,12 @@ namespace StrawberryShake.Tools.OAuth
             ClientId = clientId;
             ClientSecret = clientSecret;
             Scopes = scopes;
+            NoScheme = noScheme;
         }
 
         public CommandOption Token { get; }
         public CommandOption Scheme { get; }
+        public CommandOption NoScheme { get; }
         public CommandOption TokenEndpoint { get; }
         public CommandOption ClientId { get; }
         public CommandOption ClientSecret { get; }
@@ -40,9 +43,16 @@ namespace StrawberryShake.Tools.OAuth
         {
             if (Token.HasValue())
             {
+                string? scheme = null;
+
+                if (!NoScheme.HasValue())
+                {
+                    scheme = Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme;
+                }
+
                 return new AccessToken(
                     Token.Value()!.Trim(),
-                    Scheme.HasValue() ? Scheme.Value()!.Trim() : _defaultScheme);
+                    scheme);
             }
 
             if (TokenEndpoint.HasValue() || ClientId.HasValue() || ClientSecret.HasValue())
@@ -57,7 +67,8 @@ namespace StrawberryShake.Tools.OAuth
                      ClientId.Value()!.Trim(),
                      ClientSecret.Value()!.Trim(),
                      scopes,
-                     cancellationToken);
+                     cancellationToken)
+                    .ConfigureAwait(false);
                 return new AccessToken(token, _defaultScheme);
             }
 

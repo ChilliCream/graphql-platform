@@ -72,7 +72,7 @@ This convention is also configurable with a fluent interface, so in most cases y
 ## Descriptor
 
 Most of the capabilities of the descriptor are already documented under `Fetching Data -> Filtering`.
-If you have not done this already, it is now the right time to head over to [Filtering](https://chillicream.com/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
+If you have not done this already, it is now the right time to head over to [Filtering](/docs/hotchocolate/fetching-data/filtering) and read the parts about the `FilterConventions`
 
 There are two things on this descriptor that are not documented in `Fetching Data`:
 
@@ -152,7 +152,7 @@ you need on the `FilterConvention`.
 You can also override the configure method to have a (probably) familiar API experience.
 
 ```csharp
-public class CustomConvention : FilterConventio
+public class CustomConvention : FilterConvention
 {
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
@@ -176,7 +176,9 @@ The output of a translation is always some kind of _filter definition_. In case,
 In case, of MongoDB this is a `FilterDefinition`. Provider, visitor context and handler, operate on and produce this _filter definition_.
 
 To inspect and analyze the input object, the provider uses a visitor.
-What a visitor is and how you can write you own visitor, you can find here: [Visitor Documentation]()
+
+What a visitor is and how you can write you own visitor is explained [here](/docs/hotchocolate/api-reference/visitors)
+
 Visitors are a powerful yet complex concept, we tried our best to abstract it away.
 For most cases, you will not need to create a custom visitor.
 
@@ -284,9 +286,10 @@ A little simplified this is what happens during visitation:
 ```graphql
 {
   users(
-    where: # instance[0] = x # Create SCOPE 1 with parameter x of type User
     # level[0] = []
-    {
+    # instance[0] = x
+    # Create SCOPE 1 with parameter x of type User
+    where: {
       # Push property User.Company onto the scope
       # instance[1] =  x.Company
       # level[1] = []
@@ -380,7 +383,7 @@ public class QueryableStringInvariantEqualsHandler : QueryableStringOperationHan
 }
 ```
 
-This operation handler can be registered on the convention
+This operation handler can be registered on the convention:
 
 ```csharp
 public class CustomFilteringConvention : FilterConvention
@@ -388,10 +391,10 @@ public class CustomFilteringConvention : FilterConvention
     protected override void Configure(IFilterConventionDescriptor descriptor)
     {
         descriptor.AddDefaults();
-        descriptor.AddProvider(
+        descriptor.Provider(
             new QueryableFilterProvider(
                 x => x
-                    .AddDefaultHandlers()
+                    .AddDefaultFieldHandlers()
                     .AddFieldHandler<QueryableStringInvariantEqualsHandler>()));
     }
 }
@@ -401,14 +404,15 @@ services.AddGraphQLServer()
     .AddFiltering<CustomFilteringConvention>();
 ```
 
-To make this registration easier, HotChocolate also supports convention and provider extensions.
-Instead of creating a customer `FilterConvention`, you can also do the follwing:
+To make this registration easier, Hot Chocolate also supports convention and provider extensions.
+Instead of creating a custom `FilterConvention`, you can also do the following:
 
 ```csharp
-services.AddGraphQLServer()
-    .AddFiltering<CustomFilteringConvention>();
+services
+    .AddGraphQLServer()
+    .AddFiltering()
     .AddConvention<IFilterConvention>(
-        new FilterConventionConvention(
+        new FilterConventionExtension(
             x => x.AddProviderExtension(
                 new QueryableFilterProviderExtension(
                     y => y.AddFieldHandler<QueryableStringInvariantEqualsHandler>()))));

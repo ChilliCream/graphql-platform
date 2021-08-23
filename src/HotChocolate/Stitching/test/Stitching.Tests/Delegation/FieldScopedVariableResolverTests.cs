@@ -15,13 +15,13 @@ namespace HotChocolate.Stitching.Delegation
         public void CreateVariableValue()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String a: String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            var inputFormatter = new InputFormatter();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String a: String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ObjectType).Returns(
@@ -30,6 +30,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
             context.Setup(t => t.Parent<object>())
                 .Returns(new Dictionary<string, object> { { "a", "baz" } });
+            context.Setup(t => t.Service<InputFormatter>()).Returns(inputFormatter);
 
             var scopedVariable = new ScopedVariableNode(
                 null,
@@ -54,13 +55,11 @@ namespace HotChocolate.Stitching.Delegation
         public void FieldDoesNotExist()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ObjectType).Returns(
@@ -101,13 +100,11 @@ namespace HotChocolate.Stitching.Delegation
         public void ContextIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var scopedVariable = new ScopedVariableNode(
                 null,
@@ -116,26 +113,22 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                null,
-                scopedVariable,
-                schema.GetType<StringType>("String"));
+            void Action()
+                => resolver.Resolve(null!, scopedVariable, schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("context", Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("context", Assert.Throws<ArgumentNullException>((Action)Action).ParamName);
         }
 
         [Fact]
         public void ScopedVariableIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(
@@ -158,13 +151,11 @@ namespace HotChocolate.Stitching.Delegation
         public void InvalidScope()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String }")
+                .Use(_ => _)
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(

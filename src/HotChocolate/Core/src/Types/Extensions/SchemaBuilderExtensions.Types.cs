@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -276,6 +277,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddObjectType_TIsSchemaType,
+                        typeof(T).FullName));
+            }
+
             return builder.AddType(new ObjectType<T>());
         }
 
@@ -291,6 +300,14 @@ namespace HotChocolate
             if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddObjectType_TIsSchemaType,
+                        typeof(T).FullName));
             }
 
             return builder.AddType(new ObjectType<T>(configure));
@@ -321,6 +338,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddUnionType_TIsSchemaType,
+                        typeof(T).FullName));
+            }
+
             return builder.AddType(new UnionType<T>());
         }
 
@@ -336,6 +361,14 @@ namespace HotChocolate
             if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddUnionType_TIsSchemaType,
+                        typeof(T).FullName));
             }
 
             return builder.AddType(new UnionType<T>(configure));
@@ -366,6 +399,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddEnumType_TIsSchemaType,
+                        typeof(T).FullName));
+            }
+
             return builder.AddType(new EnumType<T>());
         }
 
@@ -381,6 +422,14 @@ namespace HotChocolate
             if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddEnumType_TIsSchemaType,
+                        typeof(T).FullName));
             }
 
             return builder.AddType(new EnumType<T>(configure));
@@ -411,6 +460,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType,
+                        typeof(T).FullName));
+            }
+
             return builder.AddType(new InterfaceType<T>());
         }
 
@@ -426,6 +483,14 @@ namespace HotChocolate
             if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddInterfaceType_TIsSchemaType,
+                        typeof(T).FullName));
             }
 
             return builder.AddType(new InterfaceType<T>(configure));
@@ -456,6 +521,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType,
+                        typeof(T).FullName));
+            }
+
             return builder.AddType(new InputObjectType<T>());
         }
 
@@ -471,6 +544,14 @@ namespace HotChocolate
             if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
+            }
+
+            if (typeof(T).IsSchemaType() || typeof(T).IsNonGenericSchemaType())
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        TypeResources.SchemaBuilderExtensions_AddInputObjectType_TIsSchemaType,
+                        typeof(T).FullName));
             }
 
             return builder.AddType(new InputObjectType<T>(configure));
@@ -596,7 +677,43 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
+            return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
+        }
+
+        public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
+            this ISchemaBuilder builder,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            typeName ??= typeof(TRuntimeType).Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName.Value, typeof(TRuntimeType));
+        }
+
+        public static ISchemaBuilder BindRuntimeType(
+            this ISchemaBuilder builder,
+            Type runtimeType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName ??= runtimeType.Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
         }
     }
 }

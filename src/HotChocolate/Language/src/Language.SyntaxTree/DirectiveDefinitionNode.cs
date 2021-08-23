@@ -6,6 +6,7 @@ namespace HotChocolate.Language
 {
     public sealed class DirectiveDefinitionNode
         : ITypeSystemDefinitionNode
+        , IHasName
     {
         public DirectiveDefinitionNode(
             Location? location,
@@ -26,7 +27,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(locations));
         }
 
-        public SyntaxKind Kind { get; } = SyntaxKind.DirectiveDefinition;
+        public SyntaxKind Kind => SyntaxKind.DirectiveDefinition;
 
         public Location? Location { get; }
 

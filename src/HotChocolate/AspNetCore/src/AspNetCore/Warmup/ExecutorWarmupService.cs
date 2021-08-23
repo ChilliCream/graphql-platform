@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http.Extensions;
 
 namespace HotChocolate.AspNetCore.Warmup
 {
@@ -35,9 +36,17 @@ namespace HotChocolate.AspNetCore.Warmup
         {
             foreach (NameString schemaName in _schemaNames)
             {
-                await _executorResolver
-                    .GetRequestExecutorAsync(schemaName, stoppingToken)
-                    .ConfigureAwait(false);
+                // initialize services
+                IRequestExecutor executor =
+                    await _executorResolver.GetRequestExecutorAsync(schemaName, stoppingToken);
+
+                // initialize pipeline with warmup request
+                IQueryRequest warmupRequest = QueryRequestBuilder.New()
+                    .SetQuery("{ __typename }")
+                    .AllowIntrospection()
+                    .Create();
+
+                await executor.ExecuteAsync(warmupRequest, stoppingToken);
             }
         }
     }

@@ -1,6 +1,8 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Properties;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Validation
 {
@@ -49,7 +51,7 @@ namespace HotChocolate.Validation
                 .SetPath(context.CreateErrorPath())
                 .SetExtension("variable", variableName)
                 .SetExtension("variableType", variableDefinition.Type.ToString())
-                .SetExtension("locationType", context.Types.Peek().Visualize())
+                .SetExtension("locationType", context.Types.Peek().Print())
                 .SpecifiedBy("sec-All-Variable-Usages-are-Allowed")
                 .Build();
         }
@@ -347,8 +349,8 @@ namespace HotChocolate.Validation
                 .SetMessage(Resources.ErrorHelper_FragmentNotPossible)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
-                .SetExtension("typeCondition", typeCondition.Visualize())
-                .SetExtension("selectionSetType", parentType.Visualize())
+                .SetExtension("typeCondition", typeCondition.Print())
+                .SetExtension("selectionSetType", parentType.Print())
                 .SetFragmentName(node)
                 .SpecifiedBy("sec-Fragment-spread-is-possible")
                 .Build();
@@ -380,7 +382,7 @@ namespace HotChocolate.Validation
                 .SetMessage(Resources.ErrorHelper_FragmentOnlyCompositeType)
                 .AddLocation(node)
                 .SetPath(context.CreateErrorPath())
-                .SetExtension("typeCondition", type.Visualize())
+                .SetExtension("typeCondition", type.Print())
                 .SetFragmentName(node)
                 .SpecifiedBy("sec-Fragments-On-Composite-Types")
                 .Build();
@@ -614,6 +616,33 @@ namespace HotChocolate.Validation
                 .AddLocation(operation)
                 .SetExtension("allowedExecutionDepth", allowedExecutionDepth)
                 .SetExtension("detectedExecutionDepth", detectedExecutionDepth)
+                .Build();
+        }
+
+        public static IError IntrospectionNotAllowed(
+            this IDocumentValidatorContext context,
+            FieldNode field)
+        {
+            string message = Resources.ErrorHelper_IntrospectionNotAllowed;
+
+            if (context.ContextData.TryGetValue(IntrospectionMessage, out object? value))
+            {
+                if (value is Func<string> messageFactory)
+                {
+                    message = messageFactory();
+                }
+
+                if (value is string messageString)
+                {
+                    message = messageString;
+                }
+            }
+
+            return ErrorBuilder.New()
+                .SetMessage(message)
+                .AddLocation(field)
+                .SetExtension(nameof(field), field.Name)
+                .SetCode(ErrorCodes.Validation.IntrospectionNotAllowed)
                 .Build();
         }
     }

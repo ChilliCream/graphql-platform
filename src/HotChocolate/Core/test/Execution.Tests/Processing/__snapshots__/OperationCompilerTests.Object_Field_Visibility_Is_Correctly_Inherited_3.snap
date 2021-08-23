@@ -1,11 +1,11 @@
 ﻿query foo($v: Boolean, $q: Boolean) {
   ... on Query {
-    hero(episode: EMPIRE) @include(if: $v) {
+    hero(episode: EMPIRE) @include(if: $v) @__execute(id: 0, kind: DEFAULT, type: COMPOSITE) {
       ... on Human {
-        name @include(if: $q)
+        name @include(if: $q) @__execute(id: 1, kind: DEFAULT, type: LEAF)
       }
       ... on Droid {
-        name @include(if: $q)
+        name @include(if: $q) @__execute(id: 2, kind: DEFAULT, type: LEAF)
       }
     }
   }

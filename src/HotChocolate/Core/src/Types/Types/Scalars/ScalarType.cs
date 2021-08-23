@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the type kind.
         /// </summary>
-        public TypeKind Kind { get; } = TypeKind.Scalar;
+        public TypeKind Kind => TypeKind.Scalar;
 
         /// <summary>
         /// Defines if this scalar binds implicitly to its runtime type or
@@ -104,10 +104,7 @@ namespace HotChocolate.Types
         /// to the .net representation of this type.
         /// </summary>
         /// <param name="valueSyntax">
-        /// The literal that shall be parsed.
-        /// </param>
-        /// <param name="withDefaults">
-        /// Can be ignored on leaf types.
+        ///     The literal that shall be parsed.
         /// </param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">
@@ -117,7 +114,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="valueSyntax" /> cannot be parsed
         /// by this scalar.
         /// </exception>
-        public abstract object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true);
+        public abstract object? ParseLiteral(IValueNode valueSyntax);
 
         /// <summary>
         /// Parses the .net value representation to a value literal.
@@ -164,7 +161,7 @@ namespace HotChocolate.Types
         /// </exception>
         public virtual object? Serialize(object? runtimeValue)
         {
-            if (TrySerialize(runtimeValue, out object? s))
+            if (TrySerialize(runtimeValue, out var s))
             {
                 return s;
             }
@@ -207,7 +204,7 @@ namespace HotChocolate.Types
         /// </exception>
         public virtual object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object? v))
+            if (TryDeserialize(resultValue, out var v))
             {
                 return v;
             }

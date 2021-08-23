@@ -1,144 +1,168 @@
 #pragma warning disable IDE1006 // Naming Styles
-using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __Type : ObjectType<IType>
+    internal sealed class __Type : ObjectType
     {
-        protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__Type)
-                .Description(TypeResources.Type_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+            SyntaxTypeReference booleanType = Create(ScalarNames.Boolean);
+            SyntaxTypeReference kindType = Parse($"{nameof(__TypeKind)}!");
+            SyntaxTypeReference typeType = Create(nameof(__Type));
+            SyntaxTypeReference fieldListType = Parse($"[{nameof(__Field)}!]");
+            SyntaxTypeReference typeListType = Parse($"[{nameof(__Type)}!]");
+            SyntaxTypeReference enumValueListType = Parse($"[{nameof(__EnumValue)}!]");
+            SyntaxTypeReference inputValueListType = Parse($"[{nameof(__InputValue)}!]");
+            SyntaxTypeReference directiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            descriptor
-                .Field(t => t.Kind)
-                .Name(Names.Kind)
-                .Type<NonNullType<__TypeKind>>();
-
-            descriptor
-                .Field(Names.Name)
-                .Type<StringType>()
-                .ResolveWith<Resolvers>(t => t.GetName(default!));
-
-            descriptor
-                .Field(Names.Description)
-                .Type<StringType>()
-                .ResolveWith<Resolvers>(t => t.GetDescription(default!));
-
-            descriptor
-                .Field(Names.Fields)
-                .Argument(Names.IncludeDeprecated, a => a.Type<BooleanType>().DefaultValue(false))
-                .Type<ListType<NonNullType<__Field>>>()
-                .ResolveWith<Resolvers>(t => t.GetFields(default!, default));
-
-            descriptor
-                .Field(Names.Interfaces)
-                .Type<ListType<NonNullType<__Type>>>()
-                .ResolveWith<Resolvers>(t => t.GetInterfaces(default!));
-
-            descriptor
-                .Field(Names.PossibleTypes)
-                .Type<ListType<NonNullType<__Type>>>()
-                .ResolveWith<Resolvers>(t => t.GetPossibleTypes(default!, default!));
-
-            descriptor
-                .Field(Names.EnumValues)
-                .Argument(Names.IncludeDeprecated, a => a.Type<BooleanType>().DefaultValue(false))
-                .Type<ListType<NonNullType<__EnumValue>>>()
-                .ResolveWith<Resolvers>(t => t.GetEnumValues(default!, default!));
-
-            descriptor
-                .Field(Names.InputFields)
-                .Type<ListType<NonNullType<__InputValue>>>()
-                .ResolveWith<Resolvers>(t => t.GetInputFields(default!));
-
-            descriptor
-                .Field(Names.OfType)
-                .Type<__Type>()
-                .ResolveWith<Resolvers>(t => t.GetOfType(default!));
-
-            descriptor
-                .Field(Names.SpecifiedBy)
-                .Type<StringType>()
-                .ResolveWith<Resolvers>(t => t.GetSpecifiedBy(default!));
-
-            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            var def = new ObjectTypeDefinition(
+                Names.__Type,
+                TypeResources.Type_Description,
+                typeof(IType))
             {
-                descriptor
-                    .Field(Names.AppliedDirectives)
-                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
-                    .ResolveWith<Resolvers>(t => t.GetAppliedDirectives(default!));
+                Fields =
+                {
+                    new(Names.Kind,
+                        type: kindType,
+                        pureResolver: Resolvers.Kind),
+                    new(Names.Name,
+                        type: stringType,
+                        pureResolver: Resolvers.Name),
+                    new(Names.Description,
+                        type: stringType,
+                        pureResolver: Resolvers.Description),
+                    new(Names.Fields,
+                        type: fieldListType,
+                        pureResolver: Resolvers.Fields)
+                    {
+                        Arguments =
+                        {
+                            new(Names.IncludeDeprecated, type: booleanType)
+                            {
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
+                    new(Names.Interfaces,
+                        type: typeListType,
+                        pureResolver:Resolvers.Interfaces),
+                    new(Names.PossibleTypes,
+                        type: typeListType,
+                        pureResolver: Resolvers.PossibleTypes),
+                    new(Names.EnumValues,
+                        type: enumValueListType,
+                        pureResolver:  Resolvers.EnumValues)
+                    {
+                        Arguments =
+                        {
+                            new()
+                            {
+                                Name = Names.IncludeDeprecated,
+                                Type = booleanType,
+                                DefaultValue = BooleanValueNode.False,
+                                RuntimeDefaultValue = false,
+                            }
+                        }
+                    },
+                    new(Names.InputFields,
+                        type: inputValueListType,
+                        pureResolver: Resolvers.InputFields),
+                    new(Names.OfType,
+                        type: typeType,
+                        pureResolver: Resolvers.OfType),
+                    new(Names.SpecifiedByUrl,
+                        TypeResources.Type_SpecifiedByUrl_Description,
+                        stringType,
+                        pureResolver: Resolvers.SpecifiedBy)
+                }
+            };
+
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                def.Fields.Add(new(Names.AppliedDirectives,
+                    type: directiveListType,
+                    pureResolver: Resolvers.AppliedDirectives));
             }
+
+            return def;
         }
 
-        private class Resolvers
+        private static class Resolvers
         {
-            public string? GetName([Parent] IType type) =>
-                type is INamedType n ? n.Name.Value : null;
+            public static object? Kind(IPureResolverContext context)
+                => context.Parent<IType>().Kind;
 
-            public string? GetDescription([Parent] IType type) =>
-                type is INamedType n ? n.Description : null;
+            public static object? Name(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType n ? n.Name.Value : null;
 
-            public IEnumerable<IOutputField>? GetFields([Parent] IType type, bool includeDeprecated)
+            public static object? Description(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType n ? n.Description : null;
+
+            public static object? Fields(IPureResolverContext context)
             {
-                if (type is IComplexOutputType complexType)
+                IType type = context.Parent<IType>();
+                var includeDeprecated = context.ArgumentValue<bool>(Names.IncludeDeprecated);
+
+                if (type is IComplexOutputType ct)
                 {
-                    if (!includeDeprecated)
-                    {
-                        return complexType.Fields
-                            .Where(t => !t.IsIntrospectionField && !t.IsDeprecated);
-                    }
-                    return complexType.Fields.Where(t => !t.IsIntrospectionField);
+                    return !includeDeprecated
+                        ? ct.Fields.Where(t => !t.IsIntrospectionField && !t.IsDeprecated)
+                        : ct.Fields.Where(t => !t.IsIntrospectionField);
                 }
-                return null;
+
+                return default;
             }
 
-            public IEnumerable<IInterfaceType>? GetInterfaces([Parent] IType type) =>
-                type is IComplexOutputType complexType ? complexType.Implements : null;
+            public static object? Interfaces(IPureResolverContext context)
+                => context.Parent<IType>() is IComplexOutputType complexType
+                    ? complexType.Implements
+                    : null;
 
-            public IEnumerable<IType>? GetPossibleTypes(ISchema schema, [Parent]INamedType type) =>
-                type.IsAbstractType() ? schema.GetPossibleTypes(type) : null;
+            public static object? PossibleTypes(IPureResolverContext context)
+                => context.Parent<IType>() is INamedType nt
+                    ? nt.IsAbstractType()
+                        ? context.Schema.GetPossibleTypes(nt)
+                        : null
+                    : null;
 
-            public IEnumerable<IEnumValue>? GetEnumValues(
-                [Parent] IType type,
-                bool includeDeprecated)
-            {
-                if (type is EnumType et)
-                {
-                    IReadOnlyCollection<IEnumValue> values = et.Values;
-                    return includeDeprecated ? values :  values.Where(t => !t.IsDeprecated);
-                }
-                return null;
-            }
+            public static object? EnumValues(IPureResolverContext context)
+                => context.Parent<IType>() is EnumType et
+                    ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                        ? et.Values
+                        : et.Values.Where(t => !t.IsDeprecated)
+                    : null;
 
-            public IEnumerable<InputField>? GetInputFields([Parent] IType type) =>
-                type is InputObjectType iot ? iot.Fields : null;
+            public static object? InputFields(IPureResolverContext context)
+                => context.Parent<IType>() is IInputObjectType iot ? iot.Fields : null;
 
-            public IType? GetOfType([Parent] IType type) =>
-                type switch
+            public static object? OfType(IPureResolverContext context)
+                => context.Parent<IType>() switch
                 {
                     ListType lt => lt.ElementType,
                     NonNullType nnt => nnt.Type,
                     _ => null
                 };
 
-            public string? GetSpecifiedBy([Parent] IType type) =>
-                type is ScalarType scalar
+            public static object? SpecifiedBy(IPureResolverContext context)
+                => context.Parent<IType>() is ScalarType scalar
                     ? scalar.SpecifiedBy?.ToString()
                     : null;
 
-            public IEnumerable<DirectiveNode> GetAppliedDirectives([Parent] IType type) =>
-                type is IHasDirectives hasDirectives
+            public static object AppliedDirectives(IPureResolverContext context) =>
+                context.Parent<IType>() is IHasDirectives hasDirectives
                     ? hasDirectives.Directives.Where(t => t.Type.IsPublic).Select(d => d.ToNode())
                     : Enumerable.Empty<DirectiveNode>();
         }
@@ -155,7 +179,7 @@ namespace HotChocolate.Types.Introspection
             public const string EnumValues = "enumValues";
             public const string InputFields = "inputFields";
             public const string OfType = "ofType";
-            public const string SpecifiedBy = "specifiedBy";
+            public const string SpecifiedByUrl = "specifiedByURL";
             public const string IncludeDeprecated = "includeDeprecated";
             public const string AppliedDirectives = "appliedDirectives";
         }

@@ -173,18 +173,18 @@ input ISingleFilterOfDoubleFilter {
 input ISingleFilterOfGuidFilter {
   AND: [ISingleFilterOfGuidFilter!]
   OR: [ISingleFilterOfGuidFilter!]
-  element: Uuid
-  element_not: Uuid
-  element_in: [Uuid!]
-  element_not_in: [Uuid!]
-  element_gt: Uuid
-  element_not_gt: Uuid
-  element_gte: Uuid
-  element_not_gte: Uuid
-  element_lt: Uuid
-  element_not_lt: Uuid
-  element_lte: Uuid
-  element_not_lte: Uuid
+  element: UUID
+  element_not: UUID
+  element_in: [UUID!]
+  element_not_in: [UUID!]
+  element_gt: UUID
+  element_not_gt: UUID
+  element_gte: UUID
+  element_not_gte: UUID
+  element_lt: UUID
+  element_not_lt: UUID
+  element_lte: UUID
+  element_not_lte: UUID
 }
 
 input ISingleFilterOfInt16Filter {
@@ -360,18 +360,18 @@ input NullableOfGuidFilter {
   OR: [NullableOfGuidFilter!]
   hasValue: Boolean
   hasValue_not: Boolean
-  value: Uuid
-  value_not: Uuid
-  value_in: [Uuid!]
-  value_not_in: [Uuid!]
-  value_gt: Uuid
-  value_not_gt: Uuid
-  value_gte: Uuid
-  value_not_gte: Uuid
-  value_lt: Uuid
-  value_not_lt: Uuid
-  value_lte: Uuid
-  value_not_lte: Uuid
+  value: UUID
+  value_not: UUID
+  value_in: [UUID!]
+  value_not_in: [UUID!]
+  value_gt: UUID
+  value_not_gt: UUID
+  value_gte: UUID
+  value_not_gte: UUID
+  value_lt: UUID
+  value_not_lt: UUID
+  value_lte: UUID
+  value_not_lte: UUID
 }
 
 input NullableOfInt16Filter {
@@ -471,4 +471,4 @@ scalar Long
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
 
-scalar Uuid
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

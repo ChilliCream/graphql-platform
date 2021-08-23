@@ -59,7 +59,60 @@ namespace HotChocolate.Data.MongoDb.Filters
                     new FooNested { Bar = "d" },
                     new FooNested { Bar = "b" }
                 }
-            }
+            },
+            new Foo { FooNested = null },
+            new Foo { FooNested = new FooNested[0] }
+        };
+
+        private static readonly FooSimple[] _fooSimple = new[]
+        {
+            new FooSimple
+            {
+                Bar = new[]
+                {
+                    "a",
+                    "a",
+                    "a"
+                }
+            },
+            new FooSimple
+            {
+                Bar = new[]
+                {
+                    "c",
+                    "a",
+                    "a"
+                }
+            },
+            new FooSimple
+            {
+                Bar = new[]
+                {
+                    "a",
+                    "d",
+                    "b"
+                }
+            },
+            new FooSimple
+            {
+                Bar = new[]
+                {
+                    "c",
+                    "d",
+                    "b"
+                }
+            },
+            new FooSimple
+            {
+                Bar = new[]
+                {
+                    null,
+                    "d",
+                    "b"
+                }
+            },
+            new FooSimple { Bar = null },
+            new FooSimple { Bar = new string[0] }
         };
 
         public MongoDbFilterVisitorListTests(MongoResource resource)
@@ -190,24 +243,160 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
+                    .SetQuery("{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("false");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
+                    .SetQuery("{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
                     .Create());
 
             res2.MatchDocumentSnapshot("true");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_ArraySomeStringEqualWithNull_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
+                        @"{
+                            root(where: {
+                                bar: {
+                                    some: {
+                                        eq: ""a""
+                                    }
+                                }
+                            }){
+                                bar
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("a");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { some: { eq: \"d\"}}}){ bar }}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("d");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { some: { eq: null}}}){ bar }}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_ArrayNoneStringEqual_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { none: { eq: \"a\"}}}){ bar }}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("a");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { none: { eq: \"d\"}}}){ bar }}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("d");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { none: { eq: null}}}){ bar }}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_ArrayAllStringEqual_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { all: { eq: \"a\"}}}){ bar }}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("a");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { all: { eq: \"d\"}}}){ bar }}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("d");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(where: { bar: { all: { eq: null}}}){ bar }}")
+                    .Create());
+
+            res3.MatchDocumentSnapshot("null");
+        }
+
+        [Fact]
+        public async Task Create_ArrayAnyStringEqual_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<FooSimple, FooSimpleFilterType>(_fooSimple);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { any: false}}){ bar }}")
+                    .Create());
+
+            res1.MatchDocumentSnapshot("false");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { any: true}}){ bar }}")
+                    .Create());
+
+            res2.MatchDocumentSnapshot("true");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(where: { bar: { all: null}}){ bar }}")
                     .Create());
 
             res3.MatchDocumentSnapshot("null");
@@ -223,6 +412,9 @@ namespace HotChocolate.Data.MongoDb.Filters
 
         public class FooSimple
         {
+            [BsonId]
+            public Guid Id { get; set; } = Guid.NewGuid();
+
             public IEnumerable<string?>? Bar { get; set; }
         }
 
@@ -237,8 +429,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         public class FooFilterType
             : FilterInputType<Foo>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.FooNested);
             }
@@ -247,8 +438,7 @@ namespace HotChocolate.Data.MongoDb.Filters
         public class FooSimpleFilterType
             : FilterInputType<FooSimple>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<FooSimple> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<FooSimple> descriptor)
             {
                 descriptor.Field(t => t.Bar);
             }

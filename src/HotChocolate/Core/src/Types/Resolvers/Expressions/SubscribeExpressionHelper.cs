@@ -116,27 +116,27 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static ValueTask<ISourceStream> WrapSourceStreamGeneric<T>(
             ISourceStream<T> result) =>
-            new ValueTask<ISourceStream>(result);
+            new(result);
 
         public static ValueTask<ISourceStream> WrapSourceStream(
             ISourceStream result) =>
-            new ValueTask<ISourceStream>(result);
+            new(result);
 
         public static ValueTask<ISourceStream> WrapAsyncEnumerable<T>(
             IAsyncEnumerable<T> result) =>
-            new ValueTask<ISourceStream>(ConvertEnumerable(result));
+            new(ConvertEnumerable(result));
 
         public static ValueTask<ISourceStream> WrapEnumerable<T>(
             IEnumerable<T> result) =>
-            new ValueTask<ISourceStream>(ConvertEnumerable(result));
+            new(ConvertEnumerable(result));
 
         public static ValueTask<ISourceStream> WrapQueryable<T>(
             IQueryable<T> result) =>
-            new ValueTask<ISourceStream>(ConvertEnumerable(result));
+            new(ConvertEnumerable(result));
 
         public static ValueTask<ISourceStream> WrapObservable<T>(
             IObservable<T> result) =>
-            new ValueTask<ISourceStream>(ConvertObservable(result));
+            new(ConvertObservable(result));
 
         private static ISourceStream ConvertObservable<T>(
             IObservable<T> enumerable) =>
@@ -164,8 +164,8 @@ namespace HotChocolate.Resolvers.Expressions
             public async IAsyncEnumerator<object> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                await foreach (T item in _enumerable.WithCancellation(cancellationToken)
-                    .ConfigureAwait(false))
+                await foreach (T item in
+                    _enumerable.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
                     yield return item;
                 }

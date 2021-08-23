@@ -17,6 +17,8 @@ namespace HotChocolate.Execution.Processing
 
         void SetExtension(string key, object? value);
 
+        void SetContextData(string key, object? value);
+
         void SetPath(Path? path);
 
         void SetLabel(string? label);

@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using StrawberryShake.CodeGeneration.Extensions;
 using Xunit;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -41,7 +42,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default
@@ -60,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 type =>
                 {
                     Assert.Equal(
-                        "CharacterConnectionData",
+                        "FriendsConnectionData",
                         type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
@@ -90,7 +91,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 type =>
                 {
                     Assert.Equal(
-                        "CharacterEdgeData",
+                        "FriendsEdgeData",
                         type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
@@ -114,7 +115,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void MapDataTypeDescriptors_DataUnionType()
         {
             // arrange
-            var clientModel =
+            ClientModel clientModel =
                 CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
 
             // act
@@ -122,7 +123,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default
@@ -216,7 +217,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 "Foo.Bar",
                 "FooClient",
                 new Sha1DocumentHashProvider(),
-                Descriptors.Operations.RequestStrategy.Default,
+                RequestStrategyGen.Default,
                 new[]
                 {
                     TransportProfile.Default

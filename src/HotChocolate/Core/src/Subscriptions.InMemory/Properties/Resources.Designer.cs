@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HotChocolate.Subscriptions.Properties {
+namespace HotChocolate.Subscriptions.InMemory.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace HotChocolate.Subscriptions.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Subscriptions.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("HotChocolate.Subscriptions.InMemory.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,15 @@ namespace HotChocolate.Subscriptions.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This stream can only be read once..
+        /// </summary>
+        internal static string InMemorySourceStream_ReadEventsAsync_ReadOnlyOnce {
+            get {
+                return ResourceManager.GetString("InMemorySourceStream_ReadEventsAsync_ReadOnlyOnce", resourceCulture);
             }
         }
     }

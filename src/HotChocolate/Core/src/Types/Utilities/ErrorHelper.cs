@@ -119,5 +119,33 @@ namespace HotChocolate.Utilities
                 .SetPath(Path.New(typeName).Append(field.Name))
                 .SetExtension(TypeErrorFields.Definition, field)
                 .Build();
+
+        public static ISchemaError ObjectField_HasNoResolver(
+            NameString typeName,
+            NameString fieldName,
+            ITypeSystemObject type,
+            ISyntaxNode? syntaxNode) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ErrorHelper_ObjectField_HasNoResolver,
+                    typeName,
+                    fieldName)
+                .SetCode(ErrorCodes.Schema.NoResolver)
+                .SetTypeSystemObject(type)
+                .AddSyntaxNode(syntaxNode)
+                .Build();
+
+        public static ISchemaError MiddlewareOrderInvalid(
+            FieldCoordinate field,
+            ITypeSystemObject type,
+            ISyntaxNode? syntaxNode,
+            string currentOrder)
+            => SchemaErrorBuilder.New()
+                .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+                .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
+                .SetTypeSystemObject(type)
+                .AddSyntaxNode(syntaxNode)
+                .SetExtension(nameof(field), field)
+                .Build();
     }
 }

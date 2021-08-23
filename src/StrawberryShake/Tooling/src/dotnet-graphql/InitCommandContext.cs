@@ -1,4 +1,5 @@
 using System;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
 {
@@ -12,8 +13,8 @@ namespace StrawberryShake.Tools
             string? scheme)
         {
             SchemaName = "Schema";
-            SchemaFileName = "schema.graphql";
-            SchemaExtensionFileName = "schema.extensions.graphql";
+            SchemaFileName = FileNames.SchemaFile;
+            SchemaExtensionFileName = FileNames.SchemaExtensionFile;
             ClientName = name;
             Path = path;
             Uri = uri;
@@ -21,26 +22,10 @@ namespace StrawberryShake.Tools
             Scheme = scheme;
         }
 
-        public InitCommandContext(
-            string schemaName,
-            string path,
-            string? token,
-            string? scheme)
-        {
-            SchemaName = schemaName;
-            SchemaFileName = schemaName + ".graphql";
-            SchemaExtensionFileName = schemaName + "extensions.graphql";
-            ClientName = schemaName + "Client";
-            Path = path;
-            Uri = null;
-            Token = token;
-            Scheme = scheme;
-        }
-
         public string SchemaName { get; }
         public string SchemaFileName { get; }
         public string SchemaExtensionFileName { get; }
-        public string ConfigFileName { get; } = ".graphqlrc.json";
+        public string ConfigFileName => FileNames.GraphQLConfigFile;
         public string ClientName { get; }
         public string Path { get; }
         public Uri? Uri { get; }

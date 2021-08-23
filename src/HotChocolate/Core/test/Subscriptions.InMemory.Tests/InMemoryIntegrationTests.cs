@@ -20,7 +20,7 @@ namespace HotChocolate.Subscriptions.InMemory
                 .AddQueryType(d => d
                     .Name("foo")
                     .Field("a")
-                    .Resolver("b"))
+                    .Resolve("b"))
                 .AddSubscriptionType<Subscription>()
                 .Services
                 .BuildServiceProvider();

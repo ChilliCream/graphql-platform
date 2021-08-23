@@ -60,11 +60,11 @@ namespace HotChocolate.Types.Relay
 
                     nodeDescriptor.IdField(idField);
                 }
-                else if(context.TypeInspector.GetNodeIdMember(type) is { } id)
+                else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
                 {
                     nodeDescriptor.IdField(id);
                 }
-                else if(context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
+                else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
                 {
                     nodeDescriptor.IdField(sid);
                 }
@@ -112,11 +112,15 @@ namespace HotChocolate.Types.Relay
                         throw NodeAttribute_NodeResolverNotFound(type, NodeResolver);
                     }
 
-                    ObjectFieldDefinition? fieldDefinition =
-                        definition.Fields.FirstOrDefault(t => t.Member == method);
-                    if (fieldDefinition is not null)
+                    if (definition.Fields.Any(
+                        t => t.Member == method || t.ResolverMember == method))
                     {
-                        definition.Fields.Remove(fieldDefinition);
+                        foreach (var fieldDefinition in definition.Fields
+                            .Where(t => t.Member == method || t.ResolverMember == method)
+                            .ToArray())
+                        {
+                            definition.Fields.Remove(fieldDefinition);
+                        }
                     }
 
                     nodeDescriptor.ResolveNodeWith(method);

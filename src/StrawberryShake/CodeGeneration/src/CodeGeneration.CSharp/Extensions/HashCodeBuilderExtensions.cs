@@ -60,7 +60,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 {
                     return IfBuilder
                         .New()
-                        .SetCondition($"!({variableName} is null)")
+                        .SetCondition($"{variableName} != null")
                         .AddCode(check);
                 }
 

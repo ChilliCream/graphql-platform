@@ -10,16 +10,15 @@ SCRIPT_DIR=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)
 ###########################################################################
 
 BUILD_PROJECT_FILE="$SCRIPT_DIR/.build/Build.csproj"
-TEMP_DIRECTORY="$SCRIPT_DIR/.tmp"
+TEMP_DIRECTORY="$SCRIPT_DIR//.nuke/temp"
 
-DOTNET_GLOBAL_FILE="$SCRIPT_DIR/global.json"
+DOTNET_GLOBAL_FILE="$SCRIPT_DIR//global.json"
 DOTNET_INSTALL_URL="https://dot.net/v1/dotnet-install.sh"
 DOTNET_CHANNEL="Current"
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_MULTILEVEL_LOOKUP=0
-export DOTNET_ROLL_FORWARD="Major"
 
 ###########################################################################
 # EXECUTION
@@ -28,14 +27,6 @@ export DOTNET_ROLL_FORWARD="Major"
 function FirstJsonValue {
     perl -nle 'print $1 if m{"'"$1"'": "([^"]+)",?}' <<< "${@:2}"
 }
-
-# Print environment variables
-env | sort
-
-# Check if any dotnet is installed
-if [[ -x "$(command -v dotnet)" ]]; then
-    dotnet --info
-fi
 
 # If dotnet CLI is installed globally and it matches requested version, use for execution
 if [ -x "$(command -v dotnet)" ] && dotnet --version &>/dev/null; then
@@ -46,6 +37,9 @@ else
     mkdir -p "$TEMP_DIRECTORY"
     curl -Lsfo "$DOTNET_INSTALL_FILE" "$DOTNET_INSTALL_URL"
     chmod +x "$DOTNET_INSTALL_FILE"
+
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "2.1.816" --no-path
+    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "3.1.409" --no-path
 
     # If global.json exists, load expected version
     if [[ -f "$DOTNET_GLOBAL_FILE" ]]; then
@@ -67,5 +61,5 @@ fi
 
 echo "Microsoft (R) .NET Core SDK version $("$DOTNET_EXE" --version)"
 
-"$DOTNET_EXE" build "$BUILD_PROJECT_FILE" /nodeReuse:false /p:UseSharedCompilation=false -nologo -clp:NoSummary
+"$DOTNET_EXE" build "$BUILD_PROJECT_FILE" /nodeReuse:false /p:UseSharedCompilation=false -nologo -clp:NoSummary --verbosity quiet
 "$DOTNET_EXE" run --project "$BUILD_PROJECT_FILE" --no-build -- "$@"

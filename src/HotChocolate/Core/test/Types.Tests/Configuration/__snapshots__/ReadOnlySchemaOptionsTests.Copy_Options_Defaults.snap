@@ -10,5 +10,8 @@
   "DefaultBindingBehavior": "Implicit",
   "FieldMiddleware": "UserDefinedFields",
   "EnableDirectiveIntrospection": false,
-  "DefaultDirectiveVisibility": "Public"
+  "DefaultDirectiveVisibility": "Public",
+  "AllowInlining": true,
+  "DefaultResolverStrategy": "Parallel",
+  "ValidatePipelineOrder": true
 }

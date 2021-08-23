@@ -1,11 +1,9 @@
 const { createFilePath } = require("gatsby-source-filesystem");
-const path = require(`path`);
+const path = require("path");
+const git = require("simple-git/promise");
 
 exports.createPages = async ({ actions, graphql, reporter }) => {
   const { createPage, createRedirect } = actions;
-  const blogArticleTemplate = path.resolve(
-    `src/templates/blog-article-template.tsx`
-  );
   const result = await graphql(`
     {
       blog: allMdx(
@@ -13,11 +11,9 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
         sort: { order: DESC, fields: [frontmatter___date] }
       ) {
-        posts: edges {
-          post: node {
-            frontmatter {
-              path
-            }
+        posts: nodes {
+          fields {
+            slug
           }
         }
         tags: group(field: frontmatter___tags) {
@@ -31,6 +27,11 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
         pages: nodes {
           name
           relativeDirectory
+          childMdx {
+            fields {
+              slug
+            }
+          }
         }
       }
     }
@@ -115,17 +116,71 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
   });
 };
 
-exports.onCreateNode = ({ node, actions, getNode }) => {
+exports.onCreateNode = async ({ node, actions, getNode, reporter }) => {
   const { createNodeField } = actions;
 
-  if (node.internal.type === `Mdx`) {
-    const value = createFilePath({ node, getNode });
-    createNodeField({
-      name: `slug`,
-      node,
-      value,
-    });
+  if (node.internal.type !== `Mdx`) {
+    return;
   }
+
+  // if the path is defined on the frontmatter (like for posts) use that as slug
+  let path = node.frontmatter && node.frontmatter.path;
+
+  if (!path) {
+    path = createFilePath({ node, getNode });
+
+    const parent = getNode(node.parent);
+
+    // if the current file is emitted from the docs directory
+    if (parent && parent.sourceInstanceName === "docs") {
+      path = "/docs" + path;
+    }
+
+    // remove trailing slashes
+    path = path.replace(/\/+$/, "");
+  }
+
+  createNodeField({
+    name: `slug`,
+    node,
+    value: path,
+  });
+
+  let authorName = "Unknown";
+  let lastUpdated = "0000-00-00";
+
+  // we only run "git log" when building the production bundle
+  // for development purposes we fallback to dummy values
+  if (process.env.NODE_ENV === "production") {
+    try {
+      const result = await getGitLog(node.fileAbsolutePath);
+      const data = result.latest || {};
+
+      if (data.authorName) {
+        authorName = data.authorName;
+      }
+
+      if (data.date) {
+        lastUpdated = data.date;
+      }
+    } catch (error) {
+      reporter.error(
+        `Could not retrieve git information for ${node.fileAbsolutePath}`,
+        error
+      );
+    }
+  }
+
+  createNodeField({
+    node,
+    name: `lastAuthorName`,
+    value: authorName,
+  });
+  createNodeField({
+    node,
+    name: `lastUpdated`,
+    value: lastUpdated,
+  });
 };
 
 function createBlogArticles(createPage, data) {
@@ -135,9 +190,9 @@ function createBlogArticles(createPage, data) {
   const { posts, tags } = data;
 
   // Create Single Pages
-  posts.forEach(({ post }) => {
+  posts.forEach((post) => {
     createPage({
-      path: post.frontmatter.path,
+      path: post.fields.slug,
       component: blogArticleTemplate,
       context: {},
     });
@@ -175,23 +230,33 @@ function createBlogArticles(createPage, data) {
 }
 
 function createDocPages(createPage, data) {
-  const pageTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
+  const docTemplate = path.resolve(`src/templates/doc-page-template.tsx`);
   const { pages } = data;
 
   // Create Single Pages
-  pages.forEach(({ name, relativeDirectory }) => {
-    const path =
-      name === "index"
-        ? `/docs/${relativeDirectory}`
-        : `/docs/${relativeDirectory}/${name}`;
-    const originPath = `${relativeDirectory}/${name}.md`;
+  pages.forEach((page) => {
+    const path = page.childMdx.fields.slug;
+    const originPath = `${page.relativeDirectory}/${page.name}.md`;
 
     createPage({
       path,
-      component: pageTemplate,
+      component: docTemplate,
       context: {
         originPath,
       },
     });
   });
+}
+
+function getGitLog(filepath) {
+  const logOptions = {
+    file: filepath,
+    n: 1,
+    format: {
+      date: `%cs`,
+      authorName: `%an`,
+    },
+  };
+
+  return git().log(logOptions);
 }

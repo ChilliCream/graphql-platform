@@ -12,7 +12,6 @@ import {
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 import UnderConstructionSvg from "../images/under-construction.svg";
 
 const PlatformPage: FunctionComponent = () => {
@@ -25,7 +24,7 @@ const PlatformPage: FunctionComponent = () => {
           An end-to-end solution to build, manage and access your GraphQL API
         </Hero>
         <Teaser>
-          The heart of the ChilliCream platform is Hot Chocolate our core for
+          The heart of the ChilliCream platform is Hot Chocolate, our core for
           the GraphQL client and server. The ChilliCream platform provides
           developer tools and services to speed up the entire development
           process.
@@ -39,11 +38,11 @@ const PlatformPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Hot Chocolate</SectionTitle>
             <p>
-              Hot Chocolate is the GraphQL server and provides core libraries
+              Hot Chocolate is our GraphQL server and provides core libraries
               for Strawberry Shake, our GraphQL client, and our GraphQL tools.
               No wonder why Hot Chocolate is the ChilliCream's platform core.
             </p>
-            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
+            <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -88,7 +87,8 @@ const PlatformPage: FunctionComponent = () => {
             <p>
               Keep track of all clients that depend on your GraphQL endpoints.
             </p>
-            <Link to="/docs/marshmallowpie">Learn more</Link>
+            {/* comment in again, once there is documentation */}
+            {/* <Link to="/docs/marshmallowpie">Learn more</Link> */}
           </ContentContainer>
         </SectionRow>
       </Section>

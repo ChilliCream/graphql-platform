@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -6,7 +7,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Validation
 {
     /// <summary>
-    /// This interface represents the document validation context that can 
+    /// This interface represents the document validation context that can
     /// be used by validation visitors to build up state.
     /// </summary>
     public interface IDocumentValidatorContext : ISyntaxVisitorContext
@@ -35,7 +36,7 @@ namespace HotChocolate.Validation
         /// A dictionary to store field infos per selection set.
         /// </summary>
         IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; }
-        
+
         /// <summary>
         /// A set of field tuples.
         /// </summary>
@@ -49,7 +50,7 @@ namespace HotChocolate.Validation
         /// <summary>
         /// Gets the raw variable values.
         /// </summary>
-        IDictionary<string, object> VariableValues { get; }
+        IVariableValueCollection? VariableValues { get; }
 
         /// <summary>
         /// Gets a map exposing the variable definitions by name.
@@ -112,19 +113,24 @@ namespace HotChocolate.Validation
         ICollection<IError> Errors { get; }
 
         /// <summary>
-        /// Gets ors sets a counter.
+        /// Gets ors sets a single counter.
         /// </summary>
         int Count { get; set; }
 
         /// <summary>
-        /// Gets ors sets a max value counter.
+        /// Gets ors sets a single max value counter.
         /// </summary>
         int Max { get; set; }
 
         /// <summary>
-        /// Defines that a visitation has found an unexpected error 
+        /// Gets a list of objects that can be used by validation rules.
+        /// </summary>
+        IList<object?> List { get; }
+
+        /// <summary>
+        /// Defines that a visitation has found an unexpected error
         /// that is no concern of the current validation rule.
-        /// If no other error is found by any validation this will 
+        /// If no other error is found by any validation this will
         /// lead to an unexpected validation error.
         /// </summary>
         bool UnexpectedErrorsDetected { get; set; }
@@ -132,8 +138,8 @@ namespace HotChocolate.Validation
         /// <summary>
         /// A map to store arbitrary visitor data.
         /// </summary>
-        IDictionary<string, object> ContextData { get; }
-        
+        IDictionary<string, object?> ContextData { get; }
+
         /// <summary>
         /// Rents a list of field infos.
         /// </summary>

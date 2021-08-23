@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using MongoDB.Bson;
@@ -13,6 +14,10 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbNotEqualsOperationHandler
         : MongoDbOperationHandlerBase
     {
+        public MongoDbNotEqualsOperationHandler(InputParser inputParser) : base(inputParser)
+        {
+        }
+
         /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,

@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
             Snapshot.FullName();
             await ExpectValid(
                 "{ hello }",
-                configure: c => c
+                c => c
                     .AddDocumentFromString(
                         @"
                         type Query {
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
             Snapshot.FullName();
             await ExpectValid(
                 "{ hello(a: \"foo\") }",
-                configure: c => c
+                c => c
                     .AddDocumentFromString(
                         @"
                         type Query {
@@ -48,15 +48,15 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
             Snapshot.FullName();
             await ExpectValid(
                 "{ hello world }",
-                configure: c => c
+                c => c
                     .AddDocumentFromString(
                         @"
                         type Query {
                             hello: String
                             world: String
                         }")
-                    .BindResolver<QueryA>(c => c.To("Query").Resolve("hello").With(t => t.Hello))
-                    .BindResolver<QueryB>(c => c.To("Query").Resolve("world").With(t => t.World)))
+                    .AddResolver<QueryA>("Query")
+                    .AddResolver<QueryB>("Query"))
                 .MatchSnapshotAsync();
         }
 
@@ -66,32 +66,31 @@ namespace HotChocolate.Execution.Integration.HelloWorldSchemaFirst
             Snapshot.FullName();
             await ExpectValid(
                 "{ hello(a: \"foo_\") }",
-                configure: c => c
+                c => c
                     .AddDocumentFromString(
-                        @"
-                        type Query {
+                        @"type Query {
                             hello(a: String!): String
                         }")
-                    .BindResolver<QueryA>(c => c
-                        .To("Query")
-                        .Resolve("hello")
-                        .With(t => t.GetHello(default, default))))
+                    .AddResolver<QueryC>("Query"))
                 .MatchSnapshotAsync();
         }
 
         public class QueryA
         {
             public string Hello => "World";
-
-            public string GetHello(string a, IResolverContext context)
-            {
-                return a + context.ArgumentValue<string>("a");
-            }
         }
 
         public class QueryB
         {
             public string World => "Hello";
+        }
+
+        public class QueryC
+        {
+            public string GetHello(string a, IResolverContext context)
+            {
+                return a + context.ArgumentValue<string>("a");
+            }
         }
     }
 }

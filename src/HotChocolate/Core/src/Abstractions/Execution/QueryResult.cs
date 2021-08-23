@@ -13,6 +13,7 @@ namespace HotChocolate.Execution
         , IReadOnlyQueryResult
     {
         private readonly IDisposable? _disposable;
+        private bool _disposed;
 
         /// <summary>
         /// Initializes a new <see cref="QueryResult"/>.
@@ -74,14 +75,19 @@ namespace HotChocolate.Execution
         /// <inheritdoc />
         public void Dispose()
         {
-            if (Data is IDisposable disposable)
+            if (!_disposed)
             {
-                disposable.Dispose();
-            }
+                if (Data is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
 
-            if (_disposable is { })
-            {
-                _disposable.Dispose();
+                if (_disposable is not null)
+                {
+                    _disposable.Dispose();
+                }
+
+                _disposed = true;
             }
         }
     }

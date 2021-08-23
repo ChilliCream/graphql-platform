@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -40,10 +41,15 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+
+            foreach (InterfaceFieldDefinition field in definition.Fields)
+            {
+                Fields.Add(InterfaceFieldDescriptor.From(Context, field));
+            }
         }
 
         protected internal override InterfaceTypeDefinition Definition { get; protected set; } =
-            new InterfaceTypeDefinition();
+            new();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
@@ -101,23 +107,37 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        [Obsolete("Use Implements.")]
         public IInterfaceTypeDescriptor Interface<TInterface>()
             where TInterface : InterfaceType
+            => Implements<TInterface>();
+
+        [Obsolete("Use Implements.")]
+        public IInterfaceTypeDescriptor Interface<TInterface>(
+            TInterface type)
+            where TInterface : InterfaceType
+            => Implements(type);
+
+        [Obsolete("Use Implements.")]
+        public IInterfaceTypeDescriptor Interface(NamedTypeNode namedType)
+            => Implements(namedType);
+
+        public IInterfaceTypeDescriptor Implements<T>()
+            where T : InterfaceType
         {
-            if (typeof(TInterface) == typeof(InterfaceType))
+            if (typeof(T) == typeof(InterfaceType))
             {
                 throw new ArgumentException(
                     TypeResources.InterfaceTypeDescriptor_InterfaceBaseClass);
             }
 
             Definition.Interfaces.Add(
-                Context.TypeInspector.GetTypeRef(typeof(TInterface), TypeContext.Output));
+                Context.TypeInspector.GetTypeRef(typeof(T), TypeContext.Output));
             return this;
         }
 
-        public IInterfaceTypeDescriptor Interface<TInterface>(
-            TInterface type)
-            where TInterface : InterfaceType
+        public IInterfaceTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType
         {
             if (type is null)
             {
@@ -128,28 +148,16 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInterfaceTypeDescriptor Interface(
-            NamedTypeNode namedType)
+        public IInterfaceTypeDescriptor Implements(NamedTypeNode type)
         {
-            if (namedType is null)
+            if (type is null)
             {
-                throw new ArgumentNullException(nameof(namedType));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(type, TypeContext.Output));
             return this;
         }
-
-        public IInterfaceTypeDescriptor Implements<T>()
-            where T : InterfaceType =>
-            Interface<T>();
-
-        public IInterfaceTypeDescriptor Implements<T>(T type)
-            where T : InterfaceType =>
-            Interface(type);
-
-        public IInterfaceTypeDescriptor Implements(NamedTypeNode type) =>
-            Interface(type);
 
         public IInterfaceFieldDescriptor Field(NameString name)
         {

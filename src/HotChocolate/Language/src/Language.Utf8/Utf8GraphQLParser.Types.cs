@@ -10,7 +10,6 @@
         /// - ListType
         /// - NonNullType
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private ITypeNode ParseTypeReference()
         {
             ITypeNode type;

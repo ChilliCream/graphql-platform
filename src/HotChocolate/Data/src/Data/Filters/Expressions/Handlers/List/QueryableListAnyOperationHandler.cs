@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions
@@ -10,7 +11,9 @@ namespace HotChocolate.Data.Filters.Expressions
         : QueryableOperationHandlerBase
     {
         public QueryableListAnyOperationHandler(
-            ITypeConverter typeConverter)
+            ITypeConverter typeConverter,
+            InputParser inputParser)
+            : base(inputParser)
         {
             TypeConverter = typeConverter;
             CanBeNull = false;
@@ -32,7 +35,7 @@ namespace HotChocolate.Data.Filters.Expressions
             QueryableFilterContext context,
             IFilterOperationField field,
             IValueNode value,
-            object parsedValue)
+            object? parsedValue)
         {
             if (context.RuntimeTypes.Count > 0 &&
                 context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&

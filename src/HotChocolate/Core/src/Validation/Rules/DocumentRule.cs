@@ -20,6 +20,8 @@ namespace HotChocolate.Validation.Rules
     /// </summary>
     internal sealed class DocumentRule : IDocumentValidatorRule
     {
+        public bool IsCacheable => true;
+
         public void Validate(IDocumentValidatorContext context, DocumentNode document)
         {
             if (context is null)
@@ -34,22 +36,20 @@ namespace HotChocolate.Validation.Rules
 
             IDefinitionNode? typeSystemNode = null;
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode node = document.Definitions[i];
-                if (node.Kind != SyntaxKind.OperationDefinition &&
-                    node.Kind != SyntaxKind.FragmentDefinition)
+                if (node.Kind is not SyntaxKind.OperationDefinition
+                    and not SyntaxKind.FragmentDefinition)
                 {
                     typeSystemNode = node;
                     break;
                 }
             }
 
-            if (typeSystemNode is { })
+            if (typeSystemNode is not null)
             {
-                context.Errors.Add(
-                    ErrorHelper.TypeSystemDefinitionNotAllowed(
-                        context, typeSystemNode));
+                context.Errors.Add(context.TypeSystemDefinitionNotAllowed(typeSystemNode));
             }
         }
     }

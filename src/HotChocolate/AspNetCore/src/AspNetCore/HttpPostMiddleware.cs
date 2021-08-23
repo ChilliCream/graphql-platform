@@ -104,6 +104,7 @@ namespace HotChocolate.AspNetCore
                             statusCode = HttpStatusCode.BadRequest;
                             result = QueryResultBuilder.CreateError(error);
                         }
+
                         break;
                     }
                     // if the HTTP request body contains a single GraphQL request and
@@ -136,6 +137,12 @@ namespace HotChocolate.AspNetCore
                 statusCode = HttpStatusCode.BadRequest;
                 result = QueryResultBuilder.CreateError(errorHandler.Handle(ex.Errors));
             }
+            catch (GraphQLException ex)
+            {
+                // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
+                statusCode = null; // we let the serializer determine the status code.
+                result = QueryResultBuilder.CreateError(ex.Errors);
+            }
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
@@ -143,10 +150,28 @@ namespace HotChocolate.AspNetCore
                 result = QueryResultBuilder.CreateError(error);
             }
 
-            // in any case we will have a valid GraphQL result at this point that can be written
-            // to the HTTP response stream.
-            Debug.Assert(result is not null, "No GraphQL result was created.");
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            try
+            {
+                // in any case we will have a valid GraphQL result at this point that can be written
+                // to the HTTP response stream.
+                Debug.Assert(result is not null!, "No GraphQL result was created.");
+                await WriteResultAsync(context.Response, result, statusCode,
+                    context.RequestAborted);
+            }
+            finally
+            {
+                // query results use pooled memory an need to be disposed after we have
+                // used them.
+                if (result is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+
+                if (result is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         private static bool TryParseOperations(

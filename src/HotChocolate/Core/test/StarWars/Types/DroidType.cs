@@ -1,5 +1,4 @@
 ﻿using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Resolvers;
 
@@ -10,7 +9,7 @@ namespace HotChocolate.StarWars.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Droid> descriptor)
         {
-            descriptor.Interface<CharacterType>();
+            descriptor.Implements<CharacterType>();
 
             descriptor.Field(t => t.Id)
                 .Type<NonNullType<IdType>>();

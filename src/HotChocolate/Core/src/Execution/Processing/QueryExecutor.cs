@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
+using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
             IOperationContext operationContext) =>
             ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-        public async Task<IQueryResult> ExecuteAsync(
+        public Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext,
             IImmutableDictionary<string, object?> scopedContext)
         {
@@ -25,14 +25,24 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(scopedContext));
             }
 
+            return ExecuteInternalAsync(operationContext, scopedContext);
+        }
+
+        private static async Task<IQueryResult> ExecuteInternalAsync(
+            IOperationContext operationContext,
+            IImmutableDictionary<string, object?> scopedContext)
+        {
             ISelectionSet rootSelections =
                 operationContext.Operation.GetRootSelectionSet();
 
-            ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, Path.Root, scopedContext,
-                operationContext.RootValue);
+            ResultMap resultMap = EnqueueResolverTasks(
+                operationContext,
+                rootSelections,
+                operationContext.RootValue,
+                Path.Root,
+                scopedContext);
 
-            await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
+            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext()

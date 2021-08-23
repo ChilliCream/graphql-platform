@@ -3,7 +3,6 @@ import React, { FunctionComponent } from "react";
 import { LinkedinShareButton, TwitterShareButton } from "react-share";
 import styled from "styled-components";
 import { BlogArticleSharebarFragment } from "../../../graphql-types";
-
 import LinkedinIconSvg from "../../images/linkedin-square.svg";
 import TwitterIconSvg from "../../images/twitter-square.svg";
 

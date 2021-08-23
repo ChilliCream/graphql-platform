@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -205,6 +207,43 @@ namespace HotChocolate
 
             // assert
             Assert.Equal("/foo", error.Path.Print());
+        }
+
+        [Fact]
+        public void WithSyntaxNode()
+        {
+            // arrange
+            IError error = new Error("123");
+
+            // act
+            error = error.WithSyntaxNode(new StringValueNode("Foo"));
+
+            // assert
+            error.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Constructor_WithSyntaxNode()
+        {
+            // arrange
+            // act
+            IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
+
+            // assert
+            error.MatchSnapshot();
+        }
+
+        [Fact]
+        public void RemoveSyntaxNode()
+        {
+            // arrange
+            IError error = new Error("123", syntaxNode:new StringValueNode("Foo"));
+
+            // act
+            error = error.RemoveSyntaxNode();
+
+            // assert
+            error.MatchSnapshot();
         }
     }
 }

@@ -20,9 +20,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <TestTargetFrameworks>net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
+    <ToolingTargetFrameworks>net5.0; netcoreapp3.1; netcoreapp2.1</ToolingTargetFrameworks>
+    <!--TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
     <LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.1; netstandard2.0</LibraryTargetFrameworks>
-    <ToolingTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netcoreapp2.1</ToolingTargetFrameworks>
+    <ToolingTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netcoreapp2.1</ToolingTargetFrameworks-->
   </PropertyGroup>
 
 </Project>

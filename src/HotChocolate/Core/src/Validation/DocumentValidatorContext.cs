@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Properties;
@@ -8,17 +9,11 @@ namespace HotChocolate.Validation
 {
     public sealed class DocumentValidatorContext : IDocumentValidatorContext
     {
-        private static readonly FieldInfoListBufferPool _fieldInfoPool =
-            new FieldInfoListBufferPool();
-        private readonly List<FieldInfoListBuffer> _buffers =
-            new List<FieldInfoListBuffer>
-            {
-                new FieldInfoListBuffer()
-            };
+        private static readonly FieldInfoListBufferPool _fieldInfoPool = new();
+        private readonly List<FieldInfoListBuffer> _buffers = new() { new FieldInfoListBuffer() };
 
         private ISchema? _schema;
         private IOutputType? _nonNullString;
-        private bool _unexpectedErrorsDetected;
 
         public ISchema Schema
         {
@@ -26,7 +21,6 @@ namespace HotChocolate.Validation
             {
                 if (_schema is null)
                 {
-                    // TODO : resources
                     throw new InvalidOperationException(
                         Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
@@ -45,7 +39,6 @@ namespace HotChocolate.Validation
             {
                 if (_nonNullString is null)
                 {
-                    // TODO : resources
                     throw new InvalidOperationException(
                         Resources.DocumentValidatorContext_Context_Invalid_State);
                 }
@@ -61,13 +54,12 @@ namespace HotChocolate.Validation
         public IDictionary<SelectionSetNode, IList<FieldInfo>> FieldSets { get; } =
             new Dictionary<SelectionSetNode, IList<FieldInfo>>();
 
-        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } = 
+        public ISet<(FieldNode, FieldNode)> FieldTuples { get; } =
             new HashSet<(FieldNode, FieldNode)>();
 
         public ISet<string> VisitedFragments { get; } = new HashSet<string>();
 
-        public IDictionary<string, object> VariableValues { get; } =
-            new Dictionary<string, object>();
+        public IVariableValueCollection? VariableValues { get; set; }
 
         public IDictionary<string, VariableDefinitionNode> Variables { get; } =
             new Dictionary<string, VariableDefinitionNode>();
@@ -95,20 +87,15 @@ namespace HotChocolate.Validation
 
         public ICollection<IError> Errors { get; } = new List<IError>();
 
-        public bool UnexpectedErrorsDetected
-        {
-            get => _unexpectedErrorsDetected;
-            set
-            {
-                _unexpectedErrorsDetected = value;
-            }
-        }
+        public IList<object?> List { get; } = new List<object?>();
+
+        public bool UnexpectedErrorsDetected { get; set; }
 
         public int Count { get; set; }
 
         public int Max { get; set; }
 
-        public IDictionary<string, object> ContextData { get; } = new Dictionary<string, object>();
+        public IDictionary<string, object?> ContextData { get; set; }
 
         public IList<FieldInfo> RentFieldInfoList()
         {
@@ -130,12 +117,13 @@ namespace HotChocolate.Validation
 
             _schema = null;
             _nonNullString = null;
+            VariableValues = null;
+            ContextData = default!;
             Path.Clear();
             SelectionSets.Clear();
             FieldSets.Clear();
             FieldTuples.Clear();
             VisitedFragments.Clear();
-            VariableValues.Clear();
             Variables.Clear();
             Fragments.Clear();
             Used.Clear();
@@ -148,10 +136,10 @@ namespace HotChocolate.Validation
             Fields.Clear();
             InputFields.Clear();
             Errors.Clear();
+            List.Clear();
             UnexpectedErrorsDetected = false;
             Count = 0;
             Max = 0;
-            ContextData.Clear();
         }
 
         private void ClearBuffers()
@@ -161,7 +149,7 @@ namespace HotChocolate.Validation
                 FieldInfoListBuffer buffer = _buffers.Pop();
                 buffer.Clear();
 
-                for (int i = 0; i < _buffers.Count; i++)
+                for (var i = 0; i < _buffers.Count; i++)
                 {
                     _fieldInfoPool.Return(_buffers[i]);
                 }

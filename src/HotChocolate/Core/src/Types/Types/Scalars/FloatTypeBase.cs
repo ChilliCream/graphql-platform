@@ -84,7 +84,7 @@ namespace HotChocolate.Types
             return true;
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode valueSyntax)
         {
             if (valueSyntax is null)
             {

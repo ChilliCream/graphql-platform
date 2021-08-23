@@ -3,12 +3,11 @@ import React, {
   FunctionComponent,
   ReactNode,
   useContext,
-  useMemo,
-  useState,
 } from "react";
-import { Tab, TabProps } from "./tab";
-import { Panel, PanelProps } from "./panel";
 import { List } from "./list";
+import { Panel, PanelProps } from "./panel";
+import { Tab, TabProps } from "./tab";
+import { useActiveTab } from "./tab-groups";
 
 interface TabsContext {
   activeTab: string;
@@ -24,26 +23,25 @@ export interface TabsComposition {
 const TabsContext = createContext<TabsContext | undefined>(undefined);
 
 export interface TabsProps {
-  defaultValue: string;
-  children: ReactNode;
+  readonly defaultValue: string;
+  readonly groupId?: string;
+  readonly children: ReactNode;
 }
 
 export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
   defaultValue,
+  groupId,
   children,
 }) => {
-  const [activeTab, setActiveTab] = useState(defaultValue);
-
-  const memoizedContextValue = useMemo(
-    () => ({
-      activeTab,
-      setActiveTab,
-    }),
-    [activeTab, setActiveTab]
-  );
+  const [activeTab, setActiveTab] = useActiveTab(defaultValue, groupId);
 
   return (
-    <TabsContext.Provider value={memoizedContextValue}>
+    <TabsContext.Provider
+      value={{
+        activeTab,
+        setActiveTab,
+      }}
+    >
       {children}
     </TabsContext.Provider>
   );

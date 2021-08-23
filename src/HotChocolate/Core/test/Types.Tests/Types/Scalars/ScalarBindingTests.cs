@@ -64,7 +64,7 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+            public override object? ParseLiteral(IValueNode valueSyntax)
             {
                 throw new System.NotImplementedException();
             }
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+            public override object? ParseLiteral(IValueNode valueSyntax)
             {
                 throw new System.NotImplementedException();
             }

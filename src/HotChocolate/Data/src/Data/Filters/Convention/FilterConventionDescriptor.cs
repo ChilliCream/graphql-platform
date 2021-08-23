@@ -20,8 +20,7 @@ namespace HotChocolate.Data.Filters
 
         protected IDescriptorContext Context { get; }
 
-        protected FilterConventionDefinition Definition { get; } =
-            new FilterConventionDefinition();
+        protected FilterConventionDefinition Definition { get; } = new();
 
         public FilterConventionDefinition CreateDefinition()
         {

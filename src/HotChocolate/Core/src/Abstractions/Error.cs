@@ -8,10 +8,16 @@ using HotChocolate.Properties;
 
 namespace HotChocolate
 {
-    public sealed class Error : IError
+    /// <summary>
+    /// Represents a GraphQL execution error.
+    /// </summary>
+    public class Error : IError
     {
         private const string _codePropertyName = "code";
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="Error"/>.
+        /// </summary>
         public Error(
             string message,
             string? code = null,
@@ -56,6 +62,7 @@ namespace HotChocolate
 
         public ISyntaxNode? SyntaxNode { get; }
 
+        /// <inheritdoc />
         public IError WithMessage(string message)
         {
             if (string.IsNullOrEmpty(message))
@@ -68,6 +75,7 @@ namespace HotChocolate
             return new Error(message, Code, Path, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithCode(string? code)
         {
             if (string.IsNullOrEmpty(code))
@@ -75,12 +83,13 @@ namespace HotChocolate
                 return RemoveCode();
             }
 
-            var extensions = Extensions is null
-                ? new OrderedDictionary<string, object?>() { [_codePropertyName] = code }
+            OrderedDictionary<string, object?> extensions = Extensions is null
+                ? new OrderedDictionary<string, object?> { [_codePropertyName] = code }
                 : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveCode()
         {
             IReadOnlyDictionary<string, object?>? extensions = Extensions;
@@ -95,6 +104,7 @@ namespace HotChocolate
             return new Error(Message, null, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithPath(Path? path)
         {
             return path is null
@@ -102,14 +112,17 @@ namespace HotChocolate
                 : new Error(Message, Code, path, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithPath(IReadOnlyList<object>? path) =>
             WithPath(path is null ? null : Path.FromList(path));
 
+        /// <inheritdoc />
         public IError RemovePath()
         {
             return new Error(Message, Code, null, Locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithLocations(IReadOnlyList<Location>? locations)
         {
             return locations is null
@@ -117,11 +130,13 @@ namespace HotChocolate
                 : new Error(Message, Code, Path, locations, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveLocations()
         {
             return new Error(Message, Code, Path, null, Extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
         {
             if (extensions is null)
@@ -132,11 +147,13 @@ namespace HotChocolate
             return new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveExtensions()
         {
             return new Error(Message, Code, Path, Locations, null, Exception);
         }
 
+        /// <inheritdoc />
         public IError SetExtension(string key, object? value)
         {
             if (string.IsNullOrEmpty(key))
@@ -146,13 +163,14 @@ namespace HotChocolate
                     nameof(key));
             }
 
-            var extensions = Extensions is { }
+            OrderedDictionary<string, object?> extensions = Extensions is { }
                 ? new OrderedDictionary<string, object?>(Extensions)
                 : new OrderedDictionary<string, object?>();
             extensions[key] = value;
             return new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveExtension(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -175,16 +193,18 @@ namespace HotChocolate
                 : new Error(Message, Code, Path, Locations, extensions, Exception);
         }
 
+        /// <inheritdoc />
         public IError WithException(Exception? exception)
         {
-            return exception is null ?
-                RemoveException() :
-                new Error(Message, Code, Path, Locations, Extensions, exception);
+            return exception is null
+                ? RemoveException()
+                : new Error(Message, Code, Path, Locations, Extensions, exception);
         }
 
+        /// <inheritdoc />
         public IError RemoveException()
         {
-            return new Error(Message, Code, Path, Locations, Extensions);
+            return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
         }
     }
 }

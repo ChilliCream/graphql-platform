@@ -7,8 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class InputObjectType<T>
-        : InputObjectType
+    public class InputObjectType<T> : InputObjectType
     {
         private Action<IInputObjectTypeDescriptor<T>>? _configure;
 

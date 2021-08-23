@@ -15,9 +15,13 @@ using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 namespace HotChocolate.Types.Descriptors
 {
+    /// <summary>
+    /// The default type inspector implementation that provides helpers to inspect .NET types and
+    /// infer GraphQL type structures.
+    /// </summary>
     public class DefaultTypeInspector
         : Convention
-        , ITypeInspector
+            , ITypeInspector
     {
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
@@ -39,34 +43,10 @@ namespace HotChocolate.Types.Descriptors
         public bool IgnoreRequiredAttribute { get; protected set; }
 
         /// <inheritdoc />
-        public virtual IEnumerable<Type> GetResolverTypes(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return GetResolverTypesInternal(type);
-        }
-
-        private IEnumerable<Type> GetResolverTypesInternal(Type sourceType)
-        {
-            if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
-            {
-                return sourceType
-                    .GetCustomAttributes(typeof(GraphQLResolverAttribute))
-                    .OfType<GraphQLResolverAttribute>()
-                    .SelectMany(attr => attr.ResolverTypes);
-            }
-
-            return Enumerable.Empty<Type>();
-        }
-
-        /// <inheritdoc />
         public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
 
         /// <inheritdoc />
-        public IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
         {
             if (type is null)
             {
@@ -76,12 +56,23 @@ namespace HotChocolate.Types.Descriptors
             return GetMembersInternal(type, includeIgnored);
         }
 
+        /// <inheritdoc />
+        public virtual bool IsMemberIgnored(MemberInfo member)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+        }
+
         private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
             type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
                 .Where(m => CanBeHandled(m, includeIgnored));
 
         /// <inheritdoc />
-        public virtual ExtendedTypeReference GetReturnTypeRef(
+        public virtual ITypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null,
@@ -92,7 +83,16 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return TypeReference.Create(GetReturnType(member), context, scope);
+            ITypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
+
+            if (!ignoreAttributes &&
+                TryGetAttribute(member, out GraphQLTypeAttribute? attribute) &&
+                attribute.TypeSyntax is not null)
+            {
+                return TypeReference.Create(attribute.TypeSyntax, context, scope);
+            }
+
+            return typeRef;
         }
 
         /// <inheritdoc />
@@ -111,7 +111,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public ExtendedTypeReference GetArgumentTypeRef(
+        public ITypeReference GetArgumentTypeRef(
             ParameterInfo parameter,
             string? scope = null,
             bool ignoreAttributes = false)
@@ -121,12 +121,21 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            return TypeReference.Create(
+            ITypeReference typeRef = TypeReference.Create(
                 GetArgumentType(
                     parameter,
                     ignoreAttributes),
                 TypeContext.Input,
                 scope);
+
+            if (!ignoreAttributes &&
+                TryGetAttribute(parameter, out GraphQLTypeAttribute? attribute) &&
+                attribute.TypeSyntax is not null)
+            {
+                return TypeReference.Create(attribute.TypeSyntax, TypeContext.Input, scope);
+            }
+
+            return typeRef;
         }
 
         /// <inheritdoc />
@@ -535,7 +544,8 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             ICustomAttributeProvider attributeProvider)
         {
-            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute))
+            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
+                typeAttribute.Type is not null)
             {
                 return GetType(typeAttribute.Type);
             }
@@ -561,17 +571,7 @@ namespace HotChocolate.Types.Descriptors
             [NotNullWhen(true)] out T? attribute)
             where T : Attribute
         {
-            if (attributeProvider is PropertyInfo p &&
-                p.DeclaringType is not null &&
-                IsRecord(p.DeclaringType))
-            {
-                if (IsDefinedOnRecord<T>(p, true))
-                {
-                    attribute = GetCustomAttributeFromRecord<T>(p, true)!;
-                    return true;
-                }
-            }
-            else if (attributeProvider.IsDefined(typeof(T), true))
+            if (attributeProvider.IsDefined(typeof(T), true))
             {
                 attribute = attributeProvider
                     .GetCustomAttributes(typeof(T), true)
@@ -584,14 +584,14 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        private static bool CanBeHandled(MemberInfo member, bool includeIgnored)
+        private bool CanBeHandled(MemberInfo member, bool includeIgnored)
         {
             if (IsSystemMember(member))
             {
                 return false;
             }
 
-            if (!includeIgnored && member.IsDefined(typeof(GraphQLIgnoreAttribute)))
+            if (!includeIgnored && IsMemberIgnored(member))
             {
                 return false;
             }
@@ -611,7 +611,7 @@ namespace HotChocolate.Types.Descriptors
             if (member is PropertyInfo property)
             {
                 return CanHandleReturnType(member, property.PropertyType) &&
-                    property.GetIndexParameters().Length == 0;
+                       property.GetIndexParameters().Length == 0;
             }
 
             if (member is MethodInfo method &&
@@ -749,65 +749,32 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private static bool HasConfiguration(ICustomAttributeProvider element)
-        {
-            return element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
-                element.IsDefined(typeof(ParentAttribute), true) ||
-                element.IsDefined(typeof(ServiceAttribute), true) ||
-                element.IsDefined(typeof(GlobalStateAttribute), true) ||
-                element.IsDefined(typeof(ScopedServiceAttribute), true) ||
-                element.IsDefined(typeof(LocalStateAttribute), true) ||
-                element.IsDefined(typeof(DescriptorAttribute), true);
-        }
+            => element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+               element.IsDefined(typeof(ParentAttribute), true) ||
+               element.IsDefined(typeof(ServiceAttribute), true) ||
+               element.IsDefined(typeof(GlobalStateAttribute), true) ||
+               element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+               element.IsDefined(typeof(ScopedStateAttribute), true) ||
+               element.IsDefined(typeof(LocalStateAttribute), true) ||
+               element.IsDefined(typeof(DescriptorAttribute), true);
 
         private static bool IsSystemMember(MemberInfo member)
         {
-            if (IsCloneMember(member) ||
-                IsToString(member) ||
-                IsGetHashCode(member) ||
-                IsEquals(member))
-            {
-                return true;
-            }
-
-            return false;
+            return IsCloneMember(member) ||
+                   IsToString(member) ||
+                   IsGetHashCode(member) ||
+                   IsEquals(member);
         }
 
-        private static bool IsToString(MemberInfo member) =>
-            member is MethodInfo m
-            && m.Name.Equals(_toString);
+        private static bool IsToString(MemberInfo member)
+            => member is MethodInfo { Name: _toString };
 
-        private static bool IsGetHashCode(MemberInfo member) =>
-            member is MethodInfo m
-            && m.Name.Equals(_getHashCode)
-            && m.GetParameters().Length == 0;
+        private static bool IsGetHashCode(MemberInfo member)
+            => member is MethodInfo { Name: _getHashCode } m &&
+               m.GetParameters().Length == 0;
 
-        private static bool IsEquals(MemberInfo member) =>
-            member is MethodInfo m
-            && m.Name.Equals(_equals);
-
-        private bool IsRecord(Type type)
-        {
-            if (!_records.TryGetValue(type, out bool isRecord))
-            {
-                isRecord = IsRecord(type.GetMembers());
-                _records[type] = isRecord;
-            }
-
-            return isRecord;
-        }
-
-        private static bool IsRecord(IReadOnlyList<MemberInfo> members)
-        {
-            for (var i = 0; i < members.Count; i++)
-            {
-                if (IsCloneMember(members[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
+        private static bool IsEquals(MemberInfo member)
+            => member is MethodInfo { Name: _equals };
 
         private static bool IsCloneMember(MemberInfo member) =>
             member.Name.EqualsOrdinal(_clone);
@@ -816,119 +783,22 @@ namespace HotChocolate.Types.Descriptors
             ICustomAttributeProvider attributeProvider,
             bool inherit)
             where T : Attribute
-        {
-            if (attributeProvider is PropertyInfo p &&
-                p.DeclaringType is not null &&
-                IsRecord(p.DeclaringType))
-            {
-                return GetCustomAttributesFromRecord<T>(p, inherit);
-            }
-            else
-            {
-                return attributeProvider.GetCustomAttributes(true).OfType<T>();
-            }
-        }
-
-        private IEnumerable<T> GetCustomAttributesFromRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            IEnumerable<T> attributes = Enumerable.Empty<T>();
-
-            if (property.IsDefined(typeof(T)))
-            {
-                attributes = attributes.Concat(property.GetCustomAttributes<T>(inherit));
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        attributes = attributes.Concat(parameter.GetCustomAttributes<T>(inherit));
-                    }
-                }
-            }
-
-            return attributes;
-        }
-
-        private T? GetCustomAttributeFromRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            if (property.IsDefined(typeof(T)))
-            {
-                return property.GetCustomAttribute<T>(inherit);
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        return parameter.GetCustomAttribute<T>(inherit);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private static bool IsDefinedOnRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            if (property.IsDefined(typeof(T), inherit))
-            {
-                return true;
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        return parameter.IsDefined(typeof(T));
-                    }
-                }
-            }
-
-            return false;
-        }
+            => attributeProvider.GetCustomAttributes(inherit).OfType<T>();
 
         private bool TryGetDefaultValueFromConstructor(
             PropertyInfo property,
             out object? defaultValue)
         {
             defaultValue = null;
-            if (IsRecord(property.DeclaringType!))
-            {
-                ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+            ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
 
-                if (constructors.Length == 1)
+            if (constructors.Length == 1)
+            {
+                foreach (ParameterInfo parameter in constructors[0].GetParameters())
                 {
-                    foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                    if (parameter.Name.EqualsOrdinal(property.Name))
                     {
-                        if (parameter.Name.EqualsOrdinal(property.Name))
-                        {
-                            return TryGetDefaultValue(parameter, out defaultValue);
-                        }
+                        return TryGetDefaultValue(parameter, out defaultValue);
                     }
                 }
             }

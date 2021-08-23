@@ -10,7 +10,7 @@ using StrawberryShake.Properties;
 
 namespace StrawberryShake.Transport.InMemory
 {
-    public class InMemoryConnection : IConnection<JsonDocument>
+    public class InMemoryConnection : IInMemoryConnection
     {
         private readonly Func<CancellationToken, ValueTask<IInMemoryClient>> _createClientAsync;
 

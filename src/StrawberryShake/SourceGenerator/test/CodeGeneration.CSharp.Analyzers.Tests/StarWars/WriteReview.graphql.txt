@@ -1,6 +1,0 @@
-mutation WriteReview($text: String) {
-  createReview(episode: EMPIRE review: {commentary: $text stars: 3}) {
-    commentary
-    stars
-  }
-}

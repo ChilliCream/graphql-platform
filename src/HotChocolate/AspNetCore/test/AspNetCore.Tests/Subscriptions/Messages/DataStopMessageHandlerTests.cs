@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 using Xunit;
 using HotChocolate.StarWars;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -43,6 +45,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var connection = new SocketConnectionMock();
+            var subscription = new Mock<ISubscription>();
 
             IRequestExecutor executor = await new ServiceCollection()
                 .AddGraphQL()
@@ -58,8 +61,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 (IResponseStream)await executor.ExecuteAsync(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-            var subscription = new Subscription(connection, stream, "123");
-            connection.Subscriptions.Register(subscription);
+            var interceptor = new SocketSessionInterceptorMock();
+            var subscriptionSession = new SubscriptionSession(
+                new CancellationTokenSource(),
+                interceptor,
+                connection,
+                stream,
+                subscription.Object,
+                new NoopDiagnosticEvents(),
+                "123");
+            connection.Subscriptions.Register(subscriptionSession);
 
             var handler = new DataStopMessageHandler();
             var message = new DataStopMessage("123");

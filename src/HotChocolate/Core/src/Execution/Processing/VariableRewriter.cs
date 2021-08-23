@@ -1,5 +1,7 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -17,6 +19,12 @@ namespace HotChocolate.Execution.Processing
         /// <param name="node">
         /// The value that shall be rewritten.
         /// </param>
+        /// <param name="type">
+        /// The value type.
+        /// </param>
+        /// <param name="defaultValue">
+        /// The argument default value.
+        /// </param>
         /// <param name="variableValues">
         /// The variable values.
         /// </param>
@@ -25,27 +33,33 @@ namespace HotChocolate.Execution.Processing
         /// </returns>
         public static IValueNode Rewrite(
             IValueNode node,
+            IType type,
+            IValueNode? defaultValue,
             IVariableValueCollection variableValues)
         {
             if (node is null)
             {
-                throw new System.ArgumentNullException(nameof(node));
+                throw new ArgumentNullException(nameof(node));
             }
 
             if (variableValues is null)
             {
-                throw new System.ArgumentNullException(nameof(variableValues));
+                throw new ArgumentNullException(nameof(variableValues));
             }
 
-            if (TryRewriteValue(node, variableValues, out IValueNode? rewritten))
-            {
-                return rewritten;
-            }
-            return node;
+            return TryRewriteValue(
+                node,
+                type,
+                defaultValue ?? NullValueNode.Default,
+                variableValues,
+                out IValueNode? rewritten)
+                ? rewritten
+                : node;
         }
 
         private static ObjectValueNode Rewrite(
             ObjectValueNode node,
+            InputObjectType type,
             IVariableValueCollection variableValues)
         {
             if (node.Fields.Count == 0)
@@ -55,32 +69,40 @@ namespace HotChocolate.Execution.Processing
 
             if (node.Fields.Count == 1)
             {
-                if (TryRewriteField(node.Fields[0], variableValues, out ObjectFieldNode? rewritten))
-                {
-                    return node.WithFields(new[] { rewritten });
-                }
-                return node;
+                ObjectFieldNode value = node.Fields[0];
+
+                return type.Fields.TryGetField(value.Name.Value, out InputField? field) &&
+                    TryRewriteField(value, field, variableValues, out ObjectFieldNode? rewritten)
+                    ? node.WithFields(new[] { rewritten })
+                    : node;
             }
 
             ObjectFieldNode[]? rewrittenItems = null;
 
-            for (int i = 0; i < node.Fields.Count; i++)
+            for (var i = 0; i < node.Fields.Count; i++)
             {
-                if (TryRewriteField(node.Fields[i], variableValues, out ObjectFieldNode? rewritten))
+                ObjectFieldNode value = node.Fields[i];
+
+                if (type.Fields.TryGetField(value.Name.Value, out InputField? field) &&
+                    TryRewriteField(value, field, variableValues, out ObjectFieldNode? rewritten))
                 {
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new ObjectFieldNode[node.Fields.Count];
-                        for (int j = 0; j < node.Fields.Count; j++)
+                        for (var j = 0; j < node.Fields.Count; j++)
                         {
                             rewrittenItems[j] = node.Fields[j];
                         }
                     }
                     rewrittenItems[i] = rewritten;
                 }
+                else if (rewrittenItems is not null)
+                {
+                    rewrittenItems[i] = node.Fields[i];
+                }
             }
 
-            if (rewrittenItems is { })
+            if (rewrittenItems is not null)
             {
                 return node.WithFields(rewrittenItems);
             }
@@ -90,10 +112,16 @@ namespace HotChocolate.Execution.Processing
 
         private static bool TryRewriteField(
             ObjectFieldNode original,
+            InputField field,
             IVariableValueCollection variableValues,
             [NotNullWhen(true)] out ObjectFieldNode? rewritten)
         {
-            if (TryRewriteValue(original.Value, variableValues, out IValueNode? rewrittenValue))
+            if (TryRewriteValue(
+                original.Value,
+                field.Type,
+                field.DefaultValue ?? NullValueNode.Default,
+                variableValues,
+                out IValueNode? rewrittenValue))
             {
                 rewritten = original.WithValue(rewrittenValue);
                 return true;
@@ -105,6 +133,7 @@ namespace HotChocolate.Execution.Processing
 
         private static ListValueNode Rewrite(
             ListValueNode node,
+            ListType type,
             IVariableValueCollection variableValues)
         {
             if (node.Items.Count == 0)
@@ -114,33 +143,44 @@ namespace HotChocolate.Execution.Processing
 
             if (node.Items.Count == 1)
             {
-                if (TryRewriteValue(node.Items[0], variableValues, out IValueNode? rewritten))
-                {
-                    return node.WithItems(new[] { rewritten });
-                }
-                return node;
+                return TryRewriteValue(
+                    node.Items[0],
+                    type.ElementType,
+                    NullValueNode.Default,
+                    variableValues,
+                    out IValueNode? rewritten)
+                    ? node.WithItems(new[] { rewritten })
+                    : node;
             }
 
             IValueNode[]? rewrittenItems = null;
 
-            for (int i = 0; i < node.Items.Count; i++)
+            for (var i = 0; i < node.Items.Count; i++)
             {
-                IValueNode original = node.Items[i];
-                if (TryRewriteValue(original, variableValues, out IValueNode? rewritten))
+                if (TryRewriteValue(
+                    node.Items[i],
+                    type.ElementType,
+                    NullValueNode.Default,
+                    variableValues,
+                    out IValueNode? rewritten))
                 {
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new IValueNode[node.Items.Count];
-                        for (int j = 0; j < i; j++)
+                        for (var j = 0; j < i; j++)
                         {
                             rewrittenItems[j] = node.Items[j];
                         }
                     }
                     rewrittenItems[i] = rewritten;
                 }
+                else if (rewrittenItems is not null)
+                {
+                    rewrittenItems[i] = node.Items[i];
+                }
             }
 
-            if (rewrittenItems is { })
+            if (rewrittenItems is not null)
             {
                 return node.WithItems(rewrittenItems);
             }
@@ -150,17 +190,34 @@ namespace HotChocolate.Execution.Processing
 
         private static bool TryRewriteValue(
             IValueNode original,
+            IType type,
+            IValueNode defaultValue,
             IVariableValueCollection variableValues,
             [NotNullWhen(true)] out IValueNode? rewritten)
         {
+            if (type.Kind == TypeKind.NonNull)
+            {
+                type = type.InnerType();
+            }
+
             switch (original.Kind)
             {
                 case SyntaxKind.Variable:
-                    rewritten = Rewrite((VariableNode)original, variableValues);
+                    rewritten = Rewrite((VariableNode)original, defaultValue, variableValues);
                     return true;
 
                 case SyntaxKind.ObjectValue:
-                    rewritten = Rewrite((ObjectValueNode)original, variableValues);
+                    if (type.Kind != TypeKind.InputObject)
+                    {
+                        rewritten = null;
+                        return false;
+                    }
+
+                    rewritten = Rewrite(
+                        (ObjectValueNode)original,
+                        (InputObjectType)type,
+                        variableValues);
+
                     if (ReferenceEquals(rewritten, original))
                     {
                         rewritten = null;
@@ -169,7 +226,17 @@ namespace HotChocolate.Execution.Processing
                     return true;
 
                 case SyntaxKind.ListValue:
-                    rewritten = Rewrite((ListValueNode)original, variableValues);
+                    if (type.Kind != TypeKind.List)
+                    {
+                        rewritten = null;
+                        return false;
+                    }
+
+                    rewritten = Rewrite(
+                        (ListValueNode)original,
+                        (ListType)type,
+                        variableValues);
+
                     if (ReferenceEquals(rewritten, original))
                     {
                         rewritten = null;
@@ -185,14 +252,10 @@ namespace HotChocolate.Execution.Processing
 
         private static IValueNode Rewrite(
             VariableNode node,
-            IVariableValueCollection variableValues)
-        {
-            if (variableValues.TryGetVariable(node.Name.Value, out IValueNode value))
-            {
-                return value;
-            }
-
-            throw ThrowHelper.VariableNotFound(node);
-        }
+            IValueNode defaultValue,
+            IVariableValueCollection variableValues) =>
+            variableValues.TryGetVariable(node.Name.Value, out IValueNode? value)
+                ? value ?? NullValueNode.Default
+                : defaultValue;
     }
 }

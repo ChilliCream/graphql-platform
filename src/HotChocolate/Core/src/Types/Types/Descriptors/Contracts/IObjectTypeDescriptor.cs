@@ -8,6 +8,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// A fluent configuration API for GraphQL object types.
+    /// </summary>
     public interface IObjectTypeDescriptor
         : IDescriptor<ObjectTypeDefinition>
         , IFluent
@@ -44,6 +47,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>()
             where T : InterfaceType;
 
@@ -52,6 +56,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>(T type)
             where T : InterfaceType;
 
@@ -62,6 +67,7 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// A syntax node representing an interface type.
         /// </param>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface(NamedTypeNode type);
 
         /// <summary>
@@ -90,13 +96,6 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Implements(NamedTypeNode type);
 
         /// <summary>
-        /// Includes a resolver type and imports all the methods and
-        /// fields from it.
-        /// </summary>
-        /// <typeparam name="TResolver">A resolver type.</typeparam>
-        IObjectTypeDescriptor Include<TResolver>();
-
-        /// <summary>
         /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>
@@ -122,7 +121,7 @@ namespace HotChocolate.Types
         /// The resolver type containing the property or method.
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod);
+            Expression<Func<TResolver, object?>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field which is bound to a resolver type.

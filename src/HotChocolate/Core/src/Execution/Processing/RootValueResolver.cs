@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Processing
             // that from the request services.
             if (rootType.RuntimeType != typeof(object))
             {
-                services.TryGetService(rootType.RuntimeType, out object? rootValue);
+                services.TryGetService(rootType.RuntimeType, out var rootValue);
 
                 // if the request services did not provide a rootValue and the runtime
                 // representation is a instantiatable class we will create a singleton ourselfs

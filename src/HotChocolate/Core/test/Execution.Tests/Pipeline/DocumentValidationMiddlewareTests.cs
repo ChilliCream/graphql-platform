@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
@@ -14,19 +15,20 @@ namespace HotChocolate.Execution.Pipeline
         public async Task DocumentIsValidated_SkipValidation()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IDictionary<string, object>>(),
+                It.Is<bool>(b => true)))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => default,
+                _ => default,
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -44,26 +46,28 @@ namespace HotChocolate.Execution.Pipeline
             await middleware.InvokeAsync(requestContext.Object);
 
             // assert
-            Assert.Equal(validationResult, requestContext.Object.ValidationResult);
+            Assert.NotEqual(validationResult, requestContext.Object.ValidationResult);
+            Assert.False(requestContext.Object.ValidationResult!.HasErrors);
         }
 
         [Fact]
         public async Task DocumentNeedsValidation_DocumentIsValid()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => default,
+                _ => default,
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -73,6 +77,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+            requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
             requestContext.SetupProperty(t => t.Document, document);
             requestContext.SetupProperty(t => t.ValidationResult);
 
@@ -87,22 +92,23 @@ namespace HotChocolate.Execution.Pipeline
         public async Task DocumentNeedsValidation_DocumentInvalid()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validationResult = new DocumentValidatorResult(
                new[] { ErrorBuilder.New().SetMessage("Foo").Build() });
 
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                    It.IsAny<ISchema>(),
+                    It.IsAny<DocumentNode>(),
+                    It.IsAny<IDictionary<string, object>>(),
+                    It.IsAny<bool>()))
                 .Returns(validationResult);
 
             var middleware = new DocumentValidationMiddleware(
-                context => throw new Exception("Should not be called."),
+                _ => throw new Exception("Should not be called."),
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();
@@ -112,6 +118,7 @@ namespace HotChocolate.Execution.Pipeline
             var requestContext = new Mock<IRequestContext>();
             requestContext.SetupGet(t => t.Request).Returns(request);
             requestContext.SetupGet(t => t.Schema).Returns(default(ISchema));
+            requestContext.SetupGet(t => t.ContextData).Returns(new Dictionary<string, object>());
             requestContext.SetupProperty(t => t.Document, document);
             requestContext.SetupProperty(t => t.ValidationResult);
             requestContext.SetupProperty(t => t.Result);
@@ -128,19 +135,20 @@ namespace HotChocolate.Execution.Pipeline
         public async Task NoDocument_MiddlewareWillFail()
         {
             // arrange
-            var cache = new Caching.DefaultDocumentCache();
-            var hashProvider = new MD5DocumentHashProvider();
-
             var validator = new Mock<IDocumentValidator>();
-            validator.Setup(t => t.Validate(It.IsAny<ISchema>(), It.IsAny<DocumentNode>()))
+            validator.Setup(t => t.Validate(
+                It.IsAny<ISchema>(),
+                It.IsAny<DocumentNode>(),
+                It.IsAny<IDictionary<string, object>>(),
+                It.IsAny<bool>()))
                 .Returns(DocumentValidatorResult.Ok);
 
             var middleware = new DocumentValidationMiddleware(
-                context => throw new Exception("Should not be called."),
+                _ => throw new Exception("Should not be called."),
                 new NoopDiagnosticEvents(),
                 validator.Object);
 
-            var request = QueryRequestBuilder.New()
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
                 .SetQueryId("a")
                 .Create();

@@ -1,4 +1,4 @@
-﻿using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Filters.Expressions;
 
 namespace HotChocolate.Data.Filters
 {
@@ -8,7 +8,9 @@ namespace HotChocolate.Data.Filters
     /// <see cref="FilterOperationHandler{TContext,T}"/> easier.
     /// <example><see cref="QueryableEnumEqualsHandler"/></example>
     /// </summary>
+#pragma warning disable CA1040 // Avoid empty interfaces
     public interface IEnumOperationFilterInputType
     {
     }
+#pragma warning restore CA1040 // Avoid empty interfaces
 }

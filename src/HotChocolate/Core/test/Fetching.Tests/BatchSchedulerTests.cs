@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Fetching;
+using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -12,14 +14,19 @@ namespace HotChocolate
         public void Dispatch_OneAction_ShouldDispatchOneAction()
         {
             // arrange
-            var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            var context = new Mock<IExecutionTaskContext>();
+            context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
 
-            scheduler.Schedule(dispatch);
+            var scheduler = new BatchScheduler();
+            scheduler.Initialize(context.Object);
+
+            ValueTask Dispatch() => default;
+
+            scheduler.Schedule(Dispatch);
             Assert.True(scheduler.HasTasks);
 
             // act
-            scheduler.Dispatch(d => { });
+            scheduler.Dispatch();
 
             // assert
             Assert.False(scheduler.HasTasks);
@@ -40,10 +47,10 @@ namespace HotChocolate
         {
             // arrange
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(scheduler.HasTasks);
@@ -55,15 +62,12 @@ namespace HotChocolate
             // arrange
             var hasBeenRaised = false;
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
-            scheduler.TaskEnqueued += (s, e) =>
-            {
-                hasBeenRaised = true;
-            };
+            scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(hasBeenRaised);

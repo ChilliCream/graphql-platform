@@ -2,7 +2,9 @@ using System;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
@@ -13,7 +15,7 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbListAnyOperationHandler
         : MongoDbOperationHandlerBase
     {
-        public MongoDbListAnyOperationHandler()
+        public MongoDbListAnyOperationHandler(InputParser inputParser) : base(inputParser)
         {
             CanBeNull = false;
         }
@@ -54,14 +56,17 @@ namespace HotChocolate.Data.MongoDb.Filters
                         });
                 }
 
-                return new MongoDbFilterOperation(
-                    path,
-                    new BsonDocument
-                    {
-                        { "$exists", true },
-                        { "$ne", BsonNull.Value },
-                        { "$eq", new BsonArray() }
-                    });
+                return new OrMongoDbFilterDefinition(
+                    new MongoDbFilterOperation(
+                        path,
+                        new BsonDocument
+                        {
+                            { "$exists", true },
+                            { "$in", new BsonArray { new BsonArray(), BsonNull.Value } }
+                        }),
+                    new MongoDbFilterOperation(
+                        path,
+                        new BsonDocument { { "$exists", false } }));
             }
 
             throw new InvalidOperationException();

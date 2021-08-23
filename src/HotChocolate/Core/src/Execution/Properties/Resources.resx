@@ -202,7 +202,7 @@
     <value>The ArgumentValue method on the resolver context only allows for runtime values. If you want to retrieve the argument value as GraphQL literal use the ArgumentLiteral method instead.</value>
   </data>
   <data name="ThrowHelper_ResolverContext_CannotConvertArgument_Message" xml:space="preserve">
-    <value>Unable to convert the value if the argument `{0}` to `{1}`. Check if the requested type is correct or register a custom type converter.</value>
+    <value>Unable to convert the value of the argument `{0}` to `{1}`. Check if the requested type is correct or register a custom type converter.</value>
   </data>
   <data name="ThrowHelper_ResolverContext_LiteralNotCompatible_Message" xml:space="preserve">
     <value>The argument literal representation is `{0}` which is not compatible with the request literal type `{1}`.</value>
@@ -254,5 +254,23 @@
   </data>
   <data name="ResultHelper_BuildResult_InvalidResult" xml:space="preserve">
     <value>A GraphQL result must have data, errors or both.</value>
+  </data>
+  <data name="ErrorHelper_MaxComplexityReached" xml:space="preserve">
+    <value>The maximum allowed operation complexity was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForComplexityAnalyzer_Message" xml:space="preserve">
+    <value>The analyzer needs a documentId, operationId, document and coerced variables.</value>
+  </data>
+  <data name="BatchExecutionTask_AddExecutionTask_SerialTasksNotAllowed" xml:space="preserve">
+    <value>Serial execution tasks cannot be batched.</value>
+  </data>
+  <data name="QueryPlan_InvalidFragmentId" xml:space="preserve">
+    <value>Invalid fragment id.</value>
+  </data>
+  <data name="WorkBacklog_NotFullyInitialized" xml:space="preserve">
+    <value>The WorkBacklog is not fully initialized.</value>
+  </data>
+  <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
+    <value>The GraphQL request execution was canceled.</value>
   </data>
 </root>

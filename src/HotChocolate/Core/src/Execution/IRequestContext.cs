@@ -10,6 +10,9 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
+    /// <summary>
+    /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
+    /// </summary>
     public interface IRequestContext : IHasContextData
     {
         /// <summary>
@@ -90,6 +93,13 @@ namespace HotChocolate.Execution
         DocumentValidatorResult? ValidationResult { get; set; }
 
         /// <summary>
+        /// <c>true</c> if the document is valid.
+        /// <c>false</c> if the document was either not validated or of the document is not valid.
+        /// </summary>
+        /// <value></value>
+        bool IsValidDocument { get; }
+
+        /// <summary>
         /// Gets a unique identifier for a prepared operation.
         /// </summary>
         string? OperationId { get; set; }
@@ -113,5 +123,11 @@ namespace HotChocolate.Execution
         /// Gets or sets an unexpected execution exception.
         /// </summary>
         Exception? Exception { get; set; }
+
+        /// <summary>
+        /// Creates a copy of this request context.
+        /// </summary>
+        /// <returns></returns>
+        IRequestContext Clone();
     }
 }

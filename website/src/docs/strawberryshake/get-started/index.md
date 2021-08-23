@@ -95,7 +95,7 @@ In this tutorial we will use our GraphQL workshop to create a list of sessions t
 1. Add the conference client to your Blazor application.
 
 ```bash
-dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n ConferenceClient -p ./Demo
+dotnet graphql init https://workshop.chillicream.cloud/graphql/ -n ConferenceClient -p ./Demo
 ```
 
 2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
@@ -108,7 +108,7 @@ dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n Conf
     "strawberryShake": {
       "name": "ConferenceClient",
       "namespace": "Demo.GraphQL",
-      "url": "https://hc-conference-app.azurewebsites.net/graphql/",
+      "url": "https://workshop.chillicream.cloud/graphql/",
       "dependencyInjection": true
     }
   }
@@ -161,7 +161,7 @@ public class Program
 
         builder.Services
             .AddConferenceClient()
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.cloud/graphql"));
 
         await builder.Build().RunAsync();
     }
@@ -182,6 +182,7 @@ public class Program
 @using Demo
 @using Demo.Shared
 @using Demo.GraphQL
+@using StrawberryShake
 ```
 
 # Step 5: Use the ConferenceClient to perform a simple fetch
@@ -193,13 +194,15 @@ In this section we will perform a simple fetch with our `ConferenceClient`. We w
 2. Add inject the `ConferenceClient` beneath the `@pages` directive.
 
 ```csharp
-@page "/" @inject ConferenceClient ConferenceClient;
+@page "/"
+@inject ConferenceClient ConferenceClient;
 ```
 
 3. Introduce a code directive at the bottom of the file.
 
 ```csharp
-@page "/" @inject ConferenceClient ConferenceClient;
+@page "/"
+@inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -207,13 +210,16 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code { }
+@code {
+
+}
 ```
 
 4. Now lets fetch the titles with our client.
 
 ```csharp
-@page "/" @inject ConferenceClient ConferenceClient;
+@page "/"
+@inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -221,20 +227,22 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-@code { private string[] titles = Array.Empty<string
-  >(); protected override async Task OnInitializedAsync() { // Execute our
-  GetSessions query var result = await
-  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
-  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
-  signal the components that the state has changed. StateHasChanged(); }
-  }</string
->
+@code {
+    private string[] titles = Array.Empty<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ConferenceClient.GetSessions.ExecuteAsync();
+        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
+    }
+}
 ```
 
 5. Last, lets render the titles on our page as a list.
 
 ```csharp
-@page "/" @inject ConferenceClient ConferenceClient;
+@page "/"
+@inject ConferenceClient ConferenceClient;
 
 <h1>Hello, world!</h1>
 
@@ -244,18 +252,19 @@ Welcome to your new app.
 
 <ul>
   @foreach (string title in titles) {
-  <li>@title</li>
+    <li>@title</li>
   }
 </ul>
 
-@code { private string[] titles = Array.Empty<string
-  >(); protected override async Task OnInitializedAsync() { // Execute our
-  GetSessions query var result = await
-  ConferenceClient.GetSessions.ExecuteAsync(); // aggregate the titles from the
-  result titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray(); //
-  signal the components that the state has changed. StateHasChanged(); }
-  }</string
->
+@code {
+    private string[] titles = Array.Empty<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ConferenceClient.GetSessions.ExecuteAsync();
+        titles = result.Data.Sessions.Nodes.Select(t => t.Title).ToArray();
+    }
+}
 ```
 
 5. Start the Blazor application with `dotnet run --project ./Demo` and see if your code works.
@@ -316,7 +325,7 @@ protected override void OnInitialized()
 
 Instead of fetching the data we watch the data for our request. Every time entities of our results are updated in the entity store our subscribe method will be triggered.
 
-Also we specified on our watch method that we want to first look at the store and only of there is nothing in the store we want to fetch the data from the network.
+Also we specified on our watch method that we want to first look at the store and only if there is nothing in the store we want to fetch the data from the network.
 
 Last, note that we are storing a disposable on our component state called `storeSession`. This represents our session with the store. We need to dispose the session when we no longer display our component.
 

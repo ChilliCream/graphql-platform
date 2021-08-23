@@ -4956,18 +4956,6 @@
               "deprecationReason": null
             },
             {
-              "name": "isRepeatable",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
               "name": "locations",
               "description": null,
               "args": [],
@@ -5008,6 +4996,22 @@
                       "name": "__InputValue"
                     }
                   }
+                }
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
+              "name": "isRepeatable",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
                 }
               },
               "isDeprecated": false,
@@ -5721,8 +5725,8 @@
               "deprecationReason": null
             },
             {
-              "name": "specifiedBy",
-              "description": null,
+              "name": "specifiedByURL",
+              "description": "\u0060specifiedByURL\u0060 may return a String (in the form of a URL) for custom scalars, otherwise it will return \u0060null\u0060.",
               "args": [],
               "type": {
                 "kind": "SCALAR",
@@ -6142,7 +6146,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6152,7 +6156,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6162,7 +6166,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6172,7 +6176,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6183,7 +6187,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6307,7 +6311,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6317,7 +6321,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6327,7 +6331,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6337,7 +6341,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6348,7 +6352,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6503,7 +6507,7 @@
               "args": [
                 {
                   "name": "first",
-                  "description": null,
+                  "description": "Returns the first _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6513,7 +6517,7 @@
                 },
                 {
                   "name": "after",
-                  "description": null,
+                  "description": "Returns the elements in the list that come after the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6523,7 +6527,7 @@
                 },
                 {
                   "name": "last",
-                  "description": null,
+                  "description": "Returns the last _n_ elements from the list.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "Int",
@@ -6533,7 +6537,7 @@
                 },
                 {
                   "name": "before",
-                  "description": null,
+                  "description": "Returns the elements in the list that come before the specified cursor.",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -6544,7 +6548,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "CharacterConnection",
+                "name": "FriendsConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -6638,6 +6642,18 @@
           "description": null,
           "fields": [
             {
+              "name": "commentary",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "stars",
               "description": null,
               "args": [],
@@ -6649,18 +6665,6 @@
                   "name": "Int",
                   "ofType": null
                 }
-              },
-              "isDeprecated": false,
-              "deprecationReason": null
-            },
-            {
-              "name": "commentary",
-              "description": null,
-              "args": [],
-              "type": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
               },
               "isDeprecated": false,
               "deprecationReason": null
@@ -6718,7 +6722,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterConnection",
+          "name": "FriendsConnection",
           "description": "A connection to a list of items.",
           "fields": [
             {
@@ -6749,7 +6753,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "CharacterEdge",
+                    "name": "FriendsEdge",
                     "ofType": null
                   }
                 }
@@ -6951,7 +6955,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "CharacterEdge",
+          "name": "FriendsEdge",
           "description": "An edge in a connection.",
           "fields": [
             {
@@ -7124,7 +7128,7 @@
                 "name": "String",
                 "ofType": null
               },
-              "defaultValue": "\u0022No longer supported\u0022"
+              "defaultValue": "\u0022No longer supported.\u0022"
             }
           ],
           "onOperation": false,

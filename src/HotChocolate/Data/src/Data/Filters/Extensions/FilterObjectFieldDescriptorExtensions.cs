@@ -6,11 +6,9 @@ using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
-using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Types
 {
@@ -129,12 +127,14 @@ namespace HotChocolate.Types
             ITypeSystemMember? filterTypeInstance,
             string? scope)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder = new(_ => _ => default);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (c, definition) =>
@@ -177,31 +177,26 @@ namespace HotChocolate.Types
                         definition.Arguments.Add(argumentDefinition);
 
                         definition.Configurations.Add(
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (context, definition) =>
-                                        CompileMiddleware(
-                                            context,
-                                            definition,
-                                            argumentTypeReference,
-                                            placeholder,
-                                            scope))
-                                .On(ApplyConfigurationOn.Completion)
-                                .DependsOn(argumentTypeReference, true)
-                                .Build());
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (ctx, d) =>
+                                    CompileMiddleware(
+                                        ctx,
+                                        d,
+                                        argumentTypeReference,
+                                        placeholder,
+                                        scope),
+                                definition,
+                                ApplyConfigurationOn.Completion,
+                                argumentTypeReference,
+                                TypeDependencyKind.Completed));
 
                         argumentDefinition.Configurations.Add(
-                            LazyTypeConfigurationBuilder
-                                .New<ArgumentDefinition>()
-                                .Definition(argumentDefinition)
-                                .Configure(
-                                    (context, argumentDefinition) =>
-                                        argumentDefinition.Name =
-                                            context.GetFilterConvention(scope).GetArgumentName())
-                                .On(ApplyConfigurationOn.Naming)
-                                .Build());
+                            new CompleteConfiguration<ArgumentDefinition>(
+                                (context, argDef) =>
+                                    argDef.Name =
+                                        context.GetFilterConvention(scope).GetArgumentName(),
+                                argumentDefinition,
+                                ApplyConfigurationOn.Naming));
                     });
 
             return descriptor;
@@ -211,7 +206,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             string? scope)
         {
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
@@ -221,13 +216,17 @@ namespace HotChocolate.Types
             convention.ConfigureField(fieldDescriptor);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var middleware = (FieldMiddleware)factory.Invoke(null,
+                new object[]
+                {
+                    convention
+                })!;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Filtering);
         }
 
-        private static FieldMiddleware CreateMiddleware<TEntity>(
-            IFilterConvention convention) =>
+        private static FieldMiddleware CreateMiddleware<TEntity>(IFilterConvention convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }

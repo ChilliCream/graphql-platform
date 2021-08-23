@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
   </ItemGroup>
 

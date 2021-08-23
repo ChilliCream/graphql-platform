@@ -300,22 +300,21 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.TryAddValidationVisitor<OperationVisitor>();
         }
 
-        public static IValidationBuilder AddMaxComplexityRule(
-            this IValidationBuilder builder,
-            int maxAllowedComplexity)
-        {
-            return builder
-                .TryAddValidationVisitor((s, o) => new MaxComplexityVisitor(o))
-                .SetAllowedComplexity(maxAllowedComplexity);
-        }
-
         public static IValidationBuilder AddMaxExecutionDepthRule(
             this IValidationBuilder builder,
             int maxAllowedExecutionDepth)
         {
             return builder
-                .TryAddValidationVisitor((s, o) => new MaxExecutionDepthVisitor(o))
+                .TryAddValidationVisitor((_, o) => new MaxExecutionDepthVisitor(o))
                 .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
+
+        /// <summary>
+        /// Adds a validation rule that only allows requests to use `__schema` or `__type`
+        /// if the request carries an introspection allowed flag.
+        /// </summary>
+        public static IValidationBuilder AddIntrospectionAllowedRule(
+            this IValidationBuilder builder) =>
+            builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false);
     }
 }

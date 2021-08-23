@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -55,39 +55,18 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InputListIsInstanceOf()
-        {
-            InputListIsInstanceOfInternal<BooleanType>(
-                new ListValueNode(new BooleanValueNode(true)));
-            InputListIsInstanceOfInternal<BooleanType>(
-                new BooleanValueNode(true));
-
-            InputListIsNotInstanceOfInternal<BooleanType>(
-                new ListValueNode(new IValueNode[] {
-                    new BooleanValueNode(true),
-                    new StringValueNode("123") }));
-            InputListIsNotInstanceOfInternal<BooleanType>(
-                new StringValueNode("123"));
-        }
-
-        [Fact]
         public void ListCanBeCoercedFromListValue()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new BooleanType());
-            var list = new ListValueNode(
-                new[] {
-                    new BooleanValueNode(true),
-                    new BooleanValueNode(false)});
+            var list = new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false));
 
             // act
-            object coercedValue = type.ParseLiteral(list);
+            var coercedValue = inputParser.ParseLiteral(list, type, Path.New("root"));
 
             // assert
-            Assert.Collection(
-                Assert.IsType<List<bool?>>(coercedValue),
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True, Assert.False);
         }
 
         /// <summary>
@@ -99,13 +78,14 @@ namespace HotChocolate.Types
         public void Matrix_Can_Be_Coerced_From_Matrix()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new ListType(new BooleanType()));
             var value = new ListValueNode(
                 new ListValueNode(new BooleanValueNode(true)),
                 new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false)));
 
             // act
-            object coercedValue = type.ParseLiteral(value);
+            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -120,11 +100,12 @@ namespace HotChocolate.Types
         public void Matrix_Can_Be_Coerced_From_Single_Value()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new ListType(new BooleanType()));
             var value = new BooleanValueNode(true);
 
             // act
-            object coercedValue = type.ParseLiteral(value);
+            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
 
             // assert
             coercedValue.MatchSnapshot();
@@ -139,11 +120,12 @@ namespace HotChocolate.Types
         public void Matrix_Can_Be_Coerced_From_Null()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new ListType(new BooleanType()));
-            var value = NullValueNode.Default;
+            NullValueNode value = NullValueNode.Default;
 
             // act
-            object coercedValue = type.ParseLiteral(value);
+            var coercedValue = inputParser.ParseLiteral(value, type, Path.New("root"));
 
             // assert
             Assert.Null(coercedValue);
@@ -158,60 +140,60 @@ namespace HotChocolate.Types
         public void Matrix_Cannot_Be_Coerced_From_List()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new ListType(new BooleanType()));
             var value = new ListValueNode(new BooleanValueNode(true));
 
             // act
-            Action action = () => type.ParseLiteral(value);
+            void Action() => inputParser.ParseLiteral(value, type, Path.New("root"));
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
         public void ListCanBeCoercedFromListElementValue()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new BooleanType());
             var element = new BooleanValueNode(true);
 
             // act
-            object coercedValue = type.ParseLiteral(element);
+            var coercedValue = inputParser.ParseLiteral(element, type, Path.New("root"));
 
             // assert
-            Assert.Collection(
-                Assert.IsType<List<bool?>>(coercedValue),
-                t => Assert.True(t));
+            Assert.Collection(Assert.IsType<List<bool?>>(coercedValue), Assert.True);
         }
 
         [Fact]
         public void ListCannotBeCoercedFromMixedList()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new BooleanType());
-            var list = new ListValueNode(
-                    new BooleanValueNode(true),
-                    new StringValueNode("foo"));
+            var list = new ListValueNode(new BooleanValueNode(true), new StringValueNode("foo"));
 
             // act
-            Action action = () => type.ParseLiteral(list);
+            void Action() => inputParser.ParseLiteral(list, type, Path.New("root"));
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
         public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             var type = (IInputType)new ListType(new BooleanType());
             var element = new StringValueNode("foo");
 
             // act
-            Action action = () => type.ParseLiteral(element);
+            void Action() => inputParser.ParseLiteral(element, type, Path.New("root"));
 
             // assert
-            Assert.Throws<SerializationException>(action);
+            Assert.Throws<SerializationException>(Action);
         }
 
         private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
@@ -223,7 +205,7 @@ namespace HotChocolate.Types
             var type = new TType();
 
             // act
-            object coercedValue = type.ParseLiteral(literal);
+            var coercedValue = type.ParseLiteral(literal);
 
             // assert
             Assert.IsType<TExpected>(coercedValue);
@@ -239,38 +221,10 @@ namespace HotChocolate.Types
             var type = new TType();
 
             // act
-            Action action = () => type.ParseLiteral(literal);
+            void Action() => type.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<SerializationException>(action);
-        }
-
-        private void InputListIsInstanceOfInternal<TElement>(
-           IValueNode literal)
-           where TElement : ScalarType, new()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new TElement());
-
-            // act
-            bool isInstanceOfType = type.IsInstanceOfType(literal);
-
-            // assert
-            Assert.True(isInstanceOfType);
-        }
-
-        private void InputListIsNotInstanceOfInternal<TElement>(
-           IValueNode literal)
-           where TElement : ScalarType, new()
-        {
-            // arrange
-            var type = (IInputType)new ListType(new TElement());
-
-            // act
-            bool isInstanceOfType = type.IsInstanceOfType(literal);
-
-            // assert
-            Assert.False(isInstanceOfType);
+            Assert.Throws<SerializationException>(Action);
         }
     }
 }

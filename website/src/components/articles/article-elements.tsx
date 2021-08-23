@@ -1,20 +1,19 @@
 import styled from "styled-components";
-import { IsPhablet, IsSmallDesktop } from "../../shared-style";
+import { IsSmallDesktop } from "../../shared-style";
 
-export const ArticleHeader = styled.header`
+export const ArticleHeader = styled.header<{ readonly kind: "blog" | "doc" }>`
   position: relative;
 
-  ${IsSmallDesktop(`
-    padding-top: 54px;
-  `)}
-
-  ${IsPhablet(`
-    padding-top: 20px;
-  `)}
+  ${({ kind }) =>
+    kind === "doc"
+      ? IsSmallDesktop(`
+    padding-top: 60px;
+  `)
+      : ""}
 
   @media only screen and (min-width: 820px) {
     > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;

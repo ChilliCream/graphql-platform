@@ -450,7 +450,7 @@ namespace HotChocolate.Data.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)
@@ -474,7 +474,7 @@ namespace HotChocolate.Data.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)

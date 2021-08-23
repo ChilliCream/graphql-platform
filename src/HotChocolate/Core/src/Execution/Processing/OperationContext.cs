@@ -1,8 +1,11 @@
 using System;
 using System.Security.Cryptography;
+using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -12,8 +15,23 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _operation;
+            }
+        }
+
+        public QueryPlan QueryPlan
+        {
+            get
+            {
+                AssertInitialized();
+                return _queryPlan;
+            }
+            set
+            {
+                AssertInitialized();
+                _queryPlan = value;
+                _workScheduler.ResetStateMachine();
             }
         }
 
@@ -21,7 +39,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _rootValue;
             }
         }
@@ -30,7 +48,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _variables;
             }
         }
@@ -39,7 +57,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _services;
             }
         }
@@ -48,17 +66,26 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                AssertNotPooled();
+                AssertInitialized();
                 return _resultHelper;
             }
         }
 
-        public IExecutionContext Execution
+        public IWorkScheduler Scheduler
         {
             get
             {
-                AssertNotPooled();
-                return _executionContext;
+                AssertInitialized();
+                return _workScheduler;
+            }
+        }
+
+        public ObjectPool<ResolverTask> ResolverTasks
+        {
+            get
+            {
+                AssertInitialized();
+                return _resolverTaskPool;
             }
         }
 
@@ -66,7 +93,7 @@ namespace HotChocolate.Execution.Processing
             SelectionSetNode selectionSet,
             ObjectType objectType)
         {
-            AssertNotPooled();
+            AssertInitialized();
             return Operation.GetSelectionSet(selectionSet, objectType);
         }
 
@@ -77,15 +104,15 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(action));
             }
 
-            AssertNotPooled();
+            AssertInitialized();
             _cleanupActions.Add(action);
         }
 
         public T GetQueryRoot<T>()
         {
-            AssertNotPooled();
+            AssertInitialized();
 
-            object? query = _resolveQueryRootValue();
+            var query = _resolveQueryRootValue();
 
             if (query is null &&
                 typeof(T) == typeof(object) &&

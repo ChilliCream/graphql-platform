@@ -20,6 +20,11 @@ namespace HotChocolate.Execution.Pipeline
             {
                 await _next(context).ConfigureAwait(false);
             }
+            catch (OperationCanceledException ex)
+            {
+                context.Exception = ex;
+                context.Result = ErrorHelper.OperationCanceled();
+            }
             catch (GraphQLException ex)
             {
                 context.Exception = ex;

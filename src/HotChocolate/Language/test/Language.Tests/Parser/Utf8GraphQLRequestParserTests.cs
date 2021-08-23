@@ -469,7 +469,7 @@ namespace HotChocolate.Language
                     }).NormalizeLineBreaks());
 
             // act
-            object parsed = Utf8GraphQLRequestParser.ParseJson(source);
+            var parsed = Utf8GraphQLRequestParser.ParseJson(source);
 
             // assert
             parsed.MatchSnapshot();
@@ -533,7 +533,7 @@ namespace HotChocolate.Language
         public void Parse_Apollo_AQP_SignatureQuery()
         {
             // arrange
-            byte[] source = Encoding.UTF8.GetBytes(
+            var source = Encoding.UTF8.GetBytes(
                 FileResource.Open("Apollo_AQP_QuerySignature_1.json")
                     .NormalizeLineBreaks());
 
@@ -615,7 +615,7 @@ namespace HotChocolate.Language
                     Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                     Assert.NotNull(r.Query);
 
-                    if (r.Extensions.TryGetValue("persistedQuery", out object o)
+                    if (r.Extensions.TryGetValue("persistedQuery", out var o)
                         && o is IReadOnlyDictionary<string, object> persistedQuery
                         && persistedQuery.TryGetValue("sha256Hash", out o)
                         && o is string hash)
@@ -634,7 +634,7 @@ namespace HotChocolate.Language
                 .NormalizeLineBreaks());
 
             // act
-            object obj = Utf8GraphQLRequestParser.ParseJson(source);
+            var obj = Utf8GraphQLRequestParser.ParseJson(source);
 
             // assert
             obj.MatchSnapshot();
@@ -754,7 +754,7 @@ namespace HotChocolate.Language
             : GraphQLRequestDto
         {
             [JsonProperty("id")]
-            public string Id { get; set; }
+            public new string Id { get; set; }
         }
 
         private class DocumentCache : IDocumentCache

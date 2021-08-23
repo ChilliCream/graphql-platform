@@ -12,6 +12,7 @@ using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Options;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
@@ -21,15 +22,18 @@ namespace HotChocolate.AspNetCore
     {
         private const string _operations = "operations";
         private const string _map = "map";
+        private readonly FormOptions _formOptions;
 
         public HttpMultipartMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
             IHttpRequestParser requestParser,
-            NameString schemaName)
+            NameString schemaName,
+            IOptions<FormOptions> formOptions)
             : base(next, executorResolver, resultSerializer, requestParser, schemaName)
         {
+            _formOptions = formOptions.Value;
         }
 
         public override async Task InvokeAsync(HttpContext context)
@@ -56,12 +60,12 @@ namespace HotChocolate.AspNetCore
 
             try
             {
-                var formFeature = new FormFeature(httpRequest);
+                var formFeature = new FormFeature(httpRequest, _formOptions);
                 form = await formFeature.ReadFormAsync(cancellationToken);
             }
-            catch
+            catch (Exception exception)
             {
-                throw ThrowHelper.HttpMultipartMiddleware_Form_Incomplete();
+                throw ThrowHelper.HttpMultipartMiddleware_Invalid_Form(exception);
             }
 
             // Parse the string values of interest from the IFormCollection
@@ -102,7 +106,7 @@ namespace HotChocolate.AspNetCore
 
                     try
                     {
-                        map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString);
+                        map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString!);
                     }
                     catch
                     {
@@ -172,7 +176,7 @@ namespace HotChocolate.AspNetCore
             {
                 var path = VariablePath.Parse(objectPath);
 
-                if (!mutableVariables.TryGetValue(path.Key.Value, out object? value))
+                if (!mutableVariables.TryGetValue(path.Key.Value, out var value))
                 {
                     throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
                 }
@@ -202,8 +206,7 @@ namespace HotChocolate.AspNetCore
             object value,
             FileValueNode file)
         {
-            if (segment is KeyPathSegment key &&
-                value is ObjectValueNode ov)
+            if (segment is KeyPathSegment key && value is ObjectValueNode ov)
             {
                 var pos = -1;
 
@@ -230,8 +233,7 @@ namespace HotChocolate.AspNetCore
                 return ov.WithFields(fields);
             }
 
-            if (segment is IndexPathSegment index &&
-                value is ListValueNode lv)
+            if (segment is IndexPathSegment index && value is ListValueNode lv)
             {
                 IValueNode[] items = lv.Items.ToArray();
                 IValueNode item = items[index.Value];

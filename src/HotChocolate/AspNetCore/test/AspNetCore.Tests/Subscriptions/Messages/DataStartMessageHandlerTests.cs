@@ -3,11 +3,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
@@ -18,13 +18,18 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_DataStartMessage_True()
         {
             // arrange
+            var errorHandler = new Mock<IErrorHandler>();
             var interceptor = new DefaultSocketSessionInterceptor();
             IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-            var handler = new DataStartMessageHandler(executor, interceptor);
+            var handler = new DataStartMessageHandler(
+                executor,
+                interceptor,
+                errorHandler.Object,
+                new NoopDiagnosticEvents());
 
             var message = new DataStartMessage(
                 "123",
@@ -42,11 +47,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var interceptor = new DefaultSocketSessionInterceptor();
+            var errorHandler = new Mock<IErrorHandler>();
             IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
-            var handler = new DataStartMessageHandler(executor, interceptor);
+            var handler = new DataStartMessageHandler(
+                executor,
+                interceptor,
+                errorHandler.Object,
+                new NoopDiagnosticEvents());
             KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
@@ -60,6 +70,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Query_DataReceived_And_Completed()
         {
             // arrange
+            var errorHandler = new Mock<IErrorHandler>();
+
             IServiceProvider services = new ServiceCollection()
                 .AddGraphQL()
                 .AddStarWarsTypes()
@@ -75,7 +87,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var interceptor = new SocketSessionInterceptorMock();
             var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-            var handler = new DataStartMessageHandler(executor, interceptor);
+            var handler = new DataStartMessageHandler(
+                executor,
+                interceptor,
+                errorHandler.Object,
+                new NoopDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
@@ -107,6 +123,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Query_With_Inter_DataReceived_And_Completed()
         {
             // arrange
+            var errorHandler = new Mock<IErrorHandler>();
+
             IServiceProvider services = new ServiceCollection()
                 .AddGraphQL()
                 .AddStarWarsTypes()
@@ -122,7 +140,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var interceptor = new SocketSessionInterceptorMock();
             var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-            var handler = new DataStartMessageHandler(executor, interceptor);
+            var handler = new DataStartMessageHandler(
+                executor,
+                interceptor,
+                errorHandler.Object,
+                new NoopDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
@@ -155,6 +177,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Subscription_DataReceived_And_Completed()
         {
             // arrange
+            var errorHandler = new Mock<IErrorHandler>();
+
             IServiceProvider services = new ServiceCollection()
                 .AddGraphQL()
                 .AddStarWarsTypes()
@@ -171,7 +195,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
-            var handler = new DataStartMessageHandler(executor, interceptor);
+            var handler = new DataStartMessageHandler(
+                executor,
+                interceptor,
+                errorHandler.Object,
+                new NoopDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             // act

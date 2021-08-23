@@ -1,3 +1,5 @@
+using ChilliCream.Testing;
+using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -12,6 +14,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
+                    }
+                }");
+
+        [Fact]
+        public void StarWarsGetFriendsNoStore() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(noStore: true),
+                @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
                     }
                 }");
 
@@ -64,6 +81,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 }");
 
         [Fact]
+        public void AnyScalarDefaultSerialization() =>
+            AssertResult(
+                CreateIntegrationTest(),
+                skipWarnings: true,
+                @"query GetJson {
+                    json
+                }",
+                @"type Query {
+                    json: Any!
+                }");
+
+        [Fact]
         public void StarWarsTypeNameOnInterfaces() =>
             AssertStarWarsResult(
                 CreateIntegrationTest(),
@@ -102,5 +131,62 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         }
                     }
                 }");
+
+        [Fact]
+        public void EntityIdOrData() =>
+            AssertResult(
+                CreateIntegrationTest(profiles: new[]
+                {
+                    new TransportProfile("Default", TransportType.InMemory)
+                }),
+                skipWarnings: true,
+                @"
+                query GetFoo {
+                    foo {
+                        ... on Baz {
+                            id
+                        }
+                        ... on Quox {
+                            foo
+                        }
+                        ... on Baz2 {
+                            id
+                        }
+                        ... on Quox2 {
+                            foo
+                        }
+                    }
+                }
+                ",
+                @"
+                type Query {
+                    foo: [Bar]
+                }
+
+                type Baz {
+                    id: String
+                }
+
+                type Baz2 {
+                    id: String
+                }
+
+                type Quox {
+                    foo: String
+                }
+
+                type Quox2 {
+                    foo: String
+                }
+
+                union Bar = Baz | Quox | Baz2 | Quox2
+                ",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void StarWarsIntrospection() =>
+            AssertStarWarsResult(
+                CreateIntegrationTest(),
+                FileResource.Open("IntrospectionQuery.graphql"));
     }
 }

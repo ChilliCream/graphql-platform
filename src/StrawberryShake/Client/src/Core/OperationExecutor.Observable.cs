@@ -28,8 +28,7 @@ namespace StrawberryShake
                 _strategy = strategy;
             }
 
-            public IDisposable Subscribe(
-                IObserver<IOperationResult<TResult>> observer)
+            public IDisposable Subscribe(IObserver<IOperationResult<TResult>> observer)
             {
                 if (_strategy == ExecutionStrategy.NetworkOnly ||
                     _request.Document.Kind == OperationKind.Subscription)
@@ -118,86 +117,6 @@ namespace StrawberryShake
                     // after all the transport logic is finished we will dispose
                     // the request session.
                     session.RequestSession.Dispose();
-                }
-            }
-
-            private class ObserverSession : IDisposable
-            {
-                private readonly object _sync = new();
-                private IDisposable? _storeSession;
-                private bool _disposed;
-
-                public ObserverSession()
-                {
-                    RequestSession = new RequestSession();
-                }
-
-                public RequestSession RequestSession { get; }
-
-                public bool HasStoreSession => _storeSession is not null;
-
-                public void SetStoreSession(IDisposable storeSession)
-                {
-                    lock (_sync)
-                    {
-                        if (_disposed)
-                        {
-                            throw new ObjectDisposedException(typeof(ObserverSession).FullName);
-                        }
-
-                        _storeSession = storeSession;
-                    }
-                }
-
-                public void Dispose()
-                {
-                    lock (_sync)
-                    {
-                        if (!_disposed)
-                        {
-                            RequestSession.Dispose();
-                            _storeSession?.Dispose();
-                            _disposed = true;
-                        }
-                    }
-                }
-            }
-
-            private class RequestSession : IDisposable
-            {
-                private readonly CancellationTokenSource _cts;
-                private bool _disposed;
-
-                public RequestSession()
-                {
-                    _cts = new CancellationTokenSource();
-                }
-
-                public CancellationToken Token => _cts.Token;
-
-                public void Cancel()
-                {
-                    try
-                    {
-                        if (!_disposed)
-                        {
-                            _cts.Cancel();
-                        }
-                    }
-                    catch(ObjectDisposedException)
-                    {
-                        // we do not care if this happens.
-                    }
-                }
-
-                public void Dispose()
-                {
-                    if (!_disposed)
-                    {
-                        Cancel();
-                        _cts.Dispose();
-                        _disposed = true;
-                    }
                 }
             }
         }
