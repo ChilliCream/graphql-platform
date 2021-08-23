@@ -1,0 +1,31 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          [
+            {
+              "string": "a"
+            }
+          ],
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @uniqBy(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

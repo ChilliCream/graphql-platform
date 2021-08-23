@@ -15,6 +15,8 @@
 ### [SumBy](Operations/SumBy/SumBy.md)
 ### [Take](Operations/Take/Take.md)
 ### [TakeRight](Operations/Take/TakeRight.md)
+### [Uniq](Operations/Uniq/Uniq.md)
+### [UniqBy](Operations/UniqBy/UniqBy.md)
 
 ## Transformations
 Exists(node, key):

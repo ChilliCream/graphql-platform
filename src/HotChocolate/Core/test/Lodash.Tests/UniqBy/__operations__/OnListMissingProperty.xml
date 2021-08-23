@@ -1,0 +1,43 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @uniqBy(key: "someOtherProperty"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

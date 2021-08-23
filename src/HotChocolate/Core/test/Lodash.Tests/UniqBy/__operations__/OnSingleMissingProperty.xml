@@ -1,0 +1,21 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "string": "a"
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @uniqBy(key: "missingProperty"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0001</error-code>
+  </result>
+</test>

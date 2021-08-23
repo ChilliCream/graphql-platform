@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using HotChocolate.Language;
 
 namespace HotChocolate.Lodash
 {
@@ -22,47 +23,66 @@ namespace HotChocolate.Lodash
                 return false;
             }
 
-            HashSet<object> values = new();
-            JsonArray array = new();
-
-            void UniqByField(JsonNode? node)
+            if (node is JsonObject)
             {
-                if (node is JsonObject obj)
+                throw ThrowHelper.ExpectArrayButReceivedObject(node.GetPath());
+            }
+
+            if (node is JsonValue)
+            {
+                throw ThrowHelper.ExpectArrayButReceivedScalar(node.GetPath());
+            }
+
+            if (node is JsonArray arr)
+            {
+                rewritten = RewriteArray(arr);
+                return true;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(node));
+        }
+
+        private JsonArray RewriteArray(JsonArray value)
+        {
+            HashSet<object> values = new();
+            JsonArray result = new();
+            bool isNullProcessed = false;
+
+            while (value.Count > 0)
+            {
+                JsonNode? element = value[0];
+                value.RemoveAt(0);
+                switch (element)
                 {
-                    if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode))
+                    case JsonArray:
+                        throw ThrowHelper.ExpectObjectButReceivedArray(element.GetPath());
+                    case JsonValue:
+                        throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
+                    case null:
                     {
-                        if (jsonNode is JsonValue &&
-                            jsonNode.GetValue<JsonElement>()
-                                .TryConvertToComparable(out IComparable? converted))
+                        if (!isNullProcessed)
                         {
-                            if (values.Add(converted))
-                            {
-                                array.Add(obj);
-                            }
+                            isNullProcessed = true;
+                            result.Add(null);
                         }
-                        else
-                        {
-                            array.Add(obj);
-                        }
-                        // throw?
+
+                        break;
                     }
-                    // throw?
-                }
-                else if (node is JsonArray arr)
-                {
-                    while (arr.Count > 0)
+                    case JsonObject obj:
                     {
-                        JsonNode? elm = arr[0];
-                        arr.RemoveAt(0);
-                        UniqByField(elm);
+                        if (!obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) ||
+                            !jsonNode.TryConvertToComparable(out IComparable? convertedValue) ||
+                            values.Add(convertedValue))
+                        {
+                            result.Add(obj);
+                        }
+
+                        break;
                     }
                 }
             }
 
-            UniqByField(node);
-
-            rewritten = array;
-            return true;
+            return result;
         }
     }
 }
