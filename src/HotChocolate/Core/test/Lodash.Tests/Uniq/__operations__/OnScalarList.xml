@@ -1,0 +1,28 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "a",
+          "c"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @uniq
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "c"
+        ]
+      }
+    </json>
+  </result>
+</test>

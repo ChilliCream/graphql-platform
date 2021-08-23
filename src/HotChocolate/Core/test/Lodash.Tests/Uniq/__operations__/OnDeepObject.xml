@@ -1,0 +1,38 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "single": {
+                "string": "a"
+              }
+            }
+          },
+          {
+            "single": {
+              "single": {
+                "string": "b"
+              }
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          single @uniq {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0001</error-code>
+  </result>
+</test>

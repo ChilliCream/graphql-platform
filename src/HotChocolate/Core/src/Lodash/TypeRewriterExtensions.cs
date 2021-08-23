@@ -108,7 +108,8 @@ namespace HotChocolate.Lodash
                 case JsonValueKind.Array:
                     return false;
                 case JsonValueKind.String:
-                    return false;
+                    converted = jsonElement.GetString() ?? string.Empty;
+                    return true;
                 case JsonValueKind.Number:
                     converted = jsonElement.GetDouble();
                     return true;
