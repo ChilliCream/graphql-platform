@@ -1,0 +1,36 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": null
+          },
+          null,
+          {
+            "int": 1
+          },
+          {
+            "int": 2
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @maxBy(key: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "int": 2
+        }
+      }
+    </json>
+  </result>
+</test>

@@ -1,0 +1,17 @@
+<test>
+  <data>
+    <json>
+      {
+        "int": 1
+      }
+    </json>
+  </data>
+  <query>
+    {
+      int @maxBy(key: "int")
+    }
+  </query>
+  <result>
+    <error-code>AG0004</error-code>
+  </result>
+</test>

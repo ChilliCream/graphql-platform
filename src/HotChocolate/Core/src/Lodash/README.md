@@ -9,6 +9,7 @@
 ### [GroupBy](Operations/GroupBy/GroupBy.md)
 ### [KeyBy](Operations/KeyBy/KeyBy.md)
 ### [Keys](Operations/Keys/Keys.md)
+### [MaxBy](Operations/MaxBy/MaxBy.md)
 
 ## Transformations
 Exists(node, key):
@@ -47,6 +48,23 @@ IsConvertibleToString(node):
   * Otherwise  
     * return {false}
 
+ConvertToComparable(node):
+  * If {node} is *number*
+    * return {number} 
+  * Otherwise If {node} is *boolean*
+    * return {boolean} 
+  * Otherwise  
+    * return {null}
+
+NOTE: TODO We might want to add support for datetime strings
+
+IsConvertibleToComparable(node):
+  * If {node} is *number*
+    * return {true}
+  * Otherwise If {node} is *boolean*
+    * return {true}
+  * Otherwise  
+    * return {false}
 
 
 ## Definitions

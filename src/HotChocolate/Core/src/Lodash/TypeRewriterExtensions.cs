@@ -34,6 +34,19 @@ namespace HotChocolate.Lodash
             return jsonNode.GetValue<JsonElement>().TryConvertToString(out converted);
         }
 
+        public static bool TryConvertToComparable(
+            this JsonNode? jsonNode,
+            [NotNullWhen(true)] out IComparable? converted)
+        {
+            if (jsonNode is null)
+            {
+                converted = null;
+                return false;
+            }
+
+            return jsonNode.GetValue<JsonElement>().TryConvertToComparable(out converted);
+        }
+
         public static bool TryConvertToString(
             this JsonElement jsonElement,
             [NotNullWhen(true)] out string? converted)
@@ -82,11 +95,9 @@ namespace HotChocolate.Lodash
                 case JsonValueKind.Array:
                     return false;
                 case JsonValueKind.String:
-                    //TODO : DateTime?
-                    converted = jsonElement.GetString() ?? string.Empty;
-                    return true;
+                    return false;
                 case JsonValueKind.Number:
-                    converted = jsonElement.GetDouble().ToString(CultureInfo.InvariantCulture);
+                    converted = jsonElement.GetDouble();
                     return true;
                 case JsonValueKind.True:
                     converted = true;

@@ -1,0 +1,70 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "int": 1
+                },
+                {
+                  "int": 2
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "int": 1
+                },
+                {
+                  "int": 2
+                },
+                {
+                  "int": 3
+                }
+              ]
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          list @maxBy(key: "int") {
+            int
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": {
+                "int": 2
+              }
+            }
+          },
+          {
+            "single": {
+              "list": {
+                "int": 3
+              }
+            }
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>
