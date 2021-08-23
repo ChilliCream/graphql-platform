@@ -350,7 +350,7 @@ type CollectionSegmentInfo {
 }
 ```
 
-## Usage
+## Definition
 
 To add _offset-based_ pagination capabilties to our fields we have to add the `UseOffsetPaging` middleware.
 
@@ -367,12 +367,6 @@ public class Query
 ```
 
 If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UseOffsetPaging(typeof(User))]`.
-
-The `UseOffsetPaging` attribute also allows us to configure some other properties, like `DefaultPageSize`, `MaxPageSize` and `IncludeTotalCount`.
-
-```csharp
-[UseOffsetPaging(MaxPageSize = 50)]
-```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
@@ -399,22 +393,50 @@ If we need to specify the concrete node type of our pagination, we can do so via
 
 We can also configure the `UseOffsetPaging` middleware further, by specifying `PagingOptions`.
 
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+The Schema-first approach follows the Annotation-based approach in this regard.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+For the `UseOffsetPaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
+
+## Options
+
+We can define a number of options on a per-field basis.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+In the Annotation-based approach we can define these options using properties on the `[UseOffsetPaging]` attribute.
+
 ```csharp
-descriptor.UseOffsetPaging(options: new PagingOptions
+[UseOffsetPaging(MaxPageSize = 100)]
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+In the Code-first approach we can pass an instance of `PagingOptions` to the `UseOffsetPaging` middleware.
+
+```csharp
+descriptor.Field("users").UseOffsetPaging(options: new PagingOptions
 {
-    MaxPageSize = 50
+    MaxPageSize = 100
 });
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-⚠️ Schema-first does currently not support pagination!
+The Schema-first approach follows the Annotation-based approach in this regard.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-For the `UseOffsetPaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries, through database drivers like EntityFramework or the MongoDB client.
+[Learn more about the possible PagingOptions](#pagingoptions)
 
 ## Customization
 
@@ -483,7 +505,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddOffs
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-⚠️ Schema-first does currently not support pagination!
+The Schema-first approach follows the Annotation-based approach in this regard.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -514,7 +536,7 @@ descriptor.UseOffsetPaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-⚠️ Schema-first does currently not support pagination!
+The Schema-first approach follows the Annotation-based approach in this regard.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
