@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Scalars.Upload</PackageId>
+    <AssemblyName>HotChocolate.Types.Scalars.Upload</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>Contains the GraphQL Upload Scalar.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\UploadResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>UploadResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\UploadResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>UploadResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

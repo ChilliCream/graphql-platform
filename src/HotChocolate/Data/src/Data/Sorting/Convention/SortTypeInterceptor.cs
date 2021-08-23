@@ -136,8 +136,8 @@ namespace HotChocolate.Data.Sorting
                 descriptor.CreateDefinition(),
                 definition);
 
-            if (definition is {Name: {}} &&
-                definition is IHasScope {Scope: {}})
+            if (definition is { Name: { } } &&
+                definition is IHasScope { Scope: { } })
             {
                 definition.Name = completionContext.Scope +
                     "_" +
@@ -169,8 +169,8 @@ namespace HotChocolate.Data.Sorting
                 descriptor.CreateDefinition(),
                 definition);
 
-            if (definition is {Name: {}} &&
-                definition is IHasScope {Scope: {}})
+            if (definition is { Name: { } } &&
+                definition is IHasScope { Scope: { } })
             {
                 definition.Name = completionContext.Scope +
                     "_" +
@@ -198,19 +198,22 @@ namespace HotChocolate.Data.Sorting
                         field.Type = field.Type.With(scope: completionContext.Scope);
                     }
 
-                    if (convention.TryGetFieldHandler(
-                        completionContext,
-                        definition,
-                        sortFieldDefinition,
-                        out ISortFieldHandler? handler))
+                    if (sortFieldDefinition.Handler is null)
                     {
-                        sortFieldDefinition.Handler = handler;
-                    }
-                    else
-                    {
-                        throw ThrowHelper.SortInterceptor_NoFieldHandlerFoundForField(
+                        if (convention.TryGetFieldHandler(
+                            completionContext,
                             definition,
-                            sortFieldDefinition);
+                            sortFieldDefinition,
+                            out ISortFieldHandler? handler))
+                        {
+                            sortFieldDefinition.Handler = handler;
+                        }
+                        else
+                        {
+                            throw ThrowHelper.SortInterceptor_NoFieldHandlerFoundForField(
+                                definition,
+                                sortFieldDefinition);
+                        }
                     }
                 }
             }

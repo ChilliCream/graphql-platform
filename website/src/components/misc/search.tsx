@@ -1,8 +1,8 @@
 import algoliasearch from "algoliasearch/lite";
 import React, {
   createRef,
+  FC,
   FocusEvent,
-  FunctionComponent,
   RefObject,
   useCallback,
   useEffect,
@@ -17,19 +17,18 @@ import {
   InstantSearch,
   Snippet,
 } from "react-instantsearch-dom";
-import { useDispatch, useStore, useSelector } from "react-redux";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import styled from "styled-components";
+import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
 import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-import AlgoliaLogoSvg from "../../images/algolia-logo.svg";
-
-interface SearchProperties {
+interface SearchProps {
   siteUrl: string;
 }
 
-export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
+export const Search: FC<SearchProps> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
   const query = useSelector<State, string>((state) => state.common.searchQuery);
@@ -101,11 +100,11 @@ function useClickOutside(
   }, [detectClickOutside]);
 }
 
-interface SearchBoxProperties extends SearchBoxProvided {
+interface SearchBoxProps extends SearchBoxProvided {
   onFocus: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
-const SearchBox = connectSearchBox<SearchBoxProperties>(
+const SearchBox = connectSearchBox<SearchBoxProps>(
   ({ currentRefinement, onFocus, refine }) => (
     <SearchField
       type="text"
@@ -133,17 +132,17 @@ const Stats = connectStateResults(
     }` as any)
 );
 
-const DocHit = (siteUrl: string, clickHandler: () => void) => ({
-  hit,
-}: HitComponentProperties) => {
-  const slug = (hit.url as string).replace(siteUrl, "");
+const DocHit =
+  (siteUrl: string, clickHandler: () => void) =>
+  ({ hit }: HitComponentProps) => {
+    const slug = (hit.url as string).replace(siteUrl, "");
 
-  return (
-    <Link to={slug} onClick={clickHandler}>
-      <Snippet attribute="content" hit={hit} tagName="mark" />
-    </Link>
-  );
-};
+    return (
+      <Link to={slug} onClick={clickHandler}>
+        <Snippet attribute="content" hit={hit} tagName="mark" />
+      </Link>
+    );
+  };
 
 const Container = styled.div`
   display: flex;
@@ -160,15 +159,15 @@ const Container = styled.div`
 
 const SearchField = styled.input`
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 10px 15px;
   width: 100%;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  background-color: #fff;
+  background-color: var(--text-color-contrast);
 `;
 
-interface HitComponentProperties {
+interface HitComponentProps {
   hit: any;
 }
 
@@ -196,10 +195,10 @@ const HitsWrapper = styled.div<{ show: boolean }>`
     line-height: 1.667em;
 
     > a {
-      color: #f40010;
+      color: var(--brand-color);
 
       &:hover {
-        color: #667;
+        color: var(--text-color);
       }
     }
   }
@@ -221,14 +220,14 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   mark {
     display: inline-block;
     padding: 3px 2px;
-    background: #f40010;
-    color: white;
+    background: var(--brand-color);
+    color: var(--text-color-contrast);
   }
 
   @media only screen and (min-width: 600px) {
     right: initial;
     left: initial;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     padding: 10px 15px;
     width: 400px;
   }

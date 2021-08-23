@@ -7,12 +7,18 @@ using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
-    public class EnumTypeExtension
-        : NamedTypeExtensionBase<EnumTypeDefinition>
+    /// <summary>
+    /// This is not a full type and is used to split the type configuration into multiple part.
+    /// Any type extension instance is will not survive the initialization and instead is
+    /// merged into the target type.
+    /// </summary>
+    public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
     {
-        private readonly Action<IEnumTypeDescriptor> _configure;
+        private Action<IEnumTypeDescriptor>? _configure;
 
         protected EnumTypeExtension()
         {
@@ -30,9 +36,12 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = EnumTypeDescriptor.New(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                EnumTypeDescriptor.New(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -46,26 +55,31 @@ namespace HotChocolate.Types
             context.RegisterDependencies(definition);
         }
 
-        internal override void Merge(
+        protected override void Merge(
             ITypeCompletionContext context,
             INamedType type)
         {
             if (type is EnumType enumType)
             {
+                // we first assert that extension and type are mutable and by 
+                // this that they do have a type definition.
+                AssertMutable();
+                enumType.AssertMutable();
+
                 TypeExtensionHelper.MergeContextData(
-                    Definition,
-                    enumType.Definition);
+                    Definition!,
+                    enumType.Definition!);
 
                 TypeExtensionHelper.MergeDirectives(
                     context,
-                    Definition.Directives,
-                    enumType.Definition.Directives);
+                    Definition!.Directives,
+                    enumType.Definition!.Directives);
 
                 TypeExtensionHelper.MergeConfigurations(
-                    Definition.Configurations,
-                    enumType.Definition.Configurations);
+                    Definition!.Configurations,
+                    enumType.Definition!.Configurations);
 
-                MergeValues(context, Definition, enumType.Definition);
+                MergeValues(context, Definition!, enumType.Definition!);
             }
             else
             {
@@ -83,9 +97,9 @@ namespace HotChocolate.Types
             foreach (EnumValueDefinition enumValue in
                 extension.Values.Where(t => t.Value != null))
             {
-                if (type.RuntimeType.IsAssignableFrom(enumValue.Value.GetType()))
+                if (type.RuntimeType.IsInstanceOfType(enumValue.Value))
                 {
-                    EnumValueDefinition existingValue =
+                    EnumValueDefinition? existingValue =
                         type.Values.FirstOrDefault(t =>
                             enumValue.Value.Equals(t.Value));
 

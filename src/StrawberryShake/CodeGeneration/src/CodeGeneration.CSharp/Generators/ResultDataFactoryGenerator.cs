@@ -9,20 +9,24 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class ResultDataFactoryGenerator : TypeMapperGenerator
     {
+        private const string entityStore = "entityStore";
         private const string _entityStore = "_entityStore";
         private const string _dataInfo = "dataInfo";
+        private const string _snapshot = "snapshot";
         private const string _info = "info";
 
-        protected override bool CanHandle(ITypeDescriptor descriptor)
+        protected override bool CanHandle(ITypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings)
         {
-            return descriptor.Kind == TypeKind.ResultType && !descriptor.IsInterface();
+            return descriptor.Kind == TypeKind.Result && !descriptor.IsInterface();
         }
 
-        protected override void Generate(
+        protected override void Generate(ITypeDescriptor typeDescriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            ITypeDescriptor typeDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             ComplexTypeDescriptor descriptor =
                 typeDescriptor as ComplexTypeDescriptor ??
@@ -31,24 +35,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
             fileName = CreateResultFactoryName(descriptor.RuntimeType.Name);
             path = State;
+            ns = CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal);
 
             ClassBuilder classBuilder =
                 ClassBuilder
                     .New()
                     .SetName(fileName)
                     .AddImplements(
-                        TypeNames.IOperationResultDataFactory
-                            .WithGeneric(descriptor.RuntimeType.Name));
+                        TypeNames.IOperationResultDataFactory.WithGeneric(descriptor.RuntimeType));
 
             ConstructorBuilder constructorBuilder = classBuilder
                 .AddConstructor()
                 .SetTypeName(descriptor.Name);
 
-            AddConstructorAssignedField(
-                TypeNames.IEntityStore,
-                _entityStore,
-                classBuilder,
-                constructorBuilder);
+            if (settings.IsStoreEnabled())
+            {
+                AddConstructorAssignedField(
+                    TypeNames.IEntityStore,
+                    _entityStore,
+                    entityStore,
+                    classBuilder,
+                    constructorBuilder);
+            }
 
             MethodCallBuilder returnStatement = MethodCallBuilder
                 .New()
@@ -59,7 +67,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             foreach (PropertyDescriptor property in descriptor.Properties)
             {
                 returnStatement
-                    .AddArgument(BuildMapMethodCall(_info, property));
+                    .AddArgument(BuildMapMethodCall(settings, _info, property));
             }
 
             IfBuilder ifHasCorrectType = IfBuilder
@@ -68,12 +76,31 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     $"{_dataInfo} is {CreateResultInfoName(descriptor.RuntimeType.Name)} {_info}")
                 .AddCode(returnStatement);
 
-            classBuilder
+            MethodBuilder createMethod = classBuilder
                 .AddMethod("Create")
                 .SetAccessModifier(AccessModifier.Public)
                 .SetReturnType(descriptor.RuntimeType.Name)
                 .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
-                .AddCode(ifHasCorrectType)
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetDefault("null")
+                        .SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()));
+
+            if (settings.IsStoreEnabled())
+            {
+                createMethod
+                    .AddCode(
+                        IfBuilder.New()
+                            .SetCondition($"{_snapshot} is null")
+                            .AddCode(
+                                AssignmentBuilder
+                                    .New()
+                                    .SetLefthandSide(_snapshot)
+                                    .SetRighthandSide($"{_entityStore}.CurrentSnapshot")))
+                    .AddEmptyLine();
+            }
+
+            createMethod.AddCode(ifHasCorrectType)
                 .AddEmptyLine()
                 .AddCode(
                     ExceptionBuilder
@@ -84,6 +111,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             var processed = new HashSet<string>();
 
             AddRequiredMapMethods(
+                settings,
                 _info,
                 descriptor,
                 classBuilder,
@@ -91,11 +119,29 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 processed,
                 true);
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(CreateStateNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal))
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder
+                .AddProperty("ResultType")
+                .SetType(TypeNames.Type)
+                .AsLambda($"typeof({descriptor.RuntimeType.Namespace}.{descriptor.Implements[0]})")
+                .SetInterface(TypeNames.IOperationResultDataFactory);
+
+            classBuilder
+                .AddMethod("Create")
+                .SetInterface(TypeNames.IOperationResultDataFactory)
+                .SetReturnType(TypeNames.Object)
+                .AddParameter(_dataInfo, b => b.SetType(TypeNames.IOperationResultDataInfo))
+                .AddParameter(
+                    _snapshot,
+                    b => b.SetType(TypeNames.IEntityStoreSnapshot.MakeNullable()))
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetReturn()
+                        .SetMethodName("Create")
+                        .AddArgument(_dataInfo)
+                        .AddArgument(_snapshot));
+
+            classBuilder.Build(writer);
         }
     }
 }

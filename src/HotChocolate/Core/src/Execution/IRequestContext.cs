@@ -10,12 +10,20 @@ using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
 {
+    /// <summary>
+    /// Encapsulates all GraphQL-specific information about an individual GraphQL request.
+    /// </summary>
     public interface IRequestContext : IHasContextData
     {
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.
         /// </summary>
         ISchema Schema { get; }
+
+        /// <summary>
+        /// Gets the request executor version.
+        /// </summary>
+        ulong ExecutorVersion { get; }
 
         /// <summary>
         /// Gets or sets the scoped request services.

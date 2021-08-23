@@ -11,6 +11,7 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class ArrayFilterTests
         : IClassFixture<MongoResource>
     {
@@ -37,7 +38,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -88,7 +89,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -107,7 +108,7 @@ namespace HotChocolate.Types.Filters
                 .SetQuery(
                     "{" +
                     "a: foos(where: { bazs_some: { quux: \"c\" } }) { bars } " +
-                    "}") 
+                    "}")
                 .Create();
 
             // act
@@ -133,7 +134,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -184,7 +185,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 

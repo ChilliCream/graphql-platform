@@ -14,6 +14,7 @@ namespace HotChocolate.Execution
     {
         public RequestContext(
             ISchema schema,
+            ulong executorVersion,
             IServiceProvider services,
             IErrorHandler errorHandler,
             ITypeConverter converter,
@@ -22,6 +23,7 @@ namespace HotChocolate.Execution
             IQueryRequest request)
         {
             Schema = schema;
+            ExecutorVersion = executorVersion;
             Services = services;
             ErrorHandler = errorHandler;
             Converter = converter;
@@ -34,6 +36,8 @@ namespace HotChocolate.Execution
         }
 
         public ISchema Schema { get; }
+
+        public ulong ExecutorVersion { get; }
 
         public IServiceProvider Services { get; }
 

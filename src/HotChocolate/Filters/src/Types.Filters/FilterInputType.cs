@@ -6,6 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterInputType<T>
         : InputObjectType
         , IFilterInputType

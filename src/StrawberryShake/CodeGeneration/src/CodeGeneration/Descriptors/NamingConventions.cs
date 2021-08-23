@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Descriptors
 {
@@ -60,13 +61,25 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public static string CreateServiceCollectionExtensions(string clientName) =>
             clientName + "ServiceCollectionExtensions";
 
+        public static string CreateStoreAccessor(string clientName) =>
+            clientName + "StoreAccessor";
+
         public static string CreateClientProfileKind(string clientName) =>
             clientName + "ProfileKind";
 
         public static string CreateInputValueFormatter(InputObjectTypeDescriptor type) =>
             type.Name + "InputValueFormatter";
 
-        public static string CreateInputValueFormatter(ScalarTypeDescriptor type) =>
-            type.Name + "Serializer";
+        public static string CreateInputValueInfo(string name) =>
+            $"{NameUtils.GetInterfaceName(name)}Info";
+
+        public static string CreateIsSetProperty(string name) =>
+            $"Is{NameUtils.GetPropertyName(name)}Set";
+
+        public static string CreateIsSetField(string name) =>
+            "_set_" + NameUtils.GetParamNameUnsafe(name);
+
+        public static string CreateInputValueField(string name) =>
+            "_value_" + NameUtils.GetParamNameUnsafe(name);
     }
 }

@@ -54,7 +54,6 @@ Next, we want to configure our GraphQL server to be able to handle automatic per
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddRouting()
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .UseAutomaticPersistedQueryPipeline();
@@ -67,7 +66,6 @@ public void ConfigureServices(IServiceCollection services)
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddRouting()
         .AddGraphQLServer()
         .AddQueryType<Query>()
         .UseAutomaticPersistedQueryPipeline()
@@ -82,7 +80,6 @@ public void ConfigureServices(IServiceCollection services)
 {
     services
         // Global Services
-        .AddRouting()
         .AddMemoryCache()
 
         // GraphQL server configuration
@@ -179,7 +176,6 @@ public void ConfigureServices(IServiceCollection services)
 {
     services
         // Global Services
-        .AddRouting()
         .AddMemoryCache()
         .AddSha256DocumentHashProvider(HashFormat.Hex)
 
@@ -242,7 +238,6 @@ public void ConfigureServices(IServiceCollection services)
 {
     services
         // Global Services
-        .AddRouting()
         .AddSha256DocumentHashProvider(HashFormat.Hex)
 
         // GraphQL server configuration

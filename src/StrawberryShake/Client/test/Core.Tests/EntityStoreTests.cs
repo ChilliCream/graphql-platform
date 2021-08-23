@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace StrawberryShake
     public class EntityStoreTests
     {
         [Fact]
-        public void UpdateEntity()
+        public async Task UpdateEntity()
         {
             // arrange
             var entityStore = new EntityStore();
@@ -18,19 +19,19 @@ namespace StrawberryShake
             IReadOnlyList<MockEntity> updated = Array.Empty<MockEntity>();
             ulong version = 0;
 
-            entityStore.Watch().Subscribe(update =>
+            using IDisposable subscription = entityStore.Watch().Subscribe(update =>
             {
-                updated = entityStore.GetEntities<MockEntity>(update.UpdatedEntityIds);
+                updated = update.Snapshot.GetEntities<MockEntity>(update.UpdatedEntityIds);
                 version = update.Version;
             });
 
             // act
-            using (entityStore.BeginUpdate())
+            entityStore.Update(session =>
             {
-                MockEntity entity = entityStore.GetOrCreate<MockEntity>(entityId);
-                entity.Foo = "abc";
-                entity.Bar = 1;
-            }
+                session.SetEntity(entityId, new MockEntity("abc", 1));
+            });
+
+            await Task.Delay(250);
 
             // assert
             Assert.Collection(
@@ -44,59 +45,89 @@ namespace StrawberryShake
         }
 
         [Fact]
-        public async Task EnsureUpdatesAreExecutedOneAfterTheOther()
+        public async Task RemoveEntity()
         {
             // arrange
+            var cts = new CancellationTokenSource(2000);
             var entityStore = new EntityStore();
             var entityId = new EntityId(nameof(MockEntity), 1);
 
-            List<string> updated = new();
-            ulong version = 0;
-
-            entityStore.Watch().Subscribe(update =>
+            entityStore.Update(session =>
             {
-                updated.Add(
-                    entityStore.GetEntities<MockEntity>(update.UpdatedEntityIds).Single().Foo!);
-                version = update.Version;
+                session.SetEntity(entityId, new MockEntity("abc", 1));
             });
 
             // act
-            Task task1 = BeginUpdate(entityStore, "abc");
-            Task task2 = BeginUpdate(entityStore, "def");
-            await Task.WhenAll(task1, task2);
+            entityStore.Update(session =>
+            {
+                session.RemoveEntity(entityId);
+            });
+
+            while (entityStore.CurrentSnapshot.GetEntityIds().Count > 0 &&
+                !cts.IsCancellationRequested)
+            {
+                await Task.Delay(50, cts.Token);
+            }
+
+            // assert
+            Assert.Empty(entityStore.CurrentSnapshot.GetEntityIds());
+        }
+
+        [Fact]
+        public void GetAllEntities()
+        {
+            // arrange
+            var entityStore = new EntityStore();
+            var entityId1 = new EntityId(nameof(MockEntity), 1);
+            var entityId2 = new EntityId(nameof(MockEntity) + "a", 2);
+
+            entityStore.Update(session =>
+            {
+                session.SetEntity(entityId1, new MockEntity("abc", 1));
+                session.SetEntity(entityId2, new MockEntity("abc", 2));
+            });
+
+            // act
+            var allEntities = entityStore.CurrentSnapshot.GetEntities().ToList();
+            var mockEntities = entityStore.CurrentSnapshot.GetEntities(nameof(MockEntity));
 
             // assert
             Assert.Collection(
-                updated,
+                allEntities.OrderBy(t => t.Id.Value),
                 item =>
                 {
-                    Assert.Equal("abc", item);
+                    var entity = Assert.IsType<MockEntity>(item.Entity);
+                    Assert.Equal("abc", entity.Foo);
+                    Assert.Equal(1, entity.Bar);
                 },
                 item =>
                 {
-                    Assert.Equal("def", item);
+                    var entity = Assert.IsType<MockEntity>(item.Entity);
+                    Assert.Equal("abc", entity.Foo);
+                    Assert.Equal(2, entity.Bar);
                 });
-            Assert.Equal(2ul, version);
 
-            Task BeginUpdate(IEntityStore entityStore, string foo)
-            {
-                IEntityUpdateSession session = entityStore.BeginUpdate();
-
-                return Task.Run(async () =>
+            Assert.Collection(
+                mockEntities.OrderBy(t => t.Id.Value),
+                item =>
                 {
-                    await Task.Delay(50);
-                    MockEntity entity = entityStore.GetOrCreate<MockEntity>(entityId);
-                    entity.Foo = foo;
-                    session.Dispose();
+                    var entity = Assert.IsType<MockEntity>(item.Entity);
+                    Assert.Equal("abc", entity.Foo);
+                    Assert.Equal(1, entity.Bar);
                 });
-            }
         }
 
         public class MockEntity
         {
-            public string? Foo { get; set; }
+            public MockEntity(string? foo, int bar)
+            {
+                Foo = foo;
+                Bar = bar;
+            }
 
-            public int Bar { get; set; }
+            public string? Foo { get; }
+
+            public int Bar { get; }
         }
     }
 }

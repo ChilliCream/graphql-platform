@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class ArrayBuilder : ICodeBuilder
+    public class ArrayBuilder : ICode
     {
         private string? _prefix;
         private string? _type;
@@ -21,7 +21,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public ArrayBuilder AddAssigment(ICode code)
+        public ArrayBuilder AddAssignment(ICode code)
         {
             _assigment.Add(code);
             return this;

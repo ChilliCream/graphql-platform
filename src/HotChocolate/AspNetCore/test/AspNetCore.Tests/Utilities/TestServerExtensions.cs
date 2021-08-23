@@ -129,6 +129,29 @@ namespace HotChocolate.AspNetCore.Utilities
             return result;
         }
 
+        public static async Task<ClientQueryResult> PostMultipartAsync(
+            this TestServer testServer,
+            MultipartFormDataContent content,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendMultipartRequestAsync(
+                    testServer,
+                    content,
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
+
         public static async Task<ClientRawResult> PostRawAsync(
             this TestServer testServer,
             ClientQueryRequest request,
@@ -224,39 +247,42 @@ namespace HotChocolate.AspNetCore.Utilities
             return result;
         }
 
-        public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
-            this TestServer testServer, TObject requestBody, string path = "/graphql")
+        public static Task<HttpResponseMessage> SendMultipartRequestAsync(
+            this TestServer testServer, MultipartFormDataContent content,
+            string path)
         {
-            return SendPostRequestAsync(
+            return testServer.CreateClient().PostAsync(CreateUrl(path), content);
+        }
+
+        public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
+            this TestServer testServer,
+            TObject requestBody,
+            string path = "/graphql") =>
+            SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
                 path);
-        }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
-            this TestServer testServer, string requestBody, string path = null)
-        {
-            return SendPostRequestAsync(
-                testServer, requestBody,
-                "application/json", path);
-        }
+            this TestServer testServer,
+            string requestBody,
+            string path = null) =>
+            SendPostRequestAsync(testServer, requestBody, "application/json", path);
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
-            this TestServer testServer, string requestBody,
-            string contentType, string path)
-        {
-            return testServer.CreateClient()
-                .PostAsync(CreateUrl(path),
-                    new StringContent(requestBody,
-                        Encoding.UTF8, contentType));
-        }
+            this TestServer testServer,
+            string requestBody,
+            string contentType,
+            string path) =>
+            testServer.CreateClient().PostAsync(
+                CreateUrl(path),
+                new StringContent(requestBody, Encoding.UTF8, contentType));
 
         public static Task<HttpResponseMessage> SendGetRequestAsync(
-            this TestServer testServer, string query, string path = null)
-        {
-            return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}/?{query}");
-        }
+            this TestServer testServer,
+            string query,
+            string path = null) =>
+            testServer.CreateClient().GetAsync($"{CreateUrl(path)}/?{query}");
 
         public static string CreateUrl(string path)
         {

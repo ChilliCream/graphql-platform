@@ -6,13 +6,13 @@ namespace HotChocolate.Execution
     {
         public static IOperationContext TrySetNext(
             this IOperationContext context,
-            bool allwaysSet = false)
+            bool alwaysSet = false)
         {
             if (!context.Execution.DeferredTaskBacklog.IsEmpty)
             {
                 context.Result.SetHasNext(true);
             }
-            else if (allwaysSet)
+            else if (alwaysSet)
             {
                 context.Result.SetHasNext(false);
             }

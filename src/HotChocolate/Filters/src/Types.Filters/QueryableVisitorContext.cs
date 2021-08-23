@@ -5,6 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableFilterVisitorContext
         : FilterVisitorContextBase, IQueryableFilterVisitorContext
     {

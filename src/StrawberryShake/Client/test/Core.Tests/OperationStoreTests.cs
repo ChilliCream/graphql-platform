@@ -10,10 +10,10 @@ namespace StrawberryShake
         public void Store_And_Retrieve_Result()
         {
             // arrange
-            var entityChangeObserver = new MockEntityChangeObservable();
+            var entityStore = new EntityStore();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore(entityChangeObserver);
+            var store = new OperationStore(entityStore);
             var request = new OperationRequest("abc", document.Object);
 
             // act
@@ -29,9 +29,9 @@ namespace StrawberryShake
         public void TryGet_Not_Found()
         {
             // arrange
-            var entityChangeObserver = new MockEntityChangeObservable();
+            var entityStore = new EntityStore();
             var document = new Mock<IDocument>();
-            var store = new OperationStore(entityChangeObserver);
+            var store = new OperationStore(entityStore);
             var request = new OperationRequest("abc", document.Object);
 
             // act
@@ -46,10 +46,10 @@ namespace StrawberryShake
         public void Watch_For_Updates()
         {
             // arrange
-            var entityChangeObserver = new MockEntityChangeObservable();
+            var entityStore = new EntityStore();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore(entityChangeObserver);
+            var store = new OperationStore(entityStore);
             var request = new OperationRequest("abc", document.Object);
             var observer = new ResultObserver();
 
@@ -67,10 +67,10 @@ namespace StrawberryShake
         public void Watch_For_Updates_With_SystemReactive()
         {
             // arrange
-            var entityChangeObserver = new MockEntityChangeObservable();
+            var entityStore = new EntityStore();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore(entityChangeObserver);
+            var store = new OperationStore(entityStore);
             var request = new OperationRequest("abc", document.Object);
             IOperationResult<string>? lastResult = null;
 
@@ -93,10 +93,10 @@ namespace StrawberryShake
         public void Watch_Unsubscribe()
         {
             // arrange
-            var entityChangeObserver = new MockEntityChangeObservable();
+            var entityStore = new EntityStore();
             var document = new Mock<IDocument>();
             var result = new Mock<IOperationResult<string>>();
-            var store = new OperationStore(entityChangeObserver);
+            var store = new OperationStore(entityStore);
             var request = new OperationRequest("abc", document.Object);
             var observer = new ResultObserver();
 

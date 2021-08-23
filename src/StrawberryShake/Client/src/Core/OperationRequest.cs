@@ -1,6 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Security.Cryptography;
+using StrawberryShake.Helper;
+using StrawberryShake.Internal;
+using StrawberryShake.Json;
 
 namespace StrawberryShake
 {
@@ -12,6 +18,7 @@ namespace StrawberryShake
         private readonly IReadOnlyDictionary<string, object?> _variables;
         private Dictionary<string, object?>? _extensions;
         private Dictionary<string, object?>? _contextData;
+        private string? _hash;
 
         /// <summary>
         /// Creates a new instance of <see cref="OperationRequest"/>.
@@ -151,9 +158,9 @@ namespace StrawberryShake
             }
 
             return Id == other.Id &&
-                   Name == other.Name &&
-                   Document.Equals(other.Document) &&
-                   EqualsVariables(other._variables);
+                Name == other.Name &&
+                Document.Equals(other.Document) &&
+                EqualsVariables(other._variables);
         }
 
         public override bool Equals(object? obj)
@@ -197,13 +204,37 @@ namespace StrawberryShake
                     return false;
                 }
 
-                if (!Equals(a, b))
+                if (a is IEnumerable e1 && b is IEnumerable e2)
+                {
+                    // Check the contents of the collection, assuming order is important
+                    if (!ComparisonHelper.SequenceEqual(e1, e2))
+                    {
+                        return false;
+                    }
+                }
+                else if (!Equals(a, b))
                 {
                     return false;
                 }
             }
 
             return true;
+        }
+
+        public string GetHash()
+        {
+            if (_hash is null)
+            {
+                using var writer = new ArrayWriter();
+                var serializer = new JsonOperationRequestSerializer();
+                serializer.Serialize(this, writer, ignoreExtensions: true);
+
+                using var sha256 = SHA256.Create();
+                byte[] buffer = sha256.ComputeHash(writer.GetInternalBuffer(), 0, writer.Length);
+                _hash = Convert.ToBase64String(buffer);
+            }
+
+            return _hash;
         }
 
         public override int GetHashCode()
@@ -217,11 +248,37 @@ namespace StrawberryShake
 
                 foreach (KeyValuePair<string, object?> variable in _variables)
                 {
-                    hash ^= variable.GetHashCode();
+                    if (variable.Value is IEnumerable inner)
+                    {
+                        hash ^= GetHashCodeFromList(inner) * 397;
+                    }
+                    else
+                    {
+                        hash ^= variable.GetHashCode();
+                    }
                 }
 
                 return hash;
             }
+        }
+
+        private int GetHashCodeFromList(IEnumerable enumerable)
+        {
+            var hash = 17;
+
+            foreach (var element in enumerable)
+            {
+                if (element is IEnumerable inner)
+                {
+                    hash ^= GetHashCodeFromList(inner) * 397;
+                }
+                else if(element is not null)
+                {
+                    hash ^= element.GetHashCode() * 397;
+                }
+            }
+
+            return hash;
         }
     }
 }

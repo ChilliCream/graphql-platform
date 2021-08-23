@@ -5,54 +5,63 @@ using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public class PaginationTests
     {
-        [Fact]
+        [Fact(Skip = "Test is flaky")]
         public async Task Execute_NestedOffsetPaging_NoCyclicDependencies()
         {
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequestExecutorAsync();
+            await TryTest(async ct =>
+            {
+                IRequestExecutor executor =
+                    await new ServiceCollection()
+                        .AddGraphQL()
+                        .AddQueryType<QueryType>()
+                        .SetPagingOptions(new PagingOptions {DefaultPageSize = 50})
+                        .Services
+                        .BuildServiceProvider()
+                        .GetRequestExecutorAsync(cancellationToken: ct);
 
-            IExecutionResult executionResult = await executor
-                .ExecuteAsync(@"
-                    {
-                        users {
-                            items {
-                                parents {
-                                    items {
-                                        firstName
+                IExecutionResult executionResult = await executor
+                    .ExecuteAsync(@"
+                        {
+                            users {
+                                items {
+                                    parents {
+                                        items {
+                                            firstName
+                                        }
                                     }
-                                }
-                           }
-                        }
-                    }");
+                               }
+                            }
+                        }",
+                        ct);
 
-            executionResult.ToJson().MatchSnapshot();
+                executionResult.ToJson().MatchSnapshot();
+            });
         }
 
-        [Fact]
+        [Fact(Skip = "Flaky test.")]
         public async Task Execute_NestedOffsetPaging_With_Indirect_Cycles()
         {
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<QueryType>()
-                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequestExecutorAsync();
+            await TryTest(async ct =>
+            {
+                IRequestExecutor executor =
+                    await new ServiceCollection()
+                        .AddGraphQL()
+                        .AddQueryType<QueryType>()
+                        .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                        .Services
+                        .BuildServiceProvider()
+                        .GetRequestExecutorAsync(cancellationToken: ct);
 
-            IExecutionResult executionResult = await executor
-                .ExecuteAsync(@"
+                IExecutionResult executionResult = await executor
+                    .ExecuteAsync(@"
                     {
                         users {
                             items {
@@ -67,9 +76,11 @@ namespace HotChocolate.Types
                                 }
                            }
                         }
-                    }");
+                    }",
+                    ct);
 
-            executionResult.ToJson().MatchSnapshot();
+                executionResult.ToJson().MatchSnapshot();
+            });
         }
 
         public class User

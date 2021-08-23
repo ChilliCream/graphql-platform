@@ -10,7 +10,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private bool _isReadOnly;
         private TypeReferenceBuilder? _type;
         private string? _name;
-        private string? _value;
+        private ICode? _value;
         private bool _useDefaultInitializer;
         private bool _beginValueWithNewline;
 
@@ -67,6 +67,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         }
 
         public FieldBuilder SetValue(string? value, bool beginValueWithNewline = false)
+        {
+            return SetValue(
+                value is not null ? CodeInlineBuilder.From(value) : null,
+                beginValueWithNewline);
+        }
+
+        public FieldBuilder SetValue(ICode? value, bool beginValueWithNewline = false)
         {
             _value = value;
             _beginValueWithNewline = beginValueWithNewline;
@@ -128,7 +135,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                     }
                 }
 
-                writer.Write($"{_value}");
+                _value.Build(writer);
             }
             else if (_useDefaultInitializer)
             {

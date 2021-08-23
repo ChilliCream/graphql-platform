@@ -2,12 +2,16 @@
 title: Projections
 ---
 
+import { ExampleTabs } from "../../../components/mdx/example-tabs"
+
 Every GraphQL request specifies exactly what data should be returned. Over or under fetching can be reduced
-or even eliminated. HotChocolate projections leverage this concept and directly projects incoming queries
+or even eliminated. Hot Chocolate projections leverage this concept and directly projects incoming queries
 to the database.
 
 Projections operate on `IQueryable` by default, but it is possible to create custom providers for projections
 to support a specific database driver.
+
+> ⚠️ **Note:** Projections currently need a public setter on fields they operate on in order to function correctly. Otherwise the default constructed value will be returned upon query.
 
 ```graphql
 {
@@ -38,7 +42,7 @@ To use projections with your GraphQL endpoint you have to register projections o
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddProjections();
 ```
 
@@ -48,48 +52,53 @@ The projection middleware will create a projection for the whole subtree of its 
 are members of a type will be projected. Fields that define a customer resolver cannot be projected
 to the database. If the middleware encounters a field that specifies `UseProjection()` this field will be skipped.
 
-> ⚠️ **Note:** If you use more than middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
-
-**Code First**
-
-```csharp
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor.Field(t => t.GetPersons(default)).UseProjection();
-    }
-}
-
-public class Query
-{
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository) =>
-        repository.GetPersons();
-}
-```
-
-**Pure Code First**
-
-The field descriptor attribute `[UseProjection]` does apply the extension method `UseProjection()` on the field descriptor.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Query
 {
     [UseProjection]
-    public IQueryable<Person> GetPersons([Service]IPersonRepository repository)
-    {
-        repository.GetPersons();
-    }
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
 }
 ```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType<Query>
+{
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    {
+        descriptor.Field(t => t.GetUsers(default)).UseProjection();
+    }
+}
+
+public class Query
+{
+    public IQueryable<User> GetUsers([Service] IUserRepository repository)
+        => repository.GetUsers();
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support projections!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+> ⚠️ **Note:** If you use more than one middleware, keep in mind that **ORDER MATTERS**. The correct order is UsePaging > UseProjection > UseFiltering > UseSorting
 
 # FirstOrDefault / SingleOrDefault
 
 If you want to limit the response to a single result, you would have to declare a resolver.
 Without returning an `IQueryable<>` you lose the ability to use filtering.
 
-There are two extensions you can use to leverage `collection.FirstOrDefault()` and `.collection.SingleOrDefault()` to
+There are two extensions you can use to leverage `collection.FirstOrDefault()` and `collection.SingleOrDefault()` to
 the GraphQL layer. The extensions will rewrite the response type to the element type of the collection apply the behavior.
 
 ```csharp
@@ -188,37 +197,12 @@ ORDER BY "t"."Name" DESC, "t"."Email" DESC, "t"."Id", "a"."Id"
 
 # Always Project Fields
 
-Resolvers on types often access data of the parent. e.g. uses the `Email` member of the parent to fetch some
+Resolvers on types often access data of the parent, e.g. uses the `Email` member of the parent to fetch some
 related data from another service. With projections, this resolver could only work when the user also queries
 for the `email` field. To ensure a field is always projected you have to use `IsProjected(true)`.
 
-**Code First**
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor.Feild(x => x.Email).IsProjected(true);
-        descriptor.Field("messages")
-            .Type<MessageType>()
-            .Resolver(
-                async ctx =>
-                {
-                    var dataloader = ctx.DataLoader<MessageDataLoader>();
-                    var mail = ctx.Parent<User>().Email;
-                    return await dataloader.LoadAsync(
-                        mail,
-                        ctx.RequestAborted);
-                });
-    }
-}
-```
-
-**Pure Code First**
-
-The field descriptor attribute `[IsProjected]` does apply the extension method `IsProjected()` on the field descriptor.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class User
@@ -229,17 +213,29 @@ public class User
     public string Email { get; set; }
     public Address Address { get; set; }
 }
+```
 
-[ExtendObjectType(nameof(User))]
-public class UserTypeExtension
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class UserType : ObjectType<User>
 {
-    public Message GetMessagesAsync(
-        [Parent] User user,
-        MessageDataLoader dataloader,
-        CancellationToken cancellationToken) =>
-        dataloader.LoadAsync(user.Email, cancellationToken);
+    protected override void Configure(
+        IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(f => f.Email).IsProjected(true);
+    }
 }
 ```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support projections!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 ```graphql
 {
@@ -260,34 +256,11 @@ LEFT JOIN "Address" AS "a" ON "u"."AddressId" = "a"."Id"
 # Exclude fields
 
 If a projected field is requested, the whole subtree is processed. Sometimes you want to opt out of projections.
-The projections middleware skips a field in two cases. Either the visitor encounters a fields that is a `UseProjection` field
+The projections middleware skips a field in two cases. Either the visitor encounters a field that is a `UseProjection` field
 itself, or it defines `IsProjected(false)`.
 
-**Code First**
-
-```csharp
-public class UserType : ObjectType<User>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<User> descriptor)
-    {
-        descriptor.Field(x => x.Email).IsProjected(false);
-    }
-}
-
-
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Email { get; set; }
-    public Address Address { get; set; }
-}
-```
-
-**Pure Code First**
-
-The field descriptor attribute `[UseProjection]` does apply the extension method `UseProjection()` on the field descriptor.
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class User
@@ -299,6 +272,28 @@ public class User
     public Address Address { get; set; }
 }
 ```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class UserType : ObjectType<User>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<User> descriptor)
+    {
+        descriptor.Field(f => f.Email).IsProjected(false);
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does currently not support projections!
+
+</ExampleTabs.Schema>
+</ExampleTabs>
 
 ```graphql
 {

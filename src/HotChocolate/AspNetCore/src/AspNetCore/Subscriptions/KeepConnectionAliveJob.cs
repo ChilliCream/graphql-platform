@@ -1,4 +1,5 @@
 using System;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
@@ -36,24 +37,25 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                while (!_connection.Closed
-                    && !cancellationToken.IsCancellationRequested)
+                while (!_connection.Closed && !cancellationToken.IsCancellationRequested)
                 {
-                    await Task.Delay(_timeout, cancellationToken)
-                        ;
+                    await Task.Delay(_timeout, cancellationToken);
 
                     if (!_connection.Closed)
                     {
                         await _connection.SendAsync(
                             KeepConnectionAliveMessage.Default.Serialize(),
-                            cancellationToken)
-                            ;
+                            cancellationToken);
                     }
                 }
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 // the message processing was canceled.
+            }
+            catch (WebSocketException)
+            {
+                // we will just stop receiving
             }
         }
     }

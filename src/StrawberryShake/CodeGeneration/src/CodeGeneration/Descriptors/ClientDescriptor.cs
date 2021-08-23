@@ -19,6 +19,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
             Operations = operations;
             Documentation =
                 string.Format(CodeGenerationResources.ClientDescriptor_Description, Name);
+            InterfaceType = new("I" + name, @namespace);
         }
 
         /// <summary>
@@ -41,5 +42,10 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// The documentation for this client
         /// </summary>
         public string Documentation { get; }
+
+        /// <summary>
+        /// The interface of this client
+        /// </summary>
+        public RuntimeTypeInfo InterfaceType { get; }
     }
 }

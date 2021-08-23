@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -6,7 +7,7 @@ namespace HotChocolate.Execution.Processing
     public static class SelectionOptimizerHelper
     {
         private const string _key = "HotChocolate.Execution.Utilities.SelectionSetOptimizer";
-        private static readonly ISelectionOptimizer[] _empty = new ISelectionOptimizer[0];
+        private static readonly ISelectionOptimizer[] _empty = Array.Empty<ISelectionOptimizer>();
 
         public static void RegisterOptimizer(
             IDictionary<string, object?> contextData,

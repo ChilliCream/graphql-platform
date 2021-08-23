@@ -159,6 +159,26 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task Node_Resolve_Implicit_Resolver()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .EnableRelaySupport()
+                .AddQueryType<Bar5>()
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            var json = result.ToJson();
+            json.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Node_Resolve_Implicit_Named_Resolver()
         {
             // arrange
@@ -289,6 +309,15 @@ namespace HotChocolate.Types.Relay
             public string Id1 { get; set; }
 
             public static Bar2 GetFoo(string id) => new Bar2 { Id = id };
+        }
+
+        [ObjectType("Bar")]
+        [Node]
+        public class Bar5
+        {
+            public string Id { get; set; }
+
+            public static Bar5 Get(string id) => new Bar5 { Id = id };
         }
 
         public class Parent

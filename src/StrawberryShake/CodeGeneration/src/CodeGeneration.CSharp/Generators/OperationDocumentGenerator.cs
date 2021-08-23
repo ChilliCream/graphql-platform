@@ -4,21 +4,24 @@ using System.Text;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Properties;
+using StrawberryShake.Tools.Configuration;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public class OperationDocumentGenerator : ClassBaseGenerator<OperationDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(OperationDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            OperationDescriptor descriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             var documentName = CreateDocumentTypeName(descriptor.RuntimeType.Name);
             fileName = documentName;
             path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
             string operationKind = descriptor switch
             {
@@ -84,17 +87,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .SetPublic()
                 .SetOverride()
                 .SetReturnType(TypeNames.String)
+                .AddCode("#if NETSTANDARD2_0")
                 .AddCode(MethodCallBuilder
                     .New()
                     .SetReturn()
                     .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
-                    .AddArgument("Body"));
+                    .AddArgument("Body.ToArray()"))
+                .AddCode("#else")
+                .AddCode(MethodCallBuilder
+                    .New()
+                    .SetReturn()
+                    .SetMethodName(TypeNames.EncodingUtf8, nameof(Encoding.UTF8.GetString))
+                    .AddArgument("Body"))
+                .AddCode("#endif");
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.Build(writer);
         }
 
         private static string GetByteArray(byte[] bytes)

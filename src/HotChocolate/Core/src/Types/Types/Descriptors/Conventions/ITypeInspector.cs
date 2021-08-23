@@ -37,6 +37,31 @@ namespace HotChocolate.Types.Descriptors
         IEnumerable<MemberInfo> GetMembers(Type type);
 
         /// <summary>
+        /// Gets the relevant members of a object or input object.
+        /// </summary>
+        /// <param name="type">
+        /// The type that represents the object type.
+        /// </param>
+        /// <param name="includeIgnored">
+        /// The type that represents the object type.
+        /// </param>
+        /// <returns>
+        /// Returns the relevant members of a object or input object.
+        /// </returns>
+        IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored);
+
+        /// <summary>
+        /// Defines if a member shall be ignored. This method interprets ignore attributes.
+        /// </summary>
+        /// <param name="member">
+        /// The member that shall be inspected.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the member shall be ignored; otherwise, <c>false</c>.
+        /// </returns>
+        bool IsMemberIgnored(MemberInfo member);
+
+        /// <summary>
         /// Gets the field type reference from a <see cref="MemberInfo" />.
         /// </summary>
         /// <param name="member">

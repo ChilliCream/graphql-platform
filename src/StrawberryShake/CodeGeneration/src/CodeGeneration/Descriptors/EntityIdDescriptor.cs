@@ -12,7 +12,7 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         /// Creates a new instance of <see cref="EntityIdDescriptor"/>.
         /// </summary>
         /// <param name="name">
-        /// The name of the field or entity.
+        /// The GraphQL name of entity entity.
         /// </param>
         /// <param name="typeName">
         /// The serialization type name of the entity id field, eg. String.
@@ -23,11 +23,11 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public EntityIdDescriptor(
             string name,
             string typeName,
-            IReadOnlyList<EntityIdDescriptor>? fields = null)
+            IReadOnlyList<ScalarEntityIdDescriptor> fields )
         {
             Name = name;
             TypeName = typeName;
-            Fields = fields ?? Array.Empty<EntityIdDescriptor>();
+            Fields = fields;
         }
 
         /// <summary>
@@ -37,13 +37,13 @@ namespace StrawberryShake.CodeGeneration.Descriptors
         public string Name { get; }
 
         /// <summary>
-        /// Gets the serialization type name of the entity id field, eg. String.
+        /// Gets the type name of the entity id field.
         /// </summary>
         public string TypeName { get; }
 
         /// <summary>
         /// Gets the child fields.
         /// </summary>
-        public IReadOnlyList<EntityIdDescriptor> Fields { get; }
+        public IReadOnlyList<ScalarEntityIdDescriptor> Fields { get; }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class FilterInputTypeTest
         : TypeTestBase
     {

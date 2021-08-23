@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using HotChocolate.Language;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
-    public class TypeReferenceBuilder : ICodeBuilder
+    public class TypeReferenceBuilder : ICode
     {
         private readonly List<TypeKindToken> _buildOrder = new();
         private string? _name;
@@ -58,6 +60,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         {
             List,
             Nullable
+        }
+
+        public override string ToString()
+        {
+            var text = new StringBuilder();
+            using var stringWriter = new StringWriter(text);
+            using var codeWriter = new CodeWriter(stringWriter);
+            Build(codeWriter);
+            codeWriter.Flush();
+            stringWriter.Flush();
+            return text.ToString();
         }
 
         public void Build(CodeWriter writer)

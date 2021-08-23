@@ -28,7 +28,7 @@
       "Extensions": null,
       "Exception": {
         "ClassName": "System.InvalidCastException",
-        "Message": "The parent cannot be casted to HotChocolate.Execution.SourceObjectConversionTests+Baz.",
+        "Message": "The parent cannot be cast to HotChocolate.Execution.SourceObjectConversionTests+Baz.",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,

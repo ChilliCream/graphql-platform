@@ -57,6 +57,7 @@ namespace HotChocolate.Types
 
             { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
             { ScalarNames.Name, typeof(NameType) },
+            { ScalarNames.ByteArray, typeof(ByteArrayType) },
         };
 
         private static readonly Dictionary<Type, ValueKind> _scalarKinds = new()

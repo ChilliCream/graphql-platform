@@ -17,17 +17,17 @@ namespace HotChocolate.Types
             : base(definition, fieldCoordinate)
         {
             SyntaxNode = definition.SyntaxNode;
-            Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(
-                    t => new Argument(t, fieldCoordinate.With(argumentName: t.Name))),
+            Arguments = FieldCollection<Argument>.From(
+                definition
+                    .GetArguments()
+                    .Where(t => !t.Ignore)
+                    .Select(t => new Argument(t, fieldCoordinate.With(argumentName: t.Name))),
                 sortArgumentsByName);
-            IsDeprecated = !string.IsNullOrEmpty(
-                definition.DeprecationReason);
+            IsDeprecated = !string.IsNullOrEmpty(definition.DeprecationReason);
             DeprecationReason = definition.DeprecationReason;
         }
 
-        public new IComplexOutputType DeclaringType =>
-            (IComplexOutputType)base.DeclaringType;
+        public new IComplexOutputType DeclaringType => (IComplexOutputType)base.DeclaringType;
 
         public FieldDefinitionNode SyntaxNode { get; }
 

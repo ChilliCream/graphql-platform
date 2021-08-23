@@ -140,5 +140,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SubscriptionResult_ReadOnlyOnce", resourceCulture);
             }
         }
+        
+        internal static string SingleValueExtensionData_KeyNotFound {
+            get {
+                return ResourceManager.GetString("SingleValueExtensionData_KeyNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough {
+            get {
+                return ResourceManager.GetString("ExtensionDataKeyCollection_CopyTo_ArrayNotBigEnough", resourceCulture);
+            }
+        }
+        
+        internal static string ExtensionDataCollection_CollectionIsReadOnly {
+            get {
+                return ResourceManager.GetString("ExtensionDataCollection_CollectionIsReadOnly", resourceCulture);
+            }
+        }
+        
+        internal static string SingleValueExtensionData_KeyIsEmpty {
+            get {
+                return ResourceManager.GetString("SingleValueExtensionData_KeyIsEmpty", resourceCulture);
+            }
+        }
     }
 }

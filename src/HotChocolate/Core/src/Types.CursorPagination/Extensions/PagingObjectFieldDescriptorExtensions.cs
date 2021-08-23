@@ -5,8 +5,11 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Utilities.ThrowHelper;
+using static HotChocolate.Types.Pagination.PagingDefaults;
+using static HotChocolate.Types.Pagination.CursorPagingArgumentNames;
 
 namespace HotChocolate.Types
 {
@@ -41,14 +44,29 @@ namespace HotChocolate.Types
 
             resolvePagingProvider ??= ResolvePagingProvider;
 
-            descriptor.AddPagingArguments();
-
             PagingHelper.UsePaging(
                 descriptor,
                 type,
                 entityType,
                 (services, source) => resolvePagingProvider(services, source),
                 options);
+
+            descriptor
+                .Extend()
+                .OnBeforeCreate((c, d) =>
+                {
+                    if (!(c.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var obj) &&
+                       obj is PagingOptions pagingOptions))
+                    {
+                        pagingOptions = default;
+                    }
+
+                    var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
+
+                    var field = ObjectFieldDescriptor.From(c, d);
+                    field.AddPagingArguments(backward);
+                    field.CreateDefinition();
+                });
 
             descriptor
                 .Extend()
@@ -76,7 +94,23 @@ namespace HotChocolate.Types
             }
 
             descriptor
-                .AddPagingArguments()
+                .Extend()
+                .OnBeforeCreate((c, d) =>
+                {
+                    if (!(c.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var obj) &&
+                       obj is PagingOptions pagingOptions))
+                    {
+                        pagingOptions = default;
+                    }
+
+                    var backward = pagingOptions.AllowBackwardPagination ?? AllowBackwardPagination;
+
+                    var field = InterfaceFieldDescriptor.From(c, d);
+                    field.AddPagingArguments(backward);
+                    field.CreateDefinition();
+                });
+
+            descriptor
                 .Extend()
                 .OnBeforeCreate(
                     (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, options));
@@ -86,32 +120,75 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor AddPagingArguments(
             this IObjectFieldDescriptor descriptor)
+            => AddPagingArguments(descriptor, true);
+
+        public static IObjectFieldDescriptor AddPagingArguments(
+            this IObjectFieldDescriptor descriptor,
+            bool allowBackwardPagination)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor
-                .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>())
-                .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+            CreatePagingArguments(
+                descriptor.Extend().Definition.Arguments,
+                allowBackwardPagination);
+
+            return descriptor;
         }
 
         public static IInterfaceFieldDescriptor AddPagingArguments(
             this IInterfaceFieldDescriptor descriptor)
+            => AddPagingArguments(descriptor, true);
+
+        public static IInterfaceFieldDescriptor AddPagingArguments(
+            this IInterfaceFieldDescriptor descriptor,
+            bool allowBackwardPagination)
         {
             if (descriptor == null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor
-                .Argument(CursorPagingArgumentNames.First, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.After, a => a.Type<StringType>())
-                .Argument(CursorPagingArgumentNames.Last, a => a.Type<IntType>())
-                .Argument(CursorPagingArgumentNames.Before, a => a.Type<StringType>());
+            CreatePagingArguments(
+                descriptor.Extend().Definition.Arguments,
+                allowBackwardPagination);
+
+            return descriptor;
+        }
+
+        private static void CreatePagingArguments(
+            IList<ArgumentDefinition> arguments,
+            bool allowBackwardPagination)
+        {
+            SyntaxTypeReference intType = TypeReference.Create("Int");
+            SyntaxTypeReference stringType = TypeReference.Create("String");
+
+            arguments.AddOrUpdate(First, intType);
+            arguments.AddOrUpdate(After, stringType);
+
+            if (allowBackwardPagination)
+            {
+                arguments.AddOrUpdate(Last, intType);
+                arguments.AddOrUpdate(Before, stringType);
+            }
+        }
+
+        private static void AddOrUpdate(
+            this IList<ArgumentDefinition> arguments,
+            NameString name, ITypeReference type)
+        {
+            ArgumentDefinition? argument = arguments.FirstOrDefault(t => t.Name.Equals(name));
+
+            if (argument is null)
+            {
+                argument = new();
+                argument.Name = name;
+                arguments.Add(argument);
+            }
+
+            argument.Type = type;
         }
 
         private static ITypeReference CreateConnectionTypeRef(
@@ -120,7 +197,7 @@ namespace HotChocolate.Types
             Type? type,
             PagingOptions options)
         {
-            // first we will try and infer the schema type of the collection.
+            // first we will try and infer the schema type from the collection.
             IExtendedType schemaType = PagingHelper.GetSchemaType(
                 context.TypeInspector,
                 resolverMember,

@@ -21,7 +21,7 @@ namespace HotChocolate.Utilities.Introspection
             DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.ToString(true).MatchSnapshot();
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities.Introspection
             DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+            schema.ToString(true).MatchSnapshot();
         }
     }
 }

@@ -19,12 +19,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
         public static IRequestExecutorBuilder AddFiltering(
-            this IRequestExecutorBuilder builder) =>
-            builder.ConfigureSchema(s => s.AddFiltering());
+            this IRequestExecutorBuilder builder,
+            string? name = null) =>
+            builder.ConfigureSchema(s => s.AddFiltering(name));
 
         /// <summary>
         /// Adds filtering support.
@@ -68,18 +72,22 @@ namespace Microsoft.Extensions.DependencyInjection
             where TConvention : class, IFilterConvention =>
             builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
 
-         /// <summary>
+        /// <summary>
         /// Adds filtering support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
         public static IRequestExecutorBuilder AddSorting(
-            this IRequestExecutorBuilder builder) =>
-            builder.ConfigureSchema(s => s.AddSorting());
+            this IRequestExecutorBuilder builder,
+            string? name = null) =>
+            builder.ConfigureSchema(s => s.AddSorting(name));
 
         /// <summary>
         /// Adds filtering support.
@@ -129,12 +137,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name">
+        /// The filter convention name.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
         public static IRequestExecutorBuilder AddProjections(
-            this IRequestExecutorBuilder builder) =>
-            AddProjections(builder, x => x.AddDefaults());
+            this IRequestExecutorBuilder builder,
+            string? name = null) =>
+            AddProjections(builder, x => x.AddDefaults(), name);
 
         /// <summary>
         /// Adds filtering support.

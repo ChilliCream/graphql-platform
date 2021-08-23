@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The NonNegativeFloatType scalar represents a double‐precision fractional value greater than
@@ -27,7 +27,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, 0, double.MaxValue, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
@@ -43,24 +42,21 @@ namespace HotChocolate.Types.Scalars
         }
 
         /// <inheritdoc />
-        protected override double ParseLiteral(IFloatValueLiteral valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            if (valueSyntax.ToDouble() < MinValue)
-            {
-                throw ThrowHelper.NonNegativeFloatType_ParseLiteral_IsNotNonNegative(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
+            throw ThrowHelper.NonNegativeFloatType_ParseLiteral_IsNotNonNegative(this);
         }
 
-        protected override FloatValueNode ParseValue(double runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
-            }
+            throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
+        }
 
-            return base.ParseValue(runtimeValue);
+        /// <inheritdoc />
+        protected override SerializationException CreateParseResultError(object runtimeValue)
+        {
+            throw ThrowHelper.NonNegativeFloatType_ParseValue_IsNotNonNegative(this);
         }
     }
 }

@@ -1,0 +1,13 @@
+﻿{
+  "Search": [
+    {
+      "__typename": "Human"
+    },
+    {
+      "__typename": "Human"
+    },
+    {
+      "__typename": "Human"
+    }
+  ]
+}

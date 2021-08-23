@@ -16,6 +16,8 @@
         CustomContext,
         DataLoader,
         DirectiveObject,
-        EventMessage
+        EventMessage,
+        Path,
+        Claims
     }
 }

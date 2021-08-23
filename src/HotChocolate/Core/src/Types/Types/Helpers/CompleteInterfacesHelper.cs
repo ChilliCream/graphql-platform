@@ -15,13 +15,13 @@ namespace HotChocolate.Types
     {
         public static void CompleteInterfaces(
             ITypeCompletionContext context,
-            IComplexOutputTypeDefinition definition,
-            Type clrType,
+            IReadOnlyList<ITypeReference> interfaceReferences,
+            Type runtimeType,
             ICollection<InterfaceType> interfaces,
             ITypeSystemObject interfaceOrObject,
             ISyntaxNode? node)
         {
-            foreach (ITypeReference interfaceRef in definition.Interfaces)
+            foreach (ITypeReference interfaceRef in interfaceReferences)
             {
                 if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {

@@ -2,8 +2,10 @@ using System;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortTypeNameExtensions
     {
+        [Obsolete("Use HotChocolate.Data.")]
         public static ISortInputTypeNameDependencyDescriptor<T> Name<T>(
           this ISortInputTypeDescriptor<T> descriptor,
           Func<INamedType, NameString> createName)

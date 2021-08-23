@@ -7,14 +7,14 @@ namespace HotChocolate.Configuration
 {
     public class DelegateSchemaInterceptor : SchemaInterceptor
     {
-        private readonly Action<IDescriptorContext, ISchemaBuilder>? _onBeforeCreate;
-        private readonly Action<IDescriptorContext, ISchema>? _onAfterCreate;
-        private readonly Action<IDescriptorContext, Exception>? _onError;
+        private readonly OnBeforeSchemaCreate? _onBeforeCreate;
+        private readonly OnAfterSchemaCreate? _onAfterCreate;
+        private readonly OnSchemaError? _onError;
 
         public DelegateSchemaInterceptor(
-            Action<IDescriptorContext, ISchemaBuilder>? onBeforeCreate = null,
-            Action<IDescriptorContext, ISchema>? onAfterCreate = null,
-            Action<IDescriptorContext, Exception>? onError = null)
+            OnBeforeSchemaCreate? onBeforeCreate = null,
+            OnAfterSchemaCreate? onAfterCreate = null,
+            OnSchemaError? onError = null)
         {
             _onAfterCreate = onAfterCreate;
             _onBeforeCreate = onBeforeCreate;

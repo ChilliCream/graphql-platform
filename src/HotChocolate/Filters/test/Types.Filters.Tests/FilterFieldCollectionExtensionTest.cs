@@ -9,6 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class FilterFieldCollectionExtensionTest
     {
         private readonly Expression<Func<Foo, string>> _property;

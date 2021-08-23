@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Threading;
-using StrawberryShake.Tools.Config;
 using StrawberryShake.Tools.OAuth;
+using System.Text;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
 {
@@ -79,7 +79,8 @@ namespace StrawberryShake.Tools
         {
             string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
             var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
-            GraphQLConfig configuration = JsonSerializer.Deserialize<GraphQLConfig>(buffer);
+            var json = Encoding.UTF8.GetString(buffer);
+            GraphQLConfig configuration = GraphQLConfig.FromJson(json);
 
             if (configuration is not null &&
                 await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
@@ -111,7 +112,7 @@ namespace StrawberryShake.Tools
                 }
             }
 
-            return hasErrors;
+            return !hasErrors;
         }
 
         private async Task<bool> DownloadSchemaAsync(

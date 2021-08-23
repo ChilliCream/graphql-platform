@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution
@@ -40,6 +41,10 @@ namespace HotChocolate.Execution
             VariableDefinitionNode variableDefinition,
             Exception? exception = null)
         {
+            var underlyingError = exception is SerializationException serializationException
+                ? serializationException.Message
+                : null;
+
             IErrorBuilder errorBuilder = ErrorBuilder.New()
                 .SetMessage(
                     ThrowHelper_VariableValueInvalidType_Message,
@@ -51,6 +56,11 @@ namespace HotChocolate.Execution
             if (exception is not null)
             {
                 errorBuilder.SetException(exception);
+            }
+
+            if (underlyingError is not null)
+            {
+                errorBuilder.SetExtension(nameof(underlyingError), underlyingError);
             }
 
             return new GraphQLException(errorBuilder.Build());
@@ -282,8 +292,8 @@ namespace HotChocolate.Execution
                     convention.FullName ?? convention.Name)
                 .Build());
 
-        public static ObjectDisposedException Object_Returned_To_Pool() =>
-            new("The specified object was returned to the pool and is no longer usable.");
+        public static ObjectDisposedException Object_Not_Initialized() =>
+            new("The specified object was not initialized and is no longer usable.");
 
         public static GraphQLException ReadPersistedQueryMiddleware_PersistedQueryNotFound() =>
             new(ErrorBuilder.New()

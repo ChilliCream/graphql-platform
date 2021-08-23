@@ -1,28 +1,20 @@
 using System;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     internal sealed class RegisteredResolver
     {
         public RegisteredResolver(
-            Type sourceType,
-            IFieldReference field)
-            : this(sourceType, sourceType, field)
-        {
-        }
-
-        public RegisteredResolver(
-            Type resolverType,
+            Type? resolverType,
             Type sourceType,
             IFieldReference field)
         {
-            ResolverType = resolverType
-                ?? throw new ArgumentNullException(nameof(resolverType));
-            SourceType = sourceType
-                ?? throw new ArgumentNullException(nameof(sourceType));
-            Field = field
-                ?? throw new ArgumentNullException(nameof(field));
+            ResolverType = resolverType ?? sourceType;
+            SourceType = sourceType ?? throw new ArgumentNullException(nameof(sourceType));
+            Field = field ?? throw new ArgumentNullException(nameof(field));
         }
 
         public Type ResolverType { get; }

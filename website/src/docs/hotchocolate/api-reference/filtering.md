@@ -1462,7 +1462,7 @@ private static bool TryCreateStringFilter(
     IFilterConvention filterConventions,
     [NotNullWhen(true)] out FilterFieldDefintion? definition)
 {
-    if (type == typeof())
+    if (type == typeof(string))
     {
         var field = new StringFilterFieldDescriptor(context, property, filterConventions);
         definition = field.CreateDefinition();
@@ -1646,14 +1646,14 @@ public static class DateTimeFilterConventionExtensions
 `DateTime` is a new filter. Hot Chocolate is only aware of its existence because of the delegate passed to `AddImplicitFilter`
 
 ```csharp
-private static bool TryCreateDateTimeFiler(
+private static bool TryCreateDateTimeFilter(
     IDescriptorContext context,
     Type type,
     PropertyInfo property,
     IFilterConvention filterConventions,
     [NotNullWhen(true)] out FilterFieldDefintion? definition)
 {
-    if (type == typeof())
+    if (type == typeof(DateTime))
     {
         var field = new DateTimeFilterFieldDescriptor(
           context, property, filterConventions);
@@ -1863,7 +1863,9 @@ The configuration of the convention, the implicit type factory and the descirpto
 
 ## Translating Filters
 
-Hot Chocolate can translate incoming filters requests directly onto collections or even on to the database. In the default implementation, the output of this translation is a Linq expression that can be applied to `IQueryable` and `IEnumerable`. You can choose to change the expression that is generated or can even create custom output. Hot Chocolate is using visitors to translate input objects. [You find more information about visitors here.](TODO://ADDLINK).
+Hot Chocolate can translate incoming filters requests directly onto collections or even on to the database. In the default implementation, the output of this translation is a Linq expression that can be applied to `IQueryable` and `IEnumerable`. You can choose to change the expression that is generated or can even create custom output. Hot Chocolate is using visitors to translate input objects.
+
+[Learn more about visitors here](/docs/hotchocolate/api-reference/visitors).
 
 ### Expression Filters
 

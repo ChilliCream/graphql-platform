@@ -12,12 +12,13 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             context.Register(
                 new DependencyInjectionDescriptor(
-                    context.ClientName,
-                    context.Namespace,
+                    context.Client,
                     context.EntityTypes.ToList(),
                     context.Operations.ToList(),
                     context.Types,
-                    context.TransportProfiles));
+                    context.TransportProfiles,
+                    context.EntityIdFactory,
+                    context.StoreAccessor));
         }
     }
 }

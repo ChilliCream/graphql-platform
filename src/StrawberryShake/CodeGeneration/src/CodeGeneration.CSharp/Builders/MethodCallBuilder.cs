@@ -72,6 +72,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public MethodCallBuilder AddOutArgument(
+            string value,
+            string typeReference)
+        {
+            _arguments.Add(CodeInlineBuilder.New().SetText($"out {typeReference}? {value}"));
+            return this;
+        }
+
         public MethodCallBuilder SetDetermineStatement(bool value)
         {
             _determineStatement = value;

@@ -9,6 +9,7 @@ namespace HotChocolate.Types.Factories
     {
         public UnionTypeExtension Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             UnionTypeExtensionNode node)
         {
             if (bindingLookup is null)

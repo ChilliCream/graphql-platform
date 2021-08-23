@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -28,7 +27,6 @@ namespace HotChocolate.Types
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
@@ -41,28 +39,6 @@ namespace HotChocolate.Types
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
             return valueSyntax.Value != string.Empty;
-        }
-
-        /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (valueSyntax.Value == string.Empty)
-            {
-                throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (runtimeValue == string.Empty)
-            {
-                throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
-            }
-
-            return base.ParseValue(runtimeValue);
         }
 
         /// <inheritdoc />
@@ -91,6 +67,18 @@ namespace HotChocolate.Types
             }
 
             return true;
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            throw ThrowHelper.NonEmptyStringType_ParseLiteral_IsEmpty(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
+        {
+            throw ThrowHelper.NonEmptyStringType_ParseValue_IsEmpty(this);
         }
     }
 }

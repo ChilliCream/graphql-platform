@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
@@ -16,7 +17,7 @@ namespace HotChocolate.AspNetCore
     public class HttpPostMiddleware : MiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private readonly IHttpRequestParser _requestParser;
+        protected IHttpRequestParser RequestParser { get; }
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
@@ -26,34 +27,33 @@ namespace HotChocolate.AspNetCore
             NameString schemaName)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
-            _requestParser = requestParser ??
+            RequestParser = requestParser ??
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public virtual async Task InvokeAsync(HttpContext context)
         {
-            if (!HttpMethods.IsPost(context.Request.Method))
+            if (HttpMethods.IsPost(context.Request.Method) &&
+                ParseContentType(context) == AllowedContentType.Json)
+            {
+                await HandleRequestAsync(context, AllowedContentType.Json);
+            }
+            else
             {
                 // if the request is not a post request we will just invoke the next
                 // middleware and do nothing:
                 await NextAsync(context);
             }
-            else
-            {
-                AllowedContentType contentType = ParseContentType(context.Request.ContentType);
-                if (contentType == AllowedContentType.None)
-                {
-                    // the content type is unknown so we will invoke the next middleware.
-                    await NextAsync(context);
-                }
-                else
-                {
-                    await HandleRequestAsync(context, contentType);
-                }
-            }
         }
 
-        private async Task HandleRequestAsync(
+        protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
+            HttpRequest request,
+            CancellationToken cancellationToken)
+        {
+            return RequestParser.ReadJsonRequestAsync(request.Body, cancellationToken);
+        }
+
+        protected async Task HandleRequestAsync(
             HttpContext context,
             AllowedContentType contentType)
         {
@@ -69,8 +69,7 @@ namespace HotChocolate.AspNetCore
             {
                 // next we parse the GraphQL request.
                 IReadOnlyList<GraphQLRequest> requests =
-                    await _requestParser.ReadJsonRequestAsync(
-                        context.Request.Body, context.RequestAborted);
+                    await GetRequestsFromBody(context.Request, context.RequestAborted);
 
                 switch (requests.Count)
                 {
@@ -137,6 +136,12 @@ namespace HotChocolate.AspNetCore
                 statusCode = HttpStatusCode.BadRequest;
                 result = QueryResultBuilder.CreateError(errorHandler.Handle(ex.Errors));
             }
+            catch (GraphQLException ex)
+            {
+                // This allows extensions to throw GraphQL exceptions in the GraphQL interceptor.
+                statusCode = null; // we let the serializer determine the status code.
+                result = QueryResultBuilder.CreateError(ex.Errors);
+            }
             catch (Exception ex)
             {
                 statusCode = HttpStatusCode.InternalServerError;
@@ -144,10 +149,28 @@ namespace HotChocolate.AspNetCore
                 result = QueryResultBuilder.CreateError(error);
             }
 
-            // in any case we will have a valid GraphQL result at this point that can be written
-            // to the HTTP response stream.
-            Debug.Assert(result is not null, "No GraphQL result was created.");
-            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
+            try
+            {
+                // in any case we will have a valid GraphQL result at this point that can be written
+                // to the HTTP response stream.
+                Debug.Assert(result is not null!, "No GraphQL result was created.");
+                await WriteResultAsync(context.Response, result, statusCode,
+                    context.RequestAborted);
+            }
+            finally
+            {
+                // query results use pooled memory an need to be disposed after we have
+                // used them.
+                if (result is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync();
+                }
+
+                if (result is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         private static bool TryParseOperations(

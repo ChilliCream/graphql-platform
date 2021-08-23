@@ -9,6 +9,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
     {
         public OutputFieldModel(
             NameString name,
+            NameString responseName,
             string? description,
             IOutputField field,
             IOutputType type,
@@ -16,6 +17,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
             Path path)
         {
             Name = name.EnsureNotEmpty(nameof(name));
+            ResponseName = responseName.EnsureNotEmpty(nameof(responseName));
             Description = description;
             Field = field ?? throw new ArgumentNullException(nameof(field));
             SyntaxNode = syntaxNode ?? throw new ArgumentNullException(nameof(syntaxNode));
@@ -24,6 +26,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers.Models
         }
 
         public NameString Name { get; }
+
+        public NameString ResponseName { get; }
 
         public string? Description { get; }
 

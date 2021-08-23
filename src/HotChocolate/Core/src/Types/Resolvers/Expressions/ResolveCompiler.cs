@@ -32,7 +32,7 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 FieldResolverDelegate resolver;
 
-                if (descriptor.Field.Member is MethodInfo m && m.IsStatic)
+                if (descriptor.Field.Member is MethodInfo { IsStatic: true })
                 {
                     resolver = CreateResolver(
                         descriptor.Field.Member,

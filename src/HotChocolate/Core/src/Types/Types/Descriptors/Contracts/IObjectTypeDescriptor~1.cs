@@ -4,6 +4,8 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public interface IObjectTypeDescriptor<T>
@@ -25,7 +27,7 @@ namespace HotChocolate.Types
         /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The object type description.</param>
-        IObjectTypeDescriptor<T> Description(string value);
+        IObjectTypeDescriptor<T> Description(string? value);
 
         /// <summary>
         /// Defines the field binding behavior.
@@ -44,7 +46,7 @@ namespace HotChocolate.Types
         /// Explicit:
         /// All field have to be specified explicitly via
         /// <see cref="Field(Expression{Func{T, object}})"/>
-        /// or <see cref="Field(string)"/>.
+        /// or <see cref="Field(NameString)"/>.
         /// </param>
         IObjectTypeDescriptor<T> BindFields(BindingBehavior behavior);
 
@@ -63,7 +65,8 @@ namespace HotChocolate.Types
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
-        /// <typeparam name="T">The interface type.</typeparam>
+        /// <typeparam name="TInterface">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor<T> Interface<TInterface>()
             where TInterface : InterfaceType;
 
@@ -71,7 +74,8 @@ namespace HotChocolate.Types
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
-        /// <typeparam name="T">The interface type.</typeparam>
+        /// <typeparam name="TInterface">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType;
 
@@ -82,13 +86,14 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// A syntax node representing an interface type.
         /// </param>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor<T> Interface(NamedTypeNode type);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
-        /// <typeparam name="T">The interface type.</typeparam>
+        /// <typeparam name="TInterface">The interface type.</typeparam>
         IObjectTypeDescriptor<T> Implements<TInterface>()
             where TInterface : InterfaceType;
 
@@ -96,7 +101,7 @@ namespace HotChocolate.Types
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
-        /// <typeparam name="T">The interface type.</typeparam>
+        /// <typeparam name="TInterface">The interface type.</typeparam>
         IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
             where TInterface : InterfaceType;
 
@@ -132,8 +137,7 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="T"/>.
         /// </param>
-        IObjectFieldDescriptor Field(
-            Expression<Func<T, object>> propertyOrMethod);
+        IObjectFieldDescriptor Field(Expression<Func<T, object>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field.
@@ -142,8 +146,7 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="T"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(
-            Expression<Func<T, TValue>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TValue>(Expression<Func<T, TValue>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field.
@@ -161,8 +164,7 @@ namespace HotChocolate.Types
         /// <typeparamref name="TResolver"/>.
         /// The resolver type containing the property or method.
         /// </param>
-        IObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod);
+        IObjectFieldDescriptor Field<TResolver>(Expression<Func<TResolver, object>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field which is bound to a resolver type.
@@ -182,5 +184,19 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <param name="extendsType">
+        /// The type to extend.
+        /// </param>
+        IObjectTypeDescriptor ExtendsType(Type extendsType);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <typeparam name="TExtendsType">The type to extend.</typeparam>
+        IObjectTypeDescriptor ExtendsType<TExtendsType>();
     }
 }

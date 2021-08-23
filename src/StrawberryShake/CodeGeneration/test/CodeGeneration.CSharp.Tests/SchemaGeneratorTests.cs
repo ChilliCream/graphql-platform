@@ -57,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
         }
 
+        [Fact]
         public void Create_Query_With_Skip_Take()
         {
             AssertResult(
@@ -177,6 +178,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
         }
 
         [Fact]
+        public void Create_GetFeatById()
+        {
+            AssertResult(
+                @"query GetFeatById($id: Uuid!) {
+                    feats(where: {id: {eq: $id}}) {
+                        items {
+                            id,
+                            name,
+                            level,
+                            details {
+                                text
+                            }
+                        }
+                    }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
         public void Create_DataType_Query()
         {
             AssertResult(
@@ -219,6 +240,206 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("Schema_Bug_2.graphql"));
+        }
+
+        [Fact]
+        public void QueryInterference()
+        {
+            AssertResult(
+                @"query GetFeatsPage(
+                  $skip: Int!
+                  $take: Int!
+                  $searchTerm: String! = """"
+                  $order: [FeatSortInput!] = [{ name: ASC }]
+                ) {
+                  feats(
+                    skip: $skip
+                    take: $take
+                    order: $order
+                    where: {
+                      or: [
+                        { name: { contains: $searchTerm } }
+                        { traits: { some: { name: { contains: $searchTerm } } } }
+                      ]
+                    }
+                  ) {
+                    totalCount
+                    items {
+                      ...FeatsPage
+                    }
+                  }
+                }
+
+                fragment FeatsPage on Feat {
+                  id
+                  name
+                  level
+                  canBeLearnedMoreThanOnce
+                  details {
+                    text
+                  }
+                }",
+                @"query GetFeatById($id: Uuid!) {
+                  feats(where: { id: { eq: $id } }) {
+                    items {
+                      ...FeatById
+                    }
+                  }
+                }
+
+                fragment FeatById on Feat {
+                  id
+                  name
+                  level
+                  special
+                  trigger
+                  details {
+                    text
+                  }
+                  actionType {
+                    name
+                  }
+                }",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("Schema_Bug_1.graphql"));
+        }
+
+        [Fact]
+        public void NodeTypenameCollision()
+        {
+            AssertResult(
+                @"
+                type Query {
+                    node(id: ID!): Node
+                    workspaces: [Workspace!]!
+                }
+
+                interface Node {
+                    id: ID!
+                }
+
+                type Workspace implements Node {
+                    id: ID!
+                    name: String!
+                    url: String!
+                    workspaceId: String!
+                    description: String
+                }
+                ",
+                @"
+                query Nodes($id: ID!) {
+                    node(id: $id) {
+                        __typename
+                        id
+                    }
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
+        public void Full_Extension_File()
+        {
+            AssertResult(
+                strictValidation: false,
+                @"
+                    query getListingsCount {
+                        listings {
+                        ... ListingsPayload
+                        }
+                    }
+                    fragment ListingsPayload on ListingsPayload{
+                        count
+                    }
+                ",
+                FileResource.Open("BridgeClientDemo.graphql"),
+                @"scalar _KeyFieldSet
+
+                directive @key(fields: _KeyFieldSet!) on SCHEMA | OBJECT
+
+                directive @serializationType(name: String!) on SCALAR
+
+                directive @runtimeType(name: String!) on SCALAR
+
+                directive @enumValue(value: String!) on ENUM_VALUE
+
+                directive @rename(name: String!) on INPUT_FIELD_DEFINITION | INPUT_OBJECT | ENUM | ENUM_VALUE
+
+                extend schema @key(fields: ""id"")");
+        }
+
+        [Fact]
+        public void NonNullLists()
+        {
+            AssertResult(
+                @"
+                query getAll {
+                  listings {
+                    ...Offer
+                  }
+                }
+                fragment Offer on Offer {
+                   amenities1
+                   amenities2
+                   amenities3
+                   amenities4
+                   amenities5
+                   amenities6
+                   amenities7
+                }
+                ",
+                @"
+                schema {
+                  query: Query
+                  mutation: null
+                  subscription: null
+                }
+                type Query {
+                  listings: [Listing!]!
+                }
+                interface Listing{
+                  listingId: ID!
+                }
+                type Offer implements Listing{
+                  listingId: ID!
+                  amenities1: [Amenity!]!
+                  amenities2: [Amenity!]
+                  amenities3: [Amenity]!
+                  amenities4: [Amenity]
+                  amenities5: [[Amenity!]!]!
+                  amenities6: [[Amenity!]!]
+                  amenities7: [[Amenity!]]!
+                }
+                enum Amenity {
+                  ITEM1
+                  ITEM2
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
+        public void MultiLineDocumentation()
+        {
+            AssertResult(
+                @"query Foo {
+                    abc
+                }",
+                @"type Query {
+                    """"""
+                    ABC
+                    DEF
+                    """"""
+                    abc: String
+                }");
+        }
+
+        [Fact]
+        public void IntrospectionQuery()
+        {
+            AssertResult(
+                FileResource.Open("IntrospectionQuery.graphql"),
+                @"type Query {
+                    abc: String
+                }");
         }
     }
 }

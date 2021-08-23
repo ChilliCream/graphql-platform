@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Descriptors;
 using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -37,6 +38,10 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
         ClientDescriptor Client { get; }
 
+        StoreAccessorDescriptor StoreAccessor { get; }
+
+        EntityIdFactoryDescriptor EntityIdFactory { get; }
+
         void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
         void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
@@ -52,6 +57,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
         void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
         void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+
+        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
         bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
 

@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class PostalCodeTypeTests : ScalarTypeTestBase
     {
@@ -221,7 +221,7 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectDeserializeToThrowSerializationException<PostalCodeType>(value);
         }
 
         [Theory]
@@ -276,7 +276,113 @@ namespace HotChocolate.Types.Scalars
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<EmailAddressType>(value);
+            ExpectSerializeToThrowSerializationException<PostalCodeType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "44256")]
+        [InlineData(typeof(StringValueNode), "97909")]
+        [InlineData(typeof(StringValueNode), "64200")]
+        [InlineData(typeof(StringValueNode), "18000")]
+        [InlineData(typeof(StringValueNode), "98020")]
+        [InlineData(typeof(StringValueNode), "09070")]
+        [InlineData(typeof(StringValueNode), "1000 AP")]
+        [InlineData(typeof(StringValueNode), "48383")]
+        [InlineData(typeof(StringValueNode), "52070")]
+        [InlineData(typeof(StringValueNode), "2605")]
+        [InlineData(typeof(StringValueNode), "6771")]
+        [InlineData(typeof(StringValueNode), "114 55")]
+        [InlineData(typeof(StringValueNode), "1060")]
+        [InlineData(typeof(StringValueNode), "6560")]
+        [InlineData(typeof(StringValueNode), "4881")]
+        [InlineData(typeof(StringValueNode), "9485")]
+        [InlineData(typeof(StringValueNode), "EC1A 1BB")]
+        [InlineData(typeof(StringValueNode), "M1 1AE")]
+        [InlineData(typeof(StringValueNode), "B2V 0A0")]
+        [InlineData(typeof(StringValueNode), "V9E 9Z9")]
+        [InlineData(typeof(StringValueNode), "3500")]
+        [InlineData(typeof(StringValueNode), "0872")]
+        [InlineData(typeof(StringValueNode), "110091")]
+        [InlineData(typeof(StringValueNode), "4099")]
+        [InlineData(typeof(StringValueNode), "1001")]
+        [InlineData(typeof(StringValueNode), "7004")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToMatchType<PostalCodeType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("XYZ")]
+        [InlineData("XYZ ZZ")]
+        [InlineData("XYZ 12")]
+        [InlineData("XYZ 123")]
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseValueToThrowSerializationException<PostalCodeType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(StringValueNode), "44256")]
+        [InlineData(typeof(StringValueNode), "97909")]
+        [InlineData(typeof(StringValueNode), "64200")]
+        [InlineData(typeof(StringValueNode), "18000")]
+        [InlineData(typeof(StringValueNode), "98020")]
+        [InlineData(typeof(StringValueNode), "09070")]
+        [InlineData(typeof(StringValueNode), "1000 AP")]
+        [InlineData(typeof(StringValueNode), "48383")]
+        [InlineData(typeof(StringValueNode), "52070")]
+        [InlineData(typeof(StringValueNode), "2605")]
+        [InlineData(typeof(StringValueNode), "6771")]
+        [InlineData(typeof(StringValueNode), "114 55")]
+        [InlineData(typeof(StringValueNode), "1060")]
+        [InlineData(typeof(StringValueNode), "6560")]
+        [InlineData(typeof(StringValueNode), "4881")]
+        [InlineData(typeof(StringValueNode), "9485")]
+        [InlineData(typeof(StringValueNode), "EC1A 1BB")]
+        [InlineData(typeof(StringValueNode), "M1 1AE")]
+        [InlineData(typeof(StringValueNode), "B2V 0A0")]
+        [InlineData(typeof(StringValueNode), "V9E 9Z9")]
+        [InlineData(typeof(StringValueNode), "3500")]
+        [InlineData(typeof(StringValueNode), "0872")]
+        [InlineData(typeof(StringValueNode), "110091")]
+        [InlineData(typeof(StringValueNode), "4099")]
+        [InlineData(typeof(StringValueNode), "1001")]
+        [InlineData(typeof(StringValueNode), "7004")]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<PostalCodeType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("XYZ")]
+        [InlineData("XYZ ZZ")]
+        [InlineData("XYZ 12")]
+        [InlineData("XYZ 123")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<PostalCodeType>(value);
         }
     }
 }

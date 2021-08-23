@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(error));
             }
 
-            AssertNotPooled();
+            AssertInitialized();
             error = ErrorHandler.Handle(error);
             Result.AddError(error);
             DiagnosticEvents.TaskError(task, error);
@@ -34,19 +34,19 @@ namespace HotChocolate.Execution.Processing
 
         void IExecutionTaskContext.Started()
         {
-            AssertNotPooled();
+            AssertInitialized();
             Execution.TaskStats.TaskStarted();
         }
 
         void IExecutionTaskContext.Completed()
         {
-            AssertNotPooled();
+            AssertInitialized();
             Execution.TaskStats.TaskCompleted();
         }
 
         IDisposable IExecutionTaskContext.Track(IExecutionTask task)
         {
-            AssertNotPooled();
+            AssertInitialized();
             return DiagnosticEvents.RunTask(task);
         }
     }

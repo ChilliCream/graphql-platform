@@ -15,5 +15,8 @@ namespace HotChocolate.AspNetCore.Serialization
 
         GraphQLRequest ReadParamsRequest(
             IQueryCollection parameters);
+
+        IReadOnlyList<GraphQLRequest> ReadOperationsRequest(
+            string operations);
     }
 }

@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Caching;
+using HotChocolate.Language;
 using HotChocolate.Stitching.Schemas.Accounts;
 using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
@@ -18,6 +20,7 @@ using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -44,18 +47,19 @@ namespace HotChocolate.Stitching.Integration
         public async Task AutoMerge_Schema()
         {
             // arrange
+            using var cts = new CancellationTokenSource(20_000);
             NameString configurationName = "C" + Guid.NewGuid().ToString("N");
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (var i = 0; i < 10; i++)
+            while(!cts.IsCancellationRequested)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
                     break;
                 }
 
-                await Task.Delay(150);
+                await Task.Delay(150, cts.Token);
             }
 
             // act
@@ -64,9 +68,9 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchemasFromRedis(configurationName, s => _connection)
+                    .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                     .ModifyOptions(o => o.SortFieldsByName = true)
-                    .BuildSchemaAsync();
+                    .BuildSchemaAsync(cancellationToken: cts.Token);
 
             // assert
             schema.Print().MatchSnapshot();
@@ -76,19 +80,20 @@ namespace HotChocolate.Stitching.Integration
         public async Task AutoMerge_HotReload_Schema()
         {
             // arrange
+            using var cts = new CancellationTokenSource(20_000);
             NameString configurationName = "C" + Guid.NewGuid().ToString("N");
             var schemaDefinitionV2 = FileResource.Open("AccountSchemaDefinition.json");
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
 
             IDatabase database = _connection.GetDatabase();
-            for (var i = 0; i < 10; i++)
+            while(!cts.IsCancellationRequested)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
                     break;
                 }
 
-                await Task.Delay(150);
+                await Task.Delay(150, cts.Token);
             }
 
             IRequestExecutorResolver executorResolver =
@@ -96,15 +101,15 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchemasFromRedis(configurationName, s => _connection)
+                    .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
                     .Services
                     .BuildServiceProvider()
                     .GetRequiredService<IRequestExecutorResolver>();
 
-            await executorResolver.GetRequestExecutorAsync();
+            await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
             var raised = false;
 
-            executorResolver.RequestExecutorEvicted += (sender, args) =>
+            executorResolver.RequestExecutorEvicted += (_, args) =>
             {
                 if (args.Name.Equals(Schema.DefaultName))
                 {
@@ -117,39 +122,126 @@ namespace HotChocolate.Stitching.Integration
             await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
             await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
 
-            for (var i = 0; i < 10; i++)
+            while(!cts.IsCancellationRequested)
             {
                 if (raised)
                 {
                     break;
                 }
 
-                await Task.Delay(150);
+                await Task.Delay(150, cts.Token);
             }
 
             // assert
             Assert.True(raised, "schema evicted.");
-            IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
+            IRequestExecutor executor =
+                await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
             ObjectType type = executor.Schema.GetType<ObjectType>("User");
             Assert.True(type.Fields.ContainsField("foo"), "foo field exists.");
         }
 
         [Fact]
-        public async Task AutoMerge_Execute()
+        public async Task AutoMerge_HotReload_ClearOperationCaches()
         {
             // arrange
+            using var cts = new CancellationTokenSource(20_000);
             NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+            var schemaDefinitionV2 = FileResource.Open("AccountSchemaDefinition.json");
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+            var queryHash = "abc";
 
             IDatabase database = _connection.GetDatabase();
-            for (var i = 0; i < 10; i++)
+            while(!cts.IsCancellationRequested)
             {
                 if (await database.SetLengthAsync(configurationName.Value) == 4)
                 {
                     break;
                 }
 
-                await Task.Delay(150);
+                await Task.Delay(150, cts.Token);
+            }
+
+            ServiceProvider serviceProvider =
+                new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query").Field("foo").Resolver("foo"))
+                    .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutorResolver executorResolver =
+                serviceProvider.GetRequiredService<IRequestExecutorResolver>();
+            IDocumentCache documentCache =
+                serviceProvider.GetRequiredService<IDocumentCache>();
+            IPreparedOperationCache preparedOperationCache =
+                serviceProvider.GetRequiredService<IPreparedOperationCache>();
+
+            await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
+            var raised = false;
+
+            executorResolver.RequestExecutorEvicted += (_, args) =>
+            {
+                if (args.Name.Equals(Schema.DefaultName))
+                {
+                    raised = true;
+                }
+            };
+
+            Assert.False(documentCache.TryGetDocument(queryHash, out _));
+            Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
+
+            IRequestExecutor requestExecutor =
+                await executorResolver.GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+            await requestExecutor
+                .ExecuteAsync(QueryRequestBuilder
+                    .New()
+                    .SetQuery(document)
+                    .SetQueryHash(queryHash)
+                    .Create(),
+                    cts.Token);
+
+            Assert.True(preparedOperationCache.TryGetOperation("_Default-1-abc", out _));
+
+            // act
+            await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
+            await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
+
+            while(!cts.IsCancellationRequested)
+            {
+                if (raised)
+                {
+                    break;
+                }
+
+                await Task.Delay(150, cts.Token);
+            }
+
+            // assert
+            Assert.True(documentCache.TryGetDocument(queryHash, out _));
+            Assert.False(preparedOperationCache.TryGetOperation(queryHash, out _));
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(20_000);
+            NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
+
+            IDatabase database = _connection.GetDatabase();
+
+            while(!cts.IsCancellationRequested)
+            {
+                if (await database.SetLengthAsync(configurationName.Value) == 4)
+                {
+                    break;
+                }
+
+                await Task.Delay(150, cts.Token);
             }
 
             IRequestExecutor executor =
@@ -157,8 +249,8 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchemasFromRedis(configurationName, s => _connection)
-                    .BuildRequestExecutorAsync();
+                    .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
+                    .BuildRequestExecutorAsync(cancellationToken: cts.Token);
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -173,41 +265,45 @@ namespace HotChocolate.Stitching.Integration
                             }
                         }
                     }
-                }");
+                }",
+                cts.Token);
 
             // assert
             result.ToJson().MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Test is flaky")]
         public async Task AutoMerge_AddLocal_Field_Execute()
         {
-            // arrange
-            NameString configurationName = "C" + Guid.NewGuid().ToString("N");
-            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas(configurationName);
-
-            IDatabase database = _connection.GetDatabase();
-            for (var i = 0; i < 10; i++)
+            await TryTest(async ct =>
             {
-                if (await database.SetLengthAsync(configurationName.Value) == 4)
+                // arrange
+                NameString configurationName = "C" + Guid.NewGuid().ToString("N");
+                IHttpClientFactory httpClientFactory =
+                    CreateDefaultRemoteSchemas(configurationName);
+
+                IDatabase database = _connection.GetDatabase();
+                while (!ct.IsCancellationRequested)
                 {
-                    break;
+                    if (await database.SetLengthAsync(configurationName.Value) == 4)
+                    {
+                        break;
+                    }
+
+                    await Task.Delay(150, ct);
                 }
 
-                await Task.Delay(150);
-            }
+                IRequestExecutor executor =
+                    await new ServiceCollection()
+                        .AddSingleton(httpClientFactory)
+                        .AddGraphQL(configurationName)
+                        .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                        .AddRemoteSchemasFromRedis(configurationName, _ => _connection)
+                        .BuildRequestExecutorAsync(configurationName, ct);
 
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddSingleton(httpClientFactory)
-                    .AddGraphQL(configurationName)
-                    .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
-                    .AddRemoteSchemasFromRedis(configurationName, s => _connection)
-                    .BuildRequestExecutorAsync(configurationName);
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"{
+                // act
+                IExecutionResult result = await executor.ExecuteAsync(
+                    @"{
                     me {
                         id
                         name
@@ -219,10 +315,12 @@ namespace HotChocolate.Stitching.Integration
                         }
                     }
                     local
-                }");
+                }",
+                ct);
 
-            // assert
-            result.ToJson().MatchSnapshot();
+                // assert
+                result.ToJson().MatchSnapshot();
+            });
         }
 
         public TestServer CreateAccountsService(NameString configurationName) =>
@@ -244,7 +342,7 @@ namespace HotChocolate.Stitching.Integration
                             extend type Review {
                                 author: User @delegate(path: ""user(id: $fields:authorId)"")
                             }")
-                        .PublishToRedis(configurationName, sp => _connection)),
+                        .PublishToRedis(configurationName, _ => _connection)),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -269,7 +367,7 @@ namespace HotChocolate.Stitching.Integration
                                 shippingEstimate: Int
                                     @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
                             }")
-                        .PublishToRedis(configurationName, sp => _connection)),
+                        .PublishToRedis(configurationName, _ => _connection)),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -294,7 +392,7 @@ namespace HotChocolate.Stitching.Integration
                             extend type Review {
                                 product: Product @delegate(path: ""product(upc: $fields:upc)"")
                             }")
-                        .PublishToRedis(configurationName, sp => _connection)),
+                        .PublishToRedis(configurationName, _ => _connection)),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -321,7 +419,7 @@ namespace HotChocolate.Stitching.Integration
                                 reviews: [Review]
                                     @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
                             }")
-                        .PublishToRedis(configurationName, sp => _connection)),
+                        .PublishToRedis(configurationName, _ => _connection)),
                 app => app
                     .UseWebSockets()
                     .UseRouting()

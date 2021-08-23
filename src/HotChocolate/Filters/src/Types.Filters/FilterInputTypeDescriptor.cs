@@ -14,6 +14,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterInputTypeDescriptor<T>
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
@@ -84,9 +85,10 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
         {
-            if (Definition.EntityType is { })
+            if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();

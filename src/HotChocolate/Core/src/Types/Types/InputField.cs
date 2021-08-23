@@ -23,18 +23,13 @@ namespace HotChocolate.Types
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
 
-            if (definition.Formatters.Count == 0)
+            IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+            Formatter = formatters.Count switch
             {
-                Formatter = null;
-            }
-            else if (definition.Formatters.Count == 1)
-            {
-                Formatter = definition.Formatters[0];
-            }
-            else
-            {
-                Formatter = new AggregateInputValueFormatter(definition.Formatters);
-            }
+                0 => null,
+                1 => formatters[0],
+                _ => new AggregateInputValueFormatter(formatters)
+            };
 
             Type? propertyType = definition.Property?.PropertyType;
 

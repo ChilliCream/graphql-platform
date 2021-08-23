@@ -1,8 +1,7 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `HexColor` scalar type represents a valid HEX color code as defined in
@@ -17,20 +16,36 @@ namespace HotChocolate.Types.Scalars
         /// Initializes a new instance of the <see cref="HexColorType"/> class.
         /// </summary>
         public HexColorType()
-            : base(
+            : this(
                 WellKnownScalarTypes.HexColor,
-                _validationPattern,
-                ScalarResources.HexColorType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                ScalarResources.HexColorType_Description)
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HexColorType"/> class.
+        /// </summary>
+        public HexColorType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(
+                name,
+                _validationPattern,
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
+        {
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.HexColorType_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.HexColorType_ParseValue_IsInvalid(this);
         }

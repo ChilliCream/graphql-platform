@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Factories
     {
         public InputObjectTypeExtension Create(
             IBindingLookup bindingLookup,
+            IReadOnlySchemaOptions schemaOptions,
             InputObjectTypeExtensionNode node)
         {
             if (bindingLookup is null)
@@ -39,12 +40,13 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
-                DeclareFields(bindingInfo, d, node);
+                DeclareFields(bindingInfo, schemaOptions, d, node);
             });
         }
 
         private static void DeclareFields(
             ITypeBindingInfo bindingInfo,
+            IReadOnlySchemaOptions schemaOptions,
             IInputObjectTypeDescriptor typeDescriptor,
             InputObjectTypeExtensionNode node)
         {
@@ -56,7 +58,7 @@ namespace HotChocolate.Types.Factories
                     .Field(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
-                    .SyntaxNode(inputField);
+                    .SyntaxNode(schemaOptions.PreserveSyntaxNodes ? inputField : null);
 
                 if (inputField.DefaultValue is { })
                 {

@@ -1,13 +1,8 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
-import { Tab, TabProps } from "./tab";
-import { Panel, PanelProps } from "./panel";
+import React, { createContext, FC, ReactNode, useContext } from "react";
 import { List } from "./list";
+import { Panel, PanelProps } from "./panel";
+import { Tab, TabProps } from "./tab";
+import { useActiveTab } from "./tab-groups";
 
 interface TabsContext {
   activeTab: string;
@@ -15,33 +10,33 @@ interface TabsContext {
 }
 
 export interface TabsComposition {
-  Tab: FunctionComponent<TabProps>;
-  Panel: FunctionComponent<PanelProps>;
-  List: FunctionComponent;
+  Tab: FC<TabProps>;
+  Panel: FC<PanelProps>;
+  List: FC;
 }
 
 const TabsContext = createContext<TabsContext | undefined>(undefined);
 
 export interface TabsProps {
-  defaultValue: string;
+  readonly defaultValue: string;
+  readonly groupId?: string;
+  readonly children: ReactNode;
 }
 
-export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
+export const Tabs: FC<TabsProps> & TabsComposition = ({
   defaultValue,
+  groupId,
   children,
 }) => {
-  const [activeTab, setActiveTab] = useState(defaultValue);
-
-  const memoizedContextValue = useMemo(
-    () => ({
-      activeTab,
-      setActiveTab,
-    }),
-    [activeTab, setActiveTab]
-  );
+  const [activeTab, setActiveTab] = useActiveTab(defaultValue, groupId);
 
   return (
-    <TabsContext.Provider value={memoizedContextValue}>
+    <TabsContext.Provider
+      value={{
+        activeTab,
+        setActiveTab,
+      }}
+    >
       {children}
     </TabsContext.Provider>
   );

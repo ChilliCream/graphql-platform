@@ -7,6 +7,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
     public class OperationGeneratorTests
     {
         [Fact]
+        public void Response_Name_Is_Correctly_Cased()
+        {
+            AssertResult(
+                @"query GetSomething{ bar_baz_foo : foo_bar_baz }",
+                @"type Query {
+                    foo_bar_baz: String
+                }",
+                "extend schema @key(fields: \"id\")");
+        }
+
+        [Fact]
         public void Operation_With_MultipleOperations()
         {
             AssertResult(
@@ -41,6 +52,17 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 FileResource.Open("ChatOperations.graphql"),
                 FileResource.Open("Schema.extensions.graphql"),
                 FileResource.Open("ChatSchema.graphql"));
+        }
+
+        [Fact]
+        public void Nullable_List_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "input Bar { baz: [Baz] }",
+                "input Baz { qux: String }",
+                "extend schema @key(fields: \"id\")");
         }
     }
 }

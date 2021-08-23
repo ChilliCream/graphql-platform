@@ -12,6 +12,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _child = "child";
 
         private void AddArrayHandler(
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder methodBuilder,
@@ -23,12 +24,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddParameter(_list)
                 .SetType(listTypeDescriptor.ToStateTypeReference());
 
+            if (settings.IsStoreEnabled())
+            {
+                methodBuilder
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
+
             var listVarName = GetParameterName(listTypeDescriptor.Name) + "s";
 
-            if (!isNonNullable)
-            {
-                methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
-            }
+            methodBuilder.AddCode(EnsureProperNullability(_list, isNonNullable));
 
             methodBuilder.AddCode(
                 AssignmentBuilder
@@ -40,7 +45,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .AddCode("new ")
                             .AddCode(TypeNames.List)
                             .AddCode("<")
-                            .AddCode(listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
+                            .AddCode(
+                                listTypeDescriptor.InnerType.ToTypeReference().SkipTrailingSpace())
                             .AddCode(">")
                             .AddCode("()")));
             methodBuilder.AddEmptyLine();
@@ -59,7 +65,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                         .AddArgument(MethodCallBuilder
                             .Inline()
                             .SetMethodName(MapMethodNameFromTypeName(listTypeDescriptor.InnerType))
-                            .AddArgument(_child)));
+                            .AddArgument(_child)
+                            .If(settings.IsStoreEnabled(), x => x.AddArgument(_snapshot))));
 
             methodBuilder
                 .AddCode(forEachBuilder)
@@ -67,6 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddCode($"return {listVarName};");
 
             AddMapMethod(
+                settings,
                 listVarName,
                 listTypeDescriptor.InnerType,
                 classBuilder,

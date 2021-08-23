@@ -11,6 +11,7 @@ using StrawberryShake.CodeGeneration.Extensions;
 using TypeKind = StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors.TypeKind;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
+using StrawberryShake.CodeGeneration.Utilities;
 
 namespace StrawberryShake.CodeGeneration.Mappers
 {
@@ -71,7 +72,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         typeDescriptors,
                         outputType,
                         unionTypes,
-                        TypeKind.ResultType);
+                        TypeKind.Result);
                 }
 
                 foreach (var outputType in operation.OutputTypes.Where(t => !t.IsInterface))
@@ -90,7 +91,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     typeDescriptors,
                     operation.ResultType,
                     unionTypes,
-                    TypeKind.ResultType,
+                    TypeKind.Result,
                     operation);
 
                 foreach (var outputType in operation.OutputTypes.Where(t => t.IsInterface))
@@ -149,7 +150,6 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     unionTypes,
                     descriptorModel,
                     kind);
-
             }
 
             typeDescriptors.Add(outputType.Name, descriptorModel);
@@ -158,6 +158,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         private static void ExtractTypeKindAndParentRuntimeType(
             IMapperContext context,
             OutputTypeModel outputType,
+            IEnumerable<ObjectTypeDescriptor>? implementedBy,
             out TypeKind fallbackKind,
             out RuntimeTypeInfo? parentRuntimeType)
         {
@@ -166,14 +167,35 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             if (outputType.Type.IsEntity())
             {
-                fallbackKind = TypeKind.EntityType;
+                fallbackKind = TypeKind.Entity;
             }
             else
             {
                 if (outputType.Type.IsAbstractType())
                 {
-                    fallbackKind = TypeKind.ComplexDataType;
-                    parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                    switch (outputType.Type)
+                    {
+                        // if the output type is a union of which all types are entities,
+                        // then the union is an also considered an entity.
+                        case UnionType typeA when typeA.Types.Values.All(t => t.IsEntity()):
+                            fallbackKind = TypeKind.Entity;
+                            break;
+
+                        case UnionType typeB when typeB.Types.Values.Any(t => t.IsEntity()):
+                            fallbackKind = TypeKind.EntityOrData;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
+                        case InterfaceType when implementedBy is not null &&
+                            implementedBy.Any(t => t.IsEntity()):
+                            fallbackKind = TypeKind.EntityOrData;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
+
+                        default:
+                            fallbackKind = TypeKind.AbstractData;
+                            parentRuntimeTypeName = GetInterfaceName(outputType.Type.Name);
+                            break;
+                    }
                 }
                 else
                 {
@@ -190,8 +212,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
                     fallbackKind =
                         parentRuntimeTypeName == outputType.Type.Name
-                            ? TypeKind.DataType
-                            : TypeKind.ComplexDataType;
+                            ? TypeKind.Data
+                            : TypeKind.AbstractData;
                 }
             }
 
@@ -199,7 +221,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             {
                 parentRuntimeType =
                     new RuntimeTypeInfo(
-                        NamingConventions.CreateDataTypeName(parentRuntimeTypeName),
+                        CreateDataTypeName(parentRuntimeTypeName),
                         CreateStateNamespace(context.Namespace));
             }
         }
@@ -210,16 +232,19 @@ namespace StrawberryShake.CodeGeneration.Mappers
             OutputTypeModel outputType,
             TypeKind kind)
         {
-            if (kind == TypeKind.ResultType && outputType.Implements.Count > 0)
+            if (kind == TypeKind.Result && outputType.Implements.Count > 0)
             {
                 RuntimeTypeInfo runtimeType =
                     ExtractRuntimeType(
-                        clientModel, 
-                        context, 
-                        outputType.Implements.Single(), 
+                        clientModel,
+                        context,
+                        outputType.Implements.Single(),
                         kind);
 
-                return new NameString[] { runtimeType.Name };
+                return new NameString[]
+                {
+                    runtimeType.Name
+                };
             }
 
             return outputType.Implements
@@ -235,7 +260,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         {
             RuntimeTypeInfo runtimeType;
 
-            if (kind == TypeKind.ResultType)
+            if (kind == TypeKind.Result)
             {
                 NameString resultTypeName = CreateResultRootTypeName(outputType.Name);
                 if (clientModel.OutputTypes.Any(t => t.Name.Equals(resultTypeName)))
@@ -256,7 +281,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             if (!context.Register(outputType.Name, kind, runtimeType))
             {
-               throw ThrowHelper.TypeNameCollision(runtimeType.Name);
+                throw ThrowHelper.TypeNameCollision(runtimeType.Name);
             }
 
             return runtimeType;
@@ -283,10 +308,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ExtractTypeKindAndParentRuntimeType(
                 context,
                 outputType,
-                out var extractedKind,
-                out var parentRuntimeType);
+                implementedBy,
+                out TypeKind extractedKind,
+                out RuntimeTypeInfo? parentRuntimeType);
 
-            var typeKind = kind ?? extractedKind;
+            TypeKind typeKind = kind ?? extractedKind;
 
             IReadOnlyList<NameString> implements =
                 ExtractImplementsBy(model, context, outputType, typeKind);
@@ -316,10 +342,11 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ExtractTypeKindAndParentRuntimeType(
                 context,
                 outputType,
-                out var extractedKind,
-                out var parentRuntimeType);
+                Array.Empty<ObjectTypeDescriptor>(),
+                out TypeKind extractedKind,
+                out RuntimeTypeInfo? parentRuntimeType);
 
-            var typeKind = kind ?? extractedKind;
+            TypeKind typeKind = kind ?? extractedKind;
 
             IReadOnlyList<NameString> implements =
                 ExtractImplementsBy(model, context, outputType, typeKind);
@@ -392,6 +419,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                     properties.Add(
                         new PropertyDescriptor(
                             field.Name,
+                            field.ResponseName,
                             BuildFieldType(
                                 field.Type,
                                 fieldType),
@@ -418,7 +446,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         new(enumTypeModel.Name, context.Namespace, isValueType: true),
                         enumTypeModel.UnderlyingType is null
                             ? null
-                            : TypeInfos.From(enumTypeModel.UnderlyingType),
+                            : model.Schema.GetOrCreateTypeInfo(enumTypeModel.UnderlyingType),
                         enumTypeModel.Values
                             .Select(
                                 t => new EnumValueDescriptor(t.Name, t.Value.Name, t.Description))
@@ -431,8 +459,8 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 {
                     descriptor = new ScalarTypeDescriptor(
                         leafType.Name,
-                        TypeInfos.From(leafType.RuntimeType),
-                        TypeInfos.From(leafType.SerializationType));
+                        model.Schema.GetOrCreateTypeInfo(leafType.RuntimeType),
+                        model.Schema.GetOrCreateTypeInfo(leafType.SerializationType));
 
                     leafTypeDescriptors.Add(leafType.Name, descriptor);
                 }

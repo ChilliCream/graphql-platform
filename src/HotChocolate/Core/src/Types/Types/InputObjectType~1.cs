@@ -3,12 +3,14 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class InputObjectType<T>
         : InputObjectType
     {
-        private readonly Action<IInputObjectTypeDescriptor<T>> _configure;
+        private Action<IInputObjectTypeDescriptor<T>>? _configure;
 
         public InputObjectType()
         {
@@ -21,14 +23,15 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        #region Configuration
-
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = InputObjectTypeDescriptor.New<T>(
-                context.DescriptorContext);
-            _configure(descriptor);
+            var descriptor =
+                InputObjectTypeDescriptor.New<T>(context.DescriptorContext);
+
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
@@ -42,7 +45,5 @@ namespace HotChocolate.Types
         {
             throw new NotSupportedException();
         }
-
-        #endregion
     }
 }

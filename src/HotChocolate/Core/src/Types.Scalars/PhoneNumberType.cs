@@ -1,8 +1,7 @@
-using System;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The `PhoneNumber` scalar type scalar type represents a value that conforms to the standard
@@ -15,25 +14,40 @@ namespace HotChocolate.Types.Scalars
         /// </summary>
         private const string _validationPattern = "^\\+[1-9]\\d{1,14}$";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PhoneNumberType"/> class.
+        /// </summary>
+        public PhoneNumberType()
+            : this(
+                WellKnownScalarTypes.PhoneNumber,
+                ScalarResources.PhoneNumberType_Description)
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PhoneNumberType"/>
         /// </summary>
-        public PhoneNumberType()
+        public PhoneNumberType(
+            NameString name,
+            string? description = null,
+            BindingBehavior bind = BindingBehavior.Explicit)
             : base(
-                WellKnownScalarTypes.PhoneNumber,
+                name,
                 _validationPattern,
-                ScalarResources.PhoneNumberType_Description,
-                RegexOptions.Compiled | RegexOptions.IgnoreCase)
+                description,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                bind)
         {
         }
 
-        protected override Exception CreateParseLiteralError(StringValueNode valueSyntax)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
             return ThrowHelper.PhoneNumber_ParseLiteral_IsInvalid(this);
         }
 
-        protected override Exception CreateParseValueError(string runtimeValue)
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
             return ThrowHelper.PhoneNumber_ParseValue_IsInvalid(this);
         }

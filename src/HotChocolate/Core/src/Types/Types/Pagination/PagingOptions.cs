@@ -20,5 +20,10 @@ namespace HotChocolate.Types.Pagination
         /// shall be included into the paging result type.
         /// </summary>
         public bool? IncludeTotalCount { get; set; }
+
+        /// <summary>
+        /// Defines if backward pagination is allowed or deactivated
+        /// </summary>
+        public bool? AllowBackwardPagination { get; set; }
     }
 }

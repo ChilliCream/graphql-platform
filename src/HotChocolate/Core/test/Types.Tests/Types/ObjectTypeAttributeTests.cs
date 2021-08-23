@@ -195,13 +195,13 @@ namespace HotChocolate.Types
             }
         }
 
-        [ObjectType(Name = "Query")]
+        [ObjectType("Query")]
         public struct StructQuery
         {
             public string? Foo { get; }
         }
 
-        [ExtendObjectType(Name = "Query")]
+        [ExtendObjectType("Query")]
         public class StructQueryExtension
         {
             public string? Bar { get; }

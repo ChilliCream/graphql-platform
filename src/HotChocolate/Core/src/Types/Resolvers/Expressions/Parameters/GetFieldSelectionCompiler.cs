@@ -2,6 +2,9 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -10,11 +13,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         where T : IResolverContext
     {
         private readonly PropertyInfo _fieldSelection;
+        private readonly PropertyInfo _syntaxNode;
 
         public GetFieldSelectionCompiler()
         {
-            _fieldSelection = ContextTypeInfo.GetProperty(
-                nameof(IResolverContext.FieldSelection));
+            _fieldSelection =
+                ContextTypeInfo.GetProperty(nameof(IResolverContext.Selection))!;
+             _syntaxNode =
+                 _fieldSelection.PropertyType.GetProperty(nameof(IFieldSelection.SyntaxNode))!;
         }
 
         public override bool CanHandle(
@@ -27,7 +33,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            return Expression.Property(context, _fieldSelection);
+            return Expression.Property(
+                Expression.Convert(
+                    Expression.Property(context, _fieldSelection),
+                    typeof(IFieldSelection)),
+                _syntaxNode);
         }
     }
 }

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
+using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
 namespace StrawberryShake.CodeGeneration
 {
-    public static class TypeInfos
+    public class TypeInfos
     {
-        private static readonly Dictionary<string, RuntimeTypeInfo> _infos = new()
+        private readonly Dictionary<string, RuntimeTypeInfo> _infos = new()
         {
             { IEntityStore, new RuntimeTypeInfo(IEntityStore) },
             { EntityStore, new RuntimeTypeInfo(EntityStore) },
@@ -102,12 +103,14 @@ namespace StrawberryShake.CodeGeneration
             { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) }
         };
 
-        public static RuntimeTypeInfo From(string fullTypeName) =>
-            _infos[fullTypeName];
-
-        public static RuntimeTypeInfo GetOrCreate(string fullTypeName) =>
+        public RuntimeTypeInfo GetOrCreate(string fullTypeName, bool valueType = false) =>
             _infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo)
                 ? typeInfo
-                : new(fullTypeName);
+                : new(fullTypeName, valueType);
+
+        public RuntimeTypeInfo TryCreate(RuntimeTypeDirective runtimeType) =>
+            _infos.TryGetValue(runtimeType.Name, out RuntimeTypeInfo? typeInfo)
+                ? typeInfo
+                : new(runtimeType.Name, runtimeType.ValueType ?? false);
     }
 }

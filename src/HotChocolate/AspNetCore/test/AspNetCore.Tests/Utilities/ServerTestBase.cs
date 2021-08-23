@@ -34,6 +34,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
+                        .AddTypeExtension<SubscriptionsExtensions>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
@@ -65,7 +66,9 @@ namespace HotChocolate.AspNetCore.Utilities
                                 .Argument("d", t => t.Type<DecimalType>())
                                 .Type<DecimalType>()
                                 .Resolve(c => c.ArgumentValue<decimal?>("d"));
-                        });
+                        })
+                        .AddGraphQLServer("upload")
+                        .AddQueryType<UploadQuery>();
 
                     configureServices?.Invoke(services);
                 },
@@ -79,6 +82,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
+                        endpoints.MapGraphQL("/upload", "upload");
                     }));
         }
     }

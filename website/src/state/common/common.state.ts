@@ -1,16 +1,14 @@
 export interface CommonState {
-  expandedPaths: string[];
-  searchQuery: string;
-  showAside: boolean;
-  showCookieConsent: boolean;
-  showTOC: boolean;
-  showLegacyDocInfo: boolean;
-  yScrollPosition: number;
-  articleViewportHeight: string;
+  readonly searchQuery: string;
+  readonly showAside: boolean;
+  readonly showCookieConsent: boolean;
+  readonly showTOC: boolean;
+  readonly showLegacyDocInfo: boolean;
+  readonly yScrollPosition: number;
+  readonly articleViewportHeight: string;
 }
 
 export const initialState: CommonState = {
-  expandedPaths: [],
   searchQuery: "",
   showAside: false,
   showCookieConsent: false,

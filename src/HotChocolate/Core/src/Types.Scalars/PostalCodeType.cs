@@ -2,7 +2,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The PostalCode scalar type represents a valid postal code.
@@ -55,7 +55,6 @@ namespace HotChocolate.Types.Scalars
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
@@ -68,28 +67,6 @@ namespace HotChocolate.Types.Scalars
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
             return ValidatePostCode(valueSyntax.Value);
-        }
-
-        /// <inheritdoc />
-        protected override string ParseLiteral(StringValueNode valueSyntax)
-        {
-            if (!ValidatePostCode(valueSyntax.Value))
-            {
-                throw ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
-            }
-
-            return base.ParseLiteral(valueSyntax);
-        }
-
-        /// <inheritdoc />
-        protected override StringValueNode ParseValue(string runtimeValue)
-        {
-            if (!ValidatePostCode(runtimeValue))
-            {
-                throw ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
-            }
-
-            return base.ParseValue(runtimeValue);
         }
 
         /// <inheritdoc />
@@ -130,6 +107,18 @@ namespace HotChocolate.Types.Scalars
 
             runtimeValue = null;
             return false;
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            return ThrowHelper.PostalCodeType_ParseLiteral_IsInvalid(this);
+        }
+
+        /// <inheritdoc />
+        protected override SerializationException CreateParseValueError(object runtimeValue)
+        {
+            return ThrowHelper.PostalCodeType_ParseValue_IsInvalid(this);
         }
 
         private static bool ValidatePostCode(string postCode)

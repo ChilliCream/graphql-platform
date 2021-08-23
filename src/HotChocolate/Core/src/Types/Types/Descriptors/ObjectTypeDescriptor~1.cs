@@ -2,8 +2,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class ObjectTypeDescriptor<T>
-        : ObjectTypeDescriptorBase<T>
+    public class ObjectTypeDescriptor<T> : ObjectTypeDescriptorBase<T>
     {
         protected internal ObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -12,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal ObjectTypeDescriptor(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             ObjectTypeDefinition definition)
             : base(context, definition)
         {

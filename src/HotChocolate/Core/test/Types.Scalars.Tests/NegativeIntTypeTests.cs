@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class NegativeIntTypeTests : ScalarTypeTestBase
     {
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Scalars
         [InlineData(1)]
         [InlineData(true)]
         [InlineData("")]
-        public void ParseLiteral_GivenObject_ThrowSerializationException(object value)
+        public void ParseValue_GivenObject_ThrowSerializationException(object value)
         {
             // arrange
             // act
@@ -178,6 +178,32 @@ namespace HotChocolate.Types.Scalars
             // act
             // assert
             ExpectSerializeToThrowSerializationException<NegativeIntType>(value);
+        }
+
+        [Theory]
+        [InlineData(typeof(IntValueNode), -12)]
+        [InlineData(typeof(NullValueNode), null)]
+        public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToMatchType<NegativeIntType>(value, type);
+        }
+
+        [Theory]
+        [InlineData(TestEnum.Foo)]
+        [InlineData(1d)]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(true)]
+        [InlineData("")]
+        public void ParseResult_GivenObject_ThrowSerializationException(object value)
+        {
+            // arrange
+            // act
+            // assert
+            ExpectParseResultToThrowSerializationException<NegativeIntType>(value);
         }
     }
 }

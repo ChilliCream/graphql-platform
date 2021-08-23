@@ -21,7 +21,9 @@ namespace StrawberryShake.Integration
                 throw new ArgumentNullException(nameof(droidHeroMapper));
         }
 
-        public GetHeroResult Create(IOperationResultDataInfo dataInfo)
+        public GetHeroResult Create(
+            IOperationResultDataInfo dataInfo,
+            IEntityStoreSnapshot? snapshot = null)
         {
             if (dataInfo is GetHeroResultInfo info)
             {

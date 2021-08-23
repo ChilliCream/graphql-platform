@@ -2,13 +2,14 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Properties;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class WebSocketSession : ISocketSession
     {
-        private readonly Pipe _pipe = new Pipe();
+        private readonly Pipe _pipe = new();
         private readonly ISocketConnection _connection;
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
@@ -39,17 +40,33 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     _keepAlive.Begin(cts.Token);
                     _messageProcessor.Begin(cts.Token);
-                    await _messageReceiver.ReceiveAsync(cts.Token)
-                        ;
+                    await _messageReceiver.ReceiveAsync(cts.Token);
+                }
+                catch(OperationCanceledException) when (cts.Token.IsCancellationRequested)
+                {
+                    // OperationCanceledException are caught and will not
+                    // bubble further. We will just close the current subscription
+                    // context.
                 }
                 finally
                 {
-                    cts.Cancel();
-                    await _connection.CloseAsync(
-                            "Session ended.",
+                    try
+                    {
+                        if (!cts.IsCancellationRequested)
+                        {
+                            cts.Cancel();
+                        }
+
+                        await _connection.CloseAsync(
+                            AspNetCoreResources.WebSocketSession_SessionEnded,
                             SocketCloseStatus.NormalClosure,
-                            CancellationToken.None)
-                        ;
+                            CancellationToken.None);
+                    }
+                    catch
+                    {
+                        // original exception must not be lost if new exception occurs
+                        // during closing session
+                    }
                 }
             }
         }

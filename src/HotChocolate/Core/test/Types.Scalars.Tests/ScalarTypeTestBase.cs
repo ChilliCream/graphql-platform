@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Types.Scalars
+namespace HotChocolate.Types
 {
     public class ScalarTypeTestBase
     {
@@ -27,20 +27,24 @@ namespace HotChocolate.Types.Scalars
         {
             switch (type.Name)
             {
+                case nameof(BooleanValueNode) when value is bool b:
+                    return new BooleanValueNode(b);
                 case nameof(EnumValueNode):
                     return new EnumValueNode(value);
                 case nameof(FloatValueNode) when value is double d:
+                    return new FloatValueNode(d);
+                case nameof(FloatValueNode) when value is decimal d:
                     return new FloatValueNode(d);
                 case nameof(IntValueNode) when value is int i:
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is uint i:
                     return new IntValueNode(i);
-                case nameof(BooleanValueNode) when value is bool b:
-                    return new BooleanValueNode(b);
-                case nameof(StringValueNode) when value is string s:
-                    return new StringValueNode(s);
+                case nameof(IntValueNode) when value is ulong i:
+                    return new IntValueNode(i);
                 case nameof(NullValueNode):
                     return NullValueNode.Default;
+                case nameof(StringValueNode) when value is string s:
+                    return new StringValueNode(s);
                 default:
                     throw new InvalidOperationException();
             }
@@ -85,7 +89,7 @@ namespace HotChocolate.Types.Scalars
             ScalarType scalar = CreateType<TType>();
 
             // act
-            object result = scalar.ParseLiteral(valueSyntax);
+            object? result = scalar.ParseLiteral(valueSyntax);
 
             // assert
             Assert.Equal(expectedResult, result);
@@ -184,6 +188,34 @@ namespace HotChocolate.Types.Scalars
 
             // act
             Exception? result = Record.Exception(() => scalar.Deserialize(runtimeValue));
+
+            // assert
+            Assert.IsType<SerializationException>(result);
+        }
+
+        protected void ExpectParseResultToMatchType<TType>(
+            object? valueSyntax,
+            Type type)
+            where TType : ScalarType
+        {
+            // arrange
+            ScalarType scalar = CreateType<TType>();
+
+            // act
+            IValueNode result = scalar.ParseResult(valueSyntax);
+
+            // assert
+            Assert.Equal(type, result.GetType());
+        }
+
+        protected void ExpectParseResultToThrowSerializationException<TType>(object? runtimeValue)
+            where TType : ScalarType
+        {
+            // arrange
+            ScalarType scalar = CreateType<TType>();
+
+            // act
+            Exception? result = Record.Exception(() => scalar.ParseResult(runtimeValue));
 
             // assert
             Assert.IsType<SerializationException>(result);

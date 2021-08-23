@@ -4,13 +4,13 @@ namespace StrawberryShake.CodeGeneration.CSharp
     {
         public SourceDocument(
             string name,
-            string source,
+            string sourceText,
             SourceDocumentKind kind,
             string? hash = null,
             string? path = null)
         {
             Name = name;
-            SourceText = source;
+            SourceText = sourceText;
             Kind = kind;
             Hash = hash;
             Path = path;

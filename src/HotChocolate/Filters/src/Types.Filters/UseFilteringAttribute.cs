@@ -5,6 +5,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public sealed class UseFilteringAttribute : ObjectFieldDescriptorAttribute
     {
         private static readonly MethodInfo _generic = typeof(FilterObjectFieldDescriptorExtensions)

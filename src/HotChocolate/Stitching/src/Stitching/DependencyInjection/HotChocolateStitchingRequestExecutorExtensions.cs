@@ -687,7 +687,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         throw RequestExecutorBuilder_ResourceNotFound(key);
                     }
 
-#if NET5_0
+#if NET5_0 || NET6_0
                     await using (stream)
 #else
                     using (stream)

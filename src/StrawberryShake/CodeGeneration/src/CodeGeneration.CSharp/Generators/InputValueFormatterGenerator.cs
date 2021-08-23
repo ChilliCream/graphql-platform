@@ -14,34 +14,37 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class InputValueFormatterGenerator : CodeGenerator<InputObjectTypeDescriptor>
     {
         private static readonly string _keyValuePair =
-            TypeNames.KeyValuePair.WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable());
-
-        protected override bool CanHandle(InputObjectTypeDescriptor descriptor)
-        {
-            return true;
-        }
+            TypeNames.KeyValuePair.WithGeneric(
+                TypeNames.String,
+                TypeNames.Object.MakeNullable());
 
         protected override void Generate(
+            InputObjectTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            InputObjectTypeDescriptor namedTypeDescriptor,
             out string fileName,
-            out string? path)
+            out string? path,
+            out string ns)
         {
             const string serializerResolver = nameof(serializerResolver);
             const string runtimeValue = nameof(runtimeValue);
-            const string value = nameof(value);
+            const string input = nameof(input);
+            const string inputInfo = nameof(inputInfo);
+            const string fields = nameof(fields);
 
-            fileName = CreateInputValueFormatter(namedTypeDescriptor);
+            fileName = CreateInputValueFormatter(descriptor);
             path = Serialization;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-            NameString typeName = namedTypeDescriptor.Name;
+            string stateNamespace = $"{descriptor.RuntimeType.Namespace}.{State}";
+            string infoInterfaceType = $"{stateNamespace}.{CreateInputValueInfo(descriptor.Name)}";
 
             ClassBuilder classBuilder = ClassBuilder
                 .New()
                 .SetName(fileName)
                 .AddImplements(TypeNames.IInputObjectFormatter);
 
-            var neededSerializers = namedTypeDescriptor
+            var neededSerializers = descriptor
                 .Properties
                 .GroupBy(x => x.Type.Name)
                 .ToDictionary(x => x, x => x.First());
@@ -63,9 +66,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     initialize
                         .AddAssigment(propertyName)
                         .AddMethodCall()
-                        .SetMethodName(
-                            serializerResolver,
-                            "GetInputValueFormatter")
+                        .SetMethodName(serializerResolver, "GetInputValueFormatter")
                         .AddArgument(name.AsStringToken());
 
                     classBuilder
@@ -77,7 +78,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 else
                 {
                     throw new InvalidOperationException(
-                        $"Serializer for property {namedTypeDescriptor.Name}.{property.Name} " +
+                        $"Serializer for property {descriptor.Name}.{property.Name} " +
                         "could not be created. GraphQLTypeName was empty");
                 }
             }
@@ -87,132 +88,191 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             classBuilder
                 .AddProperty("TypeName")
                 .SetType(TypeNames.String)
-                .AsLambda(namedTypeDescriptor.Name.AsStringToken());
+                .AsLambda(descriptor.Name.AsStringToken());
 
             // Format Method
 
-            ArrayBuilder arrayBuilder = classBuilder
-                .AddMethod("Format")
-                .SetPublic()
-                .SetReturnType(TypeNames.Object.MakeNullable())
-                .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
-                .AddBody()
-                .AddCode(IfBuilder
-                    .New()
-                    .SetCondition($"{runtimeValue} is null")
-                    .AddCode("return null;"))
-                .AddEmptyLine()
-                .ArgumentException(runtimeValue, $"!({runtimeValue} is {typeName} d)")
-                .AddEmptyLine()
-                .AddArray()
-                .SetReturn();
+            CodeBlockBuilder codeBlock =
+                classBuilder
+                    .AddMethod("Format")
+                    .SetPublic()
+                    .SetReturnType(TypeNames.Object.MakeNullable())
+                    .AddParameter(runtimeValue, x => x.SetType(TypeNames.Object.MakeNullable()))
+                    .AddBody()
+                    .AddCode(IfBuilder
+                        .New()
+                        .SetCondition($"{runtimeValue} is null")
+                        .AddCode("return null;"))
+                    .AddEmptyLine()
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {input}")
+                        .SetRighthandSide($"{runtimeValue} as {descriptor.RuntimeType}"))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide($"var {inputInfo}")
+                        .SetRighthandSide($"{runtimeValue} as {infoInterfaceType}"))
+                    .ArgumentException(runtimeValue, $"{input} is null || {inputInfo} is null")
+                    .AddEmptyLine();
 
-            foreach (var property in namedTypeDescriptor.Properties)
+            codeBlock
+                .AddAssigment($"var {fields}")
+                .SetRighthandSide($"new {TypeNames.List.WithGeneric(_keyValuePair)}()");
+
+            codeBlock.AddEmptyLine();
+
+            foreach (var property in descriptor.Properties)
             {
                 var serializerMethodName = $"Format{property.Name}";
 
-                arrayBuilder
-                    .SetType(_keyValuePair)
-                    .AddAssigment(MethodCallBuilder
-                        .Inline()
-                        .SetNew()
-                        .SetMethodName(_keyValuePair)
-                        .AddArgument(GetParameterName(property.Name).AsStringToken())
-                        .AddArgument(MethodCallBuilder
-                            .Inline()
-                            .SetMethodName(serializerMethodName)
-                            .AddArgument($"d.{property.Name}")));
+                codeBlock.AddCode(
+                    SerializeField(property, input, inputInfo, fields, serializerMethodName));
 
                 classBuilder
                     .AddMethod(serializerMethodName)
-                    .AddParameter(value, x => x.SetType(property.Type.ToTypeReference()))
+                    .AddParameter(input, x => x.SetType(property.Type.ToTypeReference()))
                     .SetReturnType(TypeNames.Object.MakeNullable())
                     .SetPrivate()
-                    .AddCode(GenerateSerializer(property.Type, value));
+                    .AddCode(GenerateSerializer(property.Type, input));
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal)
-                .AddType(classBuilder)
-                .Build(writer);
+            codeBlock.AddCode($"return {fields};");
+
+            classBuilder.Build(writer);
         }
+
+        private IfBuilder SerializeField(
+            PropertyDescriptor property,
+            string input,
+            string inputInfo,
+            string fields,
+            string serializerMethod) =>
+            IfBuilder
+                .New()
+                .SetCondition($"{inputInfo}.{CreateIsSetProperty(property.Name)}")
+                .AddCode(
+                    MethodCallBuilder
+                        .New()
+                        .SetMethodName($"{fields}.Add")
+                        .AddArgument(
+                            MethodCallBuilder
+                                .Inline()
+                                .SetNew()
+                                .SetMethodName(_keyValuePair)
+                                .AddArgument(property.FieldName.AsStringToken())
+                                .AddArgument(MethodCallBuilder
+                                    .Inline()
+                                    .SetMethodName(serializerMethod)
+                                    .AddArgument($"{input}.{property.Name}"))));
 
         public static ICode GenerateSerializer(
             ITypeDescriptor typeDescriptor,
-            string variableName,
-            string assignment = "return")
+            string variableName)
         {
-            RuntimeTypeInfo runtimeType = typeDescriptor.GetRuntimeType();
-            var isValueType = runtimeType.IsValueType;
+            const string @return = "return";
 
-            switch (typeDescriptor)
+            return GenerateSerializerLocal(typeDescriptor, variableName, @return, true);
+
+            ICode GenerateSerializerLocal(
+                ITypeDescriptor currentType,
+                string variable,
+                string assignment,
+                bool isNullable)
             {
-                case INamedTypeDescriptor descriptor:
-                    var serializerName = GetFieldName(descriptor.GetName().Value) + "Formatter";
-                    MethodCallBuilder methodCall = MethodCallBuilder
-                        .New()
-                        .SetMethodName(serializerName, "Format")
-                        .AddArgument(variableName);
+                RuntimeTypeInfo runtimeType = currentType.GetRuntimeType();
+                var isValueType = runtimeType.IsValueType;
 
-                    return assignment == "return"
-                        ? methodCall.SetReturn()
-                        : MethodCallBuilder
+                ICode format = currentType switch
+                {
+                    INamedTypeDescriptor d when assignment == @return =>
+                        BuildFormatterMethodCall(variable, d).SetReturn(),
+
+                    INamedTypeDescriptor d =>
+                        MethodCallBuilder
                             .New()
                             .SetMethodName(assignment, nameof(List<object>.Add))
-                            .AddArgument(methodCall.SetDetermineStatement(false));
+                            .AddArgument(
+                                BuildFormatterMethodCall(variable, d).SetDetermineStatement(false)),
 
-                case NonNullTypeDescriptor descriptor:
-                    return CodeBlockBuilder
-                        .New()
-                        .If(!isValueType,
-                            i =>
-                            {
-                                i.AddIf(x => x
-                                        .SetCondition($"{variableName} is null")
-                                        .AddCode(
-                                            ExceptionBuilder
-                                                .New(TypeNames.ArgumentNullException)
-                                                .AddArgument($"nameof({variableName})")))
-                                    .AddEmptyLine();
-                            })
-                        .AddCode(
-                            GenerateSerializer(
-                                descriptor.InnerType(),
-                                variableName,
-                                assignment));
+                    NonNullTypeDescriptor d when !isValueType =>
+                        CodeBlockBuilder
+                            .New()
+                            .AddIf(x => x
+                                .SetCondition($"{variable} is null")
+                                .AddCode(ExceptionBuilder
+                                    .New(TypeNames.ArgumentNullException)
+                                    .AddArgument($"nameof({variable})")))
+                            .AddEmptyLine()
+                            .AddCode(
+                                GenerateSerializerLocal(
+                                    d.InnerType(),
+                                    variable,
+                                    assignment,
+                                    false)),
 
-                case ListTypeDescriptor descriptor:
-                    return CodeBlockBuilder
-                        .New()
-                        .AddCode(
-                            AssignmentBuilder
+                    NonNullTypeDescriptor d =>
+                        CodeBlockBuilder
+                            .New()
+                            .AddCode(
+                                GenerateSerializerLocal(
+                                    d.InnerType(),
+                                    variable,
+                                    assignment,
+                                    false)),
+
+                    ListTypeDescriptor d =>
+                        CodeBlockBuilder
+                            .New()
+                            .AddCode(AssignmentBuilder
                                 .New()
-                                .SetLefthandSide($"var {variableName}_list")
-                                .SetRighthandSide(
-                                    MethodCallBuilder
-                                        .Inline()
-                                        .SetNew()
-                                        .SetMethodName(TypeNames.List)
-                                        .AddGeneric(TypeNames.Object.MakeNullable())))
-                        .AddEmptyLine()
-                        .AddCode(
-                            ForEachBuilder
+                                .SetLefthandSide($"var {variable}_list")
+                                .SetRighthandSide(MethodCallBuilder.Inline()
+                                    .SetNew()
+                                    .SetMethodName(TypeNames.List)
+                                    .AddGeneric(TypeNames.Object.MakeNullable())))
+                            .AddEmptyLine()
+                            .AddCode(ForEachBuilder
                                 .New()
-                                .SetLoopHeader($"var {variableName}_elm in {variableName}")
+                                .SetLoopHeader(
+                                    $"var {variable}_elm in {variable}")
                                 .AddCode(
-                                    GenerateSerializer(
-                                        descriptor.InnerType(),
-                                        variableName + "_elm",
-                                        variableName + "_list")))
-                        .AddCode(
-                            assignment == "return"
-                                ? CodeLineBuilder.From($"return {variableName}_list;")
-                                : CodeLineBuilder.From(
-                                    $"{assignment}.Add({variableName}_list);"));
-                default:
-                    throw new InvalidOperationException();
+                                    GenerateSerializerLocal(
+                                        d.InnerType(),
+                                        variable + "_elm",
+                                        variable + "_list",
+                                        true)))
+                            .AddCode(CodeLineBuilder
+                                .From(
+                                    assignment == @return
+                                        ? $"return {variable}_list;"
+                                        : $"{assignment}.Add({variable}_list);")),
+                    _ => throw new InvalidOperationException()
+                };
+
+                if (isNullable && currentType is not NonNullTypeDescriptor)
+                {
+                    return IfBuilder
+                        .New()
+                        .SetCondition($"{variable} is null")
+                        .AddCode(CodeLineBuilder
+                            .From(assignment == @return
+                                ? $"return {variable};"
+                                : $"{assignment}.Add({variable});"))
+                        .AddElse(format);
+                }
+
+                return format;
             }
+        }
+
+        private static MethodCallBuilder BuildFormatterMethodCall(
+            string variableName,
+            INamedTypeDescriptor descriptor)
+        {
+            return MethodCallBuilder
+                .New()
+                .SetMethodName(GetFieldName(descriptor.GetName().Value) + "Formatter", "Format")
+                .AddArgument(variableName);
         }
     }
 }

@@ -22,11 +22,22 @@ partial class Build : NukeBuild
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
+    readonly HashSet<string> ExcludedCover = new()
+    {
+        "HotChocolate.Types.Selections.PostgreSql.Tests",
+        "HotChocolate.Configuration.Analyzers.Tests",
+        "HotChocolate.Data.Neo4J.Integration.Tests"
+    };
+
     [Partition(5)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where((t => !ExcludedTests.Contains(t.Name))));
+
+    IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
+        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+                .Where((t => !ExcludedCover.Contains(t.Name))));
 
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
@@ -65,7 +76,7 @@ partial class Build : NukeBuild
             try
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
-                DotNetBuildTestSolution(TestSolutionFile, TestProjects);
+                DotNetBuildTestSolution(TestSolutionFile, CoverProjects);
 
                 DotNetBuild(c => c
                     .SetProjectFile(TestSolutionFile)

@@ -285,15 +285,16 @@ namespace HotChocolate.Language
 
         public static IReadOnlyList<GraphQLRequest> Parse(
             ReadOnlySpan<byte> requestData,
-            ParserOptions? options = null)
-        {
-            options ??= ParserOptions.Default;
-            return new Utf8GraphQLRequestParser(requestData, options).Parse();
-        }
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null) =>
+            new Utf8GraphQLRequestParser(requestData, options, cache, hashProvider).Parse();
 
         public static unsafe IReadOnlyList<GraphQLRequest> Parse(
             string sourceText,
-            ParserOptions? options = null)
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null)
         {
             if (string.IsNullOrEmpty(sourceText))
             {
@@ -301,8 +302,6 @@ namespace HotChocolate.Language
                     LangResources.SourceText_Empty,
                     nameof(sourceText));
             }
-
-            options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
             byte[]? source = null;
@@ -314,7 +313,7 @@ namespace HotChocolate.Language
             try
             {
                 Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
+                var parser = new Utf8GraphQLRequestParser(sourceSpan, options, cache, hashProvider);
                 return parser.Parse();
             }
             finally

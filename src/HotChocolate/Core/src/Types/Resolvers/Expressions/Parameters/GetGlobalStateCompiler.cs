@@ -2,7 +2,10 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -10,12 +13,12 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         : GlobalStateCompilerBase<T>
         where T : IResolverContext
     {
-        private static readonly MethodInfo _getGlobalState =
+        private readonly MethodInfo _getGlobalState =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetGlobalState));
-        private static readonly MethodInfo _getGlobalStateWithDefault =
+                nameof(ExpressionHelper.GetGlobalState))!;
+        private readonly MethodInfo _getGlobalStateWithDefault =
             typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetGlobalStateWithDefault));
+                nameof(ExpressionHelper.GetGlobalStateWithDefault))!;
 
         protected override bool CanHandle(Type parameterType)
         {

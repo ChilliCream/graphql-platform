@@ -1,4 +1,5 @@
 #pragma warning disable IDE1006 // Naming Styles
+using System.Linq;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -51,6 +52,14 @@ namespace HotChocolate.Types.Introspection
                 .Description(TypeResources.Schema_Directives)
                 .Type<NonNullType<ListType<NonNullType<__Directive>>>>()
                 .Resolver(c => c.Schema.DirectiveTypes);
+
+            if (descriptor.Extend().Context.Options.EnableDirectiveIntrospection)
+            {
+                descriptor
+                    .Field(t => t.Directives.Where(d => d.Type.IsPublic).Select(d => d.ToNode()))
+                    .Type<NonNullType<ListType<NonNullType<__AppliedDirective>>>>()
+                    .Name(Names.AppliedDirectives);
+            }
         }
 
         public static class Names
@@ -62,6 +71,7 @@ namespace HotChocolate.Types.Introspection
             public const string MutationType = "mutationType";
             public const string SubscriptionType = "subscriptionType";
             public const string Directives = "directives";
+            public const string AppliedDirectives = "appliedDirectives";
         }
     }
 }

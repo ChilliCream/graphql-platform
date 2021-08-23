@@ -1,4 +1,5 @@
 using HotChocolate;
+using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.Properties.CodeGenerationResources;
 
 namespace StrawberryShake.CodeGeneration
@@ -25,5 +26,15 @@ namespace StrawberryShake.CodeGeneration
                 .SetMessage(ThrowHelper_TypeNameCollision, typeName)
                 .SetCode("SS0009")
                 .Build());
+
+        public static CodeGeneratorException UnionTypeDataEntityMixed(
+            ISyntaxNode syntaxNode) =>
+            new(ErrorBuilder
+                .New()
+                .SetMessage(TypeDescriptorMapper_UnionTypeDataEntityMixed)
+                .SetCode(CodeGenerationErrorCodes.UnionTypeDataEntityMixed)
+                .SetSyntaxNode(syntaxNode)
+                .Build());
+
     }
 }

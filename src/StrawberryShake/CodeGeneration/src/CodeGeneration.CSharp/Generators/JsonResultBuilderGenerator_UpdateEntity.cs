@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using static StrawberryShake.CodeGeneration.Descriptors.NamingConventions;
@@ -23,7 +24,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetRighthandSide(
                         MethodCallBuilder
                             .Inline()
-                            .SetMethodName(_extractId)
+                            .SetMethodName(_idSerializer, "Parse")
                             .AddArgument($"{_obj}.Value")));
 
             methodBuilder.AddCode(
@@ -39,47 +40,23 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 // If the type is an interface
                 foreach (ObjectTypeDescriptor concreteType in interfaceTypeDescriptor.ImplementedBy)
                 {
-                    IfBuilder ifStatement = IfBuilder
-                        .New()
-                        .SetCondition(
-                            MethodCallBuilder
-                                .Inline()
-                                .SetMethodName(_entityId, "Name", nameof(string.Equals))
-                                .AddArgument(concreteType.Name.AsStringToken())
-                                .AddArgument(TypeNames.OrdinalStringComparison));
-
-                    var entityTypeName = CreateEntityType(
-                        concreteType.Name, 
-                        concreteType.RuntimeType.NamespaceWithoutGlobal);
-
-                    WriteEntityLoader(
-                        ifStatement,
-                        entityTypeName);
-
-                    WritePropertyAssignments(
-                        ifStatement,
-                        concreteType.Properties);
-
-                    ifStatement
-                        .AddEmptyLine()
-                        .AddCode($"return {_entityId};");
-
                     methodBuilder
                         .AddEmptyLine()
-                        .AddCode(ifStatement);
+                        .AddCode(CreateUpdateEntityStatement(concreteType)
+                            .AddCode($"return {_entityId};"));
                 }
 
                 methodBuilder.AddEmptyLine();
                 methodBuilder.AddCode(ExceptionBuilder.New(TypeNames.NotSupportedException));
             }
-            else if (namedTypeDescriptor is ComplexTypeDescriptor complexTypeDescriptor)
+            else if (namedTypeDescriptor is ObjectTypeDescriptor objectTypeDescriptor)
             {
-                WriteEntityLoader(
-                    methodBuilder, 
-                    CreateEntityType(
-                        namedTypeDescriptor.Name, 
-                        namedTypeDescriptor.RuntimeType.NamespaceWithoutGlobal));
-                WritePropertyAssignments(methodBuilder, complexTypeDescriptor.Properties);
+                BuildTryGetEntityIf(
+                        CreateEntityType(
+                            objectTypeDescriptor.Name,
+                            objectTypeDescriptor.RuntimeType.NamespaceWithoutGlobal))
+                    .AddCode(CreateEntityConstructorCall(objectTypeDescriptor, false))
+                    .AddElse(CreateEntityConstructorCall(objectTypeDescriptor, true));
 
                 methodBuilder.AddEmptyLine();
                 methodBuilder.AddCode($"return {_entityId};");
@@ -88,20 +65,75 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             AddRequiredDeserializeMethods(namedTypeDescriptor, classBuilder, processed);
         }
 
-        private void WriteEntityLoader<T>(
-            ICodeContainer<T> codeContainer,
-            RuntimeTypeInfo entityType)
+        private IfBuilder CreateUpdateEntityStatement(
+            ObjectTypeDescriptor concreteType)
         {
-            codeContainer.AddCode(
-                AssignmentBuilder
-                    .New()
-                    .SetLefthandSide($"{entityType} {_entity}")
-                    .SetRighthandSide(
-                        MethodCallBuilder
-                            .Inline()
-                            .SetMethodName(_entityStore, "GetOrCreate")
-                            .AddGeneric(entityType.ToString())
-                            .AddArgument(_entityId)));
+            IfBuilder ifStatement = IfBuilder
+                .New()
+                .SetCondition(
+                    MethodCallBuilder
+                        .Inline()
+                        .SetMethodName(_entityId, "Name", nameof(string.Equals))
+                        .AddArgument(concreteType.Name.AsStringToken())
+                        .AddArgument(TypeNames.OrdinalStringComparison));
+
+            RuntimeTypeInfo entityTypeName = CreateEntityType(
+                concreteType.Name,
+                concreteType.RuntimeType.NamespaceWithoutGlobal);
+
+            IfBuilder ifBuilder = BuildTryGetEntityIf(entityTypeName)
+                .AddCode(CreateEntityConstructorCall(concreteType, false))
+                .AddElse(CreateEntityConstructorCall(concreteType, true));
+
+            return ifStatement
+                .AddCode(ifBuilder)
+                .AddEmptyLine();
+        }
+
+        private ICode CreateEntityConstructorCall(
+            ObjectTypeDescriptor objectTypeDescriptor,
+            bool assignDefault)
+        {
+            var propertyLookup = objectTypeDescriptor.Properties.ToDictionary(x => x.Name.Value);
+
+            MethodCallBuilder newEntity = MethodCallBuilder
+                .Inline()
+                .SetNew()
+                .SetMethodName(objectTypeDescriptor.EntityTypeDescriptor.RuntimeType.ToString());
+
+            foreach (PropertyDescriptor property in
+                objectTypeDescriptor.EntityTypeDescriptor.Properties.Values)
+            {
+                if (propertyLookup.TryGetValue(property.Name.Value, out var ownProperty))
+                {
+                    newEntity.AddArgument(BuildUpdateMethodCall(ownProperty));
+                }
+                else if (assignDefault)
+                {
+                    newEntity.AddArgument("default!");
+                }
+                else
+                {
+                    newEntity.AddArgument($"{_entity}.{property.Name}");
+                }
+            }
+
+            return MethodCallBuilder
+                .New()
+                .SetMethodName(_session, "SetEntity")
+                .AddArgument(_entityId)
+                .AddArgument(newEntity);
+        }
+
+        private IfBuilder BuildTryGetEntityIf(RuntimeTypeInfo entityType)
+        {
+            return IfBuilder
+                .New()
+                .SetCondition(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(_session, "CurrentSnapshot", "TryGetEntity")
+                    .AddArgument(_entityId)
+                    .AddOutArgument(_entity, entityType.ToString()));
         }
 
         private void WritePropertyAssignments<T>(

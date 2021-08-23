@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Scalars;
 
 namespace HotChocolate.Types
 {
@@ -28,7 +27,6 @@ namespace HotChocolate.Types
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, description, min: 1, bind: bind)
         {
-            Description = description;
         }
 
         /// <inheritdoc />
@@ -38,27 +36,15 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        protected override int ParseLiteral(IntValueNode valueSyntax)
+        protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
         {
-            var result =  base.ParseLiteral(valueSyntax);
-
-            if (result < MinValue)
-            {
-                throw ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
-            }
-
-            return result;
+            throw ThrowHelper.PositiveIntType_ParseLiteral_ZeroOrLess(this);
         }
 
         /// <inheritdoc />
-        protected override IntValueNode ParseValue(int runtimeValue)
+        protected override SerializationException CreateParseValueError(object runtimeValue)
         {
-            if (runtimeValue < MinValue)
-            {
-                throw ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
-            }
-
-            return base.ParseValue(runtimeValue);
+            throw ThrowHelper.PositiveIntType_ParseValue_ZeroOrLess(this);
         }
     }
 }

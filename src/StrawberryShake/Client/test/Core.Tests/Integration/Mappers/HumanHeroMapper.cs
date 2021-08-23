@@ -19,9 +19,10 @@ namespace StrawberryShake.Integration.Mappers
             _droidMapper = droidMapper ?? throw new ArgumentNullException(nameof(droidMapper));
         }
 
-        public HumanHero Map(HumanEntity entity)
+        public HumanHero Map(HumanEntity entity, IEntityStoreSnapshot? snapshot = null)
         {
             var friends = new List<ICharacter>();
+            snapshot ??= _entityStore.CurrentSnapshot;
 
             foreach (EntityId friendId in entity.Friends)
             {
@@ -29,13 +30,13 @@ namespace StrawberryShake.Integration.Mappers
                 {
                     friends.Add(
                         _humanMapper.Map(
-                            _entityStore.GetEntity<HumanEntity>(friendId)!));
+                            snapshot.GetEntity<HumanEntity>(friendId)!));
                 }
                 else if (friendId.Name.Equals("Droid", StringComparison.Ordinal))
                 {
                     friends.Add(
                         _droidMapper.Map(
-                            _entityStore.GetEntity<DroidEntity>(friendId)!));
+                            snapshot.GetEntity<DroidEntity>(friendId)!));
                 }
                 else
                 {

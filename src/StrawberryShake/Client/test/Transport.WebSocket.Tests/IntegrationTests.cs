@@ -51,7 +51,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -90,7 +91,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -129,7 +131,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -174,7 +177,8 @@ namespace StrawberryShake.Transport.WebSockets
             OperationRequest request = new("Test", document);
 
             // act
-            var connection = new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
+            var connection =
+                new WebSocketConnection(async ct => await sessionPool.CreateAsync("Foo", ct));
             await foreach (var response in connection.ExecuteAsync(request, ct))
             {
                 if (response.Body is not null)
@@ -200,7 +204,7 @@ namespace StrawberryShake.Transport.WebSockets
             using IWebHost host = TestServerHelper
                 .CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out int port);
+                    out var port);
 
             ServiceCollection serviceCollection = new();
             serviceCollection
@@ -213,12 +217,12 @@ namespace StrawberryShake.Transport.WebSockets
             ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
             ConcurrentDictionary<int, List<JsonDocument>> results = new();
 
-            async Task? CreateSubscription(int id)
+            async Task CreateSubscription(int id)
             {
-                var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo", ct));
-                var document =
-                    new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
+                var connection = new WebSocketConnection(
+                    async cancellationToken => await sessionPool.CreateAsync("Foo", cancellationToken));
+                var document = new MockDocument(
+                    $"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
                 await foreach (var response in connection.ExecuteAsync(request, ct))
                 {
@@ -269,7 +273,7 @@ namespace StrawberryShake.Transport.WebSockets
             using IWebHost host = TestServerHelper
                 .CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                    out int port);
+                    out var port);
 
             ServiceCollection serviceCollection = new();
             serviceCollection
@@ -290,7 +294,8 @@ namespace StrawberryShake.Transport.WebSockets
             async Task? CreateSubscription(int client, int id)
             {
                 var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                    new WebSocketConnection(async ct =>
+                        await sessionPool.CreateAsync("Foo" + client, ct));
                 var document =
                     new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
                 var request = new OperationRequest("Test", document);
@@ -368,7 +373,8 @@ namespace StrawberryShake.Transport.WebSockets
             async Task? CreateSubscription(int client, int id)
             {
                 var connection =
-                    new WebSocketConnection(() => sessionPool.CreateAsync("Foo" + client, ct));
+                    new WebSocketConnection(async ct =>
+                        await sessionPool.CreateAsync("Foo" + client, ct));
                 var document =
                     new MockDocument($"subscription Test {{ countUp }}");
                 var request = new OperationRequest("Test", document);
