@@ -1,0 +1,21 @@
+<test>
+  <data>
+    <json>
+      {
+        "intList": [
+          1,
+          2,
+          3
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      intList @meanBy(key: "int")
+    }
+  </query>
+  <result>
+    <error-code>AG0002</error-code>
+  </result>
+</test>

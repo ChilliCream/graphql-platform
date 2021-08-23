@@ -34,6 +34,19 @@ namespace HotChocolate.Lodash
             return jsonNode.GetValue<JsonElement>().TryConvertToString(out converted);
         }
 
+        public static bool TryConvertToNumber(
+            this JsonNode? jsonNode,
+            out double converted)
+        {
+            if (jsonNode is null)
+            {
+                converted = 0;
+                return false;
+            }
+
+            return jsonNode.GetValue<JsonElement>().TryConvertToNumber(out converted);
+        }
+
         public static bool TryConvertToComparable(
             this JsonNode? jsonNode,
             [NotNullWhen(true)] out IComparable? converted)

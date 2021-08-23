@@ -10,6 +10,7 @@
 ### [KeyBy](Operations/KeyBy/KeyBy.md)
 ### [Keys](Operations/Keys/Keys.md)
 ### [MaxBy](Operations/MaxBy/MaxBy.md)
+### [MeanBy](Operations/MeanBy/MeanBy.md)
 
 ## Transformations
 Exists(node, key):
@@ -62,6 +63,12 @@ IsConvertibleToComparable(node):
   * If {node} is *number*
     * return {true}
   * Otherwise If {node} is *boolean*
+    * return {true}
+  * Otherwise  
+    * return {false}
+
+IsNumber(node):
+  * If {node} is *number*
     * return {true}
   * Otherwise  
     * return {false}
