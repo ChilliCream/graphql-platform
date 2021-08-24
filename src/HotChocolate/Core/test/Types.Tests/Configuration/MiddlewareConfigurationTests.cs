@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Configuration
+namespace HotChocolate.Configuration
 {
     public class MiddlewareConfigurationTests
     {
@@ -13,27 +13,24 @@ namespace HotChocolate.Types.Configuration
         public async Task MiddlewareConfig_MapWithDelegate()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                "type Query { a: String b: String }",
-                c => c.Map(
-                        new FieldReference("Query", "a"),
-                        next => context =>
-                        {
-                            context.Result = "123";
-                            return default(ValueTask);
-                        })
-                    .Map(
-                        new FieldReference("Query", "b"),
-                        next => context =>
-                        {
-                            context.Result = "456";
-                            return default(ValueTask);
-                        }));
-
-            IRequestExecutor executor = schema.MakeExecutable();
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String b: String }")
+                .Map(new FieldReference("Query", "a"),
+                    _ => context =>
+                    {
+                        context.Result = "123";
+                        return default;
+                    })
+                .Map(new FieldReference("Query", "b"),
+                    _ => context =>
+                    {
+                        context.Result = "456";
+                        return default;
+                    })
+                .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
+            IExecutionResult result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -43,22 +40,19 @@ namespace HotChocolate.Types.Configuration
         public async Task MiddlewareConfig_MapWithClass()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                "type Query { a: String b: String }",
-                c => c.Map<TestFieldMiddleware>(
-                        new FieldReference("Query", "a"))
-                    .Map(
-                        new FieldReference("Query", "b"),
-                        next => context =>
-                        {
-                            context.Result = "456";
-                            return default(ValueTask);
-                        }));
-
-            IRequestExecutor executor = schema.MakeExecutable();
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String b: String }")
+                .Map<TestFieldMiddleware>(new FieldReference("Query", "a"))
+                .Map(new FieldReference("Query", "b"),
+                    _ => context =>
+                    {
+                        context.Result = "456";
+                        return default;
+                    })
+                .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
+            IExecutionResult result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -68,23 +62,20 @@ namespace HotChocolate.Types.Configuration
         public async Task MiddlewareConfig_MapWithClassFactory()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                "type Query { a: String b: String }",
-                c => c.Map(
-                        new FieldReference("Query", "a"),
-                        (services, next) => new TestFieldMiddleware(next))
-                    .Map(
-                        new FieldReference("Query", "b"),
-                        next => context =>
-                        {
-                            context.Result = "456";
-                            return default(ValueTask);
-                        }));
-
-            IRequestExecutor executor = schema.MakeExecutable();
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String b: String }")
+                .Map(new FieldReference("Query", "a"),
+                    (_, next) => new TestFieldMiddleware(next))
+                .Map(new FieldReference("Query", "b"),
+                    _ => context =>
+                    {
+                        context.Result = "456";
+                        return default;
+                    })
+                .Create();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ a b }");
+            IExecutionResult result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -92,7 +83,7 @@ namespace HotChocolate.Types.Configuration
 
         public class TestFieldMiddleware
         {
-            private FieldDelegate _next;
+            private readonly FieldDelegate _next;
 
             public TestFieldMiddleware(FieldDelegate next)
             {

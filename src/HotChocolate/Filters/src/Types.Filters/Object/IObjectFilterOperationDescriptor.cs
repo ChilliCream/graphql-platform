@@ -1,7 +1,9 @@
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public interface IObjectFilterOperationDescriptor
         : IDescriptor<FilterOperationDefintion>
         , IFluent
@@ -61,5 +63,5 @@ namespace HotChocolate.Types.Filters
             NameString name,
             params ArgumentNode[] arguments);
     }
-    
+
 }

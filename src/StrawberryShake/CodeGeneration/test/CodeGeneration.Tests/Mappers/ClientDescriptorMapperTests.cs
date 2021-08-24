@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -37,7 +39,15 @@ namespace StrawberryShake.CodeGeneration.Mappers
 
             // act
             var clientName = "FooClient";
-            var context = new MapperContext("Foo.Bar", clientName);
+            var context = new MapperContext(
+                "Foo.Bar",
+                clientName,
+                new Sha1DocumentHashProvider(),
+                RequestStrategyGen.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(clientModel, context);
             OperationDescriptorMapper.Map(clientModel, context);
             ClientDescriptorMapper.Map(clientModel, context);

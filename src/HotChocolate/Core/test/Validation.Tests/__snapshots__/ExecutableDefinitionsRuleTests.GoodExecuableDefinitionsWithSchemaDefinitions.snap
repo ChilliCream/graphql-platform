@@ -12,6 +12,48 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Executable-Definitions"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "SchemaDefinition",
+      "Description": null,
+      "Location": {
+        "Start": 17,
+        "End": 98,
+        "Line": 2,
+        "Column": 17
+      },
+      "Directives": [],
+      "OperationTypes": [
+        {
+          "Kind": "OperationTypeDefinition",
+          "Location": {
+            "Start": 46,
+            "End": 76,
+            "Line": 3,
+            "Column": 21
+          },
+          "Operation": "Query",
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 53,
+              "End": 76,
+              "Line": 3,
+              "Column": 28
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 53,
+                "End": 76,
+                "Line": 3,
+                "Column": 28
+              },
+              "Value": "Query"
+            }
+          }
+        }
+      ]
+    }
   }
 ]

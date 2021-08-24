@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -14,6 +16,12 @@ namespace HotChocolate.Configuration
         public virtual bool TriggerAggregations => false;
 
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        internal virtual void InitializeContext(
+            IDescriptorContext context,
+            TypeReferenceResolver typeReferenceResolver)
+        {
+        }
 
         public virtual void OnBeforeDiscoverTypes()
         {
@@ -34,6 +42,10 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData)
         {
         }
+
+        public virtual IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            => Enumerable.Empty<ITypeReference>();
 
         public virtual void OnTypeRegistered(
             ITypeDiscoveryContext discoveryContext)
@@ -111,6 +123,13 @@ namespace HotChocolate.Configuration
 
         public virtual void OnAfterCompleteType(
             ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+        }
+
+        public virtual void OnValidateType(
+            ITypeSystemObjectContext validationContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {

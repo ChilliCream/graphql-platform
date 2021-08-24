@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -650,14 +652,14 @@ namespace HotChocolate.AspNetCore
             DocumentNode document = Utf8GraphQLParser.Parse("{ __typename }");
 
             var hashProvider = new MD5DocumentHashProvider();
-            string hash = hashProvider.ComputeHash(
+            var hash = hashProvider.ComputeHash(
                 Encoding.UTF8.GetBytes(document.ToString(false)));
 
             // act
             ClientQueryResult resultA =
                 await server.GetStoreActivePersistedQueryAsync(
-                    document.ToString(false), 
-                    "md5Hash", 
+                    document.ToString(false),
+                    "md5Hash",
                     hash);
 
             ClientQueryResult resultB =
@@ -668,6 +670,70 @@ namespace HotChocolate.AspNetCore
                 resultA,
                 resultB
             }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_ActivePersistedQuery_AddQuery_Unformatted()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = "{__typename}";
+
+            var hashProvider = new MD5DocumentHashProvider();
+            var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query));
+
+            // act
+            ClientQueryResult resultA =
+                await server.GetStoreActivePersistedQueryAsync(
+                    query,
+                    "md5Hash",
+                    hash);
+
+            ClientQueryResult resultB =
+                await server.GetActivePersistedQueryAsync("md5Hash", hash);
+
+            // assert
+            new[] {
+                resultA,
+                resultB
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Throw_Custom_GraphQL_Error()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureServices: s => s.AddGraphQLServer()
+                    .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+        {
+            public override ValueTask OnCreateAsync(
+                HttpContext context,
+                IRequestExecutor requestExecutor,
+                IQueryRequestBuilder requestBuilder,
+                CancellationToken cancellationToken)
+            {
+                throw new GraphQLException("MyCustomError");
+            }
         }
     }
 }

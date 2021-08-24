@@ -9,10 +9,12 @@ using HotChocolate.Types.Sorting;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class SortObjectFieldDescriptorExtensions
     {
         private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)
         {
@@ -24,6 +26,7 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, null);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting<T>(
             this IObjectFieldDescriptor descriptor)
         {
@@ -40,6 +43,7 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, sortType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting<T>(
             this IObjectFieldDescriptor descriptor,
             Action<ISortInputTypeDescriptor<T>> configure)
@@ -59,24 +63,28 @@ namespace HotChocolate.Types
             return UseSorting(descriptor, sortType.GetType(), sortType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor,
             Type? sortType,
             ITypeSystemMember? sortTypeInstance = null)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate((c,definition) =>
                 {
                     Type argumentType = GetArgumentType(definition, sortType, c.TypeInspector);
 
                     ITypeReference argumentTypeReference = sortTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                        ? c.TypeInspector.GetTypeRef(
                             argumentType,
                             TypeContext.Input)
                         : TypeReference.Create(sortTypeInstance);
@@ -87,36 +95,30 @@ namespace HotChocolate.Types
                         Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input)
                     };
 
-                    ILazyTypeConfiguration lazyArgumentConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ArgumentDefinition>()
-                            .Definition(argumentDefinition)
-                            .Configure((context, definition) =>
-                                {
-                                    ISortingNamingConvention convention =
-                                        context.DescriptorContext.GetSortingNamingConvention();
-                                    definition.Name = convention.ArgumentName;
-                                })
-                           .On(ApplyConfigurationOn.Completion)
-                           .Build();
+                    argumentDefinition.Configurations.Add(
+                        new CompleteConfiguration<ArgumentDefinition>(
+                            (context, d) =>
+                            {
+                                ISortingNamingConvention convention =
+                                    context.DescriptorContext.GetSortingNamingConvention();
+                                d.Name = convention.ArgumentName;
+                            },
+                            argumentDefinition,
+                            ApplyConfigurationOn.Completion));
 
-                    argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
                     definition.Arguments.Add(argumentDefinition);
-
-                    ILazyTypeConfiguration lazyConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, definition) =>
+                    definition.Configurations.Add(
+                        new CompleteConfiguration<ObjectFieldDefinition>(
+                            (context, d) =>
                                 CompileMiddleware(
                                     context,
-                                    definition,
+                                    d,
                                     argumentTypeReference,
-                                    placeholder))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build();
-                    definition.Configurations.Add(lazyConfiguration);
+                                    placeholder),
+                            definition,
+                            ApplyConfigurationOn.Completion,
+                            argumentTypeReference,
+                            TypeDependencyKind.Completed));
                 });
 
             return descriptor;
@@ -165,7 +167,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             ISortingNamingConvention convention =
                 context.DescriptorContext.GetSortingNamingConvention();
@@ -181,8 +183,9 @@ namespace HotChocolate.Types
                         SortMiddlewareContext.Create(convention.ArgumentName
                     )));
 
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Sorting);
         }
     }
 }

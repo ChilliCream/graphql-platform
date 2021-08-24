@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -20,7 +21,7 @@ namespace HotChocolate.Types.Relay.Descriptors
         }
 
         protected internal sealed override NodeDefinition Definition { get; protected set; } =
-            new NodeDefinition();
+            new();
 
         protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
@@ -45,7 +46,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             {
                 if (ctx.LocalContextData.TryGetValue(
                     WellKnownContextData.InternalId,
-                    out object? o) && o is TId id)
+                    out var o) && o is TId id)
                 {
                     return await fieldResolver(ctx, id).ConfigureAwait(false);
                 }
@@ -66,13 +67,13 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(TResolver),
-                            typeof(object),
-                            new FieldMember("_", "_", m)));
-                return ResolveNode(resolver.Resolver);
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        typeof(object),
+                        typeof(TResolver),
+                        ParameterExpressionBuilders);
+                return ResolveNode(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -87,13 +88,37 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        method.DeclaringType ?? typeof(object),
-                        typeof(object),
-                        new FieldMember("_", "_", method)));
-            return ResolveNode(resolver.Resolver);
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    method,
+                    typeof(object),
+                    method.DeclaringType ?? typeof(object),
+                    ParameterExpressionBuilders);
+
+            return ResolveNode(resolver.Resolver!);
+        }
+
+        protected static class ConverterHelper
+        {
+            private static ResultConverterDefinition? _resultConverter;
+
+            private static ResultConverterDefinition Converter
+            {
+                get => _resultConverter ??= IdMiddleware.Create();
+            }
+
+            public static IObjectFieldDescriptor TryAdd(IObjectFieldDescriptor descriptor)
+            {
+                IList<ResultConverterDefinition> converters =
+                    descriptor.Extend().Definition.ResultConverters;
+
+                if (!converters.Contains(Converter))
+                {
+                    converters.Add(Converter);
+                }
+
+                return descriptor;
+            }
         }
     }
 }

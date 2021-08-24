@@ -13,7 +13,7 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Int
     /// </summary>
     [SpecScalar]
-    public sealed class IntType : IntegerTypeBase<int>
+    public class IntType : IntegerTypeBase<int>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="IntType"/> class.

@@ -10,5 +10,11 @@ namespace HotChocolate.Language
         int ToInt32();
 
         long ToInt64();
+
+        ushort ToUInt16();
+
+        uint ToUInt32();
+
+        ulong ToUInt64();
     }
 }

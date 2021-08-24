@@ -12,7 +12,142 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Single-root-field"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 238,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 30,
+          "End": 35,
+          "Line": 2,
+          "Column": 30
+        },
+        "Value": "sub"
+      },
+      "Operation": "Subscription",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 34,
+          "End": 238,
+          "Line": 2,
+          "Column": 34
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 67,
+                "End": 207,
+                "Line": 3,
+                "Column": 32
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 93,
+                    "End": 128,
+                    "Line": 4,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 93,
+                      "End": 128,
+                      "Line": 4,
+                      "Column": 25
+                    },
+                    "Value": "body"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 122,
+                    "End": 150,
+                    "Line": 5,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 122,
+                      "End": 150,
+                      "Line": 5,
+                      "Column": 25
+                    },
+                    "Value": "sender"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 56,
+              "End": 207,
+              "Line": 3,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 56,
+                "End": 68,
+                "Line": 3,
+                "Column": 21
+              },
+              "Value": "newMessage"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 171,
+              "End": 225,
+              "Line": 7,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 171,
+                "End": 225,
+                "Line": 7,
+                "Column": 21
+              },
+              "Value": "disallowedSecondRootFieldNonExisting"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   },
   {
     "Message": "The field `disallowedSecondRootFieldNonExisting` does not exist on the type `Subscription`.",
@@ -30,6 +165,29 @@
       "responseName": "disallowedSecondRootFieldNonExisting",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 171,
+        "End": 225,
+        "Line": 7,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 171,
+          "End": 225,
+          "Line": 7,
+          "Column": 21
+        },
+        "Value": "disallowedSecondRootFieldNonExisting"
+      },
+      "Directives": []
+    }
   }
 ]

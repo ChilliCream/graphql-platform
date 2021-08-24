@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using HotChocolate.Language.Properties;
 using System.Runtime.CompilerServices;
+using static HotChocolate.Language.TokenPrinter;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -88,12 +88,11 @@ namespace HotChocolate.Language
 
             if (_reader.Kind != TokenKind.LeftBracket)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in _reader)));
+                throw new SyntaxException(
+                    _reader,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.LeftBracket,
+                    Print(in _reader));
             }
 
             var items = new List<IValueNode>();
@@ -135,12 +134,11 @@ namespace HotChocolate.Language
 
             if (_reader.Kind != TokenKind.LeftBrace)
             {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                throw new SyntaxException(
+                    _reader,
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.LeftBrace,
+                    Print(in _reader));
             }
 
             var fields = new List<ObjectFieldNode>();
@@ -199,10 +197,7 @@ namespace HotChocolate.Language
 
             if (!TokenHelper.IsScalarValue(in _reader))
             {
-                throw new SyntaxException(_reader,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidScalarToken,
-                        _reader.Kind));
+                throw new SyntaxException(_reader, Parser_InvalidScalarToken, _reader.Kind);
             }
 
             ReadOnlyMemory<byte> value = _reader.Value.ToArray();

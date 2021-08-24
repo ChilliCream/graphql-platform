@@ -6,9 +6,11 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public abstract class FilterFieldDescriptorBase
         : DescriptorBase<FilterFieldDefintion>
     {
@@ -48,9 +50,10 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
-            if (Definition.Property is { })
+            if (!Definition.AttributesAreApplied && Definition.Property is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();

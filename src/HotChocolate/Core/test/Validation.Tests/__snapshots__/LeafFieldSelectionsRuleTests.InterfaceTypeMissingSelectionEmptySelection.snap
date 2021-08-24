@@ -20,6 +20,38 @@
       "responseName": "pets",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 52,
+          "End": 56,
+          "Line": 3,
+          "Column": 34
+        },
+        "Selections": []
+      },
+      "Location": {
+        "Start": 47,
+        "End": 56,
+        "Line": 3,
+        "Column": 29
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 47,
+          "End": 53,
+          "Line": 3,
+          "Column": 29
+        },
+        "Value": "pets"
+      },
+      "Directives": []
+    }
   }
 ]

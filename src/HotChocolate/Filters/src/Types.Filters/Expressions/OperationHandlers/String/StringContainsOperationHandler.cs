@@ -1,8 +1,10 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public sealed class StringContainsOperationHandler
         : StringOperationHandlerBase
     {

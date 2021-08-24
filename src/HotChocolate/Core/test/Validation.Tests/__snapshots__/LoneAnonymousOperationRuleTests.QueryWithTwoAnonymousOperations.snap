@@ -13,6 +13,86 @@
       "operations": 2,
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 131,
+        "End": 240,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 131,
+          "End": 240,
+          "Line": 8,
+          "Column": 17
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 157,
+                "End": 227,
+                "Line": 9,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 183,
+                    "End": 209,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 183,
+                      "End": 209,
+                      "Line": 10,
+                      "Column": 25
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 153,
+              "End": 227,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 153,
+                "End": 158,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

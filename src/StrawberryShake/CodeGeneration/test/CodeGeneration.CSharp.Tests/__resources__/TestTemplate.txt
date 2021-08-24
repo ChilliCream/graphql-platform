@@ -1,0 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using StrawberryShake.Transport.WebSockets;
+using Xunit;
+
+namespace {Namespace}
+{
+    public class {TestName}Test : ServerTestBase
+    {
+        public {TestName}Test(TestServerFactory serverFactory) : base(serverFactory)
+        {
+        }
+
+        [Fact]
+        public async Task Execute_{TestName}_Test()
+        {
+            // arrange
+            CancellationToken ct = new CancellationTokenSource(20_000).Token;
+            using IWebHost host = TestServerHelper.CreateServer(
+                _ => { },
+                out var port);
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddHttpClient(
+                {TestName}Client.ClientName,
+                c => c.BaseAddress = new Uri("http://localhost:" + port + "/graphql"));
+            serviceCollection.AddWebSocketClient(
+                {TestName}Client.ClientName,
+                c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
+            serviceCollection.Add{TestName}Client();
+            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            {TestName}Client client = services.GetRequiredService<{TestName}Client>();
+
+            // act
+
+
+            // assert
+
+        }
+    }
+}

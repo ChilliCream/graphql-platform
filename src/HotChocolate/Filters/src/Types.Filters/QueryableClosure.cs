@@ -5,6 +5,7 @@ using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableClosure
     {
         private readonly bool _inMemory;

@@ -18,6 +18,35 @@
       "argument": "if",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 52,
+        "End": 61,
+        "Line": 3,
+        "Column": 34
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 52,
+          "End": 55,
+          "Line": 3,
+          "Column": 34
+        },
+        "Value": "if"
+      },
+      "Value": {
+        "Kind": "BooleanValue",
+        "Location": {
+          "Start": 55,
+          "End": 61,
+          "Line": 3,
+          "Column": 37
+        },
+        "Value": false
+      }
+    }
   }
 ]

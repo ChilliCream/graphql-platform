@@ -1,31 +1,34 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class EnumGenerator : CodeGenerator<EnumDescriptor>
+    public class EnumGenerator : CodeGenerator<EnumTypeDescriptor>
     {
-        protected override void Generate(
+        protected override void Generate(EnumTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            EnumDescriptor descriptor,
-            out string fileName)
+            out string fileName,
+            out string? path,
+            out string ns)
         {
             fileName = descriptor.Name;
-            EnumBuilder enumBuilder =
-                EnumBuilder
-                    .New()
-                    .SetName(fileName)
-                    .SetUnderlyingType(descriptor.UnderlyingType);
+            path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
+
+            EnumBuilder enumBuilder = EnumBuilder
+                .New()
+                .SetComment(descriptor.Documentation)
+                .SetName(descriptor.RuntimeType.Name)
+                .SetUnderlyingType(descriptor.UnderlyingType);
 
             foreach (EnumValueDescriptor element in descriptor.Values)
             {
-                enumBuilder.AddElement(element.Name, element.Value);
+                enumBuilder.AddElement(element.RuntimeValue, element.Value, element.Documentation);
             }
 
-            CodeFileBuilder
-                .New()
-                .SetNamespace(descriptor.Namespace)
-                .AddType(enumBuilder)
-                .Build(writer);
+            enumBuilder.Build(writer);
         }
     }
 }

@@ -19,6 +19,29 @@
       "responseName": "meowVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 108,
+        "End": 140,
+        "Line": 4,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 108,
+          "End": 140,
+          "Line": 4,
+          "Column": 25
+        },
+        "Value": "meowVolume"
+      },
+      "Directives": []
+    }
   }
 ]

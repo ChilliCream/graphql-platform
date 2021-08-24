@@ -9,38 +9,34 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
 
         public DocumentParserMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
-            IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
-            _documentCache = documentCache ??
-                throw new ArgumentNullException(nameof(documentCache));
             _documentHashProvider = documentHashProvider ??
                 throw new ArgumentNullException(nameof(documentHashProvider));
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Document is null && context.Request.Query is { })
+            if (context.Document is null && context.Request.Query is not null)
             {
-                bool success = true;
+                var success = true;
 
                 try
                 {
                     using (_diagnosticEvents.ParseDocument(context))
                     {
                         context.DocumentId = ComputeDocumentHash(
-                            context.DocumentHash, 
-                            context.Request.QueryHash, 
+                            context.DocumentHash,
+                            context.Request.QueryHash,
                             context.Request.Query);
                         context.Document = ParseDocument(context.Request.Query);
                     }

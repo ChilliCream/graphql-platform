@@ -9,8 +9,7 @@ namespace HotChocolate.Types
     /// GraphQL responses take the form of a hierarchical tree;
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
-    public abstract class ScalarType<TRuntimeType>
-        : ScalarType
+    public abstract class ScalarType<TRuntimeType> : ScalarType
     {
         /// <inheritdoc />
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)

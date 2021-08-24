@@ -1,14 +1,14 @@
+using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class ObjectFilterInputTypeTests
         : TypeTestBase
     {
-
-        //
         [Fact]
         public void Create_ObjectFilter_FooImplicitBarImplicit()
         {

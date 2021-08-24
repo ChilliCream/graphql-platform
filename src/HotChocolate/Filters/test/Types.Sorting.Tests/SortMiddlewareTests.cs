@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortMiddlewareTests
     {
         public static IEnumerable<object[]> Data =>
@@ -30,11 +32,11 @@ namespace HotChocolate.Types.Sorting
         private static void AddField<T>(IObjectTypeDescriptor ctx, T resolvedItems)
         {
             ctx.Field("foo")
-                .Resolver(resolvedItems)
+                .Resolve(resolvedItems)
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseSorting();
         }
-        
+
         [MemberData(nameof(Data))]
         [Theory]
         public void InvokeAsync(object resolvedItems, string scenarioName)

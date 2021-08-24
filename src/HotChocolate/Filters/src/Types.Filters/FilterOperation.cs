@@ -4,6 +4,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class FilterOperation
     {
         private bool _singleFilterInitialized;

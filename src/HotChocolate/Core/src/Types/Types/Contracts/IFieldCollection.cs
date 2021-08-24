@@ -5,15 +5,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Types
 {
-    public interface IFieldCollection<out T>
-        : IReadOnlyCollection<T>
-        where T : class, IField
+    public interface IFieldCollection<out T> : IReadOnlyCollection<T> where T : class, IField
     {
         T this[string fieldName] { get; }
 
         T this[int index] { get; }
-
-        int IndexOfField(NameString fieldName);
 
         bool ContainsField(NameString fieldName);
     }

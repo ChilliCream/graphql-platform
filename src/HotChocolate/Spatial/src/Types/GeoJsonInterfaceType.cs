@@ -4,7 +4,9 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonInterfaceType : InterfaceType
+    public sealed class GeoJsonInterfaceType
+        : InterfaceType
+        , IGeoJsonObjectType
     {
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {

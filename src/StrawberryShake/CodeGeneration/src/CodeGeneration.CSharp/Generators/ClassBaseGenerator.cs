@@ -1,6 +1,7 @@
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public abstract class ClassBaseGenerator<T> : CodeGenerator<T> where T : ICodeDescriptor
     {
@@ -13,26 +14,24 @@ namespace StrawberryShake.CodeGeneration.CSharp
             {
                 classBuilder.AddConstructor(constructorBuilder);
             }
+
             return (classBuilder, constructorBuilder);
         }
 
         protected void AddConstructorAssignedField(
             TypeReferenceBuilder type,
             string fieldName,
+            string paramName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             bool skipNullCheck = false)
         {
-            var paramName = fieldName.TrimStart('_');
+            classBuilder.AddField()
+                .SetReadOnly()
+                .SetName(fieldName)
+                .SetType(type);
 
-            classBuilder.AddField(
-                FieldBuilder
-                    .New()
-                    .SetReadOnly()
-                    .SetName(fieldName)
-                    .SetType(type));
-
-            var assignment = AssignmentBuilder
+            AssignmentBuilder assignment = AssignmentBuilder
                 .New()
                 .SetLefthandSide(fieldName)
                 .SetRighthandSide(paramName);
@@ -50,6 +49,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         protected void AddConstructorAssignedField(
             string typename,
             string fieldName,
+            string paramName,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             bool skipNullCheck = false)
@@ -57,6 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
             AddConstructorAssignedField(
                 TypeReferenceBuilder.New().SetName(typename),
                 fieldName,
+                paramName,
                 classBuilder,
                 constructorBuilder,
                 skipNullCheck);

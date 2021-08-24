@@ -1,115 +1,122 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.CodeGeneration.NamingConventions;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class TypeMapperGenerator
     {
-        private const string DataParamName = "data";
+        private const string _dataParameterName = "data";
 
         private void AddDataHandler(
+            CSharpSyntaxGeneratorSettings settings,
             ClassBuilder classBuilder,
             ConstructorBuilder constructorBuilder,
             MethodBuilder method,
-            NamedTypeDescriptor namedTypeDescriptor,
+            ComplexTypeDescriptor namedTypeDescriptor,
             HashSet<string> processed,
             bool isNonNullable)
         {
-            method.AddParameter(
-                ParameterBuilder.New()
-                    .SetType(
-                        $"global::{namedTypeDescriptor.Namespace}.State." +
-                        DataTypeNameFromTypeName(namedTypeDescriptor.GraphQLTypeName))
-                    .SetName(DataParamName));
+            method
+                .AddParameter(_dataParameterName)
+                .SetType(namedTypeDescriptor.ParentRuntimeType!
+                    .ToString()
+                    .MakeNullable(!isNonNullable));
+
+            if (settings.IsStoreEnabled())
+            {
+                method
+                    .AddParameter(_snapshot)
+                    .SetType(TypeNames.IEntityStoreSnapshot);
+            }
 
             if (!isNonNullable)
             {
-                method.AddCode(
-                    EnsureProperNullability(
-                        DataParamName,
-                        isNonNullable));
+                method.AddCode(EnsureProperNullability(_dataParameterName, isNonNullable));
             }
 
-            var variableName = "returnValue";
-            method.AddCode($"{namedTypeDescriptor.Name} {variableName} = default!;");
+            const string returnValue = nameof(returnValue);
+
+            method.AddCode($"{namedTypeDescriptor.RuntimeType.Name} {returnValue} = default!;");
             method.AddEmptyLine();
 
-            if (namedTypeDescriptor.ImplementedBy.Any())
-            {
-                var ifChain = InterfaceImplementeeIf(namedTypeDescriptor.ImplementedBy[0]);
+            GenerateIfForEachImplementedBy(
+                method,
+                namedTypeDescriptor,
+                o => GenerateDataInterfaceIfClause(settings, o, isNonNullable, returnValue));
 
-                foreach (NamedTypeDescriptor interfaceImplementee in
-                    namedTypeDescriptor.ImplementedBy.Skip(1))
-                {
-                    var singleIf = InterfaceImplementeeIf(interfaceImplementee).SkipIndents();
-                    ifChain.AddIfElse(singleIf);
-                }
-
-                ifChain.AddElse(
-                    CodeInlineBuilder.New()
-                        .SetText($"throw new {TypeNames.NotSupportedException}();"));
-
-                method.AddCode(ifChain);
-            }
-
-            IfBuilder InterfaceImplementeeIf(NamedTypeDescriptor interfaceImplementee)
-            {
-                var ifCorrectType = IfBuilder.New();
-
-                if (isNonNullable)
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", " +
-                        $"{TypeNames.OrdinalStringComparisson})");
-                }
-                else
-                {
-                    ifCorrectType.SetCondition(
-                        $"{DataParamName}?.__typename.Equals(\"" +
-                        $"{interfaceImplementee.GraphQLTypeName}\", " +
-                        $"{TypeNames.OrdinalStringComparisson}) ?? false");
-                }
-
-
-                var constructorCall = MethodCallBuilder.New()
-                    .SetPrefix($"{variableName} = new ")
-                    .SetMethodName(interfaceImplementee.Name);
-
-                foreach (PropertyDescriptor prop in interfaceImplementee.Properties)
-                {
-                    var propAccess = $"{DataParamName}.{prop.Name}";
-                    if (prop.Type.IsEntityType())
-                    {
-                        constructorCall.AddArgument(
-                            BuildMapMethodCall(
-                                DataParamName,
-                                prop,
-                                true));
-                    }
-                    else
-                    {
-                        constructorCall.AddArgument(
-                            $"{propAccess} ?? throw new {TypeNames.ArgumentNullException}()");
-                    }
-                }
-
-                ifCorrectType.AddCode(constructorCall);
-                return ifCorrectType;
-            }
-
-            method.AddCode($"return {variableName};");
+            method.AddCode($"return {returnValue};");
 
             AddRequiredMapMethods(
-                DataParamName,
+                settings,
+                _dataParameterName,
                 namedTypeDescriptor,
                 classBuilder,
                 constructorBuilder,
                 processed);
+        }
+
+        private IfBuilder GenerateDataInterfaceIfClause(
+            CSharpSyntaxGeneratorSettings settings,
+            ObjectTypeDescriptor objectTypeDescriptor,
+            bool isNonNullable,
+            string variableName)
+        {
+            ICode ifCondition = MethodCallBuilder
+                .Inline()
+                .SetMethodName(
+                    _dataParameterName.MakeNullable(!isNonNullable),
+                    WellKnownNames.TypeName,
+                    nameof(string.Equals))
+                .AddArgument(objectTypeDescriptor.Name.AsStringToken())
+                .AddArgument(TypeNames.OrdinalStringComparison);
+
+            if (!isNonNullable)
+            {
+                ifCondition = NullCheckBuilder
+                    .New()
+                    .SetCondition(ifCondition)
+                    .SetSingleLine()
+                    .SetDetermineStatement(false)
+                    .SetCode("false");
+            }
+
+            MethodCallBuilder constructorCall = MethodCallBuilder
+                .Inline()
+                .SetNew()
+                .SetMethodName(objectTypeDescriptor.RuntimeType.Name);
+
+            foreach (PropertyDescriptor prop in objectTypeDescriptor.Properties)
+            {
+                var propAccess = $"{_dataParameterName}.{prop.Name}";
+                if (prop.Type.IsEntity() || prop.Type.IsData())
+                {
+                    constructorCall.AddArgument(
+                        BuildMapMethodCall(settings, _dataParameterName, prop, true));
+                }
+                else if (prop.Type.IsNullable())
+                {
+                    constructorCall.AddArgument(propAccess);
+                }
+                else
+                {
+                    constructorCall
+                        .AddArgument(
+                            NullCheckBuilder
+                                .Inline()
+                                .SetCondition(propAccess)
+                                .SetCode(ExceptionBuilder.Inline(TypeNames.ArgumentNullException)));
+                }
+            }
+
+            return IfBuilder
+                .New()
+                .SetCondition(ifCondition)
+                .AddCode(AssignmentBuilder
+                    .New()
+                    .SetLefthandSide(variableName)
+                    .SetRighthandSide(constructorCall));
         }
     }
 }

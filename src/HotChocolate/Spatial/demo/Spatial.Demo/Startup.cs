@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using HotChocolate.Types.Spatial;
 
 namespace Spatial.Demo
 {
@@ -22,7 +23,12 @@ namespace Spatial.Demo
                 .AddGraphQLServer()
                 .AddFiltering()
                 .AddProjections()
-                .AddSpatialTypes()
+                .AddSpatialTypes(x => x
+                    .DefaultSrid(26912)
+                    .AddWebMercator()
+                    .AddWGS84()
+                    .AddCoordinateSystemFromString(29912, DemoResources.CS26912)
+                    .AddCoordinateSystemFromString(29918, DemoResources.CS26918))
                 .AddSpatialProjections()
                 .AddSpatialFiltering()
                 .AddQueryType<Query>();

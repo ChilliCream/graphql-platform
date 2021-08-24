@@ -19,6 +19,6 @@ namespace HotChocolate.Data.Projections
         public static ProjectionSelection From(
             Selection selection,
             IProjectionFieldHandler handler) =>
-            new ProjectionSelection(handler, selection);
+            new(handler, selection);
     }
 }

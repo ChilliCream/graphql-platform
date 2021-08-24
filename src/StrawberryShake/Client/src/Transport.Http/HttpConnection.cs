@@ -7,10 +7,11 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using StrawberryShake.Internal;
+using StrawberryShake.Json;
 
 namespace StrawberryShake.Transport.Http
 {
-    public class HttpConnection : IConnection<JsonDocument>
+    public class HttpConnection : IHttpConnection
     {
         private readonly Func<HttpClient> _createClient;
         private readonly JsonOperationRequestSerializer _serializer = new();
@@ -50,7 +51,7 @@ namespace StrawberryShake.Transport.Http
                         .ReadAsStreamAsync()
                         .ConfigureAwait(false);
                 #endif
-                
+
                 body = await JsonDocument
                     .ParseAsync(stream, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);

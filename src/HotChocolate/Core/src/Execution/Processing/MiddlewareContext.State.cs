@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Processing
 
         public bool IsResultModified { get; private set; }
 
-        public T Source<T>()
+        public T Parent<T>()
         {
             if (_parent is null)
             {
@@ -51,10 +51,7 @@ namespace HotChocolate.Execution.Processing
                 return casted;
             }
 
-            throw new InvalidCastException(
-                $"The parent cannot be casted to {typeof(T).FullName}.");
+            throw new InvalidCastException($"The parent cannot be cast to {typeof(T).FullName}.");
         }
-
-        public T Parent<T>() => Source<T>();
     }
 }

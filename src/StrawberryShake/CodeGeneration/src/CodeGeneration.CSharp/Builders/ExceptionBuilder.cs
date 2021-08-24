@@ -2,7 +2,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 {
     public class ExceptionBuilder : ICode
     {
-        private readonly MethodCallBuilder _method = 
+        private readonly MethodCallBuilder _method =
             MethodCallBuilder
                 .New()
                 .SetPrefix("throw new ");
@@ -46,5 +46,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public static ExceptionBuilder New(string types) =>
             new ExceptionBuilder().SetException(types);
+
+        public static ExceptionBuilder Inline(string types) =>
+            new ExceptionBuilder().SetException(types).SetDetermineStatement(false);
     }
 }

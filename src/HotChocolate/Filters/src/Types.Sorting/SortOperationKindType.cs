@@ -1,8 +1,10 @@
+using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortOperationKindType
         : EnumType<SortOperationKind>
     {
@@ -34,7 +36,7 @@ namespace HotChocolate.Types.Sorting
             EnumValueDefinition definition,
             ISortingNamingConvention convention)
         {
-            switch (definition.Value)
+            switch (definition.RuntimeValue)
             {
                 case SortOperationKind.Asc:
                     definition.Name = convention.SortKindAscName;

@@ -1,13 +1,15 @@
 
 using System.Runtime.CompilerServices;
 
-// todo : remove this internal dependency.
 [assembly: InternalsVisibleTo("HotChocolate.Validation")]
+[assembly: InternalsVisibleTo("HotChocolate.Types.CursorPagination")]
 
 // Legacy
 [assembly: InternalsVisibleTo("HotChocolate.Types.Filters")]
 [assembly: InternalsVisibleTo("HotChocolate.Types.Sorting")]
 [assembly: InternalsVisibleTo("HotChocolate.Types.Selections")]
+
+// Tests
 [assembly: InternalsVisibleTo("HotChocolate.Types.Filters.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Types.Sorting.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.AspNetCore.Tests")]

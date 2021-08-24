@@ -125,9 +125,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             if (returnTypeFragment is null)
             {
-                // TODO : throw helper
-                throw new GraphQLException(
-                    "The specified return fragment does not exist.");
+                throw ThrowHelper.ReturnFragmentDoesNotExist();
             }
 
             OutputTypeModel returnType =
@@ -149,9 +147,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
                 if (FragmentHelper.GetFragment(returnTypeFragment, fragmentName) is null)
                 {
-                    // TODO : throw helper
-                    throw new GraphQLException(
-                        "The specified return fragment must be implement by all type fragments.");
+                    throw ThrowHelper.FragmentMustBeImplementedByAllTypeFragments();
                 }
 
                 OutputTypeModel @interface =

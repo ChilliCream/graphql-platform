@@ -1,6 +1,7 @@
 ﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -35,17 +36,17 @@ namespace HotChocolate.Types.Descriptors
             Definition.RuntimeType = typeof(object);
         }
 
-        protected internal override UnionTypeDefinition Definition { get; protected set; } =
-            new UnionTypeDefinition();
+        protected internal override UnionTypeDefinition Definition { get; protected set; } = new();
 
         protected override void OnCreateDefinition(UnionTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);
@@ -132,11 +133,11 @@ namespace HotChocolate.Types.Descriptors
         public static UnionTypeDescriptor New(
             IDescriptorContext context,
             Type clrType) =>
-            new UnionTypeDescriptor(context, clrType);
+            new(context, clrType);
 
         public static UnionTypeDescriptor New(
             IDescriptorContext context) =>
-            new UnionTypeDescriptor(context);
+            new(context);
 
         public static UnionTypeDescriptor FromSchemaType(
             IDescriptorContext context,
@@ -150,6 +151,6 @@ namespace HotChocolate.Types.Descriptors
         public static UnionTypeDescriptor From(
             IDescriptorContext context,
             UnionTypeDefinition definition) =>
-            new UnionTypeDescriptor(context, definition);
+            new(context, definition);
     }
 }

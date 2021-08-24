@@ -5,12 +5,21 @@ namespace StrawberryShake
 {
     public sealed class EntityUpdate
     {
-        public EntityUpdate(ISet<EntityId> updatedEntityIds, ulong version)
+        public EntityUpdate(
+            IEntityStoreSnapshot snapshot,
+            ISet<EntityId> updatedEntityIds)
         {
+            Snapshot = snapshot ??
+                throw new ArgumentNullException(nameof(snapshot));
             UpdatedEntityIds = updatedEntityIds ??
                 throw new ArgumentNullException(nameof(updatedEntityIds));
-            Version = version;
+            Version = snapshot.Version;
         }
+
+        /// <summary>
+        /// Gets the store snapshot.
+        /// </summary>
+        public IEntityStoreSnapshot Snapshot { get; }
 
         /// <summary>
         /// Gets the ids of the updated entities.

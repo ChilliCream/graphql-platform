@@ -24,7 +24,39 @@
       "responseNameB": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 522,
+          "End": 524,
+          "Line": 23,
+          "Column": 21
+        },
+        "Value": "x"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 522,
+        "End": 544,
+        "Line": 23,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 525,
+          "End": 544,
+          "Line": 23,
+          "Column": 24
+        },
+        "Value": "b"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "Encountered fields for the same object that cannot be merged.",
@@ -51,7 +83,39 @@
       "responseNameB": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 440,
+          "End": 442,
+          "Line": 19,
+          "Column": 21
+        },
+        "Value": "x"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 440,
+        "End": 462,
+        "Line": 19,
+        "Column": 21
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 443,
+          "End": 462,
+          "Line": 19,
+          "Column": 24
+        },
+        "Value": "a"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "Encountered fields for the same object that cannot be merged.",
@@ -78,7 +142,39 @@
       "responseNameB": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 336,
+          "End": 338,
+          "Line": 14,
+          "Column": 25
+        },
+        "Value": "x"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 336,
+        "End": 362,
+        "Line": 14,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 339,
+          "End": 362,
+          "Line": 14,
+          "Column": 28
+        },
+        "Value": "c"
+      },
+      "Directives": []
+    }
   },
   {
     "Message": "Encountered fields for the same object that cannot be merged.",
@@ -105,6 +201,38 @@
       "responseNameB": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Field",
+      "Alias": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 336,
+          "End": 338,
+          "Line": 14,
+          "Column": 25
+        },
+        "Value": "x"
+      },
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": {
+        "Start": 336,
+        "End": 362,
+        "Line": 14,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 339,
+          "End": 362,
+          "Line": 14,
+          "Column": 28
+        },
+        "Value": "c"
+      },
+      "Directives": []
+    }
   }
 ]

@@ -9,8 +9,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         private ICode? _rightHandSide;
         private bool _assertNonNull;
         private string? _nonNullAssertTypeNameOverride;
+        private string _operator = "=";
+        private ICode? _assertException;
 
-        public static AssignmentBuilder New() => new AssignmentBuilder();
+        public static AssignmentBuilder New() => new();
 
         public AssignmentBuilder SetLefthandSide(ICode value)
         {
@@ -21,6 +23,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public AssignmentBuilder SetLefthandSide(string value)
         {
             _leftHandSide = new CodeInlineBuilder().SetText(value);
+            return this;
+        }
+
+        public AssignmentBuilder SetOperator(string value)
+        {
+            _operator = value;
             return this;
         }
 
@@ -42,9 +50,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return SetAssertNonNull(true);
         }
 
-        public AssignmentBuilder SetAssertNonNull(bool value)
+        public AssignmentBuilder SetAssertNonNull(bool value = true)
         {
             _assertNonNull = value;
+            return this;
+        }
+
+        public AssignmentBuilder SetAssertException(string code)
+        {
+            _assertException = CodeInlineBuilder.From($"throw new {code}");
+            return this;
+        }
+
+        public AssignmentBuilder SetAssertException(ExceptionBuilder code)
+        {
+            _assertException = code;
             return this;
         }
 
@@ -62,7 +82,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteIndent();
             _leftHandSide.Build(writer);
-            writer.Write(" = ");
+
+            writer.Write(" ");
+            writer.Write(_operator);
+            writer.Write(" ");
+
             _rightHandSide.Build(writer);
             if (_assertNonNull)
             {
@@ -71,18 +95,28 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
                 {
                     writer.WriteIndent();
                     writer.Write(" ?? ");
-                    writer.Write($"throw new {TypeNames.ArgumentNullException}(nameof(");
-                    if (_nonNullAssertTypeNameOverride is not null)
+
+                    if (_assertException is null)
                     {
-                        writer.Write(_nonNullAssertTypeNameOverride);
+                        writer.Write($"throw new {TypeNames.ArgumentNullException}(nameof(");
+                        if (_nonNullAssertTypeNameOverride is not null)
+                        {
+                            writer.Write(_nonNullAssertTypeNameOverride);
+                        }
+                        else
+                        {
+                            _rightHandSide.Build(writer);
+                        }
+
+                        writer.Write("))");
                     }
                     else
                     {
-                        _rightHandSide.Build(writer);
+                        _assertException.Build(writer);
                     }
-                    writer.Write("))");
                 }
             }
+
             writer.Write(";");
             writer.WriteLine();
         }

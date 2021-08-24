@@ -51,16 +51,23 @@ namespace HotChocolate.Types.Relay.Descriptors
                 Definition.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
             }
 
-            return Definition.IdMember is null
-                ? _typeDescriptor
+            if (Definition.IdMember is null)
+            {
+                IObjectFieldDescriptor descriptor = _typeDescriptor
                     .Field(NodeType.Names.Id)
-                    .Type<NonNullType<IdType>>()
-                    .Use<IdMiddleware>()
-                : _typeDescriptor
+                    .Type<NonNullType<IdType>>();
+
+                return ConverterHelper.TryAdd(descriptor);
+            }
+            else
+            {
+                IObjectFieldDescriptor descriptor = _typeDescriptor
                     .Field(Definition.IdMember)
                     .Name(NodeType.Names.Id)
-                    .Type<NonNullType<IdType>>()
-                    .Use<IdMiddleware>();
+                    .Type<NonNullType<IdType>>();
+
+                return ConverterHelper.TryAdd(descriptor);
+            }
         }
 
         public INodeDescriptor<TNode, TId> IdField<TId>(

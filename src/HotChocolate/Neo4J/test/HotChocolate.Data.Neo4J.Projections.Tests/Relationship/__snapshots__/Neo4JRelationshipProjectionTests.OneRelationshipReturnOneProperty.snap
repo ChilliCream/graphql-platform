@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "barBool": true,
+        "barString": "a",
+        "bars": [
+          {
+            "name": "b"
+          }
+        ]
+      }
+    ]
+  }
+}

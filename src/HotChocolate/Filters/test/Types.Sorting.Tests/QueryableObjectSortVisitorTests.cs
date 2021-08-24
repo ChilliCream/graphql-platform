@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class QueryableObjectSortVisitorTests
         : TypeTestBase
     {
@@ -17,7 +19,7 @@ namespace HotChocolate.Types.Sorting
             // act
             Func<QueryableSortVisitorContext> createVisitor
                 = () => new QueryableSortVisitorContext(
-                    null, typeof(Foo), false);
+                    new(new DefaultTypeConverter()), null!, typeof(Foo), false);
 
             // assert
             Assert.Throws<ArgumentNullException>(createVisitor);
@@ -32,7 +34,7 @@ namespace HotChocolate.Types.Sorting
             // act
             Func<QueryableSortVisitorContext> createVisitor
                 = () => new QueryableSortVisitorContext(
-                    sortType, null, false);
+                    new(new DefaultTypeConverter()), sortType, null!, false);
 
             // assert
             Assert.Throws<ArgumentNullException>(createVisitor);
@@ -46,10 +48,7 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
-                )
-            ));
+                    new EnumValueNode(SortOperationKind.Asc)))));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -61,7 +60,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
@@ -96,7 +96,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), true);
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
@@ -116,10 +117,7 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
-                )
-            ));
+                    new EnumValueNode(SortOperationKind.Asc)))));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -131,7 +129,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), true);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), true);
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
@@ -166,7 +165,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
@@ -201,7 +201,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
             QueryableSortVisitor.Default.Visit(value, context);
             ICollection<Foo> aFiltered = context.Sort(a).ToList();
 
@@ -229,7 +230,8 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
+            var context = new QueryableSortVisitorContext(
+                new(new DefaultTypeConverter()), sortType, typeof(Foo), false);
             QueryableSortVisitor.Default.Visit(value, context);
             IQueryable<Foo> aFiltered = context.Sort(a);
 

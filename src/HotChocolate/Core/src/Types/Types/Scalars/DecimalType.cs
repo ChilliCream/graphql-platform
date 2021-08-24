@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class DecimalType : FloatTypeBase<decimal>
+    public class DecimalType : FloatTypeBase<decimal>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DecimalType"/> class.

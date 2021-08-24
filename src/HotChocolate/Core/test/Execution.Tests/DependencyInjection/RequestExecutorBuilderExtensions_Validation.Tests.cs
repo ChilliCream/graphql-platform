@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Validation;
 using Xunit;
+using HotChocolate.Types;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.DependencyInjection
 {
@@ -68,12 +74,101 @@ namespace HotChocolate.DependencyInjection
             Assert.Throws<ArgumentNullException>(Fail);
         }
 
+        [Fact]
+        public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddIntrospectionAllowedRule()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessageFact()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddIntrospectionAllowedRule()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .SetIntrospectionNotAllowedMessage(() => "Bar")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AddIntrospectionAllowedRule_IntegrationTest_NotAllowed_CustomMessage()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .AddIntrospectionAllowedRule()
+                .ExecuteRequestAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .SetIntrospectionNotAllowedMessage("Baz")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AddIntrospectionAllowedRule_IntegrationTest_Allowed()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQLServer()
+                    .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                    .AddIntrospectionAllowedRule()
+                    .BuildRequestExecutorAsync();
+
+            var results = new List<string>();
+
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .AllowIntrospection()
+                        .Create());
+            results.Add(result.ToJson());
+
+            result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder
+                        .New()
+                        .SetQuery("{ __schema { description } }")
+                        .Create());
+            results.Add(result.ToJson());
+
+            results.MatchSnapshot();
+        }
+
         public class MockVisitor : DocumentValidatorVisitor
         {
         }
 
         public class MockRule : IDocumentValidatorRule
         {
+            public bool IsCacheable => true;
+
             public void Validate(IDocumentValidatorContext context, DocumentNode document)
             {
                 throw new NotImplementedException();

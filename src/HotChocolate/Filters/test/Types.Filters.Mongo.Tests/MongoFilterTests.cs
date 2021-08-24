@@ -11,6 +11,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class MongoFilterTests
         : IClassFixture<MongoResource>
     {
@@ -43,7 +44,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -80,7 +81,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -144,7 +145,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -183,7 +184,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -220,7 +221,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -257,7 +258,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -295,7 +296,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -332,7 +333,7 @@ namespace HotChocolate.Types.Filters
                 .Services
                 .BuildServiceProvider();
 
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
                 await services.GetRequiredService<IRequestExecutorResolver>()
                     .GetRequestExecutorAsync();
 
@@ -355,13 +356,13 @@ namespace HotChocolate.Types.Filters
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                         ctx.Service<IMongoCollection<Model>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                         ctx.Service<IMongoCollection<Model>>().AsQueryable());
             }
         }
@@ -373,7 +374,7 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
 
                 descriptor.Field(t => t.Time)
                     .Type<NonNullType<DateTimeType>>();

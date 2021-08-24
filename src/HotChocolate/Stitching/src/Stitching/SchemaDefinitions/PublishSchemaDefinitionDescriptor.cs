@@ -72,7 +72,7 @@ namespace HotChocolate.Stitching.SchemaDefinitions
                         throw ThrowHelper.PublishSchemaDefinitionDescriptor_ResourceNotFound(key);
                     }
 
-#if NET5_0
+#if NET5_0 || NET6_0
                     await using (stream)
 #else
                     using (stream)

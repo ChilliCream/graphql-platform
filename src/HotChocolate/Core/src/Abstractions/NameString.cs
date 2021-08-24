@@ -71,7 +71,7 @@ namespace HotChocolate
         /// <returns>The combined <see cref="NameString"/>.</returns>
         public NameString Add(NameString other)
         {
-            return new NameString(Value + other.Value);
+            return new(Value + other.Value);
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace HotChocolate
         /// <returns>
         /// <c>true</c> if both <see cref="NameString"/> values are equal.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -130,7 +130,7 @@ namespace HotChocolate
 
         public int CompareTo(NameString other)
         {
-            return Value.CompareTo(other.Value);
+            return string.Compare(Value, other.Value, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -214,64 +214,24 @@ namespace HotChocolate
         /// Implicitly creates a new <see cref="NameString"/> from
         /// the given string.
         /// </summary>
-        /// <param name="s">The string.</param>
         public static implicit operator NameString(string s)
             => ConvertFromString(s);
 
         /// <summary>
         /// Implicitly calls ToString().
         /// </summary>
-        /// <param name="name"></param>
         public static implicit operator string(NameString name)
             => name.ToString();
+
+        /// <summary>
+        /// Implicitly creates a new root path.
+        /// </summary>
+        public static implicit operator Path(NameString name)
+            => Path.New(name);
 
         internal static NameString ConvertFromString(string s)
             => string.IsNullOrEmpty(s)
                 ? new NameString()
                 : new NameString(s);
-    }
-
-    internal class NameStringConverter
-        : TypeConverter
-    {
-        public override bool CanConvertFrom(
-            ITypeDescriptorContext context,
-            Type sourceType) =>
-                sourceType == typeof(string)
-                || base.CanConvertFrom(context, sourceType);
-
-        public override object ConvertFrom(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
-            object value) =>
-                value is string
-                    ? NameString.ConvertFromString((string)value)
-                    : base.ConvertFrom(context, culture, value);
-
-        public override object ConvertTo(
-            ITypeDescriptorContext context,
-            CultureInfo culture,
-            object value,
-            Type destinationType) =>
-                destinationType == typeof(string)
-                    ? value.ToString()
-                    : base.ConvertTo(context, culture, value, destinationType);
-    }
-
-    public static class NameStringExtensions
-    {
-        public static NameString EnsureNotEmpty(
-            in this NameString name,
-            string argumentName)
-        {
-            if (name.IsEmpty)
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Name_MustNotBeEmpty,
-                    argumentName);
-            }
-
-            return name;
-        }
     }
 }

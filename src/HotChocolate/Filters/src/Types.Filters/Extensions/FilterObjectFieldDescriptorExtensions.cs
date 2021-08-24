@@ -10,12 +10,14 @@ using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public static class FilterObjectFieldDescriptorExtensions
     {
         private const string _whereArgumentNamePlaceholder = "placeholder";
         private static readonly Type _middlewareDefinition =
             typeof(QueryableFilterMiddleware<>);
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)
         {
@@ -27,6 +29,7 @@ namespace HotChocolate.Types
             return UseFiltering(descriptor, null);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor)
         {
@@ -43,6 +46,7 @@ namespace HotChocolate.Types
             return UseFiltering(descriptor, filterType);
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor,
             Action<IFilterInputTypeDescriptor<T>> configure)
@@ -66,12 +70,15 @@ namespace HotChocolate.Types
             Type? filterType,
             ITypeSystemMember? filterTypeInstance = null)
         {
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Filtering);
+
             string argumentPlaceholder =
                 "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
+
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate((c, definition) =>
                 {
@@ -94,7 +101,7 @@ namespace HotChocolate.Types
                     }
 
                     ITypeReference argumentTypeReference = filterTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                        ? c.TypeInspector.GetTypeRef(
                             argumentType,
                             TypeContext.Input)
                         : TypeReference.Create(filterTypeInstance);
@@ -118,20 +125,19 @@ namespace HotChocolate.Types
                     argumentDefinition.ConfigureArgumentName();
                     definition.Arguments.Add(argumentDefinition);
 
-                    ILazyTypeConfiguration lazyConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, definition) =>
-                                CompileMiddleware(
-                                    context,
-                                    definition,
-                                    argumentTypeReference,
-                                    placeholder))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build();
-                    definition.Configurations.Add(lazyConfiguration);
+                    var fieldConfig = new CompleteConfiguration<ObjectFieldDefinition>(
+                        (context, d) =>
+                            CompileMiddleware(
+                                context,
+                                d,
+                                argumentTypeReference,
+                                placeholder),
+                        definition,
+                        ApplyConfigurationOn.Completion,
+                        argumentTypeReference,
+                        TypeDependencyKind.Completed);
+
+                    definition.Configurations.Add(fieldConfig);
                 });
 
             return descriptor;
@@ -141,7 +147,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddlewareDefinition placeholder)
         {
             IFilterNamingConvention convention =
                 context.DescriptorContext.GetFilterNamingConvention();
@@ -154,8 +160,9 @@ namespace HotChocolate.Types
                         typeof(FilterMiddlewareContext),
                         FilterMiddlewareContext.Create(convention.ArgumentName)
                     ));
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Filtering);
         }
 
         private static IObjectFieldDescriptor AddFilterArguments(
@@ -169,6 +176,7 @@ namespace HotChocolate.Types
                             c.TypeInspector.GetTypeRef(filterType, TypeContext.Input)));
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(
             this IObjectFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
@@ -177,6 +185,7 @@ namespace HotChocolate.Types
                 a => a.Type<TFilter>().Extend().ConfigureArgumentName());
         }
 
+        [Obsolete("Use HotChocolate.Data.")]
         public static IInterfaceFieldDescriptor AddFilterArguments<TFilter>(
             this IInterfaceFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
@@ -195,20 +204,17 @@ namespace HotChocolate.Types
         private static ArgumentDefinition ConfigureArgumentName(
             this ArgumentDefinition definition)
         {
-            ILazyTypeConfiguration lazyArgumentConfiguration =
-                LazyTypeConfigurationBuilder
-                    .New<ArgumentDefinition>()
-                    .Definition(definition)
-                    .Configure((context, definition) =>
-                    {
-                        IFilterNamingConvention convention =
-                            context.DescriptorContext.GetFilterNamingConvention();
-                        definition.Name = convention.ArgumentName;
-                    })
-                   .On(ApplyConfigurationOn.Completion)
-                   .Build();
+            var argumentConfig = new CompleteConfiguration<ArgumentDefinition>(
+                (context, d) =>
+                {
+                    IFilterNamingConvention convention =
+                        context.DescriptorContext.GetFilterNamingConvention();
+                    d.Name = convention.ArgumentName;
+                },
+                definition,
+                ApplyConfigurationOn.Completion);
 
-            definition.Configurations.Add(lazyArgumentConfiguration);
+            definition.Configurations.Add(argumentConfig);
             return definition;
         }
     }

@@ -8,17 +8,18 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<TEntity>
     {
-        public readonly IAggregateFluent<TEntity> _source;
+        private readonly IAggregateFluent<TEntity> _source;
+        private readonly IAggregateFluent<AggregateCountResult> _countSource;
 
         public AggregateFluentPagingContainer(IAggregateFluent<TEntity> source)
         {
+            _countSource = source.Count();
             _source = source;
         }
 
         public async Task<int> CountAsync(CancellationToken cancellationToken)
         {
-            AggregateCountResult result = await _source
-                .Count()
+            AggregateCountResult result = await _countSource
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -63,7 +64,6 @@ namespace HotChocolate.Data.MongoDb.Paging
         }
 
         public static AggregateFluentPagingContainer<TEntity> New(
-            IAggregateFluent<TEntity> aggregate) =>
-            new AggregateFluentPagingContainer<TEntity>(aggregate);
+            IAggregateFluent<TEntity> aggregate) => new(aggregate);
     }
 }

@@ -78,7 +78,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.EntityFra
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Tests", "test\Data.Tests\HotChocolate.Data.Tests.csproj", "{256DC401-40F1-4632-BB68-A336D1C518D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.StarWars", "..\Core\test\StarWars\HotChocolate.StarWars.csproj", "{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.StarWars.Tests", "..\Core\test\StarWars\HotChocolate.StarWars.Tests.csproj", "{6B8B8B28-EE74-49A9-BC68-C42CB217BB54}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Projections.Tests", "test\Data.Projections.Tests\HotChocolate.Data.Projections.Tests.csproj", "{5B36B9E9-BC55-4A4D-B58F-9311581C008B}"
 EndProject

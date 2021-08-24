@@ -14,15 +14,9 @@ namespace StrawberryShake.CodeGeneration
         public const string SchemaValidationError = "SS0002";
 
         /// <summary>
-        /// The generator has not found any type documents and can therefore
-        /// not generate anything.
+        /// A union type must consist of only entity types or only data types.
+        /// Ensure that your @key directive correctly captures your entities.
         /// </summary>
-        public const string NoTypeDocumentsFound = "SS0003";
-
-        /// <summary>
-        /// The generator has not found any executable documents and can therefore
-        /// not generate anything.
-        /// </summary>
-        public const string NoExecutableDocumentsFound = "SS0004";
+        public const string UnionTypeDataEntityMixed = "SS0013";
     }
 }

@@ -1,171 +1,186 @@
 using System;
-using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories
 {
-    internal class SchemaSyntaxVisitor
-        : SchemaSyntaxWalker<object>
+    internal sealed class SchemaSyntaxVisitor : SyntaxVisitor<SchemaSyntaxVisitorContext>
     {
-        private readonly ObjectTypeFactory _objectTypeFactory =
-            new ObjectTypeFactory();
-        private readonly ObjectTypeExtensionFactory _objectTypeExtensionFactory =
-            new ObjectTypeExtensionFactory();
-        private readonly InterfaceTypeFactory _interfaceTypeFactory =
-            new InterfaceTypeFactory();
-        private readonly InterfaceTypeExtensionFactory _interfaceTypeExtensionFactory =
-            new InterfaceTypeExtensionFactory();
-        private readonly UnionTypeFactory _unionTypeFactory =
-            new UnionTypeFactory();
-        private readonly UnionTypeExtensionFactory _unionTypeExtensionFactory =
-            new UnionTypeExtensionFactory();
-        private readonly InputObjectTypeFactory _inputObjectTypeFactory =
-            new InputObjectTypeFactory();
-        private readonly InputObjectTypeExtensionFactory _inputObjectTypeExtensionFactory =
-            new InputObjectTypeExtensionFactory();
-        private readonly EnumTypeFactory _enumTypeFactory =
-            new EnumTypeFactory();
-        private readonly EnumTypeExtensionFactory _enumTypeExtensionFactory =
-            new EnumTypeExtensionFactory();
-        private readonly DirectiveTypeFactory _directiveTypeFactory =
-            new DirectiveTypeFactory();
+        private readonly ObjectTypeFactory _objectTypeFactory = new();
+        private readonly InterfaceTypeFactory _interfaceTypeFactory = new();
+        private readonly UnionTypeFactory _unionTypeFactory = new();
+        private readonly InputObjectTypeFactory _inputObjectTypeFactory = new();
+        private readonly EnumTypeFactory _enumTypeFactory = new();
+        private readonly DirectiveTypeFactory _directiveTypeFactory = new();
 
-        private readonly List<ITypeReference> _types =
-            new List<ITypeReference>();
+        protected override ISyntaxVisitorAction DefaultAction => Continue;
 
-        private readonly IBindingLookup _bindingLookup;
-
-        public SchemaSyntaxVisitor(IBindingLookup bindingLookup)
-        {
-            _bindingLookup = bindingLookup
-                ?? throw new ArgumentNullException(nameof(bindingLookup));
-        }
-
-        public string QueryTypeName { get; private set; }
-
-        public string MutationTypeName { get; private set; }
-
-        public string SubscriptionTypeName { get; private set; }
-
-        public string Description { get; private set; }
-
-        public IReadOnlyCollection<DirectiveNode> Directives { get; private set; }
-
-        public IReadOnlyList<ITypeReference> Types => _types;
-
-        protected override void VisitObjectTypeDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             ObjectTypeDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _objectTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _objectTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitObjectTypeExtension(
+        protected override ISyntaxVisitorAction VisitChildren(
             ObjectTypeExtensionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _objectTypeExtensionFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _objectTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitInterfaceTypeDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             InterfaceTypeDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _interfaceTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _interfaceTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitInterfaceTypeExtension(
+        protected override ISyntaxVisitorAction VisitChildren(
             InterfaceTypeExtensionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _interfaceTypeExtensionFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _interfaceTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitUnionTypeDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             UnionTypeDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _unionTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _unionTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitUnionTypeExtension(
+        protected override ISyntaxVisitorAction VisitChildren(
             UnionTypeExtensionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _unionTypeExtensionFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _unionTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitInputObjectTypeDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             InputObjectTypeDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _inputObjectTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _inputObjectTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitInputObjectTypeExtension(
+        protected override ISyntaxVisitorAction VisitChildren(
             InputObjectTypeExtensionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _inputObjectTypeExtensionFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _inputObjectTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitEnumTypeDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             EnumTypeDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _enumTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _enumTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitEnumTypeExtension(
+        protected override ISyntaxVisitorAction VisitChildren(
             EnumTypeExtensionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _enumTypeExtensionFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _enumTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitDirectiveDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             DirectiveDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            _types.Add(TypeReference.Create(
-                _directiveTypeFactory.Create(_bindingLookup, node)));
+            context.Types.Add(
+                TypeReference.Create(
+                    _directiveTypeFactory.Create(
+                        context.DirectiveContext,
+                        node)));
+
+            return base.VisitChildren(node, context);
         }
 
-        protected override void VisitSchemaDefinition(
+        protected override ISyntaxVisitorAction VisitChildren(
             SchemaDefinitionNode node,
-            object context)
+            SchemaSyntaxVisitorContext context)
         {
-            Description = node.Description?.Value;
-            Directives = node.Directives;
+            context.Description = node.Description?.Value;
+            context.Directives = node.Directives;
 
-            foreach (OperationTypeDefinitionNode operationType in
-                node.OperationTypes)
+            foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
             {
                 switch (operationType.Operation)
                 {
                     case OperationType.Query:
-                        QueryTypeName = operationType.Type.Name.Value;
+                        context.QueryTypeName = operationType.Type.Name.Value;
                         break;
 
                     case OperationType.Mutation:
-                        MutationTypeName = operationType.Type.Name.Value;
+                        context.MutationTypeName = operationType.Type.Name.Value;
                         break;
 
                     case OperationType.Subscription:
-                        SubscriptionTypeName = operationType.Type.Name.Value;
+                        context.SubscriptionTypeName = operationType.Type.Name.Value;
                         break;
 
                     default:
@@ -173,6 +188,8 @@ namespace HotChocolate.Types.Factories
                             TypeResources.SchemaSyntaxVisitor_UnknownOperationType);
                 }
             }
+
+            return base.VisitChildren(node, context);
         }
     }
 }

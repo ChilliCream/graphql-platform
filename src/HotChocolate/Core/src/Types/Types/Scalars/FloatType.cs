@@ -14,7 +14,7 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-Float
     /// </summary>
     [SpecScalar]
-    public sealed class FloatType : FloatTypeBase<double>
+    public class FloatType : FloatTypeBase<double>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="FloatType"/> class.

@@ -1,70 +1,59 @@
+using System.Linq;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
 using StrawberryShake.CodeGeneration.CSharp.Extensions;
-using StrawberryShake.CodeGeneration.Extensions;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
-    public class ResultTypeGenerator : CodeGenerator<NamedTypeDescriptor>
+    public class ResultTypeGenerator : CodeGenerator<ObjectTypeDescriptor>
     {
-        protected override bool CanHandle(NamedTypeDescriptor descriptor)
-        {
-            return descriptor.Kind != TypeKind.LeafType &&
-                descriptor.Kind != TypeKind.InputType &&
-                !descriptor.IsInterface();
-        }
-
         protected override void Generate(
+            ObjectTypeDescriptor descriptor,
+            CSharpSyntaxGeneratorSettings settings,
             CodeWriter writer,
-            NamedTypeDescriptor namedTypeDescriptor,
-            out string fileName)
+            out string fileName,
+            out string? path,
+            out string ns)
         {
-            fileName = namedTypeDescriptor.Name;
-            ClassBuilder classBuilder = ClassBuilder.New()
-                .SetName(fileName);
+            fileName = descriptor.RuntimeType.Name;
+            path = null;
+            ns = descriptor.RuntimeType.NamespaceWithoutGlobal;
 
-            ConstructorBuilder constructorBuilder = ConstructorBuilder.New()
-                .SetTypeName(fileName)
-                .SetAccessModifier(AccessModifier.Public);
+            ClassBuilder classBuilder = ClassBuilder
+                .New()
+                .SetComment(descriptor.Description)
+                .SetName(fileName)
+                .AddEquality(fileName, descriptor.Properties);
 
-            foreach (var prop in namedTypeDescriptor.Properties)
+            ConstructorBuilder constructorBuilder = classBuilder
+                .AddConstructor()
+                .SetTypeName(fileName);
+
+            foreach (var prop in descriptor.Properties)
             {
-                var propTypeBuilder = prop.Type.ToBuilder();
+                TypeReferenceBuilder propTypeBuilder = prop.Type.ToTypeReference();
 
                 // Add Property to class
-                var propBuilder = PropertyBuilder
-                    .New()
+                classBuilder
+                    .AddProperty(prop.Name)
+                    .SetComment(prop.Description)
                     .SetName(prop.Name)
                     .SetType(propTypeBuilder)
-                    .SetAccessModifier(AccessModifier.Public);
-
-                if (prop.Type.IsNullableType())
-                {
-                    propBuilder.SetValue("default!");
-                }
-
-                classBuilder.AddProperty(propBuilder);
+                    .SetPublic();
 
                 // Add initialization of property to the constructor
-                var paramName = prop.Name.WithLowerFirstChar();
-                ParameterBuilder parameterBuilder = ParameterBuilder.New()
-                    .SetName(paramName)
-                    .SetType(propTypeBuilder);
-                constructorBuilder.AddParameter(parameterBuilder);
-                constructorBuilder.AddCode(prop.Name + " = " + paramName + ";");
+                var paramName = GetParameterName(prop.Name);
+                constructorBuilder
+                    .AddParameter(paramName, x => x.SetType(propTypeBuilder))
+                    .AddCode(AssignmentBuilder
+                        .New()
+                        .SetLefthandSide(GetLeftPropertyAssignment(prop.Name))
+                        .SetRighthandSide(paramName));
             }
 
-            foreach (var implement in namedTypeDescriptor.Implements)
-            {
-                classBuilder.AddImplements(implement);
-            }
-
-            classBuilder.AddConstructor(constructorBuilder);
-
-            CodeFileBuilder
-                .New()
-                .SetNamespace(namedTypeDescriptor.Namespace)
-                .AddType(classBuilder)
-                .Build(writer);
+            classBuilder.AddImplementsRange(descriptor.Implements.Select(x => x.Value));
+            classBuilder.Build(writer);
         }
     }
 }

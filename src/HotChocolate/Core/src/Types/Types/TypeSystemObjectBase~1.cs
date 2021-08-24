@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -17,8 +16,6 @@ namespace HotChocolate.Types
         private TDefinition? _definition;
         private ExtensionData? _contextData;
 
-        protected TypeSystemObjectBase() { }
-
         public override IReadOnlyDictionary<string, object?> ContextData
         {
             get
@@ -27,11 +24,15 @@ namespace HotChocolate.Types
             }
         }
 
-        internal TDefinition? Definition
+        protected internal TDefinition? Definition
         {
             get
             {
                 return _definition;
+            }
+            protected set
+            {
+                _definition = value;
             }
         }
 
@@ -48,6 +49,12 @@ namespace HotChocolate.Types
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+
+            // if we at this point already know the name we will just commit it.
+            if (_definition.Name.HasValue)
+            {
+                Name = _definition.Name;
             }
 
             RegisterConfigurationDependencies(context, _definition);
@@ -123,8 +130,21 @@ namespace HotChocolate.Types
             _definition = null;
 
             OnAfterCompleteType(context, definition, _contextData);
+            OnValidateType(context, definition, _contextData);
 
             MarkCompleted();
+        }
+
+        internal sealed override void FinalizeType(ITypeCompletionContext context)
+        {
+            // if the ExtensionData object has no data we will release it so it can be
+            // collected by the GC.
+            if (_contextData!.Count == 0)
+            {
+                _contextData = ExtensionData.Empty;
+            }
+
+            MarkFinalized();
         }
 
         protected virtual void OnCompleteType(
@@ -139,13 +159,12 @@ namespace HotChocolate.Types
         {
             OnBeforeRegisterDependencies(context, definition, definition.ContextData);
 
-            foreach (var group in definition.GetConfigurations()
-                .SelectMany(t => t.Dependencies)
-                .GroupBy(t => t.Kind))
+            foreach (var configuration in definition.GetConfigurations())
             {
-                context.RegisterDependencyRange(
-                    group.Select(t => t.TypeReference),
-                    group.Key);
+                foreach (TypeDependency dependency in configuration.Dependencies)
+                {
+                    context.Dependencies.Add(dependency);
+                }
             }
 
             OnRegisterDependencies(context, definition);
@@ -155,12 +174,14 @@ namespace HotChocolate.Types
         private static void ExecuteConfigurations(
             ITypeCompletionContext context,
             TDefinition definition,
-            ApplyConfigurationOn kind)
+            ApplyConfigurationOn on)
         {
-            foreach (ILazyTypeConfiguration configuration in
-                definition.GetConfigurations().Where(t => t.On == kind))
+            foreach (ITypeSystemMemberConfiguration config in definition.GetConfigurations())
             {
-                configuration.Configure(context);
+                if (config.On == on)
+                {
+                    ((CompleteConfiguration)config).Configure(context);
+                }
             }
         }
 
@@ -233,15 +254,20 @@ namespace HotChocolate.Types
                 context, definition, contextData);
         }
 
+        protected virtual void OnValidateType(
+            ITypeSystemObjectContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnValidateType(
+                context, definition, contextData);
+        }
+
         private void AssertUninitialized()
         {
             Debug.Assert(
                 !IsInitialized,
                 "The type must be uninitialized.");
-
-            Debug.Assert(
-                _definition is null,
-                "The definition should not exist when the type has not been initialized.");
 
             if (IsInitialized)
             {
@@ -290,6 +316,18 @@ namespace HotChocolate.Types
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+        }
+
+        protected internal void AssertMutable()
+        {
+            Debug.Assert(
+                !IsCompleted,
+                "The type os no longer mutable.");
+
+            if (IsCompleted)
+            {
+                throw new InvalidOperationException("The type is no longer mutable.");
             }
         }
     }

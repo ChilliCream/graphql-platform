@@ -129,12 +129,9 @@ namespace HotChocolate
         /// <returns>
         /// Returns a new root segment.
         /// </returns>
-        public static NamePathSegment New(NameString name)
-        {
-            return new NamePathSegment(null, name);
-        }
+        public static NamePathSegment New(NameString name) => new(null, name);
 
-        public static RootPathSegment Root { get; } = RootPathSegment.Instance;
+        public static RootPathSegment Root => RootPathSegment.Instance;
 
         internal static Path FromList(IReadOnlyList<object> path)
         {

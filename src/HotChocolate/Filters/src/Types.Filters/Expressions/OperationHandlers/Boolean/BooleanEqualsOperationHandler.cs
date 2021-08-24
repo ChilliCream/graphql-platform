@@ -1,9 +1,11 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class BooleanEqualsOperationHandler
         : IExpressionOperationHandler
     {
@@ -23,7 +25,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object parserValue = type.ParseLiteral(value);
+                var parserValue = context.InputParser.ParseLiteral(value, type);
 
                 if (operation.Kind == FilterOperationKind.Equals)
                 {

@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -285,24 +285,21 @@ namespace HotChocolate.Language
 
         public static IReadOnlyList<GraphQLRequest> Parse(
             ReadOnlySpan<byte> requestData,
-            ParserOptions? options = null)
-        {
-            options ??= ParserOptions.Default;
-            return new Utf8GraphQLRequestParser(requestData, options).Parse();
-        }
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null) =>
+            new Utf8GraphQLRequestParser(requestData, options, cache, hashProvider).Parse();
 
         public static unsafe IReadOnlyList<GraphQLRequest> Parse(
             string sourceText,
-            ParserOptions? options = null)
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null)
         {
             if (string.IsNullOrEmpty(sourceText))
             {
-                throw new ArgumentException(
-                    LangResources.SourceText_Empty,
-                    nameof(sourceText));
+                throw new ArgumentException(SourceText_Empty, nameof(sourceText));
             }
-
-            options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
             byte[]? source = null;
@@ -314,7 +311,7 @@ namespace HotChocolate.Language
             try
             {
                 Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
+                var parser = new Utf8GraphQLRequestParser(sourceSpan, options, cache, hashProvider);
                 return parser.Parse();
             }
             finally
@@ -327,8 +324,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public static GraphQLSocketMessage ParseMessage(
-            ReadOnlySpan<byte> messageData) =>
-            new Utf8GraphQLRequestParser(messageData).ParseMessage();
+        public static GraphQLSocketMessage ParseMessage(ReadOnlySpan<byte> messageData)
+            => new Utf8GraphQLRequestParser(messageData).ParseMessage();
     }
 }

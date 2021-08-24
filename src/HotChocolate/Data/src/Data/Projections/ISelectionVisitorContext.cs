@@ -12,6 +12,8 @@ namespace HotChocolate.Data.Projections
 
         Stack<SelectionSetNode?> SelectionSetNodes { get; }
 
+        Stack<INamedType?> ResolvedType { get; }
+
         IResolverContext Context { get; }
     }
 }

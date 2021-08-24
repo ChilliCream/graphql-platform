@@ -5,8 +5,9 @@ using HotChocolate.Resolvers;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
+    [Obsolete]
     public class ResolverObjectFieldDescriptorExtensionsTests
     {
         [Fact]
@@ -14,14 +15,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<IResolverContext, object>(c => new object()));
+            void Action() =>
+                ResolverObjectFieldDescriptorExtensions.Resolver(
+                    null!, _ => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -31,14 +30,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                       default(Func<IResolverContext, object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<IResolverContext, object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -46,9 +43,9 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver = null;
-            var resolverFunc = new Func<IResolverContext, object>(c => "foo");
-            var descriptor = new Mock<IObjectFieldDescriptor>();
-            descriptor.Setup(t => t.Resolver(It.IsAny<FieldResolverDelegate>()))
+            var resolverFunc = new Func<IResolverContext, object>(_ => "foo");
+            var descriptor = new Mock<IObjectFieldDescriptor>(MockBehavior.Strict);
+            descriptor.Setup(t => t.Resolve(It.IsAny<FieldResolverDelegate>()))
                 .Returns(
                     new Func<FieldResolverDelegate, IObjectFieldDescriptor>(
                     r =>
@@ -58,8 +55,7 @@ namespace HotChocolate.Types
                     }));
 
             // act
-            ResolverObjectFieldDescriptorExtensions
-                .Resolver(descriptor.Object, resolverFunc);
+            ResolverObjectFieldDescriptorExtensions.Resolver(descriptor.Object, resolverFunc);
 
             // assert
             Assert.Equal("foo", await resolver.Invoke(
@@ -71,15 +67,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<IResolverContext, Task<object>>(c =>
-                            Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                _ => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -89,14 +82,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                       default(Func<IResolverContext, Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<IResolverContext, Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -104,14 +95,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        null,
-                        new Func<IResolverContext, object>(c => new object()));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                _ => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -121,14 +110,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        descriptor.Object,
-                       default(Func<IResolverContext, object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                descriptor.Object,
+                default(Func<IResolverContext, object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -136,15 +123,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        null,
-                        new Func<IResolverContext, Task<object>>(c =>
-                            Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                _ => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -154,14 +138,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        descriptor.Object,
-                       default(Func<IResolverContext, Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                descriptor.Object,
+                default(Func<IResolverContext, Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -169,14 +151,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<object>(() => new object()));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                () => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -186,14 +166,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                        default(Func<object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -201,15 +179,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<Task<object>>(() =>
-                            Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                () => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -219,14 +194,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                        default(Func<Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -234,14 +207,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        null,
-                        new Func<object>(() => new object()));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                () => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -251,14 +222,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        descriptor.Object,
-                        default(Func<object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                descriptor.Object,
+                default(Func<object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -266,15 +235,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        null,
-                        new Func<Task<object>>(() =>
-                            Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                () => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -284,14 +250,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        descriptor.Object,
-                        default(Func<Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                descriptor.Object,
+                default(Func<Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -299,15 +263,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<IResolverContext, CancellationToken, object>(
-                            (c, ct) => new object()));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                (_, _) => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -317,15 +278,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                        default(
-                            Func<IResolverContext, CancellationToken, object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<IResolverContext, CancellationToken, object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -333,16 +291,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<IResolverContext, CancellationToken,
-                            Task<object>>((c, ct) =>
-                                Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                (_, _) => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -352,15 +306,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                        default(Func<IResolverContext, CancellationToken,
-                            Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<IResolverContext, CancellationToken, Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -368,15 +319,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        null,
-                        new Func<IResolverContext, CancellationToken, object>(
-                            (c, ct) => new object()));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                (_, _) => new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -386,15 +334,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
-                        descriptor.Object,
-                        default(
-                            Func<IResolverContext, CancellationToken, object>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                descriptor.Object,
+                default(Func<IResolverContext, CancellationToken, object>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -402,16 +347,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        null,
-                        new Func<IResolverContext, CancellationToken,
-                            Task<object>>((c, ct) =>
-                                Task.FromResult(new object())));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                (_, _) => Task.FromResult(new object()));
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -421,15 +362,12 @@ namespace HotChocolate.Types
             var descriptor = new Mock<IObjectFieldDescriptor>();
 
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(
-                        descriptor.Object,
-                        default(Func<IResolverContext, CancellationToken,
-                            Task<object>>));
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                descriptor.Object,
+                default(Func<IResolverContext, CancellationToken, Task<object>>)!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -437,12 +375,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver(null, new object());
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver(
+                null!,
+                new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -450,12 +388,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () =>
-                ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(null, new object());
+            void Action() => ResolverObjectFieldDescriptorExtensions.Resolver<object>(
+                null!,
+                new object());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
     }
 }

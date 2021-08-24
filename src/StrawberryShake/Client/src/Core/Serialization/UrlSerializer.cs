@@ -2,10 +2,12 @@ using System;
 
 namespace StrawberryShake.Serialization
 {
-    public class UrlSerializer
-        : ScalarSerializer<string, Uri>
+    /// <summary>
+    /// This serializer handles url scalars.
+    /// </summary>
+    public class UrlSerializer : ScalarSerializer<string, Uri>
     {
-        public UrlSerializer(string typeName = BuiltInTypeNames.Url)
+        public UrlSerializer(string typeName = BuiltInScalarNames.Url)
             : base(typeName)
         {
         }
@@ -26,6 +28,6 @@ namespace StrawberryShake.Serialization
             return uri;
         }
 
-        protected override string Format(Uri runtimeValue) => runtimeValue.AbsolutePath;
+        protected override string Format(Uri runtimeValue) => runtimeValue.ToString();
     }
 }

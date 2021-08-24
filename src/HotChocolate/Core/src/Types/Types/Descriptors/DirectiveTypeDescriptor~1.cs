@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
@@ -24,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected internal DirectiveTypeDescriptor(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             DirectiveTypeDefinition definition)
             : base(context, definition)
         {
@@ -166,6 +167,18 @@ namespace HotChocolate.Types.Descriptors
         public new IDirectiveTypeDescriptor<T> Repeatable()
         {
             base.Repeatable();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Public()
+        {
+            base.Public();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Internal()
+        {
+            base.Internal();
             return this;
         }
     }

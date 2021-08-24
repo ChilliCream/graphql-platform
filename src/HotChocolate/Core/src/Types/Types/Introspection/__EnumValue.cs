@@ -1,39 +1,71 @@
 #pragma warning disable IDE1006 // Naming Styles
-using HotChocolate.Properties;
+using System.Linq;
+using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
+
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
     internal sealed class __EnumValue : ObjectType<IEnumValue>
     {
-        protected override void Configure(
-            IObjectTypeDescriptor<IEnumValue> descriptor)
+        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
-            descriptor
-                .Name(Names.__EnumValue)
-                .Description(TypeResources.EnumValue_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindFields(BindingBehavior.Explicit);
+            SyntaxTypeReference stringType = Create(ScalarNames.String);
+            SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+            SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+            SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
 
-            descriptor
-                .Field(c => c.Name)
-                .Name(Names.Name)
-                .Type<NonNullType<StringType>>();
+            var def = new ObjectTypeDefinition(
+                Names.__EnumValue,
+                EnumValue_Description,
+                typeof(IEnumValue))
+            {
+                Fields =
+                {
+                    new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
+                    new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                    new(Names.IsDeprecated, type: nonNullBooleanType,
+                        pureResolver: Resolvers.IsDeprecated),
+                    new(Names.DeprecationReason, type: stringType,
+                        pureResolver: Resolvers.DeprecationReason),
+                }
+            };
 
-            descriptor
-                .Field(c => c.Description)
-                .Name(Names.Description);
+            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
+            {
+                def.Fields.Add(new(
+                    Names.AppliedDirectives,
+                    type: appDirectiveListType,
+                    pureResolver: Resolvers.AppliedDirectives));
+            }
 
-            descriptor
-                .Field(c => c.IsDeprecated)
-                .Name(Names.IsDeprecated)
-                .Type<NonNullType<BooleanType>>();
+            return def;
+        }
 
-            descriptor
-                .Field(c => c.DeprecationReason)
-                .Name(Names.DeprecationReason);
+        private static class Resolvers
+        {
+            public static object Name(IPureResolverContext context)
+                => context.Parent<IEnumValue>().Name.Value;
+
+            public static object? Description(IPureResolverContext context)
+                => context.Parent<IEnumValue>().Description;
+
+            public static object IsDeprecated(IPureResolverContext context)
+                => context.Parent<IEnumValue>().IsDeprecated;
+
+            public static string? DeprecationReason(IPureResolverContext context)
+                => context.Parent<IEnumValue>().DeprecationReason;
+
+            public static object AppliedDirectives(IPureResolverContext context)
+                => context.Parent<IEnumValue>().Directives
+                    .Where(t => t.Type.IsPublic)
+                    .Select(d => d.ToNode());
         }
 
         public static class Names
@@ -43,6 +75,7 @@ namespace HotChocolate.Types.Introspection
             public const string Description = "description";
             public const string IsDeprecated = "isDeprecated";
             public const string DeprecationReason = "deprecationReason";
+            public const string AppliedDirectives = "appliedDirectives";
         }
     }
 }

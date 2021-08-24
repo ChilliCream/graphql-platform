@@ -1,16 +1,20 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using GreenDonut;
-using HotChocolate.DataLoader;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
@@ -54,8 +58,10 @@ namespace Microsoft.Extensions.DependencyInjection
             int maximumRetained = 256)
         {
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
-                _ => new ResolverTaskPool(
-                    maximumRetained));
+                _ => new ExecutionTaskPool<ResolverTask>(
+                    new ResolverTaskPoolPolicy(),
+                    maximumRetained / 2));
+
             return services;
         }
 
@@ -84,6 +90,20 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
+        internal static IServiceCollection TryAddInputFormatter(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddInputParser(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
+            return services;
+        }
+
         internal static IServiceCollection TryAddRequestExecutorResolver(
             this IServiceCollection services)
         {
@@ -102,6 +122,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 _ => new DefaultDocumentCache());
             services.TryAddSingleton<IPreparedOperationCache>(
                 _ => new DefaultPreparedOperationCache());
+            services.TryAddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache());
+            services.TryAddSingleton<IQueryPlanCache>(
+                _ => new DefaultQueryPlanCache());
             return services;
         }
 
@@ -142,6 +166,30 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IIdSerializer, IdSerializer>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDataLoaderParameterExpressionBuilder(
+            this IServiceCollection services)
+            => services.TryAddParameterExpressionBuilder<DataLoaderParameterExpressionBuilder>();
+
+        internal static IServiceCollection TryAddParameterExpressionBuilder<T>(
+            this IServiceCollection services)
+            where T : class, IParameterExpressionBuilder
+        {
+            if(services.All(t => t.ImplementationType != typeof(T)))
+            {
+                services.AddSingleton<IParameterExpressionBuilder, T>();
+            }
+            return services;
+        }
+
+        internal static IServiceCollection AddParameterExpressionBuilder<T>(
+            this IServiceCollection services,
+            Func<IServiceProvider, T> factory)
+            where T : class, IParameterExpressionBuilder
+        {
+            services.AddSingleton<IParameterExpressionBuilder>(factory);
             return services;
         }
     }

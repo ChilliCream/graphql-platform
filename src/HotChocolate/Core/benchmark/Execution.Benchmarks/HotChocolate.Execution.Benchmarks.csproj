@@ -2,11 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>
 

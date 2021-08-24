@@ -16,7 +16,58 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 43,
+        "End": 73,
+        "Line": 3,
+        "Column": 25
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 44,
+          "End": 52,
+          "Line": 3,
+          "Column": 26
+        },
+        "Value": "unknown"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 52,
+            "End": 71,
+            "Line": 3,
+            "Column": 34
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 52,
+              "End": 62,
+              "Line": 3,
+              "Column": 34
+            },
+            "Value": "directive"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": {
+              "Start": 63,
+              "End": 71,
+              "Line": 3,
+              "Column": 45
+            },
+            "Value": "value",
+            "Block": false
+          }
+        }
+      ]
+    }
   },
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
@@ -35,7 +86,58 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 151,
+        "End": 181,
+        "Line": 6,
+        "Column": 27
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 152,
+          "End": 160,
+          "Line": 6,
+          "Column": 28
+        },
+        "Value": "unknown"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 160,
+            "End": 179,
+            "Line": 6,
+            "Column": 36
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 160,
+              "End": 170,
+              "Line": 6,
+              "Column": 36
+            },
+            "Value": "directive"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": {
+              "Start": 171,
+              "End": 179,
+              "Line": 6,
+              "Column": 47
+            },
+            "Value": "value",
+            "Block": false
+          }
+        }
+      ]
+    }
   },
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
@@ -58,6 +160,57 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Directive",
+      "Location": {
+        "Start": 240,
+        "End": 270,
+        "Line": 8,
+        "Column": 30
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 241,
+          "End": 249,
+          "Line": 8,
+          "Column": 31
+        },
+        "Value": "unknown"
+      },
+      "Arguments": [
+        {
+          "Kind": "Argument",
+          "Location": {
+            "Start": 249,
+            "End": 268,
+            "Line": 8,
+            "Column": 39
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 249,
+              "End": 259,
+              "Line": 8,
+              "Column": 39
+            },
+            "Value": "directive"
+          },
+          "Value": {
+            "Kind": "StringValue",
+            "Location": {
+              "Start": 260,
+              "End": 268,
+              "Line": 8,
+              "Column": 50
+            },
+            "Value": "value",
+            "Block": false
+          }
+        }
+      ]
+    }
   }
 ]

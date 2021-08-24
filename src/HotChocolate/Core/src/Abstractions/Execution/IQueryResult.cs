@@ -8,9 +8,7 @@ namespace HotChocolate.Execution
     /// <summary>
     /// Represents a query result object.
     /// </summary>
-    public interface IQueryResult
-        : IExecutionResult
-        , IDisposable
+    public interface IQueryResult : IExecutionResult
     {
         /// <summary>
         /// A string that was passed to the label argument of the @defer or @stream 

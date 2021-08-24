@@ -57,9 +57,10 @@ namespace HotChocolate.Data.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
-            if (Definition.Member is { })
+            if (!Definition.AttributesAreApplied && Definition.Member is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

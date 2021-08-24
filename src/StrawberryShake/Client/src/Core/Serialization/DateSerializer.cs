@@ -4,11 +4,14 @@ using System.Globalization;
 
 namespace StrawberryShake.Serialization
 {
+    /// <summary>
+    /// This serializer handles date scalars.
+    /// </summary>
     public class DateSerializer : ScalarSerializer<string, DateTime>
     {
         private const string _dateFormat = "yyyy-MM-dd";
 
-        public DateSerializer(string typeName = BuiltInTypeNames.Date)
+        public DateSerializer(string typeName = BuiltInScalarNames.Date)
             : base(typeName)
         {
         }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
+using static HotChocolate.Execution.Pipeline.PipelineTools;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -33,20 +34,20 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                bool addToCache = true;
-                string? operationId = context.OperationId;
+                var addToCache = true;
+                var operationId = context.OperationId;
 
                 if (operationId is null)
                 {
-                    operationId = context.Request.OperationName is null
-                        ? context.DocumentId
-                        : $"{context.DocumentId}+{context.Request.OperationName}";
+                    operationId = CreateOperationId(
+                        context.DocumentId,
+                        context.Request.OperationName);
                     context.OperationId = operationId;
                 }
 
-                if (_operationCache.TryGetOperation(
-                    operationId,
-                    out IPreparedOperation? operation))
+                string cacheId = context.CreateCacheId(operationId);
+
+                if (_operationCache.TryGetOperation(cacheId, out IPreparedOperation? operation))
                 {
                     context.Operation = operation;
                     addToCache = false;
@@ -56,12 +57,12 @@ namespace HotChocolate.Execution.Pipeline
                 await _next(context).ConfigureAwait(false);
 
                 if (addToCache &&
-                    context.Operation is { } &&
-                    context.DocumentId is { } &&
-                    context.Document is { } &&
-                    context.ValidationResult is { HasErrors: false })
+                    context.Operation is not null &&
+                    context.DocumentId is not null &&
+                    context.Document is not null &&
+                    context.IsValidDocument)
                 {
-                    _operationCache.TryAddOperation(operationId, context.Operation);
+                    _operationCache.TryAddOperation(cacheId, context.Operation);
                     _diagnosticEvents.AddedOperationToCache(context);
                 }
             }

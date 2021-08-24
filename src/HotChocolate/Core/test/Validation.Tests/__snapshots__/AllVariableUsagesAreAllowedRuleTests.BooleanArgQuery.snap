@@ -23,6 +23,26 @@
       "locationType": "Boolean!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "Variable",
+      "Location": {
+        "Start": 161,
+        "End": 173,
+        "Line": 4,
+        "Column": 67
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 162,
+          "End": 173,
+          "Line": 4,
+          "Column": 68
+        },
+        "Value": "booleanArg"
+      },
+      "Value": "booleanArg"
+    }
   }
 ]

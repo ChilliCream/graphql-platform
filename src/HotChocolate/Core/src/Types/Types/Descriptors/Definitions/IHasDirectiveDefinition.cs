@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public interface IHasDirectiveDefinition
@@ -9,5 +11,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// the implementing object.
         /// </summary>
         IList<DirectiveDefinition> Directives { get; }
+
+        /// <summary>
+        /// Gets the list of directives that are annotated to
+        /// the implementing object.
+        /// </summary>
+        IReadOnlyList<DirectiveDefinition> GetDirectives();
     }
 }

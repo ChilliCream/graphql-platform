@@ -7,14 +7,17 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public sealed class UrlType : ScalarType<Uri, StringValueNode>
+    public class UrlType : ScalarType<Uri, StringValueNode>
     {
+        private const string _specifiedBy = "https://tools.ietf.org/html/rfc3986";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UrlType"/> class.
         /// </summary>
         public UrlType()
-            : this(ScalarNames.Url, bind: BindingBehavior.Implicit)
+            : this(ScalarNames.URL, bind: BindingBehavior.Implicit)
         {
+            SpecifiedBy = new Uri(_specifiedBy);
         }
 
         /// <summary>

@@ -43,16 +43,16 @@ const Tags = styled.ul`
 const Tag = styled.li`
   display: inline-block;
   margin: 0 5px 5px 0;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 0;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   font-size: 0.722em;
   letter-spacing: 0.05em;
-  color: #fff;
+  color: var(--text-color-contrast);
 `;
 
 const TagLink = styled(Link)`
   display: block;
   padding: 5px 15px;
-  color: #fff;
+  color: var(--text-color-contrast);
 `;

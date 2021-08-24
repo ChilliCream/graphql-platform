@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Runtime.Serialization;
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.WebSockets.Protocol
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     /// <summary>
     /// The <see cref="GraphQLWebSocketMessageParser"/> parses a sequence of bytes into a

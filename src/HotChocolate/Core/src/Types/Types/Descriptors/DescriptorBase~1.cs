@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -14,8 +15,6 @@ namespace HotChocolate.Types.Descriptors
         , IDefinitionFactory<T>
         where T : DefinitionBase
     {
-        private readonly List<Action<IDescriptorContext, T>> _modifiers = new();
-
         protected DescriptorBase(IDescriptorContext context)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -27,50 +26,71 @@ namespace HotChocolate.Types.Descriptors
 
         protected internal abstract T Definition { get; protected set; }
 
-        public IDescriptorExtension<T> Extend()
-        {
-            return this;
-        }
+        T IDescriptorExtension<T>.Definition => Definition;
+
+        public IDescriptorExtension<T> Extend() => this;
 
         public T CreateDefinition()
         {
             OnCreateDefinition(Definition);
 
-            foreach (Action<IDescriptorContext, T> modifier in _modifiers)
+            if (Definition.HasConfigurations)
             {
-                modifier.Invoke(Context, Definition);
+                var i = 0;
+                var buffered = 0;
+                var length = Definition.Configurations.Count;
+                CreateConfiguration[] rented = ArrayPool<CreateConfiguration>.Shared.Rent(length);
+                IList<ITypeSystemMemberConfiguration> configurations = Definition.Configurations;
+
+                do
+                {
+                    if (configurations[i] is { On: ApplyConfigurationOn.Create } config)
+                    {
+                        configurations.RemoveAt(i);
+                        rented[buffered++] = (CreateConfiguration)config;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                } while (i < configurations.Count);
+
+                for (i = 0; i < buffered; i++)
+                {
+                    rented[i].Configure(Context);
+                }
+
+                ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
             }
 
             return Definition;
         }
 
         public void ConfigureContextData(Action<ExtensionData> configure)
-        {
-            configure(Definition.ContextData);
-        }
+            => configure(Definition.ContextData);
 
         protected virtual void OnCreateDefinition(T definition)
         {
         }
 
-        DefinitionBase IDefinitionFactory.CreateDefinition() =>
-            CreateDefinition();
+        DefinitionBase IDefinitionFactory.CreateDefinition()
+            => CreateDefinition();
 
         void IDescriptorExtension<T>.OnBeforeCreate(
-            Action<T> configure) =>
-            OnBeforeCreate((c, d) => configure(d));
+            Action<T> configure)
+            => OnBeforeCreate((_, d) => configure(d));
 
         void IDescriptorExtension<T>.OnBeforeCreate(
-            Action<IDescriptorContext, T> configure) =>
-            OnBeforeCreate(configure);
+            Action<IDescriptorContext, T> configure)
+            => OnBeforeCreate(configure);
 
         void IDescriptorExtension.OnBeforeCreate(
-            Action<DefinitionBase> configure) =>
-            OnBeforeCreate((c, d) => configure(d));
+            Action<DefinitionBase> configure)
+            => OnBeforeCreate((_, d) => configure(d));
 
         void IDescriptorExtension.OnBeforeCreate(
-            Action<IDescriptorContext, DefinitionBase> configure) =>
-            OnBeforeCreate(configure);
+            Action<IDescriptorContext, DefinitionBase> configure)
+            => OnBeforeCreate(configure);
 
         private void OnBeforeCreate(Action<IDescriptorContext, T> configure)
         {
@@ -79,16 +99,18 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            _modifiers.Add(configure);
+            Definition.Configurations.Add(new CreateConfiguration(
+                (c, d) => configure(c, (T)d),
+                Definition));
         }
 
         INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
-            Action<ITypeCompletionContext, T> configure) =>
-            OnBeforeNaming(configure);
+            Action<ITypeCompletionContext, T> configure)
+            => OnBeforeNaming(configure);
 
         INamedDependencyDescriptor IDescriptorExtension.OnBeforeNaming(
-            Action<ITypeCompletionContext, DefinitionBase> configure) =>
-            OnBeforeNaming(configure);
+            Action<ITypeCompletionContext, DefinitionBase> configure)
+            => OnBeforeNaming(configure);
 
         private INamedDependencyDescriptor OnBeforeNaming(
             Action<ITypeCompletionContext, T> configure)
@@ -98,37 +120,35 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            var configuration = new TypeConfiguration<T>
-            {
-                Definition = Definition,
-                On = ApplyConfigurationOn.Naming,
-                Configure = configure
-            };
+            var configuration = new CompleteConfiguration(
+                (c, d) => configure(c, (T)d),
+                Definition,
+                ApplyConfigurationOn.Naming);
+
             Definition.Configurations.Add(configuration);
 
-            return new NamedDependencyDescriptor<T>(Context.TypeInspector, configuration);
+            return new NamedDependencyDescriptor(Context.TypeInspector, configuration);
         }
 
         ICompletedDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
-            Action<ITypeCompletionContext, T> configure) =>
-            OnBeforeCompletion(configure);
+            Action<ITypeCompletionContext, T> configure)
+            => OnBeforeCompletion(configure);
 
         ICompletedDependencyDescriptor IDescriptorExtension.OnBeforeCompletion(
-            Action<ITypeCompletionContext, DefinitionBase> configure) =>
-            OnBeforeCompletion(configure);
+            Action<ITypeCompletionContext, DefinitionBase> configure)
+            => OnBeforeCompletion(configure);
 
         private ICompletedDependencyDescriptor OnBeforeCompletion(
             Action<ITypeCompletionContext, T> configure)
         {
-            var configuration = new TypeConfiguration<T>
-            {
-                Definition = Definition,
-                On = ApplyConfigurationOn.Completion,
-                Configure = configure
-            };
+            var configuration = new CompleteConfiguration(
+                (c, d) => configure(c, (T)d),
+                Definition,
+                ApplyConfigurationOn.Completion);
+
             Definition.Configurations.Add(configuration);
 
-            return new CompletedDependencyDescriptor<T>(Context.TypeInspector, configuration);
+            return new CompletedDependencyDescriptor(Context.TypeInspector, configuration);
         }
     }
 }

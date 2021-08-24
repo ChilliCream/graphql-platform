@@ -12,6 +12,193 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 199,
+        "End": 403,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 205,
+          "End": 223,
+          "Line": 8,
+          "Column": 23
+        },
+        "Value": "queryWithExtraVar"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 223,
+            "End": 248,
+            "Line": 8,
+            "Column": 41
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 223,
+              "End": 237,
+              "Line": 8,
+              "Column": 41
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 224,
+                "End": 237,
+                "Line": 8,
+                "Column": 42
+              },
+              "Value": "atOtherHomes"
+            },
+            "Value": "atOtherHomes"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 238,
+              "End": 248,
+              "Line": 8,
+              "Column": 56
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 238,
+                "End": 248,
+                "Line": 8,
+                "Column": 56
+              },
+              "Value": "Boolean"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        },
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 247,
+            "End": 259,
+            "Line": 8,
+            "Column": 65
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 247,
+              "End": 254,
+              "Line": 8,
+              "Column": 65
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 248,
+                "End": 254,
+                "Line": 8,
+                "Column": 66
+              },
+              "Value": "extra"
+            },
+            "Value": "extra"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 255,
+              "End": 259,
+              "Line": 8,
+              "Column": 73
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 255,
+                "End": 259,
+                "Line": 8,
+                "Column": 73
+              },
+              "Value": "Int"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 260,
+          "End": 403,
+          "Line": 8,
+          "Column": 78
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 286,
+                "End": 377,
+                "Line": 9,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": {
+                    "Start": 312,
+                    "End": 359,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 315,
+                      "End": 359,
+                      "Line": 10,
+                      "Column": 28
+                    },
+                    "Value": "isHousetrainedFragment"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 282,
+              "End": 377,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 282,
+                "End": 287,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

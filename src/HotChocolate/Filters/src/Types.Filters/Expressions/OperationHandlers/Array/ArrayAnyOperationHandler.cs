@@ -5,6 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class ArrayAnyOperationHandler
         : IExpressionOperationHandler
     {
@@ -17,28 +18,28 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (operation.Kind == FilterOperationKind.ArrayAny &&
                 type.IsInstanceOfType(value) &&
-                type.ParseLiteral(value) is bool parsedValue)
+                context.InputParser.ParseLiteral(value, type) is bool parsedValue)
             {
                 MemberExpression property =
                     Expression.Property(context.GetInstance(), operation.Property);
-                Type propertType = operation.Type;
+                Type propertyType = operation.Type;
 
                 if (operation.TryGetSimpleFilterBaseType(out Type? baseType))
                 {
-                    propertType = baseType;
+                    propertyType = baseType;
                 }
 
                 if (parsedValue)
                 {
                     expression = FilterExpressionBuilder.Any(
-                        propertType,
+                        propertyType,
                         property);
                 }
                 else
                 {
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.Any(
-                            propertType,
+                            propertyType,
                             property));
                 }
                 if (context.InMemory)

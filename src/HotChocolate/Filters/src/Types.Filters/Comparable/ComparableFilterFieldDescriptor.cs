@@ -4,9 +4,11 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Filters.Extensions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class ComparableFilterFieldDescriptor
         : FilterFieldDescriptorBase
         , IComparableFilterFieldDescriptor

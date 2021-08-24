@@ -1,0 +1,14 @@
+﻿{
+  "errors": [
+    {
+      "message": "The required input field \u0060name\u0060 is missing.",
+      "path": [
+        "user",
+        "name"
+      ],
+      "extensions": {
+        "field": "UserInput.name"
+      }
+    }
+  ]
+}

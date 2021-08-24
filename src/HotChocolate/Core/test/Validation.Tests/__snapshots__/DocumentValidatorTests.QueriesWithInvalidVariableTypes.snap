@@ -14,7 +14,90 @@
       "type": "Query",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 111,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 32,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "takesCat"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 32,
+            "End": 42,
+            "Line": 2,
+            "Column": 32
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 32,
+              "End": 37,
+              "Line": 2,
+              "Column": 32
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 33,
+                "End": 37,
+                "Line": 2,
+                "Column": 33
+              },
+              "Value": "cat"
+            },
+            "Value": "cat"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 38,
+              "End": 42,
+              "Line": 2,
+              "Column": 38
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 38,
+                "End": 42,
+                "Line": 2,
+                "Column": 38
+              },
+              "Value": "Cat"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 43,
+          "End": 111,
+          "Line": 2,
+          "Column": 43
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "Operation `takesDogBang` has a empty selection set. Root types without subfields are disallowed.",
@@ -31,7 +114,99 @@
       "type": "Query",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 106,
+        "End": 205,
+        "Line": 6,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 112,
+          "End": 125,
+          "Line": 6,
+          "Column": 23
+        },
+        "Value": "takesDogBang"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 125,
+            "End": 136,
+            "Line": 6,
+            "Column": 36
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 125,
+              "End": 130,
+              "Line": 6,
+              "Column": 36
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 126,
+                "End": 130,
+                "Line": 6,
+                "Column": 37
+              },
+              "Value": "dog"
+            },
+            "Value": "dog"
+          },
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": {
+              "Start": 134,
+              "End": 136,
+              "Line": 6,
+              "Column": 45
+            },
+            "Type": {
+              "Kind": "NamedType",
+              "Location": {
+                "Start": 131,
+                "End": 135,
+                "Line": 6,
+                "Column": 42
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 131,
+                  "End": 135,
+                  "Line": 6,
+                  "Column": 42
+                },
+                "Value": "Dog"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 137,
+          "End": 205,
+          "Line": 6,
+          "Column": 48
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "Operation `takesListOfPet` has a empty selection set. Root types without subfields are disallowed.",
@@ -48,7 +223,99 @@
       "type": "Query",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 200,
+        "End": 303,
+        "Line": 10,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 206,
+          "End": 221,
+          "Line": 10,
+          "Column": 23
+        },
+        "Value": "takesListOfPet"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 221,
+            "End": 234,
+            "Line": 10,
+            "Column": 38
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 221,
+              "End": 227,
+              "Line": 10,
+              "Column": 38
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 222,
+                "End": 227,
+                "Line": 10,
+                "Column": 39
+              },
+              "Value": "pets"
+            },
+            "Value": "pets"
+          },
+          "Type": {
+            "Kind": "ListType",
+            "Location": {
+              "Start": 228,
+              "End": 234,
+              "Line": 10,
+              "Column": 45
+            },
+            "Type": {
+              "Kind": "NamedType",
+              "Location": {
+                "Start": 229,
+                "End": 233,
+                "Line": 10,
+                "Column": 46
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 229,
+                  "End": 233,
+                  "Line": 10,
+                  "Column": 46
+                },
+                "Value": "Pet"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 235,
+          "End": 303,
+          "Line": 10,
+          "Column": 52
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "Operation `takesCatOrDog` has a empty selection set. Root types without subfields are disallowed.",
@@ -65,7 +332,90 @@
       "type": "Query",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 298,
+        "End": 397,
+        "Line": 14,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 304,
+          "End": 318,
+          "Line": 14,
+          "Column": 23
+        },
+        "Value": "takesCatOrDog"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 318,
+            "End": 338,
+            "Line": 14,
+            "Column": 37
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 318,
+              "End": 328,
+              "Line": 14,
+              "Column": 37
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 319,
+                "End": 328,
+                "Line": 14,
+                "Column": 38
+              },
+              "Value": "catOrDog"
+            },
+            "Value": "catOrDog"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 329,
+              "End": 338,
+              "Line": 14,
+              "Column": 48
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 329,
+                "End": 338,
+                "Line": 14,
+                "Column": 48
+              },
+              "Value": "CatOrDog"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 339,
+          "End": 397,
+          "Line": 14,
+          "Column": 58
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "The type of variable `cat` is not an input type.",
@@ -82,7 +432,57 @@
       "variableType": "Cat",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "VariableDefinition",
+      "Location": {
+        "Start": 32,
+        "End": 42,
+        "Line": 2,
+        "Column": 32
+      },
+      "Variable": {
+        "Kind": "Variable",
+        "Location": {
+          "Start": 32,
+          "End": 37,
+          "Line": 2,
+          "Column": 32
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 33,
+            "End": 37,
+            "Line": 2,
+            "Column": 33
+          },
+          "Value": "cat"
+        },
+        "Value": "cat"
+      },
+      "Type": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 38,
+          "End": 42,
+          "Line": 2,
+          "Column": 38
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 38,
+            "End": 42,
+            "Line": 2,
+            "Column": 38
+          },
+          "Value": "Cat"
+        }
+      },
+      "DefaultValue": null,
+      "Directives": []
+    }
   },
   {
     "Message": "The following variables were not used: cat.",
@@ -97,7 +497,90 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 17,
+        "End": 111,
+        "Line": 2,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 23,
+          "End": 32,
+          "Line": 2,
+          "Column": 23
+        },
+        "Value": "takesCat"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 32,
+            "End": 42,
+            "Line": 2,
+            "Column": 32
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 32,
+              "End": 37,
+              "Line": 2,
+              "Column": 32
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 33,
+                "End": 37,
+                "Line": 2,
+                "Column": 33
+              },
+              "Value": "cat"
+            },
+            "Value": "cat"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 38,
+              "End": 42,
+              "Line": 2,
+              "Column": 38
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 38,
+                "End": 42,
+                "Line": 2,
+                "Column": 38
+              },
+              "Value": "Cat"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 43,
+          "End": 111,
+          "Line": 2,
+          "Column": 43
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "The type of variable `dog` is not an input type.",
@@ -114,7 +597,66 @@
       "variableType": "Dog!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "VariableDefinition",
+      "Location": {
+        "Start": 125,
+        "End": 136,
+        "Line": 6,
+        "Column": 36
+      },
+      "Variable": {
+        "Kind": "Variable",
+        "Location": {
+          "Start": 125,
+          "End": 130,
+          "Line": 6,
+          "Column": 36
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 126,
+            "End": 130,
+            "Line": 6,
+            "Column": 37
+          },
+          "Value": "dog"
+        },
+        "Value": "dog"
+      },
+      "Type": {
+        "Kind": "NonNullType",
+        "Location": {
+          "Start": 134,
+          "End": 136,
+          "Line": 6,
+          "Column": 45
+        },
+        "Type": {
+          "Kind": "NamedType",
+          "Location": {
+            "Start": 131,
+            "End": 135,
+            "Line": 6,
+            "Column": 42
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 131,
+              "End": 135,
+              "Line": 6,
+              "Column": 42
+            },
+            "Value": "Dog"
+          }
+        }
+      },
+      "DefaultValue": null,
+      "Directives": []
+    }
   },
   {
     "Message": "The following variables were not used: dog.",
@@ -129,7 +671,99 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 106,
+        "End": 205,
+        "Line": 6,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 112,
+          "End": 125,
+          "Line": 6,
+          "Column": 23
+        },
+        "Value": "takesDogBang"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 125,
+            "End": 136,
+            "Line": 6,
+            "Column": 36
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 125,
+              "End": 130,
+              "Line": 6,
+              "Column": 36
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 126,
+                "End": 130,
+                "Line": 6,
+                "Column": 37
+              },
+              "Value": "dog"
+            },
+            "Value": "dog"
+          },
+          "Type": {
+            "Kind": "NonNullType",
+            "Location": {
+              "Start": 134,
+              "End": 136,
+              "Line": 6,
+              "Column": 45
+            },
+            "Type": {
+              "Kind": "NamedType",
+              "Location": {
+                "Start": 131,
+                "End": 135,
+                "Line": 6,
+                "Column": 42
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 131,
+                  "End": 135,
+                  "Line": 6,
+                  "Column": 42
+                },
+                "Value": "Dog"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 137,
+          "End": 205,
+          "Line": 6,
+          "Column": 48
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "The type of variable `pets` is not an input type.",
@@ -146,7 +780,66 @@
       "variableType": "[Pet]",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "VariableDefinition",
+      "Location": {
+        "Start": 221,
+        "End": 234,
+        "Line": 10,
+        "Column": 38
+      },
+      "Variable": {
+        "Kind": "Variable",
+        "Location": {
+          "Start": 221,
+          "End": 227,
+          "Line": 10,
+          "Column": 38
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 222,
+            "End": 227,
+            "Line": 10,
+            "Column": 39
+          },
+          "Value": "pets"
+        },
+        "Value": "pets"
+      },
+      "Type": {
+        "Kind": "ListType",
+        "Location": {
+          "Start": 228,
+          "End": 234,
+          "Line": 10,
+          "Column": 45
+        },
+        "Type": {
+          "Kind": "NamedType",
+          "Location": {
+            "Start": 229,
+            "End": 233,
+            "Line": 10,
+            "Column": 46
+          },
+          "Name": {
+            "Kind": "Name",
+            "Location": {
+              "Start": 229,
+              "End": 233,
+              "Line": 10,
+              "Column": 46
+            },
+            "Value": "Pet"
+          }
+        }
+      },
+      "DefaultValue": null,
+      "Directives": []
+    }
   },
   {
     "Message": "The following variables were not used: pets.",
@@ -161,7 +854,99 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 200,
+        "End": 303,
+        "Line": 10,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 206,
+          "End": 221,
+          "Line": 10,
+          "Column": 23
+        },
+        "Value": "takesListOfPet"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 221,
+            "End": 234,
+            "Line": 10,
+            "Column": 38
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 221,
+              "End": 227,
+              "Line": 10,
+              "Column": 38
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 222,
+                "End": 227,
+                "Line": 10,
+                "Column": 39
+              },
+              "Value": "pets"
+            },
+            "Value": "pets"
+          },
+          "Type": {
+            "Kind": "ListType",
+            "Location": {
+              "Start": 228,
+              "End": 234,
+              "Line": 10,
+              "Column": 45
+            },
+            "Type": {
+              "Kind": "NamedType",
+              "Location": {
+                "Start": 229,
+                "End": 233,
+                "Line": 10,
+                "Column": 46
+              },
+              "Name": {
+                "Kind": "Name",
+                "Location": {
+                  "Start": 229,
+                  "End": 233,
+                  "Line": 10,
+                  "Column": 46
+                },
+                "Value": "Pet"
+              }
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 235,
+          "End": 303,
+          "Line": 10,
+          "Column": 52
+        },
+        "Selections": []
+      }
+    }
   },
   {
     "Message": "The type of variable `catOrDog` is not an input type.",
@@ -178,7 +963,57 @@
       "variableType": "CatOrDog",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Variables-Are-Input-Types"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "VariableDefinition",
+      "Location": {
+        "Start": 318,
+        "End": 338,
+        "Line": 14,
+        "Column": 37
+      },
+      "Variable": {
+        "Kind": "Variable",
+        "Location": {
+          "Start": 318,
+          "End": 328,
+          "Line": 14,
+          "Column": 37
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 319,
+            "End": 328,
+            "Line": 14,
+            "Column": 38
+          },
+          "Value": "catOrDog"
+        },
+        "Value": "catOrDog"
+      },
+      "Type": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 329,
+          "End": 338,
+          "Line": 14,
+          "Column": 48
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 329,
+            "End": 338,
+            "Line": 14,
+            "Column": 48
+          },
+          "Value": "CatOrDog"
+        }
+      },
+      "DefaultValue": null,
+      "Directives": []
+    }
   },
   {
     "Message": "The following variables were not used: catOrDog.",
@@ -193,6 +1028,89 @@
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 298,
+        "End": 397,
+        "Line": 14,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 304,
+          "End": 318,
+          "Line": 14,
+          "Column": 23
+        },
+        "Value": "takesCatOrDog"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [
+        {
+          "Kind": "VariableDefinition",
+          "Location": {
+            "Start": 318,
+            "End": 338,
+            "Line": 14,
+            "Column": 37
+          },
+          "Variable": {
+            "Kind": "Variable",
+            "Location": {
+              "Start": 318,
+              "End": 328,
+              "Line": 14,
+              "Column": 37
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 319,
+                "End": 328,
+                "Line": 14,
+                "Column": 38
+              },
+              "Value": "catOrDog"
+            },
+            "Value": "catOrDog"
+          },
+          "Type": {
+            "Kind": "NamedType",
+            "Location": {
+              "Start": 329,
+              "End": 338,
+              "Line": 14,
+              "Column": 48
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 329,
+                "End": 338,
+                "Line": 14,
+                "Column": 48
+              },
+              "Value": "CatOrDog"
+            }
+          },
+          "DefaultValue": null,
+          "Directives": []
+        }
+      ],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 339,
+          "End": 397,
+          "Line": 14,
+          "Column": 58
+        },
+        "Selections": []
+      }
+    }
   }
 ]

@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using MongoDB.Driver;
@@ -12,6 +13,10 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbInOperationHandler
         : MongoDbOperationHandlerBase
     {
+        public MongoDbInOperationHandler(InputParser inputParser) : base(inputParser)
+        {
+        }
+
         /// <inheritdoc />
         public override bool CanHandle(
             ITypeCompletionContext context,

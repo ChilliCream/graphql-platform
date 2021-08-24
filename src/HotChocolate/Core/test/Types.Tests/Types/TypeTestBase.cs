@@ -19,7 +19,7 @@ namespace HotChocolate.Types
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar"))
+                        .Resolve("bar"))
                 .AddDirectiveType(directiveType);
 
             configure(builder);
@@ -44,7 +44,7 @@ namespace HotChocolate.Types
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar"))
+                        .Resolve("bar"))
                 .AddType(type);
 
             configure(builder);
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar"));
+                        .Resolve("bar"));
 
             configure(builder);
 

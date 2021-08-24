@@ -25,11 +25,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeRegisterDependencies(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -51,11 +51,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeRegisterDependencies<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -78,16 +78,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeRegisterDependencies(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -107,16 +107,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeRegisterDependencies<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -135,11 +135,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterRegisterDependencies(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -161,11 +161,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterRegisterDependencies<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -188,16 +188,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterRegisterDependencies(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -217,16 +217,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterRegisterDependencies<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -245,11 +245,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteName(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -271,11 +271,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteName<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -298,16 +298,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteName(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -327,16 +327,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteName<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -355,11 +355,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteName(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -381,11 +381,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteName<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -408,16 +408,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteName(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -437,16 +437,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteName<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -465,11 +465,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteType(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -491,11 +491,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteType<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -518,16 +518,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteType(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -547,16 +547,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteType<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -575,11 +575,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteType(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -601,11 +601,11 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteType<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
@@ -628,16 +628,16 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnAfterCompleteType(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -657,20 +657,108 @@ namespace HotChocolate.Execution.DependencyInjection
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .OnBeforeCompleteType<ObjectTypeDefinition>(
-                    (ctx, def, state) =>
+                    (_, def, _) =>
                     {
-                        if (def is { } && def.Name.Equals("Query"))
+                        if (def is not null && def.Name.Equals("Query"))
                         {
                             found = true;
                         }
                     },
-                    c => canHandleInvoked = true));
+                    _ => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
             Assert.True(canHandleInvoked);
+        }
+
+        [Fact]
+        public async Task OnBeforeSchemaCreate()
+        {
+            // arrange
+            Snapshot.FullName();
+            var invoked = false;
+
+            // act
+            await CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolve("bar"))
+                .OnBeforeSchemaCreate(
+                    (_, _) =>
+                    {
+                        invoked = true;
+                    }));
+
+            // assert
+            Assert.True(invoked);
+        }
+
+        [Fact]
+        public void OnBeforeSchemaCreate_Builder_IsNull()
+        {
+            void Action() =>
+                SchemaRequestExecutorBuilderExtensions
+                    .OnBeforeSchemaCreate(null!, (_, _) => { });
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void OnBeforeSchemaCreate_OnError_IsNull()
+        {
+            var builder = new Mock<IRequestExecutorBuilder>();
+
+            void Action() =>
+                builder.Object.OnBeforeSchemaCreate(null!);
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public async Task OnAfterSchemaCreate()
+        {
+            // arrange
+            Snapshot.FullName();
+            var invoked = false;
+
+            // act
+            await CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolve("bar"))
+                .OnAfterSchemaCreate(
+                    (_, _) =>
+                    {
+                        invoked = true;
+                    }));
+
+            // assert
+            Assert.True(invoked);
+        }
+
+        [Fact]
+        public void OnAfterSchemaCreate_Builder_IsNull()
+        {
+            void Action() =>
+                SchemaRequestExecutorBuilderExtensions
+                    .OnAfterSchemaCreate(null!, (_, _) => { });
+
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void OnAfterSchemaCreate_OnError_IsNull()
+        {
+            var builder = new Mock<IRequestExecutorBuilder>();
+
+            void Action() =>
+                builder.Object.OnAfterSchemaCreate(null!);
+
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -702,7 +790,7 @@ namespace HotChocolate.Execution.DependencyInjection
         {
             void Action() =>
                 SchemaRequestExecutorBuilderExtensions
-                    .OnSchemaError(null!, (context, exception) => { });
+                    .OnSchemaError(null!, (_, _) => { });
 
             Assert.Throws<ArgumentNullException>(Action);
         }

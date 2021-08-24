@@ -16,8 +16,10 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -27,10 +29,8 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                new List<Type>(),
                 null,
-                t => t is FooType,
-                t => t is FooType);
+                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -63,8 +63,10 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -74,10 +76,15 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
@@ -110,8 +117,10 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -121,10 +130,15 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
@@ -137,8 +151,10 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
+            var typeInterceptor = new AggregateTypeInterceptor();
+            typeInterceptor.SetInterceptors(new[] { new IntrospectionTypeInterceptor() });
             IDescriptorContext context = DescriptorContext.Create(
-                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
+                typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
             var typeInitializer = new TypeInitializer(
@@ -148,10 +164,15 @@ namespace HotChocolate.Configuration
                 {
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new List<Type>(),
                 null!,
-                t => t is ObjectType<Foo>,
-                t => t is FooType);
+                t =>
+                {
+                    return t switch
+                    {
+                        ObjectType<Foo> => RootTypeKind.Query,
+                        _ => RootTypeKind.None
+                    };
+                });
 
             // act
             void Action() => typeInitializer.Initialize(() => null, null!);
@@ -180,18 +201,61 @@ namespace HotChocolate.Configuration
             Assert.Equal(1, interceptor.Count);
         }
 
-        public class FooType
-            : ObjectType<Foo>
+        [Fact]
+        public void InitializeFactoryTypeRefOnce()
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Foo> descriptor)
-            {
-                descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
-            }
+            // arrange
+            SyntaxTypeReference typeRef1 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            SyntaxTypeReference typeRef2 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+
+            // act
+            ISchema schema =
+                SchemaBuilder.New()
+                    .TryAddTypeInterceptor(interceptor)
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        [Fact]
+        public void FactoryAndNameRefsAreRecognizedAsTheSameType()
+        {
+            // arrange
+            SyntaxTypeReference typeRef1 = TypeReference.Parse(
+                "Abc",
+                factory: _ => new ObjectType(d => d.Name("Abc").Field("def").Resolve("ghi")));
+
+            SyntaxTypeReference typeRef2 = TypeReference.Parse("Abc");
+
+            var interceptor = new InjectTypes(new[] { typeRef1, typeRef2 });
+
+            // act
+            ISchema schema =
+                SchemaBuilder.New()
+                    .TryAddTypeInterceptor(interceptor)
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        public class FooType : ObjectType<Foo>
+        {
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+                => descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
+        }
+
+        public class BarType : ObjectType<Bar>
         {
         }
 
@@ -220,11 +284,11 @@ namespace HotChocolate.Configuration
             {
                 if (!ReferenceEquals(_watch, discoveryContext.Type))
                 {
-                    discoveryContext.RegisterDependency(
-                        new TypeDependency(TypeReference.Create(_watch)));
+                    discoveryContext.Dependencies.Add(
+                        new(TypeReference.Create(_watch)));
 
-                    discoveryContext.RegisterDependency(
-                        new TypeDependency(TypeReference.Create(new ListType(_watch))));
+                    discoveryContext.Dependencies.Add(
+                        new(TypeReference.Create(new ListType(_watch))));
                 }
             }
 
@@ -235,6 +299,20 @@ namespace HotChocolate.Configuration
                     Count++;
                 }
             }
+        }
+
+        private class InjectTypes : TypeInterceptor
+        {
+            private readonly List<ITypeReference> _typeReferences;
+
+            public InjectTypes(IEnumerable<ITypeReference> typeReferences)
+                => _typeReferences = typeReferences.ToList();
+
+            public override bool TriggerAggregations => true;
+
+            public override IEnumerable<ITypeReference> RegisterMoreTypes(
+                IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+                => _typeReferences;
         }
     }
 }

@@ -19,6 +19,80 @@
       "fragment": "fragmentDoesNotMatchType",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 191,
+          "End": 198,
+          "Line": 8,
+          "Column": 54
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 191,
+            "End": 198,
+            "Line": 8,
+            "Column": 54
+          },
+          "Value": "Human"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 197,
+          "End": 254,
+          "Line": 8,
+          "Column": 60
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": {
+              "Start": 219,
+              "End": 241,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 219,
+                "End": 241,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "name"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": {
+        "Start": 154,
+        "End": 254,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 163,
+          "End": 190,
+          "Line": 8,
+          "Column": 26
+        },
+        "Value": "fragmentDoesNotMatchType"
+      },
+      "Directives": []
+    }
   }
 ]

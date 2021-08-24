@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public class QuerySourceText
-        : IQuery
+    public class QuerySourceText : IQuery
     {
-        private byte[] _source;
+        private byte[]? _source;
 
         public QuerySourceText(string sourceText)
         {
-            Text = sourceText
-                ?? throw new ArgumentNullException(nameof(sourceText));
+            Text = sourceText ?? throw new ArgumentNullException(nameof(sourceText));
         }
 
         public string Text { get; }
@@ -33,9 +31,10 @@ namespace HotChocolate.Execution
             Stream output,
             CancellationToken cancellationToken)
         {
-            var writer = new StreamWriter(output, Encoding.UTF8);
-            await writer.WriteAsync(Text).ConfigureAwait(false);
-            await writer.FlushAsync().ConfigureAwait(false);
+            var buffer = Encoding.UTF8.GetBytes(Text);
+            await output
+                .WriteAsync(buffer, 0, buffer.Length, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public ReadOnlySpan<byte> AsSpan()

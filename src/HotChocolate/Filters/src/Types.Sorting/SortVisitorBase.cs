@@ -5,6 +5,7 @@ using HotChocolate.Types.Sorting.Properties;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortVisitorBase<TContext>
         : SyntaxWalker<TContext>
         where TContext : ISortVisitorContextBase

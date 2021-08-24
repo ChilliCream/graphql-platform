@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "Variable \u0060user\u0060 is required.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 10
+        }
+      ],
+      "extensions": {
+        "code": "HC0018",
+        "variable": "user"
+      }
+    }
+  ]
+}

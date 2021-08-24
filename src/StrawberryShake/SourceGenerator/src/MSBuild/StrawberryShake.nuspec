@@ -15,7 +15,6 @@
     <tags>GraphQL ChilliCream</tags>
     <dependencies>
       <dependency id="StrawberryShake.Core" version="11.1.0" />
-      <dependency id="StrawberryShake.Transport.Http" version="11.1.0" />
       <dependency id="StrawberryShake.StrawberryShake.CodeGeneration.CSharp.Analyzers" version="11.1.0" />
     </dependencies>
   </metadata>

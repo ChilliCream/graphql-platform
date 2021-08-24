@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -6,6 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete]
     public class FilterInputTypeTest
         : TypeTestBase
     {
@@ -216,7 +218,7 @@ namespace HotChocolate.Types.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Foo>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Foo>(x => x.BindFieldsImplicitly()))
                 .Create();
 
@@ -237,7 +239,7 @@ namespace HotChocolate.Types.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Foo>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Foo>(x => x.BindFields(BindingBehavior.Implicit)))
                 .Create();
 
@@ -257,7 +259,7 @@ namespace HotChocolate.Types.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Bar>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Bar>(
                                 x => x.BindFields(BindingBehavior.Explicit)
                                     .Filter(y => y.Baz)
@@ -280,7 +282,7 @@ namespace HotChocolate.Types.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Bar>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Bar>(
                                 x => x.BindFields(BindingBehavior.Explicit)
                                     .Filter(y => y.Baz)

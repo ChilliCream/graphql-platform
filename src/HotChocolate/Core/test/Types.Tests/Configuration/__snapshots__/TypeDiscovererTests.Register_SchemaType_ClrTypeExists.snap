@@ -2,10 +2,11 @@
   "registered": [
     {
       "type": "HotChocolate.Types.Introspection.__Directive",
-      "runtimeType": "System.Object",
+      "runtimeType": "HotChocolate.Types.DirectiveType",
       "references": [
         "Output: HotChocolate.Types.Introspection.__Directive",
-        "Output: __Directive"
+        "Output: __Directive",
+        "Output: ObjectType<DirectiveType>"
       ]
     },
     {
@@ -104,6 +105,14 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.DeprecatedDirectiveType",
+      "runtimeType": "HotChocolate.Types.DeprecatedDirective",
+      "references": [
+        "None: HotChocolate.Types.DeprecatedDirectiveType",
+        "None: DeprecatedDirectiveType"
+      ]
+    },
+    {
       "type": "HotChocolate.Configuration.TypeDiscovererTests.FooType",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
@@ -129,14 +138,6 @@
       ]
     },
     {
-      "type": "HotChocolate.Types.DeprecatedDirectiveType",
-      "runtimeType": "HotChocolate.Types.DeprecatedDirective",
-      "references": [
-        "None: HotChocolate.Types.DeprecatedDirectiveType",
-        "None: DeprecatedDirectiveType"
-      ]
-    },
-    {
       "type": "HotChocolate.Types.IntType",
       "runtimeType": "System.Int32",
       "references": [
@@ -155,6 +156,7 @@
     }
   ],
   "runtimeTypeRefs": {
+    "Output: DirectiveType": "Output: HotChocolate.Types.Introspection.__Directive",
     "None: DirectiveLocation!": "None: HotChocolate.Types.Introspection.__DirectiveLocation",
     "Output: IEnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
     "Output: IOutputField": "Output: HotChocolate.Types.Introspection.__Field",
@@ -163,10 +165,10 @@
     "Output: IType": "Output: HotChocolate.Types.Introspection.__Type",
     "None: TypeKind!": "None: HotChocolate.Types.Introspection.__TypeKind",
     "None: DeferDirective": "None: HotChocolate.Types.DeferDirectiveType",
+    "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "Output: Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
     "None: String": "None: HotChocolate.Types.StringType",
     "None: Boolean!": "None: HotChocolate.Types.BooleanType",
-    "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "None: Int32!": "None: HotChocolate.Types.IntType",
     "Output: Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
   }

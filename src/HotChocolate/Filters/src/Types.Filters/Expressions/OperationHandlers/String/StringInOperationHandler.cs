@@ -1,9 +1,11 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class StringInOperationHandler
         : IExpressionOperationHandler
     {
@@ -20,11 +22,10 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    property = Expression.Property(
-                        context.GetInstance(), operation.Property);
+                    property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object? parsedValue = type.ParseLiteral(value);
+                var parsedValue = context.InputParser.ParseLiteral(value, type);
 
                 if (operation.Kind == FilterOperationKind.In)
                 {

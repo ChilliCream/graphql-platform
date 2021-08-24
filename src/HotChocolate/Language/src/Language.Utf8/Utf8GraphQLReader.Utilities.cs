@@ -1,8 +1,7 @@
 using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
-using System.Globalization;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -145,11 +144,7 @@ namespace HotChocolate.Language
 
             if (!Skip(kind))
             {
-                throw new SyntaxException(this,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        kind,
-                        Kind));
+                throw new SyntaxException(this, Parser_InvalidToken, kind, Kind);
             }
 
             return value;
@@ -164,11 +159,7 @@ namespace HotChocolate.Language
                     ? GetName()
                     : Kind.ToString();
 
-                throw new SyntaxException(this,
-                    string.Format(CultureInfo.InvariantCulture,
-                        LangResources.Parser_InvalidToken,
-                        Utf8GraphQLReader.GetString(keyword),
-                        found));
+                throw new SyntaxException(this, Parser_InvalidToken, GetString(keyword), found);
             }
         }
     }

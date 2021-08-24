@@ -4,7 +4,9 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonMultiLineStringType : ObjectType<MultiLineString>
+    public sealed class GeoJsonMultiLineStringType
+        : ObjectType<MultiLineString>
+        , IGeoJsonObjectType
     {
         protected override void Configure(IObjectTypeDescriptor<MultiLineString> descriptor)
         {

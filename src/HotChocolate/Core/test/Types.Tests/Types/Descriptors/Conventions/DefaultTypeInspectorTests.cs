@@ -172,11 +172,12 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ExtendedTypeReference typeReference =
+            ITypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output);
 
             // assert
-            Assert.Equal("List<String!>!", typeReference.Type.ToString());
+            ExtendedTypeReference extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
+            Assert.Equal("List<String!>!", extTypeRef.Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Null(typeReference.Scope);
         }
@@ -188,13 +189,14 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
             MethodInfo method = typeof(Foo).GetMethod(nameof(Foo.Bar));
             // act
-            ExtendedTypeReference typeReference =
+            ITypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output, "abc");
 
             // assert
-            Assert.Equal("List<String!>!", typeReference.Type.ToString());
+            ExtendedTypeReference extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
+            Assert.Equal("List<String!>!", extTypeRef.Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
@@ -246,10 +248,11 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ExtendedTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!);
+            ITypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!);
 
             // assert
-            Assert.Equal("String!", typeReference.Type.ToString());
+            ExtendedTypeReference extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
+            Assert.Equal("String!", extTypeRef.Type.ToString());
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Null(typeReference.Scope);
         }
@@ -262,13 +265,36 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ExtendedTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!, "abc");
+            ITypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!, "abc");
 
             // assert
-            Assert.Equal("String!", typeReference.Type.ToString());
+            ExtendedTypeReference extTypeRef = Assert.IsType<ExtendedTypeReference>(typeReference);
+            Assert.Equal("String!", extTypeRef.Type.ToString());
             Assert.Equal(TypeContext.Input, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
+
+        [Fact]
+        public void GetMemberType_With_SyntaxTypeRef()
+        {
+            // arrange
+            PropertyInfo property =
+                typeof(ObjectPropWithSyntaxType)
+                    .GetProperty(nameof(ObjectPropWithSyntaxType.ShouldBeFound))!;
+            var typeInspector = new DefaultTypeInspector();
+
+            // act
+            ITypeReference typeReference = typeInspector.GetReturnTypeRef(property!);
+
+            // assert
+            SyntaxTypeReference extTypeRef = Assert.IsType<SyntaxTypeReference>(typeReference);
+            Assert.Equal("[String]", extTypeRef.Type.ToString());
+            Assert.Equal(TypeContext.None, typeReference.Context);
+            Assert.Null(typeReference.Scope);
+        }
+
+
+
 
         [Fact]
         public void GetArgumentTypeRef_Parameter_Is_Null()
@@ -341,7 +367,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal("Foo", typeReference.Type.ToString());
             Assert.Equal(TypeContext.Output, typeReference.Context);
-            Assert.Equal(typeReference.Scope, "abc");
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
@@ -418,7 +444,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            void Action() => typeInspector.GetType(typeof(Foo), default(bool?[])!);
+            void Action() => typeInspector.GetType(typeof(Foo), default!);
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -565,7 +591,7 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType extendedType = typeInspector.GetType(typeof(StringType));
 
             // act
-            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+            var nullability = typeInspector.CollectNullability(extendedType);
 
             // assert
             Assert.Collection(nullability, item => Assert.True(item));
@@ -579,7 +605,7 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType extendedType = typeInspector.GetType(typeof(NonNullType<StringType>));
 
             // act
-            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+            var nullability = typeInspector.CollectNullability(extendedType);
 
             // assert
             Assert.Collection(nullability, item => Assert.False(item));
@@ -629,6 +655,12 @@ namespace HotChocolate.Types.Descriptors
             public object ShouldNotBeFound { get; }
 
             [SomeAttribute]
+            public object ShouldBeFound { get; }
+        }
+
+        public class ObjectPropWithSyntaxType
+        {
+            [GraphQLType("[String]")]
             public object ShouldBeFound { get; }
         }
 
@@ -768,7 +800,9 @@ namespace HotChocolate.Types.Descriptors
 
             public IAsyncResult GetSomeAsyncResult() => null;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
             public async void GetAsyncVoid() { }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
 
 #if !NETCOREAPP2_1
             public string RefStruct(ReadOnlySpan<byte> bytes) => "";

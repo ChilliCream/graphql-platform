@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
 using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
+
 namespace StrawberryShake.CodeGeneration.Utilities
 {
     /// <summary>

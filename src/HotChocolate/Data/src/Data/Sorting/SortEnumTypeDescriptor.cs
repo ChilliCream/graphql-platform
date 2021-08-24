@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Data.Sorting
 {
@@ -42,12 +43,13 @@ namespace HotChocolate.Data.Sorting
         protected override void OnCreateDefinition(
             SortEnumTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (!Definition.AttributesAreApplied && Definition.RuntimeType != typeof(object))
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
+                Definition.AttributesAreApplied = true;
             }
 
             var values = Values.Select(t => t.CreateDefinition())
@@ -88,8 +90,8 @@ namespace HotChocolate.Data.Sorting
             SortEnumValueDescriptor? descriptor = Values
                 .FirstOrDefault(
                     t =>
-                        t.Definition.Value is not null &&
-                        t.Definition.Value.Equals(operation));
+                        t.Definition.RuntimeValue is not null &&
+                        t.Definition.RuntimeValue.Equals(operation));
 
             if (descriptor is not null)
             {

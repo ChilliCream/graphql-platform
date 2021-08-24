@@ -6,7 +6,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v12",
         "items": [
           {
             "path": "index",
@@ -22,23 +22,71 @@
             "items": [
               {
                 "path": "index",
-                "title": "Schema basics"
+                "title": "Overview"
               },
               {
-                "path": "versioning",
-                "title": "Versioning"
+                "path": "queries",
+                "title": "Queries"
               },
               {
-                "path": "unions-and-interfaces",
-                "title": "Unions and Interfaces"
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
               },
               {
                 "path": "scalars",
                 "title": "Scalars"
               },
               {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
                 "path": "directives",
                 "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
               }
             ]
           },
@@ -48,7 +96,11 @@
             "items": [
               {
                 "path": "index",
-                "title": "Resolver"
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
               },
               {
                 "path": "fetching-from-databases",
@@ -81,6 +133,28 @@
             ]
           },
           {
+            "path": "distributed-schema",
+            "title": "Distributed Schemas",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "schema-stitching",
+                "title": "Schema Stitching"
+              },
+              {
+                "path": "schema-federations",
+                "title": "Schema Federations"
+              },
+              {
+                "path": "schema-configuration",
+                "title": "Schema Configuration"
+              }
+            ]
+          },
+          {
             "path": "integrations",
             "title": "Integrations",
             "items": [
@@ -91,6 +165,14 @@
               {
                 "path": "entity-framework",
                 "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "neo4j",
+                "title": "Neo4J"
               },
               {
                 "path": "spatial-data",
@@ -117,6 +199,28 @@
             ]
           },
           {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              },
+              {
+                "path": "operation-complexity",
+                "title": "Operation Complexity"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [
@@ -125,8 +229,8 @@
                 "title": "Overview"
               },
               {
-                "path": "object-type",
-                "title": "Object Type"
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
               },
               {
                 "path": "language",
@@ -145,8 +249,276 @@
                 "title": "ASP.NET Core"
               },
               {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              },
+              {
                 "path": "executable",
                 "title": "Executable"
+              },
+              {
+                "path": "apollo-tracing",
+                "title": "Apollo Tracing"
+              },
+              {
+                "path": "migrate-from-10-to-11",
+                "title": "Migrate from 10.5 to 11.0"
+              },
+              {
+                "path": "migrate-from-11-to-12",
+                "title": "Migrate from 11 to 12"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "v11",
+        "title": "v11",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started"
+          },
+          {
+            "path": "defining-a-schema",
+            "title": "Defining a schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "queries",
+                "title": "Queries"
+              },
+              {
+                "path": "mutations",
+                "title": "Mutations"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "object-types",
+                "title": "Object Types"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "arguments",
+                "title": "Arguments"
+              },
+              {
+                "path": "input-object-types",
+                "title": "Input Object Types"
+              },
+              {
+                "path": "lists",
+                "title": "Lists"
+              },
+              {
+                "path": "non-null",
+                "title": "Non-Null"
+              },
+              {
+                "path": "enums",
+                "title": "Enums"
+              },
+              {
+                "path": "interfaces",
+                "title": "Interfaces"
+              },
+              {
+                "path": "unions",
+                "title": "Unions"
+              },
+              {
+                "path": "extending-types",
+                "title": "Extending Types"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              },
+              {
+                "path": "documentation",
+                "title": "Documentation"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              }
+            ]
+          },
+          {
+            "path": "fetching-data",
+            "title": "Fetching data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
+              },
+              {
+                "path": "fetching-from-databases",
+                "title": "Fetching from Databases"
+              },
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              },
+              {
+                "path": "projections",
+                "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "distributed-schema",
+            "title": "Distributed Schemas",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "schema-stitching",
+                "title": "Schema Stitching"
+              },
+              {
+                "path": "schema-federations",
+                "title": "Schema Federations"
+              },
+              {
+                "path": "schema-configuration",
+                "title": "Schema Configuration"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entity-framework",
+                "title": "Entity Framework"
+              },
+              {
+                "path": "mongodb",
+                "title": "MongoDB"
+              },
+              {
+                "path": "spatial-data",
+                "title": "Spatial Data"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted queries"
+              },
+              {
+                "path": "automatic-persisted-queries",
+                "title": "Automatic persisted queries"
+              }
+            ]
+          },
+          {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              },
+              {
+                "path": "authorization",
+                "title": "Authorization"
+              }
+            ]
+          },
+          {
+            "path": "api-reference",
+            "title": "API Reference",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "custom-attributes",
+                "title": "Custom Attributes"
+              },
+              {
+                "path": "language",
+                "title": "Language"
+              },
+              {
+                "path": "extending-filtering",
+                "title": "Extending Filtering"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              },
+              {
+                "path": "aspnetcore",
+                "title": "ASP.NET Core"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              },
+              {
+                "path": "executable",
+                "title": "Executable"
+              },
+              {
+                "path": "apollo-tracing",
+                "title": "Apollo Tracing"
               },
               {
                 "path": "migrate-from-10-to-11",
@@ -158,7 +530,7 @@
       },
       {
         "path": "v10",
-        "title": "v10 (previous)",
+        "title": "v10",
         "items": [
           {
             "path": "index",
@@ -326,7 +698,7 @@
             "items": [
               {
                 "path": "index",
-                "title": "ASP.Net"
+                "title": "ASP.NET"
               },
               {
                 "path": "dependency-injection",
@@ -352,7 +724,7 @@
               },
               {
                 "path": "dotnet-cli",
-                "title": ".Net CLI"
+                "title": ".NET CLI"
               }
             ]
           },
@@ -395,11 +767,108 @@
     "versions": [
       {
         "path": "",
-        "title": "v1 (preview)",
+        "title": "v1",
         "items": [
           {
             "path": "index",
             "title": "Introduction"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "path": "strawberryshake",
+    "title": "Strawberry Shake",
+    "description": "The only GraphQL client you will ever need in the .NET ecosystem.",
+    "versions": [
+      {
+        "path": "",
+        "title": "v11",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "get-started",
+            "title": "Get Started",
+            "items": [
+              {
+                "path": "index",
+                "title": "Blazor"
+              },
+              {
+                "path": "xamarin",
+                "title": "Xamarin"
+              },
+              {
+                "path": "console",
+                "title": "Console"
+              }
+            ]
+          },
+          {
+            "path": "subscriptions",
+            "title": "Subscriptions"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling / CLI"
+          },
+          {
+            "path": "caching",
+            "title": "Caching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "entities",
+                "title": "Entities"
+              },
+              {
+                "path": "invalidation",
+                "title": "Invalidation"
+              }
+            ]
+          },
+          {
+            "path": "performance",
+            "title": "Performance",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted Queries"
+              },
+              {
+                "path": "persisted-state",
+                "title": "Persisted State"
+              }
+            ]
+          },
+          {
+            "path": "networking",
+            "title": "Networking",
+            "items": [
+              {
+                "path": "index",
+                "title": "Protocols"
+              },
+              {
+                "path": "authentication",
+                "title": "Authentication"
+              }
+            ]
+          },
+          {
+            "path": "scalars",
+            "title": "Scalars"
           }
         ]
       }
@@ -412,7 +881,7 @@
     "versions": [
       {
         "path": "",
-        "title": "v11 (latest)",
+        "title": "v11",
         "items": [
           {
             "path": "index",
@@ -422,7 +891,7 @@
       },
       {
         "path": "v10",
-        "title": "v10 (previous)",
+        "title": "v10",
         "items": [
           {
             "path": "index",

@@ -13,6 +13,128 @@
       "operation": "getName",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Operation-Name-Uniqueness"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 145,
+        "End": 330,
+        "Line": 8,
+        "Column": 17
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 151,
+          "End": 160,
+          "Line": 8,
+          "Column": 23
+        },
+        "Value": "getName"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 159,
+          "End": 330,
+          "Line": 8,
+          "Column": 31
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 185,
+                "End": 317,
+                "Line": 9,
+                "Column": 25
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 217,
+                      "End": 299,
+                      "Line": 10,
+                      "Column": 31
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": {
+                          "Start": 247,
+                          "End": 277,
+                          "Line": 11,
+                          "Column": 29
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 247,
+                            "End": 277,
+                            "Line": 11,
+                            "Column": 29
+                          },
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 211,
+                    "End": 299,
+                    "Line": 10,
+                    "Column": 25
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 211,
+                      "End": 218,
+                      "Line": 10,
+                      "Column": 25
+                    },
+                    "Value": "owner"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 181,
+              "End": 317,
+              "Line": 9,
+              "Column": 21
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 181,
+                "End": 186,
+                "Line": 9,
+                "Column": 21
+              },
+              "Value": "dog"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
   }
 ]

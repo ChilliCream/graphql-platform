@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
     <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
     <Nullable>enable</Nullable>
+    <Description>Contains types for HotChocolate to expose NetTopologySuite as GeoJSON</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.0.0" />
+    <PackageReference Include="ProjNET" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

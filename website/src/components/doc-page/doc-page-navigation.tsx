@@ -4,30 +4,112 @@ import React, {
   MouseEvent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
+import ArrowDownIconSvg from "../../images/arrow-down.svg";
+import ArrowUpIconSvg from "../../images/arrow-up.svg";
+import ProductSwitcherIconSvg from "../../images/th-large.svg";
+import { BoxShadow, IsTablet } from "../../shared-style";
 import { State } from "../../state";
-import {
-  closeTOC,
-  expandNavigationGroup,
-  toggleNavigationGroup,
-  toggleTOC,
-} from "../../state/common";
+import { closeTOC } from "../../state/common";
+import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
 } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
-import { IconContainer } from "../misc/icon-container";
-import { Link } from "../misc/link";
 
-import ArrowDownIconSvg from "../../images/arrow-down.svg";
-import ArrowUpIconSvg from "../../images/arrow-up.svg";
-import ProductSwitcherIconSvg from "../../images/th-large.svg";
-import { BoxShadow, IsTablet } from "./shared-style";
+interface NavigationContainerProperties {
+  basePath: string;
+  selectedPath: string;
+  items: Item[];
+}
+
+const NavigationContainer: FunctionComponent<NavigationContainerProperties> = ({
+  items: rawItems,
+  basePath,
+  selectedPath,
+}) => {
+  const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
+  const dispatch = useDispatch();
+
+  const items = useMemo(
+    () =>
+      rawItems.map<EnhancedItem>((i) => {
+        let fullpath = basePath;
+
+        if (i.path && i.path !== "index") {
+          fullpath += "/" + i.path;
+        }
+
+        return {
+          ...i,
+          fullpath,
+        };
+      }),
+    [rawItems]
+  );
+
+  useEffect(() => {
+    for (const item of items) {
+      if (containsActiveItem(selectedPath, item.fullpath)) {
+        setExpandedPaths((old) => [...old, item.fullpath]);
+      }
+    }
+  }, [selectedPath, basePath, items]);
+
+  const toggleItem = (itemPath: string) => () => {
+    if (expandedPaths.includes(itemPath)) {
+      setExpandedPaths((old) => old.filter((e) => e !== itemPath));
+    } else {
+      setExpandedPaths((old) => [...old, itemPath]);
+    }
+  };
+
+  return (
+    <NavigationList>
+      {items.map(({ fullpath, title, items: subItems }) => {
+        const isActive = subItems ? containsActiveItem : isActiveItem;
+
+        return (
+          <NavigationItem
+            key={fullpath}
+            active={isActive(selectedPath, fullpath)}
+            onClick={() => !subItems && dispatch(closeTOC())}
+          >
+            {subItems ? (
+              <NavigationGroup expanded={expandedPaths.includes(fullpath)}>
+                <NavigationGroupToggle onClick={toggleItem(fullpath)}>
+                  {title}
+
+                  <IconContainer size={16}>
+                    <ArrowDownIconSvg className="arrow-down" />
+                    <ArrowUpIconSvg className="arrow-up" />
+                  </IconContainer>
+                </NavigationGroupToggle>
+
+                <NavigationGroupContent>
+                  <NavigationContainer
+                    items={subItems}
+                    basePath={fullpath}
+                    selectedPath={selectedPath}
+                  />
+                </NavigationGroupContent>
+              </NavigationGroup>
+            ) : (
+              <NavigationLink to={fullpath}>{title}</NavigationLink>
+            )}
+          </NavigationItem>
+        );
+      })}
+    </NavigationList>
+  );
+};
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
@@ -36,253 +118,165 @@ interface DocPageNavigationProperties {
   selectedVersion: string;
 }
 
-export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
-  data,
-  selectedPath,
-  selectedProduct,
-  selectedVersion,
-}) => {
-  const expandedPaths = useSelector<State, string[]>(
-    (state) => state.common.expandedPaths
-  );
-  const showTOC = useSelector<State, boolean>((state) => state.common.showTOC);
-  const dispatch = useDispatch();
-  const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
-  const activeProduct = data.config?.products?.find(
-    (product) => product?.path === selectedProduct
-  );
-  const activeVersion = activeProduct?.versions?.find(
-    (version) => version?.path === selectedVersion
-  );
+export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
+  ({ data, selectedPath, selectedProduct, selectedVersion }) => {
+    const height = useSelector<State, string>((state) => {
+      return state.common.articleViewportHeight;
+    });
+    const showTOC = useSelector<State, boolean>(
+      (state) => state.common.showTOC
+    );
+    const dispatch = useDispatch();
 
-  const handleClickDialog = useCallback((event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    dispatch(closeTOC());
-  }, []);
+    const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
+    const [versionSwitcherOpen, setVersionSwitcherOpen] = useState(false);
 
-  const handleCloseClick = useCallback(() => {
-    setProductSwitcherOpen(false);
-  }, []);
+    const products = data.config?.products || [];
+    const activeProduct = products.find((p) => p?.path === selectedProduct);
+    const activeVersion = activeProduct?.versions?.find(
+      (v) => v?.path === selectedVersion
+    );
 
-  const handleCloseTOC = useCallback(() => {
-    dispatch(toggleTOC());
-  }, []);
+    // catch if someone clicks outside of the product switcher
+    // to close the modal
+    const handleClick = useCallback(() => {
+      setProductSwitcherOpen(false);
+      setVersionSwitcherOpen(false);
+    }, []);
 
-  const handleClickNavigationItem = useCallback(() => {
-    dispatch(closeTOC());
-  }, []);
+    useEffect(() => {
+      window.addEventListener("click", handleClick);
 
-  const handleToggleClick = useCallback(
-    (event: MouseEvent<HTMLButtonElement>, isOpen) => {
-      event.stopPropagation();
-      setProductSwitcherOpen(!isOpen);
-    },
-    []
-  );
+      return () => {
+        window.removeEventListener("click", handleClick);
+      };
+    }, [handleClick]);
 
-  const handleToggleExpand = useCallback(
-    (event: MouseEvent<HTMLDivElement>, path: string) => {
-      event.stopPropagation();
-      dispatch(toggleNavigationGroup({ path }));
-    },
-    []
-  );
+    const toggleProductSwitcher = (e: MouseEvent) => {
+      e.stopPropagation();
 
-  const buildNavigationStructure = (items: Item[], basePath: string) => (
-    <NavigationList>
-      {items.map(({ path, title, items: subItems }) => {
-        const itemPath =
-          !subItems && path === "index" ? basePath : basePath + "/" + path;
-
-        return (
-          <NavigationItem
-            key={itemPath + (subItems ? "/parent" : "")}
-            className={
-              subItems
-                ? containsActiveItem(selectedPath, itemPath)
-                  ? "active"
-                  : ""
-                : isActive(selectedPath, itemPath)
-                ? "active"
-                : ""
-            }
-            onClick={handleClickNavigationItem}
-          >
-            {subItems ? (
-              <NavigationGroup
-                expanded={expandedPaths.indexOf(itemPath) !== -1}
-              >
-                <NavigationGroupToggle
-                  onClick={(e) => handleToggleExpand(e, itemPath)}
-                >
-                  {title}
-                  <IconContainer size={16}>
-                    <ArrowDownIconSvg className="arrow-down" />
-                    <ArrowUpIconSvg className="arrow-up" />
-                  </IconContainer>
-                </NavigationGroupToggle>
-                <NavigationGroupContent>
-                  {buildNavigationStructure(subItems, itemPath)}
-                </NavigationGroupContent>
-              </NavigationGroup>
-            ) : (
-              <NavigationLink to={itemPath + "/"}>{title}</NavigationLink>
-            )}
-          </NavigationItem>
-        );
-      })}
-    </NavigationList>
-  );
-
-  useEffect(() => {
-    window.addEventListener("click", handleCloseClick);
-
-    return () => {
-      window.removeEventListener("click", handleCloseClick);
+      setVersionSwitcherOpen(false);
+      setProductSwitcherOpen((old) => !old);
     };
-  }, [handleCloseClick]);
 
-  useEffect(() => {
-    /*
-      Ensures that all groups along the selected path are expanded on page load.
-    */
-    if (activeVersion?.items) {
-      const selectedVersionLength =
-        selectedVersion.length > 0 ? selectedVersion.length + 1 : 0;
-      const index =
-        selectedPath.indexOf(selectedProduct) +
-        selectedProduct.length +
-        1 +
-        selectedVersionLength;
-      const parts = selectedPath
-        .substring(index)
-        .split("/")
-        .filter((part) => part.length > 0);
+    const toggleVersionSwitcher = (e: MouseEvent) => {
+      e.stopPropagation();
 
-      if (parts.length > 0) {
-        const rootFolder = activeVersion.items.find(
-          (item) => item!.path === parts[0] && item!.items
-        );
+      setProductSwitcherOpen(false);
+      setVersionSwitcherOpen((old) => !old);
+    };
 
-        if (rootFolder) {
-          const path = selectedPath.substring(
-            0,
-            parts.length > 1
-              ? selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
-              : selectedPath.length - 1
-          );
+    const hasVersions =
+      !activeProduct?.versions || activeProduct.versions.length > 1;
 
-          dispatch(expandNavigationGroup({ path }));
-        }
-      }
-    }
-  }, [activeProduct, selectedPath, selectedProduct]);
+    const subItems: Item[] =
+      activeVersion?.items
+        ?.filter((item) => !!item)
+        .map<Item>((item) => ({
+          path: item!.path!,
+          title: item!.title!,
+          items: item!.items
+            ? item?.items
+                .filter((item) => !!item)
+                .map<Item>((item) => ({
+                  path: item!.path!,
+                  title: item!.title!,
+                }))
+            : undefined,
+        })) ?? [];
 
-  const height = useSelector<State, string>((state) => {
-    return state.common.articleViewportHeight;
-  });
+    return (
+      <Navigation height={height} show={showTOC}>
+        <DocPagePaneHeader
+          title="Table of contents"
+          showWhenScreenWidthIsSmallerThan={1070}
+          onClose={() => dispatch(closeTOC())}
+        />
 
-  return (
-    <Navigation calculatedHeight={height} className={showTOC ? "show" : ""}>
-      <DocPagePaneHeader
-        title="Table of contents"
-        showWhenScreenWidthIsSmallerThan={1111}
-        onClose={handleCloseTOC}
-      />
-      <ProductSwitcher>
-        <ProductSwitcherButton
-          onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
-        >
-          {activeProduct?.title}
-          <IconContainer size={16}>
-            <ProductSwitcherIconSvg />
-          </IconContainer>
-        </ProductSwitcherButton>
+        <ProductSwitcher>
+          <ProductSwitcherButton onClick={toggleProductSwitcher}>
+            {activeProduct?.title}
+
+            <IconContainer size={16}>
+              <ProductSwitcherIconSvg />
+            </IconContainer>
+          </ProductSwitcherButton>
+
+          <ProductSwitcherButton
+            disabled={!hasVersions}
+            onClick={toggleVersionSwitcher}
+          >
+            {activeVersion?.title}
+
+            {hasVersions && (
+              <IconContainer size={12}>
+                {versionSwitcherOpen ? (
+                  <ArrowUpIconSvg />
+                ) : (
+                  <ArrowDownIconSvg />
+                )}
+              </IconContainer>
+            )}
+          </ProductSwitcherButton>
+        </ProductSwitcher>
+
         <ProductSwitcherDialog
           open={productSwitcherOpen}
-          onClick={handleClickDialog}
+          onClick={() => dispatch(closeTOC())}
         >
-          {data.config?.products?.map((product) =>
-            product === activeProduct ? (
-              <ActiveProduct key={product!.path!} onClick={handleCloseClick}>
-                <ProductTitle>{product!.title!}</ProductTitle>
-                <ProductDescription>{product!.description!}</ProductDescription>
-              </ActiveProduct>
-            ) : (
+          {products.map((product) => {
+            if (!product) {
+              return null;
+            }
+
+            return (
               <ProductLink
-                key={product!.path!}
-                to={
-                  product!.versions![0]!.path! === ""
-                    ? `/docs/${product!.path!}/`
-                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
-                }
+                active={product === activeProduct}
+                key={product.path!}
+                to={`/docs/${product.path!}`}
               >
-                <ProductTitle>{product!.title!}</ProductTitle>
-                <ProductDescription>{product!.description!}</ProductDescription>
+                <ProductTitle>{product.title!}</ProductTitle>
+                <ProductDescription>{product.description!}</ProductDescription>
               </ProductLink>
-            )
-          )}
+            );
+          })}
         </ProductSwitcherDialog>
-      </ProductSwitcher>
-      {!productSwitcherOpen && activeProduct!.versions!.length > 1 && (
-        <ProductVersions>
-          {activeProduct!.versions!.map((version, index) => (
-            <ProductVersion
+
+        <ProductVersionDialog
+          open={versionSwitcherOpen}
+          onClick={() => dispatch(closeTOC())}
+        >
+          {activeProduct?.versions?.map((version, index) => (
+            <VersionLink
               key={version!.path! + index}
-              className={
-                activeVersion!.path! === version!.path! ? "active" : undefined
-              }
+              to={`/docs/${activeProduct.path}/${version!.path!}`}
             >
-              <ProductVersionLink
-                to={
-                  version!.path! === ""
-                    ? `/docs/${activeProduct!.path!}/`
-                    : `/docs/${activeProduct!.path!}/${version!.path!}/`
-                }
-              >
-                {version!.title}
-              </ProductVersionLink>
-            </ProductVersion>
+              {version!.title!}
+            </VersionLink>
           ))}
-        </ProductVersions>
-      )}
-      {!productSwitcherOpen && activeVersion?.items && (
-        <MostProminentSection>
-          {buildNavigationStructure(
-            activeVersion.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-                items: item!.items
-                  ? item?.items
-                      .filter((item) => !!item)
-                      .map<Item>((item) => ({
-                        path: item!.path!,
-                        title: item!.title!,
-                      }))
-                  : undefined,
-              })),
-            `/docs/${activeProduct!.path!}${
-              activeVersion?.path?.length && activeVersion.path.length > 0
-                ? "/" + activeVersion.path!
-                : ""
-            }`
-          )}
-        </MostProminentSection>
-      )}
-    </Navigation>
-  );
-};
+        </ProductVersionDialog>
 
-function containsActiveItem(selectedPath: string, itemPath: string) {
-  const itemPathWithSlash = itemPath.endsWith("/") ? itemPath : itemPath + "/";
+        {!productSwitcherOpen && activeVersion?.items && (
+          <MostProminentSection>
+            <NavigationContainer
+              basePath={`/docs/${activeProduct!.path!}${
+                !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+              }`}
+              items={subItems}
+              selectedPath={selectedPath}
+            />
+          </MostProminentSection>
+        )}
+      </Navigation>
+    );
+  };
 
-  return selectedPath.startsWith(itemPathWithSlash);
+function isActiveItem(selectedPath: string, itemPath: string) {
+  return selectedPath === itemPath;
 }
 
-function isActive(selectedPath: string, itemPath: string) {
-  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+function containsActiveItem(selectedPath: string, itemPath: string) {
+  return (selectedPath + "/").startsWith(itemPath + "/");
 }
 
 export const DocPageNavigationGraphQLFragment = graphql`
@@ -318,37 +312,27 @@ interface Item {
   items?: Item[];
 }
 
-export const Navigation = styled.nav<{ calculatedHeight: string }>`
+type EnhancedItem = Item & {
+  fullpath: string;
+};
+
+export const Navigation = styled.nav<{ height: string; show: boolean }>`
   ${DocPageStickySideBarStyle}
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
 
-  &.show {
-    margin-left: 0;
-  }
+  ${({ show }) => show && `margin-left: 0 !important;`}
 
-  ${({ calculatedHeight }) =>
+  ${({ height }) =>
     IsTablet(`
       margin-left: -105%;
-      height: ${calculatedHeight};
+      height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
       ${BoxShadow}
-    `)}
-`;
-
-const ProductSwitcher = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-
-  @media only screen and (min-width: 1070px) {
-    position: relative;
-    flex-wrap: initial;
-    overflow-y: initial;
-  }
+  `)}
 `;
 
 const ProductSwitcherButton = styled.button`
@@ -356,32 +340,44 @@ const ProductSwitcherButton = styled.button`
   flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 6px 14px 10px;
+  border: 1px solid var(--box-border-color);
+  border-radius: var(--border-radius);
   padding: 7px 10px;
-  width: calc(100% - 28px);
   height: 38px;
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} {
     margin-left: auto;
+    padding-left: 6px;
 
     > svg {
-      fill: #666;
+      fill: var(--text-color);
     }
   }
 
-  :hover {
-    background-color: #ddd;
+  :hover:enabled {
+    background-color: var(--box-highlight-color);
+  }
+
+  :disabled {
+    cursor: default;
+  }
+`;
+
+const ProductSwitcher = styled.div`
+  margin: 6px 14px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  > ${ProductSwitcherButton}:not(:last-child) {
+    margin-right: 4px;
+    flex: 1;
   }
 
   @media only screen and (min-width: 1070px) {
-    margin-bottom: 20px;
-    padding: 7px 5px;
-    width: calc(100% - 28px);
-    height: initial;
+    margin: 0 0 20px 0;
   }
 `;
 
@@ -390,7 +386,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   flex: 1 1 100%;
   flex-direction: column;
   padding: 0 10px;
-  background-color: #fff;
+  background-color: var(--text-color-contrast);
 
   @media only screen and (min-width: 1070px) {
     top: 135px;
@@ -398,8 +394,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
     z-index: 10;
     flex-direction: row;
     flex-wrap: wrap;
-    margin: 0 14px;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     padding: 10px;
     width: 700px;
     height: initial;
@@ -407,32 +402,64 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   }
 `;
 
-const ProductBase = css`
+const ProductVersionDialog = styled.div<{ open: boolean }>`
+  display: ${({ open }) => (open ? "flex" : "none")};
+  flex-direction: column;
+  padding: 10px;
+  background-color: var(--text-color-contrast);
+  position: absolute;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--box-border-color);
+  top: 110px;
+  right: 14px;
+
+  @media only screen and (min-width: 1070px) {
+    top: 66px;
+    right: 0;
+  }
+
+  > :not(:last-child) {
+    margin-bottom: 2px;
+  }
+`;
+
+interface LinkProperties {
+  readonly active: boolean;
+}
+
+const ProductLink = styled(Link)<LinkProperties>`
   flex: 0 0 auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid var(--box-border-color);
+  border-radius: var(--border-radius);
   margin: 5px;
   padding: 10px;
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
   cursor: pointer;
 
   @media only screen and (min-width: 1070px) {
     flex: 0 0 calc(50% - 32px);
   }
-`;
 
-const ActiveProduct = styled.div`
-  ${ProductBase};
-  background-color: #ddd;
-`;
-
-const ProductLink = styled(Link)`
-  ${ProductBase};
   transition: background-color 0.2s ease-in-out;
 
+  ${({ active }) => active && `background-color: var(--box-highlight-color);`}
+
   :hover {
-    background-color: #ddd;
+    background-color: var(--box-highlight-color);
+  }
+`;
+
+const VersionLink = styled(Link)`
+  font-size: 0.833em;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 6px 9px;
+  transition: background-color 0.2s ease-in-out;
+  border-radius: var(--border-radius);
+
+  :hover {
+    background-color: var(--box-highlight-color);
   }
 `;
 
@@ -444,51 +471,16 @@ const ProductDescription = styled.p`
   margin-bottom: 0;
 `;
 
-const ProductVersions = styled.ol`
-  display: flex;
-  flex-direction: row;
-  margin: 0;
-  padding: 0 25px 10px;
-  list-style-type: none;
-
-  @media only screen and (min-width: 1070px) {
-    padding: 0 20px 10px;
-  }
-`;
-
-const ProductVersionLink = styled(Link)`
-  font-size: 0.833em;
-  color: #666;
-
-  :hover {
-    color: #000;
-  }
-`;
-
-const ProductVersion = styled.li`
-  flex: 0 0 auto;
-  margin: 5px 20px 5px 0;
-  padding: 0;
-  min-height: 20px;
-  line-height: initial;
-
-  &.active {
-    > ${ProductVersionLink} {
-      font-weight: bold;
-    }
-  }
-`;
-
 const NavigationList = styled.ol`
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0 25px 20px;
+  padding: 0 18px 20px;
   list-style-type: none;
 
   @media only screen and (min-width: 1070px) {
     display: flex;
-    padding: 0 20px 20px;
+    padding: 0 4px 20px;
   }
 `;
 
@@ -520,35 +512,37 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
 
     > .arrow-down {
       display: ${({ expanded }) => (expanded ? "none" : "initial")};
-      fill: #666;
+      fill: var(--text-color);
     }
 
     > .arrow-up {
       display: ${({ expanded }) => (expanded ? "initial" : "none")};
-      fill: #666;
+      fill: var(--text-color);
     }
   }
 `;
 
 const NavigationLink = styled(Link)`
   font-size: 0.833em;
-  color: #666;
+  color: var(--text-color);
 
   :hover {
     color: #000;
   }
 `;
 
-const NavigationItem = styled.li`
+const NavigationItem = styled.li<{ active: boolean }>`
   flex: 0 0 auto;
   margin: 5px 0;
   padding: 0;
   min-height: 20px;
   line-height: initial;
 
-  &.active {
-    > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
-      font-weight: bold;
-    }
-  }
+  ${({ active }) =>
+    active &&
+    css`
+      > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
+        font-weight: bold;
+      }
+    `}
 `;

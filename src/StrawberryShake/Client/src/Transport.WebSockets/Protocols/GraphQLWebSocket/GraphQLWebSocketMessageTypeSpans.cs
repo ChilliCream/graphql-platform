@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake.Transport.WebSockets.Protocol
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     public static class GraphQLWebSocketMessageTypeSpans
     {

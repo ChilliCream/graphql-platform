@@ -22,49 +22,49 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                             .FirstOrDefault(t => t.Id.Equals(id)));
                 });
 
-            descriptor.Interface<ContractType>();
+            descriptor.Implements<ContractType>();
             descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
             descriptor.Field(t => t.CustomerId).Type<NonNullType<IdType>>();
             descriptor.Field("foo")
                 .Argument("bar", a => a.Type<StringType>())
-                .Resolver(ctx => ctx.ArgumentValue<string>("bar"));
+                .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
             descriptor.Field("error")
                 .Type<StringType>()
-                .Resolver(ctx => ErrorBuilder.New()
+                .Resolve(ctx => ErrorBuilder.New()
                     .SetMessage("Error_Message")
                     .SetCode("ERROR_CODE")
                     .SetPath(ctx.Path)
                     .Build());
             descriptor.Field("date_field")
                 .Type<DateType>()
-                .Resolver(new DateTime(2018, 5, 17));
+                .Resolve(new DateTime(2018, 5, 17));
             descriptor.Field("date_time_field")
                 .Type<DateTimeType>()
-                .Resolver(new DateTime(
+                .Resolve(new DateTime(
                     2018, 5, 17, 8, 59, 0,
                     DateTimeKind.Utc));
             descriptor.Field("string_field")
                 .Type<StringType>()
-                .Resolver("abc");
+                .Resolve("abc");
             descriptor.Field("id_field")
                 .Type<IdType>()
-                .Resolver("abc_123");
+                .Resolve("abc_123");
             descriptor.Field("byte_field")
                 .Type<ByteType>()
-                .Resolver(123);
+                .Resolve(123);
             descriptor.Field("int_field")
                 .Type<IntType>()
-                .Resolver(123);
+                .Resolve(123);
             descriptor.Field("long_field")
                 .Type<LongType>()
-                .Resolver(123);
+                .Resolve(123);
             descriptor.Field("float_field")
                 .Type<FloatType>()
                 .Argument("f", a => a.Type<FloatType>())
                 .Resolve(ctx => ctx.ArgumentValue<double?>("f") ?? 123.123);
             descriptor.Field("decimal_field")
                 .Type<DecimalType>()
-                .Resolver(123.123);
+                .Resolve(123.123);
         }
     }
 }

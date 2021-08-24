@@ -1,41 +1,36 @@
-using System.Linq;
+using System;
 using System.Text.Json;
 using StrawberryShake.CodeGeneration.CSharp.Builders;
-using StrawberryShake.CodeGeneration.Extensions;
-using static StrawberryShake.Serialization.BuiltInTypeNames;
+using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
+using static StrawberryShake.CodeGeneration.Utilities.NameUtils;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp.Generators
 {
     public partial class JsonResultBuilderGenerator
     {
         private void AddScalarTypeDeserializerMethod(
             MethodBuilder methodBuilder,
-            NamedTypeDescriptor namedType)
+            ILeafTypeDescriptor namedType)
         {
-            string deserializeMethod = namedType.GraphQLTypeName?.Value switch
-            {
-                String => nameof(JsonElement.GetString),
-                ID => nameof(JsonElement.GetString),
-                Url => nameof(JsonElement.GetString),
-                Uuid => nameof(JsonElement.GetString),
-                DateTime => nameof(JsonElement.GetString),
-                Date => nameof(JsonElement.GetString),
-                TimeSpan => nameof(JsonElement.GetString),
-                Boolean => nameof(JsonElement.GetBoolean),
-                Byte => nameof(JsonElement.GetByte),
-                Short => nameof(JsonElement.GetInt16),
-                Int => nameof(JsonElement.GetInt32),
-                Long => nameof(JsonElement.GetInt64),
-                Float => nameof(JsonElement.GetDouble),
-                Decimal => nameof(JsonElement.GetDecimal),
-                ByteArray => nameof(JsonElement.GetBytesFromBase64),
-                _ => "Get" + (namedType.SerializationType?.Split('.').Last() ??
-                    namedType.Name.WithCapitalFirstChar())
-            };
+            MethodCallBuilder methodCall = MethodCallBuilder
+                .New()
+                .SetReturn()
+                .SetMethodName(GetFieldName(namedType.Name) + "Parser", "Parse");
 
-            methodBuilder.AddCode(
-                $"return {namedType.Name.ToFieldName()}Parser.Parse({_objParamName}.Value" +
-                $".{deserializeMethod}()!);");
+            if (namedType.SerializationType.ToString() == TypeNames.JsonElement)
+            {
+                methodCall.AddArgument($"{_obj}.{nameof(Nullable<JsonElement>.Value)}!");
+            }
+            else
+            {
+                var deserializeMethod = JsonUtils.GetParseMethod(namedType.SerializationType);
+                methodCall.AddArgument(MethodCallBuilder
+                    .Inline()
+                    .SetMethodName(_obj, nameof(Nullable<JsonElement>.Value), deserializeMethod)
+                    .SetNullForgiving());
+            }
+
+            methodBuilder.AddCode(methodCall);
         }
     }
 }

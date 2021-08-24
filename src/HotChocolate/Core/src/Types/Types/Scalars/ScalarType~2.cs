@@ -85,8 +85,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public sealed override object? ParseLiteral(
-            IValueNode valueSyntax, bool withDefaults = true)
+        public sealed override object? ParseLiteral(IValueNode valueSyntax)
         {
             if (valueSyntax is null)
             {
@@ -103,9 +102,7 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
-                this);
+            throw CreateParseLiteralError(valueSyntax);
         }
 
         /// <summary>
@@ -138,9 +135,7 @@ namespace HotChocolate.Types
                 return ParseValue(t);
             }
 
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
-                this);
+            throw CreateParseValueError(runtimeValue);
         }
 
         /// <summary>
@@ -150,5 +145,39 @@ namespace HotChocolate.Types
         /// <param name="runtimeValue">The value to parse</param>
         /// <returns>The parsed value syntax</returns>
         protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseLiteral"/> encountered an
+        /// invalid <see cref="IValueNode "/>
+        /// </summary>
+        /// <param name="valueSyntax">
+        /// The value syntax that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseLiteralError(IValueNode valueSyntax)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
+        }
+
+        /// <summary>
+        /// Creates the exception that will be thrown when <see cref="ParseValue"/> encountered an
+        /// invalid value
+        /// </summary>
+        /// <param name="runtimeValue">
+        /// The runtimeValue that should be parsed
+        /// </param>
+        /// <returns>
+        /// The created exception that should be thrown
+        /// </returns>
+        protected virtual SerializationException CreateParseValueError(object runtimeValue)
+        {
+            return new(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
+        }
     }
 }

@@ -1,13 +1,17 @@
 ﻿[
   {
-    "Message": "Variable `abc` got an invalid value.",
-    "Code": "HC0016",
-    "Path": null,
+    "Message": "The field `abc` does not exist on the type `ReviewInput`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "abc"
+    },
     "Locations": null,
     "Extensions": {
-      "code": "HC0016",
-      "variable": "abc"
+      "type": "ReviewInput"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": null
   }
 ]

@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 {
     public sealed class EnumValue : IEnumValue
     {
-        private readonly DirectiveCollection _directives;
+        private readonly IDirectiveCollection _directives;
 
         public EnumValue(
             ITypeCompletionContext completionContext,
@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(enumValueDefinition));
             }
 
-            if (enumValueDefinition.Value is null)
+            if (enumValueDefinition.RuntimeValue is null)
             {
                 throw new ArgumentException(
                     TypeResources.EnumValue_ValueIsNull,
@@ -37,16 +37,15 @@ namespace HotChocolate.Types
             SyntaxNode = enumValueDefinition.SyntaxNode;
             Name = enumValueDefinition.Name.HasValue
                 ? enumValueDefinition.Name
-                : (NameString)enumValueDefinition.Value.ToString();
+                : (NameString)enumValueDefinition.RuntimeValue.ToString()!;
             Description = enumValueDefinition.Description;
             DeprecationReason = enumValueDefinition.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(
-                enumValueDefinition.DeprecationReason);
-            Value = enumValueDefinition.Value;
-            ContextData = enumValueDefinition.ContextData;
+            IsDeprecated = !string.IsNullOrEmpty(enumValueDefinition.DeprecationReason);
+            Value = enumValueDefinition.RuntimeValue;
+            ContextData = enumValueDefinition.GetContextData();
 
-            _directives = new DirectiveCollection(this, enumValueDefinition!.Directives);
-            _directives.CompleteCollection(completionContext);
+            _directives = DirectiveCollection
+                .CreateAndComplete(completionContext, this, enumValueDefinition!.GetDirectives());
         }
 
         public EnumValueDefinitionNode? SyntaxNode { get; }

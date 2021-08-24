@@ -8,12 +8,14 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortInputTypeDescriptor<T>
         : DescriptorBase<SortInputTypeDefinition>
         , ISortInputTypeDescriptor<T>
@@ -140,9 +142,10 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCreateDefinition(
             SortInputTypeDefinition definition)
         {
-            if (Definition.EntityType is { })
+            if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, SortOperationDefintion>();

@@ -1,8 +1,10 @@
 using System;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     internal class FilterInputTypeNameDependencyDescriptor<T>
         : IFilterInputTypeNameDependencyDescriptor<T>
     {

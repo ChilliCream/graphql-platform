@@ -4,7 +4,6 @@ namespace HotChocolate.Language
     {
         static GraphQLConstants()
         {
-            InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();
             InitializeEscapeCharacterCache();
             InitializeIsPunctuatorCache();
@@ -16,28 +15,10 @@ namespace HotChocolate.Language
             InitializePunctuator();
         }
 
-        private static void InitializeIsControlCharacterCache()
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                _isControlCharacterNoNewLine[i] = true;
-            }
-
-            for (int i = 10; i <= 31; i++)
-            {
-                _isControlCharacterNoNewLine[i] = true;
-            }
-
-            _isControlCharacterNoNewLine[127] = true;
-
-            _isControlCharacterNoNewLine['\r'] = false;
-            _isControlCharacterNoNewLine['\n'] = false;
-        }
-
         private static void InitializeIsEscapeCharacterCache()
         {
             _isEscapeCharacter[Quote] = true;
-            _isEscapeCharacter[Forwardslash] = true;
+            _isEscapeCharacter[ForwardSlash] = true;
             _isEscapeCharacter[Backslash] = true;
             _isEscapeCharacter[B] = true;
             _isEscapeCharacter[F] = true;
@@ -51,15 +32,15 @@ namespace HotChocolate.Language
         {
             for (int i = byte.MinValue; i <= byte.MaxValue; i++)
             {
-                char c = (char)i;
+                var c = (char)i;
                 _escapeCharacters[c] = (byte)c;
             }
 
             _escapeCharacters[B] = Backspace;
-            _escapeCharacters[F] = Formfeed;
-            _escapeCharacters[N] = NewLine;
+            _escapeCharacters[F] = FormFeed;
+            _escapeCharacters[N] = LineFeed;
             _escapeCharacters[R] = Return;
-            _escapeCharacters[T] = Tab;
+            _escapeCharacters[T] = HorizontalTab;
         }
 
         private static void InitializeIsPunctuatorCache()
@@ -82,12 +63,12 @@ namespace HotChocolate.Language
 
         private static void InitializeIsLetterOrUnderscoreCache()
         {
-            for (char c = 'a'; c <= 'z'; c++)
+            for (var c = 'a'; c <= 'z'; c++)
             {
                 _isLetterOrUnderscore[c] = true;
             }
 
-            for (char c = 'A'; c <= 'Z'; c++)
+            for (var c = 'A'; c <= 'Z'; c++)
             {
                 _isLetterOrUnderscore[c] = true;
             }
@@ -97,12 +78,12 @@ namespace HotChocolate.Language
 
         private static void InitializeIsLetterOrDigitOUnderscoreCache()
         {
-            for (char c = 'a'; c <= 'z'; c++)
+            for (var c = 'a'; c <= 'z'; c++)
             {
                 _isLetterOrDigitOrUnderscore[c] = true;
             }
 
-            for (char c = 'A'; c <= 'Z'; c++)
+            for (var c = 'A'; c <= 'Z'; c++)
             {
                 _isLetterOrDigitOrUnderscore[c] = true;
             }
@@ -152,30 +133,26 @@ namespace HotChocolate.Language
 
         private static void InitializeTrimComment()
         {
-            _trimComment[GraphQLConstants.Hash] = true;
-            _trimComment[GraphQLConstants.Space] = true;
-            _trimComment[GraphQLConstants.Tab] = true;
+            _trimComment[Hash] = true;
+            _trimComment[Space] = true;
+            _trimComment[HorizontalTab] = true;
         }
 
         private static void InitializePunctuator()
         {
-            _punctuatorKind[GraphQLConstants.Bang] = TokenKind.Bang;
-            _punctuatorKind[GraphQLConstants.Dollar] = TokenKind.Dollar;
-            _punctuatorKind[GraphQLConstants.Ampersand] = TokenKind.Ampersand;
-            _punctuatorKind[GraphQLConstants.LeftParenthesis] =
-                TokenKind.LeftParenthesis;
-            _punctuatorKind[GraphQLConstants.RightParenthesis] =
-                TokenKind.RightParenthesis;
-            _punctuatorKind[GraphQLConstants.Colon] = TokenKind.Colon;
-            _punctuatorKind[GraphQLConstants.Equal] = TokenKind.Equal;
-            _punctuatorKind[GraphQLConstants.At] = TokenKind.At;
-            _punctuatorKind[GraphQLConstants.LeftBracket] =
-                TokenKind.LeftBracket;
-            _punctuatorKind[GraphQLConstants.RightBracket] =
-                TokenKind.RightBracket;
-            _punctuatorKind[GraphQLConstants.LeftBrace] = TokenKind.LeftBrace;
-            _punctuatorKind[GraphQLConstants.RightBrace] = TokenKind.RightBrace;
-            _punctuatorKind[GraphQLConstants.Pipe] = TokenKind.Pipe;
+            _punctuatorKind[Bang] = TokenKind.Bang;
+            _punctuatorKind[Dollar] = TokenKind.Dollar;
+            _punctuatorKind[Ampersand] = TokenKind.Ampersand;
+            _punctuatorKind[LeftParenthesis] = TokenKind.LeftParenthesis;
+            _punctuatorKind[RightParenthesis] = TokenKind.RightParenthesis;
+            _punctuatorKind[Colon] = TokenKind.Colon;
+            _punctuatorKind[Equal] = TokenKind.Equal;
+            _punctuatorKind[At] = TokenKind.At;
+            _punctuatorKind[LeftBracket] = TokenKind.LeftBracket;
+            _punctuatorKind[RightBracket] = TokenKind.RightBracket;
+            _punctuatorKind[LeftBrace] = TokenKind.LeftBrace;
+            _punctuatorKind[RightBrace] = TokenKind.RightBrace;
+            _punctuatorKind[Pipe] = TokenKind.Pipe;
         }
     }
 }

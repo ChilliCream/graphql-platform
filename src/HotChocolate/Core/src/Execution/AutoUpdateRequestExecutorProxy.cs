@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
     /// </summary>
     public class AutoUpdateRequestExecutorProxy : IRequestExecutor
     {
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly RequestExecutorProxy _executorProxy;
         private IRequestExecutor _executor;
         private bool _disposed;
@@ -95,6 +95,11 @@ namespace HotChocolate.Execution
         /// Gets the services that are bound to this executor.
         /// </summary>
         public IServiceProvider Services => _executor.Services;
+
+        /// <summary>
+        /// Gets the version of the executor.
+        /// </summary>
+        public ulong Version => _executor.Version;
 
         /// <summary>
         /// Executes the given GraphQL <paramref name="request" />.

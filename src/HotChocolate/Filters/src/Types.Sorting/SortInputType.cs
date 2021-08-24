@@ -4,8 +4,11 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
+using static HotChocolate.Internal.FieldInitHelper;
+
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class SortInputType<T>
         : InputObjectType
         , ISortInputType
@@ -57,23 +60,25 @@ namespace HotChocolate.Types.Sorting
         {
             base.OnCompleteType(context, definition);
 
-            if (definition is SortInputTypeDefinition ft &&
-                ft.EntityType is { })
+            if (definition is SortInputTypeDefinition { EntityType: { } } ft)
             {
                 EntityType = ft.EntityType;
             }
         }
 
-        protected override void OnCompleteFields(
+        protected override FieldCollection<InputField> OnCompleteFields(
             ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
+            InputObjectTypeDefinition definition)
         {
-            foreach (SortOperationDefintion fieldDefinition in
-                definition.Fields.OfType<SortOperationDefintion>())
-            {
-                fields.Add(new SortOperationField(fieldDefinition));
-            }
+            return CompleteFields(
+                context,
+                this,
+                definition.Fields.OfType<SortOperationDefintion>(),
+                CreateField,
+                definition.Fields.Count);
+
+            static InputField CreateField(SortOperationDefintion fieldDef, int index)
+                => new SortOperationField(fieldDef, index);
         }
 
         // we are disabling the default configure method so

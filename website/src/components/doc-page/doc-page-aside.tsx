@@ -9,7 +9,7 @@ import {
   BoxShadow,
   IsSmallDesktop,
   SmallDesktopBreakpointNumber,
-} from "./shared-style";
+} from "../../shared-style";
 
 export const DocPageAside: FunctionComponent = ({ children }) => {
   const showAside = useSelector<State, boolean>(

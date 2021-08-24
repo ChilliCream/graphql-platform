@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace GreenDonut
 {
     public class DataLoader<TKey, TValue>

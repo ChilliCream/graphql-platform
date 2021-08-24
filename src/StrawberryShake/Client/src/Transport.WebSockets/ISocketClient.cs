@@ -18,6 +18,11 @@ namespace StrawberryShake.Transport.WebSockets
         Uri? Uri { get; set; }
 
         /// <summary>
+        /// The <see cref="ISocketConnectionInterceptor"/> of this client
+        /// </summary>
+        ISocketConnectionInterceptor ConnectionInterceptor { get; set; }
+
+        /// <summary>
         /// The name of the socket
         /// </summary>
         string Name { get; }

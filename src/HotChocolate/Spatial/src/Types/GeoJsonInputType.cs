@@ -1,9 +1,13 @@
-using HotChocolate.Language;
+using System;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial
 {
-    public abstract class GeoJsonInputType<T> : InputObjectType<T>
+    public abstract class GeoJsonInputType<T>
+        : InputObjectType<T>
+        , IGeoJsonInputType
     {
         private readonly IGeoJsonSerializer _serializer;
 
@@ -12,76 +16,20 @@ namespace HotChocolate.Types.Spatial
             _serializer = GeoJsonSerializers.Serializers[geometryType];
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
-        {
-            try
-            {
-                return _serializer.IsInstanceOfType(literal);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        protected override Func<object?[], object> OnCompleteCreateInstance(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+            => CreateInstance;
 
-        public override bool IsInstanceOfType(object? value)
-        {
-            try
-            {
-                return _serializer.IsInstanceOfType(value);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        private object CreateInstance(object?[] fieldValues)
+            => _serializer.CreateInstance(this, fieldValues);
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            try
-            {
-                return _serializer.ParseLiteral(valueSyntax, withDefaults);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        protected override Action<object, object?[]> OnCompleteGetFieldValues(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+            => GetFieldData;
 
-        public override IValueNode ParseValue(object? runtimeValue)
-        {
-            try
-            {
-                return _serializer.ParseValue(runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
-
-        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
-        {
-            try
-            {
-                return _serializer.TryDeserialize(resultValue, out runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
-
-        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            try
-            {
-                return _serializer.TrySerialize(runtimeValue, out resultValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        private void GetFieldData(object runtimeValue, object?[] fieldValues)
+            => _serializer.GetFieldData(this, runtimeValue, fieldValues);
     }
 }

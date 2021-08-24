@@ -20,17 +20,24 @@ export const Tab: FunctionComponent<TabProps> = ({ value, children }) => {
 };
 
 const TabButton = styled.button`
+  background-color: transparent;
+  border: 0 none;
+  cursor: pointer;
   padding: 1rem 0.25rem;
   font-size: 0.95rem;
   line-height: 1.2;
-  color: #666677;
+  color: var(--text-color);
 
   :hover {
-    color: #2d2d35;
+    color: var(--heading-text-color);
+  }
+
+  :focus {
+    outline: none;
   }
 
   &.active {
-    color: #000;
+    color: var(--heading-text-color);
     font-weight: 700;
   }
 

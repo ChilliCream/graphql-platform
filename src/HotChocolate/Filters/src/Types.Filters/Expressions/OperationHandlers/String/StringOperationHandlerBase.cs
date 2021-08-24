@@ -1,9 +1,11 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public abstract class StringOperationHandlerBase
         : IExpressionOperationHandler
     {
@@ -14,10 +16,9 @@ namespace HotChocolate.Types.Filters.Expressions
             IQueryableFilterVisitorContext context,
             [NotNullWhen(true)] out Expression? expression)
         {
-            if (operation.Type == typeof(string) &&
-                    type.IsInstanceOfType(value))
+            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
             {
-                object? parsedValue = type.ParseLiteral(value);
+                var parsedValue = context.InputParser.ParseLiteral(value, type);
 
                 Expression property = context.GetInstance();
 

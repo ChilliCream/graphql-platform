@@ -1,9 +1,11 @@
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class ObjectFieldHandler
         : IExpressionFieldHandler
     {

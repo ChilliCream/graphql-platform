@@ -6,6 +6,7 @@
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <Description>Contains extensions for seamless integration of Entity Framework Core into HotChocolate</Description>
   </PropertyGroup>
 
   <ItemGroup>

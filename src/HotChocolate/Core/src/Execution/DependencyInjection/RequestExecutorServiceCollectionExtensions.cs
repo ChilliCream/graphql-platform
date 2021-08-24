@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GreenDonut;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -27,16 +29,28 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddOptions();
 
+            services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+            services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+            {
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new StringBuilderPooledObjectPolicy();
+                return provider.Create(policy);
+            });
+
             // core services
             services
                 .TryAddRequestExecutorFactoryOptionsMonitor()
                 .TryAddTypeConverter()
+                .TryAddInputFormatter()
+                .TryAddInputParser()
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()
                 .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
-                .TryAddIdSerializer();
+                .TryAddIdSerializer()
+                .TryAddDataLoaderParameterExpressionBuilder();
 
             // pools
             services
@@ -83,7 +97,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddGraphQLCore()
                 .AddValidation(schemaName);
 
-            return new DefaultRequestExecutorBuilder(services, schemaName);
+            return CreateBuilder(services, schemaName);
         }
 
         /// <summary>
@@ -112,7 +126,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.AddValidation(schemaName);
 
-            return new DefaultRequestExecutorBuilder(builder.Services, schemaName);
+            return CreateBuilder(builder.Services, schemaName);
+        }
+
+        private static IRequestExecutorBuilder CreateBuilder(
+            IServiceCollection services,
+            NameString schemaName)
+        {
+            var builder = new DefaultRequestExecutorBuilder(services, schemaName);
+
+            builder.Configure(
+                (sp, e) =>
+                {
+                    e.OnRequestExecutorEvicted.Add(
+                        // when ever we evict this schema we will clear the caches.
+                        new OnRequestExecutorEvictedAction(
+                            _ => sp.GetRequiredService<IPreparedOperationCache>().Clear()));
+                });
+
+            builder.TryAddNoOpTransactionScopeHandler();
+
+            return builder;
         }
 
         public static IServiceCollection AddDocumentCache(
@@ -121,7 +155,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.RemoveAll<IDocumentCache>();
             services.AddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache(capacity));
+                _ => new DefaultDocumentCache(capacity));
             return services;
         }
 
@@ -130,8 +164,16 @@ namespace Microsoft.Extensions.DependencyInjection
             int capacity = 100)
         {
             services.RemoveAll<IPreparedOperationCache>();
+            services.RemoveAll<IQueryPlanCache>();
+            services.RemoveAll<IComplexityAnalyzerCache>();
+
             services.AddSingleton<IPreparedOperationCache>(
                 sp => new DefaultPreparedOperationCache(capacity));
+            services.AddSingleton<IQueryPlanCache>(
+                sp => new DefaultQueryPlanCache(capacity));
+            services.AddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache(capacity));
+
             return services;
         }
 
@@ -165,8 +207,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddBatchDispatcher<T>(
-            this IServiceCollection services)
+        public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
             where T : class, IBatchDispatcher
         {
             services.RemoveAll<IBatchDispatcher>();
@@ -174,8 +215,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddBatchScheduler<T>(
-            this IServiceCollection services)
+        public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
             where T : class, IBatchScheduler
         {
             services.RemoveAll<IBatchScheduler>();
@@ -183,8 +223,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddDefaultBatchDispatcher(
-            this IServiceCollection services)
+        public static IServiceCollection AddDefaultBatchDispatcher(this IServiceCollection services)
         {
             services.RemoveAll<IBatchScheduler>();
             services.TryAddDefaultBatchDispatcher();

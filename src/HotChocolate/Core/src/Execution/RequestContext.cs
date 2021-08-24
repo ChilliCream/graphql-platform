@@ -12,30 +12,30 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestContext : IRequestContext
     {
+        private readonly ConcurrentDictionary<string, object?> _contextData = new();
+        private DocumentValidatorResult? _validationResult;
+
         public RequestContext(
             ISchema schema,
-            IServiceProvider services,
+            ulong executorVersion,
             IErrorHandler errorHandler,
             ITypeConverter converter,
             IActivator activator,
-            IDiagnosticEvents diagnosticEvents,
-            IQueryRequest request)
+            IDiagnosticEvents diagnosticEvents)
         {
             Schema = schema;
-            Services = services;
+            ExecutorVersion = executorVersion;
             ErrorHandler = errorHandler;
             Converter = converter;
             Activator = activator;
             DiagnosticEvents = diagnosticEvents;
-            Request = request;
-            ContextData = request.ContextData is null
-                ? new ConcurrentDictionary<string, object?>()
-                : new ConcurrentDictionary<string, object?>(request.ContextData);
         }
 
         public ISchema Schema { get; }
 
-        public IServiceProvider Services { get; }
+        public ulong ExecutorVersion { get; }
+
+        public IServiceProvider Services { get; private set; } = default!;
 
         public IErrorHandler ErrorHandler { get; }
 
@@ -45,9 +45,9 @@ namespace HotChocolate.Execution
 
         public IDiagnosticEvents DiagnosticEvents { get; }
 
-        public IQueryRequest Request { get; }
+        public IQueryRequest Request { get; private set; } = default!;
 
-        public IDictionary<string, object?> ContextData { get; }
+        public IDictionary<string, object?> ContextData => _contextData;
 
         public CancellationToken RequestAborted { get; set; }
 
@@ -61,7 +61,17 @@ namespace HotChocolate.Execution
 
         public DocumentNode? Document { get; set; }
 
-        public DocumentValidatorResult? ValidationResult { get; set; }
+        public DocumentValidatorResult? ValidationResult
+        {
+            get => _validationResult;
+            set
+            {
+                _validationResult = value;
+                IsValidDocument = !value?.HasErrors ?? false;
+            }
+        }
+
+        public bool IsValidDocument { get; private set; }
 
         public string? OperationId { get; set; }
 
@@ -72,5 +82,78 @@ namespace HotChocolate.Execution
         public IExecutionResult? Result { get; set; }
 
         public Exception? Exception { get; set; }
+
+        public IRequestContext Clone()
+        {
+            var cloned = new RequestContext(
+                Schema,
+                ExecutorVersion,
+                ErrorHandler,
+                Converter,
+                Activator,
+                DiagnosticEvents)
+            {
+                Request = Request,
+                Services = Services,
+                RequestAborted = RequestAborted,
+                DocumentId = DocumentId,
+                DocumentHash = DocumentHash,
+                IsCachedDocument = IsCachedDocument,
+                Document = Document,
+                ValidationResult = ValidationResult,
+                OperationId = OperationId,
+                Operation = Operation,
+                Variables = Variables,
+                Result = Result,
+                Exception = Exception
+            };
+
+            if (_contextData is not null!)
+            {
+                foreach (KeyValuePair<string, object?> item in ContextData)
+                {
+                    cloned._contextData.TryAdd(item.Key, item.Value);
+                }
+            }
+
+            return cloned;
+        }
+
+        public void Initialize(IQueryRequest request, IServiceProvider services)
+        {
+            Request = request;
+            Services = services;
+
+            if (request.ContextData is not null)
+            {
+                foreach (KeyValuePair<string, object?> item in request.ContextData)
+                {
+                    _contextData.TryAdd(item.Key, item.Value);
+                }
+            }
+        }
+
+        public void Reset()
+        {
+            if (_contextData.Count != 0)
+            {
+                _contextData.Clear();
+            }
+
+            Request = default!;
+            Services = default!;
+            RequestAborted = default;
+            DocumentId = default;
+            DocumentHash = default;
+            IsCachedDocument = false;
+            Document = default;
+            ValidationResult = default;
+            IsValidDocument = false;
+            OperationId = default;
+            Operation = default;
+            Variables = default;
+            Result = default;
+            Exception = default;
+        }
     }
 }

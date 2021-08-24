@@ -4,13 +4,15 @@ using System.Xml;
 
 namespace StrawberryShake.Serialization
 {
-    public class TimeSpanSerializer
-        : ScalarSerializer<string, TimeSpan>
+    /// <summary>
+    /// This serializer handles time-span scalars.
+    /// </summary>
+    public class TimeSpanSerializer : ScalarSerializer<string, TimeSpan>
     {
         private readonly TimeSpanFormat _format;
 
         public TimeSpanSerializer(
-            string typeName = BuiltInTypeNames.TimeSpan,
+            string typeName = BuiltInScalarNames.TimeSpan,
             TimeSpanFormat format = TimeSpanFormat.Iso8601)
             : base(typeName)
         {

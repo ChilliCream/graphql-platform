@@ -1,0 +1,27 @@
+﻿{
+  "query": "{ __typename }",
+  "operationName": "abc",
+  "variables": {
+    "abc": {
+      "s": "def",
+      "i": 123,
+      "d": 123.123,
+      "b": true,
+      "ol": [
+        {
+          "s": "def"
+        }
+      ],
+      "sl": [
+        "a",
+        "b",
+        "c"
+      ],
+      "il": [
+        1,
+        2,
+        3
+      ]
+    }
+  }
+}

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.DependencyInjection;
-using StrawberryShake.Transport.WebSockets.Protocol;
+using StrawberryShake.Transport.WebSockets.Protocols;
 using Xunit;
 
 namespace StrawberryShake.Transport.WebSockets

@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Data.Filters
 {
@@ -66,9 +67,10 @@ namespace HotChocolate.Data.Filters
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
         {
-            if (Definition.EntityType is { })
+            if (!Definition.AttributesAreApplied && Definition.EntityType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Definition.AttributesAreApplied = true;
             }
 
             var fields = new Dictionary<NameString, FilterFieldDefinition>();

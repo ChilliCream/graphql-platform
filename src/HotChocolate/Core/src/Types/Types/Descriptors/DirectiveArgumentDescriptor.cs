@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
-                Definition.NativeDefaultValue = defaultValue;
+                Definition.RuntimeDefaultValue = defaultValue;
             }
         }
 
@@ -45,12 +45,13 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
         {
-            if (Definition.Property is { })
+            if (!Definition.AttributesAreApplied && Definition.Property is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Property);
+                Definition.AttributesAreApplied = true;
             }
 
             base.OnCreateDefinition(definition);

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
+    [Obsolete]
     public class SortingNamingConventionTests
         : TypeTestBase
     {
@@ -98,7 +99,7 @@ namespace HotChocolate.Types.Sorting
         {
             ctx.AddObjectType(x => x.Name("Test")
                 .Field("foo")
-                .Resolver(resolvedItems)
+                .Resolve(resolvedItems)
                 .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
                 .UseSorting());
             return ctx;

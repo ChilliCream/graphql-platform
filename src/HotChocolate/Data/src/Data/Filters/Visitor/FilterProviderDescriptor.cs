@@ -28,7 +28,9 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+#pragma warning disable CA1000 // Do not declare static members on generic types
         public static FilterProviderDescriptor<TContext> New() =>
             new FilterProviderDescriptor<TContext>();
+#pragma warning restore CA1000 // Do not declare static members on generic types
     }
 }

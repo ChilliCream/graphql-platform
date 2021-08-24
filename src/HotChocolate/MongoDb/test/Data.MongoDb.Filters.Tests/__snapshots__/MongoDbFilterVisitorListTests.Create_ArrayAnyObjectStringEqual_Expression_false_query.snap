@@ -1,1 +1,1 @@
-﻿find({ "FooNested" : { "$exists" : true, "$ne" : null, "$eq" : [] } })
+﻿find({ "$or" : [{ "FooNested" : { "$exists" : true, "$in" : [[], null] } }, { "FooNested" : { "$exists" : false } }] })

@@ -2,6 +2,7 @@
 {
     public enum ApplyConfigurationOn
     {
+        Create,
         Naming,
         Completion
     }

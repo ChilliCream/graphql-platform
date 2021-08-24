@@ -7,7 +7,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Execution.ThrowHelper;
-using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -15,14 +14,22 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private readonly InputParser _parser;
+        private int _nextSelectionId;
+        private int _nextFragmentId;
 
-        private OperationCompiler(
-            ISchema schema,
-            FragmentCollection fragments)
+        private OperationCompiler(ISchema schema, FragmentCollection fragments, InputParser parser)
         {
-            _schema = schema;
-            _fragments = fragments;
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
+            _parser = parser ?? throw new ArgumentNullException(nameof(parser));
         }
+
+        internal ISchema Schema => _schema;
+
+        internal FragmentCollection Fragments => _fragments;
+
+        internal int GetNextId() => _nextSelectionId++;
 
         public static IPreparedOperation Compile(
             string operationId,
@@ -30,6 +37,7 @@ namespace HotChocolate.Execution.Processing
             OperationDefinitionNode operation,
             ISchema schema,
             ObjectType rootType,
+            InputParser inputParser,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
             if (operationId == null)
@@ -63,7 +71,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             var fragments = new FragmentCollection(schema, document);
-            var compiler = new OperationCompiler(schema, fragments);
+            var compiler = new OperationCompiler(schema, fragments, inputParser);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
             var backlog = new Stack<CompilerContext>();
 
@@ -78,7 +86,7 @@ namespace HotChocolate.Execution.Processing
             // processes the backlog and by doing so traverses the query graph.
             compiler.Visit(backlog);
 
-            return new Operation(operationId, document, operation,rootType, selectionSetLookup);
+            return new Operation(operationId, document, operation, rootType, selectionSetLookup);
         }
 
         private void Visit(Stack<CompilerContext> backlog)
@@ -156,7 +164,8 @@ namespace HotChocolate.Execution.Processing
 
                 if (selectionCondition is null)
                 {
-                    context.IncludeConditionLookup.TryGetValue(selection, out selectionCondition);
+                    var reference = new SelectionReference(context.SelectionPath, selection);
+                    context.IncludeConditionLookup.TryGetValue(reference, out selectionCondition);
                 }
 
                 ResolveFields(
@@ -225,11 +234,20 @@ namespace HotChocolate.Execution.Processing
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(
+                        GetNextId(),
                         context.Type,
                         field,
-                        selection,
+                        selection.SelectionSet is not null
+                            ? selection.WithSelectionSet(
+                                selection.SelectionSet.WithSelections(
+                                    selection.SelectionSet.Selections))
+                            : selection,
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
+                        pureResolver: TryCreatePureField(field, selection),
+                        strategy: field.IsParallelExecutable
+                            ? null // use default strategy
+                            : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection);
@@ -239,12 +257,16 @@ namespace HotChocolate.Execution.Processing
 
                 if (includeCondition is not null && selection.SelectionSet is not null)
                 {
+                    SelectionPath selectionPath = context.SelectionPath.Append(responseName);
+
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
                         ISelectionNode child = selection.SelectionSet.Selections[i];
-                        if (!context.IncludeConditionLookup.ContainsKey(child))
+                        var reference = new SelectionReference(selectionPath, child);
+
+                        if (!context.IncludeConditionLookup.ContainsKey(reference))
                         {
-                            context.IncludeConditionLookup.Add(child, includeCondition);
+                            context.IncludeConditionLookup.Add(reference, includeCondition);
                         }
                     }
                 }
@@ -270,13 +292,23 @@ namespace HotChocolate.Execution.Processing
                     throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
                 }
 
+                var reference = new SpreadReference(context.SelectionPath, fragmentSpread);
+
+                if (!context.Spreads.TryGetValue(reference, out var selectionSet))
+                {
+                    selectionSet = fragmentDefinition.SelectionSet.WithSelections(
+                        fragmentDefinition.SelectionSet.Selections);
+                    context.Spreads.Add(reference, selectionSet);
+                }
+
                 if (fragmentSpread.IsDeferrable() &&
                     AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
                 {
-                    CompilerContext deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(selectionSet);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         fragmentSpread,
                         fragmentDefinition,
@@ -286,13 +318,7 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
-                    CollectFields(
-                        context,
-                        context.IsInternalSelection
-                            ? CloneSelectionSetVisitor.Default.CloneSelectionNode(
-                                fragmentInfo.SelectionSet)
-                            : fragmentInfo.SelectionSet,
-                        includeCondition);
+                    CollectFields(context, selectionSet, includeCondition);
                 }
             }
         }
@@ -310,13 +336,23 @@ namespace HotChocolate.Execution.Processing
             if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
                 DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
+                var reference = new SpreadReference(context.SelectionPath, inlineFragment);
+
+                if (!context.Spreads.TryGetValue(reference, out var selectionSet))
+                {
+                    selectionSet = inlineFragment.SelectionSet.WithSelections(
+                        inlineFragment.SelectionSet.Selections);
+                    context.Spreads.Add(reference, selectionSet);
+                }
+
                 if (inlineFragment.IsDeferrable() &&
                     AllowFragmentDeferral(context, inlineFragment))
                 {
-                    CompilerContext deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(selectionSet);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
+                        _nextFragmentId++,
                         context.Type,
                         inlineFragment,
                         deferContext.GetSelectionSet(),
@@ -327,7 +363,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     CollectFields(
                         context,
-                        fragmentInfo.SelectionSet,
+                        selectionSet,
                         includeCondition);
                 }
             }
@@ -502,20 +538,18 @@ namespace HotChocolate.Execution.Processing
             return true;
         }
 
-        private static object? ParseLiteral(IInputField argument, IValueNode value)
+        private object? ParseLiteral(IInputField argument, IValueNode value)
         {
             IInputType type = argument.Type is NonNullType
                 ? (IInputType)argument.Type.InnerType()
                 : argument.Type;
 
-            object? runtimeValue = type.ParseLiteral(value);
-
-            return argument.Formatter is not null
-                ? argument.Formatter.OnAfterDeserialize(runtimeValue)
-                : runtimeValue;
+            return _parser.ParseLiteral(value, argument);
         }
 
-        private FieldDelegate CreateFieldMiddleware(IObjectField field, FieldNode selection)
+        internal FieldDelegate CreateFieldMiddleware(
+            IObjectField field,
+            FieldNode selection)
         {
             FieldDelegate pipeline = field.Middleware;
 
@@ -530,6 +564,18 @@ namespace HotChocolate.Execution.Processing
             }
 
             return pipeline;
+        }
+
+        private PureFieldDelegate? TryCreatePureField(
+            IObjectField field,
+            FieldNode selection)
+        {
+            if (field.PureResolver is not null && selection.Directives.Count == 0)
+            {
+                return field.PureResolver;
+            }
+
+            return null;
         }
 
         private IReadOnlyList<IDirective> CollectDirectives(
@@ -611,15 +657,7 @@ namespace HotChocolate.Execution.Processing
                 return;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -642,15 +680,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -678,15 +708,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
-            var optimizerContext = new SelectionOptimizerContext
-            (
-                _schema,
-                context.Path,
-                context.Type,
-                context.SelectionSet,
-                context.Fields,
-                CreateFieldMiddleware
-            );
+            var optimizerContext = new SelectionOptimizerContext(this, context);
 
             if (context.Optimizers.Count == 1)
             {
@@ -731,41 +753,15 @@ namespace HotChocolate.Execution.Processing
             for (var i = components.Count - 1; i >= 0; i--)
             {
                 DirectiveDelegate component = components[i].Invoke(next);
-
-                next = context =>
-                {
-                    if (HasErrors(context.Result))
-                    {
-                        return default;
-                    }
-
-                    return component.Invoke(new DirectiveContext(context, directive));
-                };
+                next = context => HasNoErrors(context.Result)
+                    ? component.Invoke(new DirectiveContext(context, directive))
+                    : default;
             }
 
             return next;
         }
 
-        private static bool HasErrors(object? result) =>
-            result is IError || result is IEnumerable<IError>;
-
-        private class CloneSelectionSetVisitor : QuerySyntaxRewriter<object>
-        {
-            private static readonly object _context = new();
-
-            protected override SelectionSetNode RewriteSelectionSet(
-                SelectionSetNode node,
-                object context)
-            {
-                return new(base.RewriteSelectionSet(node, context).Selections);
-            }
-
-            public SelectionSetNode CloneSelectionNode(SelectionSetNode selection)
-            {
-                return RewriteSelectionSet(selection, _context);
-            }
-
-            public static readonly CloneSelectionSetVisitor Default = new();
-        }
+        private static bool HasNoErrors(object? result) =>
+            result is not IError or not IEnumerable<IError>;
     }
 }

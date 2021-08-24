@@ -1,0 +1,13 @@
+mutation CreateReview($stars: Int!) {
+  createReview(
+    episode: EMPIRE
+    review: { stars: $stars commentary: "good" }) {
+    stars
+  }
+}
+
+subscription OnReview {
+  onReview(episode: EMPIRE) {
+    stars
+  }
+}

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -403,6 +404,24 @@ namespace HotChocolate.Data.Projections
             res1.MatchSqlSnapshot();
         }
 
+        [Fact]
+        public async Task CreateNullable_NodesAndEdgesWithAliases()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooNullableEntities,
+                usePaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ b: nodes{ baz } a: edges { node { bar }} }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
         public class Foo
         {
             public int Id { get; set; }
@@ -448,7 +467,7 @@ namespace HotChocolate.Data.Projections
                 IObjectFieldDescriptor descriptor,
                 MemberInfo member)
             {
-                descriptor.Resolver(
+                descriptor.Resolve(
                     new List<Bar>
                     {
                         new Bar { BarBaz = "a_a", BarQux = "a_c" },

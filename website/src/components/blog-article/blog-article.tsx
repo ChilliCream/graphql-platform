@@ -1,9 +1,10 @@
 import { graphql } from "gatsby";
-import Img, { FluidObject } from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
+import { Article } from "../articles/article";
 import { ArticleComments } from "../articles/article-comments";
 import {
   ArticleContent,
@@ -13,8 +14,6 @@ import {
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
-import { IsTablet } from "../doc-page/shared-style";
-import { Article } from "../articles/article";
 
 interface BlogArticleProperties {
   data: BlogArticleFragment;
@@ -31,15 +30,15 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
     ? (frontmatter!.tags!.filter((tag) => tag && tag.length > 0) as string[])
     : [];
   const featuredImage = frontmatter!.featuredImage?.childImageSharp
-    ?.fluid as FluidObject;
+    ?.gatsbyImageData;
 
   return (
     <Container>
       <BlogArticleSharebar data={data} tags={existingTags} />
       <ArticleWrapper>
         <Article>
-          <ArticleHeader>
-            {featuredImage && <Img fluid={featuredImage} />}
+          <ArticleHeader kind="blog">
+            {featuredImage && <GatsbyImage image={featuredImage} alt={title} />}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
@@ -61,9 +60,11 @@ export const BlogArticleGraphQLFragment = graphql`
       frontmatter {
         featuredImage {
           childImageSharp {
-            fluid(maxWidth: 800, pngQuality: 90) {
-              ...GatsbyImageSharpFluid
-            }
+            gatsbyImageData(
+              layout: CONSTRAINED
+              width: 800
+              pngOptions: { quality: 90 }
+            )
           }
         }
         path
@@ -81,10 +82,11 @@ export const BlogArticleGraphQLFragment = graphql`
 const ArticleWrapper = styled.div`
   display: grid;
   grid-template-rows: 1fr auto;
-  padding: 20px 10px 0;
-  ${IsTablet(`
-    padding: 0;
-  `)}
+  padding: 0;
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 10px 0;
+  }
 `;
 
 const Container = styled.div`

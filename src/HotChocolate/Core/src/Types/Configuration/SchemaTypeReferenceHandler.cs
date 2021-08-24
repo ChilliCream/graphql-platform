@@ -1,36 +1,31 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using HotChocolate.Types;
+﻿using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class SchemaTypeReferenceHandler
-        : ITypeRegistrarHandler
+    internal sealed class SchemaTypeReferenceHandler : ITypeRegistrarHandler
     {
-        public void Register(
-            ITypeRegistrar typeRegistrar,
-            IEnumerable<ITypeReference> typeReferences)
+        public TypeReferenceKind Kind => TypeReferenceKind.SchemaType;
+
+        public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
         {
-            foreach (SchemaTypeReference typeReference in
-                typeReferences.OfType<SchemaTypeReference>())
+            var typeRef = (SchemaTypeReference)typeReference;
+
+            if (!typeRegistrar.IsResolved(typeReference))
             {
-                if (!typeRegistrar.IsResolved(typeReference))
+                ITypeSystemMember tsm = typeRef.Type;
+
+                // if it is a type object we will make sure it is unwrapped.
+                if (typeRef.Type is IType type)
                 {
-                    ITypeSystemMember tsm = typeReference.Type;
+                    tsm = type.NamedType();
+                }
 
-                    // if it is a type object we will make sure it is unwrapped.
-                    if (typeReference.Type is IType type)
-                    {
-                        tsm = type.NamedType();
-                    }
-
-                    if (tsm is TypeSystemObjectBase tso)
-                    {
-                        typeRegistrar.Register(tso, typeReference.Scope);
-                    }
+                if (tsm is TypeSystemObjectBase tso)
+                {
+                    typeRegistrar.Register(tso, typeReference.Scope);
                 }
             }
         }

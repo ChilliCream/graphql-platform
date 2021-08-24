@@ -32,6 +32,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
+        public IfBuilder SetCondition(ICode condition)
+        {
+            _condition = ConditionBuilder.New().Set(condition);
+            return this;
+        }
+
         public IfBuilder AddCode(string code, bool addIf = true)
         {
             if (addIf)
@@ -109,18 +115,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             if (_elseCode is not null)
             {
-                writer.WriteIndent();
-                writer.Write("else {");
+                writer.WriteIndentedLine("else");
+                writer.WriteIndentedLine("{");
                 using (writer.IncreaseIndent())
                 {
-                    writer.WriteLine();
-                    writer.WriteIndent();
                     _elseCode.Build(writer);
                 }
 
-                writer.WriteLine();
-                writer.WriteIndent();
-                writer.WriteLine("}");
+                writer.WriteIndentedLine("}");
             }
         }
     }

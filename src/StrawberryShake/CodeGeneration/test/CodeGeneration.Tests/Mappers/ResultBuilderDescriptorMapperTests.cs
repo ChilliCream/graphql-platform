@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
 
 namespace StrawberryShake.CodeGeneration.Mappers
@@ -37,24 +39,32 @@ namespace StrawberryShake.CodeGeneration.Mappers
             ");
 
             // act
-            var context = new MapperContext("Foo.Bar", "FooClient");
+            var context = new MapperContext(
+                "Foo.Bar",
+                "FooClient",
+                new Sha1DocumentHashProvider(),
+                RequestStrategyGen.Default,
+                new[]
+                {
+                    TransportProfile.Default
+                });
             TypeDescriptorMapper.Map(clientModel, context);
             ResultBuilderDescriptorMapper.Map(clientModel, context);
 
             // assert
             Assert.Collection(
-                context.ResultBuilders.OrderBy(t => t.Name),
+                context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
                 resultBuilder =>
                 {
-                    Assert.Equal("CreateReviewBuilder", resultBuilder.Name);
+                    Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("GetHeroBuilder", resultBuilder.Name);
+                    Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
                 },
                 resultBuilder =>
                 {
-                    Assert.Equal("OnReviewBuilder", resultBuilder.Name);
+                    Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
                 });
         }
     }

@@ -2,48 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Internal
 {
     public static class TypeExtensionHelper
     {
-        public static void MergeObjectFields(
-            ITypeCompletionContext context,
-            Type sourceType,
-            IList<ObjectFieldDefinition> extensionFields,
-            IList<ObjectFieldDefinition> typeFields)
-        {
-            MergeOutputFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) =>
-                {
-                    if (extensionField.Resolver != null)
-                    {
-                        typeField.Resolver = extensionField.Resolver;
-                    }
-
-                    if (extensionField.MiddlewareComponents.Count > 0)
-                    {
-                        foreach (FieldMiddleware component in
-                            extensionField.MiddlewareComponents)
-                        {
-                            typeField.MiddlewareComponents.Add(component);
-                        }
-                    }
-                },
-                extensionField => extensionField.SourceType = sourceType);
-        }
-
         public static void MergeInterfaceFields(
             ITypeCompletionContext context,
             IList<InterfaceFieldDefinition> extensionFields,
             IList<InterfaceFieldDefinition> typeFields)
         {
             MergeOutputFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
+                (_, _, _) => { });
         }
 
         public static void MergeInputObjectFields(
@@ -52,7 +27,7 @@ namespace HotChocolate.Internal
             IList<InputFieldDefinition> typeFields)
         {
             MergeFields(context, extensionFields, typeFields,
-                (fields, extensionField, typeField) => { });
+                (_, _, _) => { });
         }
 
         private static void MergeOutputFields<T>(
@@ -60,7 +35,7 @@ namespace HotChocolate.Internal
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
+            Action<T>? onBeforeAdd = null)
             where T : OutputFieldDefinitionBase
         {
             MergeFields(context, extensionFields, typeFields,
@@ -76,7 +51,7 @@ namespace HotChocolate.Internal
                         context,
                         extensionField.Arguments,
                         typeField.Arguments,
-                        (args, extensionArg, typeArg) => { });
+                        (_, _, _) => { });
 
                     action(fields, extensionField, typeField);
                 },
@@ -88,13 +63,12 @@ namespace HotChocolate.Internal
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
-            Action<T> onBeforeAdd = null)
+            Action<T>? onBeforeAdd = null)
             where T : FieldDefinitionBase
         {
             foreach (T extensionField in extensionFields)
             {
-                T typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Equals(extensionField.Name));
+                T? typeField = typeFields.FirstOrDefault(t => t.Name.Equals(extensionField.Name));
 
                 if (typeField is null)
                 {
@@ -120,14 +94,16 @@ namespace HotChocolate.Internal
             IList<DirectiveDefinition> extension,
             IList<DirectiveDefinition> type)
         {
-            var directives =
-                new List<(DirectiveType type, DirectiveDefinition def)>();
+            var directives = new List<(DirectiveType type, DirectiveDefinition def)>();
 
             foreach (DirectiveDefinition directive in type)
             {
-                DirectiveType directiveType =
-                    context.GetDirectiveType(directive.Reference);
-                directives.Add((directiveType, directive));
+                if (context.TryGetDirectiveType(
+                    directive.Reference,
+                    out DirectiveType? directiveType))
+                {
+                    directives.Add((directiveType, directive));
+                }
             }
 
             foreach (DirectiveDefinition directive in extension)
@@ -137,8 +113,7 @@ namespace HotChocolate.Internal
 
             type.Clear();
 
-            foreach (DirectiveDefinition directive in
-                directives.Select(t => t.def))
+            foreach (DirectiveDefinition directive in directives.Select(t => t.def))
             {
                 type.Add(directive);
             }
@@ -149,10 +124,7 @@ namespace HotChocolate.Internal
             IList<(DirectiveType type, DirectiveDefinition def)> directives,
             DirectiveDefinition directive)
         {
-            DirectiveType directiveType =
-                context.GetDirectiveType(directive.Reference);
-
-            if (directiveType != null)
+            if (context.TryGetDirectiveType(directive.Reference, out DirectiveType? directiveType))
             {
                 if (directiveType.IsRepeatable)
                 {
@@ -167,7 +139,7 @@ namespace HotChocolate.Internal
                     }
                     else
                     {
-                        int index = directives.IndexOf(entry);
+                        var index = directives.IndexOf(entry);
                         directives[index] = (directiveType, directive);
                     }
                 }
@@ -178,12 +150,9 @@ namespace HotChocolate.Internal
             DefinitionBase extension,
             DefinitionBase type)
         {
-            if (extension.ContextData.Count > 0)
+            if (extension.GetContextData().Count > 0)
             {
-                foreach (KeyValuePair<string, object> entry in extension.ContextData)
-                {
-                    type.ContextData[entry.Key] = entry.Value;
-                }
+                type.ContextData.AddRange(extension.GetContextData());
             }
         }
 
@@ -191,17 +160,18 @@ namespace HotChocolate.Internal
             ObjectTypeDefinition extension,
             ObjectTypeDefinition type)
         {
-            if (extension.Interfaces.Count > 0)
+            if (extension.GetInterfaces().Count > 0)
             {
-                foreach (var interfaceReference in extension.Interfaces)
+                foreach (ITypeReference interfaceReference in extension.GetInterfaces())
                 {
                     type.Interfaces.Add(interfaceReference);
                 }
             }
 
-            if (extension.FieldBindingType != typeof(object))
+            if (extension.FieldBindingType != null &&
+                extension.FieldBindingType != typeof(object))
             {
-                type.KnownClrTypes.Add(extension.FieldBindingType);
+                type.KnownRuntimeTypes.Add(extension.FieldBindingType);
             }
         }
 
@@ -221,10 +191,10 @@ namespace HotChocolate.Internal
         }
 
         public static void MergeConfigurations(
-            ICollection<ILazyTypeConfiguration> extensionConfigurations,
-            ICollection<ILazyTypeConfiguration> typeConfigurations)
+            ICollection<ITypeSystemMemberConfiguration> extensionConfigurations,
+            ICollection<ITypeSystemMemberConfiguration> typeConfigurations)
         {
-            foreach (ILazyTypeConfiguration configuration in extensionConfigurations)
+            foreach (ITypeSystemMemberConfiguration configuration in extensionConfigurations)
             {
                 typeConfigurations.Add(configuration);
             }

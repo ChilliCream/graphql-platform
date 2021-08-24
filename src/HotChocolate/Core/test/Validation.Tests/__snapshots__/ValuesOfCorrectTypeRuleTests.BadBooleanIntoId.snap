@@ -23,6 +23,16 @@
       "locationType": "ID",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "BooleanValue",
+      "Location": {
+        "Start": 93,
+        "End": 98,
+        "Line": 4,
+        "Column": 43
+      },
+      "Value": true
+    }
   }
 ]

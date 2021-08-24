@@ -1,7 +1,19 @@
 ﻿namespace HotChocolate.Language
 {
+    /// <summary>
+    /// The GraphQL parser options.
+    /// </summary>
     public sealed class ParserOptions
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="ParserOptions"/>.
+        /// </summary>
+        /// <param name="noLocations">
+        /// Defines that the parse shall not preserve syntax node locations.
+        /// </param>
+        /// <param name="allowFragmentVariables">
+        /// Defines that the parser shall parse fragment variables.
+        /// </param>
         public ParserOptions(
             bool noLocations = false,
             bool allowFragmentVariables = false)
@@ -25,9 +37,14 @@
         /// </summary>
         public ParserOptionsExperimental Experimental { get; }
 
-        public static ParserOptions Default { get; } = new ParserOptions();
+        /// <summary>
+        /// Gets the default parser options.
+        /// </summary>
+        public static ParserOptions Default { get; } = new();
 
-        public static ParserOptions NoLocation { get; } =
-            new ParserOptions(noLocations: true);
+        /// <summary>
+        /// Gets the default parser options with the locations switched of.
+        /// </summary>
+        public static ParserOptions NoLocation { get; } = new(noLocations: true);
     }
 }

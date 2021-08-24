@@ -22,21 +22,36 @@ namespace StrawberryShake
 
         public IOperationResult<T>? LastResult { get; private set; }
 
+        IOperationResult? IStoredOperation.LastResult => LastResult;
+
         public IReadOnlyCollection<EntityId> EntityIds =>
             LastResult?.DataInfo?.EntityIds ??
             Array.Empty<EntityId>();
 
         public ulong Version => LastResult?.DataInfo?.Version ?? 0;
 
+        public int Subscribers => _subscriptions.Count;
+
+        public DateTime LastModified { get; private set; } = DateTime.UtcNow;
+
         public void SetResult(
             IOperationResult<T> result)
         {
-            LastResult = result ?? throw new ArgumentNullException(nameof(result));
+            if (result is null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            var updated = LastResult is null or { Data: null } ||
+                result.Data is null ||
+                !result.Data.Equals(LastResult?.Data);
+            LastResult = result;
+            LastModified = DateTime.UtcNow;
 
             // capture current subscriber list
             ImmutableList<Subscription> observers = _subscriptions;
 
-            if (observers.IsEmpty)
+            if (!updated || observers.IsEmpty)
             {
                 // if there are now subscribers we will just return and waste no time.
                 return;
@@ -49,15 +64,36 @@ namespace StrawberryShake
             }
         }
 
+        public void ClearResult()
+        {
+            LastResult = null;
+            LastModified = DateTime.UtcNow;
+        }
+
         public void UpdateResult(ulong version)
         {
-            if (LastResult is { DataInfo: not null } result)
+            if (LastResult is { DataInfo: { } dataInfo } result)
             {
                 SetResult(
                     result.WithData(
-                        result.DataFactory.Create(result.DataInfo),
-                        result.DataInfo.WithVersion(version)));
+                        result.DataFactory.Create(dataInfo),
+                        dataInfo.WithVersion(version)));
             }
+        }
+
+        public void Complete()
+        {
+            // capture current subscriber list
+            ImmutableList<Subscription> observers = _subscriptions;
+
+            // if we have subscribers we will dispose every one of them
+            foreach (Subscription observer in observers)
+            {
+                observer.Dispose();
+            }
+
+            // clear subscribers
+            _subscriptions = ImmutableList<Subscription>.Empty;
         }
 
         public IDisposable Subscribe(

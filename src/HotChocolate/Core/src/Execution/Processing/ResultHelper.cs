@@ -1,26 +1,30 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class ResultHelper : IResultHelper
     {
-        private readonly object _syncMap = new object();
-        private readonly object _syncMapList = new object();
-        private readonly object _syncList = new object();
-        private readonly object _syncErrors = new object();
-        private readonly object _syncExtensions = new object();
-        private readonly List<IError> _errors = new List<IError>();
-        private readonly HashSet<FieldNode> _fieldErrors = new HashSet<FieldNode>();
-        private readonly List<NonNullViolation> _nonNullViolations = new List<NonNullViolation>();
+        private readonly object _syncMap = new();
+        private readonly object _syncMapList = new();
+        private readonly object _syncList = new();
+        private readonly object _syncErrors = new();
+        private readonly object _syncExtensions = new();
+        private readonly List<IError> _errors = new();
+        private readonly HashSet<FieldNode> _fieldErrors = new();
+        private readonly List<NonNullViolation> _nonNullViolations = new();
         private readonly ResultPool _resultPool;
+        private readonly Dictionary<string, object?> _extensions = new();
+        private readonly Dictionary<string, object?> _contextData = new();
         private ResultMemoryOwner _resultOwner;
         private ResultMap? _data;
         private Path? _path;
         private string? _label;
         private bool? _hasNext;
-        private Dictionary<string, object?>? _extensions;
 
         public ResultHelper(ResultPool resultPool)
         {
@@ -36,7 +40,7 @@ namespace HotChocolate.Execution.Processing
 
             lock (_syncMap)
             {
-                if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap> buffer) ||
+                if (!_resultOwner.ResultMaps.TryPeek(out ResultObjectBuffer<ResultMap>? buffer) ||
                     !buffer.TryPop(out map))
                 {
                     buffer = _resultPool.GetResultMap();
@@ -56,7 +60,7 @@ namespace HotChocolate.Execution.Processing
             lock (_syncMapList)
             {
                 if (!_resultOwner.ResultMapLists.TryPeek(
-                    out ResultObjectBuffer<ResultMapList> buffer) ||
+                    out ResultObjectBuffer<ResultMapList>? buffer) ||
                     !buffer.TryPop(out mapList))
                 {
                     buffer = _resultPool.GetResultMapList();
@@ -74,7 +78,7 @@ namespace HotChocolate.Execution.Processing
 
             lock (_syncList)
             {
-                if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList> buffer) ||
+                if (!_resultOwner.ResultLists.TryPeek(out ResultObjectBuffer<ResultList>? buffer) ||
                     !buffer.TryPop(out list))
                 {
                     buffer = _resultPool.GetResultList();
@@ -95,8 +99,15 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_syncExtensions)
             {
-                _extensions ??= new Dictionary<string, object?>();
                 _extensions[key] = value;
+            }
+        }
+
+        public void SetContextData(string key, object? value)
+        {
+            lock (_syncExtensions)
+            {
+                _contextData[key] = value;
             }
         }
 
@@ -147,7 +158,6 @@ namespace HotChocolate.Execution.Processing
 
         public IQueryResult BuildResult()
         {
-            // TODO : add null errors
             while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))
             {
                 Path? path = violation.Path;
@@ -155,12 +165,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (!_fieldErrors.Contains(violation.Selection))
                 {
-                    _errors.Add(ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode("EXEC_NON_NULL_VIOLATION")
-                        .SetPath(path)
-                        .AddLocation(violation.Selection)
-                        .Build());
+                    _errors.Add(ErrorHelper.NonNullOutputFieldViolation(path, violation.Selection));
                 }
 
                 while (parent != null)
@@ -216,28 +221,45 @@ namespace HotChocolate.Execution.Processing
                     }
                     else
                     {
-                        // TODO : ThrowHelper
-                        throw new NotSupportedException();
+                        break;
                     }
                 }
             }
 
             if (_data is null && _errors.Count == 0)
             {
-                // TODO : ThrowHelper
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    Resources.ResultHelper_BuildResult_InvalidResult);
             }
 
             return new QueryResult
             (
                 _data,
                 _errors.Count == 0 ? null : new List<IError>(_errors),
-                _extensions,
-                label: _label,
-                path: _path,
-                hasNext: _hasNext,
+                CreateExtensionData(_extensions),
+                CreateExtensionData(_contextData),
+                _label,
+                _path,
+                _hasNext,
                 resultMemoryOwner: _data is null ? null : _resultOwner
             );
+        }
+
+        private IReadOnlyDictionary<string, object?>? CreateExtensionData(
+            Dictionary<string, object?> data)
+        {
+            if (data.Count == 0)
+            {
+                return null;
+            }
+
+            if (data.Count == 1)
+            {
+                KeyValuePair<string, object?> value = data.Single();
+                return new SingleValueExtensionData(value.Key, value.Value);
+            }
+
+            return ImmutableDictionary.CreateRange(data);
         }
 
         public void DropResult() => _resultOwner.Dispose();

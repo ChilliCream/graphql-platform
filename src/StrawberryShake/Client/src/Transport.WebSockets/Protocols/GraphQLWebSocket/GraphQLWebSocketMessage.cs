@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace StrawberryShake.Transport.WebSockets.Protocol
+namespace StrawberryShake.Transport.WebSockets.Protocols
 {
     /// <summary>
     /// The <see cref="GraphQLWebSocketMessage"/> is used as a data transport structure to send messages

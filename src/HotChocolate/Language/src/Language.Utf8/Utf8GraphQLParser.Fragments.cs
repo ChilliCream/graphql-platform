@@ -12,7 +12,6 @@ namespace HotChocolate.Language
         /// <see cref="ParseFragmentSpread" /> and
         /// <see cref="ParseInlineFragment" />.
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ISelectionNode ParseFragment()
         {
@@ -42,7 +41,6 @@ namespace HotChocolate.Language
         /// <see cref="FragmentDefinitionNode" />:
         /// fragment FragmentName on TypeCondition Directives? SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private FragmentDefinitionNode ParseFragmentDefinition()
         {
             TokenInfo start = Start();
@@ -50,7 +48,7 @@ namespace HotChocolate.Language
             ExpectFragmentKeyword();
 
             // Experimental support for defining variables within fragments
-            // changesthe grammar of FragmentDefinition:
+            // changes the grammar of FragmentDefinition:
             // fragment FragmentName VariableDefinitions? on
             //    TypeCondition Directives? SelectionSet
             if (_allowFragmentVars)
@@ -100,7 +98,6 @@ namespace HotChocolate.Language
         /// <see cref="FragmentSpreadNode" />:
         /// ... FragmentName Directives?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="start">
         /// The start token of the current fragment node.
         /// </param>
@@ -123,7 +120,6 @@ namespace HotChocolate.Language
         /// <see cref="FragmentSpreadNode" />:
         /// ... TypeCondition? Directives? SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
         /// <param name="start">
         /// The start token of the current fragment node.
         /// </param>
@@ -152,7 +148,6 @@ namespace HotChocolate.Language
         /// <see cref="NameNode" />:
         /// Name
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private NameNode ParseFragmentName()
         {
             if (_reader.Value.SequenceEqual(GraphQLKeywords.On))

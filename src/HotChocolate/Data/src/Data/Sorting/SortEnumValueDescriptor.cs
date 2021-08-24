@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Sorting
             ISortConvention convention = context.GetSortConvention(scope);
             Definition.Name = convention.GetOperationName(value);
             Definition.Description = convention.GetOperationDescription(value);
-            Definition.Value = Definition.Name.Value;
+            Definition.RuntimeValue = Definition.Name.Value;
         }
 
         protected SortEnumValueDescriptor(

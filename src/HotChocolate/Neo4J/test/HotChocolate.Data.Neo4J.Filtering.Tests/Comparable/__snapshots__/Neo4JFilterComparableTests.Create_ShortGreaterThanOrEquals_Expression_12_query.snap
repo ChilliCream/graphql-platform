@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE foo.BarShort >= 12 RETURN foo {.BarShort}

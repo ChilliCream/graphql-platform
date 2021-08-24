@@ -7,9 +7,11 @@ namespace HotChocolate.Execution.Processing
 {
     public class Fragment : IFragment
     {
+        private readonly int _fragmentId;
         private readonly SelectionIncludeCondition? _includeCondition;
 
         public Fragment(
+            int fragmentId,
             IObjectType typeCondition,
             InlineFragmentNode inlineFragment,
             ISelectionSet selectionSet,
@@ -22,6 +24,7 @@ namespace HotChocolate.Execution.Processing
             Directives = inlineFragment.Directives;
             IsInternal = internalFragment;
             IsConditional = includeCondition is not null;
+            _fragmentId = fragmentId;
             _includeCondition = includeCondition;
 
             InclusionKind = internalFragment
@@ -37,6 +40,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         public Fragment(
+            int fragmentId,
             IObjectType typeCondition,
             FragmentSpreadNode fragmentSpread,
             FragmentDefinitionNode fragmentDefinition,
@@ -50,6 +54,7 @@ namespace HotChocolate.Execution.Processing
             Directives = fragmentSpread.Directives;
             IsInternal = internalFragment;
             IsConditional = includeCondition is not null;
+            _fragmentId = fragmentId;
             _includeCondition = includeCondition;
 
             InclusionKind = internalFragment
@@ -63,6 +68,8 @@ namespace HotChocolate.Execution.Processing
                     : SelectionInclusionKind.Conditional;
             }
         }
+
+        public int Id => _fragmentId;
 
         public IObjectType TypeCondition { get; }
 

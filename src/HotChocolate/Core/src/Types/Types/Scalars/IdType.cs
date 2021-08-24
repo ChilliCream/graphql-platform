@@ -16,7 +16,7 @@ namespace HotChocolate.Types
     /// http://facebook.github.io/graphql/June2018/#sec-ID
     /// </summary>
     [SpecScalar]
-    public sealed class IdType : ScalarType<string>
+    public class IdType : ScalarType<string>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="IdType"/> class.
@@ -50,7 +50,7 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode literal)
         {
             if (literal is null)
             {

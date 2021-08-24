@@ -59,6 +59,8 @@ namespace StrawberryShake.Transport.Http
             public OperationKind Kind => OperationKind.Query;
 
             public ReadOnlySpan<byte> Body => _query;
+
+            public DocumentHash Hash { get; } = new("MD5", "ABC");
         }
     }
 }

@@ -14,7 +14,10 @@ namespace HotChocolate.Types.Relay
     {
         public IDAttribute(string? typeName = null)
         {
-            TypeName = typeName;
+            if (typeName is not null)
+            {
+                TypeName = typeName;
+            }
         }
 
         public NameString TypeName { get; }
@@ -24,28 +27,20 @@ namespace HotChocolate.Types.Relay
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (descriptor is IInputFieldDescriptor ifd
-                && element is PropertyInfo)
+            switch (descriptor)
             {
-                ifd.ID(TypeName);
-            }
-
-            if (descriptor is IArgumentDescriptor ad
-                && element is ParameterInfo)
-            {
-                ad.ID(TypeName);
-            }
-
-            if (descriptor is IObjectFieldDescriptor ofd
-                && element is MemberInfo)
-            {
-                ofd.ID(TypeName);
-            }
-
-            if (descriptor is IInterfaceFieldDescriptor infd
-                && element is MemberInfo)
-            {
-                infd.ID();
+                case IInputFieldDescriptor d when element is PropertyInfo:
+                    d.ID(TypeName);
+                    break;
+                case IArgumentDescriptor d when element is ParameterInfo:
+                    d.ID(TypeName);
+                    break;
+                case IObjectFieldDescriptor d when element is MemberInfo:
+                    d.ID(TypeName);
+                    break;
+                case IInterfaceFieldDescriptor d when element is MemberInfo:
+                    d.ID();
+                    break;
             }
         }
     }

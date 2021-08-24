@@ -12,8 +12,7 @@ using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    public class QueryableFilterVisitorMethodTests
-        : FilterVisitorTestBase
+    public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     {
         [Fact]
         public void Create_MethodSimple_Expression()
@@ -115,7 +114,7 @@ namespace HotChocolate.Data.Filters.Expressions
                                 "The provided value for filter `{0}` of type {1} is invalid. " +
                                 "Null values are not supported.",
                                 context.Operations.Peek().Name,
-                                field.Type.Visualize())
+                                field.Type.Print())
                             .Build());
 
                     action = SyntaxVisitor.Skip;
@@ -131,20 +130,25 @@ namespace HotChocolate.Data.Filters.Expressions
             }
         }
 
-        private class QueryableComplexMethodTest
-            : QueryableDefaultFieldHandler
+        private class QueryableComplexMethodTest : QueryableDefaultFieldHandler
         {
-            private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Complex))!;
+            private static readonly MethodInfo _method =
+                typeof(Foo).GetMethod(nameof(Foo.Complex))!;
 
             private IExtendedType _extendedType = null!;
+            private readonly InputParser _inputParser;
+
+            public QueryableComplexMethodTest(InputParser inputParser)
+            {
+                _inputParser = inputParser;
+            }
 
             public override bool CanHandle(
                 ITypeCompletionContext context,
                 IFilterInputTypeDefinition typeDefinition,
                 IFilterFieldDefinition fieldDefinition)
             {
-                _extendedType ??= context.TypeInspector.GetReturnType(Method);
-
+                _extendedType ??= context.TypeInspector.GetReturnType(_method);
                 return fieldDefinition is FilterOperationFieldDefinition { Id: 156 };
             }
 
@@ -162,7 +166,7 @@ namespace HotChocolate.Data.Filters.Expressions
                                 "The provided value for filter `{0}` of type {1} is invalid. " +
                                 "Null values are not supported.",
                                 context.Operations.Peek().Name,
-                                field.Type.Visualize())
+                                field.Type.Print())
                             .Build());
 
                     action = SyntaxVisitor.Skip;
@@ -187,12 +191,13 @@ namespace HotChocolate.Data.Filters.Expressions
                         throw new InvalidOperationException();
                     }
 
-                    object value =
-                        operationType.Fields["parameter"].Type.ParseLiteral(parameterNode);
+                    object? value =
+                        _inputParser
+                            .ParseLiteral(parameterNode, operationType.Fields["parameter"].Type);
 
                     Expression nestedProperty = Expression.Call(
                         context.GetInstance(),
-                        Method,
+                        _method,
                         Expression.Constant(value));
 
                     context.PushInstance(nestedProperty);
@@ -218,8 +223,7 @@ namespace HotChocolate.Data.Filters.Expressions
         private class FooFilterInput
             : FilterInputType<Foo>
         {
-            protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Ignore();
                 descriptor.Operation(156).Type<TestComplexFilterInputType>();

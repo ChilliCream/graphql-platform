@@ -11,8 +11,10 @@ partial class Build : NukeBuild
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
-    AbsolutePath SonarSolutionFile => SourceDirectory / "Sonar.sln";
-    AbsolutePath TestSolutionFile => TemporaryDirectory / "All.Test.sln";
+    AbsolutePath PublicApiSolutionFile => SourceDirectory / "Build.CheckApi.sln";
+    AbsolutePath SonarSolutionFile => SourceDirectory / "Build.Sonar.sln";
+    AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
+    AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";
     AbsolutePath SgSolutionFile => SourceDirectory / "StrawberryShake" / "SourceGenerator" / "StrawberryShake.SourceGenerator.sln";
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
@@ -25,7 +27,7 @@ partial class Build : NukeBuild
     AbsolutePath StrawberryShakeNuSpec => SourceDirectory / "StrawberryShake" / "CodeGeneration" / "src" / "MSBuild" / "StrawberryShake.nuspec";
     AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
 
-    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars" / "StarWars.csproj";
+    AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
     AbsolutePath EmptyServerTemplateNuSpec => RootDirectory / "templates" / "Server" / "HotChocolate.Templates.Server.nuspec";
 
     AbsolutePath EmptyServerProj => RootDirectory / "templates" / "Server" / "content" / "HotChocolate.Server.Template.csproj";

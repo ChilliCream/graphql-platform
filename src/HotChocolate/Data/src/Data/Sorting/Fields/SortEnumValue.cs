@@ -46,7 +46,7 @@ namespace HotChocolate.Data.Sorting
             Handler = enumValueDefinition.Handler;
             Operation = enumValueDefinition.Operation;
 
-            _directives = new DirectiveCollection(this, enumValueDefinition!.Directives);
+            _directives = new DirectiveCollection(this, enumValueDefinition!.GetDirectives());
             _directives.CompleteCollection(completionContext);
         }
 

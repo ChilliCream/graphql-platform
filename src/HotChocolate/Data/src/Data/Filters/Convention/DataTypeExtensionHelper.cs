@@ -100,7 +100,7 @@ namespace HotChocolate.Data.Filters
                     }
 
                     typeField.Description ??= extensionField.Description;
-                    typeField.NativeDefaultValue ??= extensionField.NativeDefaultValue;
+                    typeField.RuntimeDefaultValue ??= extensionField.RuntimeDefaultValue;
                 });
         }
 
@@ -143,7 +143,7 @@ namespace HotChocolate.Data.Filters
                     }
 
                     typeField.Description ??= extensionField.Description;
-                    typeField.NativeDefaultValue ??= extensionField.NativeDefaultValue;
+                    typeField.RuntimeDefaultValue ??= extensionField.RuntimeDefaultValue;
                 });
         }
 

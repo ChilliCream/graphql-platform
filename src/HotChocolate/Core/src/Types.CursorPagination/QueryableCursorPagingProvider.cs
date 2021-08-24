@@ -4,12 +4,11 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class QueryableCursorPagingProvider
-        : CursorPagingProvider
+    public class QueryableCursorPagingProvider : CursorPagingProvider
     {
         private static readonly MethodInfo _createHandler =
             typeof(QueryableCursorPagingProvider).GetMethod(
-                nameof(CreateHandlerInternal), 
+                nameof(CreateHandlerInternal),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public override bool CanHandle(IExtendedType source)
@@ -38,6 +37,6 @@ namespace HotChocolate.Types.Pagination
 
         private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
             PagingOptions options) =>
-            new QueryableCursorPagingHandler<TEntity>(options);
+            new(options);
     }
 }

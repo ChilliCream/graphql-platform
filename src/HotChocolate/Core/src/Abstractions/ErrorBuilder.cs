@@ -19,6 +19,7 @@ namespace HotChocolate
         private List<Location>? _locations;
         private bool _dirtyLocation;
         private bool _dirtyExtensions;
+        private ISyntaxNode? _syntaxNode;
 
         public ErrorBuilder()
         {
@@ -112,6 +113,12 @@ namespace HotChocolate
         public IErrorBuilder AddLocation(int line, int column) =>
             AddLocation(new Location(line, column));
 
+        public IErrorBuilder SetSyntaxNode(ISyntaxNode? syntaxNode)
+        {
+            _syntaxNode = syntaxNode;
+            return this;
+        }
+
         public IErrorBuilder ClearLocations()
         {
             _dirtyLocation = false;
@@ -190,12 +197,19 @@ namespace HotChocolate
             _dirtyExtensions = true;
             _dirtyLocation = true;
 
-            return new Error(_message, _code, _path, _locations, _extensions, _exception);
+            return new Error(
+                _message,
+                _code,
+                _path,
+                _locations,
+                _extensions,
+                _exception,
+                _syntaxNode);
         }
 
-        public static ErrorBuilder New() => new ErrorBuilder();
+        public static ErrorBuilder New() => new();
 
-        public static ErrorBuilder FromError(IError error) => new ErrorBuilder(error);
+        public static ErrorBuilder FromError(IError error) => new(error);
 
         public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object?> dict)
         {
@@ -204,10 +218,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(dict));
             }
 
-            var builder = ErrorBuilder.New();
-            builder.SetMessage((string)dict["message"]);
+            ErrorBuilder builder = New();
+            builder.SetMessage((string)dict["message"]!);
 
-            if (dict.TryGetValue("extensions", out object? obj) &&
+            if (dict.TryGetValue("extensions", out var obj) &&
                 obj is IDictionary<string, object> extensions)
             {
                 foreach (KeyValuePair<string, object> item in extensions)

@@ -4,8 +4,13 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// A fluent configuration API for GraphQL object types.
+    /// </summary>
     public interface IObjectTypeDescriptor
         : IDescriptor<ObjectTypeDefinition>
         , IFluent
@@ -18,7 +23,7 @@ namespace HotChocolate.Types
         /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinition);
+            ObjectTypeDefinitionNode? objectTypeDefinition);
 
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.
@@ -35,13 +40,14 @@ namespace HotChocolate.Types
         /// that can be accessed via introspection.
         /// </summary>
         /// <param name="value">The object type description.</param>
-        IObjectTypeDescriptor Description(string value);
+        IObjectTypeDescriptor Description(string? value);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>()
             where T : InterfaceType;
 
@@ -50,6 +56,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface<T>(T type)
             where T : InterfaceType;
 
@@ -60,6 +67,7 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// A syntax node representing an interface type.
         /// </param>
+        [Obsolete("Use Implements.")]
         IObjectTypeDescriptor Interface(NamedTypeNode type);
 
         /// <summary>
@@ -88,20 +96,13 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Implements(NamedTypeNode type);
 
         /// <summary>
-        /// Includes a resolver type and imports all the methods and
-        /// fields from it.
-        /// </summary>
-        /// <typeparam name="TResolver">A resolver type.</typeparam>
-        IObjectTypeDescriptor Include<TResolver>();
-
-        /// <summary>
         /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>
         /// <param name="isOfType">
         /// The delegate that provides the IsInstanceOfType functionality.
         /// </param>
-        IObjectTypeDescriptor IsOfType(IsOfType isOfType);
+        IObjectTypeDescriptor IsOfType(IsOfType? isOfType);
 
         /// <summary>
         /// Specifies an object type field.
@@ -120,7 +121,7 @@ namespace HotChocolate.Types
         /// The resolver type containing the property or method.
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod);
+            Expression<Func<TResolver, object?>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field which is bound to a resolver type.
@@ -139,5 +140,19 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <param name="extendsType">
+        /// The type to extend.
+        /// </param>
+        IObjectTypeDescriptor ExtendsType(Type extendsType);
+
+        /// <summary>
+        /// If configuring a type extension this is the type that shall be extended.
+        /// </summary>
+        /// <typeparam name="T">The type to extend.</typeparam>
+        IObjectTypeDescriptor ExtendsType<T>();
     }
 }

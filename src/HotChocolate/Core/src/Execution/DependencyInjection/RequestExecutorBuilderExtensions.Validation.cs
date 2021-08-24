@@ -13,6 +13,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="isCacheable">
+        /// Defines if the result of this rule can be cached and reused on consecutive
+        /// validations of the same GraphQL request document.
+        /// </param>
         /// <typeparam name="T">
         /// The type of the validator.
         /// </typeparam>
@@ -21,7 +25,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// configuration.
         /// </returns>
         public static IRequestExecutorBuilder AddValidationVisitor<T>(
-            this IRequestExecutorBuilder builder)
+            this IRequestExecutorBuilder builder,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor, new()
         {
             if (builder is null)
@@ -29,7 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>());
+            return ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>(isCacheable));
         }
 
         /// <summary>
@@ -41,6 +46,10 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="factory">
         /// The factory that creates the validator instance.
         /// </param>
+        /// <param name="isCacheable">
+        /// Defines if the result of this rule can be cached and reused on consecutive
+        /// validations of the same GraphQL request document.
+        /// </param>
         /// <typeparam name="T">
         /// The type of the validator.
         /// </typeparam>
@@ -50,7 +59,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IRequestExecutorBuilder AddValidationVisitor<T>(
             this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, ValidationOptions, T> factory)
+            Func<IServiceProvider, ValidationOptions, T> factory,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor
         {
             if (builder is null)
@@ -63,7 +73,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return ConfigureValidation(builder, b => b.TryAddValidationVisitor(factory));
+            return ConfigureValidation(
+                builder,
+                b => b.TryAddValidationVisitor(factory, isCacheable));
         }
 
         /// <summary>
@@ -125,15 +137,18 @@ namespace Microsoft.Extensions.DependencyInjection
             return ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
         }
 
-        public static IRequestExecutorBuilder AddMaxComplexityRule(
-            this IRequestExecutorBuilder builder,
-            int maxAllowedComplexity) =>
-            ConfigureValidation(builder, b => b.AddMaxComplexityRule(maxAllowedComplexity));
-
         public static IRequestExecutorBuilder AddMaxExecutionDepthRule(
             this IRequestExecutorBuilder builder,
             int maxAllowedExecutionDepth) =>
             ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
+
+        /// <summary>
+        /// Adds a validation rule that only allows requests to use `__schema` or `__type`
+        /// if the request carries an introspection allowed flag.
+        /// </summary>
+        public static IRequestExecutorBuilder AddIntrospectionAllowedRule(
+            this IRequestExecutorBuilder builder) =>
+            ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule());
 
         private static IRequestExecutorBuilder ConfigureValidation(
             IRequestExecutorBuilder builder,

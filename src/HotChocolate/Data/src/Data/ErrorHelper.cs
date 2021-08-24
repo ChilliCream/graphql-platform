@@ -23,11 +23,11 @@ namespace HotChocolate.Data
                 .SetMessage(
                     DataResources.ErrorHelper_CreateNonNullError,
                     context.Operations.Peek().Name,
-                    filterType.Visualize())
+                    filterType.Print())
                 .AddLocation(value)
                 .SetCode(ErrorCodes.Data.NonNullError)
-                .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
-                .SetExtension("filterType", filterType.Visualize())
+                .SetExtension("expectedType", new NonNullType(field.Type).Print())
+                .SetExtension("filterType", filterType.Print())
                 .Build();
         }
 
@@ -53,11 +53,11 @@ namespace HotChocolate.Data
                 .SetMessage(
                     DataResources.ErrorHelper_CreateNonNullError,
                     context.Fields.Peek().Name,
-                    sortType.Visualize())
+                    sortType.Print())
                 .AddLocation(value)
                 .SetCode(ErrorCodes.Data.NonNullError)
-                .SetExtension("expectedType", new NonNullType(field.Type).Visualize())
-                .SetExtension("sortType", sortType.Visualize())
+                .SetExtension("expectedType", new NonNullType(field.Type).Print())
+                .SetExtension("sortType", sortType.Print())
                 .Build();
         }
 

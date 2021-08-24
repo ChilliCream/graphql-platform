@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
-using HotChocolate.Types;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using Snapshot = Snapshooter.Xunit.Snapshot;
 
 namespace HotChocolate.Execution
 {
@@ -45,7 +47,7 @@ namespace HotChocolate.Execution
         public async Task Query_Specified_By()
         {
             // arrange
-            var query = "{ __type (name: \"DateTime\") { specifiedBy } }";
+            var query = "{ __type (name: \"DateTime\") { specifiedByURL } }";
 
             IRequestExecutor executor =
                 SchemaBuilder.New()
@@ -131,13 +133,9 @@ namespace HotChocolate.Execution
         public async Task FieldMiddlewareDoesNotHaveAnEffectOnIntrospection()
         {
             // arrange
-            var query = "{ __typename a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.Use(next => async context =>
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Use(next => async context =>
                 {
                     await next.Invoke(context);
 
@@ -145,13 +143,13 @@ namespace HotChocolate.Execution
                     {
                         context.Result = s.ToUpperInvariant();
                     }
-                });
-            });
+                })
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename a }");
 
             // assert
             Assert.Null(result.Errors);
@@ -193,19 +191,15 @@ namespace HotChocolate.Execution
         public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
         {
             // arrange
-            var query = "{ __typename @upper a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.RegisterDirective<UpperDirectiveType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddDirectiveType<UpperDirectiveType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename @upper a }");
 
             // assert
             Assert.Null(result.Errors);
@@ -231,6 +225,161 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task DirectiveIntrospection_AllDirectives_Public()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query {
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @foo on FIELD_DEFINITION
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DirectiveIntrospection_AllDirectives_Internal()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query {
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @foo on FIELD_DEFINITION
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .ModifyOptions(o => o.DefaultDirectiveVisibility = DirectiveVisibility.Internal)
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DirectiveIntrospection_SomeDirectives_Internal()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(
+                    @"
+                        type Query {
+                            foo: String
+                                @foo
+                                @bar(baz: ""ABC"")
+                                @bar(baz: null)
+                                @bar(quox: { a: ""ABC"" })
+                                @bar(quox: { })
+                                @bar
+                        }
+
+                        input SomeInput {
+                            a: String!
+                        }
+
+                        directive @bar(baz: String quox: SomeInput) repeatable on FIELD_DEFINITION
+                    ")
+                .UseField(next => next)
+                .ModifyOptions(o => o.EnableDirectiveIntrospection = true)
+                .AddDirectiveType(new DirectiveType(d =>
+                {
+                    d.Name("foo");
+                    d.Location(DirectiveLocation.FieldDefinition);
+                    d.Internal();
+                }))
+                .ExecuteRequestAsync(
+                    @"
+                        {
+                            __schema {
+                                types {
+                                    fields {
+                                        appliedDirectives {
+                                            name
+                                            args {
+                                                name
+                                                value
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ")
+                .MatchSnapshotAsync();
+        }
+
         private static ISchema CreateSchema()
         {
             return SchemaBuilder.New()
@@ -247,11 +396,11 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "a");
+                    .Resolve(() => "a");
 
                 descriptor.Field("b")
                     .Type<Foo>()
-                    .Resolver(() => new object());
+                    .Resolve(() => new object());
             }
         }
 
@@ -263,7 +412,7 @@ namespace HotChocolate.Execution
 
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Resolver(() => "foo.a");
+                    .Resolve(() => "foo.a");
             }
         }
 
@@ -276,7 +425,7 @@ namespace HotChocolate.Execution
                     .Type<StringType>()
                     .Argument("b", a => a.Type<BazType>()
                         .DefaultValue(new Baz { Qux = "fooBar" }))
-                    .Resolver(() => "foo.a");
+                    .Resolve(() => "foo.a");
             }
         }
 

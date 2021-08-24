@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -8,6 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
+    [Obsolete("Use HotChocolate.Data.")]
     public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
@@ -17,12 +19,11 @@ namespace HotChocolate.Types.Filters
         public QueryableFilterMiddleware(
             FieldDelegate next,
             FilterMiddlewareContext contextData,
-            ITypeConverter converter)
+            ITypeConverter? converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _contextData = contextData ?? throw new ArgumentNullException(nameof(contextData));
             _converter = converter ?? DefaultTypeConverter.Default;
-            _contextData = contextData
-                 ?? throw new ArgumentNullException(nameof(contextData));
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -51,13 +52,16 @@ namespace HotChocolate.Types.Filters
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit)
             {
-
                 var visitorContext = new QueryableFilterVisitorContext(
-                    iot, fit.EntityType, _converter, source is EnumerableQuery);
+                    iot,
+                    fit.EntityType,
+                    _converter,
+                    source is EnumerableQuery,
+                    context.Service<InputParser>());
+
                 QueryableFilterVisitor.Default.Visit(filter, visitorContext);
 
                 source = source.Where(visitorContext.CreateFilter<T>());
-
                 context.Result = source;
             }
         }

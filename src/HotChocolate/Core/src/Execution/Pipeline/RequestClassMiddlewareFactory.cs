@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Pipeline
     internal static class RequestClassMiddlewareFactory
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
+        private static readonly Type _requestOptions = typeof(IRequestExecutorOptionsAccessor);
 
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
@@ -47,13 +48,13 @@ namespace HotChocolate.Execution.Pipeline
                 TMiddleware middleware =
                     MiddlewareCompiler<TMiddleware>
                         .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
-                            (c, n) => CreateFactoryParameterHandlers(
+                            (c, _) => CreateFactoryParameterHandlers(
                                 c, context.Options, typeof(TMiddleware)))
                         .Invoke(context, next);
 
                 ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
                     MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
-                        (c, m) => CreateDelegateParameterHandlers(c, context.Options));
+                        (c, _) => CreateDelegateParameterHandlers(c, context.Options));
 
                 return c => compiled(c, middleware);
             };
@@ -67,14 +68,33 @@ namespace HotChocolate.Execution.Pipeline
             Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
             Expression schemaServices = Expression.Property(context, _schemaServices);
-            Expression validatorFactory = Expression.Convert(Expression.Call(
-                services, _getService, Expression.Constant(_validatorFactory)), _validatorFactory);
-            Expression getValidator = Expression.Call(
-                validatorFactory, _createValidator, schemaName);
+
+            Expression validatorFactory =
+                Expression.Convert(
+                    Expression.Call(
+                        services,
+                        _getService,
+                        Expression.Constant(_validatorFactory)),
+                    _validatorFactory);
+
+            Expression getValidator =
+                Expression.Call(
+                    validatorFactory,
+                    _createValidator,
+                    schemaName);
+
+            Expression requestOptions =
+                Expression.Convert(
+                    Expression.Call(
+                        schemaServices,
+                        _getService,
+                        Expression.Constant(_requestOptions)),
+                    _requestOptions);
 
             var list = new List<IParameterHandler>
             {
-                new TypeParameterHandler(typeof(IDocumentValidator), getValidator)
+                new TypeParameterHandler(typeof(IDocumentValidator), getValidator),
+                new TypeParameterHandler(typeof(IRequestContextAccessor), requestOptions)
             };
 
             ConstructorInfo? constructor =
@@ -95,7 +115,6 @@ namespace HotChocolate.Execution.Pipeline
             AddService<IWriteStoredQueries>(list, schemaServices);
             AddService<IReadStoredQueries>(list, schemaServices);
             AddService<QueryExecutor>(list, schemaServices);
-            AddService<MutationExecutor>(list, schemaServices);
             AddService<IEnumerable<ISelectionOptimizer>>(list, schemaServices);
             AddService<SubscriptionExecutor>(list, schemaServices);
             AddOptions(list, options);
@@ -145,6 +164,9 @@ namespace HotChocolate.Execution.Pipeline
                 Expression.Constant(options)));
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IRequestExecutorOptionsAccessor),
+                Expression.Constant(options)));
+            parameterHandlers.Add(new TypeParameterHandler(
+                typeof(IComplexityAnalyzerOptionsAccessor),
                 Expression.Constant(options)));
         }
 

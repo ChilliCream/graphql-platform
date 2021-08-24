@@ -6,10 +6,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
     {
         private AccessModifier _accessModifier;
         private bool _isReadOnly = true;
-        private string? _lambdaResolver;
+        private ICode? _lambdaResolver;
+        private bool _isOnlyDeclaration;
         private TypeReferenceBuilder? _type;
         private string? _name;
+        private XmlCommentBuilder? _xmlComment;
         private string? _value;
+        private string? _interface;
         private bool _isStatic;
 
         public static PropertyBuilder New() => new();
@@ -28,6 +31,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
         public PropertyBuilder AsLambda(string resolveCode)
         {
+            _lambdaResolver = CodeInlineBuilder.From(resolveCode);
+            return this;
+        }
+
+        public PropertyBuilder AsLambda(ICode resolveCode)
+        {
             _lambdaResolver = resolveCode;
             return this;
         }
@@ -35,6 +44,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
         public PropertyBuilder SetType(string value)
         {
             _type = TypeReferenceBuilder.New().SetName(value);
+            return this;
+        }
+
+        public PropertyBuilder SetComment(string? xmlComment)
+        {
+            if (xmlComment is not null)
+            {
+                _xmlComment = XmlCommentBuilder.New().SetSummary(xmlComment);
+            }
+
+            return this;
+        }
+
+        public PropertyBuilder SetOnlyDeclaration(bool value = true)
+        {
+            _isOnlyDeclaration = value;
             return this;
         }
 
@@ -50,7 +75,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
             return this;
         }
 
-        public PropertyBuilder SetValue(string value)
+        public PropertyBuilder SetInterface(string value)
+        {
+            _interface = value;
+            return this;
+        }
+
+        public PropertyBuilder SetValue(string? value)
         {
             _value = value;
             return this;
@@ -76,21 +107,34 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             string modifier = _accessModifier.ToString().ToLowerInvariant();
 
+            _xmlComment?.Build(writer);
+
             writer.WriteIndent();
-            writer.Write(modifier);
-            writer.WriteSpace();
-            if (_isStatic)
+            if (_interface is null && !_isOnlyDeclaration)
             {
-                writer.Write("static");
+                writer.Write(modifier);
                 writer.WriteSpace();
+                if (_isStatic)
+                {
+                    writer.Write("static");
+                    writer.WriteSpace();
+                }
             }
+
             _type.Build(writer);
+
+            if (_interface is not null)
+            {
+                writer.Write(_interface);
+                writer.Write(".");
+            }
+
             writer.Write(_name);
 
             if (_lambdaResolver is not null)
             {
                 writer.Write(" => ");
-                writer.Write(_lambdaResolver);
+                _lambdaResolver.Build(writer);
                 writer.Write(";");
                 writer.WriteLine();
                 return;

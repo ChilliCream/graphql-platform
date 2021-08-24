@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -22,6 +22,24 @@
     <value>The cursor cannot be null or empty.</value>
   </data>
   <data name="PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
-    <value>The schema type must be a valid output type.</value>
+    <value>The element schema type for pagination must be a valid GraphQL output type (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).</value>
+  </data>
+  <data name="PagingArguments_First_Description" xml:space="preserve">
+    <value>Returns the first _n_ elements from the list.</value>
+  </data>
+  <data name="PagingArguments_After_Description" xml:space="preserve">
+    <value>Returns the elements in the list that come after the specified cursor.</value>
+  </data>
+  <data name="PagingArguments_Last_Description" xml:space="preserve">
+    <value>Returns the last _n_ elements from the list.</value>
+  </data>
+  <data name="PagingArguments_Before_Description" xml:space="preserve">
+    <value>Returns the elements in the list that come before the specified cursor.</value>
+  </data>
+  <data name="ThrowHelper_PagingHandler_MaxPageSize" xml:space="preserve">
+    <value>The maximum allowed items per page were exceeded.</value>
+  </data>
+  <data name="ThrowHelper_PagingHandler_NoBoundariesSet" xml:space="preserve">
+    <value>You must provide a `first` or `last` value to properly paginate the `{0}`.</value>
   </data>
 </root>

@@ -1,0 +1,1 @@
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar STARTS WITH 'testa' RETURN fooNullable {.Bar}

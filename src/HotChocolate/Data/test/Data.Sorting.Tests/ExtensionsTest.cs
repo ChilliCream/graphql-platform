@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Tests
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Argument("test", x => x.Type<TestSort>()));
 
             ISchema schema = builder.Create();
@@ -52,7 +52,7 @@ namespace HotChocolate.Data.Tests
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Argument("test", x => x.Type<TestSort>()));
 
             ISchema schema = builder.Create();
@@ -79,7 +79,7 @@ namespace HotChocolate.Data.Tests
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Argument("test", x => x.Type<TestSort>()));
 
             ISchema schema = builder.Create();
@@ -106,7 +106,7 @@ namespace HotChocolate.Data.Tests
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar")
+                        .Resolve("bar")
                         .Argument("test", x => x.Type<TestSort>()));
 
             ISchema schema = builder.Create();

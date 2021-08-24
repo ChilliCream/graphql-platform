@@ -24,6 +24,11 @@ namespace HotChocolate.AspNetCore
         public bool EnableGetRequests { get; set; } = true;
 
         /// <summary>
+        /// Defines if GraphQL HTTP Multipart requests are allowed.
+        /// </summary>
+        public bool EnableMultipartRequests { get; set; } = true;
+
+        /// <summary>
         /// Defines if the GraphQL schema SDL can be downloaded.
         /// </summary>
         public bool EnableSchemaRequests { get; set; } = true;

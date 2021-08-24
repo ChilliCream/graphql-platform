@@ -24,15 +24,15 @@ namespace HotChocolate.Stitching.Utilities
             {
                 foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                 {
-                    if (objectField.Directives.Any(IsDelegatedField))
+                    if (objectField.GetDirectives().Any(IsDelegatedField))
                     {
                         FieldMiddleware handleDictionary =
                             FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
                         FieldMiddleware delegateToSchema =
                             FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>();
 
-                        objectField.MiddlewareComponents.Insert(0, handleDictionary);
-                        objectField.MiddlewareComponents.Insert(0, delegateToSchema);
+                        objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
+                        objectField.MiddlewareDefinitions.Insert(0, new(delegateToSchema));
                         _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
                     }
                 }
@@ -73,7 +73,7 @@ namespace HotChocolate.Stitching.Utilities
                         {
                             FieldMiddleware handleDictionary =
                                 FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
-                            objectField.MiddlewareComponents.Insert(0, handleDictionary);
+                            objectField.MiddlewareDefinitions.Insert(0, new(handleDictionary));
                         }
                     }
                 }

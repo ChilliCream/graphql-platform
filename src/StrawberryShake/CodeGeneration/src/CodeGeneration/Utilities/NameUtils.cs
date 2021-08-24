@@ -1,7 +1,7 @@
-using System;
 using System.Globalization;
 using System.Text;
 using HotChocolate;
+using StrawberryShake.CodeGeneration.CSharp;
 
 namespace StrawberryShake.CodeGeneration.Utilities
 {
@@ -9,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
     {
         public static string GetInterfaceName(string typeName)
         {
-            return 'I' + GetPropertyName(typeName);
+            return 'I' + GetClassName(typeName);
         }
 
         public static string GetClassName(params string[] s)
@@ -18,6 +18,11 @@ namespace StrawberryShake.CodeGeneration.Utilities
         }
 
         public static string GetClassName(string typeName)
+        {
+            return GetPropertyName(typeName);
+        }
+
+        public static string GetClassName(NameString typeName)
         {
             return GetPropertyName(typeName);
         }
@@ -40,6 +45,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             return builder.ToString();
         }
 
+        public static string GetMethodName(string fieldName) => GetPropertyName(fieldName);
+
         public static string GetPropertyName(string fieldName)
         {
             var value = new StringBuilder();
@@ -48,7 +55,6 @@ namespace StrawberryShake.CodeGeneration.Utilities
             {
                 if (i == 0 && char.IsLetter(fieldName[i]))
                 {
-
                     value.Append(char.ToUpper(fieldName[i], CultureInfo.InvariantCulture));
                 }
                 else
@@ -92,11 +98,32 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
         public static string GetFieldName(string fieldName)
         {
-            return "_" + GetParameterName(fieldName);
+            return "_" + GetParamNameUnsafe(fieldName);
+        }
+
+        public static string GetLeftPropertyAssignment(string property)
+        {
+            if (property is { Length: >0 } && property[0] == '_')
+            {
+                return $"this.{property}";
+
+            }
+
+            return property;
         }
 
         public static string GetParameterName(string parameterName)
         {
+            return Keywords.ToSafeName(GetParamNameUnsafe(parameterName));
+        }
+
+        public static string GetParamNameUnsafe(string parameterName)
+        {
+            if (parameterName.Length > 0 && parameterName[0] == '_')
+            {
+                return parameterName;
+            }
+
             var value = new StringBuilder();
             var first = true;
 
@@ -109,8 +136,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
                 else if (parameterName[i] == '_')
                 {
-                    if (i + 1 < parameterName.Length
-                        && char.IsLetter(parameterName[i + 1]))
+                    value.Append(char.ToLower(parameterName[i], CultureInfo.InvariantCulture));
+
+                    if (i + 1 < parameterName.Length &&
+                        char.IsLetter(parameterName[i + 1]))
                     {
                         value.Append(first
                             ? char.ToLower(parameterName[++i], CultureInfo.InvariantCulture)

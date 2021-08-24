@@ -5,9 +5,11 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 using System;
+using System.Collections.Concurrent;
 using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
+using Moq;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -28,13 +30,19 @@ namespace HotChocolate.AspNetCore.Utilities
             return ServerFactory.Create(
                 services =>
                 {
+                    TestSocketSessionInterceptor testInterceptor = new();
+
+                    services.AddSingleton(testInterceptor);
+
                     services
                         .AddRouting()
                         .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                         .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()
+                        .AddTypeExtension<SubscriptionsExtensions>()
                         .AddExportDirectiveType()
+                        .AddSocketSessionInterceptor(x => testInterceptor)
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
                         .UseAutomaticPersistedQueryPipeline()
@@ -65,7 +73,9 @@ namespace HotChocolate.AspNetCore.Utilities
                                 .Argument("d", t => t.Type<DecimalType>())
                                 .Type<DecimalType>()
                                 .Resolve(c => c.ArgumentValue<decimal?>("d"));
-                        });
+                        })
+                        .AddGraphQLServer("upload")
+                        .AddQueryType<UploadQuery>();
 
                     configureServices?.Invoke(services);
                 },
@@ -79,6 +89,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         configureConventions?.Invoke(builder);
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
+                        endpoints.MapGraphQL("/upload", "upload");
                     }));
         }
     }

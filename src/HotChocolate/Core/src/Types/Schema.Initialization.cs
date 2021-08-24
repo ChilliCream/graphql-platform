@@ -45,12 +45,18 @@ namespace HotChocolate
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            if (definition.HasDirectives)
+            {
+                foreach (DirectiveDefinition directive in definition.Directives)
+                {
+                    context.Dependencies.Add(new(
+                        directive.TypeReference,
+                        TypeDependencyKind.Completed));
+                }
+            }
 
             context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.Reference));
+                definition.GetDirectives().Select(t => t.Reference));
         }
 
         protected override void OnCompleteType(
@@ -59,10 +65,8 @@ namespace HotChocolate
         {
             base.OnCompleteType(context, definition);
 
-            var directives = new DirectiveCollection(
-                this, definition.Directives);
-            directives.CompleteCollection(context);
-            Directives = directives;
+            Directives =
+                DirectiveCollection.CreateAndComplete(context, this, definition.GetDirectives());
             Services = context.Services;
         }
 

@@ -1,8 +1,10 @@
-using System.Globalization;
+using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -11,36 +13,47 @@ namespace HotChocolate.Types
     /// <summary>
     /// Represents a field or directive argument.
     /// </summary>
-    public class Argument
-        : FieldBase<IInputType, ArgumentDefinition>
-        , IInputField
+    public class Argument : FieldBase<ArgumentDefinition>, IInputField
     {
-        public Argument(
-            ArgumentDefinition definition,
-            FieldCoordinate fieldCoordinate)
-            : base(definition, fieldCoordinate)
+        private Type _runtimeType = default!;
+
+        public Argument(ArgumentDefinition definition, int index)
+            : base(definition, index)
         {
-            SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
 
-            if (definition.Formatters.Count == 0)
+            IReadOnlyList<IInputValueFormatter> formatters = definition.GetFormatters();
+
+            if (formatters.Count == 0)
             {
                 Formatter = null;
             }
-            else if (definition.Formatters.Count == 1)
+            else if (formatters.Count == 1)
             {
-                Formatter = definition.Formatters[0];
+                Formatter = formatters[0];
             }
             else
             {
-                Formatter = new AggregateInputValueFormatter(definition.Formatters);
+                Formatter = new AggregateInputValueFormatter(formatters);
             }
         }
 
         /// <summary>
         /// The associated syntax node from the GraphQL SDL.
         /// </summary>
-        public InputValueDefinitionNode? SyntaxNode { get; }
+        public new InputValueDefinitionNode? SyntaxNode
+            => (InputValueDefinitionNode?)base.SyntaxNode;
+
+        /// <summary>
+        /// Gets the type system member that declares this argument.
+        /// </summary>
+        public ITypeSystemMember DeclaringMember { get; private set; } = default!;
+
+        /// <inheritdoc />
+        public IInputType Type { get; private set; } = default!;
+
+        /// <inheritdoc />
+        public override Type RuntimeType => _runtimeType;
 
         /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
@@ -48,26 +61,43 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public IInputValueFormatter? Formatter { get; }
 
+        /// <summary>
+        /// Defines if the runtime type is represented as an <see cref="Optional{T}" />.
+        /// </summary>
+        internal bool IsOptional { get; private set; }
+
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             ArgumentDefinition definition)
         {
             if (definition.Type is null)
             {
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.Argument_TypeIsNull,
-                        definition.Name))
+                    .SetMessage(TypeResources.Argument_TypeIsNull, definition.Name)
                     .SetTypeSystemObject(context.Type)
+                    .SetExtension("declaringMember", declaringMember)
+                    .SetExtension("name", definition.Name.ToString())
                     .Build());
+                return;
             }
-            else
-            {
-                base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(
-                    context, definition, Type, Coordinate);
-            }
+
+            base.OnCompleteField(context, declaringMember, definition);
+;
+            Type = context.GetType<IInputType>(definition.Type!);
+            _runtimeType = definition.Parameter?.ParameterType!;
+            _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
+            DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
+            IsOptional = isOptional;
+            DeclaringMember = declaringMember;
         }
+
+        /// <summary>
+        /// Returns a string that represents the current argument.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current argument.
+        /// </returns>
+        public override string ToString() => $"{Name}:{Type.Print()}";
     }
 }

@@ -1,11 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
@@ -32,10 +29,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.SingleOrDefault);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (context, definition) =>
@@ -58,23 +57,18 @@ namespace HotChocolate.Types
                         definition.Type =
                             context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
-                        ILazyTypeConfiguration lazyConfiguration =
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (_, __) =>
-                                    {
-                                        CompileMiddleware(
-                                            selectionType,
-                                            definition,
-                                            placeholder,
-                                            middlewareDefinition);
-                                    })
-                                .On(ApplyConfigurationOn.Completion)
-                                .Build();
-
-                        definition.Configurations.Add(lazyConfiguration);
+                        definition.Configurations.Add(
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (_, d) =>
+                                {
+                                    CompileMiddleware(
+                                        selectionType,
+                                        d,
+                                        placeholder,
+                                        middlewareDefinition);
+                                },
+                                definition,
+                                ApplyConfigurationOn.Completion));
                     });
 
             return descriptor;
@@ -83,13 +77,14 @@ namespace HotChocolate.Types
         private static void CompileMiddleware(
             Type type,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             Type middlewareDefinition)
         {
             Type middlewareType = middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.SingleOrDefault);
         }
     }
 }

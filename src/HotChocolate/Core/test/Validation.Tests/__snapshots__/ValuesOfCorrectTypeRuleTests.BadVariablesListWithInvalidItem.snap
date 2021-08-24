@@ -15,6 +15,38 @@
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
     },
-    "Exception": null
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ListValue",
+      "Location": {
+        "Start": 50,
+        "End": 61,
+        "Line": 2,
+        "Column": 50
+      },
+      "Items": [
+        {
+          "Kind": "StringValue",
+          "Location": {
+            "Start": 51,
+            "End": 59,
+            "Line": 2,
+            "Column": 51
+          },
+          "Value": "one",
+          "Block": false
+        },
+        {
+          "Kind": "IntValue",
+          "Location": {
+            "Start": 58,
+            "End": 60,
+            "Line": 2,
+            "Column": 58
+          },
+          "Value": "2"
+        }
+      ]
+    }
   }
 ]

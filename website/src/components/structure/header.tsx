@@ -1,26 +1,27 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent, useState } from "react";
+import React, {
+  FunctionComponent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
+import BarsIconSvg from "../../images/bars.svg";
+import LogoTextSvg from "../../images/chillicream-text.svg";
+import LogoIconSvg from "../../images/chillicream-winking.svg";
+import GithubIconSvg from "../../images/github.svg";
+import SlackIconSvg from "../../images/slack.svg";
+import TimesIconSvg from "../../images/times.svg";
+import TwitterIconSvg from "../../images/twitter.svg";
+import { useObservable } from "../../state";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
 
-import BarsIconSvg from "../../images/bars.svg";
-import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream-winking.svg";
-import LogoTextSvg from "../../images/chillicream-text.svg";
-import SlackIconSvg from "../../images/slack.svg";
-import TimesIconSvg from "../../images/times.svg";
-import TwitterIconSvg from "../../images/twitter.svg";
-import { useSelector } from "react-redux";
-import { State } from "../../state";
-
 export const Header: FunctionComponent = () => {
-  const showShadow = useSelector<State, boolean>(
-    (state) => state.common.yScrollPosition > 0
-  );
-
+  const containerRef = useRef<HTMLHeadingElement>(null);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
@@ -41,17 +42,35 @@ export const Header: FunctionComponent = () => {
     }
   `);
   const { siteUrl, topnav, tools } = data.site!.siteMetadata!;
+  const showShadow$ = useObservable((state) => {
+    return state.common.yScrollPosition > 0;
+  });
 
-  const handleHamburgerOpenClick = () => {
+  const handleHamburgerOpenClick = useCallback(() => {
     setTopNavOpen(true);
-  };
+  }, [setTopNavOpen]);
 
-  const handleHamburgerCloseClick = () => {
+  const handleHamburgerCloseClick = useCallback(() => {
     setTopNavOpen(false);
-  };
+  }, [setTopNavOpen]);
+
+  useEffect(() => {
+    const classes = containerRef.current?.className ?? "";
+
+    const subscription = showShadow$.subscribe((showShadow) => {
+      if (containerRef.current) {
+        containerRef.current.className =
+          classes + (showShadow ? " shadow" : "");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [showShadow$]);
 
   return (
-    <Container enableShadow={showShadow}>
+    <Container ref={containerRef}>
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
@@ -110,15 +129,17 @@ export const Header: FunctionComponent = () => {
   );
 };
 
-const Container = styled.header<{ enableShadow: boolean }>`
+const Container = styled.header`
   position: fixed;
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: #f40010;
-  ${({ enableShadow }) =>
-    enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
+  background-color: var(--brand-color);
   transition: box-shadow 0.2s ease-in-out;
+
+  &.shadow {
+    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  }
 `;
 
 const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
@@ -159,14 +180,14 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const LogoText = styled(LogoTextSvg)`
   display: none;
   padding-left: 15px;
   height: 24px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 
   @media only screen and (min-width: 600px) {
     display: inline-block;
@@ -189,7 +210,7 @@ const HamburgerOpenButton = styled.div`
 
 const HamburgerOpenIcon = styled(BarsIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Navigation = styled.nav<{ open: boolean }>`
@@ -202,7 +223,7 @@ const Navigation = styled.nav<{ open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: #f40010;
+  background-color: var(--brand-color);
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -250,7 +271,7 @@ const HamburgerCloseButton = styled.div`
 
 const HamburgerCloseIcon = styled(TimesIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const Nav = styled.ol`
@@ -286,18 +307,18 @@ const NavItem = styled.li`
 
 const NavLink = styled(Link)`
   flex: 0 0 auto;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   padding: 10px 15px;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  color: #fff;
+  color: var(--text-color-contrast);
   text-decoration: none;
   text-transform: uppercase;
   transition: background-color 0.2s ease-in-out;
 
   &.active,
   &:hover {
-    background-color: #b7020a;
+    background-color: var(--brand-color-hover);
   }
 `;
 
@@ -339,21 +360,21 @@ const ToolLink = styled(Link)`
   }
 
   :hover > ${IconContainer} > svg {
-    fill: #b7020a;
+    fill: var(--brand-color-hover);
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: #fff;
+  fill: var(--text-color-contrast);
 `;

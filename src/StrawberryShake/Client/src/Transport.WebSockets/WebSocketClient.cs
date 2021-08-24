@@ -14,16 +14,16 @@ namespace StrawberryShake.Transport.WebSockets
     /// identified by a URI and name.
     /// </summary>
     public sealed class WebSocketClient
-        : ISocketClient
+        : IWebSocketClient
     {
         private readonly IReadOnlyList<ISocketProtocolFactory> _protocolFactories;
         private readonly ClientWebSocket _socket;
+        private readonly string _name;
 
         private const int _maxMessageSize = 1024 * 4;
 
         private ISocketProtocol? _activeProtocol;
         private bool _disposed;
-        private readonly string _name;
 
         /// <summary>
         /// Creates a new instance of <see cref="WebSocketClient"/>
@@ -49,12 +49,19 @@ namespace StrawberryShake.Transport.WebSockets
         public Uri? Uri { get; set; }
 
         /// <inheritdoc />
+        public ISocketConnectionInterceptor ConnectionInterceptor { get; set; } =
+            DefaultSocketConnectionInterceptor.Instance;
+
+        /// <inheritdoc />
         public string Name => _name;
 
         /// <inheritdoc />
         public bool IsClosed =>
             _disposed
             || _socket.CloseStatus.HasValue;
+
+        /// <inheritdoc />
+        public ClientWebSocket Socket => _socket;
 
         /// <inheritdoc />
         public async Task<ISocketProtocol> OpenAsync(CancellationToken cancellationToken = default)

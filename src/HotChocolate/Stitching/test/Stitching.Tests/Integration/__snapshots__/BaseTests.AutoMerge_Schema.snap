@@ -16,7 +16,7 @@ interface Node @source(name: "Node", schema: "contract") @source(name: "Node", s
 type Consultant implements Node @source(name: "Consultant", schema: "customer") {
   id: ID!
   name: String!
-  customers(first: Int after: String last: Int before: String): CustomerConnection
+  customers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CustomersConnection
 }
 
 type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
@@ -27,26 +27,26 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   street: String!
-  consultant(customer: CustomerInput): Consultant
+  consultant: Consultant
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
-  someGuid: Uuid!
+  someGuid: UUID!
   kind: CustomerKind!
 }
 
 "A connection to a list of items."
-type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
+type CustomersConnection @source(name: "CustomersConnection", schema: "customer") {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [CustomerEdge!]
+  edges: [CustomersEdge!]
   "A flattened list of the nodes."
   nodes: [Customer]
 }
 
 "An edge in a connection."
-type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
+type CustomersEdge @source(name: "CustomersEdge", schema: "customer") {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -88,13 +88,19 @@ type PageInfo @source(name: "PageInfo", schema: "customer") {
 }
 
 type Query {
-  node(id: ID!): Node @delegate(schema: "contract")
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @delegate(schema: "contract")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "contract")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
   int(i: Int!): Int! @delegate(schema: "contract")
-  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
-  customer_node(id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
+  guid(guid: UUID!): UUID! @delegate(schema: "contract")
+  "Fetches an object given its ID."
+  customer_node("ID of the object." id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
+  "Lookup nodes by a list of IDs."
+  customer_nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "customer", path: "nodes(ids: $arguments:ids)")
   customer(id: ID!): Customer @delegate(schema: "customer")
   customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
   consultant(id: ID!): Consultant @delegate(schema: "customer")
@@ -124,16 +130,6 @@ input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer
   consultantId: String
 }
 
-input CustomerInput @source(name: "CustomerInput", schema: "customer") {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: Uuid!
-  kind: CustomerKind!
-}
-
 input SayInput @source(name: "SayInput", schema: "customer") {
   words: [String]
 }
@@ -152,15 +148,6 @@ directive @defer("If this argument label has a value other than null, it will be
 
 "Delegates a resolver to a remote schema."
 directive @delegate("The path to the field on the remote schema." path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
-
-"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
-directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
-
-"Directs the executor to include this field or fragment only when the `if` argument is true."
-directive @include("Included when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
-
-"Directs the executor to skip this field or fragment when the `if` argument is true."
-directive @skip("Skipped when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 "Annotates the original name of a type."
 directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
@@ -189,4 +176,4 @@ scalar Long
 "The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
 scalar Name
 
-scalar Uuid
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

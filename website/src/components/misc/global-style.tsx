@@ -1,44 +1,58 @@
 import { createGlobalStyle } from "styled-components";
 
-export const GlobalStyle = createGlobalStyle`
-  html {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+export const GlobalLayoutStyle = createGlobalStyle`
+ html {
     overflow: hidden;
     height: 100%;
+  }
 
+  body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+
+    > div:first-child {
+        height: 100%;
+        display: block;
+        > div {
+          height: 100%;
+          display: grid;
+          grid-template-rows: 60px auto;
+          grid-template-columns: 1fr;
+        }
+      }
+  }
+`;
+
+export const GlobalStyle = createGlobalStyle`
+  :root {
+    --brand-color: #f40010;
+    --brand-color-hover: #b7020a;
+    --text-color: #667;
+    --heading-text-color: #334;
+    --footer-text-color: #c6c6ce;
+    --text-color-contrast: #fff;
+    --box-highlight-color: #ddd;
+    --box-border-color: #ccc;
+    --warning-color: #ffba00;
+    --border-radius: 4px;
+    --font-size: .833rem;
+  }
+
+  html {
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    height: 100%;
-    margin: 0;
-
     font-size: 18px;
     line-height: 30px;
-    color: #667;
+    color: var(--text-color);
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-
-    > div {
-      height: 100%;
-      display: block;
-      > div {
-        height: 100%;
-        display: grid;
-        grid-template-rows: 60px auto;
-        grid-template-columns: 1fr;
-      }
-    }
   }
 
   * {
@@ -59,7 +73,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: #f40010;
+    color: var(--brand-color);
     text-decoration: none;
   }
 
@@ -80,18 +94,12 @@ export const GlobalStyle = createGlobalStyle`
     font-weight: bold;
     line-height: 1.250em;
     text-rendering: optimizeLegibility;
-    color: #334;
+    color: var(--heading-text-color);
   }
 
   p {
     margin-bottom: 20px;
     line-height: 1.667em;
-
-    code {
-      padding: 2px 5px;
-      font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
-      font-size: 0.833em;
-    }
   }
 
   h1 {
@@ -198,7 +206,7 @@ export const GlobalStyle = createGlobalStyle`
     border-bottom: 1px solid #aaa;
     padding: 5px 10px;
     font-feature-settings: "tnum";
-    font-size: 0.833em;
+    font-size: var(--font-size);
     line-height: 1.667em;
     text-align: left;
   }
@@ -228,9 +236,24 @@ export const GlobalStyle = createGlobalStyle`
 
   /* Inline code style */
   :not(pre) > code {
-    border: 1px solid #aaa;
+    border: 1px solid var(--box-border-color);
     border-radius: .3em;
     background-color: initial;
-    color: #666;
+    color: var(--text-color);
   }
+
+  a.anchor {
+    position: absolute;
+    left: 0;
+    visibility: hidden;
+  }
+  
+  h1:hover a.anchor,
+  h2:hover a.anchor,
+  h3:hover a.anchor,
+  h4:hover a.anchor,
+  h5:hover a.anchor,
+  h6:hover a.anchor {
+    visibility: visible;
+  }  
 `;
