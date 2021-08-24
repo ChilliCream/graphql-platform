@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 using MongoDB.Bson;
 
@@ -25,10 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddMongoDbFiltering(
             this IRequestExecutorBuilder builder,
             string? name = null) =>
-            builder
-                .AddObjectIdConverters()
-                .ConfigureSchema(s => s.AddMongoDbFiltering(name));
-
+            builder.ConfigureSchema(s => s.AddMongoDbFiltering(name));
 
         /// <summary>
         /// Adds sorting support.

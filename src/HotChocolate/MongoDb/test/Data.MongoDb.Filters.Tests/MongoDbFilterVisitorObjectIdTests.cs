@@ -15,17 +15,17 @@ namespace HotChocolate.Data.MongoDb.Filters
     {
         private static readonly Foo[] _fooEntities =
         {
-            new() { ObjectId = new ObjectId("a") },
-            new() { ObjectId = new ObjectId("b") },
-            new() { ObjectId = new ObjectId("c") }
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new() { ObjectId = new ObjectId("a") },
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f69") },
             new() { },
-            new() { ObjectId = new ObjectId("b") },
-            new() { ObjectId = new ObjectId("c") }
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6a") },
+            new() { ObjectId = new ObjectId("6124e80f3f5fc839830c1f6b") }
         };
 
         public MongoDbFilterVisitorObjectIdTests(MongoResource resource)
@@ -43,17 +43,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { eq: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { eq: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -72,17 +72,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { neq: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { neq: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -101,24 +101,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -137,24 +137,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -174,24 +174,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -210,24 +210,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -246,24 +246,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -282,24 +282,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -319,24 +319,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -355,24 +355,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("a");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -389,24 +389,24 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ \"a\", \"b\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("aandb");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ null, \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("bandc");
+            res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ null, \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("nullAndc");
+            res3.MatchDocumentSnapshot("nullAnd6124e80f3f5fc839830c1f6b");
         }
 
         [Fact]
@@ -416,24 +416,24 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ \"a\", \"b\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("aandb");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ null, \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("bandc");
+            res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ null, \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ null, \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("nullAndc");
+            res3.MatchDocumentSnapshot("nullAnd6124e80f3f5fc839830c1f6b");
         }
 
         [Fact]
@@ -447,17 +447,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { eq: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { eq: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { eq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -477,17 +477,17 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { neq: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { neq: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { neq: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -508,24 +508,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -545,24 +545,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -583,24 +583,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { gte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { gte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -620,24 +620,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { ngte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { ngte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -657,24 +657,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -694,24 +694,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlt: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlt: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -732,24 +732,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { lte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { lte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -769,24 +769,24 @@ namespace HotChocolate.Data.MongoDb.Filters
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"a\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f69\"}}){ objectId}}")
                     .Create());
 
             res1.MatchDocumentSnapshot("a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"b\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6a\"}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("b");
+            res2.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nlte: \"c\"}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nlte: \"6124e80f3f5fc839830c1f6b\"}}){ objectId}}")
                     .Create());
 
-            res3.MatchDocumentSnapshot("c");
+            res3.MatchDocumentSnapshot("6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -804,21 +804,21 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ \"a\", \"b\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("aandb");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ \"b\", \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("bandc");
+            res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { in: [ \"b\", null ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { in: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
                     .Create());
 
             res3.MatchDocumentSnapshot("bandNull");
@@ -832,21 +832,21 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ \"a\", \"b\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f69\", \"6124e80f3f5fc839830c1f6a\" ]}}){ objectId}}")
                     .Create());
 
-            res1.MatchDocumentSnapshot("aandb");
+            res1.MatchDocumentSnapshot("6124e80f3f5fc839830c1f69and6124e80f3f5fc839830c1f6a");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ \"b\", \"c\" ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", \"6124e80f3f5fc839830c1f6b\" ]}}){ objectId}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("bandc");
+            res2.MatchDocumentSnapshot("band6124e80f3f5fc839830c1f6b");
 
             IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { objectId: { nin: [ \"b\", null ]}}){ objectId}}")
+                    .SetQuery("{ root(where: { objectId: { nin: [ \"6124e80f3f5fc839830c1f6a\", null ]}}){ objectId}}")
                     .Create());
 
             res3.MatchDocumentSnapshot("bandNull");
