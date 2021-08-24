@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -116,6 +117,45 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Relay_ShouldReturnNonNullError_When_IdIsNull()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d.Field("user")
+                    .Type<UserType>()
+                    .Resolve(c => new User
+                    {
+                        Name = "TEST"
+                    }))
+                .AddGlobalObjectIdentification()
+                .ExecuteRequestAsync("query { user { id name } } ")
+                .MatchSnapshotAsync();
+        }
+
+        public class User
+        {
+            public string Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class UserType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor
+                    .ImplementsNode()
+                    .IdField(f => f.Id)
+                    .ResolveNode(ResolveNode);
+            }
+
+            private Task<User> ResolveNode(IResolverContext context, string id)
+            {
+                return Task.FromResult(new User { Name = "TEST" });
+            }
+        }
 
         public class QueryType : ObjectType
         {
@@ -175,13 +215,17 @@ namespace HotChocolate.Types.Relay
             public FooPayload Foo() => new();
         }
 
-        public class FooPayload { }
+        public class FooPayload
+        {
+        }
 
         public class BazPayload
         {
             public string Some { get; set; }
         }
 
-        public class BarResult { }
+        public class BarResult
+        {
+        }
     }
 }
