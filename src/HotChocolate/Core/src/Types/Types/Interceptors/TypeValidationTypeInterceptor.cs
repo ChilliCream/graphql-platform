@@ -10,10 +10,9 @@ namespace HotChocolate.Types.Interceptors
 {
     internal class TypeValidationTypeInterceptor : TypeInterceptor
     {
-        public override bool CanHandle(ITypeSystemObjectContext context)
-        {
-            return !context.IsIntrospectionType;
-        }
+        public override bool CanHandle(ITypeSystemObjectContext context) =>
+            context.DescriptorContext.Options.StrictRuntimeTypeValidation &&
+            !context.IsIntrospectionType;
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
@@ -52,7 +51,7 @@ namespace HotChocolate.Types.Interceptors
                 IsTypeSystemType(definition.RuntimeType))
             {
                 ReportRuntimeTypeError(context, runtimeType);
-                definition.RuntimeType = typeof(Stub);
+                definition.RuntimeType = typeof(object);
                 definition.Fields.Clear();
                 definition.Dependencies.Clear();
             }
@@ -66,7 +65,7 @@ namespace HotChocolate.Types.Interceptors
                 IsTypeSystemType(definition.RuntimeType))
             {
                 ReportRuntimeTypeError(context, runtimeType);
-                definition.RuntimeType = typeof(Stub);
+                definition.RuntimeType = typeof(object);
                 definition.Dependencies.Clear();
             }
         }
@@ -79,7 +78,7 @@ namespace HotChocolate.Types.Interceptors
                 IsTypeSystemType(definition.RuntimeType))
             {
                 ReportRuntimeTypeError(context, runtimeType);
-                definition.RuntimeType = typeof(Stub);
+                definition.RuntimeType = typeof(object);
                 definition.Dependencies.Clear();
             }
         }
@@ -92,7 +91,7 @@ namespace HotChocolate.Types.Interceptors
                 IsTypeSystemType(definition.RuntimeType))
             {
                 ReportRuntimeTypeError(context, runtimeType);
-                definition.RuntimeType = typeof(Stub);
+                definition.RuntimeType = typeof(object);
                 definition.Fields.Clear();
                 definition.Interfaces.Clear();
                 definition.Dependencies.Clear();
@@ -107,7 +106,7 @@ namespace HotChocolate.Types.Interceptors
                 IsTypeSystemType(definition.RuntimeType))
             {
                 ReportRuntimeTypeError(context, runtimeType);
-                definition.RuntimeType = typeof(Stub);
+                definition.RuntimeType = typeof(object);
                 definition.Fields.Clear();
                 definition.Interfaces.Clear();
                 definition.Dependencies.Clear();
@@ -124,10 +123,6 @@ namespace HotChocolate.Types.Interceptors
             ISchemaError schemaError = ErrorHelper
                 .NoSchemaTypesAllowedAsRuntimeType(discoveryContext.Type, runtimeType);
             discoveryContext.ReportError(schemaError);
-        }
-
-        public class Stub
-        {
         }
     }
 }

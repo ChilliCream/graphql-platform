@@ -90,6 +90,11 @@ namespace HotChocolate
         /// </summary>
         public bool ValidatePipelineOrder { get; set; } = true;
 
+        /// <summary>
+        /// Defines if the runtime types of types shall be validated.
+        /// </summary>
+        public bool StrictRuntimeTypeValidation { get; set; } = true;
+
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
             return new()

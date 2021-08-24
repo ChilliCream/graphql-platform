@@ -87,5 +87,10 @@ namespace HotChocolate
         /// Defines if the order of important middleware components shall be validated.
         /// </summary>
         new bool ValidatePipelineOrder { get; set; }
+
+        /// <summary>
+        /// Defines if the runtime types of types shall be validated.
+        /// </summary>
+        new bool StrictRuntimeTypeValidation { get; set; }
     }
 }
