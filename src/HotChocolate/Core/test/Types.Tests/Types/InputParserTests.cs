@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -322,6 +326,29 @@ namespace HotChocolate.Types
                 t => Assert.Equal(Bar.Baz, t));
         }
 
+        [Fact]
+        public async Task Integration_InputObjectDefaultValue_ValueIsInitialized()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query4>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            IReadOnlyQueryRequest query = QueryRequestBuilder.Create(@"
+            {
+                loopback(input: {field2: 1}) {
+                    field1
+                    field2
+                }
+            }");
+            IExecutionResult result = await executor.ExecuteAsync(query, CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         public class TestInput
         {
             public string? Field1 { get; set; }
@@ -357,6 +384,19 @@ namespace HotChocolate.Types
         public class FooInput
         {
             public List<Bar?> Bars { get; set; } = new();
+        }
+
+        public class Query4
+        {
+            public Test4 Loopback(Test4 input) => input;
+        }
+
+        public class Test4
+        {
+            [DefaultValue("DefaultAbc")]
+            public string? Field1 { get; set; }
+
+            public int? Field2 { get; set; }
         }
 
         public enum Bar
