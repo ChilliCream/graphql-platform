@@ -136,3 +136,8 @@ static HotChocolate.Types.ResolveObjectFieldDescriptorExtensions.Resolve<TResult
 *REMOVED*HotChocolate.Schema.TryGetRuntimeType(HotChocolate.NameString typeName, out System.Type? clrType) -> bool
 *REMOVED*HotChocolate.Configuration.ITypeCompletionContext.GetResolver(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver!
 *REMOVED*HotChocolate.Types.IObjectTypeDescriptor<T>.Field<TResolver>(System.Linq.Expressions.Expression<System.Func<TResolver, object!>!>! propertyOrMethod) -> HotChocolate.Types.IObjectFieldDescriptor!
+~HotChocolate.Types.Relay.MutationPayloadOptions
+~HotChocolate.Types.Relay.MutationPayloadOptions.QueryFieldName.get -> HotChocolate.NameString?
+~HotChocolate.Types.Relay.MutationPayloadOptions.QueryFieldName.set -> void
+~HotChocolate.Types.Relay.MutationPayloadOptions.MutationPayloadPredicate.get -> System.Func<HotChocolate.Types.INamedType, bool>
+~HotChocolate.Types.Relay.MutationPayloadOptions.MutationPayloadPredicate.set -> void

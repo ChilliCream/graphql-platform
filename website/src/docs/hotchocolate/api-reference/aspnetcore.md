@@ -274,7 +274,7 @@ Content-Type: application/json
 }
 ```
 
-By default, the GraphQL server will use the **incremental delivery over HTTP**specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
+By default, the GraphQL server will use the **incremental delivery over HTTP** specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
 
 The serialization defaults can be changed like the following:
 
@@ -302,9 +302,9 @@ service
 In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
 
 ```csharp
-public class Query
+public class Mutation
 {
-    public async Task<bool> UploadFile(IFile file)
+    public async Task<bool> UploadFileAsync(IFile file)
     {
         using Stream stream = file.OpenReadStream();
         // you can now work with standard stream functionality of .NET to handle the file.

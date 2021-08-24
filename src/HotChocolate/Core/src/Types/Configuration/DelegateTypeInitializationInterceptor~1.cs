@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -31,7 +33,7 @@ namespace HotChocolate.Configuration
             OnCompleteType<T>? onBeforeCompleteType = null,
             OnCompleteType<T>? onAfterCompleteType = null)
         {
-            _canHandle = canHandle ?? (c => true);
+            _canHandle = canHandle ?? (_ => true);
             _onBeforeInitialize = onBeforeInitialize;
             _onAfterInitialize = onAfterInitialize;
             _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
@@ -52,13 +54,20 @@ namespace HotChocolate.Configuration
             _onBeforeInitialize?.Invoke(discoveryContext);
         }
 
-        public void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
+        public void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
                 _onAfterInitialize?.Invoke(discoveryContext, casted, contextData);
             }
         }
+
+        public IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            => Enumerable.Empty<ITypeReference>();
 
         public void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
@@ -126,19 +135,26 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void OnTypesInitialized(IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        public void OnValidateType(
+            ITypeSystemObjectContext validationContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
-            throw new NotImplementedException();
         }
 
-        public void OnTypesCompletedName(IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        public void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
-            throw new NotImplementedException();
         }
 
-        public void OnTypesCompleted(IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        public void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
         {
-            throw new NotImplementedException();
+        }
+
+        public void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
         }
     }
 }

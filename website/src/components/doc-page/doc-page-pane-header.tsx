@@ -1,6 +1,5 @@
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-
 import TimesIconSvg from "../../images/times.svg";
 
 interface DocPagePaneHeaderProperties {
@@ -9,16 +8,13 @@ interface DocPagePaneHeaderProperties {
   onClose: () => void;
 }
 
-export const DocPagePaneHeader: FunctionComponent<DocPagePaneHeaderProperties> = ({
-  showWhenScreenWidthIsSmallerThan,
-  title,
-  onClose,
-}) => (
-  <Header showWhenScreenWidthIsSmallerThan={showWhenScreenWidthIsSmallerThan}>
-    <Title>{title}</Title>
-    <CloseButton onClick={onClose} />
-  </Header>
-);
+export const DocPagePaneHeader: FunctionComponent<DocPagePaneHeaderProperties> =
+  ({ showWhenScreenWidthIsSmallerThan, title, onClose }) => (
+    <Header showWhenScreenWidthIsSmallerThan={showWhenScreenWidthIsSmallerThan}>
+      <Title>{title}</Title>
+      <CloseButton onClick={onClose} />
+    </Header>
+  );
 
 const Header = styled.header<{ showWhenScreenWidthIsSmallerThan: number }>`
   display: flex;
@@ -47,6 +43,7 @@ const CloseButton = styled(TimesIconSvg)`
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s ease-in-out;
+  fill: #000;
 
   &:hover {
     opacity: 1;

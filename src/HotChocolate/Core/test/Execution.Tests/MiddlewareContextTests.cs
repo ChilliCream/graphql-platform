@@ -112,6 +112,7 @@ namespace HotChocolate.Execution
         public async Task CustomServiceProvider()
         {
             // arrange
+            Snapshot.FullName();
             var services = new DictionaryServiceProvider(typeof(string), "hello");
 
             // assert

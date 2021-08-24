@@ -1,13 +1,15 @@
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class DirectiveTests
-        : TypeTestBase
+    public class DirectiveTests : TypeTestBase
     {
         private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
 
@@ -113,6 +115,23 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task QueryDirectives_AreAddedToTheSchema()
+        {
+            // arrange
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x => x.Name("Query").Field("foo").Resolve("Bar"))
+                .AddType<FooQueryDirectiveType>()
+                .BuildSchemaAsync();
+
+            // act
+            var printedSchema = schema.Print();
+
+            // assert
+            printedSchema.MatchSnapshot();
+        }
+
+        [Fact]
         public void ExplicitArguments()
         {
             SchemaBuilder.New()
@@ -134,6 +153,17 @@ namespace HotChocolate.Types
                 b.AddDirectiveType<FooDirectiveType>();
                 b.AddType<InputObjectType<FooChild>>();
             });
+        }
+
+        public class FooQueryDirectiveType
+            : DirectiveType<FooDirective>
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("Foo");
+                descriptor.Location(DirectiveLocation.Query);
+            }
         }
 
         public class FooDirectiveType

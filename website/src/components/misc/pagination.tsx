@@ -45,7 +45,7 @@ const Container = styled.ol`
 const Page = styled.li`
   display: inline-block;
   margin: 0 5px;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   padding: 0;
   background-color: var(--brand-color);
 
@@ -62,5 +62,5 @@ const PageLink = styled(Link)`
   width: 30px;
   height: 30px;
   line-height: 30px;
-  color: #fff;
+  color: var(--text-color-contrast);
 `;

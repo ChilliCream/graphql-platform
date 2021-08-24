@@ -8,11 +8,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting
 {
     public class SortField
-        : InputField,
-          ISortField
+        : InputField
+        , ISortField
     {
-        internal SortField(SortFieldDefinition definition)
-            : base(definition, default)
+        internal SortField(SortFieldDefinition definition, int index)
+            : base(definition, index)
         {
             Member = definition.Member;
             Handler = definition.Handler ??
@@ -31,9 +31,10 @@ namespace HotChocolate.Data.Sorting
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             InputFieldDefinition definition)
         {
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
 
             if (Member?.DeclaringType is not null)
             {

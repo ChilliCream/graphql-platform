@@ -17,7 +17,7 @@ namespace HotChocolate.Validation.Types
             return false;
         }
 
-        public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode valueSyntax)
         {
             throw new InvalidOperationException();
         }

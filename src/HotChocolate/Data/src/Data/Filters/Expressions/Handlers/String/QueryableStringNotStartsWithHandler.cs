@@ -1,11 +1,12 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringNotStartsWithHandler : QueryableStringOperationHandler
     {
-        public QueryableStringNotStartsWithHandler()
+        public QueryableStringNotStartsWithHandler(InputParser inputParser) : base(inputParser)
         {
             CanBeNull = false;
         }

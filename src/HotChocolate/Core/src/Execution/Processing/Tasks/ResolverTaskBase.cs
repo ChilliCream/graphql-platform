@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace HotChocolate.Execution.Processing.Tasks
     internal abstract class ResolverTaskBase : IExecutionTask
     {
         private readonly MiddlewareContext _resolverContext = new();
+        private readonly List<IExecutionTask> _taskBuffer = new();
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
 
@@ -66,9 +68,12 @@ namespace HotChocolate.Execution.Processing.Tasks
             _selection = default!;
             _resolverContext.Clean();
             IsCompleted = false;
+            IsSerial = false;
             Parent = null;
             Next = null;
             Previous = null;
+            State = null;
+            _taskBuffer.Clear();
             return true;
         }
 
@@ -81,22 +86,26 @@ namespace HotChocolate.Execution.Processing.Tasks
                 // we will only try to complete the resolver value if there are no known errors.
                 if (success)
                 {
-                    IType fieldType = _resolverContext.Field.Type;
-
                     if (ValueCompletion.TryComplete(
                         _operationContext,
                         _resolverContext,
                         (ISelection)_resolverContext.Selection,
                         _resolverContext.Path,
-                        fieldType,
+                        _selection.Type,
                         _resolverContext.ResponseName,
                         _resolverContext.ResponseIndex,
                         _resolverContext.Result,
+                        _taskBuffer,
                         out completedValue) &&
-                        fieldType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                        _selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
                         completedValue is IHasResultDataParent result)
                     {
                         result.Parent = _resolverContext.ResultMap;
+                    }
+
+                    if (_taskBuffer.Count > 0)
+                    {
+                        _operationContext.Scheduler.Register(_taskBuffer);
                     }
                 }
             }

@@ -21,6 +21,7 @@ namespace HotChocolate.Execution.Batching
             private readonly IRequestExecutor _requestExecutor;
             private readonly IErrorHandler _errorHandler;
             private readonly ITypeConverter _typeConverter;
+            private readonly InputFormatter _inputFormatter;
             private readonly ConcurrentBag<ExportedVariable> _exportedVariables = new();
             private readonly CollectVariablesVisitor _visitor;
             private readonly CollectVariablesVisitationMap _visitationMap = new();
@@ -31,7 +32,8 @@ namespace HotChocolate.Execution.Batching
                 IEnumerable<IQueryRequest> requestBatch,
                 IRequestExecutor requestExecutor,
                 IErrorHandler errorHandler,
-                ITypeConverter typeConverter)
+                ITypeConverter typeConverter,
+                InputFormatter inputFormatter)
             {
                 _requestBatch = requestBatch ??
                     throw new ArgumentNullException(nameof(requestBatch));
@@ -41,6 +43,8 @@ namespace HotChocolate.Execution.Batching
                     throw new ArgumentNullException(nameof(errorHandler));
                 _typeConverter = typeConverter ??
                     throw new ArgumentNullException(nameof(typeConverter));
+                _inputFormatter = inputFormatter ??
+                    throw new ArgumentNullException(nameof(inputFormatter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
             }
 
@@ -216,7 +220,7 @@ namespace HotChocolate.Execution.Batching
                         exported.Value,
                         out var converted))
                 {
-                    return inputType.Serialize(converted);
+                    return _inputFormatter.FormatResult(converted, inputType, Path.Root);
                 }
 
                 throw BatchExecutor_CannotSerializeVariable(exported.Name);
@@ -253,7 +257,7 @@ namespace HotChocolate.Execution.Batching
                     {
                         if (_typeConverter.TryConvert(runtimeType, o, out var converted))
                         {
-                            list.Add(inputType.Serialize(converted));
+                            list.Add(_inputFormatter.FormatResult(converted, inputType, Path.Root));
                         }
                         else
                         {
@@ -265,7 +269,7 @@ namespace HotChocolate.Execution.Batching
                 {
                     if (_typeConverter.TryConvert(runtimeType, exported.Value, out var converted))
                     {
-                        list.Add(inputType.Serialize(converted));
+                        list.Add(_inputFormatter.FormatResult(converted, inputType, Path.Root));
                     }
                     else
                     {

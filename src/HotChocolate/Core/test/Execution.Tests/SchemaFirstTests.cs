@@ -10,13 +10,14 @@ namespace HotChocolate.Execution
         public async Task BindObjectTypeImplicit()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    test: String
-                    testProp: String
-                }",
-                c => c.BindType<Query>());
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        test: String
+                        testProp: String
+                    }")
+                .AddResolver<Query>()
+                .Create();
 
             // act
             IExecutionResult result =
@@ -32,9 +33,9 @@ namespace HotChocolate.Execution
         public async Task BindInputTypeImplicit()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                schema {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"schema {
                     query: FooQuery
                 }
 
@@ -45,12 +46,10 @@ namespace HotChocolate.Execution
                 input Bar
                 {
                     baz: String
-                }",
-                c =>
-                {
-                    c.BindType<FooQuery>();
-                    c.BindType<Bar>();
-                });
+                }")
+                .AddResolver<FooQuery>()
+                .AddResolver<Bar>()
+                .Create();
 
             // act
             IExecutionResult result =
@@ -66,19 +65,18 @@ namespace HotChocolate.Execution
         public async Task EnumAsOutputType()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    enumValue: FooEnum
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        enumValue: FooEnum
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-
-                c => c.BindType<EnumQuery>().To("Query"));
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .Create();
 
             // act
             IExecutionResult result =
@@ -94,19 +92,18 @@ namespace HotChocolate.Execution
         public async Task EnumAsInputType()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    setEnumValue(value:FooEnum) : String
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        setEnumValue(value:FooEnum) : String
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-
-                c => c.BindType<EnumQuery>().To("Query"));
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .Create();
 
             // act
             IExecutionResult result =
@@ -122,26 +119,23 @@ namespace HotChocolate.Execution
         public async Task InputObjectWithEnum()
         {
             // arrange
-            var schema = Schema.Create(
-                @"
-                type Query {
-                    enumInInputObject(payload:Payload) : String
-                }
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"type Query {
+                        enumInInputObject(payload:Payload) : String
+                    }
 
-                input Payload {
-                    value: FooEnum
-                }
+                    input Payload {
+                        value: FooEnum
+                    }
 
-                enum FooEnum {
-                    BAR
-                    BAZ
-                }
-                ",
-                c =>
-                {
-                    c.BindType<EnumQuery>().To("Query");
-                    c.BindType<Payload>();
-                });
+                    enum FooEnum {
+                        BAR
+                        BAZ
+                    }")
+                .AddResolver<EnumQuery>("Query")
+                .AddResolver<Payload>()
+                .Create();
 
             // act
             IExecutionResult result =

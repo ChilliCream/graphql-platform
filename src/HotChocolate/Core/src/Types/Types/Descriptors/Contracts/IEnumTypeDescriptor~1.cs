@@ -37,6 +37,12 @@ namespace HotChocolate.Types
         [Obsolete("Use `Value`.")]
         IEnumValueDescriptor Item(T value);
 
+        /// <summary>
+        /// Defines a value that should be included on the enum type.
+        /// </summary>
+        /// <param name="value">
+        /// The value to include.
+        /// </param>
         IEnumValueDescriptor Value(T value);
 
         [Obsolete("Use `BindValues`.")]

@@ -6,11 +6,8 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableFilterContext : FilterVisitorContext<Expression>
     {
-        public QueryableFilterContext(
-            IFilterInputType initialType,
-            bool inMemory)
-            : base(initialType,
-                  new QueryableScope(initialType.EntityType, "_s0", inMemory))
+        public QueryableFilterContext(IFilterInputType initialType, bool inMemory)
+            : base(initialType, new QueryableScope(initialType.EntityType, "_s0", inMemory))
         {
             InMemory = inMemory;
             RuntimeTypes = new Stack<IExtendedType>();

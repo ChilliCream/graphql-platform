@@ -133,13 +133,9 @@ namespace HotChocolate.Execution
         public async Task FieldMiddlewareDoesNotHaveAnEffectOnIntrospection()
         {
             // arrange
-            var query = "{ __typename a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.Use(next => async context =>
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Use(next => async context =>
                 {
                     await next.Invoke(context);
 
@@ -147,13 +143,13 @@ namespace HotChocolate.Execution
                     {
                         context.Result = s.ToUpperInvariant();
                     }
-                });
-            });
+                })
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename a }");
 
             // assert
             Assert.Null(result.Errors);
@@ -195,19 +191,15 @@ namespace HotChocolate.Execution
         public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
         {
             // arrange
-            var query = "{ __typename @upper a }";
-
-            var schema = Schema.Create(c =>
-            {
-                c.RegisterExtendedScalarTypes();
-                c.RegisterType<Query>();
-                c.RegisterDirective<UpperDirectiveType>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddDirectiveType<UpperDirectiveType>()
+                .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync("{ __typename @upper a }");
 
             // assert
             Assert.Null(result.Errors);

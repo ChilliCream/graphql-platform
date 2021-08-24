@@ -42,8 +42,8 @@ namespace HotChocolate.Types
                 {
                     d.AsNode()
                         .NodeResolver<string>((ctx, id) =>
-                            Task.FromResult(new Entity {Name = id}))
-                        .Resolver(ctx => ctx.Parent<Entity>().Id);
+                            Task.FromResult(new Entity { Name = id }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
                 .Create();
@@ -69,8 +69,8 @@ namespace HotChocolate.Types
                 {
                     d.AsNode()
                         .NodeResolver((ctx, id) =>
-                            Task.FromResult(new Entity {Name = (string)id}))
-                        .Resolver(ctx => ctx.Parent<Entity>().Id);
+                            Task.FromResult(new Entity { Name = (string)id }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
                 .Create();
@@ -97,18 +97,18 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver<string>((ctx, id) =>
-                            Task.FromResult<object>(new Entity {Name = id}))
-                        .Resolver(ctx => ctx.Parent<Entity>().Id);
+                            Task.FromResult<object>(new Entity { Name = id }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
-                        .Resolver(t => t.Parent<Entity>().Name);
+                        .Resolve(t => t.Parent<Entity>().Name);
                 })
                 .AddQueryType(d =>
                 {
                     d.Name("Query")
                         .Field("entity")
                         .Type(new NamedTypeNode("Entity"))
-                        .Resolver(new Entity {Name = "foo"});
+                        .Resolve(new Entity { Name = "foo" });
                 })
                 .Create();
 
@@ -134,18 +134,18 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver((ctx, id) =>
-                            Task.FromResult<object>(new Entity {Name = (string)id}))
-                        .Resolver(ctx => ctx.Parent<Entity>().Id);
+                            Task.FromResult<object>(new Entity { Name = (string)id }))
+                        .Resolve(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
-                        .Resolver(t => t.Parent<Entity>().Name);
+                        .Resolve(t => t.Parent<Entity>().Name);
                 })
                 .AddQueryType(d =>
                 {
                     d.Name("Query")
                         .Field("entity")
                         .Type(new NamedTypeNode("Entity"))
-                        .Resolver(new Entity {Name = "foo"});
+                        .Resolve(new Entity { Name = "foo" });
                 })
                 .Create();
 

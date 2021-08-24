@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -57,7 +55,7 @@ namespace HotChocolate.Configuration
         /// <returns>
         /// <c>true</c> if the type has been resolved; otherwise, <c>false</c>.
         /// </returns>
-        bool TryGetType<T>(ITypeReference typeRef, [NotNullWhen(true)] out T type) where T : IType;
+        bool TryGetType<T>(ITypeReference typeRef, [NotNullWhen(true)] out T? type) where T : IType;
 
         /// <summary>
         /// Gets a type by it's type reference.
@@ -77,6 +75,17 @@ namespace HotChocolate.Configuration
         T GetType<T>(ITypeReference typeRef) where T : IType;
 
         /// <summary>
+        /// Rewrites a type reference to a named type reference.
+        /// </summary>
+        /// <param name="typeRef">
+        /// A reference to a type.
+        /// </param>
+        /// <returns>
+        /// Returns a direct reference to a named type.
+        /// </returns>
+        ITypeReference GetNamedTypeReference(ITypeReference typeRef);
+
+        /// <summary>
         /// Gets all registered types of <typeparamref name="T"/>.
         /// </summary>
         IEnumerable<T> GetTypes<T>() where T : IType;
@@ -84,10 +93,6 @@ namespace HotChocolate.Configuration
         bool TryGetDirectiveType(
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType? directiveType);
-
-        DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
-
-        FieldResolver? GetResolver(NameString fieldName);
 
         Func<ISchema> GetSchemaResolver();
     }

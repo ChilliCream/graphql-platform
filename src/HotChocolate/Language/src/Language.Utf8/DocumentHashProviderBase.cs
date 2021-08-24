@@ -35,7 +35,7 @@ namespace HotChocolate.Language
                             .Replace("-", string.Empty);
                     default:
                         throw new NotSupportedException(
-                            "The specified has format is not supported.");
+                            "The specified hash format is not supported.");
                 }
             }
             finally

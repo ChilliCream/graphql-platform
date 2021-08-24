@@ -4,8 +4,7 @@ using HotChocolate.Properties;
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class DataLoaderAttribute
-        : Attribute
+    public sealed class DataLoaderAttribute : Attribute
     {
         public DataLoaderAttribute()
         {
@@ -23,6 +22,6 @@ namespace HotChocolate
             Key = key;
         }
 
-        public string Key { get; }
+        public string? Key { get; }
     }
 }

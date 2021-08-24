@@ -80,16 +80,18 @@ namespace HotChocolate.Data.Projections
                             c.Name("Query");
 
                             ApplyConfigurationToFieldDescriptor<TEntity>(
-                                c.Field(x => x.Root).Resolver(resolver),
+                                c.Field(x => x.Root).Resolve(resolver),
                                 usePaging,
                                 useOffsetPaging);
 
                             ApplyConfigurationToFieldDescriptor<TEntity>(
                                 c.Field("rootExecutable")
-                                    .Resolver(ctx => resolver(ctx).AsExecutable()),
+                                    .Resolve(ctx => resolver(ctx).AsExecutable()),
                                 usePaging,
                                 useOffsetPaging);
                         }));
+
+            builder.ModifyOptions(o => o.ValidatePipelineOrder = false);
 
             ISchema schema = builder.Create();
 
@@ -165,9 +167,9 @@ namespace HotChocolate.Data.Projections
                             }
                         }
                     })
+                .UseProjection()
                 .UseFiltering()
-                .UseSorting()
-                .UseProjection();
+                .UseSorting();
         }
 
         public class StubObject<T>

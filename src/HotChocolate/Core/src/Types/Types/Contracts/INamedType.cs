@@ -1,10 +1,12 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
     /// <summary>
     /// Represents a named GraphQL type.
     /// </summary>
     public interface INamedType
-        : INullableType
+        : IType
         , IHasName
         , IHasDescription
         , IHasSyntaxNode

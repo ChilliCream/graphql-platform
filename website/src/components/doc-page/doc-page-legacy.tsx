@@ -2,11 +2,10 @@ import React, { FunctionComponent, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import { State } from "../../state";
-import { Link } from "../misc/link";
-import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
-
 import TimesIconSvg from "../../images/times.svg";
+import { State } from "../../state";
+import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
+import { Link } from "../misc/link";
 
 export const DocPageLegacy: FunctionComponent = () => {
   const show = useSelector<State, boolean>(
@@ -61,7 +60,7 @@ const Dialog = styled.div<{ show: boolean }>`
 
   @media only screen and (min-width: 820px) {
     > .gatsby-image-wrapper {
-      border-radius: 4px 4px 0 0;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
   }
 `;

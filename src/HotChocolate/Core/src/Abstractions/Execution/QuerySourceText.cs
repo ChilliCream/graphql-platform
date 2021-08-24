@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public class QuerySourceText
-        : IQuery
+    public class QuerySourceText : IQuery
     {
-        private byte[] _source;
+        private byte[]? _source;
 
         public QuerySourceText(string sourceText)
         {
-            Text = sourceText
-                ?? throw new ArgumentNullException(nameof(sourceText));
+            Text = sourceText ?? throw new ArgumentNullException(nameof(sourceText));
         }
 
         public string Text { get; }

@@ -1,289 +1,49 @@
 ---
-title: "Resolver"
+title: Overview
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+In this section we will learn everything about fetching data with Hot Chocolate.
 
-Here we will learn what resolvers are, how they are defined, and what else we could do with them in Hot Chocolate.
+# Resolvers
 
-# Introduction
+Resolvers are the main building blocks when it comes to fetching data. Every field in our GraphQL schema is backed by such a resolver function, responsible for returning the field's value. Since a resolver is just a function, we can use it to retrieve data from a database, a REST service, or any other data source as needed.
 
-When it comes to fetching data in a GraphQL server, you will always end up with a resolver.
-**A resolver is a generic function that fetches data from an arbitrary data source for a particular field.**
-It means every field has its specific resolver function to fetch or select data. Even if there isn't a resolver defined for one field, Hot Chocolate will create a default resolver for this particular field behind the scenes.
+[Learn more about resolvers](/docs/hotchocolate/fetching-data/resolvers)
 
-```mermaid
-graph TD
-  A(field) --> B{has resolver?}
-  B --> |yes|C(return resolver)
-  B --> |no|D(create default resolver)
-  D --> C
-```
+Even though we can connect Hot Chocolate to any data source, most of the time it will be either a database or a REST service.
 
-In Hot Chocolate, a default resolver is a compiled function for a specific field that accesses a property of its parent value, which matches with the field name. For example, if we have a parent value of type `User`, which has a field called `name`, the compiled default resolver for the field `name` would look like the following.
+[Learn how to fetch data from a database](/docs/hotchocolate/fetching-data/fetching-from-databases)
 
-```csharp
-var resolver = (User parent) => parent.Name;
-```
+[Learn how to fetch data from a REST service](/docs/hotchocolate/fetching-data/fetching-from-rest)
 
-It's not exactly how it's implemented in Hot Chocolate, but it serves here basically as a simplified illustration. The key takeaway is that there is always a resolver for every field in place.
+# DataLoader
 
-> **Note:** The parent value represents the parent resolver's inner value, or in the case of a root resolver, the root value, which means the root type's value (query, mutation, or subscription). It has nothing to do with the result type of a resolver and is specific to the business logic.
+DataLoaders provide a way to deduplicate and batch requests to data sources. They can significantly improve the performance of our queries and ease the load on our data sources.
 
-## Resolver Tree
+[Learn more about DataLoaders](/docs/hotchocolate/fetching-data/dataloader)
 
-A resolver tree is a projection of a GraphQL operation that is prepared for execution. The execution engine takes the resolver tree and follows the path of resolvers from top to down. For better understanding, let's imagine we have a simple GraphQL query like the following, where we select the currently logged-in user's name.
+# Pagination
 
-```graphql
-query {
-  me {
-    name
-  }
-}
-```
+Hot Chocolate provides pagination capabilities out of the box. They allow us to expose pagination in a standardized way and can even take care of crafting the necessary pagination queries to our databases.
 
-In Hot Chocolate, this query results in the following resolver tree.
+[Learn more about pagination](/docs/hotchocolate/fetching-data/pagination)
 
-```mermaid
-graph TD
-  A(query: QueryType) --> B("me() => [UserType]")
-  B --> C("name() => StringType")
-```
+# Filtering
 
-A resolver tree is, in the end, nothing else than a resolver chain where each branch can be executed in parallel.
+When returning a list of entites, we often need to filter them using operations like `equals`, `contains`, `startsWith`, etc. Hot Chocolate takes away a lot of the boilerplate, by handling the generation of necessary input types and even translating the applied filters into native database queries.
 
-```mermaid
-graph LR
-  A("me()") --> B("name()")
-```
+[Learn more about filtering](/docs/hotchocolate/fetching-data/filtering)
 
-Okay, let's dissect a little further here. A resolver chain always starts with one or many root resolver, which is in our case `me()` and then follows the path along. In this scenario, the next resolver would be `name()`, which is also the last resolver in our chain. As soon as `me` has fetched the user profile of the currently logged-in user, Hot Chocolate will immediately start executing the next resolver and feeding in the previous object value, also called a parent or parent value in spec language. Let's say the parent value looks like this.
+# Sorting
 
-```csharp
-var parent = new User
-{
-  Id = "user-1",
-  Name = "ChilliCream",
-  ...
-}
-```
+Similar to filtering, Hot Chocolate can also autogenerate input types related to sorting. They allow us to specify by which fields and in which direction our entities should be sorted. These can also be translated into native database queries automatically.
 
-Then the `name()` resolver can just access the `Name` property of the parent value and simply return it. As soon as all resolvers have been completed, the execution engine would return the following GraphQL result, provided that everything went successful.
+[Learn more about sorting](/docs/hotchocolate/fetching-data/sorting)
 
-```json
-{
-  "data": {
-    "me": {
-      "name": "ChilliCream"
-    }
-  }
-}
-```
+# Projections
 
-Excellent, now that we know what resolvers are and how they work in a bigger picture, how can we start writing one. Let's jump to the next section and find out.
+Projections allow Hot Chocolate to transform an incoming GraphQL query with a subselection of fields into an optimized database operation.
 
-# Defining a resolver
+For example, if the client only requests the `name` and `id` of a user in their GraphQL query, Hot Chocolate will only query the database for those two columns.
 
-A resolver is a function that takes zero or many arguments and returns one value. The simplest resolver to write is a resolver that takes zero arguments and returns a simple value type (e.g., a string). For simplicity, we will do precisely that in our first example. Creating a resolver named `Say` with no arguments, which returns just a static string value `Hello World!`.
-
-## Basic resolver example
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-// Query.cs
-public class Query
-{
-    public string Say() => "Hello World!";
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-// Query.cs
-public class Query
-{
-    public string Say() => "Hello World!";
-}
-
-// QueryType.cs
-public class QueryType
-    : ObjectType<Query>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<Query> descriptor)
-    {
-        descriptor
-            .Field(f => f.Say())
-            .Type<NonNullType<StringType>>();
-    }
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<QueryType>();
-    }
-
-    // Omitted code for brevity
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-// Query.cs
-public class Query
-{
-    public string Say() => "Hello World!";
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                type Query {
-                    say: String!
-                }
-            ")
-            .BindComplexType<Query>();
-    }
-
-    // Omitted code for brevity
-}
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-When comparing all three approaches side-by-side, we can see very quickly that they all look nearly the same. They all have the `Query` type in common, which is identical in all three approaches. Regardless, the `Query` type contains a method named `Say`, which is our resolver, in fact, the most significant bit here. The `Say` method will be translated into the `say` field on the schema side as soon as Hot Chocolate is initialized. As a small side note here, all three approaches will result in the same `SDL`.
-
-```sdl
-type Query {
-  say: String!
-}
-```
-
-Let's get back to where the approaches differentiate—the `Startup` class, which contains the service configuration that slightly differs in each approach. In the **annotation-based** approach, we bind the `Query` type to the GraphQL schema. Easy, quick, and without writing any GraphQL specific binding code. Hot Chocolate will do the hard part and infer everything from the type itself. In the **code-first** approach, we bind a meta-type, the `QueryType` type, which contains the GraphQL configuration for the `Query` type, to the GraphQL schema. Instead of inferring the GraphQL type, Hot Chocolate will take our specific GraphQL configuration and creates the GraphQL schema out of it. In the **schema-first** approach, we provide Hot Chocolate the `SDL` directly, and Hot Chocolate will match that to our resolver. Now that we know how to define a resolver in all three approaches, it's time to learn how to pass arguments into a resolver. Let's head to the next section.
-
-# Resolver Arguments
-
-A resolver argument, not to be confused with a field argument in GraphQL, can be a field argument value, a DataLoader, a DI service, state, or even context like a parent value. We will go through a couple of examples where we see all types of resolver argument in action. For that, we will use the annotation-based approach because it makes no difference.
-
-## Field argument example
-
-```csharp
-// Query.cs
-public class Query
-{
-    public string Say(string name) => $"Hello {name}!";
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>();
-    }
-
-    // Omitted code for brevity
-}
-```
-
-```sdl
-type Query {
-  say(name: String!): String!
-}
-```
-
-## DataLoader argument example
-
-```csharp
-// Query.cs
-public class Query
-{
-    public Task<Person> GetPerson(int id, MyDataLoader dataLoader) => dataLoader.LoadAsync(id);
-}
-
-// Person.cs
-public record Person(string name);
-
-// MyDataLoader.cs
-public class MyDataLoader
-    : DataLoaderBase<int, Person>
-{
-    public MyDataLoader(IBatchScheduler scheduler)
-        : base(scheduler)
-    { }
-
-    protected override ValueTask<IReadOnlyList<Result<Person>>> FetchAsync(
-        IReadOnlyList<int> keys,
-        CancellationToken cancellationToken)
-    {
-        // Omitted code for brevity
-    }
-}
-
-// Startup.cs
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-            .AddDataLoader<MyDataLoader>();
-    }
-
-    // Omitted code for brevity
-}
-```
-
-```sdl
-type Query {
-  person(id: Int!): Person!
-}
-
-type Person {
-  name: String!
-}
-```
-
-# Naming Rules
-
-- How should we name things
-- How is a method name translated
-
-# Best Practices
-
-# Resolver Pipeline
-
-# Error Handling
+[Learn more about projections](/docs/hotchocolate/fetching-data/projections)

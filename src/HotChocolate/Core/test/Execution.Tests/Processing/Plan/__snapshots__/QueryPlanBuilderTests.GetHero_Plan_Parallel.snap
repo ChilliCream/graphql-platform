@@ -7,7 +7,8 @@
       {
         "id": 0,
         "field": "Query.hero",
-        "responseName": "hero"
+        "responseName": "hero",
+        "pure": true
       },
       {
         "id": 2,
@@ -15,21 +16,9 @@
         "responseName": "friends"
       },
       {
-        "id": 3,
-        "field": "CharacterConnection.nodes",
-        "responseName": "nodes",
-        "pure": true
-      },
-      {
         "id": 7,
         "field": "Droid.friends",
         "responseName": "friends"
-      },
-      {
-        "id": 8,
-        "field": "CharacterConnection.nodes",
-        "responseName": "nodes",
-        "pure": true
       }
     ]
   }

@@ -2,7 +2,9 @@ using System;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
@@ -13,7 +15,7 @@ namespace HotChocolate.Data.MongoDb.Filters
     public class MongoDbListAnyOperationHandler
         : MongoDbOperationHandlerBase
     {
-        public MongoDbListAnyOperationHandler()
+        public MongoDbListAnyOperationHandler(InputParser inputParser) : base(inputParser)
         {
             CanBeNull = false;
         }

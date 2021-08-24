@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Relay
 
                     if (ctx.LocalContextData.TryGetValue(
                         WellKnownContextData.InternalType,
-                        out object value))
+                        out var value))
                     {
                         type = (NameString)value;
                     }
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
@@ -93,11 +93,57 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public async Task Nodes_Get_Single()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ nodes(ids: \"QmFyCmQxMjM=\") { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Nodes_Get_Many()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddGlobalObjectIdentification()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(default)))
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ nodes(ids: [\"QmFyCmQxMjM=\", \"QmFyCmQxMjM=\"]) { id } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Node_Resolve_Parent_Id()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType(
                     x => x.Name("Query")
                         .Field("childs")
@@ -122,7 +168,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()
                 .AddObjectType<Bar>(d => d
                     .ImplementsNode()
@@ -144,7 +190,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo1>()
                 .Create();
 
@@ -163,7 +209,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Bar5>()
                 .Create();
 
@@ -183,7 +229,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo2>()
                 .Create();
 
@@ -202,7 +248,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo3>()
                 .Create();
 
@@ -221,7 +267,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .EnableRelaySupport()
+                .AddGlobalObjectIdentification()
                 .AddQueryType<Foo4>()
                 .Create();
 
@@ -237,7 +283,7 @@ namespace HotChocolate.Types.Relay
 
         public class Foo
         {
-            public Bar Bar { get; set; } = new Bar { Id = "123" };
+            public Bar Bar { get; set; } = new() { Id = "123" };
         }
 
         public class Bar
@@ -252,7 +298,7 @@ namespace HotChocolate.Types.Relay
 
         public class Foo1
         {
-            public Bar1 Bar { get; set; } = new Bar1 { Id = "123" };
+            public Bar1 Bar { get; set; } = new() { Id = "123" };
         }
 
         [ObjectType("Bar")]
@@ -261,12 +307,12 @@ namespace HotChocolate.Types.Relay
         {
             public string Id { get; set; }
 
-            public static Bar1 GetBar1(string id) => new Bar1 { Id = id };
+            public static Bar1 GetBar1(string id) => new() { Id = id };
         }
 
         public class Foo2
         {
-            public Bar2 Bar { get; set; } = new Bar2 { Id = "123" };
+            public Bar2 Bar { get; set; } = new() { Id = "123" };
         }
 
         [ObjectType("Bar")]
@@ -275,12 +321,12 @@ namespace HotChocolate.Types.Relay
         {
             public string Id { get; set; }
 
-            public static Bar2 GetFoo(string id) => new Bar2 { Id = id };
+            public static Bar2 GetFoo(string id) => new() { Id = id };
         }
 
         public class Foo3
         {
-            public Bar3 Bar { get; set; } = new Bar3 { Id = "123" };
+            public Bar3 Bar { get; set; } = new() { Id = "123" };
         }
 
         [ObjectType("Bar")]
@@ -292,12 +338,12 @@ namespace HotChocolate.Types.Relay
 
         public static class Bar3Resolver
         {
-            public static Bar3 GetBar3(string id) => new Bar3 { Id = id };
+            public static Bar3 GetBar3(string id) => new() { Id = id };
         }
 
         public class Foo4
         {
-            public Bar4 Bar { get; set; } = new Bar4 { Id1 = "123" };
+            public Bar4 Bar { get; set; } = new() { Id1 = "123" };
         }
 
         [ObjectType("Bar")]
@@ -308,7 +354,7 @@ namespace HotChocolate.Types.Relay
         {
             public string Id1 { get; set; }
 
-            public static Bar2 GetFoo(string id) => new Bar2 { Id = id };
+            public static Bar2 GetFoo(string id) => new() { Id = id };
         }
 
         [ObjectType("Bar")]
@@ -317,7 +363,7 @@ namespace HotChocolate.Types.Relay
         {
             public string Id { get; set; }
 
-            public static Bar5 Get(string id) => new Bar5 { Id = id };
+            public static Bar5 Get(string id) => new() { Id = id };
         }
 
         public class Parent

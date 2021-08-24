@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
-namespace HotChocolate.Data.Projections.Expressions
+namespace HotChocolate.Data.Projections
 {
     public class QueryableProjectionUnionTypeTests
     {

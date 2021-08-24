@@ -6,6 +6,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {

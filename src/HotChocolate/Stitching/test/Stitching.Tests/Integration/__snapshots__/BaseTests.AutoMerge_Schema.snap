@@ -16,7 +16,7 @@ interface Node @source(name: "Node", schema: "contract") @source(name: "Node", s
 type Consultant implements Node @source(name: "Consultant", schema: "customer") {
   id: ID!
   name: String!
-  customers(first: Int after: String last: Int before: String): CustomerConnection
+  customers("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CustomersConnection
 }
 
 type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
@@ -27,7 +27,7 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   street: String!
-  consultant(customer: CustomerInput): Consultant
+  consultant: Consultant
   say(input: SayInput!): String
   complexArg(arg: ComplexInputType): String
   someInt: Int!
@@ -36,17 +36,17 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
 }
 
 "A connection to a list of items."
-type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
+type CustomersConnection @source(name: "CustomersConnection", schema: "customer") {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [CustomerEdge!]
+  edges: [CustomersEdge!]
   "A flattened list of the nodes."
   nodes: [Customer]
 }
 
 "An edge in a connection."
-type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
+type CustomersEdge @source(name: "CustomersEdge", schema: "customer") {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -88,13 +88,19 @@ type PageInfo @source(name: "PageInfo", schema: "customer") {
 }
 
 type Query {
-  node(id: ID!): Node @delegate(schema: "contract")
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @delegate(schema: "contract")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "contract")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
   int(i: Int!): Int! @delegate(schema: "contract")
   guid(guid: UUID!): UUID! @delegate(schema: "contract")
-  customer_node(id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
+  "Fetches an object given its ID."
+  customer_node("ID of the object." id: ID!): Node @delegate(schema: "customer", path: "node(id: $arguments:id)")
+  "Lookup nodes by a list of IDs."
+  customer_nodes("The list of node IDs." ids: [ID!]!): [Node]! @delegate(schema: "customer", path: "nodes(ids: $arguments:ids)")
   customer(id: ID!): Customer @delegate(schema: "customer")
   customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
   consultant(id: ID!): Consultant @delegate(schema: "customer")
@@ -122,16 +128,6 @@ input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer
   name: String
   street: String
   consultantId: String
-}
-
-input CustomerInput @source(name: "CustomerInput", schema: "customer") {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: UUID!
-  kind: CustomerKind!
 }
 
 input SayInput @source(name: "SayInput", schema: "customer") {

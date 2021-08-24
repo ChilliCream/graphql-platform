@@ -228,7 +228,7 @@ namespace HotChocolate.Types.Filters
                 descriptor.Field("foos")
                     .Type<ListType<ObjectType<Foo>>>()
                     .UseFiltering<FilterInputType<Foo>>()
-                    .Resolver(ctx => ctx.Service<IMongoCollection<Foo>>().AsQueryable());
+                    .Resolve(ctx => ctx.Service<IMongoCollection<Foo>>().AsQueryable());
             }
         }
 

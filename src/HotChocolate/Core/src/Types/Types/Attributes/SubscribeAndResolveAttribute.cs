@@ -49,8 +49,8 @@ namespace HotChocolate.Types
                     typeReference = TypeReference.Create(rewritten, TypeContext.Output);
                 }
 
-                d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
-                    d.SourceType!, d.ResolverType, member);
+                d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
+                    member, d.SourceType!, d.ResolverType);
                 d.Resolver = ctx => new ValueTask<object?>(
                     ctx.GetEventMessage<object>());
                 d.Type = typeReference;

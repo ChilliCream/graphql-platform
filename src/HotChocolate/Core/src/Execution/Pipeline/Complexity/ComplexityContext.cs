@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
     public readonly ref struct ComplexityContext
     {
         private readonly IVariableValueCollection _valueCollection;
+        private readonly InputParser _inputParser;
 
         /// <summary>
         /// Creates a new instance of <see cref="ComplexityContext" />
@@ -26,7 +27,8 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             int nodeDepth,
             int childComplexity,
             int defaultComplexity,
-            IVariableValueCollection valueCollection)
+            IVariableValueCollection valueCollection,
+            InputParser inputParser)
         {
             Field = field;
             Selection = selection;
@@ -37,6 +39,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
             FieldDepth = fieldDepth;
             NodeDepth = nodeDepth;
             _valueCollection = valueCollection;
+            _inputParser = inputParser;
         }
 
         /// <summary>
@@ -67,7 +70,7 @@ namespace HotChocolate.Execution.Pipeline.Complexity
         public IReadOnlyList<MultiplierPathString> Multipliers { get; }
 
         /// <summary>
-        /// Gets the default multiplier value that is used when no 
+        /// Gets the default multiplier value that is used when no
         /// multiplier argument has a value.
         /// </summary>
         public int? DefaultMultiplier { get; }
@@ -85,16 +88,16 @@ namespace HotChocolate.Execution.Pipeline.Complexity
         /// <summary>
         /// A helper to resolver a multiplier argument value.
         /// </summary>
-        public bool TryGetArgumentValue<T>(string name, [NotNullWhen(true)] out T value)
+        public bool TryGetArgumentValue<T>(string name, out T? value)
         {
             if (Field.Arguments.TryGetField(name, out IInputField? argument))
             {
                 IValueNode? argumentValue = Selection.Arguments
-                    .FirstOrDefault(t => StringExtensions.EqualsOrdinal(t.Name.Value, name))?
+                    .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(name))?
                     .Value;
 
                 if (argumentValue is VariableNode variable &&
-                    _valueCollection.TryGetVariable(variable.Name.Value, out T castedVariable))
+                    _valueCollection.TryGetVariable(variable.Name.Value, out T? castedVariable))
                 {
                     value = castedVariable;
                     return true;
@@ -104,7 +107,10 @@ namespace HotChocolate.Execution.Pipeline.Complexity
                 {
                     try
                     {
-                        if (argument.Type.ParseLiteral(argumentValue) is T castedArgument)
+                        if (_inputParser.ParseLiteral(
+                            argumentValue, 
+                            argument, 
+                            typeof(T)) is T castedArgument)
                         {
                             value = castedArgument;
                             return true;

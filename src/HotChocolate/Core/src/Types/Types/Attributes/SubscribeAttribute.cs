@@ -83,18 +83,19 @@ namespace HotChocolate.Types
             }
             else
             {
+                
                 descriptor.Extend().OnBeforeCreate(d =>
                 {
                     MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(
-                        With, BindingFlags.Public | BindingFlags.Instance);
-                    
+                        With!, BindingFlags.Public | BindingFlags.Instance);
+
                     if (subscribeResolver is null)
                     {
                         throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
                     }
 
-                    d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
-                        d.SourceType!, d.ResolverType, subscribeResolver);
+                    d.SubscribeResolver = context.ResolverCompiler.CompileSubscribe(
+                        subscribeResolver, d.SourceType!, d.ResolverType);
                 });
             }
         }

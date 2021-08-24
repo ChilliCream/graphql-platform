@@ -13,13 +13,13 @@ namespace HotChocolate.Validation.Types
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field("iq")
                 .Type<NonNullType<IntType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
             descriptor.Field("pets")
                 .Type<ListType<PetType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
             descriptor.Field("relatives")
                 .Type<ListType<HumanType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
         }
     }
 }

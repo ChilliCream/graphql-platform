@@ -137,6 +137,10 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> ⚠️ Note: Only **one** mutation type can be registered using `AddMutationType()`. If we want to split up our mutation type into multiple classes, we can do so using type extensions.
+>
+> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
 # Transactions
 
 With multiple mutations executed serially in one request it can be useful to wrap these in a transaction that we can control.

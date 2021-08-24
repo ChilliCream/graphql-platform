@@ -21,22 +21,22 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddMutationType(c => c
                     .Name("def")
                     .Field("field")
                     .Type<IntType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddSubscriptionType(c => c
                     .Name("ghi")
                     .Field("field")
                     .Type<BooleanType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddObjectType(c => c
                     .Name("thisTypeWillBeRemoved")
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInputObjectType(c => c
                     .Name("thisTypeWillBeRemovedInput")
                     .Field("field")
@@ -68,7 +68,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("def"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInterfaceType(c => c
                     .Name("def")
                     .Field("field")
@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
                     .Implements(new NamedTypeNode("def"))
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddType<FloatType>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();
@@ -97,7 +97,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("ghi"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInterfaceType(c => c
                     .Name("def")
                     .Field("field")
@@ -107,7 +107,7 @@ namespace HotChocolate.Configuration
                     .Implements(new NamedTypeNode("def"))
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddType<FloatType>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();
@@ -126,7 +126,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("def"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddUnionType(c => c
                     .Name("def")
                     .Type(new NamedTypeNode("ghi")))
@@ -134,7 +134,7 @@ namespace HotChocolate.Configuration
                     .Name("ghi")
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddType<FloatType>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = true)
                 .Create();
@@ -153,7 +153,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("def"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInterfaceType(c => c
                     .Name("def")
                     .Field("field")
@@ -164,7 +164,7 @@ namespace HotChocolate.Configuration
                     .Implements(new NamedTypeNode("def"))
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("_abc")
                     .Location(DirectiveLocation.Object)))
@@ -189,7 +189,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("def"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInterfaceType(c => c
                     .Name("def")
                     .Field("field")
@@ -199,7 +199,7 @@ namespace HotChocolate.Configuration
                     .Implements(new NamedTypeNode("def"))
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("_abc")
                     .Location(DirectiveLocation.Query)))
@@ -221,7 +221,7 @@ namespace HotChocolate.Configuration
                     .Name("abc")
                     .Field("field")
                     .Type(new NamedTypeNode("def"))
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddInterfaceType(c => c
                     .Name("def")
                     .Field("field")
@@ -231,7 +231,7 @@ namespace HotChocolate.Configuration
                     .Implements(new NamedTypeNode("def"))
                     .Field("field")
                     .Type<StringType>()
-                    .Resolver("test"))
+                    .Resolve("test"))
                 .AddDirectiveType(new DirectiveType(d => d
                     .Name("_abc")
                     .Location(DirectiveLocation.Object | DirectiveLocation.Query)))

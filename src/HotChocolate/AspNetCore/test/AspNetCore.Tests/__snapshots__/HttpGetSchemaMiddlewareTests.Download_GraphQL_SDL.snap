@@ -7,43 +7,43 @@
 interface Character {
   id: ID!
   name: String!
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   appearsIn: [Episode]
   height(unit: Unit): Float
-}
-
-"A connection to a list of items."
-type CharacterConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [CharacterEdge!]
-  "A flattened list of the nodes."
-  nodes: [Character]
-}
-
-"An edge in a connection."
-type CharacterEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Character
 }
 
 type Droid implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   height(unit: Unit): Float
   primaryFunction: String
+}
+
+"A connection to a list of items."
+type FriendsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [FriendsEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+}
+
+"An edge in a connection."
+type FriendsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character
 }
 
 type Human implements Character {
   id: ID!
   name: String!
   appearsIn: [Episode]
-  friends(first: Int after: String last: Int before: String): CharacterConnection
+  friends("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): FriendsConnection
   otherHuman: Human
   height(unit: Unit): Float
   homePlanet: String
@@ -90,6 +90,7 @@ type Starship {
 type Subscription {
   onReview(episode: Episode!): Review!
   onNext: String
+  onException: String
 }
 
 union SearchResult = Starship | Human | Droid

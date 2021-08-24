@@ -13,6 +13,7 @@ namespace HotChocolate.Execution.Configuration
         private readonly List<Action<IServiceCollection>> _schemaServices = new();
         private readonly List<OnRequestExecutorCreatedAction> _onRequestExecutorCreated = new();
         private readonly List<OnRequestExecutorEvictedAction> _onRequestExecutorEvicted = new();
+        private readonly List<ITypeModule> _typeModules = new();
 
         public ISchema? Schema { get; set; }
 
@@ -37,6 +38,9 @@ namespace HotChocolate.Execution.Configuration
 
         public IList<OnRequestExecutorEvictedAction> OnRequestExecutorEvicted =>
             _onRequestExecutorEvicted;
+
+        public IList<ITypeModule> TypeModules =>
+            _typeModules;
 
         public void CopyTo(RequestExecutorSetup options)
         {

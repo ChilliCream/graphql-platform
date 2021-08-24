@@ -29,9 +29,8 @@ namespace HotChocolate.Utilities
             }
 
             Dictionary<string, object> dict = null;
-            Action<object> setValue =
-                value => dict = (Dictionary<string, object>)value;
-            VisitInputObject(type, obj, setValue, new HashSet<object>());
+            void SetValue(object value) => dict = (Dictionary<string, object>)value;
+            VisitInputObject(type, obj, SetValue, new HashSet<object>());
             return dict;
         }
 
@@ -46,21 +45,15 @@ namespace HotChocolate.Utilities
             }
             else if (type.IsListType())
             {
-                VisitList(
-                    (ListType)type.ListType(),
-                    obj, setValue, processed);
+                VisitList(type.ListType(), obj, setValue, processed);
             }
             else if (type.IsLeafType())
             {
-                VisitLeaf(
-                    (INamedInputType)type.NamedType(),
-                    obj, setValue, processed);
+                VisitLeaf((INamedInputType)type.NamedType(), obj, setValue);
             }
             else if (type.IsInputObjectType())
             {
-                VisitInputObject(
-                    (InputObjectType)type.NamedType(),
-                    obj, setValue, processed);
+                VisitInputObject((InputObjectType)type.NamedType(), obj, setValue, processed);
             }
             else
             {
@@ -77,11 +70,14 @@ namespace HotChocolate.Utilities
                 var dict = new Dictionary<string, object>();
                 setValue(dict);
 
-                foreach (InputField field in type.Fields)
+                var fieldValues = new object[type.Fields.Count];
+                type.GetFieldValues(obj, fieldValues);
+
+                for (var i = 0; i < type.Fields.Count; i++)
                 {
-                    object fieldValue = field.GetValue(obj);
-                    Action<object> setField = value => dict[field.Name] = value;
-                    VisitValue(field.Type, fieldValue, setField, processed);
+                    InputField field = type.Fields[i];
+                    void SetField(object value) => dict[field.Name] = value;
+                    VisitValue(field.Type, fieldValues[i], SetField, processed);
                 }
             }
         }
@@ -96,26 +92,24 @@ namespace HotChocolate.Utilities
                 setValue(list);
 
                 var itemType = (IInputType)type.ElementType;
-                Action<object> addItem = item => list.Add(item);
+                void AddItem(object item) => list.Add(item);
 
-                foreach (object item in sourceList)
+                foreach (var item in sourceList)
                 {
-                    VisitValue(itemType, item, addItem, processed);
+                    VisitValue(itemType, item, AddItem, processed);
                 }
             }
         }
 
-        private void VisitLeaf(
-            INamedInputType type, object obj,
-            Action<object> setValue, ISet<object> processed)
+        private void VisitLeaf(INamedInputType type, object obj, Action<object> setValue)
         {
             if (type is IHasRuntimeType hasClrType)
             {
                 Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.RuntimeType
+                var normalized = currentType == hasClrType.RuntimeType
                     ? obj
                     : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
-                setValue(obj);
+                setValue(normalized);
             }
         }
     }

@@ -63,5 +63,23 @@ namespace HotChocolate.Benchmarks
                     }
                 }
             ");
+
+        [Benchmark]
+        public async Task Sessions_Medium() =>
+            await BenchmarkAsync(SessionMediumQuery);
+
+        public async Task Print_Sessions_Medium() =>
+            await PrintQueryPlanAsync(SessionMediumQuery);
+
+        public string SessionMediumQuery { get; } = Resources.SessionMediumQuery;
+
+        [Benchmark]
+        public async Task Sessions_Large() =>
+            await BenchmarkAsync(SessionLargeQuery);
+
+        public async Task Print_Sessions_Large() =>
+            await PrintQueryPlanAsync(SessionLargeQuery);
+
+        public string SessionLargeQuery { get; } = Resources.SessionLargeQuery;
     }
 }

@@ -20,6 +20,7 @@ namespace HotChocolate.Execution
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly RequestDelegate _requestDelegate;
         private readonly BatchExecutor _batchExecutor;
+        private RequestContext? _pooledContext;
 
         public RequestExecutor(
             ISchema schema,
@@ -31,6 +32,7 @@ namespace HotChocolate.Execution
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
             RequestDelegate requestDelegate,
+            BatchExecutor batchExecutor,
             ulong version)
         {
             Schema = schema ??
@@ -51,8 +53,9 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(diagnosticEvents));
             _requestDelegate = requestDelegate ??
                 throw new ArgumentNullException(nameof(requestDelegate));
+            _batchExecutor = batchExecutor ??
+                throw new ArgumentNullException(nameof(batchExecutor));
             Version = version;
-            _batchExecutor = new BatchExecutor(this, errorHandler, converter);
         }
 
         public ISchema Schema { get; }
@@ -70,23 +73,27 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IServiceScope? scope = request.Services is null ? _applicationServices.CreateScope() : null;
-            IServiceProvider services = scope is null ? request.Services! : scope.ServiceProvider;
+            IServiceScope? scope = request.Services is null
+                ? _applicationServices.CreateScope()
+                : null;
+
+            IServiceProvider services = scope is null
+                ? request.Services!
+                : scope.ServiceProvider;
+
+            RequestContext? context = Interlocked.Exchange(ref _pooledContext, null);
 
             try
             {
-                var context = new RequestContext(
+                context ??= new RequestContext(
                     Schema,
                     Version,
-                    services,
                     _errorHandler,
                     _converter,
                     _activator,
-                    _diagnosticEvents,
-                    request)
-                {
-                    RequestAborted = cancellationToken
-                };
+                    _diagnosticEvents) { RequestAborted = cancellationToken };
+
+                context.Initialize(request, services);
 
                 _requestContextAccessor.RequestContext = context;
 
@@ -97,24 +104,28 @@ namespace HotChocolate.Execution
                     throw new InvalidOperationException();
                 }
 
-                if (scope is not null)
+                if (scope is null)
                 {
-                    if (context.Result is DeferredQueryResult deferred)
-                    {
-                        context.Result = new DeferredQueryResult(deferred, scope);
-                        scope = null;
-                    }
-                    else if (context.Result is SubscriptionResult result)
-                    {
-                        context.Result = new SubscriptionResult(result, scope);
-                        scope = null;
-                    }
+                    return context.Result;
+                }
+
+                if (context.Result is DeferredQueryResult deferred)
+                {
+                    context.Result = new DeferredQueryResult(deferred, scope);
+                    scope = null;
+                }
+                else if (context.Result is SubscriptionResult result)
+                {
+                    context.Result = new SubscriptionResult(result, scope);
+                    scope = null;
                 }
 
                 return context.Result;
             }
             finally
             {
+                context!.Reset();
+                Interlocked.Exchange(ref _pooledContext, context);
                 scope?.Dispose();
             }
         }
@@ -129,9 +140,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(requestBatch));
             }
 
-            return Task.FromResult<IBatchQueryResult>(new BatchQueryResult(
-                () => _batchExecutor.ExecuteAsync(requestBatch, cancellationToken),
-                null));
+            return Task.FromResult<IBatchQueryResult>(
+                new BatchQueryResult(
+                    () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                    null));
         }
     }
 }

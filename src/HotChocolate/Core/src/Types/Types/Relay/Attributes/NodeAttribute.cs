@@ -60,11 +60,11 @@ namespace HotChocolate.Types.Relay
 
                     nodeDescriptor.IdField(idField);
                 }
-                else if(context.TypeInspector.GetNodeIdMember(type) is { } id)
+                else if (context.TypeInspector.GetNodeIdMember(type) is { } id)
                 {
                     nodeDescriptor.IdField(id);
                 }
-                else if(context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
+                else if (context.TypeInspector.GetNodeIdMember(definition.RuntimeType) is { } sid)
                 {
                     nodeDescriptor.IdField(sid);
                 }

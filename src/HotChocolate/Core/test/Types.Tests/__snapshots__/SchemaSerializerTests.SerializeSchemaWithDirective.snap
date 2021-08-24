@@ -1,8 +1,4 @@
-﻿schema {
-  query: Query
-}
-
-interface Bar {
+﻿interface Bar {
   id: ID! @upper
 }
 
@@ -12,10 +8,6 @@ type Baz {
 
 type Foo implements Bar {
   id: ID!
-}
-
-type Query {
-  bar: String
 }
 
 union FooOrBaz = Foo | Baz

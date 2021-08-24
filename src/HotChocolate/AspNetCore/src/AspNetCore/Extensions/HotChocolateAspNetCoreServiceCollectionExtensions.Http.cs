@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -26,7 +27,8 @@ namespace Microsoft.Extensions.DependencyInjection
             where T : class, IHttpRequestInterceptor =>
             builder.ConfigureSchemaServices(s => s
                 .RemoveAll<IHttpRequestInterceptor>()
-                .AddSingleton<IHttpRequestInterceptor, T>());
+                .AddSingleton<IHttpRequestInterceptor, T>(
+                     sp => sp.GetCombinedServices().GetOrCreateService<T>(typeof(T))!));
 
         /// <summary>
         /// Adds an interceptor for GraphQL requests to the GraphQL configuration.

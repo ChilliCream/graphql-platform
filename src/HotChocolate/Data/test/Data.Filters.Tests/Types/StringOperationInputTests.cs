@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("foo")
+                        .Resolve("foo")
                         .Argument("test", a => a.Type<StringOperationFilterInputType>()))
                 .AddFiltering()
                 .Create();
@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Filters
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("foo")
+                        .Resolve("foo")
                         .Argument("test", a => a.Type<FilterInputType<Foo>>()))
                 .AddFiltering()
                 .Create();
@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Filters
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("foo")
+                        .Resolve("foo")
                         .Argument("test", a => a.Type<FooFilterInput>()))
                 .TryAddConvention<IFilterConvention>(
                     (sp) => new FilterConvention(x => x.UseMock()))

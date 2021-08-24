@@ -5,10 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <!--PackageReference Include="HotChocolate" Version="11.2.2" /-->
-    <!--PackageReference Include="HotChocolate.Data" Version="11.2.2" /-->
+    <!--ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" /-->
+    <!--ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" /-->
+    <PackageReference Include="HotChocolate" Version="12.0.0-preview.29" />
+    <PackageReference Include="HotChocolate.Data" Version="12.0.0-preview.29" />
   </ItemGroup>
 
   <ItemGroup>

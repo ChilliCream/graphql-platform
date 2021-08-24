@@ -18,7 +18,10 @@ namespace HotChocolate.Types.Descriptors
         public void GetEnumName(string runtimeName, string expectedSchemaName)
         {
             // arrange
-            var namingConventions = new DefaultNamingConventions();
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
 
             // act
             NameString schemaName = namingConventions.GetEnumValueName(runtimeName);
@@ -35,7 +38,10 @@ namespace HotChocolate.Types.Descriptors
         public void GetEnumValueDescription_NoDescription(object value)
         {
             // arrange
-            var namingConventions = new DefaultNamingConventions();
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
 
             // act
             var result = namingConventions.GetEnumValueDescription(value);
@@ -48,7 +54,10 @@ namespace HotChocolate.Types.Descriptors
         public void GetEnumValueDescription_XmlDescription()
         {
             // arrange
-            var namingConventions = new DefaultNamingConventions();
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
 
             // act
             var result = namingConventions.GetEnumValueDescription(EnumWithDocEnum.Value1);
@@ -61,10 +70,12 @@ namespace HotChocolate.Types.Descriptors
         public void GetEnumValueDescription_AttributeDescription()
         {
             // arrange
-            var namingConventions = new DefaultNamingConventions();
-
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
             // act
-            string result = namingConventions.GetEnumValueDescription(Foo.Baz);
+            var result = namingConventions.GetEnumValueDescription(Foo.Baz);
 
             // assert
             Assert.Equal("Baz Desc", result);
@@ -80,10 +91,13 @@ namespace HotChocolate.Types.Descriptors
         public void Input_Naming_Convention(Type type, string expectedName)
         {
             // arrange
-            var conventions = new DefaultNamingConventions();
+            var namingConventions = new DefaultNamingConventions(
+                new XmlDocumentationProvider(
+                    new XmlDocumentationFileResolver(),
+                    new NoOpStringBuilderPool()));
 
             // act
-            NameString typeName = conventions.GetTypeName(type, TypeKind.InputObject);
+            NameString typeName = namingConventions.GetTypeName(type, TypeKind.InputObject);
 
             // assert
             Assert.Equal(expectedName, typeName.Value);

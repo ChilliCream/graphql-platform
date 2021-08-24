@@ -173,7 +173,7 @@ namespace HotChocolate.Types
             Assert.Equal(
                 typeof(string),
                 Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
-            Assert.Equal("string", description.NativeDefaultValue);
+            Assert.Equal("string", description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
             // asser
             InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Null(description.DefaultValue);
-            Assert.Equal("string", description.NativeDefaultValue);
+            Assert.Equal("string", description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -212,7 +212,7 @@ namespace HotChocolate.Types
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.IsType<NullValueNode>(description.DefaultValue);
-            Assert.Null(description.NativeDefaultValue);
+            Assert.Null(description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace HotChocolate.Types
             Assert.IsType<StringValueNode>(description.DefaultValue);
             Assert.Equal("123",
                 ((StringValueNode)description.DefaultValue).Value);
-            Assert.Null(description.NativeDefaultValue);
+            Assert.Null(description.RuntimeDefaultValue);
         }
 
         [Fact]
@@ -249,6 +249,20 @@ namespace HotChocolate.Types
             Assert.Equal(typeof(FieldCollection<Argument>),
                 Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("arguments", description.Name);
+        }
+
+        [Fact]
+        public void Type_Syntax_Type_Null()
+        {
+            void Error() => InputFieldDescriptor.New(Context, "foo").Type((string)null);
+            Assert.Throws<ArgumentNullException>(Error);
+        }
+
+        [Fact]
+        public void Type_Syntax_Descriptor_Null()
+        {
+            void Error() => default(InputFieldDescriptor).Type("foo");
+            Assert.Throws<ArgumentNullException>(Error);
         }
     }
 }

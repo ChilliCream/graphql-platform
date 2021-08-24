@@ -8,6 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -34,16 +35,8 @@ namespace HotChocolate.Types.Descriptors
         protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
-            Type sourceType)
-            : this(context, member, sourceType, null)
-        {
-        }
-
-        protected ObjectFieldDescriptor(
-            IDescriptorContext context,
-            MemberInfo member,
             Type sourceType,
-            Type? resolverType)
+            Type? resolverType = null)
             : base(context)
         {
             Definition.Member = member ??
@@ -67,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (member is MethodInfo m)
             {
-                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name));
+                Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name!));
                 Definition.ResultType = m.ReturnType;
             }
             else if (member is PropertyInfo p)
@@ -80,7 +73,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             LambdaExpression expression,
             Type sourceType,
-            Type? resolverType)
+            Type? resolverType = null)
             : base(context)
         {
             Definition.Expression = expression
@@ -102,7 +95,7 @@ namespace HotChocolate.Types.Descriptors
                     MemberKind.ObjectField);
                 Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
-                if (context.Naming.IsDeprecated(member, out string? reason))
+                if (context.Naming.IsDeprecated(member, out var reason))
                 {
                     Deprecated(reason);
                 }
@@ -256,7 +249,7 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
-            Type resultType) =>
+            Type? resultType) =>
             Resolve(fieldResolver, resultType);
 
         /// <inheritdoc />
@@ -375,7 +368,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            Definition.MiddlewareComponents.Add(middleware);
+            Definition.MiddlewareDefinitions.Add(new(middleware));
             return this;
         }
 
@@ -420,21 +413,15 @@ namespace HotChocolate.Types.Descriptors
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             MemberInfo member,
-            Type sourceType) =>
-            new(context, member, sourceType);
-
-        public static ObjectFieldDescriptor New(
-            IDescriptorContext context,
-            MemberInfo member,
             Type sourceType,
-            Type resolverType) =>
+            Type? resolverType = null) =>
             new(context, member, sourceType, resolverType);
 
         public static ObjectFieldDescriptor New(
             IDescriptorContext context,
             LambdaExpression expression,
             Type sourceType,
-            Type resolverType) =>
+            Type? resolverType = null) =>
             new(context, expression, sourceType, resolverType);
 
         public static ObjectFieldDescriptor From(

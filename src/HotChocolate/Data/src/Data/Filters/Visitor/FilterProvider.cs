@@ -4,7 +4,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
@@ -21,11 +20,8 @@ namespace HotChocolate.Data.Filters
         , IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
-        private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
-            new List<IFilterFieldHandler<TContext>>();
-
+        private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =  new();
         private Action<IFilterProviderDescriptor<TContext>>? _configure;
-
         private IFilterConvention? _filterConvention;
 
         /// <inheritdoc />
@@ -78,7 +74,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         protected override void Complete(IConventionContext context)
         {
-            if (Definition.Handlers.Count == 0)
+            if (Definition!.Handlers.Count == 0)
             {
                 throw FilterProvider_NoHandlersConfigured(this);
             }
@@ -96,6 +92,8 @@ namespace HotChocolate.Data.Filters
                 (typeof(IDescriptorContext), context.DescriptorContext),
                 (typeof(IFilterConvention), _filterConvention),
                 (typeof(ITypeConverter), context.Services.GetTypeConverter()),
+                (typeof(InputParser), context.DescriptorContext.InputParser),
+                (typeof(InputFormatter), context.DescriptorContext.InputFormatter),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 

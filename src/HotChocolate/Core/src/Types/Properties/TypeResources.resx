@@ -726,6 +726,21 @@ Type: `{0}`</value>
   <data name="CostDirective_DefaultMultiplierCannotBeBelowTwo" xml:space="preserve">
     <value>Default multiplier cannot be below two.</value>
   </data>
+  <data name="EventMessageParameterExpressionBuilder_MessageNotFound" xml:space="preserve">
+    <value>The event message parameter can only be used in a subscription context.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CreateResolver_ArgumentValudationError" xml:space="preserve">
+    <value>The public method should already have ensured that we do not have members other than method or property at this point.</value>
+  </data>
+  <data name="DefaultResolverCompilerService_CompileSubscribe_OnlyMethodsAllowed" xml:space="preserve">
+    <value>Only methods are allowed.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolverConfig_ContextInvalid" xml:space="preserve">
+    <value>The schema builder context is invalid.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolver_EmptyCooridnates" xml:space="preserve">
+    <value>Empty field coordinates are not allowed.</value>
+  </data>
   <data name="ExpressionHelper_GetGlobalStateWithDefault_NoDefaults" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ContextData`.</value>
   </data>
@@ -734,5 +749,62 @@ Type: `{0}`</value>
   </data>
   <data name="ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue" xml:space="preserve">
     <value>The specified key `{0}` does not exist on `context.ScopedContextData`.</value>
+  </data>
+  <data name="ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound" xml:space="preserve">
+    <value>Could not resolve the claims principal.</value>
+  </data>
+  <data name="DirectiveLocation_VariableDefinition" xml:space="preserve">
+    <value>Location adjacent to a variable definition.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddResolver_TypeConditionNotMet" xml:space="preserve">
+    <value>The resolver type needs to be a public non-abstract non-static class.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_AddRootResolver_NeedsToBeClassOrInterface" xml:space="preserve">
+    <value>The resolver type needs to be a class or interface</value>
+  </data>
+  <data name="Relay_NodeField_Description" xml:space="preserve">
+    <value>Fetches an object given its ID.</value>
+  </data>
+  <data name="Relay_NodeField_Id_Description" xml:space="preserve">
+    <value>ID of the object.</value>
+  </data>
+  <data name="Relay_NodesField_Description" xml:space="preserve">
+    <value>Lookup nodes by a list of IDs.</value>
+  </data>
+  <data name="Relay_NodesField_Ids_Description" xml:space="preserve">
+    <value>The list of node IDs.</value>
+  </data>
+  <data name="ErrorHelper_MiddlewareOrderInvalid" xml:space="preserve">
+    <value>The middleware pipeline order for the field `{0}` is invalid. Middleware order is important especially with data pipelines. The correct order of a data pipeline is as follows: UseDbContext -> UsePaging -> UseProjection -> UseFiltering -> UseSorting. You may omit any of these middleware or have other middleware in between but you need to abide by the overall order. Your order is: {1}.</value>
+  </data>
+  <data name="FieldInitHelper_CompleteFields_MaxFieldCountToSmall" xml:space="preserve">
+    <value>The max expected field count cannot be smaller then 1.</value>
+  </data>
+  <data name="RegisteredType_Completion_NotYetReady" xml:space="preserve">
+    <value>The object is not yet ready for this action.</value>
+  </data>
+  <data name="EdgeType_IsInstanceOfType_NonObject" xml:space="preserve">
+    <value>Edge types that have a non object node are not supported.</value>
+  </data>
+  <data name="EdgeType_Description" xml:space="preserve">
+    <value>An edge in a connection.</value>
+  </data>
+  <data name="EdgeType_Cursor_Description" xml:space="preserve">
+    <value>A cursor for use in pagination.</value>
+  </data>
+  <data name="EdgeType_Node_Description" xml:space="preserve">
+    <value>The item at the end of the edge.</value>
+  </data>
+  <data name="ConnectionType_Description" xml:space="preserve">
+    <value>A connection to a list of items.</value>
+  </data>
+  <data name="ConnectionType_PageInfo_Description" xml:space="preserve">
+    <value>Information to aid in pagination.</value>
+  </data>
+  <data name="ConnectionType_Edges_Description" xml:space="preserve">
+    <value>A list of edges.</value>
+  </data>
+  <data name="ConnectionType_Nodes_Description" xml:space="preserve">
+    <value>A flattened list of the nodes.</value>
   </data>
 </root>

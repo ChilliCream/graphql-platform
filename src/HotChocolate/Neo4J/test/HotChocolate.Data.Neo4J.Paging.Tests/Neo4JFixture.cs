@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Neo4J.Paging
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession()))
+                        .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession()))
                         .Use(
                             next => async context =>
                             {
@@ -51,7 +51,8 @@ namespace HotChocolate.Data.Neo4J.Paging
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseNeo4JOffsetPaging<ObjectType<TEntity>>())
+                        .UseOffsetPaging<ObjectType<TEntity>>())
+                .AddNeo4JPagingProviders()
                 .UseRequest(
                     next => async context =>
                     {

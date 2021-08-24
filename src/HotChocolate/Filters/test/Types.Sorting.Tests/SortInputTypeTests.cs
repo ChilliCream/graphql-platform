@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Sorting
                    c.Name("Query")
                        .Field("foo")
                        .Type<StringType>()
-                       .Resolver("bar"))
+                       .Resolve("bar"))
                .AddType(new SortInputType<Foo>(
                    d => d.BindFieldsExplicitly()
                    .Sortable(f => f.Bar)

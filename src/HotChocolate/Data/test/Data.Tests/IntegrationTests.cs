@@ -682,7 +682,7 @@ namespace HotChocolate.Data
                 descriptor
                     .Field("foos")
                     .Type<ListType<ObjectType<Bar>>>()
-                    .Resolver(_ =>
+                    .Resolve(_ =>
                     {
                         IQueryable<Bar> data = new Bar[]
                         {

@@ -46,7 +46,7 @@ namespace HotChocolate.Data.Neo4J.Projections
                             c.Name("Query");
                             ApplyConfigurationToFieldDescriptor(
                                 c.Field(x => x.Root)
-                                    .Resolver(new Neo4JExecutable<TEntity>(GetAsyncSession())));
+                                    .Resolve(new Neo4JExecutable<TEntity>(GetAsyncSession())));
                         }))
                 .UseRequest(
                     next => async context =>

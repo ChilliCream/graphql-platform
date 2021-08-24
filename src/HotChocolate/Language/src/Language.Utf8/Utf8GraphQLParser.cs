@@ -168,7 +168,7 @@ namespace HotChocolate.Language
 
             Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
-                : (source = ArrayPool<byte>.Shared.Rent(length));
+                : source = ArrayPool<byte>.Shared.Rent(length);
 
             try
             {

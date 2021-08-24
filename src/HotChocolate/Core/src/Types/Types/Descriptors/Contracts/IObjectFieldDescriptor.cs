@@ -99,12 +99,19 @@ namespace HotChocolate.Types
         /// The field argument name.
         /// </param>
         /// <param name="argumentDescriptor">
-        /// The argument descriptor to specify the argument configuration. 
+        /// The argument descriptor to specify the argument configuration.
         /// </param>
         IObjectFieldDescriptor Argument(
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
+        /// <summary>
+        /// Ignores the given field for the schema creation.
+        /// This field will not be included into the GraphQL schema.
+        /// </summary>
+        /// <param name="ignore">
+        /// The value specifying if this field shall be ignored by the type initialization.
+        /// </param>
         IObjectFieldDescriptor Ignore(bool ignore = true);
 
         [Obsolete("Use Resolve(...)")]
@@ -121,7 +128,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver,
-            Type resultType);
+            Type? resultType);
 
         IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod);

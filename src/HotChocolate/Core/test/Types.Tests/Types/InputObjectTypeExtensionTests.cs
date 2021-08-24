@@ -200,7 +200,7 @@ namespace HotChocolate.Types
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
-                descriptor.Field("description").Resolver("bar");
+                descriptor.Field("description").Resolve("bar");
             }
         }
 
