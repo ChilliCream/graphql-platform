@@ -52,6 +52,16 @@ namespace HotChocolate
             public const string TaskProcessingError = "HC0008";
             public const string SyntaxError = "HC0014";
             public const string CannotCreateRootValue = "HC0019";
+
+            /// <summary>
+            /// This server only allows persisted queries. No query id was provided.
+            /// </summary>
+            public const string NoQueryIdWasProvided = "HC0052";
+
+            /// <summary>
+            /// This server only allows persisted queries but a document was provided.
+            /// </summary>
+            public const string DocumentWasProvided = "HC0053";
         }
 
         /// <summary>

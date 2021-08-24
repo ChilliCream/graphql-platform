@@ -125,8 +125,14 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.UseRequest<OperationVariableCoercionMiddleware>();
 
         public static IRequestExecutorBuilder UseReadPersistedQuery(
-            this IRequestExecutorBuilder builder) =>
-            builder.UseRequest<ReadPersistedQueryMiddleware>();
+            this IRequestExecutorBuilder builder,
+            IPersistedQueryOptions? options = null)
+        {
+            builder.Services
+                .AddSingleton<IPersistedQueryOptions>(options ?? new PersistedQueryOptions());
+
+            return builder.UseRequest<ReadPersistedQueryMiddleware>();
+        }
 
         public static IRequestExecutorBuilder UseWritePersistedQuery(
             this IRequestExecutorBuilder builder) =>
@@ -146,7 +152,8 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IRequestExecutorBuilder UsePersistedQueryPipeline(
-            this IRequestExecutorBuilder builder)
+            this IRequestExecutorBuilder builder,
+            IPersistedQueryOptions? options = null)
         {
             if (builder is null)
             {
@@ -158,7 +165,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseExceptions()
                 .UseTimeout()
                 .UseDocumentCache()
-                .UseReadPersistedQuery()
+                .UseReadPersistedQuery(options)
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()

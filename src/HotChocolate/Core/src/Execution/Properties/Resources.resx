@@ -273,4 +273,10 @@
   <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
     <value>The GraphQL request execution was canceled.</value>
   </data>
+  <data name="PersistedQuery_NoQueryIdWasProvided" xml:space="preserve">
+    <value>This server only allows persisted queries. No query id was provided.</value>
+  </data>
+  <data name="PersistedQuery_DocumentWasProvided" xml:space="preserve">
+    <value>This server only allows persisted queries but a document was provided.</value>
+  </data>
 </root>

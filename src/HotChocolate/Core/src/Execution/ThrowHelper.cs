@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Execution.Properties.Resources;
@@ -300,6 +301,18 @@ namespace HotChocolate.Execution
                 // this string is defined in the APQ spec!
                 .SetMessage("PersistedQueryNotFound")
                 .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
+                .Build());
+
+        public static GraphQLException ReadPersistedQueryMiddleware_NoQueryIdWasProvided() =>
+            new(ErrorBuilder.New()
+                .SetMessage(PersistedQuery_NoQueryIdWasProvided)
+                .SetCode(ErrorCodes.Execution.NoQueryIdWasProvided)
+                .Build());
+
+        public static GraphQLException ReadPersistedQueryMiddleware_DocumentWasProvided() =>
+            new(ErrorBuilder.New()
+                .SetMessage(PersistedQuery_DocumentWasProvided)
+                .SetCode(ErrorCodes.Execution.DocumentWasProvided)
                 .Build());
     }
 }

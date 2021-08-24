@@ -44,3 +44,5 @@
 | HC0042 | Server            | The variable path must start with `variables`.                                                                                           |
 | HC0043 | Server            | Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.                                                |
 | HC0044 | Server            | No `map` specified.                                                                                                                      |
+| HC0052 | Execution         | This server only allows persisted queries. No query id was provided.                                                                     |
+| HC0053 | Execution         | This server only allows persisted queries but a document was provided.                                                                   |

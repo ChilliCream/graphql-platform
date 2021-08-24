@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "This server only allows persisted queries but a document was provided.",
+      "extensions": {
+        "code": "HC0053"
+      }
+    }
+  ]
+}

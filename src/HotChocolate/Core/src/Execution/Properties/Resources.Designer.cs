@@ -356,5 +356,17 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
             }
         }
+        
+        internal static string PersistedQuery_NoQueryIdWasProvided {
+            get {
+                return ResourceManager.GetString("PersistedQuery_NoQueryIdWasProvided", resourceCulture);
+            }
+        }
+        
+        internal static string PersistedQuery_DocumentWasProvided {
+            get {
+                return ResourceManager.GetString("PersistedQuery_DocumentWasProvided", resourceCulture);
+            }
+        }
     }
 }
