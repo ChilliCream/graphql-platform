@@ -7,7 +7,7 @@ using MongoDB.Bson.Serialization.Serializers;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal class MongoDbFilterOperation : MongoDbFilterDefinition
+    public class MongoDbFilterOperation : MongoDbFilterDefinition
     {
         private readonly string _path;
         private readonly object? _value;

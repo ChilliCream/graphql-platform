@@ -5,7 +5,7 @@ using MongoDB.Driver.Core.Misc;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinition
+    public sealed class MongoDbIncludeProjectionOperation : MongoDbProjectionDefinition
     {
         private readonly string _path;
         private readonly SortDirection _direction;
