@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace HotChocolate.Data.MongoDb.Sorting
 {
-    internal static class MongoSortVisitorContextExtensions
+    public static class MongoSortVisitorContextExtensions
     {
         public static string GetPath(this MongoDbSortVisitorContext ctx) =>
             string.Join(".", ctx.Path.Reverse());
