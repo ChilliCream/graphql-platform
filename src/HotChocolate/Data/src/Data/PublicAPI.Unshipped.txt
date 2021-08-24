@@ -33,6 +33,18 @@ HotChocolate.Data.Filters.Expressions.QueryableStringNotInHandler.QueryableStrin
 HotChocolate.Data.Filters.Expressions.QueryableStringNotStartsWithHandler.QueryableStringNotStartsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringOperationHandler.QueryableStringOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableStringStartsWithHandler.QueryableStringStartsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.Filters.FilterConvention.IsAndAllowed() -> bool
+HotChocolate.Data.Filters.FilterConvention.IsOrAllowed() -> bool
+HotChocolate.Data.Filters.FilterConventionDefinition.UseAnd.get -> bool
+HotChocolate.Data.Filters.FilterConventionDefinition.UseAnd.set -> void
+HotChocolate.Data.Filters.FilterConventionDefinition.UseOr.get -> bool
+HotChocolate.Data.Filters.FilterConventionDefinition.UseOr.set -> void
+HotChocolate.Data.Filters.FilterConventionDescriptor.AllowAnd(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+HotChocolate.Data.Filters.FilterConventionDescriptor.AllowOr(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+HotChocolate.Data.Filters.IFilterConvention.IsAndAllowed() -> bool
+HotChocolate.Data.Filters.IFilterConvention.IsOrAllowed() -> bool
+HotChocolate.Data.Filters.IFilterConventionDescriptor.AllowAnd(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+HotChocolate.Data.Filters.IFilterConventionDescriptor.AllowOr(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.AddAbstractType(System.Type! type, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>! memberAssignments) -> void
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.GetAbstractTypes() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<System.Type!, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>!>>!
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.HasAbstractTypes() -> bool
