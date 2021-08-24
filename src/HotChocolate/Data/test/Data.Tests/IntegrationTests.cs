@@ -845,15 +845,5 @@ namespace HotChocolate.Data
                 new Author { Name = "Author", Books = new List<Book> { book } }
             }.AsQueryable();
         }
-
-        public class PagingAndProjection
-        {
-            [UsePaging]
-            [UseProjection]
-            public IQueryable<Book> GetBooks() => new[]
-            {
-                new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
-            }.AsQueryable();
-        }
     }
 }
