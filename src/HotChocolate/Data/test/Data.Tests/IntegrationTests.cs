@@ -742,6 +742,7 @@ namespace HotChocolate.Data
             // assert
             result.MatchSnapshot();
         }
+
         public class FooType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
