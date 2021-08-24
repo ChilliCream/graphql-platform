@@ -8,6 +8,7 @@ using Moq;
 using Snapshooter.Xunit;
 using StrawberryShake.Transport.WebSockets.Messages;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -17,7 +18,7 @@ namespace StrawberryShake.Transport.WebSockets
         public void Constructor_AllArgs_CreateObject()
         {
             // arrange
-            var client = new SocketClientStub() { Protocol = new Mock<ISocketProtocol>().Object };
+            var client = new SocketClientStub { Protocol = new Mock<ISocketProtocol>().Object };
 
             // act
             Exception? exception = Record.Exception(() => new Session(client));
@@ -40,295 +41,338 @@ namespace StrawberryShake.Transport.WebSockets
         }
 
         [Fact]
-        public async Task OpenSessionAsync_NoProtocolNeogiated_ThrowException()
+        public async Task OpenSessionAsync_NoProtocolNegotiated_ThrowException()
         {
-            // arrange
-            var client = new SocketClientStub { Protocol = null! };
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var client = new SocketClientStub { Protocol = null! };
+                var manager = new Session(client);
 
-            // act
-            Exception? exception = await Record.ExceptionAsync(() => manager.OpenSessionAsync());
+                // act
+                Exception? exception = await Record.ExceptionAsync(
+                    () => manager.OpenSessionAsync(ct));
 
-            // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+                // assert
+                Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            });
         }
 
         [Fact]
         public async Task OpenSessionAsync_ValidSocket_SubscribeToProtocol()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
+                var manager = new Session(client);
 
-            // act
-            await manager.OpenSessionAsync().ConfigureAwait(false);
+                // act
+                await manager.OpenSessionAsync(ct).ConfigureAwait(false);
 
-            // assert
-            protocolMock.VerifyAll();
+                // assert
+                protocolMock.VerifyAll();
+            });
         }
 
         [Fact]
         public async Task OpenSessionAsync_ValidSocket_OpenSocket()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                var manager = new Session(client);
 
-            // act
-            await manager.OpenSessionAsync().ConfigureAwait(false);
+                // act
+                await manager.OpenSessionAsync(ct).ConfigureAwait(false);
 
-            // assert
-            Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(default!)));
+                // assert
+                Assert.Equal(1, client.GetCallCount(x => x.OpenAsync(default!)));
+            });
         }
 
 
         [Fact]
         public async Task CloseSessionAsync_OpenSocket_CloseSocket()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                var manager = new Session(client);
 
-            // act
-            await manager.CloseSessionAsync().ConfigureAwait(false);
+                // act
+                await manager.CloseSessionAsync(ct).ConfigureAwait(false);
 
-            // assert
-            Assert.Equal(1, client.GetCallCount(x => x.CloseAsync(default!, default!, default!)));
+                // assert
+                Assert.Equal(1, client.GetCallCount(
+                    x => x.CloseAsync(default!, default!, default!)));
+            });
         }
 
         [Fact]
         public async Task StartOperationAsync_RequestNull_ThrowException()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
-            OperationRequest request = null!;
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                protocolMock.Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()));
+                OperationRequest request = null!;
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
 
-            // act
-            Exception? exception =
-                await Record.ExceptionAsync(() => manager.StartOperationAsync(request));
+                // act
+                Exception? exception = await Record.ExceptionAsync(
+                    () => manager.StartOperationAsync(request, ct));
 
-            // assert
-            Assert.IsType<ArgumentNullException>(exception);
+                // assert
+                Assert.IsType<ArgumentNullException>(exception);
+            });
         }
 
         [Fact]
         public async Task StartOperationAsync_SocketCloses_ThrowException()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
 
-            // act
-            Exception? exception =
-                await Record.ExceptionAsync(() => manager.StartOperationAsync(request));
+                // act
+                Exception? exception =
+                    await Record.ExceptionAsync(() => manager.StartOperationAsync(request, ct));
 
-            // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+                // assert
+                Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            });
         }
 
         [Fact]
         public async Task StartOperationAsync_RequestNotNull_StartOperation()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            protocolMock
-                .Setup(x =>
-                    x.StartOperationAsync(It.IsAny<string>(),
-                        request,
-                        It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                protocolMock
+                    .Setup(x =>
+                        x.StartOperationAsync(It.IsAny<string>(),
+                            request,
+                            It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
 
-            // act
-            await manager.StartOperationAsync(request);
+                // act
+                await manager.StartOperationAsync(request, ct);
 
-            // assert
-            protocolMock.VerifyAll();
+                // assert
+                protocolMock.VerifyAll();
+            });
         }
 
         [Fact]
         public async Task StartOperationAsync_RequestNotNull_RegistersStopEvent()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            protocolMock
-                .Setup(x =>
-                    x.StartOperationAsync(It.IsAny<string>(),
-                        request,
-                        It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-            protocolMock
-                .Setup(x => x.StopOperationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                protocolMock
+                    .Setup(x =>
+                        x.StartOperationAsync(It.IsAny<string>(),
+                            request,
+                            It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+                protocolMock
+                    .Setup(x =>
+                        x.StopOperationAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
 
-            // act
-            await manager.StartOperationAsync(request);
-            protocolMock.Raise(x => x.Disposed += null, new EventArgs());
+                // act
+                await manager.StartOperationAsync(request, ct);
+                protocolMock.Raise(x => x.Disposed += null, new EventArgs());
 
-            await Task.Delay(500);
+                await Task.Delay(500, ct);
 
-            // assert
-            protocolMock.VerifyAll();
+                // assert
+                protocolMock.VerifyAll();
+            });
         }
 
         [Fact]
         public async Task StopOperationAsync_RequestNotNull_StopOperation()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            protocolMock
-                .Setup(x =>
-                    x.StartOperationAsync(It.IsAny<string>(),
-                        request,
-                        It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                protocolMock
+                    .Setup(x =>
+                        x.StartOperationAsync(It.IsAny<string>(),
+                            request,
+                            It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
 
-            // act
-            ISocketOperation operation = await manager.StartOperationAsync(request);
-            protocolMock
-                .Setup(x => x.StopOperationAsync(operation.Id, It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
-            await manager.StopOperationAsync(operation.Id);
+                // act
+                ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+                protocolMock
+                    .Setup(x => x.StopOperationAsync(operation.Id, It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+                await manager.StopOperationAsync(operation.Id, ct);
 
-            // assert
-            protocolMock.VerifyAll();
+                // assert
+                protocolMock.VerifyAll();
+            });
         }
 
         [Fact]
         public async Task StopOperationAsync_SocketCloses_ThrowException()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>(MockBehavior.Strict);
+                var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                var manager = new Session(client);
 
-            // act
-            Exception? exception =
-                await Record.ExceptionAsync(() => manager.StopOperationAsync("123"));
+                // act
+                Exception? exception = await Record.ExceptionAsync(
+                    () => manager.StopOperationAsync("123", ct));
 
-            // assert
-            Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+                // assert
+                Assert.IsType<SocketOperationException>(exception).Message.MatchSnapshot();
+            });
         }
 
         [Fact]
         public async Task StopOperationAsync_RequestNotNull_DisposeOperation()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            List<OperationMessage> messages = new();
-
-            // act
-            ISocketOperation operation = await manager.StartOperationAsync(request);
-            await manager.StopOperationAsync(operation.Id);
-
-            // should return immediately
-            await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+            await TryTest(async ct =>
             {
-                messages.Push(elm);
-            }
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                List<OperationMessage> messages = new();
 
-            // assert
-            Assert.Empty(messages);
+                // act
+                ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+                await manager.StopOperationAsync(operation.Id, ct);
+
+                // should return immediately
+                await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+                {
+                    messages.Push(elm);
+                }
+
+                // assert
+                Assert.Empty(messages);
+            });
         }
 
         [Fact]
         public async Task ReceiveMessage_OperationRegistered_ForwardMessageToOperation()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OnReceiveAsync listener = null!;
-            protocolMock
-                .Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()))
-                .Callback((OnReceiveAsync subscribe) =>
-                {
-                    listener = subscribe;
-                });
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            List<OperationMessage> messages = new();
-
-            // act
-            ISocketOperation operation = await manager.StartOperationAsync(request);
-            await listener(operation.Id,
-                ErrorOperationMessage.ConnectionInitializationError,
-                CancellationToken.None);
-            await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+            await TryTest(async ct =>
             {
-                messages.Push(elm);
-                break;
-            }
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub() { Protocol = protocolMock.Object };
+                OnReceiveAsync listener = null!;
+                protocolMock
+                    .Setup(x => x.Subscribe(It.IsAny<OnReceiveAsync>()))
+                    .Callback((OnReceiveAsync subscribe) =>
+                    {
+                        listener = subscribe;
+                    });
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                List<OperationMessage> messages = new();
 
-            // assert
-            Assert.Single(messages);
+                // act
+                ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+                await listener(operation.Id,
+                    ErrorOperationMessage.ConnectionInitializationError,
+                    CancellationToken.None);
+                await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+                {
+                    messages.Push(elm);
+                    break;
+                }
+
+                // assert
+                Assert.Single(messages);
+            });
         }
 
         [Fact]
         public async Task Dispose_Subscribed_Unsubscribe()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            protocolMock.Setup(x => x.Unsubscribe(It.IsAny<OnReceiveAsync>()));
-            OperationRequest request = null!;
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
+            await TryTest(async ct =>
+            {
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                protocolMock.Setup(x => x.Unsubscribe(It.IsAny<OnReceiveAsync>()));
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
 
-            // act
-            await manager.DisposeAsync();
+                // act
+                await manager.DisposeAsync();
 
-            // assert
-            protocolMock.VerifyAll();
+                // assert
+                protocolMock.VerifyAll();
+            });
         }
 
         [Fact]
         public async Task Dispose_RegisteredOperations_DisposeOperations()
         {
-            // arrange
-            var protocolMock = new Mock<ISocketProtocol>();
-            var client = new SocketClientStub() { Protocol = protocolMock.Object };
-            OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
-            var manager = new Session(client);
-            await manager.OpenSessionAsync();
-            ISocketOperation operation = await manager.StartOperationAsync(request);
-            List<OperationMessage> messages = new();
-
-            // act
-            await manager.DisposeAsync();
-            await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+            await TryTest(async ct =>
             {
-                messages.Push(elm);
-            }
+                // arrange
+                var protocolMock = new Mock<ISocketProtocol>();
+                var client = new SocketClientStub { Protocol = protocolMock.Object };
+                OperationRequest request = new("Foo", GetHeroQueryDocument.Instance);
+                var manager = new Session(client);
+                await manager.OpenSessionAsync(ct);
+                ISocketOperation operation = await manager.StartOperationAsync(request, ct);
+                List<OperationMessage> messages = new();
 
-            // assert
-            Assert.Empty(messages);
+                // act
+                await manager.DisposeAsync();
+                await foreach (var elm in operation.ReadAsync(CancellationToken.None))
+                {
+                    messages.Push(elm);
+                }
+
+                // assert
+                Assert.Empty(messages);
+            });
         }
 
         private class GetHeroQueryDocument : IDocument

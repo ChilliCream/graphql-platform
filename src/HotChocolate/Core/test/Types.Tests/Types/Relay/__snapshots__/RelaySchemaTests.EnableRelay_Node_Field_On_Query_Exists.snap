@@ -8,7 +8,10 @@ interface Node {
 }
 
 type QueryType {
-  node(id: ID!): Node
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   some: Some
 }
 

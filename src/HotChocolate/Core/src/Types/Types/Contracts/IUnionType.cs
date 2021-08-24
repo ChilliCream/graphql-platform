@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         new UnionTypeDefinitionNode? SyntaxNode { get; }
 
         /// <summary>
-        /// Gets the <see cref="IObjectTypes" /> set of this union type.
+        /// Gets the <see cref="IObjectType" /> set of this union type.
         /// </summary>
         IReadOnlyCollection<IObjectType> Types { get; }
 
@@ -56,8 +56,8 @@ namespace HotChocolate.Types
         /// Checks if the type set of this union type contains the
         /// specified <paramref name="typeName"/>.
         /// </summary>
-        /// <param name="objectType">
-        /// The object type.
+        /// <param name="typeName">
+        /// The type name.
         /// </param>
         /// <returns>
         /// Returns <c>true</c>, if the type set of this union type contains the

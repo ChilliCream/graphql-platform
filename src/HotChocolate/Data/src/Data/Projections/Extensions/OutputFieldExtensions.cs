@@ -11,8 +11,10 @@ namespace HotChocolate.Data.Projections
             field.ContextData.TryGetValue(IsProjectedKey, out object? isProjectedObject) &&
             isProjectedObject is false;
 
-        public static bool HasProjectionMiddleware(this IOutputField field) =>
-            field.ContextData.ContainsKey(ProjectionContextIdentifier);
+        public static bool HasProjectionMiddleware(this IOutputField field)
+            => field.Type.Kind != TypeKind.NonNull && field.Type.InnerType() is IPageType ||
+               field.Type is IPageType ||
+               field.ContextData.ContainsKey(ProjectionContextIdentifier);
 
         public static bool IsPagination(this IOutputField field) =>
             (field.Type is INullableType nt && nt.InnerType() is IPageType) ||

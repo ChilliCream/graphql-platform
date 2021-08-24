@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public class BatchQueryResult : IBatchQueryResult
+    public sealed class BatchQueryResult : IBatchQueryResult
     {
         private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
-        private readonly IAsyncDisposable? _session;
+        private IAsyncDisposable? _session;
         private bool _isRead;
         private bool _disposed;
 
@@ -63,6 +63,18 @@ namespace HotChocolate.Execution
             return _resultStreamFactory();
         }
 
+        /// <inheritdoc />
+        public void RegisterDisposable(IDisposable disposable)
+        {
+            if (disposable is null)
+            {
+                throw new ArgumentNullException(nameof(disposable));
+            }
+
+            _session = _session.Combine(disposable);
+        }
+
+        /// <inheritdoc />
         public async ValueTask DisposeAsync()
         {
             if (!_disposed)
@@ -73,6 +85,14 @@ namespace HotChocolate.Execution
                 }
                 _disposed = true;
             }
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            DisposeAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }
 }

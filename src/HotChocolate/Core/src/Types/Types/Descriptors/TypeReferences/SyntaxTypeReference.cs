@@ -12,14 +12,34 @@ namespace HotChocolate.Types.Descriptors
         public SyntaxTypeReference(
             ITypeNode type,
             TypeContext context,
-            string? scope = null)
-            : base(context, scope)
+            string? scope = null,
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+            : base(
+                factory is null ? TypeReferenceKind.Syntax : TypeReferenceKind.Factory,
+                context,
+                scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
+            Name = type.NamedType().Name.Value;
+            Factory = factory;
         }
 
+        /// <summary>
+        /// Gets the name of the named type.
+        /// </summary>
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the internal syntax type reference.
+        /// </summary>
         public ITypeNode Type { get; }
 
+        /// <summary>
+        /// Gets a factory to create this type. Note, a factory is optional.
+        /// </summary>
+        public Func<IDescriptorContext, TypeSystemObjectBase>? Factory { get; }
+
+        /// <inheritdoc />
         public bool Equals(SyntaxTypeReference? other)
         {
             if (other is null)
@@ -40,6 +60,7 @@ namespace HotChocolate.Types.Descriptors
             return Type.IsEqualTo(other.Type);
         }
 
+        /// <inheritdoc />
         public override bool Equals(ITypeReference? other)
         {
             if (other is null)
@@ -60,6 +81,7 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public override bool Equals(object? obj)
         {
             if (obj is null)
@@ -80,6 +102,7 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked
@@ -88,6 +111,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"{Context}: {Type}";
@@ -104,19 +128,20 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public SyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
-        {
-            return new SyntaxTypeReference(Type, context, Scope);
-        }
+            => new(Type, context, Scope);
 
         public SyntaxTypeReference WithScope(string? scope = null)
-        {
-            return new SyntaxTypeReference(Type, Context, scope);
-        }
+            => new(Type, Context, scope);
+
+        public SyntaxTypeReference WithFactory(
+            Func<IDescriptorContext, TypeSystemObjectBase>? factory = null)
+            => new(Type, Context, Scope, Factory);
 
         public SyntaxTypeReference With(
             Optional<ITypeNode> type = default,
             Optional<TypeContext> context = default,
-            Optional<string?> scope = default)
+            Optional<string?> scope = default,
+            Optional<Func<IDescriptorContext, TypeSystemObjectBase>?> factory = default)
         {
             if (type.HasValue && type.Value is null)
             {
@@ -126,7 +151,8 @@ namespace HotChocolate.Types.Descriptors
             return new SyntaxTypeReference(
                 type.HasValue ? type.Value! : Type,
                 context.HasValue ? context.Value : Context,
-                scope.HasValue ? scope.Value : Scope);
+                scope.HasValue ? scope.Value : Scope,
+                factory.HasValue ? factory.Value : Factory);
         }
     }
 }

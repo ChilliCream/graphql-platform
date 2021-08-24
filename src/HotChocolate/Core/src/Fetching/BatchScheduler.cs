@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
@@ -8,109 +8,152 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Fetching
 {
+    /// <summary>
+    /// The execution engine batch dispatcher.
+    /// </summary>
     public class BatchScheduler
         : IBatchScheduler
         , IBatchDispatcher
     {
-        private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly object _sync = new();
+        private readonly List<Func<ValueTask>> _tasks = new();
+        private IExecutionTaskContext? _context;
+        private bool _dispatchOnSchedule;
 
-        public bool HasTasks => _queue.Count > 0;
-
+        /// <inheritdoc />
         public event EventHandler? TaskEnqueued;
 
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
+        /// <inheritdoc />
+        public bool HasTasks => _tasks.Count > 0;
+
+        /// <inheritdoc />
+        public bool DispatchOnSchedule
         {
-            lock (_queue)
+            get => _dispatchOnSchedule;
+            set
             {
-                if (_queue.Count > 0)
+                lock (_sync)
                 {
-                    var tasks = new List<Func<ValueTask>>();
+                    _dispatchOnSchedule = value;
+                }
+            }
+        }
 
-                    while (_queue.TryDequeue(out Func<ValueTask>? dispatch))
-                    {
-                        tasks.Add(dispatch);
-                    }
+        /// <inheritdoc />
+        public void Initialize(IExecutionTaskContext context)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
 
-                    enqueue(new BatchExecutionTaskDefinition(tasks));
+        /// <inheritdoc />
+        public void Dispatch()
+        {
+            // TODO : resources
+            IExecutionTaskContext context = _context ??
+                throw new InvalidOperationException("The scheduler is not initialized.");
+
+            lock (_sync)
+            {
+                if (_tasks.Count > 0)
+                {
+                    var task = new BatchExecutionTask(context, _tasks.ToList());
+                    _tasks.Clear();
+                    context.Register(task);
                 }
             }
         }
 
         public void Schedule(Func<ValueTask> dispatch)
         {
-            _queue.Enqueue(dispatch);
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
-        }
+            bool dispatchOnSchedule;
 
-        private class BatchExecutionTaskDefinition
-            : IExecutionTaskDefinition
-        {
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-
-            public BatchExecutionTaskDefinition(IReadOnlyList<Func<ValueTask>> tasks)
+            lock (_sync)
             {
-                _tasks = tasks;
+                if (_dispatchOnSchedule)
+                {
+                    dispatchOnSchedule = true;
+                }
+                else
+                {
+                    dispatchOnSchedule = false;
+                    _tasks.Add(dispatch);
+                    TaskEnqueued?.Invoke(this, EventArgs.Empty);
+                }
             }
 
-            public IExecutionTask Create(IExecutionTaskContext context)
+            if (dispatchOnSchedule)
             {
-                return new BatchExecutionTask(context, _tasks);
+                BeginDispatchOnEnqueue(dispatch);
             }
         }
 
-        private class BatchExecutionTask
-            : IExecutionTask
+#pragma warning disable 4014
+        private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch) =>
+            DispatchOnEnqueue(dispatch);
+#pragma warning restore 4014
+
+        private async Task DispatchOnEnqueue(Func<ValueTask> dispatch)
         {
-            private readonly IExecutionTaskContext _context;
+            await _semaphore.WaitAsync().ConfigureAwait(false);
+
+            try
+            {
+                await dispatch().ConfigureAwait(false);
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private class BatchExecutionTask : ParallelExecutionTask
+        {
             private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-            private ValueTask _task;
 
             public BatchExecutionTask(
                 IExecutionTaskContext context,
                 IReadOnlyList<Func<ValueTask>> tasks)
             {
-                _context = context;
+                Context = context;
                 _tasks = tasks;
             }
 
-            public bool IsCompleted => _task.IsCompleted;
+            protected override IExecutionTaskContext Context { get; }
 
-            public bool IsCanceled { get; private set; }
-
-            public void BeginExecute(CancellationToken cancellationToken)
+            protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
-                _context.Started();
-                _task = ExecuteAsync(cancellationToken);
-            }
+                var running = new Task[_tasks.Count];
 
-            private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
-            {
-                try
+                for (var i = 0; i < _tasks.Count; i++)
                 {
-                    using (_context.Track(this))
-                    {
-                        foreach (Func<ValueTask> task in _tasks)
-                        {
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                return;
-                            }
-
-                            try
-                            {
-                                await task.Invoke().ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                _context.ReportError(this, ex);
-                            }
-                        }
-                    }
+                    running[i] = ExecuteBatchAsync(_tasks[i]);
                 }
-                finally
+
+                await Task.WhenAll(running);
+
+                async Task ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
                 {
-                    IsCanceled = cancellationToken.IsCancellationRequested;
-                    _context.Completed();
+                    try
+                    {
+                        await executeBatchAsync.Invoke().ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // If we run into this exception the request was aborted.
+                        // In this case we do nothing and just return.
+                    }
+                    catch (Exception ex)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            // if cancellation is request we do no longer report errors to the
+                            // operation context.
+                            return;
+                        }
+
+                        Context.ReportError(this, ex);
+                    }
                 }
             }
         }

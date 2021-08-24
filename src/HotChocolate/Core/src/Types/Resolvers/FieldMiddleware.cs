@@ -6,7 +6,7 @@ namespace HotChocolate.Resolvers
     /// This delegate defines the factory to integrate a field middleware into the field pipeline.
     /// </summary>
     /// <param name="next">
-    /// The next field middleware that has to be invoked after the middleware that is 
+    /// The next field middleware that has to be invoked after the middleware that is
     /// created by this factory.
     /// </param>
     /// <returns>

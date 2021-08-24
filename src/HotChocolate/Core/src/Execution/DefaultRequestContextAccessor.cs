@@ -5,8 +5,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class DefaultRequestContextAccessor : IRequestContextAccessor
     {
-        private static AsyncLocal<RequestContextHolder> _requestContextCurrent =
-            new AsyncLocal<RequestContextHolder>();
+        private static readonly AsyncLocal<RequestContextHolder> _requestContextCurrent = new();
 
         public IRequestContext RequestContext
         {

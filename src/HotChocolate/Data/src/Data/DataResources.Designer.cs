@@ -429,9 +429,16 @@ namespace HotChocolate.Data {
             }
         }
         
+        
         internal static string ProjectionConvention_PaginationInProjectionNotSupported {
             get {
                 return ResourceManager.GetString("ProjectionConvention_PaginationInProjectionNotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string UseProjection_CannotHandleType_ {
+            get {
+                return ResourceManager.GetString("UseProjection_CannotHandleType_", resourceCulture);
             }
         }
     }

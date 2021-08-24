@@ -5,10 +5,10 @@ using HotChocolate.Internal;
 namespace HotChocolate.Types.Pagination
 {
     /// <summary>
-    /// Represents an paging provider, which can be implemented to 
-    /// create optimized pagination for data sources. 
-    /// 
-    /// The paging provider will be used by the configuration to choose 
+    /// Represents an paging provider, which can be implemented to
+    /// create optimized pagination for data sources.
+    ///
+    /// The paging provider will be used by the configuration to choose
     /// the right paging handler for executing the field.
     /// </summary>
     public interface IPagingProvider
@@ -17,17 +17,17 @@ namespace HotChocolate.Types.Pagination
         /// Specifies if this paging provider can handle the specified <see cref="source"/>.
         /// </summary>
         /// <param name="source">
-        /// The source type represents the result of the field resolver and could be a collection, 
+        /// The source type represents the result of the field resolver and could be a collection,
         /// a query builder or some other object representing the data set.
         /// </param>
         bool CanHandle(IExtendedType source);
 
         /// <summary>
-        /// Creates the paging handler that is able to interact with the specified source and 
+        /// Creates the paging handler that is able to interact with the specified source and
         /// able to slice the data.
         /// </summary>
         /// <param name="source">
-        /// The source type represents the result of the field resolver and could be a collection, 
+        /// The source type represents the result of the field resolver and could be a collection,
         /// a query builder or some other object representing the data set.
         /// </param>
         /// <param name="options">

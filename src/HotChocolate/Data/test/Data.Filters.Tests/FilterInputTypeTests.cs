@@ -173,7 +173,7 @@ namespace HotChocolate.Data.Tests
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Foo>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Foo>(x => x.BindFieldsImplicitly()))
                 .Create();
 
@@ -195,7 +195,7 @@ namespace HotChocolate.Data.Tests
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Foo>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Foo>(x => x.BindFields(BindingBehavior.Implicit)))
                 .Create();
 
@@ -216,7 +216,7 @@ namespace HotChocolate.Data.Tests
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Bar>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Bar>(x => x.BindFieldsExplicitly().Field(y => y.Qux)))
                 .Create();
 
@@ -237,7 +237,7 @@ namespace HotChocolate.Data.Tests
                         c.Name("Query")
                             .Field("foo")
                             .Type<ObjectType<Bar>>()
-                            .Resolver("bar")
+                            .Resolve("bar")
                             .UseFiltering<Bar>(
                                 x => x.BindFields(BindingBehavior.Explicit).Field(y => y.Qux)))
                 .Create();

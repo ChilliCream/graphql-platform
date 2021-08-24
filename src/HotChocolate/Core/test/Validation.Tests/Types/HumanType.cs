@@ -7,19 +7,19 @@ namespace HotChocolate.Validation.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Human> descriptor)
         {
-            descriptor.Interface<SentientType>();
+            descriptor.Implements<SentientType>();
             descriptor.Implements<BeingType>();
             descriptor.Implements<IntelligentType>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field("iq")
                 .Type<NonNullType<IntType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
             descriptor.Field("pets")
                 .Type<ListType<PetType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
             descriptor.Field("relatives")
                 .Type<ListType<HumanType>>()
-                .Resolver(() => "");
+                .Resolve(() => "");
         }
     }
 }

@@ -1,7 +1,4 @@
-﻿{
-  "data": {
-    "__schema": {
-      "description": null
-    }
-  }
-}
+﻿[
+  "{\n  \"data\": {\n    \"__schema\": {\n      \"description\": null\n    }\n  }\n}",
+  "{\n  \"errors\": [\n    {\n      \"message\": \"Introspection is not allowed for the current request.\",\n      \"locations\": [\n        {\n          \"line\": 1,\n          \"column\": 3\n        }\n      ],\n      \"extensions\": {\n        \"field\": \"__schema\",\n        \"code\": \"HC0046\"\n      }\n    }\n  ]\n}"
+]

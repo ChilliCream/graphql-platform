@@ -274,7 +274,7 @@ Content-Type: application/json
 }
 ```
 
-By default, the GraphQL server will use the **incremental delivery over HTTP**specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
+By default, the GraphQL server will use the **incremental delivery over HTTP** specification to write the stream results as soon as they are available. This means that depending on your client implementation; you can start using the results as they appear in order.
 
 The serialization defaults can be changed like the following:
 
@@ -284,7 +284,7 @@ services.AddHttpResultSerializer(
     deferSerialization: HttpResultSerialization.MultiPartChunked)
 ```
 
-> More about batching can be found [here](batching).
+> More about batching can be found [here](/docs/hotchocolate/v10/execution-engine/batching).
 
 ## GraphQL multipart request specification
 
@@ -302,9 +302,9 @@ service
 In your resolver or input type you can then use the `IFile` interface to use the upload scalar.
 
 ```csharp
-public class Query 
+public class Mutation
 {
-    public async Task<bool> UploadFile(IFile file)
+    public async Task<bool> UploadFileAsync(IFile file)
     {
         using Stream stream = file.OpenReadStream();
         // you can now work with standard stream functionality of .NET to handle the file.
@@ -487,6 +487,16 @@ public string MyResolver([HttpContext] HttpContext context)
     // some logic
 }
 ```
+
+A custom http request interceptor can be registered like the following:
+
+```csharp
+services.AddSocketSessionInterceptor<MyCustomHttpRequestInterceptor>();
+```
+
+## Request Errors
+
+The interceptor can be used to do general request validation. This essentially allows to fail the request before the GraphQL context is created. In order to create a GraphQL error response simply throw a `GraphQLException` in the `OnCreateAsync` method. The middleware will translate these to a proper GraphQL error response for the client. You also can customize the status code behavior by using the HTTP result serializer mentioned above.
 
 # Subscription session handling
 

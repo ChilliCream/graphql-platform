@@ -37,6 +37,21 @@ namespace HotChocolate.Configuration
                 .OfType<T>()
                 .Distinct();
 
+        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+        {
+            if (typeRef is null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
+            if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+            {
+                return namedTypeRef;
+            }
+
+            throw new NotSupportedException();
+        }
+
         public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
         {
             if (typeRef is null)
@@ -81,6 +96,10 @@ namespace HotChocolate.Configuration
 
                 case SyntaxTypeReference r:
                     type = CreateType(namedType, r.Type);
+                    return true;
+
+                case DependantFactoryTypeReference reference:
+                    type = namedType;
                     return true;
 
                 default:
@@ -143,6 +162,7 @@ namespace HotChocolate.Configuration
                     return new TypeId(namedTypeRef, CreateFlags(r.Type));
 
                 case SchemaTypeReference:
+                case DependantFactoryTypeReference:
                     return new TypeId(namedTypeRef, 1);
 
                 default:
@@ -160,7 +180,7 @@ namespace HotChocolate.Configuration
                 {
                     case TypeComponentKind.List:
                         flags <<= 1;
-                        flags = flags | 1;
+                        flags |= 1;
                         break;
 
                     case TypeComponentKind.NonNull:
@@ -182,7 +202,7 @@ namespace HotChocolate.Configuration
                 if (current is ListTypeNode listType)
                 {
                     flags <<= 1;
-                    flags = flags | 1;
+                    flags |= 1;
                     current = listType.Type;
                 }
                 else if (current is NonNullTypeNode nonNullType)

@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -25,6 +28,21 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result = await server.PostAsync(
                 new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Include_Query_Plan()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" },
+                includeQueryPlan: true);
 
             // assert
             result.MatchSnapshot();
@@ -68,8 +86,8 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result = await server.PostAsync(
-                    new ClientQueryRequest { Query = "{ __typename }" },
-                    "/foo");
+                new ClientQueryRequest { Query = "{ __typename }" },
+                "/foo");
 
             // assert
             result.MatchSnapshot();
@@ -135,10 +153,7 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
-                    {
-                        { "episode", "NEW_HOPE" }
-                    }
+                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
                 });
 
             // assert
@@ -161,10 +176,7 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
-                    {
-                        { "id", "1000" }
-                    }
+                    Variables = new Dictionary<string, object> { { "id", "1000" } }
                 });
 
             // assert
@@ -224,8 +236,7 @@ namespace HotChocolate.AspNetCore
                             "review",
                             new Dictionary<string, object>
                             {
-                                { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "stars", 5 }, { "commentary", "This is a great movie!" },
                             }
                         }
                     }
@@ -260,8 +271,7 @@ namespace HotChocolate.AspNetCore
                             "review",
                             new Dictionary<string, object>
                             {
-                                { "stars", 5 },
-                                { "commentary", "This is a great movie!" },
+                                { "stars", 5 }, { "commentary", "This is a great movie!" },
                             }
                         }
                     }
@@ -390,10 +400,7 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
-                    {
-                        { "episode", "NEW_HOPE" }
-                    }
+                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
                 });
 
             // assert
@@ -431,14 +438,14 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                    },
+                    "/arguments");
 
             // assert
             result.MatchSnapshot();
@@ -453,21 +460,17 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                    },
+                    "/arguments");
 
             // assert
-            new
-            {
-                double.MaxValue,
-                result
-            }.MatchSnapshot();
+            new { double.MaxValue, result }.MatchSnapshot();
         }
 
         [Fact]
@@ -479,21 +482,17 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Float) {
                              double_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                    },
+                    "/arguments");
 
             // assert
-            new
-            {
-                double.MinValue,
-                result
-            }.MatchSnapshot();
+            new { double.MinValue, result }.MatchSnapshot();
         }
 
         [Fact]
@@ -505,21 +504,17 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                    },
+                    "/arguments");
 
             // assert
-            new
-            {
-                decimal.MaxValue,
-                result
-            }.MatchSnapshot();
+            new { decimal.MaxValue, result }.MatchSnapshot();
         }
 
         [Fact]
@@ -531,21 +526,17 @@ namespace HotChocolate.AspNetCore
             // act
             ClientQueryResult result =
                 await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
+                    {
+                        Query = @"
                         query ($d: Decimal) {
                              decimal_arg(d: $d)
                         }",
-                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
-                },
-                "/arguments");
+                        Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                    },
+                    "/arguments");
 
             // assert
-            new
-            {
-                decimal.MinValue,
-                result
-            }.MatchSnapshot();
+            new { decimal.MinValue, result }.MatchSnapshot();
         }
 
         [Fact]
@@ -777,6 +768,42 @@ namespace HotChocolate.AspNetCore
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Throw_Custom_GraphQL_Error()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureServices: s => s.AddGraphQLServer()
+                    .AddHttpRequestInterceptor<ErrorRequestInterceptor>());
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
+        {
+            public override ValueTask OnCreateAsync(
+                HttpContext context,
+                IRequestExecutor requestExecutor,
+                IQueryRequestBuilder requestBuilder,
+                CancellationToken cancellationToken)
+            {
+                throw new GraphQLException("MyCustomError");
+            }
         }
     }
 }

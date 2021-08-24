@@ -64,10 +64,7 @@ namespace HotChocolate.Types.Pagination
             ObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependency(
-                context.TypeInspector.GetTypeRef(typeof(T)),
-                TypeDependencyKind.Default);
+            context.Dependencies.Add(new(context.TypeInspector.GetTypeRef(typeof(T))));
         }
 
         protected override void OnCompleteType(

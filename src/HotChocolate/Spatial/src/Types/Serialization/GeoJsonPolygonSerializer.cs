@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
@@ -13,12 +15,25 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public override Polygon CreateGeometry(
+            IType type,
             object? coordinates,
             int? crs)
         {
-            if (!(coordinates is Coordinate[] coords))
+            if (type is null)
             {
-                throw Serializer_Parse_CoordinatesIsInvalid();
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (coordinates is List<Coordinate> list)
+            {
+                coordinates = list.Count == 0
+                    ? Array.Empty<Coordinate>()
+                    : list.ToArray();
+            }
+
+            if (coordinates is not Coordinate[] coords)
+            {
+                throw Serializer_Parse_CoordinatesIsInvalid(type);
             }
 
             if (crs is not null)
@@ -34,7 +49,38 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new Polygon(ring);
         }
 
-        public static readonly GeoJsonPolygonSerializer Default =
-            new GeoJsonPolygonSerializer();
+        public override object CreateInstance(IType type, object?[] fieldValues)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (fieldValues[0] is not GeoJsonGeometryType.Polygon)
+            {
+                throw Geometry_Parse_InvalidType(type);
+            }
+
+            return CreateGeometry(type, fieldValues[1], (int?)fieldValues[2]);
+        }
+
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (runtimeValue is not Geometry geometry)
+            {
+                throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
+            }
+
+            fieldValues[0] = GeoJsonGeometryType.Polygon;
+            fieldValues[1] = geometry.Coordinates;
+            fieldValues[2] = geometry.SRID;
+        }
+
+        public static readonly GeoJsonPolygonSerializer Default = new();
     }
 }

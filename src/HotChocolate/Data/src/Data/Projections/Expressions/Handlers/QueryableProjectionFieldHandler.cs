@@ -61,8 +61,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
         {
             IObjectField field = selection.Field;
 
-            if (field.RuntimeType is null ||
-                field.Member is null)
+            if (field.RuntimeType is null || field.Member is null)
             {
                 action = null;
                 return false;
@@ -77,9 +76,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 return false;
             }
 
-            Queue<MemberAssignment> members = queryableScope.Level.Pop();
-            MemberInitExpression memberInit =
-                CreateMemberInit(queryableScope.RuntimeType, members);
+            Expression memberInit = queryableScope.CreateMemberInit();
 
             if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
             {
@@ -96,9 +93,9 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 throw new InvalidOperationException();
             }
 
-            parentScope.Level.Peek()
-                .Enqueue(
-                    Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
+            parentScope.Level
+                .Peek()
+                .Enqueue(Expression.Bind(field.Member, NotNullAndAlso(nestedProperty, memberInit)));
 
             action = SelectionVisitor.Continue;
             return true;

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
@@ -9,70 +11,82 @@ namespace HotChocolate.Execution.Processing
     internal sealed partial class OperationContext
     {
         private readonly ConcurrentBag<Action> _cleanupActions = new();
-        private readonly ExecutionContext _executionContext;
+        private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+        private readonly WorkScheduler _workScheduler;
         private readonly ResultHelper _resultHelper;
         private IRequestContext _requestContext = default!;
         private IPreparedOperation _operation = default!;
+        private QueryPlan _queryPlan = default!;
         private IVariableValueCollection _variables = default!;
         private IServiceProvider _services = default!;
         private Func<object?> _resolveQueryRootValue = default!;
         private object? _rootValue;
-        private bool _isPooled = true;
+        private bool _isInitialized;
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(this, resolverTaskPool);
+            _resolverTaskPool = resolverTaskPool;
+            _workScheduler = new WorkScheduler(this);
             _resultHelper = new ResultHelper(resultPool);
         }
 
-        public bool IsPooled => _isPooled;
+        public bool IsInitialized => _isInitialized;
 
         public void Initialize(
             IRequestContext requestContext,
             IServiceProvider scopedServices,
             IBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
+            QueryPlan queryPlan,
             IVariableValueCollection variables,
             object? rootValue,
             Func<object?> resolveQueryRootValue)
         {
             _requestContext = requestContext;
-            _executionContext.Initialize(
-                batchDispatcher,
-                requestContext.RequestAborted);
             _operation = operation;
+            _queryPlan = queryPlan;
             _variables = variables;
             _services = scopedServices;
             _rootValue = rootValue;
             _resolveQueryRootValue = resolveQueryRootValue;
-            _isPooled = false;
+            _isInitialized = true;
+
+            batchDispatcher.Initialize(this);
+            _workScheduler.Initialize(batchDispatcher);
         }
 
         public void Clean()
         {
-            while (_cleanupActions.TryTake(out var clean))
+            if (_isInitialized)
             {
-                clean();
-            }
+                if (_cleanupActions.Count > 0)
+                {
+                    while (_cleanupActions.TryTake(out var clean))
+                    {
+                        clean();
+                    }
+                }
 
-            _executionContext.Clean();
-            _resultHelper.Clear();
-            _requestContext = default!;
-            _operation = default!;
-            _variables = default!;
-            _services = default!;
-            _rootValue = null;
-            _resolveQueryRootValue = default!;
-            _isPooled = true;
+                _workScheduler.Clear();
+                _resultHelper.Clear();
+                _requestContext = default!;
+                _operation = default!;
+                _queryPlan = default!;
+                _variables = default!;
+                _services = default!;
+                _rootValue = null;
+                _resolveQueryRootValue = default!;
+                _isInitialized = false;
+            }
         }
 
-        private void AssertNotPooled()
+        private void AssertInitialized()
         {
-            if (_isPooled)
+            if (!_isInitialized)
             {
-                throw Object_Returned_To_Pool();
+                throw Object_Not_Initialized();
             }
         }
     }

@@ -19,7 +19,9 @@ namespace HotChocolate.Data.Filters.Expressions
         : QueryableOperationHandlerBase
     {
         protected QueryableComparableOperationHandler(
-            ITypeConverter typeConverter)
+            ITypeConverter typeConverter,
+            InputParser inputParser)
+            : base(inputParser)
         {
             TypeConverter = typeConverter;
         }

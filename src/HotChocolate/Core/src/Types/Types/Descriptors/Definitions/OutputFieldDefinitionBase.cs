@@ -20,6 +20,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IList<ArgumentDefinition> Arguments =>
             _arguments ??= new List<ArgumentDefinition>();
 
+        /// <summary>
+        /// Specifies if this field has any arguments.
+        /// </summary>
+        public bool HasArguments => _arguments is { Count: > 0 };
+
         public IReadOnlyList<ArgumentDefinition> GetArguments()
         {
             if (_arguments is null)

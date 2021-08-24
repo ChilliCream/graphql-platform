@@ -1,5 +1,8 @@
+using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.MongoDb;
+using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Types.Pagination;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -14,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -28,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -42,6 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="name"></param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -49,5 +55,41 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             string? name = null) =>
             builder.ConfigureSchema(s => s.AddMongoDbProjections(name));
+
+        /// <summary>
+        /// Adds the MongoDB cursor and offset paging providers.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="providerName">
+        /// The name which shall be used to refer to this registration.
+        /// </param>
+        /// <param name="defaultProvider">
+        /// Defines if these providers shall be registered as default providers.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder for further configuration chaining.
+        /// </returns>
+        public static IRequestExecutorBuilder AddMongoDbPagingProviders(
+            this IRequestExecutorBuilder builder,
+            string? providerName = null,
+            bool defaultProvider = false)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            builder.AddCursorPagingProvider<MongoDbCursorPagingProvider>(
+                providerName,
+                defaultProvider);
+
+            builder.AddOffsetPagingProvider<MongoDbOffsetPagingProvider>(
+                providerName,
+                defaultProvider);
+
+            return builder;
+        }
     }
 }

@@ -2,11 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter;
 using Snapshooter.Xunit;
-using ChilliCream.Testing;
 using Xunit;
 using Snapshot = Snapshooter.Xunit.Snapshot;
 using static HotChocolate.Tests.TestHelper;
@@ -550,15 +550,14 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                     "{ stars } }");
 
             // assert
-            IExecutionResult result =
-                await executor.ExecuteAsync(@"
-                    mutation {
-                        createReview(episode: NEW_HOPE,
-                            review: { stars: 5 commentary: ""foo"" }) {
-                            stars
-                            commentary
-                        }
-                    }");
+            await executor.ExecuteAsync(@"
+                mutation {
+                    createReview(episode: NEW_HOPE,
+                        review: { stars: 5 commentary: ""foo"" }) {
+                        stars
+                        commentary
+                    }
+                }");
 
             IReadOnlyQueryResult eventResult = null;
 
@@ -844,7 +843,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         height
                     }
                 }",
-                request: r=> r.SetVariableValue("if", true))
+                request: r => r.SetVariableValue("if", true))
                 .MatchSnapshotAsync();
         }
 
@@ -934,7 +933,7 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
                         }
                     }
                 }
-                fragment FriendEdge1 on CharacterEdge {
+                fragment FriendEdge1 on FriendsEdge {
                     node {
                         __typename
                         friends {

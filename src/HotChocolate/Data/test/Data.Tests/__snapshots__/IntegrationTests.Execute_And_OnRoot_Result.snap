@@ -1,0 +1,11 @@
+﻿{
+  "data": {
+    "books": {
+      "nodes": [
+        {
+          "title": "BookTitle"
+        }
+      ]
+    }
+  }
+}

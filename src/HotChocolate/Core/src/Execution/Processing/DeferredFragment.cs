@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Plan;
+using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -55,17 +57,24 @@ namespace HotChocolate.Execution.Processing
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
 
         /// <inheritdoc/>
+        public IDeferredExecutionTask? Next { get; set; }
+
+        /// <inheritdoc/>
+        public IDeferredExecutionTask? Previous { get; set; }
+
+        /// <inheritdoc/>
         public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
         {
-            ResultMap resultMap = Fragment.SelectionSet.EnqueueResolverTasks(
-                operationContext,
-                Path,
-                ScopedContextData,
-                Value);
+            operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
 
-            await ResolverExecutionHelper
-                .ExecuteTasksAsync(operationContext)
-                .ConfigureAwait(false);
+            ResultMap resultMap = EnqueueResolverTasks(
+                operationContext,
+                Fragment.SelectionSet,
+                Value,
+                Path,
+                ScopedContextData);
+
+            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext(true)

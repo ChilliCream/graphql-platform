@@ -25,7 +25,7 @@ namespace HotChocolate
 
         public ValueTask InvokeAsync(IMiddlewareContext context)
         {
-            return IsField(context.ObjectType.Name, context.Field.Name)
+            return IsField(context.ObjectType.Name, context.Selection.Field.Name)
                 ? _fieldDelegate(context)
                 : _next(context);
         }

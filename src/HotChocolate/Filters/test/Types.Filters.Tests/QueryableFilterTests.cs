@@ -145,7 +145,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType(x =>
                    x.Field("list")
                    .Type<ListType<ObjectType<FooObject>>>()
-                   .Resolver(
+                   .Resolve(
                        x => new FooObject[] {
                            null,
                            new FooObject { FooNested = new FooNested { Bar = "a" }
@@ -177,7 +177,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType(
                     x => x.Field("list")
                     .Type<ListType<ObjectType<FooObject>>>()
-                    .Resolver(x =>
+                    .Resolve(x =>
                         new FooObject[] {
                             null,
                             new FooObject { FooNested = new FooNested { Bar = "a" } }

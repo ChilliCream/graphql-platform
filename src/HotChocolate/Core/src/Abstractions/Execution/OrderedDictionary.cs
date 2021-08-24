@@ -1,16 +1,17 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution
 {
-    public class OrderedDictionary
-        : OrderedDictionary<string, object>
+    public class OrderedDictionary : OrderedDictionary<string, object?>
     {
     }
 
     public class OrderedDictionary<TKey, TValue>
         : IDictionary<TKey, TValue>
         , IReadOnlyDictionary<TKey, TValue>
+        where TKey : notnull
     {
         private readonly List<KeyValuePair<TKey, TValue>> _order;
         private readonly Dictionary<TKey, TValue> _map;
@@ -129,24 +130,26 @@ namespace HotChocolate.Execution
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            int index = _order.IndexOf(item);
+            var index = _order.IndexOf(item);
+
             if (index != -1)
             {
                 _order.RemoveAt(index);
                 _map.Remove(item.Key);
                 return true;
             }
+
             return false;
         }
 
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             return _map.TryGetValue(key, out value);
         }
 
         private int IndexOfKey(TKey key)
         {
-            for (int i = 0; i < _order.Count; i++)
+            for (var i = 0; i < _order.Count; i++)
             {
                 if (key.Equals(_order[i].Key))
                 {
@@ -166,7 +169,6 @@ namespace HotChocolate.Execution
             return _order.GetEnumerator();
         }
 
-        public OrderedDictionary<TKey, TValue> Clone() =>
-            new OrderedDictionary<TKey, TValue>(this);
+        public OrderedDictionary<TKey, TValue> Clone() => new(this);
     }
 }

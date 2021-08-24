@@ -10,7 +10,9 @@ namespace HotChocolate.Stitching.Delegation
     {
         public static object? DeserializeResult(
             IType fieldType,
-            object? obj)
+            object? obj,
+            InputParser parser,
+            Path path)
         {
             INamedType namedType = fieldType.NamedType();
 
@@ -18,19 +20,23 @@ namespace HotChocolate.Stitching.Delegation
             {
                 if (namedType.Kind == TypeKind.Enum)
                 {
-                    return DeserializeEnumResult(inputType, obj);
+                    return DeserializeEnumResult(inputType, obj, parser, path);
                 }
 
                 if (namedType.Kind == TypeKind.Scalar)
                 {
-                    return DeserializeScalarResult(inputType, obj);
+                    return DeserializeScalarResult(inputType, obj, parser, path);
                 }
             }
 
             return obj is NullValueNode ? null : obj;
         }
 
-        private static object? DeserializeEnumResult(IInputType inputType, object? value)
+        private static object? DeserializeEnumResult(
+            IInputType inputType,
+            object? value,
+            InputParser parser,
+            Path path)
         {
             switch (value)
             {
@@ -39,9 +45,11 @@ namespace HotChocolate.Stitching.Delegation
                     var elementType = (IInputType)inputType.ElementType();
                     var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
 
-                    foreach (object? item in list)
+                    var i = 0;
+                    foreach (var item in list)
                     {
-                        deserializedList.Add(DeserializeEnumResult(elementType, item));
+                        deserializedList.Add(
+                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
                     }
 
                     return deserializedList;
@@ -52,26 +60,32 @@ namespace HotChocolate.Stitching.Delegation
                     var elementType = (IInputType)inputType.ElementType();
                     var list = new List<object?>();
 
+                    var i = 0;
                     foreach (IValueNode item in listLiteral.Items)
                     {
-                        list.Add(DeserializeEnumResult(elementType, item));
+                        list.Add(
+                            DeserializeEnumResult(elementType, item, parser, path.Append(i++)));
                     }
 
                     return list;
                 }
 
                 case StringValueNode stringLiteral:
-                    return inputType.Deserialize(stringLiteral.Value);
+                    return parser.ParseResult(stringLiteral.Value, inputType, path);
 
                 case IValueNode literal:
-                    return inputType.ParseLiteral(literal);
+                    return parser.ParseLiteral(literal, inputType, path);
 
                 default:
-                    return inputType.Deserialize(value);
+                    return parser.ParseResult(value, inputType, path);
             }
         }
 
-        private static object? DeserializeScalarResult(IInputType inputType, object? value)
+        private static object? DeserializeScalarResult(
+            IInputType inputType,
+            object? value,
+            InputParser parser,
+            Path path)
         {
             switch (value)
             {
@@ -88,9 +102,11 @@ namespace HotChocolate.Stitching.Delegation
                     var deserializedList =
                         (IList)Activator.CreateInstance(runtimeType)!;
 
-                    foreach (object? item in list)
+                    var i = 0;
+                    foreach (var item in list)
                     {
-                        deserializedList.Add(DeserializeScalarResult(elementType, item));
+                        deserializedList.Add(
+                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
                     }
 
                     return deserializedList;
@@ -101,19 +117,21 @@ namespace HotChocolate.Stitching.Delegation
                     var elementType = (IInputType)inputType.ElementType();
                     var list = new List<object?>();
 
+                    var i = 0;
                     foreach (IValueNode item in listLiteral.Items)
                     {
-                        list.Add(DeserializeScalarResult(elementType, item));
+                        list.Add(
+                            DeserializeScalarResult(elementType, item, parser, path.Append(i++)));
                     }
 
                     return list;
                 }
 
                 case IValueNode literal:
-                    return inputType.ParseLiteral(literal);
+                    return parser.ParseLiteral(literal, inputType, path);
 
                 default:
-                    return inputType.Deserialize(value);
+                    return parser.ParseResult(value, inputType, path);
             }
         }
     }

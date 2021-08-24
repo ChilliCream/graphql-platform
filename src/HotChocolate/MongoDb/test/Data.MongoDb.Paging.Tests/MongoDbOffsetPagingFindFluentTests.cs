@@ -138,7 +138,6 @@ namespace HotChocolate.Data.MongoDb.Paging
 
             IRequestExecutor executor = await CreateSchemaAsync();
 
-
             IExecutionResult result = await executor
                 .ExecuteAsync(
                     @"
@@ -147,6 +146,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                         totalCount
                     }
                 }");
+
             result.MatchDocumentSnapshot();
         }
 
@@ -174,15 +174,15 @@ namespace HotChocolate.Data.MongoDb.Paging
         private ValueTask<IRequestExecutor> CreateSchemaAsync()
         {
             return new ServiceCollection()
-                .AddTransient<OffsetPagingProvider, MongoDbOffsetPagingProvider>()
                 .AddGraphQL()
+                .AddMongoDbPagingProviders()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(
                     descriptor =>
                     {
                         descriptor
                             .Field("foos")
-                            .Resolver(BuildResolver(_resource, foos))
+                            .Resolve(BuildResolver(_resource, foos))
                             .Type<ListType<ObjectType<Foo>>>()
                             .Use(
                                 next => async context =>
@@ -193,7 +193,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                                         context.ContextData["query"] = executable.Print();
                                     }
                                 })
-                            .UseMongoDbOffsetPaging<ObjectType<Foo>>(
+                            .UseOffsetPaging<ObjectType<Foo>>(
                                 options: new PagingOptions { IncludeTotalCount = true });
                     })
                 .UseRequest(

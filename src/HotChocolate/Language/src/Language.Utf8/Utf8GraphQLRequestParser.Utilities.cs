@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -18,6 +17,7 @@ namespace HotChocolate.Language
                     _reader.MoveNext();
                     return value;
                 }
+
                 case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                     _reader.MoveNext();
                     return null;
@@ -56,12 +56,11 @@ namespace HotChocolate.Language
                     {
                         if (_reader.Kind != TokenKind.String)
                         {
-                            throw new SyntaxException(_reader,
-                                string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    LangResources.ParseMany_InvalidOpenToken,
-                                    TokenKind.String,
-                                    TokenVisualizer.Visualize(in _reader)));
+                            throw new SyntaxException(
+                                _reader,
+                                ParseMany_InvalidOpenToken,
+                                TokenKind.String,
+                                TokenPrinter.Print(in _reader));
                         }
 
                         string name = _reader.GetString();
@@ -98,12 +97,11 @@ namespace HotChocolate.Language
                     {
                         if (_reader.Kind != TokenKind.String)
                         {
-                            throw new SyntaxException(_reader,
-                                string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    LangResources.ParseMany_InvalidOpenToken,
-                                    TokenKind.String,
-                                    TokenVisualizer.Visualize(in _reader)));
+                            throw new SyntaxException(
+                                _reader,
+                                ParseMany_InvalidOpenToken,
+                                TokenKind.String,
+                                TokenPrinter.Print(in _reader));
                         }
 
                         string name = _reader.GetString();
@@ -140,7 +138,7 @@ namespace HotChocolate.Language
         {
             if (extensions is not null
                 && hashProvider is not null
-                && extensions.TryGetValue(_persistedQuery, out object? obj)
+                && extensions.TryGetValue(_persistedQuery, out var obj)
                 && obj is IReadOnlyDictionary<string, object> persistedQuery
                 && persistedQuery.TryGetValue(hashProvider.Name, out obj)
                 && obj is string h)

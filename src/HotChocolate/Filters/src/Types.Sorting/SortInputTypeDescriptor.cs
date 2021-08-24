@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Sorting.Extensions;
 using HotChocolate.Types.Sorting.Properties;
 using HotChocolate.Utilities;

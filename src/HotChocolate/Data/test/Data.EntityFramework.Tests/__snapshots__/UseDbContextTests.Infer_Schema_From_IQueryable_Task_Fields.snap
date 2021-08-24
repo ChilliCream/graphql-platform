@@ -16,18 +16,18 @@ type AuthorCollectionSegment {
 }
 
 "A connection to a list of items."
-type AuthorConnection {
+type AuthorCursorPagingExecutableConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [AuthorEdge!]
+  edges: [AuthorCursorPagingExecutableEdge!]
   "A flattened list of the nodes."
   nodes: [Author!]
   totalCount: Int!
 }
 
 "An edge in a connection."
-type AuthorEdge {
+type AuthorCursorPagingExecutableEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
@@ -65,7 +65,7 @@ type QueryTask {
   authors: [Author!]!
   authorOffsetPaging(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
   authorOffsetPagingExecutable(skip: Int take: Int where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCollectionSegment
-  authorCursorPagingExecutable(first: Int after: String last: Int before: String where: AuthorFilterInput order: [AuthorSortInput!]): AuthorConnection
+  authorCursorPagingExecutable("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: AuthorFilterInput order: [AuthorSortInput!]): AuthorCursorPagingExecutableConnection
 }
 
 input AuthorFilterInput {

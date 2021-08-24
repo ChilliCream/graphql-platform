@@ -1,20 +1,18 @@
 import { createReducer, onAction } from "../state.helpers";
-import { CommonState, initialState } from "./common.state";
 import {
   changeSearchQuery,
   closeAside,
   closeTOC,
-  expandNavigationGroup,
+  hasScrolled,
   hideCookieConsent,
   hideLegacyDocHeader,
+  setArticleHeight,
   showCookieConsent,
   showLegacyDocInfo,
   toggleAside,
   toggleTOC,
-  toggleNavigationGroup,
-  hasScrolled,
-  setArticleHeight,
 } from "./common.actions";
+import { CommonState, initialState } from "./common.state";
 
 export const commonReducer = createReducer<CommonState>(
   initialState,
@@ -35,19 +33,6 @@ export const commonReducer = createReducer<CommonState>(
     ...state,
     showTOC: false,
   })),
-
-  onAction(expandNavigationGroup, (state, { path }) => {
-    if (state.expandedPaths.indexOf(path) !== -1) {
-      return state;
-    }
-
-    const expandedPaths = [...state.expandedPaths, path];
-
-    return {
-      ...state,
-      expandedPaths,
-    };
-  }),
 
   onAction(hideCookieConsent, (state) => ({
     ...state,
@@ -83,27 +68,11 @@ export const commonReducer = createReducer<CommonState>(
 
   onAction(hasScrolled, (state, { yScrollPosition }) => ({
     ...state,
-    yScrollPosition: yScrollPosition,
+    yScrollPosition,
   })),
 
   onAction(setArticleHeight, (state, { articleHeight }) => ({
     ...state,
     articleViewportHeight: articleHeight,
-  })),
-
-  onAction(toggleNavigationGroup, (state, { path }) => {
-    const expandedPaths = [...state.expandedPaths];
-    const index = expandedPaths.indexOf(path);
-
-    if (index !== -1) {
-      expandedPaths.splice(index, 1);
-    } else {
-      expandedPaths.push(path);
-    }
-
-    return {
-      ...state,
-      expandedPaths,
-    };
-  })
+  }))
 );

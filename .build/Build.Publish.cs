@@ -23,10 +23,15 @@ partial class Build : NukeBuild
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
 
     Target Pack => _ => _
-        .DependsOn(Restore, PackLocal)
+        .DependsOn(PackLocal)
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
-        .Requires(() => Configuration.Equals(Release))
+        .Requires(() => Configuration.Equals(Release));
+        
+
+    Target PackLocal => _ => _
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
             var projFile = File.ReadAllText(StarWarsProj);
@@ -34,21 +39,27 @@ partial class Build : NukeBuild
 
             projFile = File.ReadAllText(EmptyServerProj);
             File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", GitVersion.SemVer));
-        });
-
-    Target PackLocal => _ => _
-        .Produces(PackageDirectory / "*.nupkg")
-        .Produces(PackageDirectory / "*.snupkg")
+        })
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            DotNetBuildSonarSolution(
+                PackSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
+
+            DotNetBuild(c => c
+                .SetProjectFile(PackSolutionFile)
+                .SetConfiguration(Configuration)
+                .SetAssemblyVersion(GitVersion.AssemblySemVer)
+                .SetFileVersion(GitVersion.AssemblySemFileVer)
+                .SetInformationalVersion(GitVersion.InformationalVersion)
+                .SetVersion(GitVersion.SemVer));
 
             DotNetPack(c => c
-                .SetProject(AllSolutionFile)
-                .SetNoBuild(InvokedTargets.Contains(Compile))
+                .SetProject(PackSolutionFile)
+                .SetNoRestore(true)
+                .SetNoBuild(true)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));

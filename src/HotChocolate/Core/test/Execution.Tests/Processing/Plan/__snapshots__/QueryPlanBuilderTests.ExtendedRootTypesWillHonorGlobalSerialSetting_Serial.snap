@@ -1,0 +1,14 @@
+﻿{
+  "type": "Operation",
+  "root": {
+    "type": "Resolver",
+    "strategy": "Serial",
+    "selections": [
+      {
+        "id": 0,
+        "field": "Query.bars",
+        "responseName": "bars"
+      }
+    ]
+  }
+}

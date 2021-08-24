@@ -7,13 +7,13 @@ namespace HotChocolate.Validation.Types
     {
         protected override void Configure(IObjectTypeDescriptor<Cat> descriptor)
         {
-            descriptor.Interface<PetType>();
-            descriptor.Interface<BeingType>();
+            descriptor.Implements<PetType>();
+            descriptor.Implements<BeingType>();
             descriptor.Implements<MammalType>();
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.DoesKnowCommand(default))
                 .Argument("catCommand", a => a.Type<NonNullType<EnumType<CatCommand>>>());
-            descriptor.Field("furColor").Type<FurColor>().Resolver(() => null);
+            descriptor.Field("furColor").Type<FurColor>().Resolve(() => null);
         }
     }
 

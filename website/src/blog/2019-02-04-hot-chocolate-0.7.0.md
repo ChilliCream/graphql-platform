@@ -108,13 +108,13 @@ The execution engine will transform any exception thrown into a generic GraphQL 
 
 With exception filters you can then rewrite those errors for certain exceptions in order to provide more useful information.
 
-More about this can be read [here](https://hotchocolate.io/docs/errors).
+More about this can be read [here](/docs/hotchocolate/v10/execution-engine/error-filter).
 
 ## Schema Stitching
 
 On top of the execution improvements we built our new schema stitching capabilities. With those you are able to easily fuse service endpoints together.
 
-More about this can be read [here](2019-01-24-schema-stitching.md).
+More about this can be read [here](/blog/2019/01/24/schema-stitching).
 
 ## Apollo Tracing
 

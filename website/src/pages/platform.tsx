@@ -12,7 +12,6 @@ import {
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 import UnderConstructionSvg from "../images/under-construction.svg";
 
 const PlatformPage: FunctionComponent = () => {
@@ -25,7 +24,7 @@ const PlatformPage: FunctionComponent = () => {
           An end-to-end solution to build, manage and access your GraphQL API
         </Hero>
         <Teaser>
-          The heart of the ChilliCream platform is Hot Chocolate our core for
+          The heart of the ChilliCream platform is Hot Chocolate, our core for
           the GraphQL client and server. The ChilliCream platform provides
           developer tools and services to speed up the entire development
           process.

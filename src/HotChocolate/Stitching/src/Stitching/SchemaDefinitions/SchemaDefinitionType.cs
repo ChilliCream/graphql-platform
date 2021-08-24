@@ -33,11 +33,11 @@ namespace HotChocolate.Stitching.SchemaDefinitions
         private class Resolvers
         {
             public string GetDocument(
-                RemoteSchemaDefinition schemaDefinition) =>
+                [Parent] RemoteSchemaDefinition schemaDefinition) =>
                 schemaDefinition.Document.ToString(false);
 
             public IEnumerable<string> GetExtensionDocuments(
-                RemoteSchemaDefinition schemaDefinition) =>
+                [Parent] RemoteSchemaDefinition schemaDefinition) =>
                 schemaDefinition.ExtensionDocuments.Select(t => t.ToString(false));
         }
 

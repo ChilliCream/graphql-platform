@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Relay
         {
             if (id is null)
             {
-                throw new ArgumentNullException(nameof(id));
+                return null;
             }
 
             typeName.EnsureNotEmpty(nameof(typeName));
@@ -300,7 +300,7 @@ namespace HotChocolate.Types.Relay
             return (b.IsLetterOrUnderscore() && b != GraphQLConstants.Underscore)
                 || b.IsDigit()
                 || c == GraphQLConstants.Dollar
-                || c == GraphQLConstants.Forwardslash;
+                || c == GraphQLConstants.ForwardSlash;
         }
 
         private static int GetAllocationSize<T>(in T value)

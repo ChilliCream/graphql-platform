@@ -63,13 +63,13 @@ namespace HotChocolate.Data.Filters
                     c =>
                     {
                         ApplyConfigurationToField<TEntity, T>(
-                            c.Name("Query").Field("root").Resolver(resolver),
+                            c.Name("Query").Field("root").Resolve(resolver),
                             withPaging);
 
                         ApplyConfigurationToField<TEntity, T>(
                             c.Name("Query")
                                 .Field("rootExecutable")
-                                .Resolver(
+                                .Resolve(
                                     ctx => resolver(ctx).AsExecutable()),
                             withPaging);
                     });

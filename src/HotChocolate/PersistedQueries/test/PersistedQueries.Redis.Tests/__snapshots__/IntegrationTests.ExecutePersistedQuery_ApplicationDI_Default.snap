@@ -1,0 +1,13 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "__typename": "Query"
+  },
+  "Errors": null,
+  "Extensions": {
+    "persistedDocument": true
+  },
+  "ContextData": null,
+  "HasNext": null
+}

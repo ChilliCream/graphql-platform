@@ -300,21 +300,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.TryAddValidationVisitor<OperationVisitor>();
         }
 
-        public static IValidationBuilder AddMaxComplexityRule(
-            this IValidationBuilder builder,
-            int maxAllowedComplexity)
-        {
-            return builder
-                .TryAddValidationVisitor((s, o) => new MaxComplexityVisitor(o))
-                .SetAllowedComplexity(maxAllowedComplexity);
-        }
-
         public static IValidationBuilder AddMaxExecutionDepthRule(
             this IValidationBuilder builder,
             int maxAllowedExecutionDepth)
         {
             return builder
-                .TryAddValidationVisitor((s, o) => new MaxExecutionDepthVisitor(o))
+                .TryAddValidationVisitor((_, o) => new MaxExecutionDepthVisitor(o))
                 .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
 
@@ -324,6 +315,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         public static IValidationBuilder AddIntrospectionAllowedRule(
             this IValidationBuilder builder) =>
-            builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor());
+            builder.TryAddValidationVisitor((_, _) => new IntrospectionVisitor(), false);
     }
 }

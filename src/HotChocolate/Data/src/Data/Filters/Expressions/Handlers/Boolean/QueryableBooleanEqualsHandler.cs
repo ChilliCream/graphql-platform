@@ -1,11 +1,17 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableBooleanEqualsHandler
-       : QueryableBooleanOperationHandler
+        : QueryableBooleanOperationHandler
     {
+        public QueryableBooleanEqualsHandler(InputParser inputParser)
+            : base(inputParser)
+        {
+        }
+
         protected override int Operation => DefaultFilterOperations.Equals;
 
         public override Expression HandleOperation(

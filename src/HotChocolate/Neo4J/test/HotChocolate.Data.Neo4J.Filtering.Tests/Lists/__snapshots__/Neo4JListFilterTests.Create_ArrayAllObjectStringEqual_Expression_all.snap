@@ -1,0 +1,35 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "barString": "a",
+        "fooNested": [
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          },
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          },
+          {
+            "bar": "a",
+            "barNested": [
+              {
+                "foo": "a"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

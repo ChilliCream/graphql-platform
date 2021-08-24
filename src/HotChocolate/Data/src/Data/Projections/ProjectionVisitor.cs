@@ -5,7 +5,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
-using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Data.Projections.WellKnownProjectionFields;
 
 namespace HotChocolate.Data.Projections

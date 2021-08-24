@@ -3,47 +3,48 @@
 }
 
 type Resolvers {
-  globalState: String
+  claimsPrincipal: Boolean!
+  globalState: String!
   globalStateNullable: String!
   globalStateWithDefault: String
-  globalStateWithDefaultAbc: String
-  globalStateWithKey: String
-  localState: String
+  globalStateWithDefaultAbc: String!
+  globalStateWithKey: String!
+  localState: String!
   localStateWithDefault: String
-  localStateWithDefaultAbc: String
-  localStateWithKey: String
-  optionalStringResolverWithArg(a: String): String
-  resolverWithCancellationToken: String
+  localStateWithDefaultAbc: String!
+  localStateWithKey: String!
+  nullableClaimsPrincipal: Boolean!
+  optionalStringResolverWithArg(a: String!): String
+  path: Boolean!
+  resolverWithCancellationToken: String!
   resolverWithDocument: Boolean!
   resolverWithFieldSelection: Boolean!
+  resolverWithFieldSyntax: Boolean!
   resolverWithObjectField: Boolean!
   resolverWithObjectType: Boolean!
   resolverWithOperationDefinition: Boolean!
   resolverWithOutputField: Boolean!
   resolverWithResolverContext: Boolean!
   resolverWithSchema: Boolean!
+  resolverWithSelection: Boolean!
   resolverWithService: Boolean!
-  resolveWithContextData: String
-  resolveWithContextDataDefault: String
-  resolveWithScopedContextData: String
-  resolveWithScopedContextDataDefault: String
-  scopedState: String
+  scopedState: String!
   scopedStateNullable: String!
   scopedStateWithDefault: String
-  scopedStateWithDefaultAbc: String
-  scopedStateWithKey: String
-  setGlobalState: String
-  setGlobalStateGeneric: String
-  setLocalState: String
-  setLocalStateGeneric: String
-  setScopedState: String
-  setScopedStateGeneric: String
-  stringProp: String
-  stringResolver: String
-  stringResolverWithArg(a: String): String
-  stringTaskResolver: String
-  stringTaskResolverProp: String
-  stringTaskResolverWithArg(a: String): String
+  scopedStateWithDefaultAbc: String!
+  scopedStateWithKey: String!
+  setGlobalState: String!
+  setGlobalStateGeneric: String!
+  setLocalState: String!
+  setLocalStateGeneric: String!
+  setScopedState: String!
+  setScopedStateGeneric: String!
+  stringProp: String!
+  stringResolver: String!
+  stringResolverWithArg(a: String!): String!
+  stringTaskResolver: String!
+  stringTaskResolverProp: String!
+  stringTaskResolverWithArg(a: String!): String!
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

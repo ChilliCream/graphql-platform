@@ -10,7 +10,7 @@ namespace HotChocolate.Utilities
         {
             return GetServiceOrDefault<ITypeConverter>(
                 services,
-                DefaultTypeConverter.Default);
+                () => DefaultTypeConverter.Default);
         }
 
         public static ITypeConverter GetTypeConverter(
@@ -21,13 +21,15 @@ namespace HotChocolate.Utilities
 
         public static T GetServiceOrDefault<T>(
             this IServiceProvider services,
-            T defaultService)
+            Func<T> defaultService)
         {
-            object service = services?.GetService(typeof(T));
+            var service = services?.GetService(typeof(T));
+
             if (service is null)
             {
-                return defaultService;
+                return defaultService();
             }
+
             return (T)service;
         }
     }

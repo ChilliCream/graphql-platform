@@ -106,7 +106,7 @@ namespace HotChocolate.AspNetCore
 
                     try
                     {
-                        map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString);
+                        map = JsonSerializer.Deserialize<Dictionary<string, string[]>>(mapString!);
                     }
                     catch
                     {
@@ -176,7 +176,7 @@ namespace HotChocolate.AspNetCore
             {
                 var path = VariablePath.Parse(objectPath);
 
-                if (!mutableVariables.TryGetValue(path.Key.Value, out object? value))
+                if (!mutableVariables.TryGetValue(path.Key.Value, out var value))
                 {
                     throw ThrowHelper.HttpMultipartMiddleware_VariableNotFound(objectPath);
                 }
@@ -206,8 +206,7 @@ namespace HotChocolate.AspNetCore
             object value,
             FileValueNode file)
         {
-            if (segment is KeyPathSegment key &&
-                value is ObjectValueNode ov)
+            if (segment is KeyPathSegment key && value is ObjectValueNode ov)
             {
                 var pos = -1;
 
@@ -234,8 +233,7 @@ namespace HotChocolate.AspNetCore
                 return ov.WithFields(fields);
             }
 
-            if (segment is IndexPathSegment index &&
-                value is ListValueNode lv)
+            if (segment is IndexPathSegment index && value is ListValueNode lv)
             {
                 IValueNode[] items = lv.Items.ToArray();
                 IValueNode item = items[index.Value];

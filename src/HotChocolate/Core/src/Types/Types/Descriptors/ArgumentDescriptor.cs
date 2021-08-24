@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
             {
-                Definition.NativeDefaultValue = defaultValue;
+                Definition.RuntimeDefaultValue = defaultValue;
             }
         }
 
@@ -150,22 +150,22 @@ namespace HotChocolate.Types.Descriptors
         public static ArgumentDescriptor New(
             IDescriptorContext context,
             NameString argumentName) =>
-            new ArgumentDescriptor(context, argumentName);
+            new(context, argumentName);
 
         public static ArgumentDescriptor New(
             IDescriptorContext context,
             NameString argumentName,
             Type argumentType) =>
-            new ArgumentDescriptor(context, argumentName, argumentType);
+            new(context, argumentName, argumentType);
 
         public static ArgumentDescriptor New(
             IDescriptorContext context,
             ParameterInfo parameter) =>
-            new ArgumentDescriptor(context, parameter);
+            new(context, parameter);
 
         public static ArgumentDescriptor From(
             IDescriptorContext context,
             ArgumentDefinition argumentDefinition) =>
-            new ArgumentDescriptor(context, argumentDefinition);
+            new(context, argumentDefinition);
     }
 }

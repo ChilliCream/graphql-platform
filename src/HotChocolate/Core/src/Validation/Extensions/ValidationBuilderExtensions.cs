@@ -85,23 +85,14 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
-        internal static IValidationBuilder UseMultipliers(
-            this IValidationBuilder builder, bool useMultipliers) =>
-            builder.ConfigureValidation(
-                m => m.Modifiers.Add(o => o.UseComplexityMultipliers = useMultipliers));
-
-        internal static IValidationBuilder SetAllowedComplexity(
-            this IValidationBuilder builder, int allowedComplexity) =>
-            builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.MaxAllowedComplexity = allowedComplexity));
-
         /// <summary>
         /// Sets the maximum allowed depth of a query. The default
         /// value is <see langword="null"/>. The minimum allowed value is
         /// <c>1</c>.
         /// </summary>
         internal static IValidationBuilder SetAllowedExecutionDepth(
-            this IValidationBuilder builder, int allowedExecutionDepth)
+            this IValidationBuilder builder,
+            int allowedExecutionDepth)
         {
             if (allowedExecutionDepth < 1)
             {
@@ -115,13 +106,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 m.Modifiers.Add(o => o.MaxAllowedExecutionDepth = allowedExecutionDepth));
         }
 
-        public static IValidationBuilder SetComplexityCalculation(
-            this IValidationBuilder builder, ComplexityCalculation calculation) =>
-            builder.ConfigureValidation(m =>
-                m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
-
         public static IValidationBuilder TryAddValidationVisitor<T>(
-            this IValidationBuilder builder)
+            this IValidationBuilder builder,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor, new()
         {
             return builder.ConfigureValidation(m =>
@@ -129,14 +116,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                     {
-                        o.Rules.Add(new DocumentValidatorRule<T>(new T()));
+                        o.Rules.Add(new DocumentValidatorRule<T>(new T(), isCacheable));
                     }
                 }));
         }
 
         public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder,
-            Func<IServiceProvider, ValidationOptions, T> factory)
+            Func<IServiceProvider, ValidationOptions, T> factory,
+            bool isCacheable = true)
             where T : DocumentValidatorVisitor
         {
             return builder.ConfigureValidation((s, m) =>
@@ -144,7 +132,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     if (o.Rules.All(t => t.GetType() != typeof(DocumentValidatorRule<T>)))
                     {
-                        o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o)));
+                        o.Rules.Add(new DocumentValidatorRule<T>(factory(s, o), isCacheable));
                     }
                 }));
         }

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Data.Filters.Spatial.SpatialOperationHandlerHelper;
@@ -17,8 +18,9 @@ namespace HotChocolate.Data.Filters.Spatial
 
         public QueryableSpatialOverlapsOperationHandlerBase(
             IFilterConvention convention,
-            ITypeInspector inspector)
-            : base(convention, inspector, _overlap)
+            ITypeInspector inspector,
+            InputParser inputParser)
+            : base(convention, inspector, inputParser, _overlap)
         {
         }
 
