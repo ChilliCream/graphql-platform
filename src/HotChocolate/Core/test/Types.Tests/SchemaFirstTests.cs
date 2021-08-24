@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -263,9 +264,99 @@ namespace HotChocolate
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_Execute()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithItems>("Query")
+                    .ExecuteRequestAsync("{ items { nodes } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaFirst_Cursor_Paging_With_Resolver()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddResolver<QueryWithItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Reference_Schema_First_Types_From_Code_First_Models()
+        {
+            // arrange
+            var sdl = "type Person { name: String! }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .AddQueryType<QueryCodeFirst>()
+                    .BindRuntimeType<Person>()
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+        }
+
         public class Query
         {
             public string Hello() => "World";
         }
-    }
+
+        public class QueryWithItems
+        {
+            [UsePaging]
+            public string[] GetItems() => new[] { "a", "b" };
+        }
+
+        public class QueryCodeFirst
+        {
+            [GraphQLType("Person!")]
+            public object GetPerson() => new Person { Name = "Hello" };
+        }
+
+        public class Person
+        {
+            public string Name { get; set; }
+        }
 }

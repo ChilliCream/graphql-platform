@@ -208,5 +208,13 @@ namespace HotChocolate.Execution
                     .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
                     .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
                     .Build());
+
+        public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
+            => ErrorBuilder.New()
+                .SetMessage("Cannot return null for non-nullable field.")
+                .SetCode(ErrorCodes.Execution.NonNullViolation)
+                .SetPath(path)
+                .AddLocation(selection)
+                .Build();
     }
 }

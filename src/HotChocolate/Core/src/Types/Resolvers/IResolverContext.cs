@@ -95,8 +95,7 @@ namespace HotChocolate.Resolvers
         [Obsolete("Use ArgumentValue<T>(name) or " +
                   "ArgumentLiteral<TValueNode>(name) or " +
                   "ArgumentOptional<T>(name).")]
-        [return: MaybeNull]
-        T Argument<T>(NameString name);
+        T? Argument<T>(NameString name);
 
         /// <summary>
         /// Gets as required service from the dependency injection container.
@@ -109,7 +108,7 @@ namespace HotChocolate.Resolvers
 
         /// <summary>
         /// Report a non-terminating resolver error to the execution engine.
-        /// The error will be displayed in the errorsection with a reference to
+        /// The error will be displayed in the error section with a reference to
         /// the field selection that is associated with the current
         /// resolver context.
         /// </summary>
@@ -120,7 +119,7 @@ namespace HotChocolate.Resolvers
 
         /// <summary>
         /// Report a non-terminating resolver error to the execution engine.
-        /// The error will be displayed in the errorsection with a reference to
+        /// The error will be displayed in the error section with a reference to
         /// the field selection that is associated with the current
         /// resolver context.
         /// </summary>
@@ -131,7 +130,7 @@ namespace HotChocolate.Resolvers
 
         /// <summary>
         /// Report a non-terminating resolver error to the execution engine.
-        /// The error will be displayed in the errorsection with a reference to
+        /// The error will be displayed in the error section with a reference to
         /// the field selection that is associated with the current
         /// resolver context.
         /// </summary>

@@ -41,31 +41,6 @@ public class Mutation
 
 > Note: If a class is used as an argument to a resolver and it does not end in `Input`, Hot Chocolate (by default) will append `Input` to the type name in the resulting schema.
 
-If you would like your input type classes to be immutable, or you are using [nullable reference types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references), you can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that, (1) the type of the argument must exactly match the property's type, (2) the name of the argument must match the property name (bar a lowercase first letter), and (3) no setters will be called, so you need to provide arguments for all the properties. 
-
-Hot Chocolate validates any custom input constructor at schema build time, so you don't need to worry about breaking things during refactoring!
-
-```csharp
-public class BookInput
-{
-    // No need for the setters now
-    public string Title { get; }
-    public string Author { get; }
-  
-    public BookingInput(string title, string author)
-    {
-        Title = title;
-        Author = author;
-    }
-}
-```
-
-You can even use records if you're on C# 9.0+! The equivalent of above would be:
-
-```csharp
-public record BookingInput(string Title, string Author);
-```
-  
 We can also use a class both as an output- and an input-type.
 
 ```csharp
@@ -186,7 +161,38 @@ public class Startup
 }
 ```
 
+> ⚠ Note: Object types nested inside of an input object type need to also be declared as input object types.
+
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-⚠ Object types nested inside of an input object type need to also be declared as input types.
+## Immutable types
+
+If we want our input type classes to be immutable, or we are using [nullable reference types](https://docs.microsoft.com/dotnet/csharp/nullable-references), we can provide a non-empty constructor and Hot Chocolate will instead use that when instantiating the input. Just note that
+
+1. The type of the argument must exactly match the property's type
+2. The name of the argument must match the property name (bar a lowercase first letter)
+3. No setters will be called, so you need to provide arguments for all the properties.
+
+Hot Chocolate validates any custom input constructor at schema build time, so we don't need to worry about breaking things during refactoring!
+
+```csharp
+public class BookInput
+{
+    // No need for the setters now
+    public string Title { get; }
+    public string Author { get; }
+
+    public BookingInput(string title, string author)
+    {
+        Title = title;
+        Author = author;
+    }
+}
+```
+
+We can also use record types, if we're on C# 9.0+. The equivalent to the above would be:
+
+```csharp
+public record BookingInput(string Title, string Author);
+```

@@ -95,36 +95,30 @@ namespace HotChocolate.Types
                         Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input)
                     };
 
-                    ILazyTypeConfiguration lazyArgumentConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ArgumentDefinition>()
-                            .Definition(argumentDefinition)
-                            .Configure((context, d) =>
-                                {
-                                    ISortingNamingConvention convention =
-                                        context.DescriptorContext.GetSortingNamingConvention();
-                                    d.Name = convention.ArgumentName;
-                                })
-                           .On(ApplyConfigurationOn.Completion)
-                           .Build();
+                    argumentDefinition.Configurations.Add(
+                        new CompleteConfiguration<ArgumentDefinition>(
+                            (context, d) =>
+                            {
+                                ISortingNamingConvention convention =
+                                    context.DescriptorContext.GetSortingNamingConvention();
+                                d.Name = convention.ArgumentName;
+                            },
+                            argumentDefinition,
+                            ApplyConfigurationOn.Completion));
 
-                    argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
                     definition.Arguments.Add(argumentDefinition);
-
-                    ILazyTypeConfiguration lazyConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, d) =>
+                    definition.Configurations.Add(
+                        new CompleteConfiguration<ObjectFieldDefinition>(
+                            (context, d) =>
                                 CompileMiddleware(
                                     context,
                                     d,
                                     argumentTypeReference,
-                                    placeholder))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build();
-                    definition.Configurations.Add(lazyConfiguration);
+                                    placeholder),
+                            definition,
+                            ApplyConfigurationOn.Completion,
+                            argumentTypeReference,
+                            TypeDependencyKind.Completed));
                 });
 
             return descriptor;

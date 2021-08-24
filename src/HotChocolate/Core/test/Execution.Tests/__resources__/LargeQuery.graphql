@@ -57,7 +57,7 @@ fragment Droid on Droid {
   height
 }
 
-fragment Friend on CharacterConnection {
+fragment Friend on FriendsConnection {
   nodes {
     ...HasName
     friends {

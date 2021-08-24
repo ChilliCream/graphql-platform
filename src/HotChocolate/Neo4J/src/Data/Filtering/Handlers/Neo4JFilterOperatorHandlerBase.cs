@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -14,6 +15,13 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public abstract class Neo4JFilterOperationHandlerBase
         : FilterOperationHandler<Neo4JFilterVisitorContext, Condition>
     {
+        protected Neo4JFilterOperationHandlerBase(InputParser inputParser)
+        {
+            InputParser = inputParser;
+        }
+
+        protected InputParser InputParser { get; }
+
         /// <inheritdoc/>
         public override bool TryHandleOperation(
             Neo4JFilterVisitorContext context,
@@ -22,7 +30,7 @@ namespace HotChocolate.Data.Neo4J.Filtering
             [NotNullWhen(true)] out Condition result)
         {
             IValueNode value = node.Value;
-            object? parsedValue = field.Type.ParseLiteral(value);
+            var parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
 
             if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) &&
                 parsedValue is null)

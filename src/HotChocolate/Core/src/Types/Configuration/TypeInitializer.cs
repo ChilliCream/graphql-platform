@@ -19,7 +19,6 @@ namespace HotChocolate.Configuration
         private readonly List<FieldMiddleware> _globalComps = new();
         private readonly List<ISchemaError> _errors = new();
         private readonly IDescriptorContext _context;
-        private readonly ITypeInspector _typeInspector;
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly TypeInterceptor _interceptor;
         private readonly IsOfTypeFallback? _isOfType;
@@ -43,13 +42,13 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(initialTypes));
             _isOfType = isOfType;
             _getTypeKind = getTypeKind ??
-                throw new ArgumentNullException(nameof(_getTypeKind));
+                throw new ArgumentNullException(nameof(getTypeKind));
 
             _interceptor = descriptorContext.TypeInterceptor;
-            _typeInspector = descriptorContext.TypeInspector;
-            _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
+            ITypeInspector typeInspector = descriptorContext.TypeInspector;
+            _typeLookup = new TypeLookup(typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
-                _typeInspector, _typeRegistry, _typeLookup);
+                typeInspector, _typeRegistry, _typeLookup);
 
             _interceptor.InitializeContext(descriptorContext, _typeReferenceResolver);
         }
@@ -126,8 +125,7 @@ namespace HotChocolate.Configuration
             // lets tell the type interceptors what types we have initialized.
             if (_interceptor.TriggerAggregations)
             {
-                _interceptor.OnTypesInitialized(
-                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
+                _interceptor.OnTypesInitialized(_typeRegistry.Types);
             }
 
             _interceptor.OnAfterDiscoverTypes();
@@ -155,8 +153,6 @@ namespace HotChocolate.Configuration
                 .Distinct()
                 .ToList();
 
-            var dependencies = new List<TypeDependency>();
-
             foreach (RegisteredType objectType in objectTypes)
             {
                 foreach (RegisteredType interfaceType in interfaceTypes)
@@ -165,15 +161,8 @@ namespace HotChocolate.Configuration
                     {
                         SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
                         ((ObjectType)objectType.Type).Definition!.Interfaces.Add(typeReference);
-                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                        objectType.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                     }
-                }
-
-                if (dependencies.Count > 0)
-                {
-                    objectType.AddDependencies(dependencies);
-                    _typeRegistry.Register(objectType);
-                    dependencies.Clear();
                 }
             }
 
@@ -186,15 +175,8 @@ namespace HotChocolate.Configuration
                     {
                         SchemaTypeReference typeReference = TypeReference.Create(interfaceType.Type);
                         ((InterfaceType)implementing.Type).Definition!.Interfaces.Add(typeReference);
-                        dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                        implementing.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
                     }
-                }
-
-                if (dependencies.Count > 0)
-                {
-                    implementing.AddDependencies(dependencies);
-                    _typeRegistry.Register(implementing);
-                    dependencies.Clear();
                 }
             }
         }
@@ -203,26 +185,23 @@ namespace HotChocolate.Configuration
         {
             bool CompleteName(RegisteredType registeredType)
             {
-                registeredType.SetCompletionContext(
-                    new TypeCompletionContext(
-                        registeredType.DiscoveryContext,
-                        _typeReferenceResolver,
-                        GlobalComponents,
-                        _isOfType,
-                        schemaResolver));
+                registeredType.PrepareForCompletion(
+                    _typeReferenceResolver,
+                    schemaResolver,
+                    _globalComps,
+                    _isOfType);
 
-                registeredType.Type.CompleteName(registeredType.CompletionContext);
+                registeredType.Type.CompleteName(registeredType);
 
                 if (registeredType.IsNamedType || registeredType.IsDirectiveType)
                 {
                     _typeRegistry.Register(registeredType.Type.Name, registeredType);
                 }
 
-                TypeCompletionContext context = registeredType.CompletionContext;
                 RootTypeKind kind = _getTypeKind(registeredType.Type);
-                context.IsQueryType = kind == RootTypeKind.Query;
-                context.IsMutationType = kind == RootTypeKind.Mutation;
-                context.IsSubscriptionType = kind == RootTypeKind.Subscription;
+                registeredType.IsQueryType = kind == RootTypeKind.Query;
+                registeredType.IsMutationType = kind == RootTypeKind.Mutation;
+                registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
                 return true;
             }
 
@@ -231,8 +210,7 @@ namespace HotChocolate.Configuration
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
                 _interceptor.TriggerAggregations)
             {
-                _interceptor.OnTypesCompletedName(
-                    _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
+                _interceptor.OnTypesCompletedName(_typeRegistry.Types);
             }
 
             EnsureNoErrors();
@@ -341,12 +319,11 @@ namespace HotChocolate.Configuration
                     }
 
                     // merge
-                    TypeCompletionContext context = extension.CompletionContext;
-                    context.Status = TypeStatus.Named;
-                    m.Merge(context, namedType);
+                    extension.Status = TypeStatus.Named;
+                    m.Merge(extension, namedType);
 
                     // update dependencies
-                    registeredType.AddDependencies(extension.Dependencies);
+                    registeredType.Dependencies.AddRange(extension.Dependencies);
                     _typeRegistry.Register(registeredType);
                 }
             }
@@ -358,13 +335,12 @@ namespace HotChocolate.Configuration
             {
                 if (!registeredType.IsExtension)
                 {
-                    TypeCompletionContext context = registeredType.CompletionContext;
-                    context.Status = TypeStatus.Named;
+                    registeredType.Status = TypeStatus.Named;
                     RootTypeKind kind = _getTypeKind(registeredType.Type);
-                    context.IsQueryType = kind == RootTypeKind.Query;
-                    context.IsMutationType = kind == RootTypeKind.Mutation;
-                    context.IsSubscriptionType = kind == RootTypeKind.Subscription;
-                    registeredType.Type.CompleteType(context);
+                    registeredType.IsQueryType = kind == RootTypeKind.Query;
+                    registeredType.IsMutationType = kind == RootTypeKind.Mutation;
+                    registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
+                    registeredType.Type.CompleteType(registeredType);
                 }
                 return true;
             }
@@ -376,8 +352,7 @@ namespace HotChocolate.Configuration
 
             if (_interceptor.TriggerAggregations)
             {
-                _interceptor.OnTypesCompleted(
-                    _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
+                _interceptor.OnTypesCompleted(_typeRegistry.Types);
             }
 
             _interceptor.OnAfterCompleteTypes();
@@ -389,7 +364,7 @@ namespace HotChocolate.Configuration
             {
                 if (!registeredType.IsExtension)
                 {
-                    registeredType.Type.FinalizeType(registeredType.CompletionContext);
+                    registeredType.Type.FinalizeType(registeredType);
                 }
             }
         }
@@ -519,10 +494,14 @@ namespace HotChocolate.Configuration
         {
             var errors = new List<ISchemaError>(_errors);
 
-            foreach (TypeDiscoveryContext context in
-                _typeRegistry.Types.Select(t => t.DiscoveryContext))
+            foreach (RegisteredType type in _typeRegistry.Types)
             {
-                errors.AddRange(context.Errors);
+                if (type.Errors.Count == 0)
+                {
+                    continue;
+                }
+
+                errors.AddRange(type.Errors);
             }
 
             if (errors.Count > 0)

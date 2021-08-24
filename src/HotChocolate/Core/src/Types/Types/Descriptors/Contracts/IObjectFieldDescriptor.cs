@@ -105,6 +105,13 @@ namespace HotChocolate.Types
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
+        /// <summary>
+        /// Ignores the given field for the schema creation.
+        /// This field will not be included into the GraphQL schema.
+        /// </summary>
+        /// <param name="ignore">
+        /// The value specifying if this field shall be ignored by the type initialization.
+        /// </param>
         IObjectFieldDescriptor Ignore(bool ignore = true);
 
         [Obsolete("Use Resolve(...)")]

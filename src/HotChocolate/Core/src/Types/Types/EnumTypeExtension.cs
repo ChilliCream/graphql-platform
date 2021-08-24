@@ -50,7 +50,7 @@ namespace HotChocolate.Types
         /// Returns the newly created enum type extension.
         /// </returns>
         public static EnumTypeExtension CreateUnsafe(EnumTypeDefinition definition)
-            => new() { Definition = definition};
+            => new() { Definition = definition };
 
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.Enum;
@@ -137,6 +137,8 @@ namespace HotChocolate.Types
                     }
                     else
                     {
+                        existingValue.Ignore = enumValue.Ignore;
+
                         TypeExtensionHelper.MergeContextData(enumValue, existingValue);
 
                         TypeExtensionHelper.MergeDirectives(

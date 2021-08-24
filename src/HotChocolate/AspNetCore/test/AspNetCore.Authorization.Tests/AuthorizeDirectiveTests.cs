@@ -86,7 +86,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Authorize()
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -116,7 +116,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Authorize("MyPolicy")
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -147,7 +147,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Authorize(new[] { "MyRole" })
                     .Field("foo")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -160,12 +160,11 @@ namespace HotChocolate.AspNetCore.Authorization
         {
             // arrange
             // act
-            Action action = () =>
-                AuthorizeObjectTypeDescriptorExtensions
-                    .Authorize(null, new[] { "MyRole" });
+            void Action()
+                => AuthorizeObjectTypeDescriptorExtensions.Authorize(null!, new[] { "MyRole" });
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -178,7 +177,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize()
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -196,7 +195,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize(apply: ApplyPolicy.AfterResolver)
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -214,7 +213,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize(apply: ApplyPolicy.BeforeResolver)
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -245,7 +244,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize("MyPolicy")
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -263,7 +262,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize("MyPolicy", apply: ApplyPolicy.AfterResolver)
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -281,7 +280,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize("MyPolicy", apply: ApplyPolicy.BeforeResolver)
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 
@@ -312,7 +311,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     .Name("Query")
                     .Field("foo")
                     .Authorize(new[] { "MyRole" })
-                    .Resolver("bar"))
+                    .Resolve("bar"))
                 .AddAuthorizeDirectiveType()
                 .Create();
 

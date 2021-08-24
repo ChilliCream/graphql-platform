@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Sorting
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("foo")
+                        .Resolve("foo")
                         .Argument("test", a => a.Type<SortInputType<Bar>>()))
                 .AddSorting()
                 .Create();
@@ -38,7 +38,7 @@ namespace HotChocolate.Data.Sorting
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("foo")
+                        .Resolve("foo")
                         .Argument("test", a => a.Type<ExplicitSortType>()))
                 .TryAddConvention<ISortConvention>(
                     (sp) => new SortConvention(x => x.UseMock()))

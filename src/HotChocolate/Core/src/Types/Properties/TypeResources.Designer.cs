@@ -1358,5 +1358,65 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ErrorHelper_NoSchemaTypesAllowedAsRuntimeType", resourceCulture);
             }
         }
+        
+        internal static string FieldInitHelper_CompleteFields_MaxFieldCountToSmall {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);
+            }
+        }
+        
+        internal static string RegisteredType_Completion_NotYetReady {
+            get {
+                return ResourceManager.GetString("RegisteredType_Completion_NotYetReady", resourceCulture);
+            }
+        }
+        
+        internal static string EdgeType_IsInstanceOfType_NonObject {
+            get {
+                return ResourceManager.GetString("EdgeType_IsInstanceOfType_NonObject", resourceCulture);
+            }
+        }
+        
+        internal static string EdgeType_Description {
+            get {
+                return ResourceManager.GetString("EdgeType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string EdgeType_Cursor_Description {
+            get {
+                return ResourceManager.GetString("EdgeType_Cursor_Description", resourceCulture);
+            }
+        }
+        
+        internal static string EdgeType_Node_Description {
+            get {
+                return ResourceManager.GetString("EdgeType_Node_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionType_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionType_PageInfo_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_PageInfo_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionType_Edges_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_Edges_Description", resourceCulture);
+            }
+        }
+        
+        internal static string ConnectionType_Nodes_Description {
+            get {
+                return ResourceManager.GetString("ConnectionType_Nodes_Description", resourceCulture);
+            }
+        }
     }
 }

@@ -22,87 +22,24 @@ namespace HotChocolate.Types.Spatial
         }
 
         public override object? Deserialize(object? resultValue)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.Deserialize(resultValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.Deserialize(this, resultValue);
 
         public override object? Serialize(object? runtimeValue)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.Serialize(runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.Serialize(this, runtimeValue);
 
         public override bool IsInstanceOfType(IValueNode valueSyntax)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.IsInstanceOfType(valueSyntax);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, valueSyntax);
 
         public override bool IsInstanceOfType(object? runtimeValue)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.IsInstanceOfType(runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.IsInstanceOfType(this, runtimeValue);
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.ParseLiteral(valueSyntax, withDefaults);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        public override object? ParseLiteral(IValueNode valueSyntax)
+            => GeoJsonGeometrySerializer.Default.ParseLiteral(this, valueSyntax);
 
         public override IValueNode ParseValue(object? runtimeValue)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.ParseValue(runtimeValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.ParseValue(this, runtimeValue);
 
         public override IValueNode ParseResult(object? resultValue)
-        {
-            try
-            {
-                return GeoJsonGeometrySerializer.Default.ParseResult(resultValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonGeometrySerializer.Default.ParseResult(this, resultValue);
     }
 }

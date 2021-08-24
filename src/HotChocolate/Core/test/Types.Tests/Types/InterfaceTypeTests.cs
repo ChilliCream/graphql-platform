@@ -8,8 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class InterfaceTypeTests
-        : TypeTestBase
+    public class InterfaceTypeTests : TypeTestBase
     {
         [Fact]
         public void InterfaceType_DynamicName()
@@ -548,6 +547,38 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<SchemaException>(ex);
             ex.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Field_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInterfaceType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo").Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInterfaceType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo")
+                        .Argument("a", t => t.Type("Int"))
+                        .Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
         }
 
         public interface IFoo

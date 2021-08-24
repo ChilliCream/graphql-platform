@@ -50,7 +50,7 @@ namespace HotChocolate
         /// Provides the name string.
         /// </summary>
         /// <returns>The name string value</returns>
-        public override string? ToString()
+        public override string ToString()
         {
             return HasValue ? Value?.ToString() ?? "null" : "unspecified";
         }
@@ -76,7 +76,7 @@ namespace HotChocolate
                 return false;
             }
 
-            return object.Equals(Value, other.Value);
+            return Equals(Value, other.Value);
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace HotChocolate
         }
 
         /// <summary>
-        /// Serves as a hash function for a <see cref="Optional"/> object.
+        /// Serves as a hash function for a <see cref="Optional{T}"/> object.
         /// </summary>
         /// <returns>
         /// A hash code for this instance that is suitable for use in hashing
@@ -115,7 +115,7 @@ namespace HotChocolate
         /// <param name="left">The left parameter</param>
         /// <param name="right">The right parameter</param>
         /// <returns>
-        /// <c>true</c> if both <see cref="Optional"/> values are equal.
+        /// <c>true</c> if both <see cref="Optional{T}"/> values are equal.
         /// </returns>
         public static bool operator ==(Optional<T> left, Optional<T> right)
         {
@@ -128,7 +128,7 @@ namespace HotChocolate
         /// <param name="left">The left parameter</param>
         /// <param name="right">The right parameter</param>
         /// <returns>
-        /// <c>true</c> if both <see cref="Optional"/> values are not equal.
+        /// <c>true</c> if both <see cref="Optional{T}"/> values are not equal.
         /// </returns>
         public static bool operator !=(Optional<T> left, Optional<T> right)
         {
@@ -136,25 +136,31 @@ namespace HotChocolate
         }
 
         /// <summary>
-        /// Implicitly creates a new <see cref="Optional"/> from
+        /// Implicitly creates a new <see cref="Optional{T}"/> from
         /// the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public static implicit operator Optional<T>(T value) =>
-            new Optional<T>(value);
+        public static implicit operator Optional<T>(T value)
+            => new(value);
 
         /// <summary>
         /// Implicitly gets the optional value.
         /// </summary>
         [return: MaybeNull]
-        public static implicit operator T(Optional<T> optional) =>
-            optional.Value;
+        public static implicit operator T(Optional<T> optional)
+            => optional.Value;
 
         /// <summary>
         /// Creates an empty optional that provides a default value.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
-        public static Optional<T> Empty(T? defaultValue = default) =>
-            new Optional<T>(defaultValue, false);
+        public static Optional<T> Empty(T? defaultValue = default)
+            => new(defaultValue, false);
+
+        /// <summary>
+        /// Creates a new generic optional from a non-generic optional.
+        /// </summary>
+        public static Optional<T> From(IOptional optional)
+            => new((T?)optional.Value, optional.HasValue);
     }
 }

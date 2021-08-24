@@ -15,6 +15,8 @@ namespace HotChocolate.Stitching.Delegation
         public void CreateVariableValue()
         {
             // arrange
+            var inputFormatter = new InputFormatter();
+
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString("type Query { foo(a: String = \"bar\") : String a: String }")
                 .Use(_ => _)
@@ -28,6 +30,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
             context.Setup(t => t.Parent<object>())
                 .Returns(new Dictionary<string, object> { { "a", "baz" } });
+            context.Setup(t => t.Service<InputFormatter>()).Returns(inputFormatter);
 
             var scopedVariable = new ScopedVariableNode(
                 null,

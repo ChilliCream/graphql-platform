@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Internal.FieldInitHelper;
 
 #nullable enable
 
@@ -58,6 +59,8 @@ namespace HotChocolate.Types
 
         private Action<IDirectiveTypeDescriptor>? _configure;
         private ITypeConverter _converter = default!;
+        private InputParser _inputParser = default!;
+        private InputFormatter _inputFormatter = default!;
 
         protected DirectiveType()
         {
@@ -200,9 +203,13 @@ namespace HotChocolate.Types
             ITypeDiscoveryContext context,
             DirectiveTypeDefinition definition)
         {
-            context.RegisterDependencyRange(
-                definition.GetArguments().Select(t => t.Type),
-                TypeDependencyKind.Completed);
+            if (definition.HasArguments)
+            {
+                foreach (var argument in definition.Arguments)
+                {
+                    context.Dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
+                }
+            }
         }
 
         protected override void OnCompleteType(
@@ -212,16 +219,13 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConverter();
+            _inputFormatter = context.DescriptorContext.InputFormatter;
+            _inputParser = context.DescriptorContext.InputParser;
             MiddlewareComponents = definition.GetMiddlewareComponents();
 
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.GetLocations().ToList().AsReadOnly();
-            Arguments = FieldCollection<Argument>.From(
-                definition
-                    .GetArguments()
-                    .Where(t => !t.Ignore)
-                    .Select(t => new Argument(t, new FieldCoordinate(Name, t.Name))),
-                context.DescriptorContext.Options.SortFieldsByName);
+            Arguments = OnCompleteFields(context, definition);
             HasMiddleware = MiddlewareComponents.Count > 0;
             IsPublic = definition.IsPublic;
 
@@ -240,47 +244,57 @@ namespace HotChocolate.Types
 
             IsExecutableDirective = _executableLocations.Overlaps(Locations);
             IsTypeSystemDirective = _typeSystemLocations.Overlaps(Locations);
-
-            FieldInitHelper.CompleteFields(context, definition, Arguments);
         }
 
-        internal object? DeserializeArgument(
-            Argument argument,
-            IValueNode valueNode,
-            Type targetType)
+        protected virtual FieldCollection<Argument> OnCompleteFields(
+            ITypeCompletionContext context,
+            DirectiveTypeDefinition definition)
+        {
+            return CompleteFields(context, this, definition.GetArguments(), CreateArgument);
+            static Argument CreateArgument(DirectiveArgumentDefinition argDef, int index)
+                => new(argDef, index);
+        }
+
+        internal IValueNode SerializeArgument(Argument argument, object? obj)
         {
             if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            if (valueNode is null)
+            return _inputFormatter.FormatValue(obj, argument.Type, Path.New(argument.Name));
+        }
+
+        internal object? DeserializeArgument(Argument argument, IValueNode literal, Type target)
+        {
+            if (argument is null)
             {
-                throw new ArgumentNullException(nameof(valueNode));
+                throw new ArgumentNullException(nameof(argument));
             }
 
-            var obj = argument.Type.ParseLiteral(valueNode);
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
 
-            if (targetType.IsInstanceOfType(obj))
+            var obj = _inputParser.ParseLiteral(literal, argument);
+
+            if (target.IsInstanceOfType(obj))
             {
                 return obj;
             }
 
-            if (_converter.TryConvert(typeof(object), targetType, obj, out var o))
+            if (_converter.TryConvert(typeof(object), target, obj, out var o))
             {
                 return o;
             }
 
             throw new ArgumentException(
                 TypeResources.DirectiveType_UnableToConvert,
-                nameof(targetType));
+                nameof(target));
         }
 
-        internal T DeserializeArgument<T>(
-            Argument argument,
-            IValueNode valueNode)
-        {
-            return (T)DeserializeArgument(argument, valueNode, typeof(T))!;
-        }
+        internal T DeserializeArgument<T>(Argument argument, IValueNode literal)
+            => (T)DeserializeArgument(argument, literal, typeof(T))!;
     }
 }

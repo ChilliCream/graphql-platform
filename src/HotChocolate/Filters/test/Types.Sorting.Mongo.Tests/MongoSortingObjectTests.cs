@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Parent>>(sp =>
+                .AddSingleton(_ =>
                 {
                     IMongoDatabase database = _mongoResource.CreateDatabase();
                     IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Sorting
         {
             // arrange
             IServiceProvider services = new ServiceCollection()
-                .AddSingleton<IMongoCollection<Parent>>(sp =>
+                .AddSingleton(_ =>
                 {
                     IMongoDatabase database = _mongoResource.CreateDatabase();
                     IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
@@ -270,15 +270,16 @@ namespace HotChocolate.Types.Sorting
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
+
                 descriptor.Field("items")
                     .Type<ListType<ParentType>>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolve(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ParentType>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolve(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
             }
         }
 
@@ -304,7 +305,7 @@ namespace HotChocolate.Types.Sorting
             {
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
             }
         }
 
@@ -317,7 +318,7 @@ namespace HotChocolate.Types.Sorting
                     .Type<ModelType>();
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
             }
         }
         public class Parent

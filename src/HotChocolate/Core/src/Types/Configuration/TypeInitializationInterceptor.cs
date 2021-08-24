@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -41,6 +42,10 @@ namespace HotChocolate.Configuration
             IDictionary<string, object?> contextData)
         {
         }
+
+        public virtual IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            => Enumerable.Empty<ITypeReference>();
 
         public virtual void OnTypeRegistered(
             ITypeDiscoveryContext discoveryContext)

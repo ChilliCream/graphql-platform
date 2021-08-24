@@ -16,8 +16,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class InputObjectTypeTests
-        : TypeTestBase
+    public class InputObjectTypeTests : TypeTestBase
     {
         [Fact]
         public void InputObjectType_DynamicName()
@@ -118,22 +117,6 @@ namespace HotChocolate.Types
             Assert.Collection(fooType.Fields,
                 t => Assert.Equal("id", t.Name),
                 t => Assert.Equal("name", t.Name));
-        }
-
-        [Fact]
-        public void ParseLiteral()
-        {
-            // arrange
-            ISchema schema = Create();
-            InputObjectType inputObjectType = schema.GetType<InputObjectType>("Object1");
-            ObjectValueNode literal = CreateObjectLiteral();
-
-            // act
-            var obj = inputObjectType.ParseLiteral(literal);
-
-            // assert
-            Assert.IsType<SerializationInputObject1>(obj);
-            obj.MatchSnapshot();
         }
 
         [Fact]
@@ -483,21 +466,15 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Convert_Parts_Of_The_Input_Graph()
+        public async Task Convert_Parts_Of_The_Input_Graph()
         {
             // arrange
-            ServiceProvider services = new ServiceCollection()
-                .AddSingleton<ITypeConverter, DefaultTypeConverter>()
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
                 .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
                 .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
-                .BuildServiceProvider();
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(services)
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
+                .BuildRequestExecutorAsync();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1089,6 +1066,21 @@ namespace HotChocolate.Types
             // assert
             Assert.IsType<SchemaException>(ex);
             ex.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo").Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
         }
 
         public class InputWithInterfaceType : InputObjectType<InputWithInterface>

@@ -32,6 +32,7 @@ namespace HotChocolate.Execution
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
             RequestDelegate requestDelegate,
+            BatchExecutor batchExecutor,
             ulong version)
         {
             Schema = schema ??
@@ -52,8 +53,9 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(diagnosticEvents));
             _requestDelegate = requestDelegate ??
                 throw new ArgumentNullException(nameof(requestDelegate));
+            _batchExecutor = batchExecutor ??
+                throw new ArgumentNullException(nameof(batchExecutor));
             Version = version;
-            _batchExecutor = new BatchExecutor(this, errorHandler, converter);
         }
 
         public ISchema Schema { get; }
@@ -83,16 +85,13 @@ namespace HotChocolate.Execution
 
             try
             {
-                if (context == null)
-                {
-                    context = new RequestContext(
-                        Schema,
-                        Version,
-                        _errorHandler,
-                        _converter,
-                        _activator,
-                        _diagnosticEvents) { RequestAborted = cancellationToken };
-                }
+                context ??= new RequestContext(
+                    Schema,
+                    Version,
+                    _errorHandler,
+                    _converter,
+                    _activator,
+                    _diagnosticEvents) { RequestAborted = cancellationToken };
 
                 context.Initialize(request, services);
 
@@ -143,7 +142,7 @@ namespace HotChocolate.Execution
 
             return Task.FromResult<IBatchQueryResult>(
                 new BatchQueryResult(
-                    () => _batchExecutor.ExecuteAsync(requestBatch),
+                    () => _batchExecutor.ExecuteAsync(this, requestBatch),
                     null));
         }
     }

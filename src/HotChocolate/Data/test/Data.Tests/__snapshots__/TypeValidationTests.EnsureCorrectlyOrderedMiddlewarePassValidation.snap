@@ -2,30 +2,30 @@
   query: CorrectMiddlewarePipeline
 }
 
-type CorrectMiddlewarePipeline {
-  bars("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: FooFilterInput order: [FooSortInput!]): FooConnection
-}
-
-type Foo {
-  bar: String
-}
-
 "A connection to a list of items."
-type FooConnection {
+type BarsConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo!
   "A list of edges."
-  edges: [FooEdge!]
+  edges: [BarsEdge!]
   "A flattened list of the nodes."
   nodes: [Foo!]
 }
 
 "An edge in a connection."
-type FooEdge {
+type BarsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
   node: Foo!
+}
+
+type CorrectMiddlewarePipeline {
+  bars("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: FooFilterInput order: [FooSortInput!]): BarsConnection
+}
+
+type Foo {
+  bar: String
 }
 
 "Information about pagination in a connection."

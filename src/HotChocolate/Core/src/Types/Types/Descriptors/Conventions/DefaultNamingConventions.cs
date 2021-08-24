@@ -190,8 +190,8 @@ namespace HotChocolate.Types.Descriptors
                 return char.ToUpper(name[0]).ToString();
             }
 
-            bool allUpper = true;
-            int lengthMinusOne = name.Length - 1;
+            var allUpper = true;
+            var lengthMinusOne = name.Length - 1;
 
             for (var i = 0; i < name.Length; i++)
             {
@@ -212,7 +212,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (allUpper)
             {
-                return value.ToString();
+                return value.ToString()!;
             }
 
             if (underscores == name.Length - 1 && char.IsUpper(name[0]))
@@ -234,15 +234,18 @@ namespace HotChocolate.Types.Descriptors
                 var p = 0;
                 buffer[p++] = char.ToUpper(name[0]);
 
+                bool lastWasUnderline = false;
                 for (var i = 1; i < name.Length; i++)
                 {
-                    if (char.IsUpper(name[i]) &&
+                    if (!lastWasUnderline &&
+                        char.IsUpper(name[i]) &&
                         (!char.IsUpper(name[i - 1]) ||
                             (i < lengthMinusOne && char.IsLower(name[i + 1]))))
                     {
                         buffer[p++] = '_';
                     }
                     buffer[p++] = char.ToUpper(name[i]);
+                    lastWasUnderline = name[i] == '_';
                 }
 
                 fixed (char* charPtr = buffer)
@@ -276,7 +279,7 @@ namespace HotChocolate.Types.Descriptors
 
                 if (enumMember != null)
                 {
-                    string description = enumMember.GetGraphQLDescription();
+                    var description = enumMember.GetGraphQLDescription();
                     return string.IsNullOrEmpty(description)
                         ? _documentation.GetDescription(enumMember)
                         : description;
@@ -287,7 +290,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public virtual bool IsDeprecated(MemberInfo member, out string reason)
+        public virtual bool IsDeprecated(MemberInfo member, out string? reason)
         {
             if (member is null)
             {

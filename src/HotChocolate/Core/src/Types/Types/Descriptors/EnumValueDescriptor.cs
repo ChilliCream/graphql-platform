@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -44,6 +45,11 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.Member);
                 Definition.AttributesAreApplied = true;
+
+                if (Context.TypeInspector.IsMemberIgnored(Definition.Member))
+                {
+                    Ignore();
+                }
             }
 
             base.OnCreateDefinition(definition);
@@ -86,6 +92,12 @@ namespace HotChocolate.Types.Descriptors
         public IEnumValueDescriptor Deprecated()
         {
             Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
+            return this;
+        }
+
+        public IEnumValueDescriptor Ignore(bool ignore = true)
+        {
+            Definition.Ignore = ignore;
             return this;
         }
 

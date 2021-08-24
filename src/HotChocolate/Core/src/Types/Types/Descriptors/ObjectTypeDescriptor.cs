@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -67,6 +68,21 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.FieldBindingType);
                 Definition.AttributesAreApplied = true;
+            }
+
+            foreach (ObjectFieldDescriptor field in Fields)
+            {
+                if (!field.Definition.Ignore)
+                {
+                    continue;
+                }
+
+                // if this definition is used for a type extension we need a 
+                // binding to a field which shall be ignored. In case this is a 
+                // definition for the type it will be ignored by the type initialization.
+                Definition.FieldIgnores.Add(new ObjectFieldBinding(
+                    field.Definition.Name,
+                    ObjectFieldBindingType.Field));
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();

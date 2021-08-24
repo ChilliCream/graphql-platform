@@ -6,8 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public class AuthorizationAttributeTestData
-        : IEnumerable<object[]>
+    public class AuthorizationAttributeTestData : IEnumerable<object[]>
     {
         public class Query
         {

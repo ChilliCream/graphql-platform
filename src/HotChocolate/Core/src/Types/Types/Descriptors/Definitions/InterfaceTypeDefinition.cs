@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 
 #nullable enable
@@ -37,26 +38,46 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
 
+        /// <summary>
+        /// Specifies if this definition has interfaces.
+        /// </summary>
+        public bool HasInterfaces => _interfaces is { Count: > 0 };
+
         public IBindableList<InterfaceFieldDefinition> Fields { get; } =
             new BindableList<InterfaceFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (InterfaceFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
-
-                foreach (ArgumentDefinition argument in field.GetArguments())
+                if (field.HasConfigurations)
                 {
-                    configs.AddRange(argument.Configurations);
+                    configs ??= new();
+                    configs.AddRange(field.Configurations);
+                }
+
+                if (field.HasArguments)
+                {
+                    foreach (ArgumentDefinition argument in field.Arguments)
+                    {
+                        if (argument.HasConfigurations)
+                        {
+                            configs ??= new();
+                            configs.AddRange(argument.Configurations);
+                        }
+                    }
                 }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
         internal IReadOnlyList<Type> GetKnownClrTypes()

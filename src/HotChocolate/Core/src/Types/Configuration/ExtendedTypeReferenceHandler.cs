@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -11,8 +9,7 @@ using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class ExtendedTypeReferenceHandler
-        : ITypeRegistrarHandler
+    internal sealed class ExtendedTypeReferenceHandler : ITypeRegistrarHandler
     {
         private readonly ITypeInspector _typeInspector;
 
@@ -21,43 +18,41 @@ namespace HotChocolate.Configuration
             _typeInspector = typeInspector;
         }
 
-        public void Register(
-            ITypeRegistrar typeRegistrar,
-            IEnumerable<ITypeReference> typeReferences)
+        public TypeReferenceKind Kind => TypeReferenceKind.ExtendedType;
+
+        public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
         {
-            foreach (ExtendedTypeReference typeReference in
-                typeReferences.OfType<ExtendedTypeReference>())
+            var typeRef = (ExtendedTypeReference)typeReference;
+
+            if (_typeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+                !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
             {
-                if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
-                    !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
+                if (typeInfo.NamedType == typeof(IExecutable))
                 {
-                    if (typeInfo.NamedType == typeof(IExecutable))
-                    {
-                        throw ThrowHelper.NonGenericExecutableNotAllowed();
-                    }
+                    throw ThrowHelper.NonGenericExecutableNotAllowed();
+                }
 
-                    Type namedType = typeInfo.NamedType;
-                    if (IsTypeSystemObject(namedType))
-                    {
-                        IExtendedType extendedType = _typeInspector.GetType(namedType);
-                        ExtendedTypeReference namedTypeReference = typeReference.With(extendedType);
+                Type namedType = typeInfo.NamedType;
+                if (IsTypeSystemObject(namedType))
+                {
+                    IExtendedType extendedType = _typeInspector.GetType(namedType);
+                    ExtendedTypeReference namedTypeReference = typeRef.With(extendedType);
 
-                        if (!typeRegistrar.IsResolved(namedTypeReference))
-                        {
-                            typeRegistrar.Register(
-                                typeRegistrar.CreateInstance(namedType),
-                                typeReference.Scope,
-                                ExtendedType.Tools.IsGenericBaseType(namedType));
-                        }
-                    }
-                    else
+                    if (!typeRegistrar.IsResolved(namedTypeReference))
                     {
-                        TryMapToExistingRegistration(
-                            typeRegistrar,
-                            typeInfo,
-                            typeReference.Context,
-                            typeReference.Scope);
+                        typeRegistrar.Register(
+                            typeRegistrar.CreateInstance(namedType),
+                            typeReference.Scope,
+                            ExtendedType.Tools.IsGenericBaseType(namedType));
                     }
+                }
+                else
+                {
+                    TryMapToExistingRegistration(
+                        typeRegistrar,
+                        typeInfo,
+                        typeReference.Context,
+                        typeReference.Scope);
                 }
             }
         }

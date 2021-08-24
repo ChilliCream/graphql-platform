@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -14,9 +13,11 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
+        private readonly InputParser _inputParser;
 
         public OperationResolverMiddleware(
             RequestDelegate next,
+            InputParser inputParser,
             IEnumerable<ISelectionOptimizer> optimizers)
         {
             if (optimizers is null)
@@ -24,8 +25,8 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(optimizers));
             }
 
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
+            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _inputParser = inputParser ?? throw new ArgumentNullException(nameof(inputParser));
             _optimizers = optimizers.ToArray();
         }
 
@@ -54,6 +55,7 @@ namespace HotChocolate.Execution.Pipeline
                     operation,
                     context.Schema,
                     rootType,
+                    _inputParser,
                     _optimizers);
                 context.OperationId = context.Operation.Id;
 

@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
 using static HotChocolate.Data.Projections.ProjectionProvider;
@@ -150,21 +149,17 @@ namespace HotChocolate.Types
                             selectionType = typeInfo.NamedType;
                         }
 
-                        ILazyTypeConfiguration lazyConfiguration =
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (c, d) =>
-                                        CompileMiddleware(
-                                            selectionType,
-                                            d,
-                                            placeholder,
-                                            c,
-                                            scope))
-                                .On(ApplyConfigurationOn.Completion)
-                                .Build();
-                        definition.Configurations.Add(lazyConfiguration);
+                        definition.Configurations.Add(
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (c, d) =>
+                                    CompileMiddleware(
+                                        selectionType,
+                                        d,
+                                        placeholder,
+                                        c,
+                                        scope),
+                                definition,
+                                ApplyConfigurationOn.Completion));
                     });
 
             return descriptor;

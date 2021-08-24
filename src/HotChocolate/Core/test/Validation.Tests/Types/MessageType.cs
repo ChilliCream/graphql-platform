@@ -11,11 +11,11 @@ namespace HotChocolate.Validation.Types
 
             descriptor.Field("body")
                 .Type<NonNullType<StringType>>()
-                .Resolver(() => "foo");
+                .Resolve(() => "foo");
 
             descriptor.Field("sender")
                 .Type<NonNullType<StringType>>()
-                .Resolver(() => "foo");
+                .Resolve(() => "foo");
         }
     }
 }

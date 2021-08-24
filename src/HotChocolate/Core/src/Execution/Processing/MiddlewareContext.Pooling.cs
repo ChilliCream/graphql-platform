@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -24,6 +26,7 @@ namespace HotChocolate.Execution.Processing
             ResultMap = resultMap;
             ResponseIndex = responseIndex;
             _parent = parent;
+            _parser = _operationContext.Services.GetRequiredService<InputParser>();
             Path = path;
             ScopedContextData = scopedContextData;
             LocalContextData = ImmutableDictionary<string, object?>.Empty;
@@ -41,6 +44,7 @@ namespace HotChocolate.Execution.Processing
             _resolverResult = default;
             _hasResolverResult = false;
             _result = default;
+            _parser = default!;
 
             Path = default!;
             ScopedContextData = default!;

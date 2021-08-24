@@ -208,24 +208,6 @@ namespace HotChocolate
             public const string NodeFieldWasNotFound = "HC0028";
         }
 
-        public static class Types
-        {
-            /// <summary>
-            /// Unable to infer the element type from the current resolver.
-            /// This often happens if the resolver is not an iterable type like
-            /// IEnumerable, IQueryable, IList etc. Ensure that you either
-            /// explicitly specify the element type or that the return type of your resolver
-            /// is an iterable type.
-            /// </summary>
-            public const string NodeTypeUnkown = "HC0031";
-
-            /// <summary>
-            /// The element schema type for pagination must be a valid GraphQL output type
-            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
-            /// </summary>
-            public const string SchemaTypeInvalid = "HC0032";
-        }
-
         /// <summary>
         /// Error codes relating to the document validation.
         /// </summary>
@@ -235,6 +217,37 @@ namespace HotChocolate
             /// The introspection is not allowed for the current request
             /// </summary>
             public const string IntrospectionNotAllowed = "HC0046";
+        }
+
+        /// <summary>
+        /// Error codes related to paging compinents
+        /// </summary>
+        public static class Paging
+        {
+            /// <summary>
+            /// Unable to infer the element type from the current resolver.
+            /// This often happens if the resolver is not an iterable type like
+            /// IEnumerable, IQueryable, IList etc. Ensure that you either
+            /// explicitly specify the element type or that the return type of your resolver
+            /// is an iterable type.
+            /// </summary>
+            public const string NodeTypeUnknown = "HC0031";
+
+            /// <summary>
+            /// The element schema type for pagination must be a valid GraphQL output type
+            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
+            /// </summary>
+            public const string SchemaTypeInvalid = "HC0032";
+
+            /// <summary>
+            /// The maximum allowed items per page were exceeded.
+            /// </summary>
+            public const string MaxPaginationItems = "HC0051";
+
+            /// <summary>
+            /// You must provide a `first` or `last` value to properly paginate the connection.
+            /// </summary>
+            public const string NoPagingBoundaries = "HC0052";
         }
     }
 }

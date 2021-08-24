@@ -1,5 +1,4 @@
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,10 +9,8 @@ namespace HotChocolate.Data.Filters
         : InputField
         , IOrField
     {
-        internal OrField(
-            IDescriptorContext context,
-            string? scope)
-            : base(CreateDefinition(context, scope), default)
+        internal OrField(IDescriptorContext context, int index, string? scope)
+            : base(CreateDefinition(context, scope), index)
         {
         }
 
@@ -23,18 +20,15 @@ namespace HotChocolate.Data.Filters
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             InputFieldDefinition definition)
         {
-            Coordinate = Coordinate.With(typeName: context.Type.Name);
-
-            definition.Type = TypeReference.Create(
-                new ListTypeNode(
-                    new NonNullTypeNode(
-                        new NamedTypeNode(context.Type.Name))),
+            definition.Type = TypeReference.Parse(
+                $"[{context.Type.Name}!]",
                 TypeContext.Input,
                 context.Type.Scope);
 
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
         }
 
         private static InputFieldDefinition CreateDefinition(

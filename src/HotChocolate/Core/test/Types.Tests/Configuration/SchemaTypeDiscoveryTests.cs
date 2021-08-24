@@ -193,7 +193,7 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
+            public override object ParseLiteral(IValueNode literal)
             {
                 throw new NotSupportedException();
             }

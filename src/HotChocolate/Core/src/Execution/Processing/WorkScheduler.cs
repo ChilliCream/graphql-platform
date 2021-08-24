@@ -265,14 +265,11 @@ namespace HotChocolate.Execution.Processing
 
         private void TryDispatchBatches()
         {
-            if (!_processing && IsEmpty && _batchDispatcher.HasTasks)
+            lock (_sync)
             {
-                lock (_sync)
+                if (!_processing)
                 {
-                    if (!_processing)
-                    {
-                        TryDispatchBatchesUnsafe();
-                    }
+                    TryDispatchBatchesUnsafe();
                 }
             }
         }
@@ -280,7 +277,7 @@ namespace HotChocolate.Execution.Processing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryDispatchBatchesUnsafe()
         {
-            if (IsEmpty && _batchDispatcher.HasTasks)
+            if (_work.IsEmpty && _batchDispatcher.HasTasks)
             {
                 using (_diagnosticEvents.DispatchBatch(_requestContext))
                 {

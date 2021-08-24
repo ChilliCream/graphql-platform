@@ -107,13 +107,6 @@ public class Query
     {
         // Omitted code for brevity
     }
-
-    // before v11.3.1
-    public User GetMeLegacy(
-        [GlobalState(nameof(ClaimsPrincipal))] ClaimsPrincipal claimsPrincipal)
-    {
-        // Omitted code for brevity
-    }
 }
 ```
 
@@ -130,9 +123,6 @@ public class QueryType : ObjectType
             .Resolve(context =>
             {
                 var claimsPrincipal = context.GetUser();
-                // before v11.3.1
-                var claimsPrincipal = context.GetGlobalValue<ClaimsPrincipal>(
-                                        nameof(ClaimsPrincipal));
 
                 // Omitted code for brevity
             });
@@ -149,15 +139,11 @@ services
     .AddDocumentFromString(@"
         type Query {
           me: User
-          meLegacy: User
         }
     ")
     .AddResolver("Query", "me", (context) =>
     {
         var claimsPrincipal = context.GetUser();
-        // before v11.3.1
-        var claimsPrincipal = context.GetGlobalValue<ClaimsPrincipal>(
-                                        nameof(ClaimsPrincipal));
 
         // Omitted code for brevity
     })

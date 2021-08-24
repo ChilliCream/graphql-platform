@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Pipeline
                         _coercionHelper,
                         operationDefinition.VariableDefinitions);
 
-                    var complexity = analyzer(context.Variables!);
+                    var complexity = analyzer(context.Services, context.Variables!);
                     var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
                     context.ContextData[_settings.ContextDataKey] = complexity;
 
