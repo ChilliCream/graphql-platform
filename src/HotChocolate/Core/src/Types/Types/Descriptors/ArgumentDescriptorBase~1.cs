@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -102,9 +103,11 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.SetMoreSpecificType(
-                    Context.TypeInspector.GetType(value.GetType()),
-                    TypeContext.Input);
+                IExtendedType type = Context.TypeInspector.GetType(value.GetType());
+                ExtendedTypeReference reference = TypeReference.Create(type, TypeContext.Input);
+
+                Definition.SetMoreSpecificType(type, TypeContext.Input);
+                Definition.Dependencies.Add(new(reference, TypeDependencyKind.Completed));
                 Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
             }
