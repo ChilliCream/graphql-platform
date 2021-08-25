@@ -13,7 +13,7 @@ tags:
     "jetbrains",
     "rider",
   ]
-featuredImage: "rider-language-injection.png"
+featuredImage: "hot-chocolate-rider-language-injection-banner.png"
 author: Pascal Senn
 authorUrl: https://github.com/pascal_senn
 authorImageUrl: https://avatars0.githubusercontent.com/u/14233220
@@ -51,14 +51,14 @@ package [Snapshooter](https://swisslife-oss.github.io/snapshooter/docs/get-start
 
 ```csharp
 [Fact]
-public void ExampleUseOfSnapshooter() 
+public void ExampleUseOfSnapshooter()
 {
    // arrange
    var serviceToTest = new ServiceToTest();
-   
+
    // act
    List<string> result = serviceToTest.GetSomeStrings();
-   
+
    // assert
    result.MatchSnapshot();
 }
@@ -70,7 +70,7 @@ the name `schema.graphql`. You can configure the extension in a `.graphqlconfig`
 
 The snapshot test to capture the schema could look like this:
 
-*/test/ExampleProject.Tests/SchemaTests.cs*
+_/test/ExampleProject.Tests/SchemaTests.cs_
 
 ```csharp
 public class SchemaTests
@@ -97,7 +97,7 @@ public class SchemaTests
 The example from above creates a snapshot of the schema in `/test/ExampleProject.Tests/__snapshots__/schema.graphql`. You now
 have to make the GraphQL extension aware of this schema by creating a .graphqlconfig
 
-*/test/ExampleProject.TestsYourProject.Tests/.graphqlconfig*
+_/test/ExampleProject.TestsYourProject.Tests/.graphqlconfig_
 
 ```json
 {
@@ -106,7 +106,7 @@ have to make the GraphQL extension aware of this schema by creating a .graphqlco
 }
 ```
 
-Now all *.gql and *.graphql files in your project will have proper syntax highlighting, IntelliSense and linting.
+Now all _.gql and _.graphql files in your project will have proper syntax highlighting, IntelliSense and linting.
 
 ## Inject GraphQL into strings
 
@@ -145,18 +145,19 @@ public class PersonsIntegrationTests
 }
 ```
 
-The GraphQL extension now knows the schema, but Rider does not understand that the string contains a GraphQL query. 
+The GraphQL extension now knows the schema, but Rider does not understand that the string contains a GraphQL query.
 To make Rider aware of string literals that contain GraphQL queries, you have to add a new language injection provider.
 
 1. Go To 'Preferences' and search for 'Language Injection'
-![Rider Preferences Window](./preferences.png)
-2. Add a new 'Generic Csharp' Language Injection 
+   ![Rider Preferences Window](./preferences.png)
+2. Add a new 'Generic Csharp' Language Injection
 3. Select GraphQL in the Dropdown ID
 4. Add the following pattern
 
 ```text
 - csharpLiteralExpression().withText(string().matchesBrics("@?[\"'] *((query|mutation|subscription) .*) .*[\"']?"))
 ```
+
 ![Rider language injection-settings](./language-injection-settings.png)
 
 Now every string in C# that starts with either `query`, `mutation`, or `subscription` will be interpreted by Rider as a GraphQL Query.
@@ -165,11 +166,9 @@ Now every string in C# that starts with either `query`, `mutation`, or `subscrip
 
 You can find an example project here [rider-language-injection-example](https://github.com/PascalSenn/rider-language-injection-example)
 
+In case you have questions, [Join our Slack Channel](http://slack.chillicream.com/). We have a very welcoming and helpful community that is waiting for you.
 
-
-In case you have questions, [Join our Slack Channel](http://slack.chillicream.com/). We have a very welcoming and helpful community that is waiting for you. 
-
-If you like what we are doing at ChilliCream, head over to the [HotChocolate repository and **give us a star**](https://github.com/ChilliCream/hotchocolate). 
+If you like what we are doing at ChilliCream, head over to the [HotChocolate repository and **give us a star**](https://github.com/ChilliCream/hotchocolate).
 It helps us to gain visibility and grow our already awesome community!
 
 Thank you!

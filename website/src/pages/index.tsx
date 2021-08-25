@@ -42,8 +42,8 @@ import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
+import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
-import XMLogoSvg from "../images/companies/xm.svg"
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
@@ -75,10 +75,7 @@ const IndexPage: FC = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  gatsbyImageData(
-                    layout: CONSTRAINED
-                    width: 800
-                  )
+                  gatsbyImageData(layout: CONSTRAINED, width: 800)
                 }
               }
               path
@@ -119,7 +116,7 @@ const IndexPage: FC = () => {
           </Slide>
           <Slide>
             <Link to="/docs/bananacakepop">
-              <BananaCakePop />
+              <BananaCakePop shadow />
               <SlideContent>
                 <SlideTitle>Banana Cake Pop</SlideTitle>
                 <SlideDescription>
