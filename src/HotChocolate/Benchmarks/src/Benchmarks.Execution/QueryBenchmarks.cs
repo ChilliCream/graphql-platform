@@ -12,7 +12,7 @@ namespace HotChocolate.Benchmarks
         public async Task Sessions_TitleAndAbstract_10_Items() =>
             await BenchmarkAsync(@"
                 {
-                    sessions(first: 10 {
+                    sessions(first: 10) {
                         nodes {
                             title
                             abstract
