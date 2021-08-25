@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
+                .UseMiddleware<ToolOptionsFileMiddleware>(path)
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
                 .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
                 .Use(next => context =>
