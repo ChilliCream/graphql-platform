@@ -6,7 +6,7 @@ trigger:
       - develop
   paths:
     include:
-      - .devops/deploy-website-cluster.yaml
+      - .devops/deploy-website-cluster.yml
       - .docker/website
       - src/website
 
