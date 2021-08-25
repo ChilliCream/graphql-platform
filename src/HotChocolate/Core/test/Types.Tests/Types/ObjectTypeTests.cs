@@ -1712,6 +1712,18 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ResolveWithAsync()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithQueryTypeAsync>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo baz qux quux }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void ResolveWith_NonGeneric()
         {
             SchemaBuilder.New()
@@ -1948,6 +1960,8 @@ namespace HotChocolate.Types
         public class ResolveWithQueryResolver
         {
             public string Bar { get; set; } = "Bar";
+
+            public Task<string> FooAsync() => Task.FromResult("Foo");
         }
 
         public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
@@ -1959,8 +1973,20 @@ namespace HotChocolate.Types
             }
         }
 
-       public class ResolveWithNonGenericObjectType : ObjectType
-       {
+        public class ResolveWithQueryTypeAsync : ObjectType<ResolveWithQuery>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+            {
+                descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.FooAsync());
+                descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.FooAsync());
+
+                descriptor.Field("qux").ResolveWith<ResolveWithQueryResolver, string>(t => t.Bar);
+                descriptor.Field("quux").ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
+            }
+        }
+
+        public class ResolveWithNonGenericObjectType : ObjectType
+        {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 Type type = typeof(ResolveWithQuery);
@@ -1971,7 +1997,7 @@ namespace HotChocolate.Types
                     .Type<IntType>()
                     .ResolveWith(type.GetProperty("Foo"));
             }
-       }
+        }
 
         public class AnnotatedNestedList
         {
