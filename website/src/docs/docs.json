@@ -504,6 +504,64 @@
           {
             "path": "index",
             "title": "Introduction"
+          },
+          {
+            "path": "getting-started",
+            "title": "Getting Started"
+          },
+          {
+            "path": "schema-reference",
+            "title": "Schema Reference"
+          },
+          {
+            "path": "schema-definition",
+            "title": "Schema Definition"
+          },
+          {
+            "path": "actions",
+            "title": "Actions",
+            "items": [{ "path": "schema-refresh", "title": "Schema Refresh" }]
+          },
+          {
+            "path": "documents",
+            "title": "GraphQL Documents",
+            "items": [
+              {
+                "path": "managing",
+                "title": "Management"
+              },
+              {
+                "path": "tabs",
+                "title": "Tabs"
+              },
+              {
+                "path": "headers",
+                "title": "Headers"
+              },
+              {
+                "path": "variables",
+                "title": "Variables"
+              },
+              {
+                "path": "linting",
+                "title": "Linting"
+              },
+              {
+                "path": "history",
+                "title": "History"
+              }
+            ]
+          },
+          {
+            "path": "integrations",
+            "title": "Integrations",
+            "items": [
+              { "path": "index", "title": "Introduction" },
+              { "path": "express", "title": "Express" },
+              { "path": "koa", "title": "Koa" },
+              { "path": "gatsby", "title": "Gatsby" },
+              { "path": "apollo", "title": "Apollo Server" }
+            ]
           }
         ]
       }
