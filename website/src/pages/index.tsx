@@ -105,6 +105,18 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="https://bananacakepop.com">
+              <BananaCakePop shadow />
+              <SlideContent>
+                <SlideTitle>Try Banana Cake Pop Preview 1</SlideTitle>
+                <SlideDescription>
+                  Our GraphQL IDE to explore schemas, execute operations and get
+                  deep performance insights.
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2021/03/31/chillicream-platform-11-1">
               <BlogPostChilliCreamPlatform />
             </Link>
@@ -112,18 +124,6 @@ const IndexPage: FC = () => {
           <Slide>
             <Link to="/blog/2020/11/23/hot-chocolate-11">
               <BlogPostVersion11 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/docs/bananacakepop">
-              <BananaCakePop shadow />
-              <SlideContent>
-                <SlideTitle>Banana Cake Pop</SlideTitle>
-                <SlideDescription>
-                  Our GraphQL IDE to explore schemas, execute operations and get
-                  deep performance insights.
-                </SlideDescription>
-              </SlideContent>
             </Link>
           </Slide>
           <Slide>

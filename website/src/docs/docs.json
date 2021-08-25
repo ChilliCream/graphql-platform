@@ -504,6 +504,26 @@
           {
             "path": "index",
             "title": "Introduction"
+          },
+          {
+            "path": "getting-started",
+            "title": "Getting Started"
+          },
+          {
+            "path": "schema-reference",
+            "title": "Schema Reference"
+          },
+          {
+            "path": "schema-definition",
+            "title": "Schema Definition"
+          },
+          {
+            "path": "actions",
+            "title": "Actions",
+            "items": [
+              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "key-bindings", "title": "Key Bindings" }
+            ]
           }
         ]
       }
