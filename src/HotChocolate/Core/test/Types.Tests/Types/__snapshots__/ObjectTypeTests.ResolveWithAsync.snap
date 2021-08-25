@@ -3,6 +3,7 @@
     "foo": "Foo",
     "baz": "Foo",
     "qux": "Bar",
-    "quux": "Foo"
+    "quux": "Foo",
+    "quuz": true
   }
 }

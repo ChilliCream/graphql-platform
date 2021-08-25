@@ -1718,7 +1718,7 @@ namespace HotChocolate.Types
                 .AddQueryType<ResolveWithQueryTypeAsync>()
                 .Create()
                 .MakeExecutable()
-                .Execute("{ foo baz qux quux }")
+                .Execute("{ foo baz qux quux quuz }")
                 .ToJson()
                 .MatchSnapshot();
         }
@@ -1962,6 +1962,9 @@ namespace HotChocolate.Types
             public string Bar { get; set; } = "Bar";
 
             public Task<string> FooAsync() => Task.FromResult("Foo");
+
+            public Task<bool> BarAsync(IResolverContext context)
+                => Task.FromResult(context is not null);
         }
 
         public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
@@ -1982,6 +1985,8 @@ namespace HotChocolate.Types
 
                 descriptor.Field("qux").ResolveWith<ResolveWithQueryResolver, string>(t => t.Bar);
                 descriptor.Field("quux").ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
+
+                descriptor.Field("quuz").ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
             }
         }
 
