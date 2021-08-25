@@ -54,7 +54,7 @@ steps:
     displayName: "Build WebSite Container"
     inputs:
       containerRegistry: '$(container-registry)'
-      repository: 'ccc-website'
+      repository: 'ccc-website-$(Build.SourceBranchName)'
       command: 'buildAndPush'
       Dockerfile: '.docker/website/dockerfile'
       buildContext: '.'
