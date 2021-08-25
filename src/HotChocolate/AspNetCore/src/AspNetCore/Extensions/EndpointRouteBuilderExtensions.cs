@@ -95,6 +95,57 @@ namespace Microsoft.AspNetCore.Builder
         }
 
         /// <summary>
+        /// Adds a Banana Cake Pop endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="toolPath">
+        /// The path to which banana cake pop is mapped.
+        /// </param>
+        /// <param name="requestPath">
+        /// The path on which the server is listening for GraphQL requests.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        public static GraphQLEndpointConventionBuilder MapBananaCakePop(
+            this IEndpointRouteBuilder endpointRouteBuilder,
+            string toolPath = "/graphql/ui",
+            string requestPath = "/graphql")
+        {
+            if (endpointRouteBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(endpointRouteBuilder));
+            }
+
+            toolPath = toolPath.TrimEnd('/');
+
+            // TODO : we need to rework the config to be able to configure the path.
+            requestPath = requestPath.TrimEnd('/');
+
+            RoutePattern pattern = RoutePatternFactory.Parse(toolPath + "/{**slug}");
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            IFileProvider fileProvider = CreateFileProvider();
+
+            requestPipeline
+                .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, toolPath)
+                .UseMiddleware<ToolOptionsFileMiddleware>(toolPath)
+                .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, toolPath)
+                .Use(_ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+            return new GraphQLEndpointConventionBuilder(
+                endpointRouteBuilder
+                    .Map(pattern, requestPipeline.Build())
+                    .WithDisplayName("Banana Cake Pop Pipeline"));
+        }
+
+        /// <summary>
         /// Specifies the GraphQL server options.
         /// </summary>
         /// <param name="builder">
