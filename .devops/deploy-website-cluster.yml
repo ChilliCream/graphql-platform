@@ -8,7 +8,7 @@ trigger:
     include:
       - .devops/deploy-website-cluster.yml
       - .docker/website
-      - src/website
+      - website
 
 pr: none
 
