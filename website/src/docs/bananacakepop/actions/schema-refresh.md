@@ -6,4 +6,4 @@ You can refresh the schema if it is out of sync with the server by using the fol
 
 Mac: ⇧ + ⌥ + ⏎
 
-Windows: shift + alt + enter
+Windows: SHIFT + ALT + ENTER
