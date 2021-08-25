@@ -92,7 +92,7 @@ steps:
                     requests:
                       memory: "32Mi"
                       cpu: "1m"
-                  name: ccc-bcp-telemetry
+                  name: ccc-website-$(Build.SourceBranchName)
                   ports:
                     - containerPort: 80
         ---
