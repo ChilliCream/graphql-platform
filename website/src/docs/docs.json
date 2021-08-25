@@ -520,7 +520,10 @@
           {
             "path": "actions",
             "title": "Actions",
-            "items": [{ "path": "schema-refresh", "title": "Schema Refresh" }]
+            "items": [
+              { "path": "schema-refresh", "title": "Schema Refresh" },
+              { "path": "key-bindings", "title": "Key Bindings" }
+            ]
           },
           {
             "path": "documents",
