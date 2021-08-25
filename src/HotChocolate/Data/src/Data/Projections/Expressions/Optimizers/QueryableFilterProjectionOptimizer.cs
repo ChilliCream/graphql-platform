@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Projections.Handlers
     public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
     {
         public bool CanHandle(ISelection field) =>
-            field.Field.Member is {} &&
+            field.Field.Member is { } &&
             field.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
             field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
@@ -16,6 +16,7 @@ namespace HotChocolate.Data.Projections.Handlers
             Selection selection)
         {
             FieldDelegate resolverPipeline =
+                selection.ResolverPipeline ??
                 context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
 
             static FieldDelegate WrappedPipeline(FieldDelegate next) =>
