@@ -10,6 +10,8 @@ trigger:
       - .docker/website
       - src/website
 
+pr: none
+
 pool:
   vmImage: "ubuntu-20.04"
 
