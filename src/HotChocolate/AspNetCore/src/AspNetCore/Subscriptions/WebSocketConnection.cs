@@ -117,7 +117,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 // swallow exception, there's nothing we can reasonably do
             }
-
         }
 
         public async Task CloseAsync(
