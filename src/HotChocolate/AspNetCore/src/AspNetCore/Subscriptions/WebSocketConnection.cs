@@ -104,15 +104,15 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
 
                     writer.Advance(socketResult.Count);
+
+                    FlushResult result = await writer.FlushAsync(cancellationToken);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
                 }
                 catch
-                {
-                    break;
-                }
-
-                FlushResult result = await writer.FlushAsync(cancellationToken);
-
-                if (result.IsCompleted)
                 {
                     break;
                 }
