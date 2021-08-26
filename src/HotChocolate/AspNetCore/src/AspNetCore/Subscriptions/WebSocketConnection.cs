@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     public class WebSocketConnection : ISocketConnection
     {
         private const string _protocol = "graphql-ws";
-        private const int _maxMessageSize = 1024 * 4;
+        private const int _maxMessageSize = 512;
         private WebSocket? _webSocket;
         private bool _disposed;
 
@@ -87,49 +87,37 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
-                WebSocketReceiveResult? socketResult = null;
+                ValueWebSocketReceiveResult socketResult;
                 do
                 {
-                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    var success = MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer);
-
-                    if (success)
+                    try
                     {
-                        if (webSocket.State != WebSocketState.Open)
+                        Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                        socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
+
+                        if (socketResult.Count == 0)
                         {
                             break;
                         }
 
-                        try
-                        {
-                            socketResult = await webSocket.ReceiveAsync(buffer, cancellationToken);
-                            if (socketResult.Count == 0)
-                            {
-                                break;
-                            }
-
-                            writer.Advance(socketResult.Count);
-                        }
-                        catch
-                        {
-                            break;
-                        }
-
-                        FlushResult result = await writer.FlushAsync(cancellationToken);
-                        if (result.IsCompleted)
-                        {
-                            break;
-                        }
+                        writer.Advance(socketResult.Count);
                     }
-                } while (socketResult == null || !socketResult.EndOfMessage);
+                    catch
+                    {
+                        break;
+                    }
+
+                    FlushResult result = await writer.FlushAsync(cancellationToken);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+                } while (!socketResult.EndOfMessage);
             }
             catch (ObjectDisposedException)
             {
                 // we will just stop receiving
-            }
-            catch (WebSocketException)
-            {
-	            // we will just stop receiving
             }
         }
 
