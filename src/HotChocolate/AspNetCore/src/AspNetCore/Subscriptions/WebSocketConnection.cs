@@ -86,9 +86,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
 
             ValueWebSocketReceiveResult socketResult;
-            do
+            try
             {
-                try
+                do
                 {
                     if (webSocket.State != WebSocketState.Open)
                     {
@@ -111,12 +111,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     {
                         break;
                     }
-                }
-                catch
-                {
-                    break;
-                }
-            } while (!socketResult.EndOfMessage);
+                } while (!socketResult.EndOfMessage);
+            }
+            catch
+            {
+                // swallow exception, there's nothing we can reasonably do
+            }
+
         }
 
         public async Task CloseAsync(
