@@ -85,9 +85,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 return;
             }
 
-            ValueWebSocketReceiveResult socketResult;
             try
             {
+                ValueWebSocketReceiveResult socketResult;
                 do
                 {
                     if (webSocket.State != WebSocketState.Open)
