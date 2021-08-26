@@ -85,49 +85,38 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 return;
             }
 
-            try
+            ValueWebSocketReceiveResult socketResult;
+            do
             {
-                ValueWebSocketReceiveResult socketResult;
-                do
+                try
                 {
-                    try
-                    {
-                        if (webSocket.State != WebSocketState.Open)
-                        {
-                            break;
-                        }
-
-                        Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                        socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
-
-                        if (socketResult.Count == 0)
-                        {
-                            break;
-                        }
-
-                        writer.Advance(socketResult.Count);
-                    }
-                    catch
+                    if (webSocket.State != WebSocketState.Open)
                     {
                         break;
                     }
 
-                    FlushResult result = await writer.FlushAsync(cancellationToken);
+                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                    socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
 
-                    if (result.IsCompleted)
+                    if (socketResult.Count == 0)
                     {
                         break;
                     }
-                } while (!socketResult.EndOfMessage);
-            }
-            catch (ObjectDisposedException)
-            {
-                // we will just stop receiving
-            }
-            catch (WebSocketException)
-            {
-                // we will just stop receiving
-            }
+
+                    writer.Advance(socketResult.Count);
+                }
+                catch
+                {
+                    break;
+                }
+
+                FlushResult result = await writer.FlushAsync(cancellationToken);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            } while (!socketResult.EndOfMessage);
         }
 
         public async Task CloseAsync(
