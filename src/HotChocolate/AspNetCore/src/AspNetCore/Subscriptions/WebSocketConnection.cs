@@ -92,6 +92,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     try
                     {
+                        if (webSocket.State != WebSocketState.Open)
+                        {
+                            break;
+                        }
+
                         Memory<byte> memory = writer.GetMemory(_maxMessageSize);
                         socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
 
@@ -116,6 +121,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 } while (!socketResult.EndOfMessage);
             }
             catch (ObjectDisposedException)
+            {
+                // we will just stop receiving
+            }
+            catch (WebSocketException)
             {
                 // we will just stop receiving
             }
