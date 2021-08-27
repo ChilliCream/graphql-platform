@@ -69,7 +69,11 @@ namespace HotChocolate.Data.MongoDb
             }
             else
             {
-                if (_value is DateTimeOffset dateTimeOffset &&
+                if (_value is null)
+                {
+                    bsonWriter.WriteNull();
+                }
+                else if (_value is DateTimeOffset dateTimeOffset &&
                     resolvedFieldSerializer is DateTimeSerializer or NullableSerializer<DateTime>)
                 {
                     if (dateTimeOffset.Offset == TimeSpan.Zero)

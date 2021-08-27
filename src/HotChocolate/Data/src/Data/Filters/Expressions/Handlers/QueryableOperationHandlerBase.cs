@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -23,9 +24,10 @@ namespace HotChocolate.Data.Filters.Expressions
             [NotNullWhen(true)] out Expression? result)
         {
             IValueNode value = node.Value;
-            var parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
+            IExtendedType runtimeType = context.RuntimeTypes.Peek();
+            object? parsedValue = InputParser.ParseLiteral(value, field, runtimeType.Source);
 
-            if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) && parsedValue is null)
+            if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
             {
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(field, value, context));
@@ -34,13 +36,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 return false;
             }
 
-            if (field.Type.IsInstanceOfType(value))
-            {
-                result = HandleOperation(context, field, value, parsedValue);
-                return true;
-            }
-
-            throw new InvalidOperationException();
+            result = HandleOperation(context, field, value, parsedValue);
+            return true;
         }
 
         protected bool CanBeNull { get; set; } = true;

@@ -49,8 +49,6 @@ HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringSt
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler() -> void
-HotChocolate.Data.MongoDb.Filters.ObjectIdOperationFilterInputType
-HotChocolate.Data.MongoDb.Filters.ObjectIdOperationFilterInputType.ObjectIdOperationFilterInputType() -> void
 HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition
 HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.MongoDbCombinedProjectionDefinition(params HotChocolate.Data.MongoDb.MongoDbProjectionDefinition![]! projections) -> void
 HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.MongoDbCombinedProjectionDefinition(System.Collections.Generic.IEnumerable<HotChocolate.Data.MongoDb.MongoDbProjectionDefinition!>! projections) -> void
@@ -75,7 +73,6 @@ HotChocolate.Data.MongoDb.SortDefinitionExtensions
 HotChocolate.Data.MongoDb.Sorting.MongoSortVisitorContextExtensions
 HotChocolate.Data.MongoDb.StringFieldDefinitionHelper
 override HotChocolate.Data.MongoDb.AndFilterDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
-override HotChocolate.Data.MongoDb.Filters.ObjectIdOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
 override HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
 override HotChocolate.Data.MongoDb.MongoDbCombinedSortDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
 override HotChocolate.Data.MongoDb.MongoDbDirectionalSortOperation.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!

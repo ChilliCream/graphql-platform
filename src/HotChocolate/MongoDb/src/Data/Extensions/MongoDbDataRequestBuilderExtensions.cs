@@ -70,6 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddObjectIdConverters(
             this IRequestExecutorBuilder builder) =>
             builder
+                .BindRuntimeType<ObjectId, StringType>()
                 .AddTypeConverter<ObjectId, string>(x => x.ToString())
                 .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
 

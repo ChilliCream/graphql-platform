@@ -1,19 +1,22 @@
 ﻿{
   "errors": [
     {
-      "message": "Unexpected Execution Error",
+      "message": "The specified value type of field \u0060in\u0060 does not match the field type.",
       "locations": [
         {
           "line": 1,
-          "column": 3
+          "column": 33
         }
       ],
       "path": [
         "root"
-      ]
+      ],
+      "extensions": {
+        "fieldName": "in",
+        "fieldType": "[String!]",
+        "locationType": "[String!]",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      }
     }
-  ],
-  "data": {
-    "root": null
-  }
+  ]
 }

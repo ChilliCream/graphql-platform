@@ -87,7 +87,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 .BindRuntimeType<float, ComparableOperationFilterInputType<float>>()
                 .BindRuntimeType<double, ComparableOperationFilterInputType<double>>()
                 .BindRuntimeType<decimal, ComparableOperationFilterInputType<decimal>>()
-                .BindRuntimeType<ObjectId, ObjectIdOperationFilterInputType>()
+                .BindRuntimeType<ObjectId, ComparableOperationFilterInputType<ObjectId>>()
                 .BindRuntimeType<Guid, ComparableOperationFilterInputType<Guid>>()
                 .BindRuntimeType<DateTime, ComparableOperationFilterInputType<DateTime>>()
                 .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInputType<DateTimeOffset>
@@ -101,7 +101,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                 .BindRuntimeType<float?, ComparableOperationFilterInputType<float?>>()
                 .BindRuntimeType<double?, ComparableOperationFilterInputType<double?>>()
                 .BindRuntimeType<decimal?, ComparableOperationFilterInputType<decimal?>>()
-                .BindRuntimeType<ObjectId?, ObjectIdOperationFilterInputType>()
+                .BindRuntimeType<ObjectId?, ComparableOperationFilterInputType<ObjectId?>>()
                 .BindRuntimeType<Guid?, ComparableOperationFilterInputType<Guid?>>()
                 .BindRuntimeType<DateTime?, ComparableOperationFilterInputType<DateTime?>>()
                 .BindRuntimeType<DateTimeOffset?,

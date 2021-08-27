@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The provided value for filter \u0060nlte\u0060 of type ObjectIdOperationFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter \u0060nlte\u0060 of type ComparableNullableOfObjectIdOperationFilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -13,8 +13,8 @@
       ],
       "extensions": {
         "code": "HC0026",
-        "expectedType": "ObjectId!",
-        "filterType": "ObjectIdOperationFilterInput"
+        "expectedType": "String!",
+        "filterType": "ComparableNullableOfObjectIdOperationFilterInput"
       }
     }
   ],

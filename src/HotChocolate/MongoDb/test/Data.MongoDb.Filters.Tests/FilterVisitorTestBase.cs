@@ -38,6 +38,7 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             return new ServiceCollection()
                 .AddGraphQL()
+                .AddObjectIdConverters()
                 .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
