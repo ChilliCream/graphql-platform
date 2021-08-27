@@ -9,7 +9,7 @@ When you enter the application it will look like below. Fairly minimal until you
 
 Lets get going with Banana Cake Pop and make our first GraphQL request. If you do not have a GraphQL API you can use the mock API below provided by ChilliCream.
 
-Endpoint: https://workshop.chillicream.cloud/graphql
+Endpoint: https://workshop.chillicream.com/graphql
 
 After entering your endpoint and hitting enter, your Banana Cake Pop workspace should fill with "Operations" and "Response" area like seen below.
 
