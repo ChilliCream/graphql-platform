@@ -63,10 +63,9 @@ namespace HotChocolate.Execution.Pipeline
 
         private async ValueTask TryLoadQueryAsync(IRequestContext context, string queryId)
         {
-            QueryDocument? queryDocument =
-                await _persistedQueryStore.TryReadQueryAsync(
-                    queryId, context.RequestAborted)
-                    .ConfigureAwait(false);
+            QueryDocument? queryDocument = await _persistedQueryStore
+                .TryReadQueryAsync(queryId, context.RequestAborted)
+                .ConfigureAwait(false);
 
             if (queryDocument is not null)
             {
