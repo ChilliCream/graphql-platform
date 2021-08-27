@@ -1741,6 +1741,7 @@ namespace HotChocolate.Types
                     .New()
                     .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
                     .AddType<ObjectType<ObjectType<Foo>>>()
+                    .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
                     .Create());
 
             // assert

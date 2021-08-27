@@ -542,6 +542,7 @@ namespace HotChocolate.Types
                     .New()
                     .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
                     .AddType<InterfaceType<InterfaceType<IFoo>>>()
+                    .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
                     .Create());
 
             // assert
