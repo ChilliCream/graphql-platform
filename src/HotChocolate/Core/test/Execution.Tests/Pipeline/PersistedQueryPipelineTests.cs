@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Snapshooter.Xunit;
@@ -75,8 +74,7 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .ConfigureSchemaServices(x => x.AddSingleton(readStore.Object))
                 .AddQueryType<Query>()
-                .UsePersistedQueryPipeline(
-                    new PersistedQueryOptions { BlockUnknownQueries = true })
+                .UseOnlyPersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -104,8 +102,7 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .ConfigureSchemaServices(x => x.AddSingleton(readStore.Object))
                 .AddQueryType<Query>()
-                .UsePersistedQueryPipeline(
-                    new PersistedQueryOptions { BlockUnknownQueries = true })
+                .UseOnlyPersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -128,8 +125,7 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .ConfigureSchemaServices(x => x.AddSingleton(readStore.Object))
                 .AddQueryType<Query>()
-                .UsePersistedQueryPipeline(
-                    new PersistedQueryOptions { BlockUnknownQueries = true })
+                .UseOnlyPersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
             // act
@@ -153,8 +149,7 @@ namespace HotChocolate.Execution.Pipeline
                 .AddGraphQL()
                 .ConfigureSchemaServices(x => x.AddSingleton(readStore.Object))
                 .AddQueryType<Query>()
-                .UsePersistedQueryPipeline(
-                    new PersistedQueryOptions { BlockUnknownQueries = true })
+                .UseOnlyPersistedQueryPipeline()
                 .BuildRequestExecutorAsync();
 
             // act

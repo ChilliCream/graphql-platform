@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using static HotChocolate.Execution.Pipeline.PersistedQueriesContextData;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -9,34 +10,32 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IPersistedQueryOptions _options;
         private readonly IReadStoredQueries _persistedQueryStore;
 
         public ReadPersistedQueryMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
-            IPersistedQueryOptions options,
             IReadStoredQueries persistedQueryStore)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
-            _options = options ??
-                throw new ArgumentNullException(nameof(options));
             _persistedQueryStore = persistedQueryStore ??
                 throw new ArgumentNullException(nameof(persistedQueryStore));
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
+            bool blockUnknownQueries = context.ContextData.ContainsKey(BlockUnknownQueries);
+
             var queryId =
                 context.Request.QueryId ??
                 context.DocumentId ??
                 context.DocumentHash ??
                 context.Request.QueryHash;
 
-            if (queryId is null && _options.BlockUnknownQueries)
+            if (queryId is null && blockUnknownQueries)
             {
                 throw ThrowHelper.ReadPersistedQueryMiddleware_NoQueryIdWasProvided();
             }
@@ -49,12 +48,12 @@ namespace HotChocolate.Execution.Pipeline
                     await TryLoadQueryAsync(context, queryId).ConfigureAwait(false);
                 }
             }
-            else if (_options.BlockUnknownQueries)
+            else if (blockUnknownQueries)
             {
                 throw ThrowHelper.ReadPersistedQueryMiddleware_DocumentWasProvided();
             }
 
-            if (_options.BlockUnknownQueries && !context.IsPersistedDocument)
+            if (blockUnknownQueries && !context.IsPersistedDocument)
             {
                 throw ThrowHelper.ReadPersistedQueryMiddleware_PersistedQueryNotFound();
             }

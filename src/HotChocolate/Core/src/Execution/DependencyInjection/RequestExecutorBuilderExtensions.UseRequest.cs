@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
 using System.Collections.Generic;
 using HotChocolate.Execution.Pipeline.Complexity;
+using static HotChocolate.Execution.Pipeline.PersistedQueriesContextData;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -92,12 +93,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<DocumentValidationMiddleware>();
 
-        public static IRequestExecutorBuilder UseExceptions(
-            this IRequestExecutorBuilder builder) =>
+        public static IRequestExecutorBuilder UseExceptions(this IRequestExecutorBuilder builder) =>
             builder.UseRequest<ExceptionMiddleware>();
 
-        public static IRequestExecutorBuilder UseTimeout(
-            this IRequestExecutorBuilder builder) =>
+        public static IRequestExecutorBuilder UseTimeout(this IRequestExecutorBuilder builder) =>
             builder.UseRequest<TimeoutMiddleware>();
 
         public static IRequestExecutorBuilder UseInstrumentations(
@@ -125,14 +124,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.UseRequest<OperationVariableCoercionMiddleware>();
 
         public static IRequestExecutorBuilder UseReadPersistedQuery(
-            this IRequestExecutorBuilder builder,
-            IPersistedQueryOptions? options = null)
-        {
-            builder.Services
-                .AddSingleton<IPersistedQueryOptions>(options ?? new PersistedQueryOptions());
-
-            return builder.UseRequest<ReadPersistedQueryMiddleware>();
-        }
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<ReadPersistedQueryMiddleware>();
 
         public static IRequestExecutorBuilder UseWritePersistedQuery(
             this IRequestExecutorBuilder builder) =>
@@ -152,8 +145,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IRequestExecutorBuilder UsePersistedQueryPipeline(
-            this IRequestExecutorBuilder builder,
-            IPersistedQueryOptions? options = null)
+            this IRequestExecutorBuilder builder)
         {
             if (builder is null)
             {
@@ -165,7 +157,35 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseExceptions()
                 .UseTimeout()
                 .UseDocumentCache()
-                .UseReadPersistedQuery(options)
+                .UseReadPersistedQuery()
+                .UseDocumentParser()
+                .UseDocumentValidation()
+                .UseOperationCache()
+                .UseOperationComplexityAnalyzer()
+                .UseOperationResolver()
+                .UseOperationVariableCoercion()
+                .UseOperationExecution();
+        }
+
+        public static IRequestExecutorBuilder UseOnlyPersistedQueryPipeline(
+            this IRequestExecutorBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UseInstrumentations()
+                .UseExceptions()
+                .UseTimeout()
+                .UseDocumentCache()
+                .UseRequest(next => context =>
+                {
+                    context.ContextData[BlockUnknownQueries] = true;
+                    return next(context);
+                })
+                .UseReadPersistedQuery()
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()
@@ -224,7 +244,8 @@ namespace Microsoft.Extensions.DependencyInjection
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationCacheMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationComplexityMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
-            pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
+            pipeline.Add(
+                RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationExecutionMiddleware>());
         }
     }
