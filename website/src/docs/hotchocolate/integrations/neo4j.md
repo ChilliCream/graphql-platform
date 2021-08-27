@@ -1,6 +1,7 @@
 ---
 title: Neo4J Database
 ---
+
 HotChocolate has a data integration for Neo4J.
 With this integration, you can translate paging, filtering, sorting, and projections, directly into native cypher queries.
 
@@ -68,7 +69,7 @@ _Cypher Query_
 
 ```cypher
 MATCH (person:Person)
-WHERE person.name = 'Yorker Shorton" AND 
+WHERE person.name = 'Yorker Shorton" AND
 RETURN person {.name}
 ```
 
@@ -107,7 +108,7 @@ _Cypher Query_
 
 ```cypher
 MATCH (person:Person)
-WHERE person.name = 'Yorker Shorton" AND 
+WHERE person.name = 'Yorker Shorton" AND
 RETURN person {.name}
 ```
 
@@ -143,13 +144,21 @@ _Cypher Query_
 
 ```cypher
 MATCH (person:Person)
-WHERE person.name = 'Yorker Shorton" AND 
+WHERE person.name = 'Yorker Shorton" AND
 RETURN person {.name}
 ```
 
 # Paging
 
-The integration comes with providers for offset and cursor-based pagination
+In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddNeo4JPagingProviders();
+```
+
+[Learn more about pagination providers](/docs/hotchocolate/fetching-data/pagination/#providers)
 
 ## Cursor Pagination
 
