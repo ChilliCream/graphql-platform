@@ -19,7 +19,6 @@ namespace HotChocolate.Types.Pagination
     {
         public static IObjectFieldDescriptor UsePaging(
             IObjectFieldDescriptor descriptor,
-            Type? type,
             Type? entityType = null,
             GetPagingProvider? resolvePagingProvider = null,
             PagingOptions options = default)
@@ -31,21 +30,20 @@ namespace HotChocolate.Types.Pagination
 
             FieldMiddlewareDefinition placeholder = new(_ => _ => default, key: Paging);
 
-            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
-
-            descriptor
-                .Extend()
-                .OnBeforeCreate(definition =>
-                {
-                    definition.Configurations.Add(
-                        new TypeConfiguration<ObjectFieldDefinition>
-                        {
-                            Definition = definition,
-                            On = ApplyConfigurationOn.Completion,
-                            Configure = (c, d) => ApplyConfiguration(
-                                c, d, entityType, resolvePagingProvider, options, placeholder)
-                        });
-                });
+            ObjectFieldDefinition definition = descriptor.Extend().Definition;
+            definition.MiddlewareDefinitions.Add(placeholder);
+            definition.Configurations.Add(
+                new CompleteConfiguration<ObjectFieldDefinition>(
+                    (c, d) => ApplyConfiguration(
+                        c,
+                        d,
+                        entityType,
+                        options.ProviderName,
+                        resolvePagingProvider,
+                        options,
+                        placeholder),
+                    definition,
+                    ApplyConfigurationOn.Completion));
 
             return descriptor;
         }
@@ -54,17 +52,17 @@ namespace HotChocolate.Types.Pagination
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             Type? entityType,
-            GetPagingProvider? resolvePagingProvider,
+            string? name,
+            GetPagingProvider resolvePagingProvider,
             PagingOptions options,
             FieldMiddlewareDefinition placeholder)
         {
             options = context.GetSettings(options);
             entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
-            resolvePagingProvider ??= ResolvePagingProvider;
 
-            IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, entityType);
-            IPagingProvider pagingProvider = resolvePagingProvider(context.Services, sourceType);
-            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
+            IExtendedType source = GetSourceType(context.TypeInspector, definition, entityType);
+            IPagingProvider pagingProvider = resolvePagingProvider(context.Services, source, name);
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(source, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
 
             var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
@@ -170,24 +168,15 @@ namespace HotChocolate.Types.Pagination
             this IDescriptorContext context,
             PagingOptions options)
         {
-            PagingOptions global = default;
+            options = options.Copy();
+
             if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out var o) &&
-                o is PagingOptions casted)
+                o is PagingOptions global)
             {
-                global = casted;
+                options.Merge(global);
             }
 
-            return new PagingOptions
-            {
-                DefaultPageSize = options.DefaultPageSize ?? global.DefaultPageSize,
-                MaxPageSize = options.MaxPageSize ?? global.MaxPageSize,
-                IncludeTotalCount = options.IncludeTotalCount ?? global.IncludeTotalCount,
-            };
+            return options;
         }
-
-        private static IPagingProvider ResolvePagingProvider(
-            IServiceProvider services,
-            IExtendedType source) =>
-            services.GetServices<IPagingProvider>().First(p => p.CanHandle(source));
     }
 }

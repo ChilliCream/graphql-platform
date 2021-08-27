@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -59,6 +60,21 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData);
+
+        /// <summary>
+        /// If all types are registered you can analyze them and add more new types at this point.
+        /// This event could be hit multiple times.
+        ///
+        /// Ones <see cref="OnTypesInitialized"/> is hit, no more types can be added.
+        /// </summary>
+        /// <param name="discoveryContexts">
+        /// The discovery contexts of types that are already initialized.
+        /// </param>
+        /// <returns>
+        /// Returns types that shall be included into the schema.
+        /// </returns>
+        IEnumerable<ITypeReference> RegisterMoreTypes(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts);
 
         /// <summary>
         /// This event is called after all type system members are initialized.

@@ -96,4 +96,12 @@ class Helpers
 
         return list;
     }
+
+    public static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
+    }
 }

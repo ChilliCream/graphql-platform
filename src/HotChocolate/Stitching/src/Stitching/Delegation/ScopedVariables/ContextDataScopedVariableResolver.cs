@@ -7,8 +7,7 @@ using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
-    internal class ContextDataScopedVariableResolver
-        : IScopedVariableResolver
+    internal class ContextDataScopedVariableResolver : IScopedVariableResolver
     {
         public ScopedVariableValue Resolve(
             IResolverContext context,
@@ -37,13 +36,14 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     nameof(variable));
             }
 
-            context.ContextData.TryGetValue(variable.Name.Value, out object? data);
+            context.ContextData.TryGetValue(variable.Name.Value, out var data);
+            InputFormatter formatter = context.Service<InputFormatter>();
 
             IValueNode literal = data switch
             {
                 IValueNode l => l,
                 null => NullValueNode.Default,
-                _ => targetType.ParseValue(data)
+                _ => formatter.FormatValue(data, targetType, Path.New(variable.Name.Value))
             };
 
             return new ScopedVariableValue

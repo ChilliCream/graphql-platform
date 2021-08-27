@@ -13,6 +13,7 @@ using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Fetching;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
@@ -64,19 +65,17 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         internal static IServiceCollection TryAddOperationContextPool(
-            this IServiceCollection services,
-            int maximumRetained = -1)
+            this IServiceCollection services)
         {
-            if (maximumRetained < 1)
+            services.TryAddSingleton<ObjectPool<OperationContext>>(sp =>
             {
-                maximumRetained = Environment.ProcessorCount * 2;
-            }
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new OperationContextPooledObjectPolicy(
+                    sp.GetRequiredService<ObjectPool<ResolverTask>>(),
+                    sp.GetRequiredService<ResultPool>());
+                return provider.Create(policy);
+            });
 
-            services.TryAddTransient<OperationContext>();
-            services.TryAddSingleton<ObjectPool<OperationContext>>(
-                sp => new DefaultObjectPool<OperationContext>(
-                    new OperationContextPoolPolicy(sp.GetRequiredService<OperationContext>),
-                    maximumRetained));
             return services;
         }
 
@@ -85,6 +84,20 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddSingleton<ITypeConverter>(
                 sp => new DefaultTypeConverter(sp.GetServices<IChangeTypeProvider>()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddInputFormatter(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputFormatter(sp.GetTypeConverter()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddInputParser(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(sp => new InputParser(sp.GetTypeConverter()));
             return services;
         }
 
@@ -175,6 +188,31 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddSingleton<IParameterExpressionBuilder>(factory);
             return services;
+        }
+
+        private class OperationContextPooledObjectPolicy : PooledObjectPolicy<OperationContext>
+        {
+            private readonly ObjectPool<ResolverTask> _resolverTaskPool;
+            private readonly ResultPool _resultPool;
+
+            public OperationContextPooledObjectPolicy(
+                ObjectPool<ResolverTask> resolverTaskPool,
+                ResultPool resultPool)
+            {
+                _resolverTaskPool = resolverTaskPool ??
+                    throw new ArgumentNullException(nameof(resolverTaskPool));
+                _resultPool = resultPool ??
+                    throw new ArgumentNullException(nameof(resultPool));
+            }
+
+            public override OperationContext Create()
+                => new(_resolverTaskPool, _resultPool);
+
+            public override bool Return(OperationContext obj)
+            {
+                obj.Clean();
+                return true;
+            }
         }
     }
 }

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -25,6 +23,41 @@ namespace HotChocolate.Types
         : NamedTypeBase<InputObjectTypeDefinition>
         , IInputObjectType
     {
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
+        protected InputObjectType()
+        {
+            _configure = Configure;
+        }
+
+        /// <summary>
+        /// Initializes a new  instance of <see cref="InputObjectType"/>.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate to specify the properties of this type.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="configure"/> is <c>null</c>.
+        /// </exception>
+        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        {
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+        }
+
+        /// <summary>
+        /// Create an input object type from a type definition.
+        /// </summary>
+        /// <param name="definition">
+        /// The input object type definition that specifies the properties of the
+        /// newly created input object type.
+        /// </param>
+        /// <returns>
+        /// Returns the newly created input object type.
+        /// </returns>
+        public static InputObjectType CreateUnsafe(InputObjectTypeDefinition definition)
+            => new() { Definition = definition};
+
         /// <inheritdoc />
         public override TypeKind Kind => TypeKind.InputObject;
 
@@ -41,175 +74,20 @@ namespace HotChocolate.Types
 
         IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
 
-        /// <inheritdoc />
-        public virtual bool IsInstanceOfType(IValueNode literal)
+        internal object CreateInstance(object?[] fieldValues)
+            => _createInstance(fieldValues);
+
+        internal void GetFieldValues(object runtimeValue, object?[] fieldValues)
+            => _getFieldValues(runtimeValue, fieldValues);
+
+        /// <summary>
+        /// Override this to configure the type.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The descriptor allows to configure the interface type.
+        /// </param>
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
         {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is ObjectValueNode or NullValueNode;
-        }
-
-        /// <inheritdoc />
-        public virtual bool IsInstanceOfType(object? value)
-        {
-            return value is null || RuntimeType.IsInstanceOfType(value);
-        }
-
-        /// <inheritdoc />
-        public virtual object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            if (valueSyntax is null)
-            {
-                throw new ArgumentNullException(nameof(valueSyntax));
-            }
-
-            if (valueSyntax is ObjectValueNode objectValueSyntax)
-            {
-                return _parseLiteral(objectValueSyntax);
-            }
-
-            if (valueSyntax is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new SerializationException(
-                TypeResources.InputObjectType_CannotParseLiteral,
-                this);
-        }
-
-        /// <inheritdoc />
-        public virtual IValueNode ParseValue(object? runtimeValue)
-        {
-            if (runtimeValue is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            return _objectToValueConverter.Convert(this, runtimeValue);
-        }
-
-        /// <inheritdoc />
-        public IValueNode ParseResult(object? resultValue)
-        {
-            if (resultValue is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (resultValue is IReadOnlyDictionary<string, object> dict)
-            {
-                var list = new List<ObjectFieldNode>();
-
-                foreach (InputField field in Fields)
-                {
-                    if(dict.TryGetValue(field.Name.Value, out object? value))
-                    {
-                        list.Add(new ObjectFieldNode(
-                            field.Name.Value,
-                            field.Type.ParseResult(value)));
-                    }
-                }
-
-                return new ObjectValueNode(list);
-            }
-
-            if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(resultValue))
-            {
-                return ParseValue(resultValue);
-            }
-
-            throw new SerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
-                this);
-        }
-
-        /// <inheritdoc />
-        public object? Serialize(object? runtimeValue)
-        {
-            if (TrySerialize(runtimeValue, out var serialized))
-            {
-                return serialized;
-            }
-
-            throw new SerializationException(
-                "The specified value is not a valid input object.",
-                this);
-        }
-
-        public virtual bool TrySerialize(object? runtimeValue, out object? resultValue)
-        {
-            try
-            {
-                if (runtimeValue is null)
-                {
-                    resultValue = null;
-                    return true;
-                }
-
-                if (runtimeValue is IReadOnlyDictionary<string, object> ||
-                    runtimeValue is IDictionary<string, object>)
-                {
-                    resultValue = runtimeValue;
-                    return true;
-                }
-
-                resultValue = _objectToDictionary.Convert(this, runtimeValue);
-                return true;
-            }
-            catch
-            {
-                resultValue = null;
-                return false;
-            }
-        }
-
-        /// <inheritdoc />
-        public object? Deserialize(object? resultValue)
-        {
-            if (TryDeserialize(resultValue, out var deserialized))
-            {
-                return deserialized;
-            }
-
-            throw new SerializationException(
-                "The specified value is not a serialized input object.",
-                this);
-        }
-
-        public virtual bool TryDeserialize(object? resultValue, out object? runtimeValue)
-        {
-            try
-            {
-                if (resultValue is null)
-                {
-                    runtimeValue = null;
-                    return true;
-                }
-
-                if (resultValue is IReadOnlyDictionary<string, object> dict)
-                {
-                    runtimeValue = _deserialize(dict);
-                    return true;
-                }
-
-                if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(resultValue))
-                {
-                    runtimeValue = resultValue;
-                    return true;
-                }
-
-                runtimeValue = null;
-                return false;
-            }
-            catch
-            {
-                runtimeValue = null;
-                return false;
-            }
         }
     }
 }

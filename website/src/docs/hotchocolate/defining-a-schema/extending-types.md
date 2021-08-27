@@ -173,8 +173,6 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
-
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
@@ -354,8 +352,8 @@ public interface IPost
     string Title { get; set; }
 }
 
-// this extends every type that implements the IPost interface
-// note: the interface itself is not extended in the schema
+// this extends every type that implements the IPost interface,
+// not the interface type itself
 [ExtendObjectType(typeof(IPost))]
 public class PostExtensions
 {

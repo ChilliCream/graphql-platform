@@ -17,5 +17,7 @@ namespace HotChocolate.Types.Filters
         bool InMemory { get; }
 
         Stack<QueryableClosure> Closures { get; }
+
+        InputParser InputParser { get; }
     }
 }

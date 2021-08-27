@@ -14,6 +14,7 @@ namespace HotChocolate.Execution.Processing
     {
         private IOperationContext _operationContext = default!;
         private IServiceProvider _services = default!;
+        private InputParser _parser = default!;
         private object? _resolverResult;
         private bool _hasResolverResult;
 

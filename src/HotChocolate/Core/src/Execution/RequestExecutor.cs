@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
@@ -14,24 +12,18 @@ namespace HotChocolate.Execution
     {
         private readonly DefaultRequestContextAccessor _requestContextAccessor;
         private readonly IServiceProvider _applicationServices;
-        private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConverter _converter;
-        private readonly IActivator _activator;
-        private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly RequestDelegate _requestDelegate;
         private readonly BatchExecutor _batchExecutor;
-        private RequestContext? _pooledContext;
+        private readonly ObjectPool<RequestContext> _contextPool;
 
         public RequestExecutor(
             ISchema schema,
             DefaultRequestContextAccessor requestContextAccessor,
             IServiceProvider applicationServices,
             IServiceProvider executorServices,
-            IErrorHandler errorHandler,
-            ITypeConverter converter,
-            IActivator activator,
-            IDiagnosticEvents diagnosticEvents,
             RequestDelegate requestDelegate,
+            BatchExecutor batchExecutor,
+            ObjectPool<RequestContext> contextPool,
             ulong version)
         {
             Schema = schema ??
@@ -42,18 +34,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(applicationServices));
             Services = executorServices ??
                 throw new ArgumentNullException(nameof(executorServices));
-            _errorHandler = errorHandler ??
-                throw new ArgumentNullException(nameof(errorHandler));
-            _converter = converter ??
-                throw new ArgumentNullException(nameof(converter));
-            _activator = activator ??
-                throw new ArgumentNullException(nameof(activator));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
             _requestDelegate = requestDelegate ??
                 throw new ArgumentNullException(nameof(requestDelegate));
+            _batchExecutor = batchExecutor ??
+                throw new ArgumentNullException(nameof(batchExecutor));
+            _contextPool = contextPool ??
+                throw new ArgumentNullException(nameof(contextPool));
             Version = version;
-            _batchExecutor = new BatchExecutor(this, errorHandler, converter);
         }
 
         public ISchema Schema { get; }
@@ -79,21 +66,11 @@ namespace HotChocolate.Execution
                 ? request.Services!
                 : scope.ServiceProvider;
 
-            RequestContext? context = Interlocked.Exchange(ref _pooledContext, null);
+            RequestContext context = _contextPool.Get();
 
             try
             {
-                if (context == null)
-                {
-                    context = new RequestContext(
-                        Schema,
-                        Version,
-                        _errorHandler,
-                        _converter,
-                        _activator,
-                        _diagnosticEvents) { RequestAborted = cancellationToken };
-                }
-
+                context.RequestAborted = cancellationToken;
                 context.Initialize(request, services);
 
                 _requestContextAccessor.RequestContext = context;
@@ -125,8 +102,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                context!.Reset();
-                Interlocked.Exchange(ref _pooledContext, context);
+                _contextPool.Return(context);
                 scope?.Dispose();
             }
         }
@@ -143,7 +119,7 @@ namespace HotChocolate.Execution
 
             return Task.FromResult<IBatchQueryResult>(
                 new BatchQueryResult(
-                    () => _batchExecutor.ExecuteAsync(requestBatch),
+                    () => _batchExecutor.ExecuteAsync(this, requestBatch),
                     null));
         }
     }

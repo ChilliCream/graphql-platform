@@ -53,6 +53,7 @@ namespace HotChocolate.Data.Projections.Handlers
                 new SelectionSetNode(selections));
 
             FieldDelegate nodesPipeline =
+                selection.ResolverPipeline ??
                 context.CompileResolverPipeline(nodesField, combinedField);
 
             return new Selection(

@@ -109,7 +109,7 @@ namespace HotChocolate.Tests
         {
             ISchema schema = await CreateSchemaAsync(c => c
                 .AddQueryType(d => d
-                    .Name("Query").Field("foo").Resolver("result"))
+                    .Name("Query").Field("foo").Resolve("result"))
                 .AddType<T>()
                 .ModifyOptions(o => o.StrictValidation = false));
             return schema.Types.OfType<T>().Single();
@@ -127,7 +127,7 @@ namespace HotChocolate.Tests
         {
             return CreateSchemaAsync(c => c
                 .AddQueryType(d => d
-                    .Name("Query").Field("foo").Resolver("result"))
+                    .Name("Query").Field("foo").Resolve("result"))
                 .AddType(type)
                 .ModifyOptions(o => o.StrictValidation = false));
         }

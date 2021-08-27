@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial.Serialization;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Types.Spatial
@@ -11,11 +12,12 @@ namespace HotChocolate.Types.Spatial
         public void TrySerializer_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.TrySerialize(null, out object? resultValue));
+            Assert.True(serializer.TrySerialize(type.Object, null, out var resultValue));
             Assert.Null(resultValue);
         }
 
@@ -23,11 +25,12 @@ namespace HotChocolate.Types.Spatial
         public void TrySerializer_DifferentObject()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.False(serializer.TrySerialize("", out object? resultValue));
+            Assert.False(serializer.TrySerialize(type.Object, "", out var resultValue));
             Assert.Null(resultValue);
         }
 
@@ -43,11 +46,12 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.TrySerialize(value, out object? resultValue));
+            Assert.True(serializer.TrySerialize(type.Object, value, out var resultValue));
             Assert.Equal(stringValue, resultValue);
         }
 
@@ -55,22 +59,25 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Throw_When_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => serializer.IsInstanceOfType(null!));
+            Assert.Throws<ArgumentNullException>(
+                () => serializer.IsInstanceOfType(type.Object, null!));
         }
 
         [Fact]
         public void IsInstanceOfType_Should_Pass_When_NullValueNode()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.IsInstanceOfType(NullValueNode.Default));
+            Assert.True(serializer.IsInstanceOfType(type.Object, NullValueNode.Default));
         }
 
         [Theory]
@@ -83,11 +90,12 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Pass_When_EnumValueNode(string value)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.IsInstanceOfType(new EnumValueNode(value)));
+            Assert.True(serializer.IsInstanceOfType(type.Object, new EnumValueNode(value)));
         }
 
         [Theory]
@@ -100,22 +108,24 @@ namespace HotChocolate.Types.Spatial
         public void IsInstanceOfType_Should_Pass_When_StringValueNode(string value)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.IsInstanceOfType(new StringValueNode(value)));
+            Assert.True(serializer.IsInstanceOfType(type.Object, new StringValueNode(value)));
         }
 
         [Fact]
         public void ParseLiteral_Should_Throw_When_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => serializer.ParseLiteral(null!));
+            Assert.Throws<ArgumentNullException>(() => serializer.ParseLiteral(type.Object, null!));
         }
 
         [Theory]
@@ -130,10 +140,11 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            object? resultValue = serializer.ParseLiteral(new EnumValueNode(stringValue));
+            var resultValue = serializer.ParseLiteral(type.Object, new EnumValueNode(stringValue));
 
             // assert
             Assert.Equal(value, resultValue);
@@ -151,10 +162,13 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            object? resultValue = serializer.ParseLiteral(new StringValueNode(stringValue));
+            var resultValue = serializer.ParseLiteral(
+                type.Object,
+                new StringValueNode(stringValue));
 
             // assert
             Assert.Equal(value, resultValue);
@@ -164,10 +178,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Should_Parse_NullValueNode()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            object? resultValue = serializer.ParseLiteral(NullValueNode.Default);
+            var resultValue = serializer.ParseLiteral(type.Object, NullValueNode.Default);
 
             // assert
             Assert.Null(resultValue);
@@ -177,10 +192,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Parse_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseValue(null);
+            IValueNode resultValue = serializer.ParseValue(type.Object, null);
 
             // assert
             Assert.Equal(NullValueNode.Default, resultValue);
@@ -198,10 +214,11 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseValue(value);
+            IValueNode resultValue = serializer.ParseValue(type.Object, value);
 
             // assert
             EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
@@ -213,21 +230,24 @@ namespace HotChocolate.Types.Spatial
         public void ParseValue_Should_Throw_OnInvalidValue()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.Throws<GeoJsonSerializationException>(() => serializer.ParseValue(""));
+            Assert.Throws<SerializationException>(
+                () => serializer.ParseValue(type.Object, ""));
         }
 
         [Fact]
         public void ParseResult_Should_Parse_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseResult(null);
+            IValueNode resultValue = serializer.ParseResult(type.Object, null);
 
             // assert
             Assert.Equal(NullValueNode.Default, resultValue);
@@ -245,10 +265,11 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseResult(value);
+            IValueNode resultValue = serializer.ParseResult(type.Object, value);
 
             // assert
             EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
@@ -265,10 +286,13 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Parse_NameString(string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseResult(new NameString(stringValue));
+            IValueNode resultValue = serializer.ParseResult(
+                type.Object,
+                new NameString(stringValue));
 
             // assert
             EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
@@ -285,10 +309,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Parse_String(string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-            IValueNode resultValue = serializer.ParseResult(stringValue);
+            IValueNode resultValue = serializer.ParseResult(type.Object, stringValue);
 
             // assert
             EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
@@ -300,22 +325,25 @@ namespace HotChocolate.Types.Spatial
         public void ParseResult_Should_Throw_OnInvalidValue()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.Throws<GeoJsonSerializationException>(() => serializer.ParseResult(""));
+            Assert.Throws<SerializationException>(
+                () => serializer.ParseResult(type.Object, ""));
         }
 
         [Fact]
         public void IsInstanceOfType_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.IsInstanceOfType((object?)null));
+            Assert.True(serializer.IsInstanceOfType(type.Object, (object?)null));
         }
 
         [Theory]
@@ -325,36 +353,39 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeoJsonGeometryType.MultiLineString)]
         [InlineData(GeoJsonGeometryType.Polygon)]
         [InlineData(GeoJsonGeometryType.MultiPolygon)]
-        public void IsInstanceOfType_GeometryType(GeoJsonGeometryType type)
+        public void IsInstanceOfType_GeometryType(GeoJsonGeometryType geometryType)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.IsInstanceOfType(type));
+            Assert.True(serializer.IsInstanceOfType(type.Object, geometryType));
         }
 
         [Fact]
         public void IsInstanceOfType_Should_BeFalse_When_Other_Object()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.False(serializer.IsInstanceOfType(""));
+            Assert.False(serializer.IsInstanceOfType(type.Object, ""));
         }
 
         [Fact]
         public void TryDeserialize_Null()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.TryDeserialize(null, out object? resultValue));
+            Assert.True(serializer.TryDeserialize(type.Object, null, out var resultValue));
             Assert.Null(resultValue);
         }
 
@@ -362,11 +393,12 @@ namespace HotChocolate.Types.Spatial
         public void TryDeserialize_DifferentObject()
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.False(serializer.TryDeserialize("", out object? resultValue));
+            Assert.False(serializer.TryDeserialize(type.Object, "", out var resultValue));
             Assert.Null(resultValue);
         }
 
@@ -381,11 +413,12 @@ namespace HotChocolate.Types.Spatial
             GeoJsonGeometryType value)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.TryDeserialize(value, out object? resultValue));
+            Assert.True(serializer.TryDeserialize(type.Object, value, out var resultValue));
             Assert.Equal(value, resultValue);
         }
 
@@ -401,11 +434,12 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
             // assert
-            Assert.True(serializer.TryDeserialize(stringValue, out object? resultValue));
+            Assert.True(serializer.TryDeserialize(type.Object, stringValue, out var resultValue));
             Assert.Equal(value, resultValue);
         }
 
@@ -421,11 +455,12 @@ namespace HotChocolate.Types.Spatial
             string stringValue)
         {
             // arrange
+            var type = new Mock<IType>();
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
             var typeName = new NameString(stringValue);
 
             // act
-            var success = serializer.TryDeserialize(typeName, out object? resultValue);
+            var success = serializer.TryDeserialize(type.Object, typeName, out var resultValue);
 
             // assert
             Assert.True(success);

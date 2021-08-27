@@ -207,8 +207,9 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 .AddDataLoader<ITestDataLoader, TestDataLoader>());
 
             // act
-            var results = new List<IExecutionResult>
-            {
+            var results = new List<IExecutionResult>();
+
+            results.Add(
                 await executor.ExecuteAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(
@@ -216,24 +217,25 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             a: withStackedDataLoader(key: ""a"")
                             b: withStackedDataLoader(key: ""b"")
                         }")
-                        .Create()),
+                        .Create()));
 
+            results.Add(
                 await executor.ExecuteAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"{
                             a: withStackedDataLoader(key: ""a"")
                         }")
-                        .Create()),
+                        .Create()));
 
+            results.Add(
                 await executor.ExecuteAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(
                             @"{
                             c: withStackedDataLoader(key: ""c"")
                         }")
-                        .Create())
-            };
+                        .Create()));
 
             // assert
             results.MatchSnapshot();

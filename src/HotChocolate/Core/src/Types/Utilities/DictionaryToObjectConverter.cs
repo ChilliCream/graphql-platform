@@ -7,8 +7,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities
 {
-    public sealed class DictionaryToObjectConverter
-        : DictionaryVisitor<ConverterContext>
+    public sealed class DictionaryToObjectConverter : DictionaryVisitor<ConverterContext>
     {
         private readonly ITypeConverter _converter;
 

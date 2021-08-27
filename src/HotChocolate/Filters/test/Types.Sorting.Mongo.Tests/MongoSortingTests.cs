@@ -180,13 +180,13 @@ namespace HotChocolate.Types.Sorting
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
                     .UseSorting<ModelSortInputType>()
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                         ctx.Service<IMongoCollection<Model>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
                     .UseSorting<ModelSortInputType>()
-                    .Resolver(ctx =>
+                    .Resolve(ctx =>
                         ctx.Service<IMongoCollection<Model>>().AsQueryable());
             }
         }
@@ -206,7 +206,7 @@ namespace HotChocolate.Types.Sorting
             {
                 descriptor.Field(t => t.Id)
                     .Type<IdType>()
-                    .Resolver(c => c.Parent<Model>().Id);
+                    .Resolve(c => c.Parent<Model>().Id);
             }
         }
 

@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
 export interface SalesCardProps {
@@ -8,7 +8,7 @@ export interface SalesCardProps {
   description: string;
 }
 
-export const SalesCard: FunctionComponent<SalesCardProps> = ({
+export const SalesCard: FC<SalesCardProps> = ({
   name,
   description,
   price,

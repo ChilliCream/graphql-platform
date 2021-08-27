@@ -2,12 +2,14 @@ using BenchmarkDotNet.Attributes;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Benchmarks
 {
     [RPlotExporter, CategoriesColumn, RankColumn, MeanColumn, MedianColumn, MemoryDiagnoser]
     public class FieldCollectorBenchmarks
     {
+        private readonly InputParser _inputParser = new(); 
         private readonly ISchema _schema;
         private readonly DocumentNode _introspectionQuery;
         private readonly FragmentCollection _introspectionFragments;
@@ -39,7 +41,8 @@ namespace HotChocolate.Execution.Benchmarks
                 _introspectionQuery,
                 _introspectionOperation,
                 _schema,
-                _schema.QueryType);
+                _schema.QueryType,
+                _inputParser);
         }
 
         [Benchmark]
@@ -50,7 +53,8 @@ namespace HotChocolate.Execution.Benchmarks
                 _starWarsQuery,
                 _starWarsOperation,
                 _schema,
-                _schema.QueryType);
+                _schema.QueryType,
+                _inputParser);
         }
     }
 }

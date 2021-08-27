@@ -4,13 +4,15 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
 using static HotChocolate.Data.Filters.DefaultFilterOperations;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JListAnyOperationHandler
         : Neo4JFilterOperationHandlerBase
     {
-        public Neo4JListAnyOperationHandler()
+        public Neo4JListAnyOperationHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }

@@ -2,13 +2,11 @@
 title: "Overview"
 ---
 
-# Persisted queries and automatic persisted queries
-
 **Improve performance by sending smaller requests and pre-compile queries**
 
-The size of individual GraphQL requests can become a major pain point. This is not only true for the transport but also introduces inefficiencies for the server since large requests need to be parsed and validated. Hot Chocolate implements for this problem persisted queries. With persisted queries, we can store queries on the server in a key-value store. When we want to execute a persisted query, we can send the key under which the query is stored instead of the query itself. This saves precious bandwidth and also improves execution time since the server will validate, parse, and compile persisted queries just once.
+The size of individual GraphQL requests can become a major pain point. This is not only true for the transport but also introduces inefficiencies for the server since large requests need to be parsed and validated. To solve this problem, Hot Chocolate has implemented persisted queries. With persisted queries, we can store queries on the server in a key-value store. When we want to execute a persisted query, we can send the key under which the query is stored instead of the query itself. This saves precious bandwidth and also improves execution time since the server will validate, parse, and compile persisted queries just once.
 
-There are two flavors of persisted queries that Hot Chocolate server supports.
+Hot Chocolate supports two flavors of persisted queries.
 
 ## Persisted queries
 
@@ -17,7 +15,7 @@ This can be done by extracting the queries from your client application at build
 
 Strawberry Shake, [Relay](https://relay.dev/docs/guides/persisted-queries/), and [Apollo](https://www.apollographql.com/docs/react/api/link/persisted-queries/) client all support this approach.
 
-Read more on how to set up your server for persisted queries [here](/docs/hotchocolate/performance/persisted-queries).
+[Learn more about persisted queries](/docs/hotchocolate/performance/persisted-queries)
 
 ## Automatic persisted queries
 
@@ -27,4 +25,4 @@ However, we do not have the option to seal our server from queries that we do no
 
 Both Strawberry Shake and [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/) client support this approach.
 
-Read more on how to set up your server for automatic persisted queries [here](/docs/hotchocolate/performance/automatic-persisted-queries).
+[Learn more about automatic persisted queries](/docs/hotchocolate/performance/automatic-persisted-queries)

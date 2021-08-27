@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  FunctionComponent,
-  ReactNode,
-  useContext,
-} from "react";
+import React, { createContext, FC, ReactNode, useContext } from "react";
 import { List } from "./list";
 import { Panel, PanelProps } from "./panel";
 import { Tab, TabProps } from "./tab";
@@ -15,9 +10,9 @@ interface TabsContext {
 }
 
 export interface TabsComposition {
-  Tab: FunctionComponent<TabProps>;
-  Panel: FunctionComponent<PanelProps>;
-  List: FunctionComponent;
+  Tab: FC<TabProps>;
+  Panel: FC<PanelProps>;
+  List: FC;
 }
 
 const TabsContext = createContext<TabsContext | undefined>(undefined);
@@ -28,7 +23,7 @@ export interface TabsProps {
   readonly children: ReactNode;
 }
 
-export const Tabs: FunctionComponent<TabsProps> & TabsComposition = ({
+export const Tabs: FC<TabsProps> & TabsComposition = ({
   defaultValue,
   groupId,
   children,

@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Internal.FieldInitHelper;
 
 namespace HotChocolate.Types.Filters
 {
@@ -64,21 +64,28 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        protected override void OnCompleteFields(
+        protected override FieldCollection<InputField> OnCompleteFields(
             ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
+            InputObjectTypeDefinition definition)
         {
-            fields.Add(new AndField(context.DescriptorContext));
-            fields.Add(new OrField(context.DescriptorContext));
+            var index = 0;
+            var fields = new InputField[definition.Fields.Count + 2];
+
+            fields[index] = new AndField(context.DescriptorContext, index);
+            index++;
+
+            fields[index] = new OrField(context.DescriptorContext, index);
+            index++;
 
             foreach (FilterOperationDefintion fieldDefinition in
                 definition.Fields.OfType<FilterOperationDefintion>())
             {
-                fields.Add(new FilterOperationField(fieldDefinition));
+                fields[index] = new FilterOperationField(fieldDefinition, index);
+                index++;
             }
-        }
 
+            return CompleteFields(context, this, fields);
+        }
 
         // we are disabling the default configure method so
         // that this does not lead to confusion.

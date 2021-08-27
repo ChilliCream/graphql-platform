@@ -19,10 +19,6 @@ namespace HotChocolate.Types
 {
     public class ObjectTypeTests : TypeTestBase
     {
-        public ObjectTypeTests()
-        {
-        }
-
         [Fact]
         public void ObjectType_DynamicName()
         {
@@ -1716,6 +1712,18 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ResolveWithAsync()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithQueryTypeAsync>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo baz qux quux quuz }")
+                .ToJson()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void ResolveWith_NonGeneric()
         {
             SchemaBuilder.New()
@@ -1732,6 +1740,37 @@ namespace HotChocolate.Types
         {
             SchemaBuilder.New()
                 .AddQueryType<QueryWithIndexer>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Field_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo").Type("String").Resolve(_ => null);
+                })
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("Foo")
+                        .Argument("a", t => t.Type("Int"))
+                        .Type("String")
+                        .Resolve(_ => null);
+                })
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -1921,6 +1960,11 @@ namespace HotChocolate.Types
         public class ResolveWithQueryResolver
         {
             public string Bar { get; set; } = "Bar";
+
+            public Task<string> FooAsync() => Task.FromResult("Foo");
+
+            public Task<bool> BarAsync(IResolverContext context)
+                => Task.FromResult(context is not null);
         }
 
         public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
@@ -1932,8 +1976,22 @@ namespace HotChocolate.Types
             }
         }
 
-       public class ResolveWithNonGenericObjectType : ObjectType
-       {
+        public class ResolveWithQueryTypeAsync : ObjectType<ResolveWithQuery>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+            {
+                descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.FooAsync());
+                descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.FooAsync());
+
+                descriptor.Field("qux").ResolveWith<ResolveWithQueryResolver, string>(t => t.Bar);
+                descriptor.Field("quux").ResolveWith<ResolveWithQueryResolver, string>(t => t.FooAsync());
+
+                descriptor.Field("quuz").ResolveWith<ResolveWithQueryResolver, bool>(t => t.BarAsync(default));
+            }
+        }
+
+        public class ResolveWithNonGenericObjectType : ObjectType
+        {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 Type type = typeof(ResolveWithQuery);
@@ -1944,7 +2002,7 @@ namespace HotChocolate.Types
                     .Type<IntType>()
                     .ResolveWith(type.GetProperty("Foo"));
             }
-       }
+        }
 
         public class AnnotatedNestedList
         {

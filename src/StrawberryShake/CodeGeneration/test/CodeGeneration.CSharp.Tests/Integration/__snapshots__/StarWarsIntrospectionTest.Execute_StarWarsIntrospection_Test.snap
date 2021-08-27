@@ -1276,7 +1276,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1441,7 +1441,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1525,8 +1525,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "Boolean",
-          "Description": "The `Boolean` scalar type represents `true` or `false`.",
+          "Name": "String",
+          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1535,8 +1535,8 @@
         },
         {
           "Kind": "Scalar",
-          "Name": "String",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Name": "Boolean",
+          "Description": "The `Boolean` scalar type represents `true` or `false`.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -1637,7 +1637,7 @@
               ],
               "Type": {
                 "Kind": "Object",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "OfType": null
               },
               "IsDeprecated": false,
@@ -1811,7 +1811,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Description": "A connection to a list of items.",
           "Fields": [
             {
@@ -1842,7 +1842,7 @@
                   "Name": null,
                   "OfType": {
                     "Kind": "Object",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "OfType": null
                   }
                 }
@@ -2044,7 +2044,7 @@
         },
         {
           "Kind": "Object",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Description": "An edge in a connection.",
           "Fields": [
             {
@@ -4519,7 +4519,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -4810,7 +4810,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -4938,9 +4938,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "Boolean",
+          "Name": "String",
           "Kind": "Scalar",
-          "Description": "The `Boolean` scalar type represents `true` or `false`.",
+          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -4950,9 +4950,9 @@
         },
         {
           "__typename": "__Type",
-          "Name": "String",
+          "Name": "Boolean",
           "Kind": "Scalar",
-          "Description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+          "Description": "The `Boolean` scalar type represents `true` or `false`.",
           "Fields": null,
           "InputFields": null,
           "Interfaces": null,
@@ -5120,7 +5120,7 @@
               ],
               "Type": {
                 "__typename": "__Type",
-                "Name": "CharacterConnection",
+                "Name": "FriendsConnection",
                 "Kind": "Object",
                 "Description": null,
                 "Fields": null,
@@ -5422,7 +5422,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterConnection",
+          "Name": "FriendsConnection",
           "Kind": "Object",
           "Description": "A connection to a list of items.",
           "Fields": [
@@ -5484,7 +5484,7 @@
                   "PossibleTypes": null,
                   "OfType": {
                     "__typename": "__Type",
-                    "Name": "CharacterEdge",
+                    "Name": "FriendsEdge",
                     "Kind": "Object",
                     "Description": null,
                     "Fields": null,
@@ -5818,7 +5818,7 @@
         },
         {
           "__typename": "__Type",
-          "Name": "CharacterEdge",
+          "Name": "FriendsEdge",
           "Kind": "Object",
           "Description": "An edge in a connection.",
           "Fields": [

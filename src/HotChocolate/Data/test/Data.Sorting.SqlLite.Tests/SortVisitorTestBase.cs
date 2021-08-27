@@ -50,12 +50,12 @@ namespace HotChocolate.Data.Sorting
                     c =>
                     {
                         ApplyConfigurationToField<TEntity, T>(
-                            c.Name("Query").Field("root").Resolver(resolver), false);
+                            c.Name("Query").Field("root").Resolve(resolver), false);
 
                         ApplyConfigurationToField<TEntity, T>(
                             c.Name("Query")
                                 .Field("rootExecutable")
-                                .Resolver(
+                                .Resolve(
                                     ctx => resolver(ctx).AsExecutable()), false);
                     });
 

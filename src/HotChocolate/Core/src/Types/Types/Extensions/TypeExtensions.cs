@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             {
                 throw new ArgumentNullException(nameof(type));
             }
-            
+
             return type.Kind != TypeKind.NonNull;
         }
 
@@ -275,7 +275,7 @@ namespace HotChocolate.Types
 
             IType current = type;
 
-            if (IsNamedType(current))
+            if (IsNamed(current))
             {
                 return (INamedType)current;
             }
@@ -284,7 +284,7 @@ namespace HotChocolate.Types
             {
                 current = current.InnerType();
 
-                if (IsNamedType(current))
+                if (IsNamed(current))
                 {
                     return (INamedType)current;
                 }
@@ -292,7 +292,7 @@ namespace HotChocolate.Types
 
             throw new ArgumentException("The type structure is invalid.");
 
-            static bool IsNamedType(IType type)
+            static bool IsNamed(IType type)
             {
                 switch (type.Kind)
                 {
@@ -435,10 +435,9 @@ namespace HotChocolate.Types
             this ITypeNode typeNode,
             INamedType namedType)
         {
-            if (typeNode is NonNullTypeNode nntn
-                && ToType(nntn.Type, namedType) is INullableType nnt)
+            if (typeNode is NonNullTypeNode nntn)
             {
-                return new NonNullType(nnt);
+                return new NonNullType(ToType(nntn.Type, namedType));
             }
 
             if (typeNode is ListTypeNode ltn)
@@ -453,6 +452,53 @@ namespace HotChocolate.Types
 
             throw new NotSupportedException(
                 TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+
+        public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
+            if (literal.Kind == SyntaxKind.NullValue)
+            {
+                return type.Kind is not TypeKind.NonNull;
+            }
+
+            if (type.Kind == TypeKind.NonNull)
+            {
+                return IsInstanceOfType((IInputType)((NonNullType)type).Type, literal);
+            }
+
+            if (type.Kind == TypeKind.List)
+            {
+                if (literal.Kind == SyntaxKind.ListValue)
+                {
+                    var list = (ListValueNode)literal;
+
+                    if (list.Items.Count == 0)
+                    {
+                        return true;
+                    }
+
+                    literal = list.Items[0];
+                }
+
+                return IsInstanceOfType((IInputType)((ListType)type).ElementType, literal);
+            }
+
+            if (type.Kind == TypeKind.InputObject)
+            {
+                return literal.Kind == SyntaxKind.ObjectValue;
+            }
+
+            return ((ILeafType)type).IsInstanceOfType(literal);
         }
     }
 }

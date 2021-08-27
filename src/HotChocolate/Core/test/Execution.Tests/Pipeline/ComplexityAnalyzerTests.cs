@@ -232,7 +232,7 @@ namespace HotChocolate.Execution.Pipeline
                     })
                     .UseDefaultPipeline());
 
-            Assert.Equal(110, complexity);
+            Assert.Equal(70, complexity);
         }
 
         [Fact]
@@ -265,7 +265,7 @@ namespace HotChocolate.Execution.Pipeline
                     })
                     .UseDefaultPipeline());
 
-            Assert.Equal(116, complexity);
+            Assert.Equal(76, complexity);
         }
 
          [Fact]
@@ -299,7 +299,7 @@ namespace HotChocolate.Execution.Pipeline
                     })
                     .UseDefaultPipeline());
 
-            Assert.Equal(117, complexity);
+            Assert.Equal(77, complexity);
         }
 
         [Fact]

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.MongoDb.Filters
 {
@@ -13,6 +14,13 @@ namespace HotChocolate.Data.MongoDb.Filters
     public abstract class MongoDbOperationHandlerBase
         : FilterOperationHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
+        protected MongoDbOperationHandlerBase(InputParser inputParser)
+        {
+            InputParser = inputParser;
+        }
+
+        protected InputParser InputParser { get; }
+
         /// <inheritdoc/>
         public override bool TryHandleOperation(
             MongoDbFilterVisitorContext context,
@@ -21,7 +29,7 @@ namespace HotChocolate.Data.MongoDb.Filters
             [NotNullWhen(true)] out MongoDbFilterDefinition result)
         {
             IValueNode value = node.Value;
-            object? parsedValue = field.Type.ParseLiteral(value);
+            object? parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
 
             if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) &&
                 parsedValue is null)

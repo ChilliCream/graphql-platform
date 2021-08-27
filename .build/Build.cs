@@ -85,11 +85,5 @@ partial class Build : NukeBuild
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
 
-    private static void TryDelete(string fileName) 
-    {
-        if(File.Exists(fileName))
-        {
-            File.Delete(fileName);
-        }
-    }
+    
 }

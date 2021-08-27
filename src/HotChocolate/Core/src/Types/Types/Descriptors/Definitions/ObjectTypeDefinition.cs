@@ -85,28 +85,45 @@ namespace HotChocolate.Types.Descriptors.Definitions
             _interfaces ??= new List<ITypeReference>();
 
         /// <summary>
+        /// Specifies if this definition has interfaces.
+        /// </summary>
+        public bool HasInterfaces => _interfaces is { Count: > 0 };
+
+        /// <summary>
         /// Gets the fields of this object type.
         /// </summary>
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (ObjectFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
+                if (field.HasConfigurations)
+                {
+                    configs ??= new();
+                    configs.AddRange(field.Configurations);
+                }
 
                 foreach (ArgumentDefinition argument in field.GetArguments())
                 {
-                    configs.AddRange(argument.Configurations);
+                    if (argument.HasConfigurations)
+                    {
+                        configs ??= new();
+                        configs.AddRange(argument.Configurations);
+                    }
                 }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
         internal IReadOnlyList<Type> GetKnownClrTypes()
@@ -158,6 +175,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target._fieldIgnores = new List<ObjectFieldBinding>(_fieldIgnores);
             }
 
+            if (Fields is { Count: > 0 })
+            {
+                target.Fields.Clear();
+
+                foreach (var field in Fields)
+                {
+                    target.Fields.Add(field);
+                }
+            }
+
             target.FieldBindingType = FieldBindingType;
             target.IsOfType = IsOfType;
             target.IsExtension = IsExtension;
@@ -190,7 +217,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 ObjectFieldDefinition? targetField = field switch
                 {
                     { BindToField: { Type: ObjectFieldBindingType.Property } bindTo } =>
-                        target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name)),
+                        target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Member?.Name!)),
                     { BindToField: { Type: ObjectFieldBindingType.Field } bindTo } =>
                         target.Fields.FirstOrDefault(t => bindTo.Name.Equals(t.Name)),
                     _ => target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name))

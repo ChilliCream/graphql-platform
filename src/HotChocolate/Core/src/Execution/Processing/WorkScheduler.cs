@@ -28,6 +28,12 @@ namespace HotChocolate.Execution.Processing
                _serial.HasRunningTasks ||
                !_stateMachine.IsCompleted;
 
+        private bool CanDispatch
+            => _batchDispatcher.HasTasks &&
+               _work.IsEmpty &&
+               _work.HasRunningTasks &&
+               !_stateMachine.IsSerial;
+
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
         {
@@ -71,7 +77,7 @@ namespace HotChocolate.Execution.Processing
 
             if (tasks.Count == 1)
             {
-                Register(tasks[0]!);
+                Register(tasks[0]);
                 return;
             }
 
@@ -79,7 +85,7 @@ namespace HotChocolate.Execution.Processing
 
             for (var i = 0; i < tasks.Count; i++)
             {
-                IExecutionTask task = tasks[i]!;
+                IExecutionTask task = tasks[i];
                 task.State ??= _stateMachine.TryGetStep(task);
             }
 
@@ -89,7 +95,7 @@ namespace HotChocolate.Execution.Processing
 
                 for (var i = 0; i < tasks.Count; i++)
                 {
-                    IExecutionTask task = tasks[i]!;
+                    IExecutionTask task = tasks[i];
 
                     if (_stateMachine.RegisterTask(task))
                     {
@@ -199,9 +205,9 @@ namespace HotChocolate.Execution.Processing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryStartProcessingUnsafe()
+        private bool TryStartProcessingUnsafe(bool force = false)
         {
-            if (!_processing && (!_work.IsEmpty || !_serial.IsEmpty))
+            if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
                 _pause.TryContinueUnsafe();
@@ -211,86 +217,71 @@ namespace HotChocolate.Execution.Processing
             return false;
         }
 
-        private async ValueTask<bool> TryStopProcessing()
+        private ValueTask<bool> TryStopProcessing()
         {
-            bool completed;
-
             // if the execution is already completed or if the completion task is
             // null we stop processing
             if (_completed || _requestAborted.IsCancellationRequested)
             {
-                return true;
+                return new(true);
             }
 
             // if there is still work we keep on processing. We check this here to
             // try to avoid the lock.
             if (!_work.IsEmpty)
             {
-                return false;
+                return new(false);
             }
 
             lock (_sync)
             {
                 if (!_work.IsEmpty)
                 {
-                    return false;
+                    return new(false);
                 }
 
-                // if the backlog is empty and we have running tasks we will try to dispatch
-                // any batch tasks.
-                if (_work.HasRunningTasks && _batchDispatcher.HasTasks)
+                if (CanDispatch)
                 {
-                    TryDispatchBatchesUnsafe();
-
-                    if (!_work.IsEmpty)
-                    {
-                        return false;
-                    }
+                    return InvokeDispatch();
                 }
 
                 _processing = false;
-                completed = TryCompleteProcessingUnsafe();
-            }
 
-            _diagnosticEvents.StopProcessing(_requestContext);
-
-            if (completed)
-            {
-                return true;
-            }
-
-            await _pause;
-            return completed;
-        }
-
-        private void TryDispatchBatches()
-        {
-            if (!_processing && IsEmpty && _batchDispatcher.HasTasks)
-            {
-                lock (_sync)
+                if (TryCompleteProcessingUnsafe())
                 {
-                    if (!_processing)
-                    {
-                        TryDispatchBatchesUnsafe();
-                    }
+                    return new(true);
                 }
-            }
-        }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void TryDispatchBatchesUnsafe()
-        {
-            if (IsEmpty && _batchDispatcher.HasTasks)
+                return InvokePause();
+            }
+
+            async ValueTask<bool> InvokeDispatch()
             {
-                using (_diagnosticEvents.DispatchBatch(_requestContext))
+                do
                 {
-                    _batchDispatcher.Dispatch();
-                }
+                    await _batchDispatcher.DispatchAsync(_requestAborted).ConfigureAwait(false);
+                } while (!_requestAborted.IsCancellationRequested && CanDispatch);
+
+                return _requestAborted.IsCancellationRequested;
+            }
+
+            async ValueTask<bool> InvokePause()
+            {
+                await _pause;
+                return false;
             }
         }
 
         private void BatchDispatcherEventHandler(object? source, EventArgs args)
-            => TryDispatchBatches();
+        {
+            lock (_sync)
+            {
+                if (!_processing && CanDispatch)
+                {
+                    TryStartProcessingUnsafe(force: true);
+                }
+            }
+        }
 
         private void Cancel()
         {

@@ -153,7 +153,7 @@ namespace HotChocolate.Execution
                 return value is "a";
             }
 
-            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
+            public override object? ParseLiteral(IValueNode literal)
             {
                 if (literal is null)
                 {

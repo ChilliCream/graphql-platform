@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -16,8 +15,6 @@ namespace HotChocolate.Types
     {
         private TDefinition? _definition;
         private ExtensionData? _contextData;
-
-        protected TypeSystemObjectBase() { }
 
         public override IReadOnlyDictionary<string, object?> ContextData
         {
@@ -162,13 +159,12 @@ namespace HotChocolate.Types
         {
             OnBeforeRegisterDependencies(context, definition, definition.ContextData);
 
-            foreach (var group in definition.GetConfigurations()
-                .SelectMany(t => t.Dependencies)
-                .GroupBy(t => t.Kind))
+            foreach (var configuration in definition.GetConfigurations())
             {
-                context.RegisterDependencyRange(
-                    group.Select(t => t.TypeReference),
-                    group.Key);
+                foreach (TypeDependency dependency in configuration.Dependencies)
+                {
+                    context.Dependencies.Add(dependency);
+                }
             }
 
             OnRegisterDependencies(context, definition);
@@ -178,12 +174,14 @@ namespace HotChocolate.Types
         private static void ExecuteConfigurations(
             ITypeCompletionContext context,
             TDefinition definition,
-            ApplyConfigurationOn kind)
+            ApplyConfigurationOn on)
         {
-            foreach (ILazyTypeConfiguration configuration in
-                definition.GetConfigurations().Where(t => t.On == kind))
+            foreach (ITypeSystemMemberConfiguration config in definition.GetConfigurations())
             {
-                configuration.Configure(context);
+                if (config.On == on)
+                {
+                    ((CompleteConfiguration)config).Configure(context);
+                }
             }
         }
 

@@ -19,7 +19,7 @@ namespace HotChocolate.ConferencePlanner
             this IObjectFieldDescriptor descriptor)
         {
             descriptor.Extend().Definition.ResultConverters.Add(
-                (c, r) => r is string s ? s.ToUpperInvariant() : r);
+                new((c, r) => r is string s ? s.ToUpperInvariant() : r));
             return descriptor;
         }
     }

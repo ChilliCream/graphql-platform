@@ -8,7 +8,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<TEntity>
     {
-        public readonly IAggregateFluent<TEntity> _source;
+        private readonly IAggregateFluent<TEntity> _source;
         private readonly IAggregateFluent<AggregateCountResult> _countSource;
 
         public AggregateFluentPagingContainer(IAggregateFluent<TEntity> source)

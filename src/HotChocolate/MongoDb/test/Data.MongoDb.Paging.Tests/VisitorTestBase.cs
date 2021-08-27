@@ -49,7 +49,7 @@ namespace HotChocolate.Data.MongoDb.Filters
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolve(resolver)
                         .Use(
                             next => async context =>
                             {

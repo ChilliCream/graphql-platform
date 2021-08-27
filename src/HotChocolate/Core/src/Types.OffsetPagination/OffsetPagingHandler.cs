@@ -17,6 +17,7 @@ namespace HotChocolate.Types.Pagination
             DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
             IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
+            RequirePagingBoundaries = options.RequirePagingBoundaries ?? false;
 
             if (MaxPageSize < DefaultPageSize)
             {
@@ -41,6 +42,12 @@ namespace HotChocolate.Types.Pagination
         protected bool IncludeTotalCount { get; }
 
         /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        protected bool RequirePagingBoundaries { get; }
+
+        /// <summary>
         /// Ensures that the arguments passed in by the user are valid and
         /// do not try to consume more items per page as specified by
         /// <see cref="MaxPageSize"/>.
@@ -50,11 +57,22 @@ namespace HotChocolate.Types.Pagination
         /// </param>
         public void ValidateContext(IResolverContext context)
         {
-            int? take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
+            var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
+
+            if (RequirePagingBoundaries && take is null)
+            {
+                throw ThrowHelper.OffsetPagingHandler_NoBoundariesSet(
+                    context.Selection.Field,
+                    context.Path);
+            }
 
             if (take > MaxPageSize)
             {
-                throw ThrowHelper.OffsetPagingHandler_MaxPageSize();
+                throw ThrowHelper.OffsetPagingHandler_MaxPageSize(
+                    take.Value,
+                    MaxPageSize,
+                    context.Selection.Field,
+                    context.Path);
             }
         }
 
@@ -62,8 +80,8 @@ namespace HotChocolate.Types.Pagination
             IResolverContext context,
             object source)
         {
-            int? skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
-            int? take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
+            var skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
+            var take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
             var arguments = new OffsetPagingArguments(skip, take ?? DefaultPageSize);
 
             return await SliceAsync(context, source, arguments).ConfigureAwait(false);

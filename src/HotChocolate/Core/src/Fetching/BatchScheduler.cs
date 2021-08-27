@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
@@ -18,7 +17,7 @@ namespace HotChocolate.Fetching
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly object _sync = new();
         private readonly List<Func<ValueTask>> _tasks = new();
-        private IExecutionTaskContext? _context;
+        private readonly List<Func<ValueTask>> _taskQueue = new();
         private bool _dispatchOnSchedule;
 
         /// <inheritdoc />
@@ -41,25 +40,90 @@ namespace HotChocolate.Fetching
         }
 
         /// <inheritdoc />
-        public void Initialize(IExecutionTaskContext context)
-        {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
+        public Task<BatchDispatcherResult> DispatchAsync(
+            CancellationToken cancellationToken = default)
+            => DispatchAsync(_tasks, _taskQueue, cancellationToken);
 
-        /// <inheritdoc />
-        public void Dispatch()
+        private async Task<BatchDispatcherResult> DispatchAsync(
+            List<Func<ValueTask>> tasks,
+            List<Func<ValueTask>> taskQueue,
+            CancellationToken cancellationToken)
         {
-            // TODO : resources
-            IExecutionTaskContext context = _context ??
-                throw new InvalidOperationException("The scheduler is not initialized.");
+            await _semaphore.WaitAsync(cancellationToken);
 
-            lock (_sync)
+            try
             {
-                if (_tasks.Count > 0)
+                EnqueueTasksForProcessing();
+
+                if (taskQueue.Count == 0)
                 {
-                    var task = new BatchExecutionTask(context, _tasks.ToList());
-                    _tasks.Clear();
-                    context.Register(task);
+                    return BatchDispatcherResult.Success;
+                }
+
+                var processing = new Task<Exception?>[taskQueue.Count];
+
+                for (var i = 0; i < taskQueue.Count; i++)
+                {
+                    processing[i] = ExecuteBatchAsync(taskQueue[i]);
+                }
+
+                await Task.WhenAll(processing);
+
+                List<Exception>? errors = null;
+
+                foreach (var task in processing)
+                {
+                    if (task.Exception is not null)
+                    {
+                        (errors ??= new()).Add(task.Exception);
+                    }
+                }
+
+                return errors is null
+                    ? BatchDispatcherResult.Success
+                    : new BatchDispatcherResult(errors);
+            }
+            finally
+            {
+                _taskQueue.Clear();
+                _semaphore.Release();
+            }
+
+            async Task<Exception?> ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
+            {
+                try
+                {
+                    await executeBatchAsync.Invoke().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // If we run into this exception the request was aborted.
+                    // In this case we do nothing and just return.
+                }
+                catch (Exception ex)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        // if cancellation is request we do no longer report errors to the
+                        // operation context.
+                        return null;
+                    }
+
+                    return ex;
+                }
+
+                return null;
+            }
+
+            void EnqueueTasksForProcessing()
+            {
+                lock (_sync)
+                {
+                    if (tasks.Count > 0)
+                    {
+                        taskQueue.AddRange(tasks);
+                        tasks.Clear();
+                    }
                 }
             }
         }
@@ -78,13 +142,16 @@ namespace HotChocolate.Fetching
                 {
                     dispatchOnSchedule = false;
                     _tasks.Add(dispatch);
-                    TaskEnqueued?.Invoke(this, EventArgs.Empty);
                 }
             }
 
             if (dispatchOnSchedule)
             {
                 BeginDispatchOnEnqueue(dispatch);
+            }
+            else
+            {
+                TaskEnqueued?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -104,57 +171,6 @@ namespace HotChocolate.Fetching
             finally
             {
                 _semaphore.Release();
-            }
-        }
-
-        private class BatchExecutionTask : ParallelExecutionTask
-        {
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-
-            public BatchExecutionTask(
-                IExecutionTaskContext context,
-                IReadOnlyList<Func<ValueTask>> tasks)
-            {
-                Context = context;
-                _tasks = tasks;
-            }
-
-            protected override IExecutionTaskContext Context { get; }
-
-            protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
-            {
-                var running = new Task[_tasks.Count];
-
-                for (var i = 0; i < _tasks.Count; i++)
-                {
-                    running[i] = ExecuteBatchAsync(_tasks[i]);
-                }
-
-                await Task.WhenAll(running);
-
-                async Task ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
-                {
-                    try
-                    {
-                        await executeBatchAsync.Invoke().ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // If we run into this exception the request was aborted.
-                        // In this case we do nothing and just return.
-                    }
-                    catch (Exception ex)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            // if cancellation is request we do no longer report errors to the
-                            // operation context.
-                            return;
-                        }
-
-                        Context.ReportError(this, ex);
-                    }
-                }
             }
         }
     }

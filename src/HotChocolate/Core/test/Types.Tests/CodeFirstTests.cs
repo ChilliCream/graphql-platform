@@ -194,7 +194,7 @@ namespace HotChocolate
         {
             protected override void Configure(IObjectTypeDescriptor<Dog> descriptor)
             {
-                descriptor.Field("isMale").Resolver(true);
+                descriptor.Field("isMale").Resolve(true);
             }
         }
 

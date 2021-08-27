@@ -10,24 +10,6 @@ type Model {
   baz: Boolean!
 }
 
-"A connection to a list of items."
-type ModelConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [ModelEdge!]
-  "A flattened list of the nodes."
-  nodes: [Model]
-}
-
-"An edge in a connection."
-type ModelEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Model
-}
-
 "Information about pagination in a connection."
 type PageInfo {
   "Indicates whether more edges exist following the set defined by the clients arguments."
@@ -40,9 +22,27 @@ type PageInfo {
   endCursor: String
 }
 
+"A connection to a list of items."
+type PagingConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [PagingEdge!]
+  "A flattened list of the nodes."
+  nodes: [Model]
+}
+
+"An edge in a connection."
+type PagingEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Model
+}
+
 type Query {
   items: [Model]
-  paging("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ModelConnection
+  paging("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): PagingConnection
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."

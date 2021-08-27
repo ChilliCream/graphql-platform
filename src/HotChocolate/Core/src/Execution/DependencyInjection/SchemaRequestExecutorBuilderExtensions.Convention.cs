@@ -114,7 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(
-                b => b.AddConvention(convention, (s) => concreteConvention, scope));
+                b => b.AddConvention(convention, _ => concreteConvention, scope));
         }
 
         public static IRequestExecutorBuilder AddConvention(
@@ -157,11 +157,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     convention,
                     s =>
                     {
-                        if (s.TryGetOrCreateService<IConvention>(
-                            concreteConvention,
-                            out IConvention convention))
+                        if (s.TryGetOrCreateService(concreteConvention, out IConvention c))
                         {
-                            return convention;
+                            return c;
                         }
 
                         throw Convention_UnableToCreateConvention(concreteConvention);
@@ -176,13 +174,13 @@ namespace Microsoft.Extensions.DependencyInjection
             where T : IConvention =>
             builder.ConfigureSchema(b => b.AddConvention(typeof(T), convention, scope));
 
-        public static IRequestExecutorBuilder AddConvention<TConvetion, TConcreteConvention>(
+        public static IRequestExecutorBuilder AddConvention<TConvention, TConcreteConvention>(
             this IRequestExecutorBuilder builder,
             string? scope = null)
-            where TConvetion : IConvention
+            where TConvention : IConvention
             where TConcreteConvention : IConvention =>
             builder.ConfigureSchema(
-                b => b.AddConvention(typeof(TConvetion), typeof(TConcreteConvention), scope));
+                b => b.AddConvention(typeof(TConvention), typeof(TConcreteConvention), scope));
 
         public static IRequestExecutorBuilder TryAddConvention(
             this IRequestExecutorBuilder builder,
@@ -213,7 +211,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(
-                b => b.TryAddConvention(convention, s => concreteConvention, scope));
+                b => b.TryAddConvention(convention, _ => concreteConvention, scope));
         }
 
         public static IRequestExecutorBuilder TryAddConvention(

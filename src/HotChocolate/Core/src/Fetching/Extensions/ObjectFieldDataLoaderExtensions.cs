@@ -56,21 +56,18 @@ namespace HotChocolate.Types
 
                         definition.Type = TypeReference.Create(schemaType, TypeContext.Output);
                         definition.Configurations.Add(
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (_, def) =>
-                                    {
-                                        CompileMiddleware(
-                                            def,
-                                            placeholder,
-                                            keyType,
-                                            valueType,
-                                            dataLoaderType);
-                                    })
-                                .On(ApplyConfigurationOn.Completion)
-                                .Build());
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (_, def) =>
+                                {
+                                    CompileMiddleware(
+                                        def,
+                                        placeholder,
+                                        keyType,
+                                        valueType,
+                                        dataLoaderType);
+                                },
+                                definition,
+                                ApplyConfigurationOn.Completion));
                     });
 
             return descriptor;
@@ -111,7 +108,7 @@ namespace HotChocolate.Types
             {
                 if (interfaceType.IsGenericType)
                 {
-                    Type? typeDefinition = interfaceType.GetGenericTypeDefinition();
+                    Type typeDefinition = interfaceType.GetGenericTypeDefinition();
                     if (typeof(IDataLoader<,>) == typeDefinition)
                     {
                         key = interfaceType.GetGenericArguments()[0];
