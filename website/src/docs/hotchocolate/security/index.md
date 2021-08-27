@@ -4,8 +4,6 @@ title: "Overview"
 
 In this section we will learn how to secure our GraphQL endpoint.
 
-When we think about API security, we, in many cases, only think about authorization. With GraphQL, we need to think further about security concepts to ensure that our GraphQL API performs predictably and malicious actors do not bring our service down or degrade performance for others.
-
 # Authentication
 
 Authentication in Hot Chocolate is built around the official authentication mechanisms in ASP.NET Core, allowing us to fully embrace their customizability and variety of authentication providers.

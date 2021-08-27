@@ -85,6 +85,26 @@ public class Startup
 
 With this configuration every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
 
+Since there could be multiple types inheriting from `ObjectType<Author>`, but differing in their name and fields, it is not certain which of these types should be used when we return an `Author` CLR type from one of our resolvers.
+
+**Therefore it's important to note that Code-first object types are not automatically inferred. They need to be explicitly specified or registered.**
+
+We can either [explicitly specify the type on a per-resolver basis](#explicit-types) or we can register the type once globally:
+
+```csharp
+public class Startup
+{
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services
+            .AddGraphQLServer()
+            .AddType<AuthorType>();
+    }
+}
+```
+
+In the above example every `Author` CLR type we return from our resovlers would be assumed to be an `AuthorType`.
+
 We can also create schema object types without a backing POCO.
 
 ```csharp

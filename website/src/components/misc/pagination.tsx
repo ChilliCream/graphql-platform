@@ -1,14 +1,14 @@
 import { Link } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-interface PaginationProperties {
+interface PaginationProps {
   currentPage: number;
   linkPrefix: string;
   totalPages: number;
 }
 
-export const Pagination: FunctionComponent<PaginationProperties> = ({
+export const Pagination: FC<PaginationProps> = ({
   currentPage,
   linkPrefix,
   totalPages,
