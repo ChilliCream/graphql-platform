@@ -5,7 +5,7 @@
   "Errors": [
     {
       "Message": "Cannot return null for non-nullable field.",
-      "Code": "EXEC_NON_NULL_VIOLATION",
+      "Code": "HC0018",
       "Path": {
         "Parent": null,
         "Depth": 0,
@@ -18,7 +18,7 @@
         }
       ],
       "Extensions": {
-        "code": "EXEC_NON_NULL_VIOLATION"
+        "code": "HC0018"
       },
       "Exception": null,
       "SyntaxNode": {
