@@ -19,8 +19,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected internal override T Definition { get; protected set; }
 
-        protected void SyntaxNode(
-            InputValueDefinitionNode inputValueDefinition)
+        protected void SyntaxNode(InputValueDefinitionNode inputValueDefinition)
         {
             Definition.SyntaxNode = inputValueDefinition;
         }
@@ -103,15 +102,8 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                IExtendedType type = Context.TypeInspector.GetType(value.GetType());
-                Definition.SetMoreSpecificType(type, TypeContext.Input);
                 Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
-
-                if(Definition.Type is {} typeReference)
-                {
-                    Definition.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
-                }
             }
         }
 
