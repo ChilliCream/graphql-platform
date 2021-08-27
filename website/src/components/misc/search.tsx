@@ -1,8 +1,8 @@
 import algoliasearch from "algoliasearch/lite";
 import React, {
   createRef,
+  FC,
   FocusEvent,
-  FunctionComponent,
   RefObject,
   useCallback,
   useEffect,
@@ -24,11 +24,11 @@ import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-interface SearchProperties {
+interface SearchProps {
   siteUrl: string;
 }
 
-export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
+export const Search: FC<SearchProps> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
   const query = useSelector<State, string>((state) => state.common.searchQuery);
@@ -100,11 +100,11 @@ function useClickOutside(
   }, [detectClickOutside]);
 }
 
-interface SearchBoxProperties extends SearchBoxProvided {
+interface SearchBoxProps extends SearchBoxProvided {
   onFocus: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
-const SearchBox = connectSearchBox<SearchBoxProperties>(
+const SearchBox = connectSearchBox<SearchBoxProps>(
   ({ currentRefinement, onFocus, refine }) => (
     <SearchField
       type="text"
@@ -134,7 +134,7 @@ const Stats = connectStateResults(
 
 const DocHit =
   (siteUrl: string, clickHandler: () => void) =>
-  ({ hit }: HitComponentProperties) => {
+  ({ hit }: HitComponentProps) => {
     const slug = (hit.url as string).replace(siteUrl, "");
 
     return (
@@ -167,7 +167,7 @@ const SearchField = styled.input`
   background-color: var(--text-color-contrast);
 `;
 
-interface HitComponentProperties {
+interface HitComponentProps {
   hit: any;
 }
 

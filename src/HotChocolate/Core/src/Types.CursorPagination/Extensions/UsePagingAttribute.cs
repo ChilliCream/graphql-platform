@@ -17,7 +17,6 @@ namespace HotChocolate.Types
         private bool? _allowBackwardPagination;
         private bool? _requirePagingBoundaries;
         private bool? _inferConnectionNameFromField;
-        private NameString _name;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.

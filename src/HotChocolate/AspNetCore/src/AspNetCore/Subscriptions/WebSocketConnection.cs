@@ -63,7 +63,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             WebSocket? webSocket = _webSocket;
 
-            if (_disposed || webSocket == null)
+            if (_disposed || webSocket == null || webSocket.State != WebSocketState.Open)
             {
                 return Task.CompletedTask;
             }
@@ -119,6 +119,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 // we will just stop receiving
             }
+            catch (WebSocketException)
+            {
+	            // we will just stop receiving
+            }
         }
 
         public async Task CloseAsync(
@@ -130,7 +134,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 WebSocket? webSocket = _webSocket;
 
-                if (_disposed || Closed || webSocket is null)
+                if (_disposed || Closed || webSocket is null || webSocket.State != WebSocketState.Open)
                 {
                     return;
                 }
