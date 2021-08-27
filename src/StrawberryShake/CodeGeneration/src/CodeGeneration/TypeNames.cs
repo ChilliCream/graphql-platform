@@ -102,6 +102,7 @@ namespace StrawberryShake.CodeGeneration
         public const string Func = "global::System.Func";
         public const string Task = "global::System.Threading.Tasks.Task";
         public const string IOperationObservable = "global::System.IObservable";
+        public const string IDictionary = "global::System.Collections.Generic.IDictionary";
         public const string CancellationToken = "global::System.Threading.CancellationToken";
         public const string NotSupportedException = "global::System.NotSupportedException";
         public const string ArgumentNullException = "global::System.ArgumentNullException";

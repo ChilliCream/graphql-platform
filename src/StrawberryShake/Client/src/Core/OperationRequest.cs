@@ -27,12 +27,14 @@ namespace StrawberryShake
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
         /// <param name="strategy">The request strategy to the connection.</param>
+        /// <param name="headers">The request headers.</param>
         public OperationRequest(
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
-            RequestStrategy strategy = RequestStrategy.Default)
-            : this(null, name, document, variables, strategy)
+            RequestStrategy strategy = RequestStrategy.Default,
+            IDictionary<string, string>? headers = null)
+            : this(null, name, document, variables, strategy, headers)
         {
         }
 
@@ -44,18 +46,21 @@ namespace StrawberryShake
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
         /// <param name="strategy">The request strategy to the connection.</param>
+        /// <param name="headers">The request headers.</param>
         public OperationRequest(
             string? id,
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
-            RequestStrategy strategy = RequestStrategy.Default)
+            RequestStrategy strategy = RequestStrategy.Default,
+            IDictionary<string, string>? headers = null)
         {
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
             _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
             Strategy = strategy;
+            Headers = headers ?? new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -127,6 +132,11 @@ namespace StrawberryShake
                 return _contextData ??= new();
             }
         }
+
+        /// <summary>
+        /// Gets the request headers.
+        /// </summary>
+        public IDictionary<string, string> Headers { get; private set; }
 
         /// <summary>
         /// Defines the request strategy to the connection.
@@ -272,7 +282,7 @@ namespace StrawberryShake
                 {
                     hash ^= GetHashCodeFromList(inner) * 397;
                 }
-                else if(element is not null)
+                else if (element is not null)
                 {
                     hash ^= element.GetHashCode() * 397;
                 }

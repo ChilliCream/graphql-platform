@@ -11,6 +11,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     {
         private const string _strategy = "strategy";
         private const string _cancellationToken = "cancellationToken";
+        private const string _headers = "headers";
 
         protected override void Generate(OperationDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
@@ -42,6 +43,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             if (descriptor is not SubscriptionOperationDescriptor)
             {
                 interfaceBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
+                interfaceBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName, true));
             }
 
             interfaceBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
@@ -80,7 +82,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private MethodBuilder CreateExecuteMethod(
             OperationDescriptor operationDescriptor,
-            string runtimeTypeName)
+            string runtimeTypeName,
+            bool withHeader = false)
         {
             MethodBuilder executeMethod = MethodBuilder
                 .New()
@@ -96,6 +99,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddParameter()
                     .SetName(NameUtils.GetParameterName(arg.Name))
                     .SetType(arg.Type.ToTypeReference());
+            }
+
+            if (withHeader)
+            {
+                executeMethod
+                    .AddParameter(_headers)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String));
             }
 
             executeMethod

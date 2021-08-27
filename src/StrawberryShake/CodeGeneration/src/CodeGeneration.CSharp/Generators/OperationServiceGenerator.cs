@@ -23,6 +23,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _serializerResolver = "serializerResolver";
         private const string _request = "request";
         private const string _value = "value";
+        private const string _headers = "headers";
         private const string _cancellationToken = "cancellationToken";
 
         protected override void Generate(
@@ -69,6 +70,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             if (descriptor is not SubscriptionOperationDescriptor)
             {
                 classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName));
+                classBuilder.AddMethod(CreateExecuteMethod(descriptor, resultTypeName, true));
             }
 
             classBuilder.AddMethod(CreateWatchMethod(descriptor, resultTypeName));
@@ -177,7 +179,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
         }
 
-        private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor)
+        private MethodCallBuilder CreateRequestMethodCall(OperationDescriptor operationDescriptor, bool withHeader = false)
         {
             MethodCallBuilder createRequestMethodCall = MethodCallBuilder
                 .Inline()
@@ -187,6 +189,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 createRequestMethodCall.AddArgument(GetParameterName(arg.Name));
             }
+
+            if (withHeader)
+                createRequestMethodCall.AddArgument(_headers);
 
             return createRequestMethodCall;
         }
@@ -234,7 +239,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
 
         private MethodBuilder CreateExecuteMethod(
             OperationDescriptor operationDescriptor,
-            string runtimeTypeName)
+            string runtimeTypeName,
+            bool withHeader = false)
         {
             MethodBuilder executeMethod = MethodBuilder
                 .New()
@@ -253,6 +259,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .SetType(arg.Type.ToTypeReference());
             }
 
+            if (withHeader)
+            {
+                executeMethod
+                    .AddParameter(_headers)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String));
+            }
+
             executeMethod
                 .AddParameter(_cancellationToken)
                 .SetType(TypeNames.CancellationToken)
@@ -263,7 +276,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     AssignmentBuilder
                         .New()
                         .SetLefthandSide($"var {_request}")
-                        .SetRighthandSide(CreateRequestMethodCall(operationDescriptor)))
+                        .SetRighthandSide(CreateRequestMethodCall(operationDescriptor, withHeader)))
                 .AddEmptyLine()
                 .AddCode(
                     MethodCallBuilder
@@ -291,6 +304,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     x => x.SetType(
                         TypeNames.IReadOnlyDictionary
                             .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
+                            .MakeNullable()))
+                .AddParameter(
+                    _headers,
+                    x => x.SetType(
+                        TypeNames.IDictionary
+                            .WithGeneric(TypeNames.String, TypeNames.String)
                             .MakeNullable()));
 
             MethodCallBuilder newOperationRequest = MethodCallBuilder
@@ -301,7 +320,8 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddArgument($"id: {typeName}.Instance.Hash.Value")
                 .AddArgument("name: " + descriptor.Name.AsStringToken())
                 .AddArgument($"document: {typeName}.Instance")
-                .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}");
+                .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}")
+                .AddArgument($"headers: {_headers}");
 
             if (descriptor.Arguments.Count > 0)
             {
@@ -365,6 +385,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             {
                 createRequestWithVariables.AddArgument("null");
             }
+
+            method.AddParameter(_headers)
+                   .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                   .SetDefault("null");
+
+            createRequestWithVariables.AddArgument(_headers);
 
             return method
                 .AddEmptyLine()
