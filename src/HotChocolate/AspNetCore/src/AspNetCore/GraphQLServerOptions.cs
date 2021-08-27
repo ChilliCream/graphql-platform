@@ -63,6 +63,11 @@ namespace HotChocolate.AspNetCore
         /// Defines if Banana Cake Pop is enabled.
         /// </summary>
         public bool Enable { get; set; } = true;
+
+        /// <summary>
+        /// Specifies the Google analytics tracking ID for Banana Cake Pop.
+        /// </summary>
+        public string? GaTrackingId { get; set; }
     }
 
     public enum DefaultCredentials

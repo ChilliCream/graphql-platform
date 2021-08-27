@@ -1,15 +1,13 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
-using System;
-using System.Collections.Concurrent;
-using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
-using Moq;
 
 namespace HotChocolate.AspNetCore.Utilities
 {

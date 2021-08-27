@@ -790,7 +790,15 @@ namespace HotChocolate.Types
             [DefaultValue(null)]
             public string WithNullDefault { get; set; }
 
+            [DefaultValue(FooEnum.Bar)]
+            public FooEnum Enum { get; set; }
+
             public string WithoutDefault { get; set; }
+        }
+
+        public enum FooEnum
+        {
+            Bar, Baz
         }
     }
 }

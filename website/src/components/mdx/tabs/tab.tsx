@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { useTabs } from "./tabs";
 
@@ -6,7 +6,7 @@ export interface TabProps {
   value: string;
 }
 
-export const Tab: FunctionComponent<TabProps> = ({ value, children }) => {
+export const Tab: FC<TabProps> = ({ value, children }) => {
   const { activeTab, setActiveTab } = useTabs();
 
   return (
