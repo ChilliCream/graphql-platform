@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        public DefaultNamingConventions(bool useXmlDocumentation, string xmlDocumentationFileName = null)
+        public DefaultNamingConventions(bool useXmlDocumentation, string? xmlDocumentationFileName = null)
         {
             _documentation = useXmlDocumentation
                 ? (IDocumentationProvider)new XmlDocumentationProvider(

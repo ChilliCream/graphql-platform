@@ -5,19 +5,21 @@ using System.Reflection;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
-    public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
+        public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
     {
         private const string _bin = "bin";
 
-        private readonly string _xmlDocumentationFileName;
+        private readonly string? _xmlDocumentationFileName;
 
         private readonly ConcurrentDictionary<string, XDocument> _cache =
             new ConcurrentDictionary<string, XDocument>(
                 StringComparer.OrdinalIgnoreCase);
 
-        public XmlDocumentationFileResolver(string xmlDocumentationFileName = null)
+        public XmlDocumentationFileResolver(string? xmlDocumentationFileName = null)
         {
             _xmlDocumentationFileName = xmlDocumentationFileName;
         }
