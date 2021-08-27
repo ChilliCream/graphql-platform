@@ -10,9 +10,8 @@ namespace HotChocolate.Types.Interceptors
 {
     internal class TypeValidationTypeInterceptor : TypeInterceptor
     {
-        public override bool CanHandle(ITypeSystemObjectContext context) =>
-            context.DescriptorContext.Options.StrictRuntimeTypeValidation &&
-            !context.IsIntrospectionType;
+        public override bool CanHandle(ITypeSystemObjectContext context)
+            => !context.IsIntrospectionType;
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,

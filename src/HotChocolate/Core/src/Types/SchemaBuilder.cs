@@ -35,8 +35,7 @@ namespace HotChocolate
             typeof(IntrospectionTypeInterceptor),
             typeof(InterfaceCompletionTypeInterceptor),
             typeof(CostTypeInterceptor),
-            typeof(MiddlewareValidationTypeInterceptor),
-            typeof(TypeValidationTypeInterceptor)
+            typeof(MiddlewareValidationTypeInterceptor)
         };
         private SchemaOptions _options = new();
         private IsOfTypeFallback? _isOfType;

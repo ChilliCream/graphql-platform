@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
+using HotChocolate.Types.Interceptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,12 @@ namespace HotChocolate
                 {
                     var schemaInterceptors = new List<ISchemaInterceptor>();
                     var typeInterceptors = new List<ITypeInitializationInterceptor>();
+
+                    if (context.Options.StrictRuntimeTypeValidation &&
+                        !builder._typeInterceptors.Contains(typeof(TypeValidationTypeInterceptor)))
+                    {
+                        builder._typeInterceptors.Add(typeof(TypeValidationTypeInterceptor));
+                    }
 
                     InitializeInterceptors(
                         context.Services,
