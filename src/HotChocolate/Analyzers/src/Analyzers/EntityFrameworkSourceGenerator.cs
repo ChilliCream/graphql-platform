@@ -35,7 +35,7 @@ namespace HotChocolate.Analyzers
                         var codeGeneratorContext = new CodeGeneratorContext(
                             settings.Name,
                             settings.DatabaseName,
-                            settings.Namespace ?? throw new Exception("Namespace is required"), // TODO: Review in PR!!
+                            settings.Namespace ?? throw new Exception("Namespace is required"), // TODO: Review
                             schemaDocuments);
 
                         CodeGenerationResult? result = codeGenerator.Generate(codeGeneratorContext);
