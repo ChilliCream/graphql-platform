@@ -161,7 +161,7 @@ public class QueryType : ObjectType
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -196,7 +196,7 @@ descriptor.Field("users").UsePaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -270,7 +270,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddPagi
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -301,7 +301,7 @@ descriptor.UsePaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -396,7 +396,7 @@ We can also configure the `UseOffsetPaging` middleware further, by specifying `P
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -431,7 +431,7 @@ descriptor.Field("users").UseOffsetPaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -505,7 +505,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddOffs
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example..
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -536,7 +536,7 @@ descriptor.UseOffsetPaging(options: new PagingOptions
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-The Schema-first approach follows the Annotation-based approach in this regard.
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
@@ -561,6 +561,68 @@ var collectionSegment = new CollectionSegment<User>(
     pageInfo,
     getTotalCount: cancellationToken => ValueTask.FromResult(0));
 ```
+
+# Providers
+
+The `UsePaging` and `UseOffsetPaging` middlewares provide a unified way of applying pagination to our resolvers. Depending on the data source used within the resolver the pagination mechanism needs to be different though. Hot Chocolate includes so called paging providers that allow us to use the same API, e.g. `UsePaging`, but for different data sources, e.g. MongoDB and SQL.
+
+Paging providers can be registered using various methods on the `IRequestExecutorBuilder`. For example the MongoDB paging provider can be registered like the following.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders();
+```
+
+[Consult the specific integration documentation for more details](/docs/hotchocolate/integrations)
+
+When registering paging providers we can name them to be able to explicitly reference them.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders(providerName: "MongoDB");
+```
+
+They can then be referenced like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[UsePaging(ProviderName = "MongoDB")]
+public IEnumerable<User> GetUsers()
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging(options: new PagingOptions
+    {
+        ProviderName = "MongoDB"
+    })
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Take a look at the Annotation-based or Code-first example.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+If no `ProviderName` is specified, the correct provider is selected based on the return type of the resolver. If the provider to use can't be inferred from the return type, the first (default) provider is used automatically. If needed we can mark a paging provider as the explicit default.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders(defaultProvider: true);
+```
+
+If no paging providers have been registered, a default paging provider capable of handling `IEnumerable<T>` and `IQueryable<T>` is used.
 
 # PagingOptions
 
