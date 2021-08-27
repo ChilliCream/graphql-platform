@@ -112,7 +112,15 @@ namespace HotChocolate.Internal
 
                 if (field.Type is not null)
                 {
-                    dependencies.Add(new(field.Type));
+                    var hasDefaultValue =
+                        field.DefaultValue is not null ||
+                        field.RuntimeDefaultValue is not null;
+
+                    TypeDependencyKind kind = hasDefaultValue
+                        ? TypeDependencyKind.Completed
+                        : TypeDependencyKind.Default;
+
+                    dependencies.Add(new(field.Type, kind));
                 }
 
                 CollectDirectiveDependencies(field, dependencies);
@@ -157,6 +165,30 @@ namespace HotChocolate.Internal
             }
 
             CollectDirectiveDependencies(definition, dependencies);
+        }
+
+        public static void CollectDependencies(
+            DirectiveTypeDefinition definition,
+            ICollection<TypeDependency> dependencies)
+        {
+            if (definition.HasArguments)
+            {
+                foreach (DirectiveArgumentDefinition argument in definition.Arguments)
+                {
+                    if (argument.Type is not null)
+                    {
+                        var hasDefaultValue =
+                            argument.DefaultValue is not null ||
+                            argument.RuntimeDefaultValue is not null;
+
+                        TypeDependencyKind kind = hasDefaultValue
+                            ? TypeDependencyKind.Completed
+                            : TypeDependencyKind.Default;
+
+                        dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
+                    }
+                }
+            }
         }
 
         internal static void CollectDirectiveDependencies<T>(

@@ -20,7 +20,7 @@ The generated extension method to register the client on the serivce collection,
     .ConfigureHttpClient(client =>
     {
         client.BaseAddress =
-            new Uri("https://workshop.chillicream.cloud/graphql/");
+            new Uri("https://workshop.chillicream.com/graphql/");
         client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", "Your Oauth token");
     });
@@ -56,7 +56,7 @@ In case you want to configure the `HttpClient` directly on the `ServiceCollectio
 services.AddHttpClient(
     ConferenceClient.ClientName,
     client => client.BaseAddress =
-        new Uri("https://workshop.chillicream.cloud/graphql/"));
+        new Uri("https://workshop.chillicream.com/graphql/"));
 
 services.AddConferenceClient();
 ```

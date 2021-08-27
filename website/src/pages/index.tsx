@@ -1,6 +1,6 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
@@ -42,6 +42,7 @@ import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
+import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
 import XMLogoSvg from "../images/companies/xm.svg"
 // Images
@@ -49,7 +50,7 @@ import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
 
-const IndexPage: FunctionComponent = () => {
+const IndexPage: FC = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
     query getIndexPageData {
       site {
@@ -75,11 +76,7 @@ const IndexPage: FunctionComponent = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  gatsbyImageData(
-                    layout: CONSTRAINED
-                    width: 800
-                    pngOptions: { quality: 90 }
-                  )
+                  gatsbyImageData(layout: CONSTRAINED, width: 800)
                 }
               }
               path
@@ -109,6 +106,18 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="https://bananacakepop.com">
+              <BananaCakePop shadow />
+              <SlideContent>
+                <SlideTitle>Try Banana Cake Pop Preview 1</SlideTitle>
+                <SlideDescription>
+                  Our GraphQL IDE to explore schemas, execute operations and get
+                  deep performance insights.
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="/blog/2021/03/31/chillicream-platform-11-1">
               <BlogPostChilliCreamPlatform />
             </Link>
@@ -116,18 +125,6 @@ const IndexPage: FunctionComponent = () => {
           <Slide>
             <Link to="/blog/2020/11/23/hot-chocolate-11">
               <BlogPostVersion11 />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/docs/bananacakepop">
-              <BananaCakePop />
-              <SlideContent>
-                <SlideTitle>Banana Cake Pop</SlideTitle>
-                <SlideDescription>
-                  Our GraphQL IDE to explore schemas, execute operations and get
-                  deep performance insights.
-                </SlideDescription>
-              </SlideContent>
             </Link>
           </Slide>
           <Slide>

@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import {
   ContentContainer,
   EnvelopeIcon,
@@ -10,11 +10,10 @@ import {
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
-
 import ContactUsSvg from "../images/contact-us.svg";
 import { SalesPartial } from "../partials/sales-partial";
 
-const SupportPage: FunctionComponent = () => {
+const SupportPage: FC = () => {
   const areaTitle = "Service & Support";
 
   return (
