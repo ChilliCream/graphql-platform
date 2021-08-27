@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Pagination
     public static class CursorPagingHelper
     {
         public delegate ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
-            ToIndexEdgesAsync<TSource, TEntity>(
+            ToIndexEdgesAsync<in TSource, TEntity>(
             TSource source,
             int offset,
             CancellationToken cancellationToken);
@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Pagination
 
         public delegate TSource ApplyTake<TSource>(TSource source, int take);
 
-        public delegate ValueTask<int> CountAsync<TSource>(
+        public delegate ValueTask<int> CountAsync<in TSource>(
             TSource source,
             CancellationToken cancellationToken);
 
@@ -69,8 +69,8 @@ namespace HotChocolate.Types.Pagination
             IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
                 await toIndexEdgesAsync(slicedSource, skip, cancellationToken);
 
-            bool moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
-            bool isSequenceFromStart = range.Start == 0;
+            var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
+            var isSequenceFromStart = range.Start == 0;
 
             selectedEdges = new SkipLastCollection<IndexEdge<TEntity>>(
                 selectedEdges,
@@ -91,11 +91,11 @@ namespace HotChocolate.Types.Pagination
             IReadOnlyList<IndexEdge<TEntity>> selectedEdges)
         {
             // We know that there is a next page if more items than requested are returned
-            bool hasNextPage = moreItemsReturnedThanRequested;
+            var hasNextPage = moreItemsReturnedThanRequested;
 
             // There is a previous page if the sequence start is not 0.
             // If you point to index 2 of a empty list, we assume that there is a previous page
-            bool hasPreviousPage = !isSequenceFromStart;
+            var hasPreviousPage = !isSequenceFromStart;
 
             IndexEdge<TEntity>? firstEdge = null;
             IndexEdge<TEntity>? lastEdge = null;
@@ -127,14 +127,14 @@ namespace HotChocolate.Types.Pagination
 
             // [SPEC] if before is set then remove all elements of edges before and including
             // beforeEdge.
-            int before = arguments.Before is { } b
+            var before = arguments.Before is { } b
                 ? IndexEdge<TEntity>.DeserializeCursor(b)
                 : maxElementCount;
 
             // if after is negative we have know how much of the offset was in the negative range.
             // The amount of positions that are in the negative range, have to be subtracted from
             // the take or we will fetch too many items.
-            int startOffsetCorrection = 0;
+            var startOffsetCorrection = 0;
             if (startIndex < 0)
             {
                 startOffsetCorrection = Math.Abs(startIndex);
@@ -144,8 +144,9 @@ namespace HotChocolate.Types.Pagination
             Range range = new(startIndex, before);
 
             //[SPEC] If first is less than 0 throw an error
-            ValidateFirst(arguments, out int? first);
-            if (first is { })
+            ValidateFirst(arguments, out var first);
+
+            if (first is not null)
             {
                 first -= startOffsetCorrection;
                 if (first < 0)
@@ -158,7 +159,8 @@ namespace HotChocolate.Types.Pagination
             range.Take(first);
 
             //[SPEC] if last is less than 0 throw an error
-            ValidateLast(arguments, out int? last);
+            ValidateLast(arguments, out var last);
+
             //[SPEC] Slice edges to be of length last by removing edges from the start of edges.
             range.TakeLast(last);
 

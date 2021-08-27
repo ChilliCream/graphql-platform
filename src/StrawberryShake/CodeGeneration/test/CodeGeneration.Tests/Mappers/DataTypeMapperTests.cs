@@ -61,7 +61,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 type =>
                 {
                     Assert.Equal(
-                        "CharacterConnectionData",
+                        "FriendsConnectionData",
                         type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
@@ -91,7 +91,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 type =>
                 {
                     Assert.Equal(
-                        "CharacterEdgeData",
+                        "FriendsEdgeData",
                         type.RuntimeType.Name);
                     Assert.Equal(
                         "Foo.Bar.State",
@@ -115,7 +115,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
         public void MapDataTypeDescriptors_DataUnionType()
         {
             // arrange
-            var clientModel =
+            ClientModel clientModel =
                 CreateClientModelAsync("union.query3.graphql", "union.schema.graphql");
 
             // act

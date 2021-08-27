@@ -80,5 +80,17 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("PagingArguments_Before_Description", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_PagingHandler_MaxPageSize {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PagingHandler_MaxPageSize", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_PagingHandler_NoBoundariesSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_PagingHandler_NoBoundariesSet", resourceCulture);
+            }
+        }
     }
 }

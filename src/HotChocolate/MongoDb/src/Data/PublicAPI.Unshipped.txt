@@ -43,3 +43,30 @@ HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringSt
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler() -> void
+static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbPagingProviders(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+*REMOVED*HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.get -> bool
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.Type.get -> System.Type?
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.UseMongoDbOffsetPagingAttribute(System.Type? type = null) -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.get -> bool
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.Type.get -> System.Type?
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.UseMongoDbPagingAttribute(System.Type? type = null) -> void
+*REMOVED*override HotChocolate.Types.UseMongoDbOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!

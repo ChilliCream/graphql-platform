@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Language;
 
 #nullable enable
@@ -47,18 +46,26 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// </summary>
         public Action<object, object?[]>? GetFieldData { get; set; }
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            List<ITypeSystemMemberConfiguration>? configs = null;
 
-            configs.AddRange(Configurations);
+            if (HasConfigurations)
+            {
+                configs ??= new();
+                configs.AddRange(Configurations);
+            }
 
             foreach (InputFieldDefinition field in Fields)
             {
-                configs.AddRange(field.Configurations);
+                if (field.HasConfigurations)
+                {
+                    configs ??= new();
+                    configs.AddRange(field.Configurations);
+                }
             }
 
-            return configs;
+            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
         protected internal void CopyTo(InputObjectTypeDefinition target)

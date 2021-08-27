@@ -51,7 +51,8 @@ namespace HotChocolate.Data.Neo4J.Paging
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseNeo4JOffsetPaging<ObjectType<TEntity>>())
+                        .UseOffsetPaging<ObjectType<TEntity>>())
+                .AddNeo4JPagingProviders()
                 .UseRequest(
                     next => async context =>
                     {

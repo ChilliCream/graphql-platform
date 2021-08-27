@@ -151,7 +151,7 @@ namespace HotChocolate.Configuration
             if (addToTypes)
             {
                 _types.Add(registeredType);
-                _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
+                _typeRegistryInterceptor.OnTypeRegistered(registeredType);
             }
 
             if (!registeredType.IsExtension)
@@ -218,26 +218,20 @@ namespace HotChocolate.Configuration
 
         public void CompleteDiscovery()
         {
-            var refs = new List<ITypeReference>();
-
             foreach (RegisteredType registeredType in _types)
             {
-                refs.Clear();
-
                 ITypeReference reference = TypeReference.Create(registeredType.Type);
-                refs.Add(reference);
+                registeredType.References.TryAdd(reference);
 
                 _typeRegister[reference] = registeredType;
 
                 if (registeredType.Type.Scope is { } s)
                 {
                     reference = TypeReference.Create(registeredType.Type, s);
-                    refs.Add(reference);
+                    registeredType.References.TryAdd(reference);
 
                     _typeRegister[reference] = registeredType;
                 }
-
-                registeredType.AddReferences(refs);
             }
         }
     }

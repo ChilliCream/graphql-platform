@@ -1,11 +1,9 @@
-import React, { FunctionComponent, useEffect, useRef } from "react";
+import React, { FC, useEffect, useRef } from "react";
 import styled from "styled-components";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 import { useObservable } from "../../state";
 
-export const PageTop: FunctionComponent<{ onTopScroll: () => void }> = ({
-  onTopScroll,
-}) => {
+export const PageTop: FC<{ onTopScroll: () => void }> = ({ onTopScroll }) => {
   const ref = useRef<HTMLButtonElement>(null);
 
   const showButton$ = useObservable((state) => {

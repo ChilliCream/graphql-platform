@@ -125,20 +125,19 @@ namespace HotChocolate.Types
                     argumentDefinition.ConfigureArgumentName();
                     definition.Arguments.Add(argumentDefinition);
 
-                    ILazyTypeConfiguration lazyConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, d) =>
-                                CompileMiddleware(
-                                    context,
-                                    d,
-                                    argumentTypeReference,
-                                    placeholder))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build();
-                    definition.Configurations.Add(lazyConfiguration);
+                    var fieldConfig = new CompleteConfiguration<ObjectFieldDefinition>(
+                        (context, d) =>
+                            CompileMiddleware(
+                                context,
+                                d,
+                                argumentTypeReference,
+                                placeholder),
+                        definition,
+                        ApplyConfigurationOn.Completion,
+                        argumentTypeReference,
+                        TypeDependencyKind.Completed);
+
+                    definition.Configurations.Add(fieldConfig);
                 });
 
             return descriptor;
@@ -205,20 +204,17 @@ namespace HotChocolate.Types
         private static ArgumentDefinition ConfigureArgumentName(
             this ArgumentDefinition definition)
         {
-            ILazyTypeConfiguration lazyArgumentConfiguration =
-                LazyTypeConfigurationBuilder
-                    .New<ArgumentDefinition>()
-                    .Definition(definition)
-                    .Configure((context, d) =>
-                    {
-                        IFilterNamingConvention convention =
-                            context.DescriptorContext.GetFilterNamingConvention();
-                        d.Name = convention.ArgumentName;
-                    })
-                   .On(ApplyConfigurationOn.Completion)
-                   .Build();
+            var argumentConfig = new CompleteConfiguration<ArgumentDefinition>(
+                (context, d) =>
+                {
+                    IFilterNamingConvention convention =
+                        context.DescriptorContext.GetFilterNamingConvention();
+                    d.Name = convention.ArgumentName;
+                },
+                definition,
+                ApplyConfigurationOn.Completion);
 
-            definition.Configurations.Add(lazyArgumentConfiguration);
+            definition.Configurations.Add(argumentConfig);
             return definition;
         }
     }

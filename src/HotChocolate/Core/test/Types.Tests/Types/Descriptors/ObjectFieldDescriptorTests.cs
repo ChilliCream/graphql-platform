@@ -9,8 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class ObjectFieldDescriptorTests
-        : DescriptorTestBase
+    public class ObjectFieldDescriptorTests : DescriptorTestBase
     {
         [Fact]
         public void SetGenericType()
@@ -193,6 +192,20 @@ namespace HotChocolate.Types
                 typeof(__Type),
                 Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
             Assert.NotNull(description.Resolver);
+        }
+
+        [Fact]
+        public void Type_Syntax_Type_Null()
+        {
+            void Error() => ObjectFieldDescriptor.New(Context, "foo").Type((string)null);
+            Assert.Throws<ArgumentNullException>(Error);
+        }
+
+        [Fact]
+        public void Type_Syntax_Descriptor_Null()
+        {
+            void Error() => default(IObjectFieldDescriptor).Type("foo");
+            Assert.Throws<ArgumentNullException>(Error);
         }
 
         [Fact]

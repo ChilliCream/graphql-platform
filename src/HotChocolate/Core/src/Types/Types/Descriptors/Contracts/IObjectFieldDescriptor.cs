@@ -105,6 +105,13 @@ namespace HotChocolate.Types
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor);
 
+        /// <summary>
+        /// Ignores the given field for the schema creation.
+        /// This field will not be included into the GraphQL schema.
+        /// </summary>
+        /// <param name="ignore">
+        /// The value specifying if this field shall be ignored by the type initialization.
+        /// </param>
         IObjectFieldDescriptor Ignore(bool ignore = true);
 
         [Obsolete("Use Resolve(...)")]
@@ -123,6 +130,17 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             Type? resultType);
 
+        /// <summary>
+        /// Resolve a value using the <paramref name="propertyOrMethod"/> 
+        /// member selector on <typeparamref name="TResolver"/>.
+        /// </summary>
+        /// </summary>
+        /// <param name="propertyOrMethod">
+        /// The member selector.
+        /// </param>
+        /// <typeparam name="TResolver">
+        /// The resolver type.
+        /// </typeparam>
         IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod);
 

@@ -16,14 +16,16 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutorResolver
         : IRequestExecutorResolver
-        , IInternalRequestExecutorResolver
-        , IDisposable
+            , IInternalRequestExecutorResolver
+            , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
@@ -39,9 +41,9 @@ namespace HotChocolate.Execution
             IServiceProvider serviceProvider)
         {
             _optionsMonitor = optionsMonitor ??
-                throw new ArgumentNullException(nameof(optionsMonitor));
+                              throw new ArgumentNullException(nameof(optionsMonitor));
             _applicationServices = serviceProvider ??
-                throw new ArgumentNullException(nameof(serviceProvider));
+                                   throw new ArgumentNullException(nameof(serviceProvider));
             _optionsMonitor.OnChange(EvictRequestExecutor);
         }
 
@@ -145,8 +147,8 @@ namespace HotChocolate.Execution
                         if (action.AsyncAction is { } task)
                         {
                             await task.Invoke(
-                                registeredExecutor.Executor,
-                                CancellationToken.None)
+                                    registeredExecutor.Executor,
+                                    CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -241,18 +243,30 @@ namespace HotChocolate.Execution
                     _applicationServices.GetRequiredService<ITypeConverter>(),
                     _applicationServices.GetRequiredService<InputFormatter>()));
 
+            serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+            serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(sp =>
+            {
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new RequestContextPooledObjectPolicy(
+                    sp.GetRequiredService<ISchema>(),
+                    sp.GetRequiredService<IErrorHandler>(),
+                    _applicationServices.GetRequiredService<ITypeConverter>(),
+                    sp.GetRequiredService<IActivator>(),
+                    sp.GetRequiredService<IDiagnosticEvents>(),
+                    version);
+                return provider.Create(policy);
+            });
+
             serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
                     sp.GetRequiredService<ISchema>(),
                     _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                     _applicationServices,
                     sp,
-                    sp.GetRequiredService<IErrorHandler>(),
-                    _applicationServices.GetRequiredService<ITypeConverter>(),
-                    sp.GetRequiredService<IActivator>(),
-                    sp.GetRequiredService<IDiagnosticEvents>(),
                     sp.GetRequiredService<RequestDelegate>(),
                     sp.GetRequiredService<BatchExecutor>(),
+                    sp.GetRequiredService<ObjectPool<RequestContext>>(),
                     version));
 
             foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
@@ -265,12 +279,12 @@ namespace HotChocolate.Execution
 
             lazy.Schema =
                 await CreateSchemaAsync(
-                    schemaName,
-                    options,
-                    executorOptions,
-                    combinedServices,
-                    typeModuleChangeMonitor,
-                    cancellationToken)
+                        schemaName,
+                        options,
+                        executorOptions,
+                        combinedServices,
+                        typeModuleChangeMonitor,
+                        cancellationToken)
                     .ConfigureAwait(false);
 
             return schemaServices;
@@ -342,7 +356,7 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken)
         {
             RequestExecutorOptions executorOptions = options.RequestExecutorOptions ??
-                new RequestExecutorOptions();
+                                                     new RequestExecutorOptions();
 
             foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
             {
@@ -529,6 +543,52 @@ namespace HotChocolate.Execution
                         }
                     }
                 }
+            }
+        }
+
+        private class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
+        {
+            private readonly ISchema _schema;
+            private readonly ulong _executorVersion;
+            private readonly IErrorHandler _errorHandler;
+            private readonly ITypeConverter _converter;
+            private readonly IActivator _activator;
+            private readonly IDiagnosticEvents _diagnosticEvents;
+
+            public RequestContextPooledObjectPolicy(
+                ISchema schema,
+                IErrorHandler errorHandler,
+                ITypeConverter converter,
+                IActivator activator,
+                IDiagnosticEvents diagnosticEvents,
+                ulong executorVersion)
+            {
+                _schema = schema ??
+                    throw new ArgumentNullException(nameof(schema));
+                _errorHandler = errorHandler ??
+                    throw new ArgumentNullException(nameof(errorHandler));
+                _converter = converter ??
+                    throw new ArgumentNullException(nameof(converter));
+                _activator = activator ??
+                    throw new ArgumentNullException(nameof(activator));
+                _diagnosticEvents = diagnosticEvents ??
+                    throw new ArgumentNullException(nameof(diagnosticEvents));
+                _executorVersion = executorVersion;
+            }
+
+
+            public override RequestContext Create()
+                => new(_schema,
+                    _executorVersion,
+                    _errorHandler,
+                    _converter,
+                    _activator,
+                    _diagnosticEvents);
+
+            public override bool Return(RequestContext obj)
+            {
+                obj.Reset();
+                return true;
             }
         }
     }

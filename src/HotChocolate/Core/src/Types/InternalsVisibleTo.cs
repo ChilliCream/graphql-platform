@@ -1,8 +1,8 @@
 
 using System.Runtime.CompilerServices;
 
-// todo : remove this internal dependency.
 [assembly: InternalsVisibleTo("HotChocolate.Validation")]
+[assembly: InternalsVisibleTo("HotChocolate.Types.CursorPagination")]
 
 // Legacy
 [assembly: InternalsVisibleTo("HotChocolate.Types.Filters")]

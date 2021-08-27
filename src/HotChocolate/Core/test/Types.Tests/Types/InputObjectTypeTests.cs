@@ -590,6 +590,21 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Specify_Argument_Type_With_SDL_Syntax()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType(d =>
+                {
+                    d.Name("Bar");
+                    d.Field("Foo").Type("String");
+                })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class InputWithInterfaceType : InputObjectType<InputWithInterface>
         {
             protected override void Configure(
@@ -757,7 +772,15 @@ namespace HotChocolate.Types
             [DefaultValue(null)]
             public string WithNullDefault { get; set; }
 
+            [DefaultValue(FooEnum.Bar)]
+            public FooEnum Enum { get; set; }
+
             public string WithoutDefault { get; set; }
+        }
+
+        public enum FooEnum
+        {
+            Bar, Baz
         }
     }
 }

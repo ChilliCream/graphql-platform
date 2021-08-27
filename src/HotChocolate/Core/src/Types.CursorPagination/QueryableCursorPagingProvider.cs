@@ -4,8 +4,7 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class QueryableCursorPagingProvider
-        : CursorPagingProvider
+    public class QueryableCursorPagingProvider : CursorPagingProvider
     {
         private static readonly MethodInfo _createHandler =
             typeof(QueryableCursorPagingProvider).GetMethod(

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
     /// </summary>
     public class UnionType
         : NamedTypeBase<UnionTypeDefinition>
-        , IUnionType
+            , IUnionType
     {
         private const string _typeReference = "typeReference";
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Types
         public UnionType(Action<IUnionTypeDescriptor> configure)
         {
             _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+                         ?? throw new ArgumentNullException(nameof(configure));
         }
 
         /// <summary>
@@ -208,13 +208,12 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.Types,
-                TypeDependencyKind.Default);
+            foreach (ITypeReference typeRef in definition.Types)
+            {
+                context.Dependencies.Add(new(typeRef));
+            }
 
-            context.RegisterDependencyRange(
-                definition.GetDirectives().Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            TypeDependencyHelper.CollectDirectiveDependencies(definition, context.Dependencies);
 
             SetTypeIdentity(typeof(UnionType<>));
         }
@@ -295,6 +294,7 @@ namespace HotChocolate.Types
                             return type;
                         }
                     }
+
                     return null;
                 };
             }

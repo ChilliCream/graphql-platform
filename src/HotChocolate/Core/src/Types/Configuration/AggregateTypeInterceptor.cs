@@ -11,6 +11,9 @@ namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInterceptor : TypeInterceptor
     {
+        private readonly List<ITypeDiscoveryContext> _discoveryContexts = new();
+        private readonly List<ITypeCompletionContext> _completionContexts = new();
+        private readonly List<ITypeReference> _typeReferences = new();
         private IReadOnlyCollection<TypeInterceptor> _typeInterceptors;
         private IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
@@ -32,6 +35,10 @@ namespace HotChocolate.Configuration
 
         public void SetInterceptors(IReadOnlyCollection<object> interceptors)
         {
+            _discoveryContexts.Clear();
+            _completionContexts.Clear();
+            _typeReferences.Clear();
+
             _typeInterceptors = interceptors.OfType<TypeInterceptor>().ToList();
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
@@ -92,8 +99,7 @@ namespace HotChocolate.Configuration
             {
                 if (interceptor.CanHandle(discoveryContext))
                 {
-                    interceptor.OnAfterInitialize(
-                        discoveryContext, definition, contextData);
+                    interceptor.OnAfterInitialize(discoveryContext, definition, contextData);
                 }
             }
         }
@@ -106,27 +112,55 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public override void OnTypesInitialized(
+        public override IEnumerable<ITypeReference> RegisterMoreTypes(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
+            _typeReferences.Clear();
+
             if (_agrInterceptors.Count > 0)
             {
-                var list = new List<ITypeDiscoveryContext>();
-
                 foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
                 {
-                    list.Clear();
+                    _discoveryContexts.Clear();
 
                     foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
                     {
                         if (interceptor.CanHandle(discoveryContext))
                         {
-                            list.Add(discoveryContext);
+                            _discoveryContexts.Add(discoveryContext);
                         }
                     }
 
-                    interceptor.OnTypesInitialized(list);
+                    _typeReferences.AddRange(interceptor.RegisterMoreTypes(_discoveryContexts));
                 }
+
+                _discoveryContexts.Clear();
+            }
+
+            return _typeReferences;
+        }
+
+        public override void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (_agrInterceptors.Count > 0)
+            {
+                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+                {
+                    _discoveryContexts.Clear();
+
+                    foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
+                    {
+                        if (interceptor.CanHandle(discoveryContext))
+                        {
+                            _discoveryContexts.Add(discoveryContext);
+                        }
+                    }
+
+                    interceptor.OnTypesInitialized(_discoveryContexts);
+                }
+
+                _discoveryContexts.Clear();
             }
         }
 
@@ -209,22 +243,22 @@ namespace HotChocolate.Configuration
         {
             if (_agrInterceptors.Count > 0)
             {
-                var list = new List<ITypeCompletionContext>();
-
                 foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
                 {
-                    list.Clear();
+                    _completionContexts.Clear();
 
                     foreach (ITypeCompletionContext completionContext in completionContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {
-                            list.Add(completionContext);
+                            _completionContexts.Add(completionContext);
                         }
                     }
 
-                    interceptor.OnTypesCompletedName(list);
+                    interceptor.OnTypesCompletedName(_completionContexts);
                 }
+
+                _completionContexts.Clear();
             }
         }
 
@@ -323,22 +357,22 @@ namespace HotChocolate.Configuration
         {
             if (_agrInterceptors.Count > 0)
             {
-                var list = new List<ITypeCompletionContext>();
-
                 foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
                 {
-                    list.Clear();
+                    _completionContexts.Clear();
 
                     foreach (ITypeCompletionContext completionContext in completionContexts)
                     {
                         if (interceptor.CanHandle(completionContext))
                         {
-                            list.Add(completionContext);
+                            _completionContexts.Add(completionContext);
                         }
                     }
 
-                    interceptor.OnTypesCompleted(list);
+                    interceptor.OnTypesCompleted(_completionContexts);
                 }
+
+                _completionContexts.Clear();
             }
         }
     }

@@ -1,5 +1,5 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { DocPageCommunityFragment } from "../../../graphql-types";
 import GitHubIconSvg from "../../images/github.svg";
@@ -7,12 +7,12 @@ import SlackIconSvg from "../../images/slack.svg";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 
-interface DocPageCommunityProperties {
+interface DocPageCommunityProps {
   data: DocPageCommunityFragment;
   originPath: string;
 }
 
-export const DocPageCommunity: FunctionComponent<DocPageCommunityProperties> = ({
+export const DocPageCommunity: FC<DocPageCommunityProps> = ({
   data,
   originPath,
 }) => {

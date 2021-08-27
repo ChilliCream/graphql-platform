@@ -11,11 +11,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal sealed class CancellationTokenParameterExpressionBuilder : IParameterExpressionBuilder
     {
-        private static readonly PropertyInfo _cancellationToken;
+        private static readonly PropertyInfo _cancellationToken =
+            ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
 
         static CancellationTokenParameterExpressionBuilder()
         {
-            _cancellationToken = ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
             Debug.Assert(_cancellationToken is not null!, "RequestAborted property is missing." );
         }
 

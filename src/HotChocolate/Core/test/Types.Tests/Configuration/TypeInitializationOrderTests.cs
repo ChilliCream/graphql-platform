@@ -43,30 +43,28 @@ namespace HotChocolate.Configuration
                     .Field("words")
                     .Type<ListType<ObjectType<Word>>>()
                     .Resolve(
-                        new Word[] { new Word { Value = "Hello" }, new Word { Value = "World" } })
+                        new Word[] { new() { Value = "Hello" }, new() { Value = "World" } })
                     .Extend()
                     .OnBeforeCreate((c,d) =>
                     {
                         ExtendedTypeReference reference =
                             c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
-                        ILazyTypeConfiguration lazyConfiguration =
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(d)
-                                .Configure((context, definition) =>
+                        d.Configurations.Add(
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (context, _) =>
                                 {
                                     ObjectType type = context.GetType<ObjectType>(reference);
+
                                     if (!type.IsCompleted)
                                     {
                                         throw new Exception("Order should not matter");
                                     }
-                                })
-                                .On(ApplyConfigurationOn.Completion)
-                                .DependsOn(reference, true)
-                                .Build();
-
-                        d.Configurations.Add(lazyConfiguration);
+                                },
+                                d,
+                                ApplyConfigurationOn.Completion,
+                                reference,
+                                TypeDependencyKind.Completed));
                     });
             }
         }

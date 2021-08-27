@@ -57,7 +57,7 @@ namespace HotChocolate.Types
         /// Returns the newly created enum type.
         /// </returns>
         public static EnumType CreateUnsafe(EnumTypeDefinition definition)
-            => new() { Definition = definition};
+            => new() { Definition = definition };
 
         /// <summary>
         /// Override this in order to specify the type configuration explicitly.
@@ -111,6 +111,9 @@ namespace HotChocolate.Types
 
             foreach (EnumValueDefinition enumValueDefinition in definition.Values)
             {
+                if (enumValueDefinition.Ignore)
+                    continue;
+
                 if (TryCreateEnumValue(context, enumValueDefinition, out IEnumValue? enumValue))
                 {
                     _enumValues[enumValue.Name] = enumValue;
@@ -133,7 +136,7 @@ namespace HotChocolate.Types
         protected virtual bool TryCreateEnumValue(
             ITypeCompletionContext context,
             EnumValueDefinition definition,
-            [NotNullWhen(true)]out IEnumValue? enumValue)
+            [NotNullWhen(true)] out IEnumValue? enumValue)
         {
             enumValue = new EnumValue(context, definition);
             return true;
