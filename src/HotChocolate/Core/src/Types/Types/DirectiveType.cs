@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -196,20 +197,7 @@ namespace HotChocolate.Types
                 : typeof(object);
             IsRepeatable = definition.IsRepeatable;
 
-            RegisterDependencies(context, definition);
-        }
-
-        private static void RegisterDependencies(
-            ITypeDiscoveryContext context,
-            DirectiveTypeDefinition definition)
-        {
-            if (definition.HasArguments)
-            {
-                foreach (var argument in definition.Arguments)
-                {
-                    context.Dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
-                }
-            }
+            TypeDependencyHelper.CollectDependencies(definition, context.Dependencies);
         }
 
         protected override void OnCompleteType(

@@ -7,9 +7,7 @@ using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class ArgumentDescriptorBase<T>
-        : DescriptorBase<T>
-        where T : ArgumentDefinition, new()
+    public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentDefinition, new()
     {
         protected ArgumentDescriptorBase(IDescriptorContext context)
             : base(context)
@@ -29,20 +27,18 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = value;
         }
 
-        public void Type<TInputType>()
-            where TInputType : IInputType
+        public void Type<TInputType>() where TInputType : IInputType
         {
             Type(typeof(TInputType));
         }
 
         public void Type(Type type)
         {
-            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+            ITypeInfo typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
             if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
-                throw new ArgumentException(
-                    TypeResources.ArgumentDescriptor_InputTypeViolation);
+                throw new ArgumentException(TypeResources.ArgumentDescriptor_InputTypeViolation);
             }
 
             Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
@@ -110,23 +106,13 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public void Directive<TDirective>(TDirective directiveInstance)
-            where TDirective : class
-        {
-            Definition.AddDirective(directiveInstance, Context.TypeInspector);
-        }
+        public void Directive<TDirective>(TDirective directiveInstance) where TDirective : class
+            => Definition.AddDirective(directiveInstance, Context.TypeInspector);
 
-        public void Directive<TDirective>()
-            where TDirective : class, new()
-        {
-            Definition.AddDirective(new TDirective(), Context.TypeInspector);
-        }
+        public void Directive<TDirective>() where TDirective : class, new()
+            => Definition.AddDirective(new TDirective(), Context.TypeInspector);
 
-        public void Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            Definition.AddDirective(name, arguments);
-        }
+        public void Directive(NameString name, params ArgumentNode[] arguments)
+            => Definition.AddDirective(name, arguments);
     }
 }
