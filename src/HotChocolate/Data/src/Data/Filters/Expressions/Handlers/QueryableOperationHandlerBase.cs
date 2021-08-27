@@ -25,13 +25,17 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             IValueNode value = node.Value;
             IExtendedType runtimeType = context.RuntimeTypes.Peek();
-            object? parsedValue = InputParser.ParseLiteral(value, field, runtimeType.Source);
+
+            Type type = field.Type.IsListType()
+                ? runtimeType.Source.MakeArrayType()
+                : runtimeType.Source;
+
+            object? parsedValue = InputParser.ParseLiteral(value, field, type);
 
             if ((!runtimeType.IsNullable || !CanBeNull) && parsedValue is null)
             {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, value, context));
-
+                IError error = ErrorHelper.CreateNonNullError(field, value, context);
+                context.ReportError(error);
                 result = null!;
                 return false;
             }
