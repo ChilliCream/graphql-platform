@@ -102,6 +102,9 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(value.GetType()),
+                    TypeContext.Input);
                 Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
             }
