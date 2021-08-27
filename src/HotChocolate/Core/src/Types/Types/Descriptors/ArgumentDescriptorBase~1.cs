@@ -104,12 +104,14 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 IExtendedType type = Context.TypeInspector.GetType(value.GetType());
-                ExtendedTypeReference reference = TypeReference.Create(type, TypeContext.Input);
-
                 Definition.SetMoreSpecificType(type, TypeContext.Input);
-                Definition.Dependencies.Add(new(reference, TypeDependencyKind.Completed));
                 Definition.RuntimeDefaultValue = value;
                 Definition.DefaultValue = null;
+
+                if(Definition.Type is {} typeReference)
+                {
+                    Definition.Dependencies.Add(new(typeReference, TypeDependencyKind.Completed));
+                }
             }
         }
 
