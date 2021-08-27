@@ -1,19 +1,16 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { DocPageFragment } from "../../graphql-types";
 import { DocPage } from "../components/doc-page/doc-page";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-interface DocPageTemplateProperties {
+interface DocPageTemplateProps {
   data: DocPageFragment;
   pageContext: { originPath: string };
 }
 
-const DocPageTemplate: FunctionComponent<DocPageTemplateProperties> = ({
-  data,
-  pageContext,
-}) => {
+const DocPageTemplate: FC<DocPageTemplateProps> = ({ data, pageContext }) => {
   return (
     <Layout>
       <SEO title={data.file!.childMdx!.frontmatter!.title!} />

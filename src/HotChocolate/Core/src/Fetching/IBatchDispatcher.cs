@@ -1,5 +1,6 @@
 using System;
-using HotChocolate.Execution;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Fetching
 {
@@ -24,16 +25,8 @@ namespace HotChocolate.Fetching
         bool DispatchOnSchedule { get; set; }
 
         /// <summary>
-        /// Initializes the batch dispatcher with the current task execution context,
-        /// </summary>
-        /// <param name="context">
-        /// The task execution context which allows to enqueue new tasks.
-        /// </param>
-        void Initialize(IExecutionTaskContext context);
-
-        /// <summary>
         /// Dispatches execution tasks to the execution engine work backlog.
         /// </summary>
-        void Dispatch();
+        Task<BatchDispatcherResult> DispatchAsync(CancellationToken cancellationToken = default);
     }
 }

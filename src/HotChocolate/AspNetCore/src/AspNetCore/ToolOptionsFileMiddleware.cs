@@ -1,9 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
-using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore
@@ -12,26 +11,17 @@ namespace HotChocolate.AspNetCore
     /// This middleware handles the Banana Cake Pop configuration file request.
     /// </summary>
     public class ToolOptionsFileMiddleware
-        : MiddlewareBase
     {
         private const string _configFile = "/bcp-config.json";
+        private readonly HttpRequestDelegate _next;
         private readonly PathString _matchUrl;
 
-        public ToolOptionsFileMiddleware(
-            HttpRequestDelegate next,
-            IRequestExecutorResolver executorResolver,
-            IHttpResultSerializer resultSerializer,
-            NameString schemaName,
-            PathString matchUrl)
-            : base(next, executorResolver, resultSerializer, schemaName)
+        public ToolOptionsFileMiddleware(HttpRequestDelegate next, PathString matchUrl)
         {
+            _next = next ?? throw new ArgumentNullException(nameof(next));
             _matchUrl = matchUrl;
         }
 
-        /// <summary>
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
         public async Task Invoke(HttpContext context)
         {
             if (context.Request.IsGetOrHeadMethod() &&
@@ -41,7 +31,6 @@ namespace HotChocolate.AspNetCore
             {
                 GraphQLToolOptions? options = context.GetGraphQLToolOptions();
                 var config = new BananaCakePopConfiguration();
-                ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
 
                 if (options is not null)
                 {
@@ -49,13 +38,14 @@ namespace HotChocolate.AspNetCore
                     config.Credentials = ConvertCredentialsToString(options.Credentials);
                     config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
                     config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
+                    config.GaTrackingId = options.GaTrackingId;
                 }
 
                 await context.Response.WriteAsJsonAsync(config, context.RequestAborted);
             }
             else
             {
-                await NextAsync(context);
+                await _next(context);
             }
         }
 
@@ -124,6 +114,8 @@ namespace HotChocolate.AspNetCore
             public IDictionary<string, string>? HttpHeaders { get; set; }
 
             public string? HttpMethod { get; set; }
+
+            public string? GaTrackingId { get; set; }
         }
     }
 }

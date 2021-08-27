@@ -1,5 +1,5 @@
 import { graphql, useStaticQuery } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetFooterDataQuery } from "../../../../graphql-types";
 import LogoTextSvg from "../../../images/chillicream-text.svg";
@@ -10,7 +10,7 @@ import TwitterIconSvg from "../../../images/twitter.svg";
 import { IconContainer } from "../../misc/icon-container";
 import { Link } from "../../misc/link";
 
-export const Footer: FunctionComponent = () => {
+export const Footer: FC = () => {
   const data = useStaticQuery<GetFooterDataQuery>(graphql`
     query getFooterData {
       site {

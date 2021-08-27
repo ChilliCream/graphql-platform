@@ -30,7 +30,7 @@ module.exports = {
     ],
     tools: {
       github: `https://github.com/ChilliCream/hotchocolate`,
-      slack: `https://bit.ly/joinchilli`,
+      slack: `http://slack.chillicream.com/`,
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
@@ -218,7 +218,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          gatsbyImageData(layout: CONSTRAINED, width: 800, pngOptions: { quality: 90 })
+                          gatsbyImageData(layout: CONSTRAINED, width: 800)
                         }
                       }
                     }
