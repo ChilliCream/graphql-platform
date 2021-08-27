@@ -93,7 +93,7 @@ namespace HotChocolate
         /// <summary>
         /// Defines if the runtime types of types shall be validated.
         /// </summary>
-        public bool StrictRuntimeTypeValidation { get; set; } = true;
+        public bool StrictRuntimeTypeValidation { get; set; } = false;
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
