@@ -11,9 +11,16 @@ namespace HotChocolate.Types.Descriptors
     {
         private const string _bin = "bin";
 
+        private readonly string _xmlDocumentationFileName;
+
         private readonly ConcurrentDictionary<string, XDocument> _cache =
             new ConcurrentDictionary<string, XDocument>(
                 StringComparer.OrdinalIgnoreCase);
+
+        public XmlDocumentationFileResolver(string xmlDocumentationFileName = null)
+        {
+            _xmlDocumentationFileName = xmlDocumentationFileName;
+        }
 
         public bool TryGetXmlDocument(Assembly assembly, out XDocument document)
         {
@@ -56,7 +63,7 @@ namespace HotChocolate.Types.Descriptors
                     return null;
                 }
 
-                var expectedDocFile = $"{assemblyName.Name}.xml";
+                var expectedDocFile = _xmlDocumentationFileName is null ? $"{assemblyName.Name}.xml" : _xmlDocumentationFileName;
 
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))

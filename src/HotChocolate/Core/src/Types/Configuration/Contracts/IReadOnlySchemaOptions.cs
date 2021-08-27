@@ -35,6 +35,12 @@ namespace HotChocolate.Configuration
         bool UseXmlDocumentation { get; }
 
         /// <summary>
+        /// Defines the name of the XML documenatation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
+        string XmlDocumentationFileName { get; }
+
+        /// <summary>
         /// Defines if fields shall be sorted by name.
         /// Default: <c>false</c>
         /// </summary>

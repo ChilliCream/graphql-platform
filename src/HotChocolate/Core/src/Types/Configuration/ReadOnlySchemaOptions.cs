@@ -30,6 +30,7 @@ namespace HotChocolate.Configuration
             StrictValidation = options.StrictValidation;
             SortFieldsByName = options.SortFieldsByName;
             UseXmlDocumentation = options.UseXmlDocumentation;
+            XmlDocumentationFileName = options.XmlDocumentationFileName;
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
@@ -62,6 +63,12 @@ namespace HotChocolate.Configuration
         /// Defines if the CSharp XML documentation shall be integrated.
         /// </summary>
         public bool UseXmlDocumentation { get; }
+
+        /// <summary>
+        /// Defines the name of the XML documenatation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
+        public string XmlDocumentationFileName { get; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.

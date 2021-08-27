@@ -33,6 +33,12 @@ namespace HotChocolate.Configuration
         public bool UseXmlDocumentation { get; set; } = true;
 
         /// <summary>
+        /// Defines the name of the XML documenatation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
+        public string XmlDocumentationFileName { get; set; }
+
+        /// <summary>
         /// Defines if fields shall be sorted by name.
         /// Default: <c>false</c>
         /// </summary>
@@ -81,6 +87,7 @@ namespace HotChocolate.Configuration
                 SubscriptionTypeName = options.SubscriptionTypeName,
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
+                XmlDocumentationFileName = options.XmlDocumentationFileName,
                 FieldMiddleware = options.FieldMiddleware,
                 DefaultBindingBehavior = options.DefaultBindingBehavior,
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,

@@ -20,6 +20,7 @@ namespace HotChocolate
                 StrictValidation = false,
                 SortFieldsByName = true,
                 UseXmlDocumentation = false,
+                XmlDocumentationFileName = "docs.xml",
                 DefaultBindingBehavior = BindingBehavior.Explicit,
                 FieldMiddleware = FieldMiddlewareApplication.AllFields,
                 PreserveSyntaxNodes = true

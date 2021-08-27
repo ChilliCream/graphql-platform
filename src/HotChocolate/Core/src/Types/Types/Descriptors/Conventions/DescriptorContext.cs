@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Descriptors
                 if (_naming is null)
                 {
                     _naming = GetConventionOrDefault<INamingConventions>(
-                        () => new DefaultNamingConventions(Options.UseXmlDocumentation));
+                        () => new DefaultNamingConventions(Options.UseXmlDocumentation, Options.XmlDocumentationFileName));
                 }
 
                 return _naming;
