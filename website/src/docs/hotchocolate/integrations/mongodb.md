@@ -182,7 +182,7 @@ services
     .AddMongoDbPagingProviders();
 ```
 
-[Learn more about pagination providers](/docs/hotchocolate/fetching-data/pagination/#providers)
+[Learn more about pagination providers](/docs/hotchocolate/fetching-data/pagination#providers)
 
 ## Cursor Pagination
 
