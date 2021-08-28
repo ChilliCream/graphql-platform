@@ -438,16 +438,16 @@ _Connections_ are a standardized way to expose pagination capabilities.
 
 ```sdl
 type Query {
-  users(first: Int after: String last: Int before: String): UserConnection
+  users(first: Int after: String last: Int before: String): UsersConnection
 }
 
-type UserConnection {
+type UsersConnection {
   pageInfo: PageInfo!
-  edges: [UserEdge!]
+  edges: [UsersEdge!]
   nodes: [User!]
 }
 
-type UserEdge {
+type UsersEdge {
   cursor: String!
   node: User!
 }
