@@ -13,7 +13,7 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(input: HelloInput): String
                 }
-                
+
                 input HelloInput {
                     hello: String
                 }";
@@ -22,8 +22,7 @@ namespace HotChocolate.Types.SDL
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
-                .BindComplexType<HelloInput>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -37,11 +36,11 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(input: HelloInput): String
                 }
-                
+
                 input HelloInput {
                     hello: String
                 }
-                
+
                 extend input HelloInput {
                     world: String
                 }";
@@ -50,8 +49,7 @@ namespace HotChocolate.Types.SDL
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
-                .BindComplexType<HelloInput>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -65,22 +63,22 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(input: HelloInput): String
                 }
-                
+
                 input HelloInput {
                     hello: String
                 }
-                
+
                 extend input HelloInput {
                     world: String @foo
                 }
-                
+
                 directive @foo on INPUT_FIELD_DEFINITION";
 
             // act
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -94,20 +92,20 @@ namespace HotChocolate.Types.SDL
                 @"type Query {
                     hello(input: HelloInput): String
                 }
-                
+
                 input HelloInput {
                     hello: String
                 }
-                
+
                 extend input HelloInput @foo
-                
+
                 directive @foo on INPUT_OBJECT";
 
             // act
             // assert
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
-                .BindComplexType<Query>()
+                .BindRuntimeType<Query>()
                 .Create()
                 .Print()
                 .MatchSnapshot();

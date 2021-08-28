@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -8,23 +9,20 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumValueDefinition>
         , IEnumValueDescriptor
     {
-        private bool _deprecatedDependencySet;
-        private DirectiveDefinition _deprecatedDirective;
-
-        protected EnumValueDescriptor(IDescriptorContext context, object value)
+        protected EnumValueDescriptor(IDescriptorContext context, object runtimeValue)
             : base(context)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(nameof(runtimeValue));
             }
 
-            Definition.Name = context.Naming.GetEnumValueName(value);
-            Definition.Value = value;
-            Definition.Description = context.Naming.GetEnumValueDescription(value);
-            Definition.Member = context.TypeInspector.GetEnumValueMember(value);
+            Definition.Name = context.Naming.GetEnumValueName(runtimeValue);
+            Definition.RuntimeValue = runtimeValue;
+            Definition.Description = context.Naming.GetEnumValueDescription(runtimeValue);
+            Definition.Member = context.TypeInspector.GetEnumValueMember(runtimeValue);
 
-            if (context.Naming.IsDeprecated(value, out var reason))
+            if (context.Naming.IsDeprecated(runtimeValue, out var reason))
             {
                 Deprecated(reason);
             }
@@ -36,8 +34,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        protected internal override EnumValueDefinition Definition { get; protected set; } =
-            new EnumValueDefinition();
+        protected internal override EnumValueDefinition Definition { get; protected set; } = new();
 
         protected override void OnCreateDefinition(EnumValueDefinition definition)
         {
@@ -48,6 +45,11 @@ namespace HotChocolate.Types.Descriptors
                     this,
                     Definition.Member);
                 Definition.AttributesAreApplied = true;
+
+                if (Context.TypeInspector.IsMemberIgnored(Definition.Member))
+                {
+                    Ignore();
+                }
             }
 
             base.OnCreateDefinition(definition);
@@ -82,41 +84,21 @@ namespace HotChocolate.Types.Descriptors
             {
                 return Deprecated();
             }
-            else
-            {
-                Definition.DeprecationReason = reason;
-                AddDeprecatedDirective(reason);
-                return this;
-            }
+
+            Definition.DeprecationReason = reason;
+            return this;
         }
 
         public IEnumValueDescriptor Deprecated()
         {
-            Definition.DeprecationReason =
-                WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprecatedDirective(null);
+            Definition.DeprecationReason = WellKnownDirectives.DeprecationDefaultReason;
             return this;
         }
 
-        private void AddDeprecatedDirective(string reason)
+        public IEnumValueDescriptor Ignore(bool ignore = true)
         {
-            if (_deprecatedDirective != null)
-            {
-                Definition.Directives.Remove(_deprecatedDirective);
-            }
-
-            _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason),
-                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
-            Definition.Directives.Add(_deprecatedDirective);
-
-            if (!_deprecatedDependencySet)
-            {
-                Definition.Dependencies.Add(new TypeDependency(
-                    Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
-                    TypeDependencyKind.Completed));
-                _deprecatedDependencySet = true;
-            }
+            Definition.Ignore = ignore;
+            return this;
         }
 
         public IEnumValueDescriptor Directive<T>(T directiveInstance)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
     {
         private readonly IQueryResult _initialResult;
         private readonly IAsyncEnumerable<IQueryResult> _deferredResults;
-        private readonly IDisposable? _session;
+        private IDisposable? _session;
         private bool _isRead;
         private bool _disposed;
 
@@ -78,14 +78,30 @@ namespace HotChocolate.Execution
             return new EnumerateResults(_initialResult, _deferredResults, this);
         }
 
+        /// <inheritdoc />
+        public void RegisterDisposable(IDisposable disposable)
+        {
+            if (disposable is null)
+            {
+                throw new ArgumentNullException(nameof(disposable));
+            }
+
+            _session = _session.Combine(disposable);
+        }
+
         public ValueTask DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
+
+        public void Dispose()
         {
             if (!_disposed)
             {
                 _session?.Dispose();
                 _disposed = true;
             }
-            return default;
         }
 
         private class EnumerateResults : IAsyncEnumerable<IQueryResult>

@@ -1,6 +1,6 @@
 import Highlight, { Language } from "prism-react-renderer";
 import Prism from "prismjs";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { Copy } from "./copy";
 
@@ -8,7 +8,7 @@ interface CodeBlockProps {
   children: any;
 }
 
-export const CodeBlock: FunctionComponent<CodeBlockProps> = ({ children }) => {
+export const CodeBlock: FC<CodeBlockProps> = ({ children }) => {
   const language = children.props.className.replace(
     /language-/,
     ""
@@ -53,7 +53,7 @@ interface CodeIndicatorProps {
   language: string;
 }
 
-const CodeIndicator: FunctionComponent<CodeIndicatorProps> = ({ language }) => {
+const CodeIndicator: FC<CodeIndicatorProps> = ({ language }) => {
   const codeLanguage = codeLanguages[language];
 
   return codeLanguage ? (
@@ -125,7 +125,7 @@ const IndicatorContent = styled.div`
   z-index: 1;
   top: 0;
   left: 50px;
-  border-radius: 0px 0px 4px 4px;
+  border-radius: 0px 0px var(--border-radius) var(--border-radius);
   padding: 2px 8px;
   font-size: 0.8em;
   font-weight: bold;

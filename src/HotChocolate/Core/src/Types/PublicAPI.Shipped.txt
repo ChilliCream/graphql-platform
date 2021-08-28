@@ -176,14 +176,14 @@
 ~HotChocolate.Resolvers.FieldReferenceBase.FieldReferenceBase(HotChocolate.Resolvers.FieldReferenceBase fieldReference) -> void
 ~HotChocolate.Resolvers.FieldReferenceBase.IsEqualTo(HotChocolate.Resolvers.FieldReferenceBase other) -> bool
 ~HotChocolate.Resolvers.FieldReferenceBase.IsReferenceEqualTo<T>(T value) -> bool
-~HotChocolate.Resolvers.FieldResolver.Equals(HotChocolate.Resolvers.FieldResolver other) -> bool
+HotChocolate.Resolvers.FieldResolver.Equals(HotChocolate.Resolvers.FieldResolver? other) -> bool
 ~HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.NameString typeName, HotChocolate.NameString fieldName, HotChocolate.Resolvers.FieldResolverDelegate resolver) -> void
-~HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.Resolvers.FieldReference fieldReference, HotChocolate.Resolvers.FieldResolverDelegate resolver) -> void
-~HotChocolate.Resolvers.FieldResolver.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate
-~HotChocolate.Resolvers.FieldResolver.ToFieldReference() -> HotChocolate.Resolvers.FieldReference
-~HotChocolate.Resolvers.FieldResolver.WithFieldName(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver
-~HotChocolate.Resolvers.FieldResolver.WithResolver(HotChocolate.Resolvers.FieldResolverDelegate resolver) -> HotChocolate.Resolvers.FieldResolver
-~HotChocolate.Resolvers.FieldResolver.WithTypeName(HotChocolate.NameString typeName) -> HotChocolate.Resolvers.FieldResolver
+HotChocolate.Resolvers.FieldResolver.FieldResolver(HotChocolate.Resolvers.FieldReference! fieldReference, HotChocolate.Resolvers.FieldResolverDelegate! resolver) -> void
+HotChocolate.Resolvers.FieldResolver.Resolver.get -> HotChocolate.Resolvers.FieldResolverDelegate!
+HotChocolate.Resolvers.FieldResolver.ToFieldReference() -> HotChocolate.Resolvers.FieldReference!
+HotChocolate.Resolvers.FieldResolver.WithFieldName(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver!
+HotChocolate.Resolvers.FieldResolver.WithResolver(HotChocolate.Resolvers.FieldResolverDelegate! resolver) -> HotChocolate.Resolvers.FieldResolver!
+HotChocolate.Resolvers.FieldResolver.WithTypeName(HotChocolate.NameString typeName) -> HotChocolate.Resolvers.FieldResolver!
 ~HotChocolate.Resolvers.IDirectiveContext.Directive.get -> HotChocolate.Types.IDirective
 ~HotChocolate.Resolvers.IFieldSelection.Field.get -> HotChocolate.Types.IObjectField
 ~HotChocolate.Resolvers.IFieldSelection.Nodes.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Language.FieldNode>
@@ -848,8 +848,8 @@ override HotChocolate.Resolvers.FieldResolver.ToString() -> string!
 ~static HotChocolate.Configuration.Bindings.ResolverFieldBindingBuilder.New() -> HotChocolate.Configuration.Bindings.ResolverFieldBindingBuilder
 ~static HotChocolate.Configuration.Bindings.ResolverTypeBindingBuilder.New() -> HotChocolate.Configuration.Bindings.ResolverTypeBindingBuilder
 ~static HotChocolate.Configuration.SchemaOptions.FromOptions(HotChocolate.Configuration.IReadOnlySchemaOptions options) -> HotChocolate.Configuration.SchemaOptions
-~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaType(HotChocolate.Types.Descriptors.ITypeInspector typeInspector, HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.Descriptors.ExtendedTypeReference schemaType) -> bool
-~static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaTypeKind(HotChocolate.Types.Descriptors.ExtendedTypeReference unresolvedType, out HotChocolate.Types.TypeKind kind) -> bool
+static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaType(HotChocolate.Types.Descriptors.ITypeInspector! typeInspector, HotChocolate.Types.Descriptors.ExtendedTypeReference! unresolvedType, out HotChocolate.Types.Descriptors.ExtendedTypeReference? schemaType) -> bool
+static HotChocolate.Configuration.SchemaTypeResolver.TryInferSchemaTypeKind(HotChocolate.Types.Descriptors.ExtendedTypeReference! unresolvedType, out HotChocolate.Types.TypeKind kind) -> bool
 static HotChocolate.IdSchemaBuilderExtensions.EnableRelaySupport(this HotChocolate.ISchemaBuilder! schemaBuilder, HotChocolate.Types.Relay.RelayOptions? options = null) -> HotChocolate.ISchemaBuilder!
 ~static HotChocolate.Internal.TypeComponent.implicit operator HotChocolate.Internal.TypeComponent((HotChocolate.Internal.TypeComponentKind, HotChocolate.Internal.IExtendedType) component) -> HotChocolate.Internal.TypeComponent
 ~static HotChocolate.Internal.TypeDependencyHelper.RegisterDependencies(this HotChocolate.Configuration.ITypeDiscoveryContext context, HotChocolate.Types.Descriptors.Definitions.EnumTypeDefinition definition) -> void
@@ -1143,6 +1143,7 @@ const HotChocolate.Types.Introspection.__AppliedDirective.Names.Name = "name" ->
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.__DirectiveArgument = "__DirectiveArgument" -> string!
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.Name = "name" -> string!
 const HotChocolate.Types.Introspection.__DirectiveArgument.Names.Value = "value" -> string!
+const HotChocolate.Types.Pagination.PagingDefaults.AllowBackwardPagination = true -> bool
 const HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize = 10 -> int
 const HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount = false -> bool
 const HotChocolate.Types.Pagination.PagingDefaults.MaxPageSize = 50 -> int
@@ -2295,6 +2296,7 @@ HotChocolate.Types.IDescriptorExtension.OnBeforeCreate(System.Action<HotChocolat
 HotChocolate.Types.IDescriptorExtension.OnBeforeCreate(System.Action<HotChocolate.Types.Descriptors.IDescriptorContext!, HotChocolate.Types.Descriptors.Definitions.DefinitionBase!>! configure) -> void
 HotChocolate.Types.IDescriptorExtension.OnBeforeNaming(System.Action<HotChocolate.Configuration.ITypeCompletionContext!, HotChocolate.Types.Descriptors.Definitions.DefinitionBase!>! configure) -> HotChocolate.Types.INamedDependencyDescriptor!
 HotChocolate.Types.IDescriptorExtension<T>
+HotChocolate.Types.IDescriptorExtension<T>.Definition.get -> T!
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCompletion(System.Action<HotChocolate.Configuration.ITypeCompletionContext!, T!>! configure) -> HotChocolate.Types.ICompletedDependencyDescriptor!
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCreate(System.Action<HotChocolate.Types.Descriptors.IDescriptorContext!, T!>! configure) -> void
 HotChocolate.Types.IDescriptorExtension<T>.OnBeforeCreate(System.Action<T!>! configure) -> void
@@ -2673,6 +2675,8 @@ HotChocolate.Types.Pagination.PagingMiddleware
 HotChocolate.Types.Pagination.PagingMiddleware.InvokeAsync(HotChocolate.Resolvers.IMiddlewareContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.Types.Pagination.PagingMiddleware.PagingMiddleware(HotChocolate.Resolvers.FieldDelegate! next, HotChocolate.Types.Pagination.IPagingHandler! pagingHandler) -> void
 HotChocolate.Types.Pagination.PagingOptions
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.get -> bool?
+HotChocolate.Types.Pagination.PagingOptions.AllowBackwardPagination.set -> void
 HotChocolate.Types.Pagination.PagingOptions.DefaultPageSize.get -> int?
 HotChocolate.Types.Pagination.PagingOptions.DefaultPageSize.set -> void
 HotChocolate.Types.Pagination.PagingOptions.IncludeTotalCount.get -> bool?
@@ -3189,6 +3193,7 @@ static HotChocolate.ResolverContextExtensions.GetOrAddGlobalValue<T>(this HotCho
 static HotChocolate.ResolverContextExtensions.GetOrAddLocalValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name, System.Func<string!, T>! createValue) -> T
 static HotChocolate.ResolverContextExtensions.GetOrAddScopedValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name, System.Func<string!, T>! createValue) -> T
 static HotChocolate.ResolverContextExtensions.GetScopedValue<T>(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> T
+static HotChocolate.ResolverContextExtensions.GetUser(this HotChocolate.Resolvers.IResolverContext! context) -> System.Security.Claims.ClaimsPrincipal?
 static HotChocolate.ResolverContextExtensions.RemoveGlobalValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void
 static HotChocolate.ResolverContextExtensions.RemoveLocalValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void
 static HotChocolate.ResolverContextExtensions.RemoveScopedValue(this HotChocolate.Resolvers.IResolverContext! context, string! name) -> void

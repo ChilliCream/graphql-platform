@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 #nullable enable
 
@@ -15,8 +16,6 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
-        private bool _deprecatedDependencySet;
-        private DirectiveDefinition? _deprecatedDirective;
         private ICollection<ArgumentDescriptor>? _arguments;
 
         protected OutputFieldDescriptorBase(IDescriptorContext context)
@@ -120,6 +119,18 @@ namespace HotChocolate.Types.Descriptors
                 ? Arguments.FirstOrDefault(t => t.Definition.Name.Equals(name))
                 : Arguments.FirstOrDefault(t => t.Definition.Parameter == parameter);
 
+            if (descriptor is null && Definition.Arguments.Count > 0)
+            {
+                ArgumentDefinition? definition = parameter is null
+                    ? Definition.Arguments.FirstOrDefault(t => t.Name.Equals(name))
+                    : Definition.Arguments.FirstOrDefault(t => t.Parameter == parameter);
+
+                if (definition is not null)
+                {
+                    descriptor = ArgumentDescriptor.From(Context, definition);
+                }
+            }
+
             if (descriptor is null)
             {
                 descriptor = parameter is null
@@ -140,7 +151,6 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.DeprecationReason = reason;
-                AddDeprecatedDirective(reason);
             }
         }
 
@@ -148,29 +158,6 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprecatedDirective(null);
-        }
-
-        private void AddDeprecatedDirective(string? reason)
-        {
-            if (_deprecatedDirective != null)
-            {
-                Definition.Directives.Remove(_deprecatedDirective);
-            }
-
-            _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason),
-                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
-            Definition.Directives.Add(_deprecatedDirective);
-
-            if (!_deprecatedDependencySet)
-            {
-                Definition.Dependencies.Add(new TypeDependency(
-                    Context.TypeInspector.GetTypeRef(
-                        typeof(DeprecatedDirectiveType)),
-                    TypeDependencyKind.Completed));
-                _deprecatedDependencySet = true;
-            }
         }
 
         protected void Ignore(bool ignore = true)

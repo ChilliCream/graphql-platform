@@ -1,10 +1,15 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringInHandler : QueryableStringOperationHandler
     {
+        public QueryableStringInHandler(InputParser inputParser) : base(inputParser)
+        {
+        }
+
         protected override int Operation => DefaultFilterOperations.In;
 
         public override Expression HandleOperation(

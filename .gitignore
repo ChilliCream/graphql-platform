@@ -307,8 +307,16 @@ __mismatch__
 coverage.opencover.xml
 output
 src/All.sln
+src/Build.CheckApi.sln
+src/Build.Sonar.sln
+src/Build.Test.sln
+src/Build.Pack.sln
 *.DotSettings
 
 # asp .net core
 appsettings.user.json
+
+# benchmark dbs
 conferences.db
+conferences.db-shm
+conferences.db-wal

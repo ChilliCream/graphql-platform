@@ -1,9 +1,16 @@
 using System;
-using System.IO;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.ConferencePlanner.Attendees;
 using HotChocolate.ConferencePlanner.Data;
@@ -13,16 +20,29 @@ using HotChocolate.ConferencePlanner.Sessions;
 using HotChocolate.ConferencePlanner.Speakers;
 using HotChocolate.ConferencePlanner.Tracks;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace HotChocolate.ConferencePlanner
 {
     public class BenchmarkBase
     {
-        private static readonly MD5DocumentHashProvider _md5 = new MD5DocumentHashProvider();
+        private static readonly MD5DocumentHashProvider _md5 = new();
+        private static readonly JsonSerializerOptions _options =
+            new(JsonSerializerDefaults.Web)
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+        private readonly Uri _url;
 
         public BenchmarkBase()
         {
@@ -30,11 +50,24 @@ namespace HotChocolate.ConferencePlanner
             ConfigureServices(servicesCollection);
             Services = servicesCollection.BuildServiceProvider();
             ExecutorResolver = Services.GetRequiredService<IRequestExecutorResolver>();
+
+            TestServerFactory.CreateServer(
+                services =>
+                {
+                    services.AddGraphQLServer();
+                    ConfigureServices(services);
+                },
+                out var port);
+
+            _url = new Uri($"http://localhost:{port}/graphql");
+            TestClient = new HttpClient();
         }
 
         public IServiceProvider Services { get; }
 
         public IRequestExecutorResolver ExecutorResolver { get; }
+
+        public HttpClient TestClient { get; }
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -50,6 +83,12 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
+        public Task BenchmarkServerAsync(string requestDocument)
+            => BenchmarkServerAsync(new ClientQueryRequest { Query = requestDocument });
+
+        public Task BenchmarkServerAsync(ClientQueryRequest request)
+            => PostAsync(request);
+
         public Task BenchmarkAsync(string requestDocument)
         {
             return BenchmarkAsync(new QueryRequest(new QuerySourceText(requestDocument)));
@@ -64,23 +103,29 @@ namespace HotChocolate.ConferencePlanner
             {
                 throw new InvalidOperationException("The request failed.");
             }
+
+            if (result is IDisposable d)
+            {
+                d.Dispose();
+            }
         }
 
-        public async Task<string> PrintQueryPlanAsync(string requestDocument) 
+        public async Task<string> PrintQueryPlanAsync(string requestDocument)
         {
             IRequestExecutor executor = await ExecutorResolver.GetRequestExecutorAsync();
 
             string hash = _md5.ComputeHash(Encoding.UTF8.GetBytes(requestDocument).AsSpan());
             DocumentNode document = Utf8GraphQLParser.Parse(requestDocument);
-            var operation =  document.Definitions.OfType<OperationDefinitionNode>().First();
+            var operation = document.Definitions.OfType<OperationDefinitionNode>().First();
 
-            IPreparedOperation preparedOperation = 
+            IPreparedOperation preparedOperation =
                 OperationCompiler.Compile(
                     hash,
                     document,
                     operation,
                     executor.Schema,
-                    executor.Schema.GetOperationType(operation.Operation));
+                    executor.Schema.GetOperationType(operation.Operation),
+                    new InputParser());
 
             string serialized = preparedOperation.Print();
             Console.WriteLine(serialized);
@@ -133,13 +178,17 @@ namespace HotChocolate.ConferencePlanner
                     // filtering and sorting.
                     .AddFiltering()
                     .AddSorting()
-                    .EnableRelaySupport()
+                    .AddGlobalObjectIdentification()
+                    .AddQueryFieldToMutationPayloads()
+                    .AddIdSerializer()
 
-                    // Now we add some the DataLoader to our system. 
+                    // Now we add some the DataLoader to our system.
                     .AddDataLoader<AttendeeByIdDataLoader>()
                     .AddDataLoader<SessionByIdDataLoader>()
                     .AddDataLoader<SpeakerByIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
+
+                    // .AddDiagnosticEventListener<BatchDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
@@ -147,7 +196,208 @@ namespace HotChocolate.ConferencePlanner
                     // Since we are using subscriptions, we need to register a pub/sub system.
                     // for our demo we are using a in-memory pub/sub system.
                     .AddInMemorySubscriptions();
+        }
 
+        private async Task PostAsync(ClientQueryRequest request)
+        {
+            using var content = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(request, _options),
+                Encoding.UTF8,
+                "application/json");
+
+            using var requestMsg = new HttpRequestMessage(HttpMethod.Post, _url)
+            {
+                Content = content
+            };
+
+            using HttpResponseMessage responseMsg = await TestClient.SendAsync(requestMsg);
+
+            if (responseMsg.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception("Failed.");
+            }
+        }
+    }
+
+    public class BatchDiagnostics : DiagnosticEventListener
+    {
+        public override IActivityScope ExecuteRequest(IRequestContext context)
+        {
+            var scope = new RequestScope();
+            context.ContextData[nameof(RequestScope)] = scope;
+            context.ContextData[nameof(Stopwatch)] = scope.Stopwatch;
+            return scope;
+        }
+
+        public override IActivityScope DispatchBatch(
+            IRequestContext context)
+        {
+            return new BatchScope(((RequestScope)context.ContextData[nameof(RequestScope)]!));
+        }
+
+        public override void StartProcessing(IRequestContext context)
+        {
+            TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
+            Console.WriteLine($"{timeSpan} Start processing.");
+        }
+
+        public override void StopProcessing(IRequestContext context)
+        {
+            TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
+            Console.WriteLine($"{timeSpan} Stop processing.");
+        }
+
+        public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        {
+            return new ResolverScope(((RequestScope)context.ContextData[nameof(RequestScope)]!), (ISelection)context.Selection);
+        }
+
+        private class RequestScope : IActivityScope
+        {
+            private readonly Stopwatch _stopwatch;
+            private readonly System.Collections.Concurrent.ConcurrentDictionary<FieldCoordinate, int> _ = new();
+
+            public RequestScope()
+            {
+                _stopwatch = Stopwatch.StartNew();
+                Console.WriteLine($"{DateTime.Now} Execute Request.");
+            }
+
+            public TimeSpan Elapsed => _stopwatch.Elapsed;
+
+            public Stopwatch Stopwatch => _stopwatch;
+
+            public void Count(FieldCoordinate coordinate)
+            {
+                _.AddOrUpdate(coordinate, c => 1, (c, v) => v + 1);
+            }
+
+            public void Dispose()
+            {
+                Console.WriteLine($"Completed in {Elapsed}");
+
+                Console.WriteLine("-----------------------------------");
+
+                foreach (var field in _.OrderBy(t => t.Key.ToString()))
+                {
+                    Console.WriteLine($"{field.Key}:{field.Value}");
+                }
+
+                Console.WriteLine("-----------------------------------");
+
+                Console.WriteLine($"Fields:{_.Select(t => t.Value).Sum()}");
+
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("-----------------------------------");
+
+                _stopwatch.Stop();
+            }
+        }
+
+        private class BatchScope : IActivityScope
+        {
+            private RequestScope _requestScope;
+
+            public BatchScope(RequestScope requestScope)
+            {
+                _requestScope = requestScope;
+                Console.WriteLine($"{_requestScope.Elapsed} Begin Dispatching Batch.");
+            }
+
+            public void Dispose()
+            {
+                Console.WriteLine($"{_requestScope.Elapsed} End Dispatching Batch.");
+            }
+        }
+
+        private class ResolverScope : IActivityScope
+        {
+            private RequestScope _requestScope;
+            private ISelection _selection;
+
+            public ResolverScope(RequestScope requestScope, ISelection selection)
+            {
+                _requestScope = requestScope;
+                _selection = selection;
+
+                TimeSpan timeSpan = requestScope.Elapsed;
+                requestScope.Count(selection.Field.Coordinate);
+                // Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} Begin {selection.Field.Coordinate}");
+            }
+
+            public void Dispose()
+            {
+                TimeSpan timeSpan = _requestScope.Elapsed;
+                //Console.WriteLine($"{timeSpan} {Thread.CurrentThread.ManagedThreadId} End {_selection.Field.Coordinate}");
+            }
+        }
+    }
+
+    public class ClientQueryRequest
+    {
+        public string? Id { get; set; }
+
+        public string? OperationName { get; set; }
+
+        public string? Query { get; set; }
+
+        public Dictionary<string, object>? Variables { get; set; }
+
+        public Dictionary<string, object>? Extensions { get; set; }
+    }
+
+    public class ClientQueryResponse
+    {
+        public string ContentType { get; set; } = default!;
+
+        public HttpStatusCode StatusCode { get; set; }
+
+        public Dictionary<string, object>? Data { get; set; }
+
+        public List<Dictionary<string, object>>? Errors { get; set; }
+
+        public Dictionary<string, object>? Extensions { get; set; }
+    }
+
+    public static class TestServerFactory
+    {
+        public static IWebHost CreateServer(Action<IServiceCollection> configure, out int port)
+        {
+            for (port = 5500; port < 6000; port++)
+            {
+                try
+                {
+                    var configBuilder = new ConfigurationBuilder();
+                    configBuilder.AddInMemoryCollection();
+                    IConfigurationRoot config = configBuilder.Build();
+                    config["server.urls"] = $"http://localhost:{port}";
+                    IWebHost host = new WebHostBuilder()
+                        .UseConfiguration(config)
+                        .UseKestrel()
+                        .ConfigureServices(services =>
+                        {
+                            services.AddHttpContextAccessor();
+                            services.AddRouting();
+                            configure(services);
+                        })
+                        .Configure(app =>
+                        {
+                            app.UseRouting();
+                            app.UseEndpoints(c => c.MapGraphQL());
+                        })
+                        .Build();
+
+                    host.Start();
+
+                    return host;
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+
+            throw new InvalidOperationException("Not port found");
         }
     }
 }

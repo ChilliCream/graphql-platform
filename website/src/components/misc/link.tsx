@@ -1,8 +1,8 @@
 import { GatsbyLinkProps, Link as GatsbyLink } from "gatsby";
 import { OutboundLink } from "gatsby-plugin-google-analytics";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 
-export const Link: FunctionComponent<GatsbyLinkProps<unknown>> = ({
+export const Link: FC<GatsbyLinkProps<unknown>> = ({
   activeClassName,
   children,
   className,

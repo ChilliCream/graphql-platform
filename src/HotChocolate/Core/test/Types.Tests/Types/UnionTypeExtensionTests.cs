@@ -137,7 +137,7 @@ namespace HotChocolate.Types
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("Query");
-                descriptor.Field("description").Resolver("bar");
+                descriptor.Field("description").Resolve("bar");
             }
         }
 
@@ -148,7 +148,7 @@ namespace HotChocolate.Types
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("A");
-                descriptor.Field("description").Resolver("bar");
+                descriptor.Field("description").Resolve("bar");
             }
         }
 
@@ -159,7 +159,7 @@ namespace HotChocolate.Types
                 IObjectTypeDescriptor descriptor)
             {
                 descriptor.Name("B");
-                descriptor.Field("description").Resolver("bar");
+                descriptor.Field("description").Resolve("bar");
             }
         }
 

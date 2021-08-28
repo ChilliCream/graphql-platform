@@ -41,12 +41,12 @@ namespace HotChocolate.Types
                 t =>
                 {
                     Assert.Equal("BAR1", t.Name);
-                    Assert.Equal(FooEnum.Bar1, t.Value);
+                    Assert.Equal(FooEnum.Bar1, t.RuntimeValue);
                 },
                 t =>
                 {
                     Assert.Equal("BAR2", t.Name);
-                    Assert.Equal(FooEnum.Bar2, t.Value);
+                    Assert.Equal(FooEnum.Bar2, t.RuntimeValue);
                 });
         }
 
@@ -66,12 +66,12 @@ namespace HotChocolate.Types
                 t =>
                 {
                     Assert.Equal("FOOBAR", t.Name);
-                    Assert.Equal(FooEnum.Bar1, t.Value);
+                    Assert.Equal(FooEnum.Bar1, t.RuntimeValue);
                 },
                 t =>
                 {
                     Assert.Equal("BAR2", t.Name);
-                    Assert.Equal(FooEnum.Bar2, t.Value);
+                    Assert.Equal(FooEnum.Bar2, t.RuntimeValue);
                 });
         }
 
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
                 t =>
                 {
                     Assert.Equal("FOOBAR", t.Name);
-                    Assert.Equal(FooEnum.Bar1, t.Value);
+                    Assert.Equal(FooEnum.Bar1, t.RuntimeValue);
                 });
         }
 

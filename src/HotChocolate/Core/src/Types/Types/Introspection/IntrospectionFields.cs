@@ -1,8 +1,9 @@
-﻿using HotChocolate.Configuration;
-using HotChocolate.Properties;
+﻿using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
@@ -27,17 +28,13 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.SchemaField_Description)
                 .Type<NonNullType<__Schema>>()
-                .Resolve(ctx => ctx.Schema);
+                .Resolve(Resolve);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = ctx => ctx.Schema);
-            }
+            static ISchema Resolve(IResolverContext ctx)
+                => ctx.Schema;
 
             return CreateDefinition(descriptor);
         }
@@ -46,23 +43,16 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, Type);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.TypeField_Description)
                 .Argument("name", a => a.Type<NonNullType<StringType>>())
                 .Type<__Type>()
                 .Resolve(Resolve);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
-
-            INamedType Resolve(IResolverContext ctx)
+            static INamedType? Resolve(IResolverContext ctx)
             {
                 var name = ctx.ArgumentValue<string>("name");
-                return ctx.Schema.TryGetType(name, out INamedType type) ? type : null;
+                return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
             }
 
             return CreateDefinition(descriptor);
@@ -72,19 +62,13 @@ namespace HotChocolate.Types.Introspection
         {
             var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
-            IObjectFieldDescriptor fieldDescriptor = descriptor
+            descriptor
                 .Description(TypeResources.TypeNameField_Description)
                 .Type<NonNullType<StringType>>()
-                .Resolver(Resolve);
+                .Resolve(Resolve);
 
-            if (context.Options.FieldMiddleware == FieldMiddlewareApplication.UserDefinedFields)
-            {
-                fieldDescriptor
-                    .Extend()
-                    .OnBeforeCreate(definition => definition.PureResolver = Resolve);
-            }
-
-            string Resolve(IResolverContext ctx) => ctx.ObjectType.Name.Value;
+            static string Resolve(IResolverContext ctx)
+                => ctx.ObjectType.Name.Value;
 
             return CreateDefinition(descriptor);
         }

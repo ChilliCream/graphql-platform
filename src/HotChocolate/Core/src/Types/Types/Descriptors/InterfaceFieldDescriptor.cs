@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {

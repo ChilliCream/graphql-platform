@@ -1,16 +1,16 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { GetBlogArticlesQuery } from "../../graphql-types";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 import { BlogArticles } from "../components/widgets/blog-articles";
 
-interface BlogArticlesTemplateProperties {
+interface BlogArticlesTemplateProps {
   pageContext: BlogArticlesTemplatePageContext;
   data: GetBlogArticlesQuery;
 }
 
-const BlogArticlesTemplate: FunctionComponent<BlogArticlesTemplateProperties> = ({
+const BlogArticlesTemplate: FC<BlogArticlesTemplateProps> = ({
   pageContext: { currentPage, numPages },
   data: { allMdx },
 }) => {

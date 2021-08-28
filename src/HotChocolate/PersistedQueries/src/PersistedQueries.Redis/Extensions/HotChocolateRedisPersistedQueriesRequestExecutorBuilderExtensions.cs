@@ -37,7 +37,56 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddRedisQueryStorage(databaseFactory));
+                s => s.AddRedisQueryStorage(sp => databaseFactory(sp.GetCombinedServices())));
+        }
+
+        /// <summary>
+        /// Adds a redis read and write query storage to the
+        /// services collection.
+        /// </summary>
+        /// <param name="builder">
+        /// The service collection to which the services are added.
+        /// </param>
+        /// <param name="multiplexerFactory">
+        /// A factory that resolves the redis connection multiplexer.
+        /// </param>
+        public static IRequestExecutorBuilder AddRedisQueryStorage(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (multiplexerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(multiplexerFactory));
+            }
+
+            return builder.ConfigureSchemaServices(
+                s => s.AddRedisQueryStorage(
+                    sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase()));
+        }
+
+        /// <summary>
+        /// Adds a redis read and write query storage to the
+        /// services collection and uses the first <see cref="IConnectionMultiplexer"/>
+        /// registered on the application services.
+        /// </summary>
+        /// <param name="builder">
+        /// The service collection to which the services are added.
+        /// </param>
+        public static IRequestExecutorBuilder AddRedisQueryStorage(
+            this IRequestExecutorBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddRedisQueryStorage(
+                sp => sp.GetRequiredService<IConnectionMultiplexer>());
         }
 
         /// <summary>
@@ -65,7 +114,59 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddReadOnlyRedisQueryStorage(databaseFactory));
+                s => s.AddReadOnlyRedisQueryStorage(
+                    sp => databaseFactory(sp.GetCombinedServices())));
+        }
+
+        /// <summary>
+        /// Adds a redis read-only query storage to the services collection.
+        /// </summary>
+        /// <param name="builder">
+        /// The service collection to which the services are added.
+        /// </param>
+        /// <param name="multiplexerFactory">
+        /// A factory that resolves the redis connection multiplexer.
+        /// </param>
+        public static IRequestExecutorBuilder AddReadOnlyRedisQueryStorage(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, IConnectionMultiplexer> multiplexerFactory)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (multiplexerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(multiplexerFactory));
+            }
+
+            return builder.ConfigureSchemaServices(
+                s => s.AddReadOnlyRedisQueryStorage(
+                    sp => multiplexerFactory(sp.GetCombinedServices()).GetDatabase()));
+        }
+
+        /// <summary>
+        /// Adds a redis read-only query storage to the services collection
+        /// and uses the first <see cref="IConnectionMultiplexer"/>
+        /// registered on the application services.
+        /// </summary>
+        /// <param name="builder">
+        /// The service collection to which the services are added.
+        /// </param>
+        /// <param name="multiplexerFactory">
+        /// A factory that resolves the redis connection multiplexer.
+        /// </param>
+        public static IRequestExecutorBuilder AddReadOnlyRedisQueryStorage(
+            this IRequestExecutorBuilder builder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddReadOnlyRedisQueryStorage(
+                sp => sp.GetRequiredService<IConnectionMultiplexer>());
         }
     }
 }

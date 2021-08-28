@@ -134,7 +134,7 @@ namespace HotChocolate.Configuration
                         runtimeType = t.Type is IHasRuntimeType hr
                             ? hr.RuntimeType.GetTypeName()
                             : null,
-                        references = t.References.Select(t => t.ToString()).ToList()
+                        references = t.References.Select(r => r.ToString()).ToList()
                     }).ToList(),
 
                 runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
@@ -265,8 +265,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public class BarType
-            : ObjectType<Bar>
+        public class BarType : ObjectType<Bar>
         {
         }
 

@@ -1,1 +1,72 @@
-
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.MongoDbComparableGreaterThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanOrEqualsHandler.MongoDbComparableGreaterThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanHandler.MongoDbComparableLowerThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanOrEqualsHandler.MongoDbComparableLowerThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanHandler.MongoDbComparableNotGreaterThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanOrEqualsHandler.MongoDbComparableNotGreaterThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanHandler.MongoDbComparableNotLowerThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanOrEqualsHandler.MongoDbComparableNotLowerThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbComparableOperationHandler.MongoDbComparableOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbEqualsOperationHandler.MongoDbEqualsOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbInOperationHandler.MongoDbInOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbListAnyOperationHandler.MongoDbListAnyOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbNotEqualsOperationHandler.MongoDbNotEqualsOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbNotInOperationHandler.MongoDbNotInOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.InputParser.get -> HotChocolate.Types.InputParser!
+HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.MongoDbOperationHandlerBase(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringContainsHandler.MongoDbStringContainsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringEndsWithHandler.MongoDbStringEndsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringNotContainsHandler.MongoDbStringNotContainsHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringNotEndsWithHandler.MongoDbStringNotEndsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler(HotChocolate.Types.InputParser! inputParser) -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.MongoDbComparableGreaterThanHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanOrEqualsHandler.MongoDbComparableGreaterThanOrEqualsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanHandler.MongoDbComparableLowerThanHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanOrEqualsHandler.MongoDbComparableLowerThanOrEqualsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanHandler.MongoDbComparableNotGreaterThanHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotGreaterThanOrEqualsHandler.MongoDbComparableNotGreaterThanOrEqualsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanHandler.MongoDbComparableNotLowerThanHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanOrEqualsHandler.MongoDbComparableNotLowerThanOrEqualsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbComparableOperationHandler.MongoDbComparableOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbEqualsOperationHandler.MongoDbEqualsOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbInOperationHandler.MongoDbInOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbListAnyOperationHandler.MongoDbListAnyOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbNotEqualsOperationHandler.MongoDbNotEqualsOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbNotInOperationHandler.MongoDbNotInOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbOperationHandlerBase.MongoDbOperationHandlerBase() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringContainsHandler.MongoDbStringContainsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringEndsWithHandler.MongoDbStringEndsWithHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotContainsHandler.MongoDbStringNotContainsHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotEndsWithHandler.MongoDbStringNotEndsWithHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler() -> void
+*REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler() -> void
+static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbPagingProviders(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+*REMOVED*HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.DefaultPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.get -> bool
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.IncludeTotalCount.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.MaxPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.Type.get -> System.Type?
+*REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute.UseMongoDbOffsetPagingAttribute(System.Type? type = null) -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.DefaultPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.get -> bool
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.IncludeTotalCount.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.get -> int
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.MaxPageSize.set -> void
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.Type.get -> System.Type?
+*REMOVED*HotChocolate.Types.UseMongoDbPagingAttribute.UseMongoDbPagingAttribute(System.Type? type = null) -> void
+*REMOVED*override HotChocolate.Types.UseMongoDbOffsetPagingAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbOffsetPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+*REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!

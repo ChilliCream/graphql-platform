@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Xunit;
 using HotChocolate.StarWars;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -62,7 +61,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 (IResponseStream)await executor.ExecuteAsync(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
+            var interceptor = new SocketSessionInterceptorMock();
             var subscriptionSession = new SubscriptionSession(
+                new CancellationTokenSource(),
+                interceptor,
                 connection,
                 stream,
                 subscription.Object,

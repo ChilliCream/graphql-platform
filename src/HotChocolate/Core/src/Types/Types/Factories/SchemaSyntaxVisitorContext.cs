@@ -1,35 +1,31 @@
 ﻿using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Descriptors;
+
+#nullable enable
 
 namespace HotChocolate.Types.Factories
 {
     internal class SchemaSyntaxVisitorContext : ISyntaxVisitorContext
     {
-        public SchemaSyntaxVisitorContext(
-            IBindingLookup bindingLookup,
-            IReadOnlySchemaOptions schemaOptions)
+        public SchemaSyntaxVisitorContext(IDescriptorContext directiveContext)
         {
-            BindingLookup = bindingLookup;
-            SchemaOptions = schemaOptions;
+            DirectiveContext = directiveContext;
         }
 
         public List<ITypeReference> Types { get; } = new();
 
-        public IReadOnlyCollection<DirectiveNode> Directives { get; set; }
+        public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
 
-        public string QueryTypeName { get; set; }
+        public string? QueryTypeName { get; set; }
 
-        public string MutationTypeName { get; set; }
+        public string? MutationTypeName { get; set; }
 
-        public string SubscriptionTypeName { get; set; }
+        public string? SubscriptionTypeName { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public IBindingLookup BindingLookup { get; }
-
-        public IReadOnlySchemaOptions SchemaOptions { get; }
+        public IDescriptorContext DirectiveContext { get; }
     }
 }

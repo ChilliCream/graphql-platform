@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -22,7 +23,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -37,7 +38,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -52,7 +54,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -67,7 +69,8 @@ namespace HotChocolate.Execution.Processing
                     null!,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -82,7 +85,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -94,7 +97,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     null!,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -109,7 +113,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -124,7 +128,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     null!,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -139,7 +144,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -154,7 +159,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    null!);
+                    null!,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -169,7 +175,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
@@ -184,7 +190,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Collection(
@@ -207,7 +214,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo foo }");
@@ -222,7 +229,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Collection(
@@ -245,7 +253,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ }");
@@ -260,7 +268,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<GraphQLException>(Action);
@@ -297,7 +306,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelection hero = operation.GetRootSelectionSet().Selections.Single();
@@ -354,7 +364,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             operation.Print().MatchSnapshot();
@@ -369,7 +380,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo @skip(if: true) foo @skip(if: false) }");
@@ -384,7 +395,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Collection(
@@ -407,7 +419,7 @@ namespace HotChocolate.Execution.Processing
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("foo"))
+                    .Resolve("foo"))
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ foo bar }");
@@ -422,7 +434,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Equal(
@@ -465,7 +478,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -515,7 +529,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -566,7 +581,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -619,7 +635,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -677,7 +694,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -771,7 +789,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             operation.Print().MatchSnapshot();
@@ -818,7 +837,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -866,7 +886,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelectionSet rootSelections =
@@ -918,6 +939,7 @@ namespace HotChocolate.Execution.Processing
                     operationDefinition,
                     schema,
                     schema.QueryType,
+                    new(new DefaultTypeConverter()),
                     optimizers);
 
             // assert
@@ -952,7 +974,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelection rootField = operation.GetRootSelectionSet().Selections.Single();
@@ -1013,7 +1036,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             ISelection rootField = operation.GetRootSelectionSet().Selections.Single();
@@ -1065,7 +1089,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             operation
@@ -1104,7 +1129,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<GraphQLException>(Action);
@@ -1139,7 +1165,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<GraphQLException>(Action);
@@ -1171,7 +1198,8 @@ namespace HotChocolate.Execution.Processing
                     document,
                     operationDefinition,
                     schema,
-                    schema.QueryType);
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
 
             // assert
             Assert.Throws<GraphQLException>(Action);

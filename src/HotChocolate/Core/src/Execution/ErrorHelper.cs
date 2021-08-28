@@ -183,6 +183,12 @@ namespace HotChocolate.Execution
                     string.Format(ErrorHelper_RequestTimeout, timeout),
                     ErrorCodes.Execution.Timeout));
 
+        public static IQueryResult OperationCanceled() =>
+            QueryResultBuilder.CreateError(
+                new Error(
+                    ErrorHelper_OperationCanceled_Message,
+                    ErrorCodes.Execution.Canceled));
+
         public static IQueryResult MaxComplexityReached(
             int complexity,
             int allowedComplexity) =>
@@ -202,5 +208,13 @@ namespace HotChocolate.Execution
                     .SetMessage(ErrorHelper_StateInvalidForComplexityAnalyzer_Message)
                     .SetCode(ErrorCodes.Execution.ComplexityStateInvalid)
                     .Build());
+
+        public static IError NonNullOutputFieldViolation(Path? path, FieldNode selection)
+            => ErrorBuilder.New()
+                .SetMessage("Cannot return null for non-nullable field.")
+                .SetCode(ErrorCodes.Execution.NonNullViolation)
+                .SetPath(path)
+                .AddLocation(selection)
+                .Build();
     }
 }

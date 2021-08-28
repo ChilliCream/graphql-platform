@@ -8,6 +8,12 @@ namespace HotChocolate.Validation
     public interface IDocumentValidatorRule
     {
         /// <summary>
+        /// Defines if the result of this rule can be cached and reused on consecutive
+        /// validations of the same GraphQL request document.
+        /// </summary>
+        bool IsCacheable { get; }
+
+        /// <summary>
         /// Validates the document.
         /// </summary>
         /// <param name="context">

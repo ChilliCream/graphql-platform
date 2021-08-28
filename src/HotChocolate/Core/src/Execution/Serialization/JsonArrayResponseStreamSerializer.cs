@@ -65,6 +65,7 @@ namespace HotChocolate.Execution.Serialization
                 await WriteNextResultAsync(
                         result, outputStream, delimiter, cancellationToken)
                     .ConfigureAwait(false);
+                result.Dispose(); // ensure that pooled results are returned.
                 delimiter = true;
             }
 

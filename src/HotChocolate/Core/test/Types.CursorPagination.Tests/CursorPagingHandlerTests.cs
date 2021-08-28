@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Types.Pagination
 {
     public class CursorPagingHandlerTests
@@ -71,7 +73,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Default()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -96,7 +98,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_First_10()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -121,7 +123,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_First_2()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -146,7 +148,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_First_20()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -171,7 +173,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_After_2_Default()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -196,7 +198,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_After_2_First_10()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -221,7 +223,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_After_2_First_2()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -247,7 +249,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_After_2_First_20()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -272,7 +274,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_Default()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -297,7 +299,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_Last_10()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -322,7 +324,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_Last_2()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -347,7 +349,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_Last_20()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -372,7 +374,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_2_Default()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -397,7 +399,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_2_Last_10()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -422,7 +424,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_3_Last_2()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -448,7 +450,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Before_2_Last_20()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -473,7 +475,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice()
         {
             // arrange
-            var data = new[]
+            Foo[] data =
             {
                 Foo.Create(0),
                 Foo.Create(1),
@@ -498,7 +500,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_WithFirst()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
             Connection result =
@@ -518,7 +520,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_WithLast()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
             Connection result =
@@ -538,11 +540,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_After_Last_2()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, after: ToBase64(0), last: 2);
+            Connection result = await Apply(data, after: ToBase64(0), last: 2);
 
             // assert
             Assert.Equal(8, ToFoo(result).First().Index);
@@ -558,11 +559,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_Before_First_2()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, before: ToBase64(8), first: 2);
+            Connection result = await Apply(data, before: ToBase64(8), first: 2);
 
             // assert
             Assert.Equal(0, ToFoo(result).First().Index);
@@ -578,11 +578,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_Before_OutOfBounds_RangeInReach()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, before: ToBase64(12), last: 4);
+            Connection result = await Apply(data, before: ToBase64(12), last: 4);
 
             // assert
             Assert.Equal(8, ToFoo(result).First().Index);
@@ -598,11 +597,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_Before_OutOfBounds_RangeOutOfReach()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, before: ToBase64(20), last: 4);
+            Connection result = await Apply(data, before: ToBase64(20), last: 4);
 
             // assert
             Assert.Empty(ToFoo(result));
@@ -617,11 +615,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_After_OutOfBounds_RangeInReach()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, after: ToBase64(-2), first: 4);
+            Connection result = await Apply(data, after: ToBase64(-2), first: 4);
 
             // assert
             Assert.Equal(0, ToFoo(result).First().Index);
@@ -637,11 +634,10 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Slice_After_OutOfBounds_RangeOutOfReach()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
-            Connection result =
-                await Apply(data, after: ToBase64(-20), first: 4);
+            Connection result = await Apply(data, after: ToBase64(-20), first: 4);
 
             // assert
             Assert.Empty(ToFoo(result));
@@ -656,7 +652,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_Last_2()
         {
             // arrange
-            var data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
+            Foo[] data = Enumerable.Range(0, 10).Select(Foo.Create).ToArray();
 
             // act
             Connection result = await Apply(data, last: 2);
@@ -887,13 +883,11 @@ namespace HotChocolate.Types.Pagination
             Assert.Equal(0, await result.GetTotalCountAsync(default));
         }
 
-        private static string ToBase64(int i) =>
-            Convert.ToBase64String(Encoding.UTF8.GetBytes(i.ToString()));
+        private static string ToBase64(int i)
+            => Convert.ToBase64String(Encoding.UTF8.GetBytes(i.ToString()));
 
         private static IEnumerable<Foo> ToFoo(Connection connection)
-        {
-            return connection.Edges.Select(x => x.Node).OfType<Foo>();
-        }
+            => connection.Edges.Select(x => x.Node).OfType<Foo>();
 
         public class Foo
         {

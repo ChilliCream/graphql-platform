@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 
@@ -26,10 +27,14 @@ namespace HotChocolate.Types.Descriptors
         private const string _code = "code";
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
+        private readonly ObjectPool<StringBuilder> _stringBuilderPool;
 
-        public XmlDocumentationProvider(IXmlDocumentationFileResolver fileResolver)
+        public XmlDocumentationProvider(
+            IXmlDocumentationFileResolver fileResolver,
+            ObjectPool<StringBuilder> stringBuilderPool)
         {
             _fileResolver = fileResolver ?? throw new ArgumentNullException(nameof(fileResolver));
+            _stringBuilderPool = stringBuilderPool;
         }
 
         public string? GetDescription(Type type) =>
@@ -67,7 +72,7 @@ namespace HotChocolate.Types.Descriptors
                 return null;
             }
 
-            string? description = ComposeMemberDescription(
+            var description = ComposeMemberDescription(
                 element.Element(_summaryElementName),
                 element.Element(_returnsElementName),
                 element.Elements(_exceptionElementName));
@@ -80,26 +85,34 @@ namespace HotChocolate.Types.Descriptors
             XElement? returns,
             IEnumerable<XElement> errors)
         {
-            var description = new StringBuilder();
-            bool needsNewLine = false;
+            StringBuilder description = _stringBuilderPool.Get();
 
-            if (!string.IsNullOrEmpty(summary?.Value))
+            try
             {
-                AppendText(summary, description);
-                needsNewLine = true;
-            }
+                var needsNewLine = false;
 
-            if (!string.IsNullOrEmpty(returns?.Value))
+                if (!string.IsNullOrEmpty(summary?.Value))
+                {
+                    AppendText(summary, description);
+                    needsNewLine = true;
+                }
+
+                if (!string.IsNullOrEmpty(returns?.Value))
+                {
+                    AppendNewLineIfNeeded(description, needsNewLine);
+                    description.AppendLine("**Returns:**");
+                    AppendText(returns, description);
+                    needsNewLine = true;
+                }
+
+                AppendErrorDescription(errors, description, needsNewLine);
+
+                return description.Length == 0 ? null : description.ToString();
+            }
+            finally
             {
-                AppendNewLineIfNeeded(description, needsNewLine);
-                description.AppendLine($"**Returns:**");
-                AppendText(returns, description);
-                needsNewLine = true;
+                _stringBuilderPool.Return(description);
             }
-
-            AppendErrorDescription(errors, description, needsNewLine);
-
-            return description.Length == 0 ? null : description.ToString();
         }
 
         private void AppendErrorDescription(
@@ -107,7 +120,7 @@ namespace HotChocolate.Types.Descriptors
             StringBuilder description,
             bool needsNewLine)
         {
-            int errorCount = 0;
+            var errorCount = 0;
             foreach (XElement error in errors)
             {
                 XAttribute? code = error.Attribute(_code);
@@ -157,7 +170,7 @@ namespace HotChocolate.Types.Descriptors
                     continue;
                 }
 
-                var attribute = currentElement.Attribute(_langword);
+                XAttribute? attribute = currentElement.Attribute(_langword);
                 if (attribute != null)
                 {
                     description.Append(attribute.Value);
@@ -234,9 +247,9 @@ namespace HotChocolate.Types.Descriptors
                     out XDocument document))
                 {
                     MemberName name = GetMemberElementName(parameter.Member);
-                    var result = document.XPathSelectElements(name.Path);
+                    IEnumerable<XElement> result = document.XPathSelectElements(name.Path);
+                    XElement? element = result.FirstOrDefault();
 
-                    var element = result.FirstOrDefault();
                     if (element is null)
                     {
                         return null;
@@ -318,7 +331,7 @@ namespace HotChocolate.Types.Descriptors
                 foreach (Type baseInterface in member.DeclaringType
                     .GetTypeInfo().ImplementedInterfaces)
                 {
-                    MemberInfo? baseMember = baseInterface?.GetTypeInfo()
+                    MemberInfo? baseMember = baseInterface.GetTypeInfo()
                         .DeclaredMembers.SingleOrDefault(m =>
                             m.Name.EqualsOrdinal(member.Name));
                     if (baseMember != null)
@@ -356,7 +369,7 @@ namespace HotChocolate.Types.Descriptors
         {
             char prefixCode;
 
-            string? memberName =
+            var memberName =
                 member is Type { FullName: { Length: > 0 } } memberType
                 ? memberType.FullName
                 : member.DeclaringType is null
@@ -366,7 +379,7 @@ namespace HotChocolate.Types.Descriptors
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    memberName = memberName?.Replace(".ctor", "#ctor");
+                    memberName = memberName.Replace(".ctor", "#ctor");
                     goto case MemberTypes.Method;
 
                 case MemberTypes.Method:

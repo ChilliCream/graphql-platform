@@ -20,16 +20,16 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
-        public void Serialize_IdIsNull_ArgumentNullException()
+        public void Serialize_IdIsNull_Null()
         {
             // arrange
             var serializer = new IdSerializer();
 
             // act
-            Action a = () => serializer.Serialize("Foo", default(object));
+            var s = serializer.Serialize("Foo", default(object));
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Null(s);
         }
 
         [Fact]

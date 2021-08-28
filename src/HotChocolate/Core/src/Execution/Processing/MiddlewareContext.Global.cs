@@ -13,10 +13,23 @@ namespace HotChocolate.Execution.Processing
     internal partial class MiddlewareContext
     {
         private IOperationContext _operationContext = default!;
+        private IServiceProvider _services = default!;
+        private InputParser _parser = default!;
         private object? _resolverResult;
         private bool _hasResolverResult;
 
-        public IServiceProvider Services => _operationContext.Services;
+        public IServiceProvider Services
+        {
+            get => _services;
+            set
+            {
+                if (value is null!)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _services = value;
+            }
+        }
 
         public ISchema Schema => _operationContext.Schema;
 
@@ -30,7 +43,7 @@ namespace HotChocolate.Execution.Processing
 
         public IVariableValueCollection Variables => _operationContext.Variables;
 
-        public CancellationToken RequestAborted => _operationContext.RequestAborted;
+        public CancellationToken RequestAborted { get; private set; }
 
         public IReadOnlyList<IFieldSelection> GetSelections(
             ObjectType typeContext,
@@ -87,7 +100,7 @@ namespace HotChocolate.Execution.Processing
                 .Build());
         }
 
-        public void ReportError(Exception exception)
+        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
         {
             if (exception is null)
             {
@@ -101,15 +114,23 @@ namespace HotChocolate.Execution.Processing
                     ReportError(error);
                 }
             }
+            else if (exception is AggregateException aggregateException)
+            {
+                foreach (Exception innerException in aggregateException.InnerExceptions)
+                {
+                    ReportError(innerException);
+                }
+            }
             else
             {
-                IError error = _operationContext.ErrorHandler
+                IErrorBuilder errorBuilder = _operationContext.ErrorHandler
                     .CreateUnexpectedError(exception)
                     .SetPath(Path)
-                    .AddLocation(_selection.SyntaxNode)
-                    .Build();
+                    .AddLocation(_selection.SyntaxNode);
 
-                ReportError(error);
+                configure?.Invoke(errorBuilder);
+
+                ReportError(errorBuilder.Build());
             }
         }
 
@@ -120,10 +141,40 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(error));
             }
 
-            error = _operationContext.ErrorHandler.Handle(error);
-            _operationContext.Result.AddError(error, _selection.SyntaxNode);
-            _operationContext.DiagnosticEvents.ResolverError(this, error);
-            HasErrors = true;
+            if (error is AggregateError aggregateError)
+            {
+                foreach (var innerError in aggregateError.Errors)
+                {
+                    ReportSingle(innerError);
+                }
+            }
+            else
+            {
+                ReportSingle(error);
+            }
+
+            void ReportSingle(IError singleError)
+            {
+                AddProcessedError(_operationContext.ErrorHandler.Handle(singleError));
+                HasErrors = true;
+            }
+
+            void AddProcessedError(IError processed)
+            {
+                if (processed is AggregateError ar)
+                {
+                    foreach (var ie in ar.Errors)
+                    {
+                        _operationContext.Result.AddError(ie, _selection.SyntaxNode);
+                        _operationContext.DiagnosticEvents.ResolverError(this, ie);
+                    }
+                }
+                else
+                {
+                    _operationContext.Result.AddError(processed, _selection.SyntaxNode);
+                    _operationContext.DiagnosticEvents.ResolverError(this, processed);
+                }
+            }
         }
 
         public async ValueTask<T> ResolveAsync<T>()

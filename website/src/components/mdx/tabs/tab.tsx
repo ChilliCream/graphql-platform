@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { useTabs } from "./tabs";
 
@@ -6,7 +6,7 @@ export interface TabProps {
   value: string;
 }
 
-export const Tab: FunctionComponent<TabProps> = ({ value, children }) => {
+export const Tab: FC<TabProps> = ({ value, children }) => {
   const { activeTab, setActiveTab } = useTabs();
 
   return (
@@ -26,10 +26,10 @@ const TabButton = styled.button`
   padding: 1rem 0.25rem;
   font-size: 0.95rem;
   line-height: 1.2;
-  color: #666677;
+  color: var(--text-color);
 
   :hover {
-    color: #2d2d35;
+    color: var(--heading-text-color);
   }
 
   :focus {
@@ -37,7 +37,7 @@ const TabButton = styled.button`
   }
 
   &.active {
-    color: #000;
+    color: var(--heading-text-color);
     font-weight: 700;
   }
 

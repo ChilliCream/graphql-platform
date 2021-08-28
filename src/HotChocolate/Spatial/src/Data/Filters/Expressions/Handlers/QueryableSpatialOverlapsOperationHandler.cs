@@ -1,4 +1,5 @@
-﻿using HotChocolate.Types.Descriptors;
+﻿using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters.Spatial
 {
@@ -7,8 +8,9 @@ namespace HotChocolate.Data.Filters.Spatial
     {
         public QueryableSpatialOverlapsOperationHandler(
             IFilterConvention convention,
-            ITypeInspector inspector)
-            : base(convention, inspector)
+            ITypeInspector inspector,
+            InputParser inputParser)
+            : base(convention, inspector, inputParser)
         {
         }
 

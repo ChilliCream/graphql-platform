@@ -11,10 +11,10 @@ class Helpers
     public static readonly string[] Directories =
     {
         "GreenDonut",
-        // Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
@@ -31,19 +31,18 @@ class Helpers
 
     public static IEnumerable<string> GetAllProjects(
         string sourceDirectory, 
-        IEnumerable<string> directories)
+        IEnumerable<string> directories,
+        Func<string, bool> include = null)
     {
         foreach (var directory in directories)
         {
             var fullDirectory = Path.Combine(sourceDirectory, directory);
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
-                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                if (!(include?.Invoke(file) ?? true)
+                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Types.Selection", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -54,7 +53,8 @@ class Helpers
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
         string solutionFile,
-        IEnumerable<string> directories = null)
+        IEnumerable<string> directories = null,
+        Func<string, bool> include = null)
     {
         if (File.Exists(solutionFile))
         {
@@ -63,7 +63,7 @@ class Helpers
 
         directories ??= Directories;
 
-        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories);
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile), directories, include);
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
@@ -95,5 +95,13 @@ class Helpers
         list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
+    }
+
+    public static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
     }
 }

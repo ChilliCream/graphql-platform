@@ -48,8 +48,8 @@ namespace HotChocolate.Types
             { ScalarNames.Float, typeof(FloatType) },
             { ScalarNames.Decimal, typeof(DecimalType) },
 
-            { ScalarNames.Url, typeof(UrlType) },
-            { ScalarNames.Uuid, typeof(UuidType) },
+            { ScalarNames.URL, typeof(UrlType) },
+            { ScalarNames.UUID, typeof(UuidType) },
             { ScalarNames.DateTime, typeof(DateTimeType) },
             { ScalarNames.Date, typeof(DateType) },
             { ScalarNames.TimeSpan, typeof(TimeSpanType) },

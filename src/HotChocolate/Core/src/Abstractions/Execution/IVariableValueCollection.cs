@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
         /// The <paramref name="name" /> mustn't be null or
         /// <see cref="string.Empty" />.
         /// </exception>
-        T GetVariable<T>(NameString name);
+        T? GetVariable<T>(NameString name);
 
         /// <summary>
         /// Tries to get a coerced variable value from the collection.
@@ -36,6 +36,6 @@ namespace HotChocolate.Execution
         /// <c>true</c> if a coerced variable exists and can be converted
         /// to the requested type; otherwise, <c>false</c> will be returned.
         /// </returns>
-        bool TryGetVariable<T>(NameString name, [NotNullWhen(true)] out T value);
+        bool TryGetVariable<T>(NameString name, out T? value);
     }
 }

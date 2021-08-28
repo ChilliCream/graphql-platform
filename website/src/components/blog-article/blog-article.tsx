@@ -1,9 +1,10 @@
 import { graphql } from "gatsby";
-import Img, { FluidObject } from "gatsby-image";
+import { GatsbyImage } from "gatsby-plugin-image";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { BlogArticleFragment } from "../../../graphql-types";
+import { Article } from "../articles/article";
 import { ArticleComments } from "../articles/article-comments";
 import {
   ArticleContent,
@@ -13,15 +14,12 @@ import {
 import { BlogArticleMetadata } from "./blog-article-metadata";
 import { BlogArticleSharebar } from "./blog-article-sharebar";
 import { BlogArticleTags } from "./blog-article-tags";
-import { Article } from "../articles/article";
 
-interface BlogArticleProperties {
+interface BlogArticleProps {
   data: BlogArticleFragment;
 }
 
-export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
-  data,
-}) => {
+export const BlogArticle: FC<BlogArticleProps> = ({ data }) => {
   const { mdx } = data;
   const { frontmatter, body } = mdx!;
   const path = frontmatter!.path!;
@@ -29,8 +27,8 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
   const existingTags: string[] = frontmatter!.tags!
     ? (frontmatter!.tags!.filter((tag) => tag && tag.length > 0) as string[])
     : [];
-  const featuredImage = frontmatter!.featuredImage?.childImageSharp
-    ?.fluid as FluidObject;
+  const featuredImage =
+    frontmatter!.featuredImage?.childImageSharp?.gatsbyImageData;
 
   return (
     <Container>
@@ -38,7 +36,7 @@ export const BlogArticle: FunctionComponent<BlogArticleProperties> = ({
       <ArticleWrapper>
         <Article>
           <ArticleHeader kind="blog">
-            {featuredImage && <Img fluid={featuredImage} />}
+            {featuredImage && <GatsbyImage image={featuredImage} alt={title} />}
             <ArticleTitle>{title}</ArticleTitle>
             <BlogArticleMetadata data={mdx!} />
             <BlogArticleTags tags={existingTags} />
@@ -60,9 +58,10 @@ export const BlogArticleGraphQLFragment = graphql`
       frontmatter {
         featuredImage {
           childImageSharp {
-            fluid(maxWidth: 800, pngQuality: 90) {
-              ...GatsbyImageSharpFluid
-            }
+            gatsbyImageData(
+              layout: CONSTRAINED
+              width: 800
+            )
           }
         }
         path

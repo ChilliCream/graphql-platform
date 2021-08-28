@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Resolvers.Expressions
 {
@@ -18,36 +20,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task) =>
             await task.ConfigureAwait(false);
 
-
         public static ValueTask<object> WrapResultHelper<T>(T result) => new(result);
-
-        [Obsolete]
-        public static TContextData ResolveContextData<TContextData>(
-            IDictionary<string, object> contextData,
-            string key,
-            bool defaultIfNotExists)
-        {
-            if (contextData.TryGetValue(key, out object value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is TContextData v)
-                {
-                    return v;
-                }
-            }
-            else if (defaultIfNotExists)
-            {
-                return default;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "The specified context key does not exist.");
-        }
 
         public static TContextData GetGlobalState<TContextData>(
             IDictionary<string, object> contextData,
@@ -57,78 +30,6 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static TContextData GetGlobalStateWithDefault<TContextData>(
             IDictionary<string, object> contextData,
-            string key,
-            bool hasDefaultValue,
-            TContextData defaultValue)
-        {
-            if (contextData.TryGetValue(key, out object value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is TContextData v)
-                {
-                    return v;
-                }
-            }
-            else if (hasDefaultValue)
-            {
-                return defaultValue;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ContextData`.");
-        }
-
-        public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
-            IDictionary<string, object> contextData,
-            string key) =>
-            value => contextData[key] = value;
-
-        public static SetState SetGlobalState(
-            IDictionary<string, object> contextData,
-            string key) =>
-            value => contextData[key] = value;
-
-        [Obsolete]
-        public static TContextData ResolveScopedContextData<TContextData>(
-            IReadOnlyDictionary<string, object> contextData,
-            string key,
-            bool defaultIfNotExists)
-        {
-            if (contextData.TryGetValue(key, out object value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is TContextData v)
-                {
-                    return v;
-                }
-            }
-            else if (defaultIfNotExists)
-            {
-                return default;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "The specified context key does not exist.");
-        }
-
-        public static TContextData GetScopedState<TContextData>(
-            IReadOnlyDictionary<string, object> contextData,
-            string key,
-            bool defaultIfNotExists = false) =>
-            GetScopedStateWithDefault<TContextData>(contextData, key, defaultIfNotExists, default);
-
-        public static TContextData GetScopedStateWithDefault<TContextData>(
-            IReadOnlyDictionary<string, object> contextData,
             string key,
             bool hasDefaultValue,
             TContextData defaultValue)
@@ -150,9 +51,55 @@ namespace HotChocolate.Resolvers.Expressions
                 return defaultValue;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                $"The specified key `{key}` does not exist on `context.ScopedContextData`.");
+                string.Format(ExpressionHelper_GetGlobalStateWithDefault_NoDefaults, key));
+        }
+
+        public static SetState<TContextData> SetGlobalStateGeneric<TContextData>(
+            IDictionary<string, object> contextData,
+            string key) =>
+            value => contextData[key] = value;
+
+        public static SetState SetGlobalState(
+            IDictionary<string, object> contextData,
+            string key) =>
+            value => contextData[key] = value;
+
+        public static TContextData GetScopedState<TContextData>(
+            IPureResolverContext context,
+            IReadOnlyDictionary<string, object> contextData,
+            string key,
+            bool defaultIfNotExists = false) =>
+            GetScopedStateWithDefault<TContextData>(
+                context, contextData, key, defaultIfNotExists, default);
+
+        public static TContextData GetScopedStateWithDefault<TContextData>(
+            IPureResolverContext context,
+            IReadOnlyDictionary<string, object> contextData,
+            string key,
+            bool hasDefaultValue,
+            TContextData defaultValue)
+        {
+            if (contextData.TryGetValue(key, out var value))
+            {
+                if (value is null)
+                {
+                    return default;
+                }
+
+                if (value is TContextData v ||
+                    context.Service<ITypeConverter>().TryConvert(value, out v))
+                {
+                    return v;
+                }
+            }
+            else if (hasDefaultValue)
+            {
+                return defaultValue;
+            }
+
+            throw new ArgumentException(
+                string.Format(ExpressionHelper_GetScopedStateWithDefault_NoDefaultValue, key));
         }
 
         public static SetState<TContextData> SetScopedStateGeneric<TContextData>(

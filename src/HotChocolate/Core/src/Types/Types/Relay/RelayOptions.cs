@@ -5,6 +5,7 @@ namespace HotChocolate.Types.Relay
     /// <summary>
     /// Represents relay options.
     /// </summary>
+    [Obsolete]
     public class RelayOptions
     {
         /// <summary>

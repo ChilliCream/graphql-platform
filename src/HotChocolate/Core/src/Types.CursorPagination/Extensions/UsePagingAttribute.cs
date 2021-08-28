@@ -10,9 +10,13 @@ namespace HotChocolate.Types
     /// </summary>
     public sealed class UsePagingAttribute : DescriptorAttribute
     {
+        private string? _connectionName;
         private int? _defaultPageSize;
         private int? _maxPageSize;
         private bool? _includeTotalCount;
+        private bool? _allowBackwardPagination;
+        private bool? _requirePagingBoundaries;
+        private bool? _inferConnectionNameFromField;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.
@@ -28,17 +32,28 @@ namespace HotChocolate.Types
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
-        
-        public Type? SchemaType 
-        { 
-            [Obsolete("Use Type.")] get => Type; 
-            [Obsolete("Use the new constructor.")] set => Type = value; 
+
+        public Type? SchemaType
+        {
+            [Obsolete("Use Type.")]
+            get => Type;
+            [Obsolete("Use the new constructor.")]
+            set => Type = value;
         }
 
         /// <summary>
         /// The schema type representation of the item type.
         /// </summary>
         public Type? Type { get; private set; }
+
+        /// <summary>
+        /// Specifies the connection name.
+        /// </summary>
+        public string? ConnectionName
+        {
+            get => _connectionName;
+            set => _connectionName = value;
+        }
 
         /// <summary>
         /// Specifies the default page size for this field.
@@ -67,7 +82,41 @@ namespace HotChocolate.Types
             set => _includeTotalCount = value;
         }
 
-        protected override void TryConfigure(
+        /// <summary>
+        /// Allow backward paging using <c>last</c> and <c>before</c>
+        /// </summary>
+        public bool AllowBackwardPagination
+        {
+            get => _allowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
+            set => _allowBackwardPagination = value;
+        }
+
+        /// <summary>
+        /// Defines if the paging middleware shall require the
+        /// API consumer to specify paging boundaries.
+        /// </summary>
+        public bool RequirePagingBoundaries
+        {
+            get => _requirePagingBoundaries ?? PagingDefaults.AllowBackwardPagination;
+            set => _requirePagingBoundaries = value;
+        }
+
+        /// <summary>
+        /// Connection names are by default inferred from the field name to
+        /// which they are bound to as opposed to the node type name.
+        /// </summary>
+        public bool InferConnectionNameFromField
+        {
+            get => _inferConnectionNameFromField ?? PagingDefaults.AllowBackwardPagination;
+            set => _inferConnectionNameFromField = value;
+        }
+
+        /// <summary>
+        /// Specifies the name of the paging provider that shall be used.
+        /// </summary>
+        public string? ProviderName { get; set; }
+
+        protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element)
@@ -78,22 +127,36 @@ namespace HotChocolate.Types
                 {
                     ofd.UsePaging(
                         Type,
+                        connectionName: string.IsNullOrEmpty(_connectionName)
+                            ? default(NameString?)
+                            : _connectionName,
                         options: new PagingOptions
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            AllowBackwardPagination = _allowBackwardPagination,
+                            RequirePagingBoundaries = _requirePagingBoundaries,
+                            InferConnectionNameFromField = _inferConnectionNameFromField,
+                            ProviderName = ProviderName
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
                 {
                     ifd.UsePaging(
                         Type,
-                        new PagingOptions
+                        connectionName: string.IsNullOrEmpty(_connectionName)
+                            ? default(NameString?)
+                            : _connectionName,
+                        options: new()
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            AllowBackwardPagination = _allowBackwardPagination,
+                            RequirePagingBoundaries = _requirePagingBoundaries,
+                            InferConnectionNameFromField = _inferConnectionNameFromField,
+                            ProviderName = ProviderName
                         });
                 }
             }

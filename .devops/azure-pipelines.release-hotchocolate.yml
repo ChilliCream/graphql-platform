@@ -12,23 +12,8 @@ stages:
         dependsOn: []
         continueOnError: true
         strategy:
-          parallel: 5
+          parallel: 3
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 2.1"
-            inputs:
-              packageType: 'sdk'
-              version: '2.1.816'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 3.1"
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.409'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: CmdLine@2
             displayName: "Run Tests"
             inputs:
@@ -42,21 +27,6 @@ stages:
         displayName: "Pack"
         dependsOn: []
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 2.1"
-            inputs:
-              packageType: 'sdk'
-              version: '2.1.816'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 3.1"
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.409'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: CmdLine@2
             displayName: "Create Packages"
             inputs:
@@ -70,21 +40,6 @@ stages:
         displayName: "Publish"
         dependsOn: [Test, Pack]
         steps:
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 2.1"
-            inputs:
-              packageType: 'sdk'
-              version: '2.1.816'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core 3.1"
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.409'
-          - task: UseDotNet@2
-            displayName: "Install .NET Core"
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
           - task: DownloadBuildArtifacts@0
             displayName: "Download Packages"
             inputs:

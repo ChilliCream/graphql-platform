@@ -716,7 +716,7 @@ namespace HotChocolate.Stitching.Integration
                     .AddRemoteSchema(Context.CustomerSchema)
                     .AddTypeExtensionsFromString(
                         @"extend type Customer {
-                            guid: Uuid!
+                            guid: UUID!
                                 @delegate(
                                     schema: ""contract"",
                                     path: ""guid(guid:$fields:someGuid)"")

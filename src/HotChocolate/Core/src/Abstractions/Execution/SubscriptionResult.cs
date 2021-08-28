@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
@@ -7,14 +7,13 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
-    public sealed class SubscriptionResult
-        : ISubscriptionResult
+    public sealed class SubscriptionResult : ISubscriptionResult
     {
         private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
         private readonly IReadOnlyList<IError>? _errors;
         private readonly IReadOnlyDictionary<string, object?>? _extensions;
         private readonly IReadOnlyDictionary<string, object?>? _contextData;
-        private readonly IAsyncDisposable? _session;
+        private IAsyncDisposable? _session;
         private bool _isRead;
         private bool _disposed;
 
@@ -46,8 +45,8 @@ namespace HotChocolate.Execution
             _extensions = subscriptionResult._extensions;
             _contextData = subscriptionResult._contextData;
             _session = session is null
-                ? (IAsyncDisposable)subscriptionResult
-                : new CombinedDispose(session, subscriptionResult);
+                ? subscriptionResult
+                : subscriptionResult.Combine(session);
         }
 
          public SubscriptionResult(
@@ -59,8 +58,8 @@ namespace HotChocolate.Execution
             _extensions = subscriptionResult._extensions;
             _contextData = subscriptionResult._contextData;
             _session = session is null
-                ? (IAsyncDisposable)subscriptionResult
-                : new CombinedDispose(session.Dispose, subscriptionResult);
+                ? subscriptionResult
+                : DisposableExtensions.Combine((IAsyncDisposable)subscriptionResult, session);
         }
 
         public IReadOnlyList<IError>? Errors => _errors;
@@ -92,11 +91,22 @@ namespace HotChocolate.Execution
             return _resultStreamFactory();
         }
 
+        /// <inheritdoc />
+        public void RegisterDisposable(IDisposable disposable)
+        {
+            if (disposable is null)
+            {
+                throw new ArgumentNullException(nameof(disposable));
+            }
+
+            _session = _session.Combine(disposable);
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
-                if (_session is { })
+                if (_session is not null)
                 {
                     await _session.DisposeAsync().ConfigureAwait(false);
                 }
@@ -104,40 +114,11 @@ namespace HotChocolate.Execution
             }
         }
 
-        private class CombinedDispose : IAsyncDisposable
+        public void Dispose()
         {
-            private readonly IAsyncDisposable? _aa;
-            private readonly Action? _ab;
-            private readonly IAsyncDisposable _b;
-            private bool _disposed;
-
-            public CombinedDispose(IAsyncDisposable a, IAsyncDisposable b)
-            {
-                _aa = a;
-                _b = b;
-            }
-
-            public CombinedDispose(Action a, IAsyncDisposable b)
-            {
-                _ab = a;
-                _b = b;
-            }
-
-            public async ValueTask DisposeAsync()
-            {
-                if (!_disposed)
-                {
-                    if (_aa is not null)
-                    {
-                        await _aa.DisposeAsync().ConfigureAwait(false);
-                    }
-
-                    _ab?.Invoke();
-
-                    await _b.DisposeAsync().ConfigureAwait(false);
-                    _disposed = true;
-                }
-            }
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            DisposeAsync();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         }
     }
 }

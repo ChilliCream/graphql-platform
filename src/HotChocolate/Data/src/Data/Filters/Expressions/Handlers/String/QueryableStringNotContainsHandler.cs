@@ -1,11 +1,12 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringNotContainsHandler : QueryableStringOperationHandler
     {
-        public QueryableStringNotContainsHandler()
+        public QueryableStringNotContainsHandler(InputParser inputParser) : base(inputParser)
         {
             CanBeNull = false;
         }

@@ -45,7 +45,11 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (_settings.Enable && !context.ContextData.ContainsKey(SkipComplexityAnalysis))
+            if (!_settings.Enable || context.ContextData.ContainsKey(SkipComplexityAnalysis))
+            {
+                await _next(context).ConfigureAwait(false);
+            }
+            else
             {
                 if (context.DocumentId is not null &&
                     context.OperationId is not null &&
@@ -67,7 +71,7 @@ namespace HotChocolate.Execution.Pipeline
                         _coercionHelper,
                         operationDefinition.VariableDefinitions);
 
-                    var complexity = analyzer(context.Variables!);
+                    var complexity = analyzer(context.Services, context.Variables!);
                     var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
                     context.ContextData[_settings.ContextDataKey] = complexity;
 
@@ -84,10 +88,6 @@ namespace HotChocolate.Execution.Pipeline
                 {
                     context.Result = StateInvalidForComplexityAnalyzer();
                 }
-            }
-            else
-            {
-                await _next(context).ConfigureAwait(false);
             }
         }
 

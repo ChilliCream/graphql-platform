@@ -37,12 +37,9 @@ namespace HotChocolate.Execution.Processing.Plan
 
         private static OperationQueryPlanNode Prepare(QueryPlanContext context)
         {
-            if (context.Operation.Definition.Operation is OperationType.Mutation)
-            {
-                return MutationStrategy.Build(context);
-            }
-
-            return QueryStrategy.Build(context);
+            return context.Operation.Definition.Operation is OperationType.Mutation
+                ? MutationStrategy.Build(context)
+                : QueryStrategy.Build(context);
         }
 
         internal static ExecutionStrategy GetStrategyFromSelection(ISelection selection) =>

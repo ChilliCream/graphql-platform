@@ -89,7 +89,7 @@
           "items": {
             "type": "string",
             "enum": [
-              "AddUnshipped",
+              "AddUnshippedApi",
               "CheckPublicApi",
               "Clean",
               "Compile",
@@ -101,6 +101,7 @@
               "PackLocal",
               "Publish",
               "ReportCoverage",
+              "Reset",
               "Restore",
               "Sonar",
               "SonarPr",
@@ -120,7 +121,7 @@
           "items": {
             "type": "string",
             "enum": [
-              "AddUnshipped",
+              "AddUnshippedApi",
               "CheckPublicApi",
               "Clean",
               "Compile",
@@ -132,6 +133,7 @@
               "PackLocal",
               "Publish",
               "ReportCoverage",
+              "Reset",
               "Restore",
               "Sonar",
               "SonarPr",

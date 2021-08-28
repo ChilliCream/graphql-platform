@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using Colorful;
+using System.Text;
+using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tooling;
@@ -8,11 +12,6 @@ using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Helpers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Text;
-using System;
-using System.Drawing;
 
 partial class Build : NukeBuild
 {
@@ -28,33 +27,38 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            Helpers.TryDelete(PublicApiSolutionFile);
+            
+            DotNetBuildSonarSolution(
+                PublicApiSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             DotNetBuild(c => c
-                .SetProjectFile(AllSolutionFile)
+                .SetProjectFile(PublicApiSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
                 .SetProperty("RequireDocumentationOfPublicApiChanges", true));
         });
 
-    Target AddUnshipped => _ => _
-        .DependsOn(Restore)
+    Target AddUnshippedApi => _ => _
+        .DependsOn(Restore) 
         .Executes(() =>
         {
-            // first we ensure that the All.sln exists.
-            if (!InvokedTargets.Contains(Restore))
-            {
-                DotNetBuildSonarSolution(AllSolutionFile);
-            }
+            TryDelete(PublicApiSolutionFile);
+
+            DotNetBuildSonarSolution(
+                PublicApiSolutionFile,
+                include: file =>
+                    !Path.GetFileNameWithoutExtension(file)
+                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             // new we restore our local dotnet tools including dotnet-format
             DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
 
             // last we run the actual dotnet format command.
-            DotNet($@"format ""{AllSolutionFile}"" --fix-analyzers warn --diagnostics RS0016", workingDirectory: RootDirectory);
+            DotNet($@"format ""{PublicApiSolutionFile}"" --fix-analyzers warn --diagnostics RS0016", workingDirectory: RootDirectory);
         });
 
     Target DiffShippedApi => _ => _
@@ -122,6 +126,17 @@ partial class Build : NukeBuild
     Target MarkApiShipped => _ => _
         .Executes(async () =>
         {
+            Colorful.Console.WriteLine("This is only supposed to be executed after a release has been published.", Color.Yellow);
+            Colorful.Console.WriteLine("If you just want to stage your API changes, use the AddUnshippedApi script.", Color.Yellow);
+            Colorful.Console.WriteLine("Continue? (y/n)", Color.Yellow);
+
+            if (Colorful.Console.ReadKey().Key != ConsoleKey.Y)
+            {
+                return;
+            }
+
+            Colorful.Console.WriteLine();
+
             var shippedFiles = Directory.GetFiles(SourceDirectory, _shippedApiFile, SearchOption.AllDirectories);
 
             foreach (var shippedFile in shippedFiles)

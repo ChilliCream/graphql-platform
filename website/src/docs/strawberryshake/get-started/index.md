@@ -95,7 +95,7 @@ In this tutorial we will use our GraphQL workshop to create a list of sessions t
 1. Add the conference client to your Blazor application.
 
 ```bash
-dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n ConferenceClient -p ./Demo
+dotnet graphql init https://workshop.chillicream.com/graphql/ -n ConferenceClient -p ./Demo
 ```
 
 2. Customize the namespace of the generated client to be `Demo.GraphQL`. For this head over to the `.graphqlrc.json` and insert a namespace property to the `StrawberryShake` section.
@@ -108,7 +108,7 @@ dotnet graphql init https://hc-conference-app.azurewebsites.net/graphql/ -n Conf
     "strawberryShake": {
       "name": "ConferenceClient",
       "namespace": "Demo.GraphQL",
-      "url": "https://hc-conference-app.azurewebsites.net/graphql/",
+      "url": "https://workshop.chillicream.com/graphql/",
       "dependencyInjection": true
     }
   }
@@ -161,7 +161,7 @@ public class Program
 
         builder.Services
             .AddConferenceClient()
-            .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://hc-conference-app.azurewebsites.net/graphql"));
+            .ConfigureHttpClient(client => client.BaseAddress = new Uri("https://workshop.chillicream.com/graphql"));
 
         await builder.Build().RunAsync();
     }

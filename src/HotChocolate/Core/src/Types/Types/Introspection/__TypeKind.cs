@@ -1,62 +1,30 @@
 #pragma warning disable IDE1006 // Naming Styles
-using HotChocolate.Properties;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
-    internal sealed class __TypeKind : EnumType<TypeKind>
+    internal sealed class __TypeKind : EnumType
     {
-        protected override void Configure(IEnumTypeDescriptor<TypeKind> descriptor)
-        {
-            descriptor
-                .Name(Names.__TypeKind)
-                .Description(TypeResources.TypeKind_Description)
-                // Introspection types must always be bound explicitly so that we
-                // do not get any interference with conventions.
-                .BindValues(BindingBehavior.Explicit);
-
-            descriptor
-                .Value(TypeKind.Scalar)
-                .Name(Names.Scalar)
-                .Description(TypeResources.TypeKind_Scalar);
-
-            descriptor
-                .Value(TypeKind.Object)
-                .Name(Names.Object)
-                .Description(TypeResources.TypeKind_Object);
-
-            descriptor
-                .Value(TypeKind.Interface)
-                .Name(Names.Interface)
-                .Description(TypeResources.TypeKind_Interface);
-
-            descriptor
-                .Value(TypeKind.Union)
-                .Name(Names.Union)
-                .Description(TypeResources.TypeKind_Union);
-
-            descriptor
-                .Value(TypeKind.Enum)
-                .Name(Names.Enum)
-                .Description(TypeResources.TypeKind_Enum);
-
-            descriptor
-                .Value(TypeKind.InputObject)
-                .Name(Names.InputObject)
-                .Description(TypeResources.TypeKind_InputObject);
-
-            descriptor
-                .Value(TypeKind.List)
-                .Name(Names.List)
-                .Description(TypeResources.TypeKind_List);
-
-            descriptor
-                .Value(TypeKind.NonNull)
-                .Name(Names.NonNull)
-                .Description(TypeResources.TypeKind_NonNull);
-        }
+        protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+            => new(Names.__TypeKind, TypeKind_Description, typeof(TypeKind))
+            {
+                Values =
+                {
+                    new(Names.Scalar, TypeKind_Scalar, TypeKind.Scalar),
+                    new(Names.Object, TypeKind_Object, TypeKind.Object),
+                    new(Names.Interface, TypeKind_Interface, TypeKind.Interface),
+                    new(Names.Union, TypeKind_Union, TypeKind.Union),
+                    new(Names.Enum, TypeKind_Enum, TypeKind.Enum),
+                    new(Names.InputObject, TypeKind_InputObject, TypeKind.InputObject),
+                    new(Names.List, TypeKind_List, TypeKind.List),
+                    new(Names.NonNull, TypeKind_NonNull, TypeKind.NonNull),
+                }
+            };
 
         public static class Names
         {

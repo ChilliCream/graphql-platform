@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Sorting
             EnumValueDefinition definition,
             ISortingNamingConvention convention)
         {
-            switch (definition.Value)
+            switch (definition.RuntimeValue)
             {
                 case SortOperationKind.Asc:
                     definition.Name = convention.SortKindAscName;

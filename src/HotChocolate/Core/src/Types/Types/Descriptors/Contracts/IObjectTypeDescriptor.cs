@@ -96,13 +96,6 @@ namespace HotChocolate.Types
         IObjectTypeDescriptor Implements(NamedTypeNode type);
 
         /// <summary>
-        /// Includes a resolver type and imports all the methods and
-        /// fields from it.
-        /// </summary>
-        /// <typeparam name="TResolver">A resolver type.</typeparam>
-        IObjectTypeDescriptor Include<TResolver>();
-
-        /// <summary>
         /// Specifies a delegate that can determine if a resolver result
         /// represents an object instance of this <see cref="ObjectType"/>.
         /// </summary>

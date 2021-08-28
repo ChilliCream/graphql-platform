@@ -1,7 +1,5 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,31 +8,46 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class RegisteredType
-        : IHasRuntimeType
+    internal sealed partial class RegisteredType : IHasRuntimeType
     {
-        private TypeCompletionContext? _completionContext;
-        private IReadOnlyList<ITypeReference> _references;
-        private IReadOnlyList<TypeDependency> _dependencies;
+        private readonly TypeRegistry _typeRegistry;
+        private readonly TypeLookup _typeLookup;
 
         public RegisteredType(
             TypeSystemObjectBase type,
-            IReadOnlyList<ITypeReference> references,
-            IReadOnlyList<TypeDependency> dependencies,
-            TypeDiscoveryContext discoveryContext,
-            bool isInferred)
+            bool isInferred,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
+            IDescriptorContext descriptorContext,
+            ITypeInterceptor typeInterceptor,
+            string? scope)
         {
             Type = type;
-            _references = references;
-            _dependencies = dependencies;
-            DiscoveryContext = discoveryContext;
+            _typeRegistry = typeRegistry;
+            _typeLookup = typeLookup;
             IsInferred = isInferred;
+            DescriptorContext = descriptorContext;
+            TypeInterceptor = typeInterceptor;
             IsExtension = Type is INamedTypeExtensionMerger;
-            IsNamedType = Type is INamedType;
-            IsDirectiveType = Type is DirectiveType;
+            IsSchema = Type is ISchema;
+            Scope = scope;
+
+            if (type is INamedType nt)
+            {
+                IsNamedType = true;
+                IsIntrospectionType = nt.IsIntrospectionType();
+                Kind = nt.Kind;
+            }
+            else if (type is DirectiveType)
+            {
+                IsDirectiveType = true;
+                Kind = TypeKind.Directive;
+            }
         }
 
         public TypeSystemObjectBase Type { get; }
+
+        public TypeKind? Kind { get; }
 
         public Type RuntimeType
         {
@@ -46,25 +59,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public IReadOnlyList<ITypeReference> References => _references;
+        public List<ITypeReference> References { get; } = new();
 
-        public IReadOnlyList<TypeDependency> Dependencies => _dependencies;
-
-        public TypeDiscoveryContext DiscoveryContext { get; }
-
-        public TypeCompletionContext CompletionContext
-        {
-            get
-            {
-                if (_completionContext is null)
-                {
-                    throw new InvalidOperationException(
-                        TypeResources.RegisteredType_CompletionContext_Not_Initialized);
-                }
-
-                return _completionContext;
-            }
-        }
+        public List<TypeDependency> Dependencies { get; } = new();
 
         public bool IsInferred { get; }
 
@@ -74,41 +71,28 @@ namespace HotChocolate.Configuration
 
         public bool IsDirectiveType { get; }
 
-        public void AddReferences(IEnumerable<ITypeReference> references)
-        {
-            var merged = _references.ToList();
+        public bool IsIntrospectionType { get; }
 
-            foreach (var reference in references)
-            {
-                if (!merged.Contains(reference))
-                {
-                    merged.Add(reference);
-                }
-            }
+        public bool IsSchema { get; }
 
-            _references = merged;
-        }
+        public bool IsType => IsNamedType;
 
-        public void AddDependencies(IEnumerable<TypeDependency> dependencies)
-        {
-            var merged = Dependencies.ToList();
-            merged.AddRange(dependencies);
-            _dependencies = merged;
-        }
+        public bool IsDirective => IsDirectiveType;
 
-        public void SetCompletionContext(TypeCompletionContext completionContext)
-        {
-            if (_completionContext is not null)
-            {
-                throw new InvalidOperationException(
-                    TypeResources.RegisteredType_CompletionContext_Already_Set);
-            }
-
-            _completionContext = completionContext;
-        }
+        public List<ISchemaError> Errors => _errors ??= new();
 
         public override string? ToString()
         {
+            if (IsSchema)
+            {
+                return "Schema";
+            }
+
+            if (Type is IHasName { Name: { IsEmpty: false } } hasName)
+            {
+                return IsDirective ? $"@{hasName.Name}" : hasName.Name;
+            }
+            
             return Type.ToString();
         }
     }

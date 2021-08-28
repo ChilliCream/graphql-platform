@@ -1,6 +1,6 @@
 ﻿using System;
-using HotChocolate.Language.Properties;
 using System.Buffers;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -130,7 +130,7 @@ namespace HotChocolate.Language
                 if (string.IsNullOrEmpty(sourceText))
                 {
                     throw new ArgumentException(
-                        LangResources.SourceText_Empty,
+                        SourceText_Empty,
                         nameof(sourceText));
                 }
 

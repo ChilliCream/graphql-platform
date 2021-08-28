@@ -14,29 +14,27 @@ namespace HotChocolate.Types.Sorting
         public void UseSorting_WithoutParams_ShouldRegisterPlaceholderMiddleware()
         {
             // arrange
-            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(Context, "field");
+            var descriptor = ObjectFieldDescriptor.New(Context, "field");
             descriptor.Resolve("abc");
 
             // act
             descriptor.UseSorting();
 
             // assert
-            Assert.Single(descriptor.CreateDefinition().MiddlewareComponents);
+            Assert.Single(descriptor.CreateDefinition().MiddlewareDefinitions);
         }
 
         [Fact]
         public void UseSorting_WithoutTypeParam_ShouldRegisterPlaceholderMiddleware()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
-                ObjectFieldDescriptor.New(Context, "field");
-            FieldMiddleware placeholder = next => context => default;
+            var descriptor = ObjectFieldDescriptor.New(Context, "field");
 
             // act
             descriptor.UseSorting<object>();
 
             // assert
-            Assert.Single(descriptor.CreateDefinition().MiddlewareComponents);
+            Assert.Single(descriptor.CreateDefinition().MiddlewareDefinitions);
         }
 
         [Fact]
@@ -48,7 +46,7 @@ namespace HotChocolate.Types.Sorting
             // act
             Action action = () =>
                 SortObjectFieldDescriptorExtensions
-                    .UseSorting<object>(null, config);
+                    .UseSorting(null!, config);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

@@ -22,39 +22,13 @@ namespace HotChocolate.Execution.Processing
         private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public Selection(
-            int id,
-            IObjectType declaringType,
-            IObjectField field,
-            FieldNode selection,
-            FieldDelegate resolverPipeline,
-            NameString? responseName = null,
-            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-            SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false)
-            : this(
-                id,
-                declaringType,
-                field,
-                selection,
-                resolverPipeline,
-                pureResolver: null,
-                inlineResolver: null,
-                responseName,
-                arguments,
-                includeCondition,
-                internalSelection)
-        { }
-
         public Selection(
             int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
             FieldDelegate? resolverPipeline,
-            PureFieldDelegate? pureResolver,
-            InlineFieldDelegate? inlineResolver,
+            PureFieldDelegate? pureResolver = null,
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
@@ -78,7 +52,6 @@ namespace HotChocolate.Execution.Processing
                 selection.Name.Value;
             ResolverPipeline = resolverPipeline;
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
@@ -89,10 +62,6 @@ namespace HotChocolate.Execution.Processing
             if (strategy is not null)
             {
                 Strategy = strategy.Value;
-            }
-            else if (InlineResolver is not null)
-            {
-                Strategy = SelectionExecutionStrategy.Inline;
             }
             else if (PureResolver is not null)
             {
@@ -109,7 +78,6 @@ namespace HotChocolate.Execution.Processing
                 ModifyCondition(true);
             }
         }
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         public Selection(Selection selection)
         {
@@ -126,7 +94,6 @@ namespace HotChocolate.Execution.Processing
             ResponseName = selection.ResponseName;
             ResolverPipeline = selection.ResolverPipeline;
             PureResolver = selection.PureResolver;
-            InlineResolver = selection.InlineResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
         }
@@ -142,6 +109,14 @@ namespace HotChocolate.Execution.Processing
 
         /// <inheritdoc />
         public IObjectField Field { get; }
+
+        // Note: this field was introduced to allow rewriting the type of a selection
+        // in the operation compiler.
+        /// <inheritdoc />
+        public IType Type => Field.Type;
+
+        /// <inheritdoc />
+        public TypeKind TypeKind => Field.Type.Kind;
 
         /// <inheritdoc />
         public FieldNode SyntaxNode { get; private set; }
@@ -161,8 +136,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
-
         /// <inheritdoc />
         public NameString ResponseName { get; }
 
@@ -171,9 +144,6 @@ namespace HotChocolate.Execution.Processing
 
         /// <inheritdoc />
         public PureFieldDelegate? PureResolver { get; }
-
-        /// <inheritdoc />
-        public InlineFieldDelegate? InlineResolver { get; }
 
         /// <inheritdoc />
         public IArgumentMap Arguments { get; }

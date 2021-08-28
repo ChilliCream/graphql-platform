@@ -22,11 +22,10 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 if (!operation.IsSimpleArrayType())
                 {
-                    property = Expression.Property(
-                        context.GetInstance(), operation.Property);
+                    property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                object? parsedValue = type.ParseLiteral(value);
+                var parsedValue = context.InputParser.ParseLiteral(value, type);
 
                 if (operation.Kind == FilterOperationKind.In)
                 {

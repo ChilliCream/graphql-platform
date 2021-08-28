@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+#nullable enable
+
 namespace HotChocolate.Execution.Processing
 {
     internal sealed class ArgumentMap : IArgumentMap

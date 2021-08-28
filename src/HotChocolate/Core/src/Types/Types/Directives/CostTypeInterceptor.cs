@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -46,12 +47,12 @@ namespace HotChocolate.Types
                 definition is ObjectTypeDefinition objectDef &&
                 objectDef.Fields.Any(CanApplyDefaultCost))
             {
-                var directive = discoveryContext.TypeInspector.GetType(typeof(CostDirectiveType));
+                IExtendedType directive =
+                    discoveryContext.TypeInspector.GetType(typeof(CostDirectiveType));
 
-                discoveryContext.RegisterDependency(
-                    new TypeDependency(
-                        TypeReference.Create(directive),
-                        TypeDependencyKind.Completed));
+                discoveryContext.Dependencies.Add(new(
+                    TypeReference.Create(directive),
+                    TypeDependencyKind.Completed));
             }
         }
 
@@ -143,6 +144,11 @@ namespace HotChocolate.Types
         /// </summary>
         private static bool IsDataResolver(ObjectFieldDefinition field)
         {
+            if (field.PureResolver is not null && field.MiddlewareDefinitions.Count == 0)
+            {
+                return false;
+            }
+
             if (field.Resolver is not null)
             {
                 return true;

@@ -16,10 +16,9 @@ namespace HotChocolate.Types.Filters.Expressions
             IQueryableFilterVisitorContext context,
             [NotNullWhen(true)] out Expression? expression)
         {
-            if (operation.Type == typeof(string) &&
-                    type.IsInstanceOfType(value))
+            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
             {
-                object? parsedValue = type.ParseLiteral(value);
+                var parsedValue = context.InputParser.ParseLiteral(value, type);
 
                 Expression property = context.GetInstance();
 

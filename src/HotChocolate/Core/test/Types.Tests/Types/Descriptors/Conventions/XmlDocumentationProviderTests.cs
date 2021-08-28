@@ -13,7 +13,8 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(typeof(Point));
@@ -27,12 +28,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(WithMultilineXmlDoc)
-                    .GetProperty(nameof(WithMultilineXmlDoc.Foo)));
+                    .GetProperty(nameof(WithMultilineXmlDoc.Foo))!);
 
             // assert
             Assert.Matches(new Regex(@"\n[ \t]*\n"), description);
@@ -45,12 +47,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(WithSeeTagInXmlDoc)
-                    .GetProperty(nameof(WithSeeTagInXmlDoc.Foo)));
+                    .GetProperty(nameof(WithSeeTagInXmlDoc.Foo))!);
 
             // asssert
             Assert.Equal(
@@ -64,12 +67,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(WithGenericTagsInXmlDoc)
-                    .GetProperty(nameof(WithGenericTagsInXmlDoc.Foo)));
+                    .GetProperty(nameof(WithGenericTagsInXmlDoc.Foo))!);
 
             // assert
             Assert.Equal("These are some tags.", description);
@@ -80,7 +84,8 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
@@ -95,12 +100,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var parameterXml = documentationProvider.GetDescription(
-                    typeof(ClassWithInheritdoc)
-                .GetMethod(nameof(ClassWithInheritdoc.Bar))
+                typeof(ClassWithInheritdoc)
+                .GetMethod(nameof(ClassWithInheritdoc.Bar))!
                 .GetParameters()
                 .Single(p => p.Name == "baz"));
 
@@ -113,12 +119,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methoddescription = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdoc)
-                    .GetMethod(nameof(ClassWithInheritdoc.Bar)));
+                    .GetMethod(nameof(ClassWithInheritdoc.Bar))!);
 
             // assert
             Assert.Equal("Method doc.", methoddescription);
@@ -129,12 +136,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdoc)
-                    .GetProperty(nameof(ClassWithInheritdoc.Foo)));
+                    .GetProperty(nameof(ClassWithInheritdoc.Foo))!);
 
             // assert
             Assert.Equal("Summary of foo.", description);
@@ -145,7 +153,8 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
@@ -160,12 +169,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
-                    .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
+                    .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!
                     .GetParameters()
                     .Single(p => p.Name == "baz"));
 
@@ -178,12 +188,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
-                .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo)));
+                .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))!);
 
             // assert
             Assert.Equal("Property summary.", description);
@@ -194,15 +205,16 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
-            var methoddescription = documentationProvider.GetDescription(
+            var methodDescription = documentationProvider.GetDescription(
                 typeof(ClassWithInheritdocOnInterface)
-                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar)));
+                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))!);
 
             // assert
-            Assert.Equal("Method summary.", methoddescription);
+            Assert.Equal("Method summary.", methodDescription);
         }
 
         [Fact]
@@ -210,12 +222,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
-                .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo)));
+                .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo))!);
 
             // assert
             Assert.Equal("I am my own property.", description);
@@ -226,12 +239,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
-                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar)));
+                    .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))!);
 
             // assert
             Assert.Equal("I am my own method.", description);
@@ -242,12 +256,13 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
                 typeof(ClassWithInterfaceAndCustomSummaries)
-                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
+                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))!
                 .GetParameters()
                 .Single(p => p.Name == "baz"));
 
@@ -260,7 +275,8 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var description = documentationProvider.GetDescription(
@@ -275,12 +291,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithExceptionsXmlDoc)
-                    .GetMethod(nameof(WithExceptionsXmlDoc.Foo)));
+                typeof(WithExceptionsXmlDoc).GetMethod(nameof(WithExceptionsXmlDoc.Foo))!);
 
             // assert
             methodDescription.MatchSnapshot();
@@ -291,12 +307,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithExceptionsXmlDoc)
-                    .GetMethod(nameof(WithExceptionsXmlDoc.Bar)));
+                typeof(WithExceptionsXmlDoc).GetMethod(nameof(WithExceptionsXmlDoc.Bar))!);
 
             // assert
             methodDescription.MatchSnapshot();
@@ -307,12 +323,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithExceptionsXmlDoc)
-                    .GetMethod(nameof(WithExceptionsXmlDoc.Baz)));
+                typeof(WithExceptionsXmlDoc).GetMethod(nameof(WithExceptionsXmlDoc.Baz))!);
 
             // assert
             methodDescription.MatchSnapshot();
@@ -323,12 +339,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithoutExceptionsXmlDoc)
-                    .GetMethod(nameof(WithoutExceptionsXmlDoc.Foo)));
+                typeof(WithoutExceptionsXmlDoc).GetMethod(nameof(WithoutExceptionsXmlDoc.Foo))!);
 
             // assert
             methodDescription.MatchSnapshot();
@@ -339,12 +355,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithReturnsXmlDoc)
-                    .GetMethod(nameof(WithReturnsXmlDoc.Foo)));
+                typeof(WithReturnsXmlDoc).GetMethod(nameof(WithReturnsXmlDoc.Foo))!);
 
             // assert
             methodDescription.MatchSnapshot();
@@ -355,12 +371,12 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver());
+                new XmlDocumentationFileResolver(),
+                new NoOpStringBuilderPool());
 
             // act
             var methodDescription = documentationProvider.GetDescription(
-                typeof(WithoutReturnsXmlDoc)
-                    .GetMethod(nameof(WithoutReturnsXmlDoc.Foo)));
+                typeof(WithoutReturnsXmlDoc).GetMethod(nameof(WithoutReturnsXmlDoc.Foo))!);
 
             // assert
             methodDescription.MatchSnapshot();

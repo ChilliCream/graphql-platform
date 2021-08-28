@@ -1,9 +1,9 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
-import React, { FunctionComponent } from "react";
+import { GatsbyImage } from "gatsby-plugin-image";
+import React, { FC } from "react";
 import { GetHotChocolateImageQuery } from "../../../graphql-types";
 
-export const HotChocolate: FunctionComponent = () => {
+export const HotChocolate: FC = () => {
   const data = useStaticQuery<GetHotChocolateImageQuery>(graphql`
     query getHotChocolateImage {
       file(
@@ -11,13 +11,19 @@ export const HotChocolate: FunctionComponent = () => {
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200, pngQuality: 90) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+          )
         }
       }
     }
   `);
 
-  return <Img fluid={data.file?.childImageSharp?.fluid as any} />;
+  return (
+    <GatsbyImage
+      image={data.file?.childImageSharp?.gatsbyImageData}
+      alt="Hot Chocolate GraphQL server"
+    />
+  );
 };

@@ -1,10 +1,10 @@
 import { graphql, useStaticQuery } from "gatsby";
-import Img from "gatsby-image";
-import React, { FunctionComponent } from "react";
+import { GatsbyImage } from "gatsby-plugin-image";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { GetBlogPostChilliCreamPlatformImageQuery } from "../../../graphql-types";
 
-export const BlogPostChilliCreamPlatform: FunctionComponent = () => {
+export const BlogPostChilliCreamPlatform: FC = () => {
   const data = useStaticQuery<GetBlogPostChilliCreamPlatformImageQuery>(graphql`
     query getBlogPostChilliCreamPlatformImage {
       file(
@@ -14,9 +14,10 @@ export const BlogPostChilliCreamPlatform: FunctionComponent = () => {
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 1200, pngQuality: 90) {
-            ...GatsbyImageSharpFluid
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 1200
+          )
         }
       }
     }
@@ -24,7 +25,10 @@ export const BlogPostChilliCreamPlatform: FunctionComponent = () => {
 
   return (
     <Container>
-      <Img fluid={data.file?.childImageSharp?.fluid as any} />
+      <GatsbyImage
+        image={data.file?.childImageSharp?.gatsbyImageData}
+        alt="ChilliCream Platform Update 11.1"
+      />
     </Container>
   );
 };
@@ -33,7 +37,7 @@ const Container = styled.div`
   padding: 30px;
 
   .gatsby-image-wrapper {
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
   }
 `;

@@ -648,8 +648,8 @@ namespace HotChocolate.Types.Spatial
                     {
                         if (field.Name is { Value: "test" })
                         {
-                            field.MiddlewareComponents.Insert(0,
-                                next => async context =>
+                            field.MiddlewareDefinitions.Insert(0,
+                                new(next => async context =>
                                 {
                                     await next(context);
                                     if (context.Result is Geometry g)
@@ -666,7 +666,7 @@ namespace HotChocolate.Types.Spatial
                                         }
                                     }
                                 }
-                            );
+                            ));
                         }
                     }
                 }

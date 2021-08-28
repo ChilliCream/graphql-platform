@@ -385,6 +385,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             public FieldCoordinate Coordinate => throw new NotImplementedException();
 
+            public int Index => 0;
+
             public static TypeNameField Default { get; } = new();
         }
     }

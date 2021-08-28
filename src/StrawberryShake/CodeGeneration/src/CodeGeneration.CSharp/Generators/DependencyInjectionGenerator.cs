@@ -36,7 +36,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.FloatSerializer,
             TypeNames.DecimalSerializer,
             TypeNames.UrlSerializer,
-            TypeNames.UuidSerializer,
+            TypeNames.UUIDSerializer,
             TypeNames.IdSerializer,
             TypeNames.DateTimeSerializer,
             TypeNames.DateSerializer,

@@ -84,7 +84,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 type NewsItem implements Node {
                     id: ID!
-                    feedId: Uuid!
+                    feedId: UUID!
                     feedUrl: String!
                     html: String!
                     image: String!
@@ -181,7 +181,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
         public void Create_GetFeatById()
         {
             AssertResult(
-                @"query GetFeatById($id: Uuid!) {
+                @"query GetFeatById($id: UUID!) {
                     feats(where: {id: {eq: $id}}) {
                         items {
                             id,
@@ -279,7 +279,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     text
                   }
                 }",
-                @"query GetFeatById($id: Uuid!) {
+                @"query GetFeatById($id: UUID!) {
                   feats(where: { id: { eq: $id } }) {
                     items {
                       ...FeatById
