@@ -23,12 +23,14 @@ import {
   ArticleHeader,
   ArticleTitle,
 } from "../articles/article-elements";
+import { ArticleSections } from "../articles/article-sections";
 import { TabGroupProvider } from "../mdx/tabs/tab-groups";
 import {
   ArticleWrapper,
   ArticleWrapperElement,
 } from "./doc-page-article-wrapper";
-import { Aside } from "./doc-page-aside";
+import { Aside, DocPageAside } from "./doc-page-aside";
+import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
 import { DocPageNavigation, Navigation } from "./doc-page-navigation";
 
@@ -122,10 +124,10 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
             {false && <ArticleComments data={data} path={slug} title={title} />}
           </ArticleContainer>
         </ArticleWrapper>
-        {/* <DocPageAside>
+        <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
           <ArticleSections data={data.file!.childMdx!} />
-        </DocPageAside> */}
+        </DocPageAside>
       </Container>
     </TabGroupProvider>
   );

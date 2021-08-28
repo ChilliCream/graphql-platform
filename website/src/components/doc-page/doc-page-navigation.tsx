@@ -1,4 +1,4 @@
-import { graphql, Link } from "gatsby";
+import { graphql } from "gatsby";
 import React, {
   FC,
   MouseEvent,
@@ -17,6 +17,7 @@ import { BoxShadow, IsTablet } from "../../shared-style";
 import { State } from "../../state";
 import { closeTOC } from "../../state/common";
 import { IconContainer } from "../misc/icon-container";
+import { Link } from "../misc/link";
 import {
   DocPageStickySideBarStyle,
   MostProminentSection,
@@ -335,8 +336,8 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
 
   ${({ height }) =>
     IsTablet(`
-      height: ${height};
       margin-left: -105%;
+      height: ${height};
       position: fixed;
       top: 60px;
       left: 0;
