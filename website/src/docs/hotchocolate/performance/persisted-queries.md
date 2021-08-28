@@ -17,15 +17,17 @@ Persisted queries allow us to pre-register all required queries of our clients. 
 
 # Benefits
 
-There are two main benefits to using persisted queries:
+<!-- There are two main benefits to using persisted queries: -->
 
-- Performance:
+**Performance**
 
-  - Only a hash and optionally variables need to be sent to the server, reducing network traffic.
-  - Queries no longer need to be embeded into the client code, reducing the bundle size in the case of websites.
-  - Hot Chocolate can optimize the execution of persisted queries, as they will always be the same.
+- Only a hash and optionally variables need to be sent to the server, reducing network traffic.
+- Queries no longer need to be embeded into the client code, reducing the bundle size in the case of websites.
+- Hot Chocolate can optimize the execution of persisted queries, as they will always be the same.
 
-- Security: The server can be tweaked to [only accept persisted queries](#blocking-regular-queries) and refuse queries created by a client at runtime. This is useful mainly for public APIs.
+<!-- **Security**
+
+The server can be tweaked to [only accept persisted queries](#blocking-regular-queries) and refuse queries created by a client at runtime. This is useful mainly for public APIs. -->
 
 # Usage
 
@@ -126,36 +128,21 @@ AddSha256DocumentHashProvider(HashFormat.Hex)
 AddSha256DocumentHashProvider(HashFormat.Base64)
 ```
 
-> Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is needed.
-
-# Blocking regular queries
-
-TODO
+> Note: [Relay](https://relay.dev) uses the MD5 hashing algorithm - no additional Hot Chocolate configuration is required.
 
 # Client expectations
 
 A client is expected to send an `id` field containing the query hash instead of a `query` field.
 
-**POST**:
+**HTTP POST**
 
-```js
-fetch('/graphql', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json'
-    },
-    body: JSON.stringify({
-      id: "0c95d31ca29272475bf837f944f4e513",
-      variables: {
-        // ...
-      },
-    });
-```
-
-**GET**:
-
-```js
-fetch("/graphql?id=0c95d31ca29272475bf837f944f4e513&variables=...");
+```json
+{
+  "id": "0c95d31ca29272475bf837f944f4e513",
+  "variables": {
+    // ...
+  }
+}
 ```
 
 > Note: [Relay's persisted queries documentation](https://relay.dev/docs/guides/persisted-queries/#network-layer-changes) uses `doc_id` instead of `id`, be sure to change it to `id`.
