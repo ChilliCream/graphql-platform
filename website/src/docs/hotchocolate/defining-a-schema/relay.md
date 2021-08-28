@@ -14,9 +14,9 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 # Global identifiers
 
-If an output type contains an `id: ID!` field, [Relay](https://relay.dev) and other GraphQL clients will consider this the unique identifier of the entity and might use it to construct a flat cache. This can be problematic, since we could have the same identifier for two of our types. When using SQL for example, a `Foo` and `Bar` type could both contain a row with the identifier `1` in their respective tables.
+If an output type contains an `id: ID!` field, [Relay](https://relay.dev) and other GraphQL clients will consider this the unique identifier of the entity and might use it to construct a flat cache. This can be problematic, since we could have the same identifier for two of our types. When using a database for example, a `Foo` and `Bar` entity could both contain a row with the identifier `1` in their respective tables.
 
-We could switch to a database technology that uses unique identifiers across tables/collections, but as soon as we introduce a different data source, we might be facing the same problem again.
+We could try and enforce unique identifiers using the technology responsible for producing the Ids, but as soon as we introduce a different data source, we might be facing the same problem again.
 
 Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate: Global identifiers.
 
@@ -24,9 +24,9 @@ With Global Identifiers, Hot Chocolate adds a middleware that automatically seri
 
 ## Usage in Output Types
 
-When returning an Id in an output type, Hot Chocolate can automatically combine its value with another value to form a Global Id. Per default this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
+Id fields can be opted into the global identifier behavior using the `ID` middleware.
 
-We can opt Ids into this behavior like the following.
+Hot Chocolate automatically combines the value of fields annotated as `ID` with another value to form a global identifier. Per default this additional value is the name of the type the Id belongs to. Since type names are unique within a schema, this ensures that we are returning a unique Id within the schema. If our GraphQL server serves multiple schemas, the schema name is also included in this combined Id. The resulting Id is then Base64 encoded to make it opaque.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -41,11 +41,11 @@ public class Product
 
 If no arguments are passed to the `[ID]` attribute, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-If we do not want to use the name of the output type, we can specify a string of our choice.
+The `[ID]` attribute can not only be used on primary key fieldss, but also on fields that act as foreign keys. For these we have to specify the name of the type they are referencing manually. In the below example a type named `Foo` is being referencing using its Id.
 
 ```csharp
 [ID("Foo")]
-public int Id { get; set; }
+public int FooId { get; set; }
 ```
 
 </ExampleTabs.Annotation>
@@ -68,10 +68,10 @@ public class ProductType : ObjectType<Product>
 
 If no arguments are passed to `ID()`, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-If we do not want to use the name of the output type, we can specify a string of our choice.
+The `ID()` can not only be used on primary key fields, but also on fields that act as foreign keys. For these we have to specify the name of the type they are referencing manually. In the below example a type named `Foo` is being referencing using its Id.
 
 ```csharp
-descriptor.Field(f => f.Id).ID("Foo");
+descriptor.Field(f => f.FooId).ID("Foo");
 ```
 
 </ExampleTabs.Code>
@@ -82,7 +82,7 @@ The approach of either Annotation-based or Code-first can be used in conjunction
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The type of fields specified as `ID` is also automatically switched to the ID scalar.
+The type of fields specified as `ID` is also automatically rewritten to the ID scalar.
 
 [Learn more about the ID scalar](/docs/hotchocolate/defining-a-schema/scalars#id)
 
@@ -210,7 +210,7 @@ type Query {
 }
 ```
 
-While it is not part of the specification, Hot Chocolate also adds a `nodes` field allowing you to refetch multiple objects in one round trip.
+While it is not part of the specification, it is recommended to add an ability for plural fetches. That's why Hot Chocolate adds a `nodes` field allowing use to refetch multiple objects in one round trip.
 
 ```sdl
 type Query {
