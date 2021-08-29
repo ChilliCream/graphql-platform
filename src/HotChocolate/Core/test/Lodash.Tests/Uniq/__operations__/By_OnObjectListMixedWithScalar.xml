@@ -6,11 +6,7 @@
           {
             "string": "a"
           },
-          [
-            {
-              "string": "a"
-            }
-          ],
+          "a",
           {
             "string": "c"
           }
@@ -20,12 +16,12 @@
   </data>
   <query>
     {
-      list @uniqBy(key: "string"){
+      list @unique(by: "string"){
         string
       }
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <error-code>AG0002</error-code>
   </result>
 </test>

@@ -10,7 +10,7 @@
   </data>
   <query>
     {
-      single @uniqBy(key: "string"){
+      single @unique(by: "missingProperty"){
         string
       }
     }

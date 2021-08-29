@@ -8,7 +8,7 @@
   </data>
   <query>
     {
-      string @uniq
+      string @unique
     }
   </query>
   <result>

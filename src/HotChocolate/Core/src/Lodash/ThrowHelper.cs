@@ -58,5 +58,23 @@ namespace HotChocolate.Lodash
                 "AG0006",
                 "The argument size of flatten on field {0} must be greater than 0",
                 path);
+
+        /// <summary>
+        /// ErrorCode: AG0007
+        /// </summary>
+        public static Exception ExpectScalarButReceivedArray(string path) =>
+            JsonAggregationException.Create(
+                "AG0007",
+                "The field {0} expects a scalar but received a list",
+                path);
+
+        /// <summary>
+        /// ErrorCode: AG0008
+        /// </summary>
+        public static Exception ExpectScalarButReceivedObject(string path) =>
+            JsonAggregationException.Create(
+                "AG0008",
+                "The field {0} expects a scalar but received an object",
+                path);
     }
 }

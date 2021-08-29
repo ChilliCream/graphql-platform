@@ -32,7 +32,7 @@
 <li><a href="#sec-Take"><span class="spec-secid">1.14</span>Take</a></li>
 <li><a href="#sec-TakeRight"><span class="spec-secid">1.15</span>TakeRight</a></li>
 <li><a href="#sec-Uniq"><span class="spec-secid">1.16</span>Uniq</a></li>
-<li><a href="#sec-UniqBy"><span class="spec-secid">1.17</span>UniqBy</a></li>
+<li><a href="#sec-Unique"><span class="spec-secid">1.17</span>Unique</a></li>
 </ol>
 </li>
 <li><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>
@@ -1315,9 +1315,9 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <h2><span class="spec-secid" title="link to this section"><a href="#sec-Uniq">1.16</a></span>Uniq</h2>
 <section id="sec-Uniq.Directive" class="subsec">
 <h6><a href="#sec-Uniq.Directive" title="link to this subsection">Directive</a></h6>
-<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@uniq</span><span class="token punctuation">(</span><span class="token attr-name">count</span><span class="token punctuation">:</span> <span class="token scalar">Int</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@uniq</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
 </code></pre>
-<p><dfn id="-uniq"><a href="#-uniq" data-name="-uniq">@uniq</a></dfn> can be applied a list any depth. <span class="spec-ref"><a href="#-uniq" data-name="-uniq">@uniq</a></span> returns a duplicate-free version of the list.</p>
+<p><dfn id="-uniq"><a href="#-uniq" data-name="-uniq">@uniq</a></dfn> can be applied to a list any depth. <span class="spec-ref"><a href="#-uniq" data-name="-uniq">@uniq</a></span> returns a duplicate-free version of the list.</p>
 <p>Given the following data:</p>
 <pre id="example-a3559" class="spec-example" data-language="json"><a href="#example-a3559">Example № 46</a><code><span class="token punctuation">{</span>
   <span class="token property">"stringList"</span><span class="token operator">:</span> <span class="token punctuation">[</span> <span class="token string">"a"</span><span class="token punctuation">,</span> <span class="token string">"a"</span><span class="token punctuation">,</span> <span class="token string">"b"</span> <span class="token punctuation">]</span>
@@ -1377,13 +1377,13 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 </div>
 </section>
 </section>
-<section id="sec-UniqBy" secid="1.17">
-<h2><span class="spec-secid" title="link to this section"><a href="#sec-UniqBy">1.17</a></span>UniqBy</h2>
-<section id="sec-UniqBy.Directive" class="subsec">
-<h6><a href="#sec-UniqBy.Directive" title="link to this subsection">Directive</a></h6>
-<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@uniqBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token operator">!</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
+<section id="sec-Unique" secid="1.17">
+<h2><span class="spec-secid" title="link to this section"><a href="#sec-Unique">1.17</a></span>Unique</h2>
+<section id="sec-Unique.Directive" class="subsec">
+<h6><a href="#sec-Unique.Directive" title="link to this subsection">Directive</a></h6>
+<pre data-language="graphql"><code><span class="token keyword">directive</span> <span class="token directive function">@unique</span><span class="token punctuation">(</span><span class="token attr-name">by</span><span class="token punctuation">:</span> <span class="token scalar">String</span><span class="token punctuation">)</span> <span class="token keyword">repeatable</span> <span class="token keyword">on</span> <span class="token constant">QUERY</span> <span class="token operator">|</span> <span class="token constant">MUTATION</span> <span class="token operator">|</span> <span class="token constant">SUBSCRIPTION</span> <span class="token operator">|</span> <span class="token constant">FIELD</span>
 </code></pre>
-<p><dfn id="-uniqby"><a href="#-uniqby" data-name="-uniqby">@uniqBy</a></dfn> can be applied to a list of objects of depth 1. <span class="spec-ref"><a href="#-uniqby" data-name="-uniqby">@uniqBy</a></span> returns a duplicate-free version of the list based on the the values of the field selected with <code>key</code>. </p>
+<p><dfn id="-unique"><a href="#-unique" data-name="-unique">@unique</a></dfn> returns a duplicate-free version of the list based on the the values of the field selected with <code>by</code>. <span class="spec-ref"><a href="#-unique" data-name="-unique">@unique</a></span> can be applied to a list of objects of depth 1 if a <code>by</code> is specified. If no <code>by</code> is specified, unqiue can be applied to list of scalars.</p>
 <p>Given the following data:</p>
 <pre id="example-a9d1d" class="spec-example" data-language="json"><a href="#example-a9d1d">Example № 49</a><code><span class="token punctuation">{</span>
   <span class="token property">"list"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
@@ -1400,8 +1400,8 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <span class="token punctuation">}</span>
 </code></pre>
 <p>The execution of the following query:</p>
-<pre id="example-b8793" class="spec-example" data-language="graphql"><a href="#example-b8793">Example № 50</a><code><span class="token punctuation">{</span>
-  <span class="token property">list</span> <span class="token directive function">@uniqBy</span><span class="token punctuation">(</span><span class="token attr-name">key</span><span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+<pre id="example-cba46" class="spec-example" data-language="graphql"><a href="#example-cba46">Example № 50</a><code><span class="token punctuation">{</span>
+  <span class="token property">list</span> <span class="token directive function">@unique</span><span class="token punctuation">(</span><span class="token attr-name">by</span><span class="token punctuation">:</span> <span class="token string">"string"</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
     <span class="token property">string</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
@@ -1419,12 +1419,12 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <span class="token punctuation">}</span>
 </code></pre>
 </section>
-<section id="sec-UniqBy.Execution" class="subsec">
-<h6><a href="#sec-UniqBy.Execution" title="link to this subsection">Execution</a></h6>
+<section id="sec-Unique.Execution" class="subsec">
+<h6><a href="#sec-Unique.Execution" title="link to this subsection">Execution</a></h6>
 <p><var data-name="node">node</var> is the value node where the directive is applied</p>
-<div class="spec-algo" id="RewriteUniqBy()">
-<span class="spec-call"><a href="#RewriteUniqBy()" data-name="RewriteUniqBy">RewriteUniqBy</a>(<var data-name="node">node</var>)</span><ol>
-<li>Let <var data-name="key">key</var> be the value of the argument <code>key</code> of the directive</li>
+<div class="spec-algo" id="RewriteUnique()">
+<span class="spec-call"><a href="#RewriteUnique()" data-name="RewriteUnique">RewriteUnique</a>(<var data-name="node">node</var>)</span><ol>
+<li>Let <var data-name="by">by</var> be the value of the argument <code>by</code> of the directive</li>
 <li>If <var data-name="node">node</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
 <li>Assert: <span class="spec-ref"><a href="#ag0001" data-name="ag0001">AG0001</a></span></li>
 </ol>
@@ -1434,13 +1434,55 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 </ol>
 </li>
 <li>Otherwise <ol>
-<li>Return <span class="spec-call"><a href="#RewriteUniqByArray()" data-name="RewriteUniqByArray">RewriteUniqByArray</a>(<var data-name="node">node</var>)</span></li>
+<li>If <var data-name="by">by</var> is not specified<ol>
+<li>Return <span class="spec-call"><span data-name="RewriteUniqueArray">RewriteUniqueArray</span>(<var data-name="node">node</var>)</span></li>
+</ol>
+</li>
+<li>Otherwise<ol>
+<li>Return <span class="spec-call"><a href="#RewriteUniqueArrayBy()" data-name="RewriteUniqueArrayBy">RewriteUniqueArrayBy</a>(<var data-name="node">node</var>, <var data-name="by">by</var>)</span></li>
+</ol>
+</li>
 </ol>
 </li>
 </ol>
 </div>
-<div class="spec-algo" id="RewriteUniqByArray()">
-<span class="spec-call"><a href="#RewriteUniqByArray()" data-name="RewriteUniqByArray">RewriteUniqByArray</a>(<var data-name="value">value</var>)</span><ol>
+<div class="spec-algo" id="RewriteUniqueqArray()">
+<span class="spec-call"><a href="#RewriteUniqueqArray()" data-name="RewriteUniqueqArray">RewriteUniqueqArray</a>(<var data-name="value">value</var>)</span><ol>
+<li>Let <var data-name="result">result</var> be a ordered set</li>
+<li>For each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
+<li>If <var data-name="element">element</var> is <span class="spec-ref"><a href="#listvalue" data-name="listvalue">ListValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0007" data-name="ag0007">AG0007</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
+<li>Assert: <span class="spec-ref"><a href="#ag0008" data-name="ag0008">AG0008</a></span></li>
+</ol>
+</li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-keyword">null</span><ol>
+<li>If <span class="spec-keyword">null</span> does NOT exist in <var data-name="result">result</var><ol>
+<li>Add <span class="spec-keyword">null</span> to <var data-name="result">result</var></li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Otherwise <ol>
+<li>If <span class="spec-call"><a href="#IsConvertibleToComparable()" data-name="IsConvertibleToComparable">IsConvertibleToComparable</a>(<var data-name="element">element</var>)</span><ol>
+<li>Let <var data-name="convertedValue">convertedValue</var> be <span class="spec-call"><a href="#ConvertToComparable()" data-name="ConvertToComparable">ConvertToComparable</a>(<var data-name="fieldValue">fieldValue</var>)</span></li>
+<li>If <var data-name="convertedValue">convertedValue</var> does NOT exist in <var data-name="result">result</var><ol>
+<li>Add <var data-name="convertedValue">convertedValue</var> to <var data-name="result">result</var></li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Return <var data-name="result">result</var></li>
+</ol>
+</div>
+<div class="spec-algo" id="RewriteUniqueArrayBy()">
+<span class="spec-call"><a href="#RewriteUniqueArrayBy()" data-name="RewriteUniqueArrayBy">RewriteUniqueArrayBy</a>(<var data-name="value">value</var>, <var data-name="by">by</var>)</span><ol>
 <li>Let <var data-name="result">result</var> be a empty list </li>
 <li>Let <var data-name="values">values</var> be a ordered set</li>
 <li>For each <var data-name="element">element</var> in <var data-name="value">value</var><ol>
@@ -1452,9 +1494,16 @@ If <span class="spec-ref"><a href="#-flatten" data-name="-flatten">@flatten</a><
 <li>Assert: <span class="spec-ref"><a href="#ag0002" data-name="ag0002">AG0002</a></span></li>
 </ol>
 </li>
+<li>Otherwise If <var data-name="element">element</var> is <span class="spec-keyword">null</span><ol>
+<li>If <span class="spec-keyword">null</span> does NOT exist in <var data-name="result">result</var><ol>
+<li>Add <span class="spec-keyword">null</span> to <var data-name="result">result</var></li>
+</ol>
+</li>
+</ol>
+</li>
 <li>Otherwise If <var data-name="element">element</var> is <span class="spec-ref"><a href="#objectvalue" data-name="objectvalue">ObjectValue</a></span><ol>
-<li>If <span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span> <ol>
-<li>Let <var data-name="fieldValue">fieldValue</var> be <span class="spec-call"><a href="#Get()" data-name="Get">Get</a>(<var data-name="element">element</var>, <var data-name="key">key</var>)</span></li>
+<li>If <span class="spec-call"><a href="#Exists()" data-name="Exists">Exists</a>(<var data-name="element">element</var>, <var data-name="by">by</var>)</span> <ol>
+<li>Let <var data-name="fieldValue">fieldValue</var> be <span class="spec-call"><a href="#Get()" data-name="Get">Get</a>(<var data-name="element">element</var>, <var data-name="by">by</var>)</span></li>
 <li>If <span class="spec-call"><a href="#IsConvertibleToComparable()" data-name="IsConvertibleToComparable">IsConvertibleToComparable</a>(<var data-name="element">element</var>)</span><ol>
 <li>Let <var data-name="convertedValue">convertedValue</var> be <span class="spec-call"><a href="#ConvertToComparable()" data-name="ConvertToComparable">ConvertToComparable</a>(<var data-name="fieldValue">fieldValue</var>)</span></li>
 <li>If <var data-name="convertedValue">convertedValue</var> does NOT exist in <var data-name="values">values</var><ol>
@@ -1662,7 +1711,15 @@ TODO We might want to add support for datetime strings</div>
 </dl>
 <dl>
 <dt><dfn id="ag0006"><a href="#ag0006" data-name="ag0006">AG0006</a></dfn></dt>
-<dd>The argument size of flatten on field <em>path</em> must be greater than 0, </dd>
+<dd>The argument size of flatten on field <em>path</em> must be greater than 0,</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0007"><a href="#ag0007" data-name="ag0007">AG0007</a></dfn></dt>
+<dd>The field <em>path</em> expects a scalar but received an list</dd>
+</dl>
+<dl>
+<dt><dfn id="ag0008"><a href="#ag0008" data-name="ag0008">AG0008</a></dfn></dt>
+<dd>The field <em>path</em> expects a scalar but received an object </dd>
 </dl>
 </section>
 <section id="index" secid="index" class="spec-index">
@@ -1685,13 +1742,15 @@ TODO We might want to add support for datetime strings</div>
 <li><a href="#-take">@take</a></li>
 <li><a href="#-takeright">@takeRight</a></li>
 <li><a href="#-uniq">@uniq</a></li>
-<li><a href="#-uniqby">@uniqBy</a></li>
+<li><a href="#-unique">@unique</a></li>
 <li><a href="#ag0001">AG0001</a></li>
 <li><a href="#ag0002">AG0002</a></li>
 <li><a href="#ag0003">AG0003</a></li>
 <li><a href="#ag0004">AG0004</a></li>
 <li><a href="#ag0005">AG0005</a></li>
 <li><a href="#ag0006">AG0006</a></li>
+<li><a href="#ag0007">AG0007</a></li>
+<li><a href="#ag0008">AG0008</a></li>
 <li><a href="#ConvertToComparable()">ConvertToComparable</a></li>
 <li><a href="#ConvertToString()">ConvertToString</a></li>
 <li><a href="#Exists()">Exists</a></li>
@@ -1726,8 +1785,9 @@ TODO We might want to add support for datetime strings</div>
 <li><a href="#RewriteTakeRight()">RewriteTakeRight</a></li>
 <li><a href="#RewriteUniq()">RewriteUniq</a></li>
 <li><a href="#RewriteUniqArray()">RewriteUniqArray</a></li>
-<li><a href="#RewriteUniqBy()">RewriteUniqBy</a></li>
-<li><a href="#RewriteUniqByArray()">RewriteUniqByArray</a></li>
+<li><a href="#RewriteUnique()">RewriteUnique</a></li>
+<li><a href="#RewriteUniqueArrayBy()">RewriteUniqueArrayBy</a></li>
+<li><a href="#RewriteUniqueqArray()">RewriteUniqueqArray</a></li>
 <li><a href="#scalarvalue">ScalarValue</a></li>
 </ol>
 </section>
@@ -1757,7 +1817,7 @@ Written in <a href="https://spec-md.com" target="_blank">Spec Markdown</a>.</foo
 <li id="_sidebar_1.14"><a href="#sec-Take"><span class="spec-secid">1.14</span>Take</a></li>
 <li id="_sidebar_1.15"><a href="#sec-TakeRight"><span class="spec-secid">1.15</span>TakeRight</a></li>
 <li id="_sidebar_1.16"><a href="#sec-Uniq"><span class="spec-secid">1.16</span>Uniq</a></li>
-<li id="_sidebar_1.17"><a href="#sec-UniqBy"><span class="spec-secid">1.17</span>UniqBy</a></li>
+<li id="_sidebar_1.17"><a href="#sec-Unique"><span class="spec-secid">1.17</span>Unique</a></li>
 </ol>
 </li>
 <li id="_sidebar_2"><a href="#sec-Transformations"><span class="spec-secid">2</span>Transformations</a></li>

@@ -10,7 +10,7 @@
   </data>
   <query>
     {
-      single @uniq {
+      single @unique {
         string
       }
     }

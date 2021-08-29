@@ -2,23 +2,16 @@
   <data>
     <json>
       {
-        "list": [
-          {
-            "string": "a"
-          },
+        "stringList": [
           "a",
-          {
-            "string": "c"
-          }
+          "b"
         ]
       }
     </json>
   </data>
   <query>
     {
-      list @uniqBy(key: "string"){
-        string
-      }
+      stringList @unique(by: "string")
     }
   </query>
   <result>

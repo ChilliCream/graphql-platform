@@ -12,7 +12,7 @@
   </data>
   <query>
     {
-      stringList @uniq
+      stringList @unique
     }
   </query>
   <result>

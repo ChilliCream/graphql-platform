@@ -68,9 +68,7 @@ directive @take(count: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIE
 
 directive @takeRight(count: Int!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
-directive @uniq repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
-
-directive @uniqBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @unique(by: String) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")

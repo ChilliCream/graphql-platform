@@ -3,14 +3,14 @@
     <json>
       {
         "single": {
-          "string": null
+          "string": "a"
         }
       }
     </json>
   </data>
   <query>
     {
-      single @uniqBy(key: "string"){
+      single @unique(by: "string"){
         string
       }
     }

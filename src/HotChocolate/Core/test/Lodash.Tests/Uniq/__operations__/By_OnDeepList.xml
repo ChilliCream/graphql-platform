@@ -43,7 +43,7 @@
     {
       list {
         single {
-          list @uniqBy(key: "string") {
+          list @unique(by: "string") {
             int
             string
           }

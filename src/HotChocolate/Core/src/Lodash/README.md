@@ -15,8 +15,7 @@
 ### [SumBy](Operations/SumBy/SumBy.md)
 ### [Take](Operations/Take/Take.md)
 ### [TakeRight](Operations/Take/TakeRight.md)
-### [Uniq](Operations/Uniq/Uniq.md)
-### [UniqBy](Operations/UniqBy/UniqBy.md)
+### [Unique](Operations/Unique/Unique.md)
 
 ## Transformations
 Exists(node, key):
@@ -138,3 +137,9 @@ AG0005
 
 AG0006
 : The argument size of flatten on field *path* must be greater than 0,
+
+AG0007
+: The field *path* expects a scalar but received an list
+
+AG0008
+: The field *path* expects a scalar but received an object

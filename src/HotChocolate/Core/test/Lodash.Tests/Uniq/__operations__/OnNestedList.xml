@@ -33,41 +33,12 @@
   </data>
   <query>
     {
-      nestedList @uniq {
+      nestedList @unique {
         string
       }
     }
   </query>
   <result>
-    <json>
-      {
-        "nestedList": [
-          [
-            {
-              "string": "a"
-            },
-            {
-              "string": "b"
-            }
-          ],
-          [
-            {
-              "string": "c"
-            },
-            {
-              "string": "d"
-            }
-          ],
-          [
-            {
-              "string": "e"
-            },
-            {
-              "string": "f"
-            }
-          ]
-        ]
-      }
-    </json>
+    <error-code>AG0007</error-code>
   </result>
 </test>

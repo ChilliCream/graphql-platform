@@ -4,12 +4,15 @@
       {
         "list": [
           {
+            "int": 1,
             "string": "a"
           },
           {
-            "string": "b"
+            "int": 2,
+            "string": "a"
           },
           {
+            "int": 3,
             "string": "c"
           }
         ]
@@ -18,7 +21,8 @@
   </data>
   <query>
     {
-      list @uniqBy(key: "someOtherProperty"){
+      list @unique(by: "string"){
+        int
         string
       }
     }
@@ -28,12 +32,11 @@
       {
         "list": [
           {
+            "int": 1,
             "string": "a"
           },
           {
-            "string": "b"
-          },
-          {
+            "int": 3,
             "string": "c"
           }
         ]

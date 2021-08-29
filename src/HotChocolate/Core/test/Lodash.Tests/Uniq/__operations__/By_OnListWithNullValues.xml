@@ -19,7 +19,7 @@
   </data>
   <query>
     {
-      list @uniqBy(key: "string"){
+      list @unique(by: "string"){
         string
       }
     }

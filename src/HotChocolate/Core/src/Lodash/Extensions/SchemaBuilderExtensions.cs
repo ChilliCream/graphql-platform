@@ -21,7 +21,6 @@ namespace HotChocolate
                 .AddDirectiveType<SumByDirectiveType>()
                 .AddDirectiveType<TakeDirectiveType>()
                 .AddDirectiveType<TakeRightDirectiveType>()
-                .AddDirectiveType<UniqDirectiveType>()
-                .AddDirectiveType<UniqByDirectiveType>();
+                .AddDirectiveType<UniqueDirectiveType>();
     }
 }

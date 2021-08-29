@@ -8,7 +8,7 @@
   </data>
   <query>
     {
-      string @uniqBy(key: "string")
+      string @unique(by: "string")
     }
   </query>
   <result>

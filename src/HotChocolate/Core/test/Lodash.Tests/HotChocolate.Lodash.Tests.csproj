@@ -29,5 +29,8 @@
       <Link>RightTests.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="__snapshots__" />
+  </ItemGroup>
 
 </Project>
