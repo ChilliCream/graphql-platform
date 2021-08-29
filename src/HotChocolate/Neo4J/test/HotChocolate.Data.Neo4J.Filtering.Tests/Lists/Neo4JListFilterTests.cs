@@ -67,14 +67,17 @@ namespace HotChocolate.Data.Neo4J.Filtering.Lists
             IRequestExecutor tester =
                 await _fixture.GetOrCreateSchema<Foo, FooFilterType>(_fooEntitiesCypher);
 
+            /*
+            match (foo:Foo)
+            where exists((foo)-[:RELATED_FOO]->(:FooNested)) and all(foo_fooNested IN [(foo)-[:RELATED_FOO]->(foo_fooNested:FooNested) | foo_fooNested] where foo_fooNested.Bar = 'a')
+            RETURN foo {.BarString, FooNested: [(foo:Foo)-[:RELATED_FOO]->(fooNested:FooNested) | fooNested {.Bar, BarNested: [(fooNested:FooNested)-[:RELATED_BAR]->(barNested:BarNested) | barNested {.Foo}]}]}
+            */
+
             // act
             // assert
             const string query1 =
                 @"{
                     root(where: {
-                        barString: {
-                            eq: ""a""
-                        }
                         fooNested: {
                             all: {
                                 bar: { eq: ""a"" }
