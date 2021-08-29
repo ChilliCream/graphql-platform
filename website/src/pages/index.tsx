@@ -44,7 +44,6 @@ import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
 import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
-import XMLogoSvg from "../images/companies/xm.svg"
 // Images
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
