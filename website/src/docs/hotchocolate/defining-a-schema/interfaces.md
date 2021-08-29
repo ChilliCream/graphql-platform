@@ -4,7 +4,7 @@ title: "Interfaces"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-An interface is an abstract type that defines a certain set of fields that an object type or another interface must include to implement the interface.
+An interface is an abstract type that defines a certain set of fields that an object type or another interface must include to implement the interface. Interfaces can only be used as output types, meaning we can't use interfaces as arguments or as fields on input object types.
 
 ```sdl
 interface Message {
@@ -17,16 +17,32 @@ type TextMessage implements Message {
   createdAt: DateTime!
   content: String!
 }
+
+type Query {
+    messages: [Message]!
+}
 ```
 
-Clients can query fields returning an interface like the following.
+# Usage
+
+GIven is the schema from above.
+
+When querying a field returning an interface, we can query the fields defined in the interface like we would query a regular object type.
 
 ```graphql
 {
   messages {
-    author {
-      name
-    }
+    createdAt
+  }
+}
+```
+
+If we need to access fields that are part of an object type implementing the interface, we can do so using [fragments](<(https://graphql.org/learn/queries/#fragments)>).
+
+```graphql
+{
+  messages {
+    createdAt
     ... on TextMessage {
       content
     }
@@ -34,9 +50,7 @@ Clients can query fields returning an interface like the following.
 }
 ```
 
-Learn more about interfaces [here](https://graphql.org/learn/schema/#interfaces).
-
-# Usage
+# Definition
 
 Interfaces can be defined like the following.
 
@@ -185,13 +199,14 @@ public class Startup
 ```csharp
 public interface IMessage
 {
-    string Author { get; set; }
+    User Author { get; set; }
 
     DateTime CreatedAt { get; set; }
 }
+
 public class TextMessage : IMessage
 {
-    public string Author { get; set; }
+    public User Author { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -237,6 +252,169 @@ public class Startup
 > ```csharp
 > services.AddGraphQLServer().AddType<TextMessageType>()
 > ```
+
+# Binding behavior
+
+In the Annotation-based approach all public properties and methods are implicitly mapped to fields on the schema interface type. The same is true for `T` of `InterfaceType<T>` when using the Code-first approach.
+
+In the Code-first approach we can also enable explicit binding, where we have to opt-in properties and methods we want to include instead of them being implicitly included.
+
+<!-- todo: this should not be covered in each type documentation, rather once in a server configuration section -->
+
+We can configure our preferred binding behavior globally like the following.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .ModifyOptions(options =>
+    {
+        options.DefaultBindingBehavior = BindingBehavior.Explicit;
+    });
+```
+
+> ⚠️ Note: This changes the binding behavior for all types, not only interface types.
+
+We can also override it on a per type basis:
+
+```csharp
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.BindFields(BindingBehavior.Implicit);
+
+        // We could also use the following methods respectively
+        // descriptor.BindFieldsExplicitly();
+        // descriptor.BindFieldsImplicitly();
+    }
+}
+```
+
+## Ignoring fields
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+In the Annotation-based approach we can ignore fields using the `[GraphQLIgnore]` attribute.
+
+```csharp
+public interface IMessage
+{
+    [GraphQLIgnore]
+    User Author { get; set; }
+
+    DateTime CreatedAt { get; set; }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+In the Code-first approach we can ignore fields using the `Ignore` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is implicit.
+
+```csharp
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.Ignore(f => f.Author);
+    }
+}
+
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+We do not have to ignore fields in the Schema-first approach.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+## Including fields
+
+In the Code-first approach we can explicitly include properties of our POCO using the `Field` method on the `IInterfaceTypeDescriptor`. This is only necessary, if the binding behavior of the interface type is explicit.
+
+```csharp
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+
+        descriptor.Field(f => f.Title);
+    }
+}
+```
+
+# Naming
+
+Unless specified explicitly, Hot Chocolate automatically infers the names of interface types and their fields. Per default the name of the interface / abstract class becomes the name of the interface type. When using `InterfaceType<T>` in Code-first, the name of `T` is chosen as the name for the interface type. The names of methods and properties on the respective interface / abstract class are chosen as names of the fields of the interface type
+
+If we need to we can override these inferred names.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+The `[GraphQLName]` attribute allows us to specify an explicit name.
+
+```csharp
+[GraphQLName("Post")]
+public interface IMessage
+{
+    User Author { get; set; }
+
+    [GraphQLName("addedAt")]
+    DateTime CreatedAt { get; set; }
+}
+```
+
+We can also specify a name for the interface type using the `[InterfaceType]` attribute.
+
+```csharp
+[InterfaceType("Post")]
+public interface IMessage
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+The `Name` method on the `IInterfaceTypeDescriptor` / `IInterfaceFieldDescriptor` allows us to specify an explicit name.
+
+```csharp
+public class MessageType : InterfaceType<IMessage>
+{
+    protected override void Configure(
+        IInterfaceTypeDescriptor<IMessage> descriptor)
+    {
+        descriptor.Name("Post");
+
+        descriptor
+            .Field(f => f.CreatedAt)
+            .Name("addedAt");
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Simply change the names in the schema.
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+This would produce the following `Post` schema interface type:
+
+```sdl
+interface Post {
+  author: User!
+  addedAt: DateTime!
+}
+```
 
 # Interfaces implementing interfaces
 
@@ -458,193 +636,3 @@ public class Startup
 > ```csharp
 > services.AddGraphQLServer().AddType<DatedMessageType>()
 > ```
-
-# Dynamic fields
-
-We can also declare additional dynamic fields (resolvers) on our interfaces.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-[InterfaceType("Message")]
-public interface IMessage
-{
-    User Author { get; set; }
-
-    DateTime GetCreatedAt();
-}
-
-public class TextMessage : IMessage
-{
-    public User Author { get; set; }
-
-    public DateTime GetCreatedAt()
-    {
-        // Omitted code for brevity
-    }
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public interface IMessage
-{
-    User Author { get; set; }
-
-    DateTime GetCreatedAt();
-}
-
-public class MessageType : InterfaceType<IMessage>
-{
-    protected override void Configure(
-        IInterfaceTypeDescriptor<IMessage> descriptor)
-    {
-        descriptor.Name("Message");
-    }
-}
-
-public class TextMessage : IMessage
-{
-    public User Author { get; set; }
-
-    public DateTime GetCreatedAt()
-    {
-        // Omitted code for brevity
-    }
-}
-
-public class TextMessageType : ObjectType<TextMessage>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<TextMessage> descriptor)
-    {
-        descriptor.Name("TextMessage");
-
-        // The interface that is being implemented
-        descriptor.Implements<MessageType>();
-    }
-}
-```
-
-If we do not want to pollute our interface with methods, we can also declare them directly on the interface type.
-
-```csharp
-public class MessageType : InterfaceType<IMessage>
-{
-    protected override void Configure(
-        IInterfaceTypeDescriptor<IMessage> descriptor)
-    {
-        descriptor.Name("Message");
-
-        // this is an additional field
-        descriptor
-            .Field("createdAt")
-            .Type<DateTimeType>();
-    }
-}
-
-public class TextMessage : IMessage
-{
-    public User Author { get; set; }
-}
-
-public class TextMessageType : ObjectType<TextMessage>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<TextMessage> descriptor)
-    {
-        descriptor.Name("TextMessage");
-
-        // The interface that is being implemented
-        descriptor.Implements<MessageType>();
-
-        descriptor
-            .Field("createdAt")
-            .Resolve(context =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-```
-
-We do not have to use the `descriptor`, we could also create a new method or property named `CreatedAt` in the `TextMessage` class.
-
-If we are dealing with lots of interface implementations, which all have the same logic for resolving a dynamic field, we can create an extension method for the field declarations.
-
-```csharp
-public static class MessageExtensions
-{
-    public static void AddCreatedAt<T>(this IObjectTypeDescriptor<T> descriptor)
-        where T : IMessage
-    {
-        descriptor
-            .Field("createdAt")
-            .Resolve(context =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-
-public class TextMessageType : ObjectType<TextMessage>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<TextMessage> descriptor)
-    {
-        descriptor.Name("TextMessage");
-
-        // The interface that is being implemented
-        descriptor.Implements<MessageType>();
-
-        // call to our extension method defined above
-        descriptor.AddCreatedAt();
-    }
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-public interface IMessage
-{
-    string Author { get; set; }
-}
-
-public class TextMessage : IMessage
-{
-    public string Author { get; set; }
-}
-
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddDocumentFromString(@"
-                interface Message {
-                  author: User
-                  createdAt: DateTime!
-                }
-
-                type TextMessage implements Message {
-                  author: User
-                  createdAt: DateTime!
-                }
-            ")
-            .BindComplexType<TextMessage>()
-            .AddResolver("TextMessage", "createdAt", (context) =>
-            {
-                // Omitted code for brevity
-            });
-    }
-}
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
