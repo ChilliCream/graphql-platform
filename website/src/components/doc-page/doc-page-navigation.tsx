@@ -211,15 +211,9 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           <ProductSwitcherButton onClick={toggleVersionSwitcher}>
             {activeVersion?.title}
 
-            {hasVersions && (
-              <IconContainer size={12}>
-                {versionSwitcherOpen ? (
-                  <ArrowUpIconSvg />
-                ) : (
-                  <ArrowDownIconSvg />
-                )}
-              </IconContainer>
-            )}
+            <IconContainer size={12}>
+              {versionSwitcherOpen ? <ArrowUpIconSvg /> : <ArrowDownIconSvg />}
+            </IconContainer>
           </ProductSwitcherButton>
         )}
       </ProductSwitcher>
@@ -345,7 +339,7 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
   `)}
 `;
 
-const ProductSwitcherButton = styled.button<{ fullWidth?: number }>`
+const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
