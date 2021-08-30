@@ -237,6 +237,111 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task Upload_Optional_File()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($upload: Upload) {
+                    optionalUpload(file: $upload)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "upload", null }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Upload_Optional_File_In_InputObject()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($input: InputWithOptionalFileInput!) {
+                    optionalObjectUpload(input: $input)
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "input", new Dictionary<string, object> { { "file", null } } }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Upload_Optional_File_In_Inline_InputObject()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($upload: Upload!) {
+                    optionalObjectUpload(input: { file: $upload })
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "upload", null }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Upload_File_In_InputObject()
         {
             // arrange
@@ -262,6 +367,41 @@ namespace HotChocolate.AspNetCore
             {
                 { new StringContent(request), "operations" },
                 { new StringContent("{ \"1\": [\"variables.input.file\"] }"), "map" },
+                { new StringContent("abc"), "1", "foo.bar" },
+            };
+
+            ClientQueryResult result = await server.PostMultipartAsync(form, path: "/upload");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Upload_File_Inline_InputObject()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            var query = @"
+                query ($upload: Upload!) {
+                    objectUpload(input: { file: $upload })
+                }";
+
+            var request = JsonConvert.SerializeObject(
+                new ClientQueryRequest
+                {
+                    Query = query,
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "upload", null }
+                    }
+                });
+
+            // act
+            var form = new MultipartFormDataContent
+            {
+                { new StringContent(request), "operations" },
+                { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
                 { new StringContent("abc"), "1", "foo.bar" },
             };
 

@@ -144,7 +144,7 @@ namespace HotChocolate.Utilities
             Type target,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            if (source == target || target == typeof(object))
+            if (target == typeof(object) || target.IsAssignableFrom(source))
             {
                 converter = s => s;
                 return true;
