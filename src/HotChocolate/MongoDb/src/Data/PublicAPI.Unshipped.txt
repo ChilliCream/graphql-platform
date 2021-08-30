@@ -1,3 +1,8 @@
+HotChocolate.Data.MongoDb.AndFilterDefinition
+HotChocolate.Data.MongoDb.AndFilterDefinition.AndFilterDefinition(params HotChocolate.Data.MongoDb.MongoDbFilterDefinition![]! filters) -> void
+HotChocolate.Data.MongoDb.AndFilterDefinition.AndFilterDefinition(System.Collections.Generic.IEnumerable<HotChocolate.Data.MongoDb.MongoDbFilterDefinition!>! filters) -> void
+HotChocolate.Data.MongoDb.BsonDocumentExtensions
+HotChocolate.Data.MongoDb.FilterDefinitionExtensions
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanHandler.MongoDbComparableGreaterThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableGreaterThanOrEqualsHandler.MongoDbComparableGreaterThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableLowerThanHandler.MongoDbComparableLowerThanHandler(HotChocolate.Types.InputParser! inputParser) -> void
@@ -8,6 +13,7 @@ HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanHandler.MongoDbCo
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableNotLowerThanOrEqualsHandler.MongoDbComparableNotLowerThanOrEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbComparableOperationHandler.MongoDbComparableOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbEqualsOperationHandler.MongoDbEqualsOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.MongoDb.Filters.MongoDbFilterScopeExtensions
 HotChocolate.Data.MongoDb.Filters.MongoDbInOperationHandler.MongoDbInOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbListAnyOperationHandler.MongoDbListAnyOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.MongoDb.Filters.MongoDbNotEqualsOperationHandler.MongoDbNotEqualsOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
@@ -43,6 +49,49 @@ HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringSt
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringNotStartsWithHandler.MongoDbStringNotStartsWithHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringOperationHandler.MongoDbStringOperationHandler() -> void
 *REMOVED*HotChocolate.Data.MongoDb.Filters.MongoDbStringStartsWithHandler.MongoDbStringStartsWithHandler() -> void
+HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition
+HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.MongoDbCombinedProjectionDefinition(params HotChocolate.Data.MongoDb.MongoDbProjectionDefinition![]! projections) -> void
+HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.MongoDbCombinedProjectionDefinition(System.Collections.Generic.IEnumerable<HotChocolate.Data.MongoDb.MongoDbProjectionDefinition!>! projections) -> void
+HotChocolate.Data.MongoDb.MongoDbCombinedSortDefinition
+HotChocolate.Data.MongoDb.MongoDbCombinedSortDefinition.MongoDbCombinedSortDefinition(params HotChocolate.Data.MongoDb.MongoDbSortDefinition![]! sorts) -> void
+HotChocolate.Data.MongoDb.MongoDbCombinedSortDefinition.MongoDbCombinedSortDefinition(System.Collections.Generic.IEnumerable<HotChocolate.Data.MongoDb.MongoDbSortDefinition!>! sorts) -> void
+HotChocolate.Data.MongoDb.MongoDbDirectionalSortOperation
+HotChocolate.Data.MongoDb.MongoDbDirectionalSortOperation.MongoDbDirectionalSortOperation(string! field, MongoDB.Driver.SortDirection direction) -> void
+HotChocolate.Data.MongoDb.MongoDbFilterOperation
+HotChocolate.Data.MongoDb.MongoDbFilterOperation.MongoDbFilterOperation(string! path, object? value) -> void
+HotChocolate.Data.MongoDb.MongoDbIncludeProjectionOperation
+HotChocolate.Data.MongoDb.MongoDbIncludeProjectionOperation.MongoDbIncludeProjectionOperation(string! field) -> void
+HotChocolate.Data.MongoDb.MongoDbObjectFieldExtensions
+HotChocolate.Data.MongoDb.MongoDbSortFieldExtensions
+HotChocolate.Data.MongoDb.MongoFilterOperationFieldExtensions
+HotChocolate.Data.MongoDb.NotMongoDbFilterDefinition
+HotChocolate.Data.MongoDb.NotMongoDbFilterDefinition.NotMongoDbFilterDefinition(HotChocolate.Data.MongoDb.MongoDbFilterDefinition! filter) -> void
+HotChocolate.Data.MongoDb.OrMongoDbFilterDefinition
+HotChocolate.Data.MongoDb.OrMongoDbFilterDefinition.OrMongoDbFilterDefinition(params HotChocolate.Data.MongoDb.MongoDbFilterDefinition![]! filters) -> void
+HotChocolate.Data.MongoDb.OrMongoDbFilterDefinition.OrMongoDbFilterDefinition(System.Collections.Generic.IEnumerable<HotChocolate.Data.MongoDb.MongoDbFilterDefinition!>! filters) -> void
+HotChocolate.Data.MongoDb.SortDefinitionExtensions
+HotChocolate.Data.MongoDb.Sorting.MongoSortVisitorContextExtensions
+HotChocolate.Data.MongoDb.StringFieldDefinitionHelper
+override HotChocolate.Data.MongoDb.AndFilterDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.MongoDbCombinedProjectionDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.MongoDbCombinedSortDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.MongoDbDirectionalSortOperation.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.MongoDbFilterOperation.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.MongoDbIncludeProjectionOperation.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.NotMongoDbFilterDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+override HotChocolate.Data.MongoDb.OrMongoDbFilterDefinition.Render(MongoDB.Bson.Serialization.IBsonSerializer! documentSerializer, MongoDB.Bson.Serialization.IBsonSerializerRegistry! serializerRegistry) -> MongoDB.Bson.BsonDocument!
+static HotChocolate.Data.MongoDb.BsonDocumentExtensions.DefaultRender(this MongoDB.Driver.FilterDefinition<MongoDB.Bson.BsonDocument!>! bsonQuery) -> MongoDB.Bson.BsonDocument!
+static HotChocolate.Data.MongoDb.BsonDocumentExtensions.DefaultRender(this MongoDB.Driver.SortDefinition<MongoDB.Bson.BsonDocument!>! bsonQuery) -> MongoDB.Bson.BsonDocument!
+static HotChocolate.Data.MongoDb.FilterDefinitionExtensions.Wrap<T>(this MongoDB.Driver.FilterDefinition<T>! filterDefinition) -> HotChocolate.Data.MongoDb.MongoDbFilterDefinition!
+static HotChocolate.Data.MongoDb.Filters.MongoDbFilterScopeExtensions.GetPath(this HotChocolate.Data.MongoDb.Filters.MongoDbFilterScope! scope) -> string!
+static HotChocolate.Data.MongoDb.Filters.MongoDbFilterScopeExtensions.TryCreateQuery(this HotChocolate.Data.MongoDb.Filters.MongoDbFilterScope! scope, out HotChocolate.Data.MongoDb.MongoDbFilterDefinition? query) -> bool
+static HotChocolate.Data.MongoDb.MongoDbObjectFieldExtensions.GetName(this HotChocolate.Types.IObjectField! field) -> string!
+static HotChocolate.Data.MongoDb.MongoDbSortFieldExtensions.GetName(this HotChocolate.Data.Sorting.ISortField! field) -> string!
+static HotChocolate.Data.MongoDb.MongoFilterOperationFieldExtensions.GetName(this HotChocolate.Data.Filters.IFilterField! field) -> string!
+static HotChocolate.Data.MongoDb.SortDefinitionExtensions.Wrap<T>(this MongoDB.Driver.SortDefinition<T>! sortDefinition) -> HotChocolate.Data.MongoDb.MongoDbSortDefinition!
+static HotChocolate.Data.MongoDb.Sorting.MongoSortVisitorContextExtensions.GetPath(this HotChocolate.Data.MongoDb.Sorting.MongoDbSortVisitorContext! ctx) -> string!
+static HotChocolate.Data.MongoDb.Sorting.MongoSortVisitorContextExtensions.TryCreateQuery(this HotChocolate.Data.MongoDb.Sorting.MongoDbSortVisitorContext! context, out HotChocolate.Data.MongoDb.MongoDbSortDefinition? query) -> bool
+static HotChocolate.Data.MongoDb.StringFieldDefinitionHelper.Resolve(string! fieldName, MongoDB.Bson.Serialization.IBsonSerializer! serializer, out string? resolvedFieldName, out MongoDB.Bson.Serialization.IBsonSerializer? resolvedFieldSerializer) -> void
 static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddMongoDbPagingProviders(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? providerName = null, bool defaultProvider = false) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 *REMOVED*HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions
 *REMOVED*HotChocolate.Types.UseMongoDbOffsetPagingAttribute
@@ -70,3 +119,5 @@ static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensi
 *REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? type = null, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
 *REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType, TEntity>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
 *REMOVED*static HotChocolate.Types.MongoPagingObjectFieldDescriptorExtensions.UseMongoDbPaging<TSchemaType>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type? entityType = null, HotChocolate.Types.Pagination.PagingOptions options = default(HotChocolate.Types.Pagination.PagingOptions)) -> HotChocolate.Types.IObjectFieldDescriptor!
+static Microsoft.Extensions.DependencyInjection.MongoDbDataRequestBuilderExtensions.AddObjectIdConverters(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+

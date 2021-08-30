@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -29,9 +30,13 @@ namespace HotChocolate.Data.MongoDb.Filters
             [NotNullWhen(true)] out MongoDbFilterDefinition result)
         {
             IValueNode value = node.Value;
-            object? parsedValue = InputParser.ParseLiteral(value, field.Type, field.Name);
+            IExtendedType runtimeType = context.RuntimeTypes.Peek();
+            Type type = field.Type.IsListType()
+                ? runtimeType.Source.MakeArrayType()
+                : runtimeType.Source;
+            object? parsedValue = InputParser.ParseLiteral(value, field, type);
 
-            if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) &&
+            if ((!runtimeType.IsNullable || !CanBeNull) &&
                 parsedValue is null)
             {
                 context.ReportError(ErrorHelper.CreateNonNullError(field, value, context));
@@ -40,18 +45,8 @@ namespace HotChocolate.Data.MongoDb.Filters
                 return false;
             }
 
-            if (field.Type.IsInstanceOfType(value))
-            {
-                result = HandleOperation(
-                    context,
-                    field,
-                    value,
-                    parsedValue);
-
-                return true;
-            }
-
-            throw new InvalidOperationException();
+            result = HandleOperation(context, field, value, parsedValue);
+            return true;
         }
 
         /// <summary>

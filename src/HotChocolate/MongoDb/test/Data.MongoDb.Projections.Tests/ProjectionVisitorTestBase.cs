@@ -46,6 +46,7 @@ namespace HotChocolate.Data.MongoDb.Projections
 
             return builder
                 .AddMongoDbProjections()
+                .AddObjectIdConverters()
                 .AddMongoDbFiltering()
                 .AddMongoDbSorting()
                 .AddMongoDbPagingProviders()
