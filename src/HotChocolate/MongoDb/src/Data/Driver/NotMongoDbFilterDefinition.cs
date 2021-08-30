@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// This class was ported over from the official mongo db driver
     /// </summary>
-    internal sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
+    public sealed class NotMongoDbFilterDefinition : MongoDbFilterDefinition
     {
         private readonly MongoDbFilterDefinition _filter;
 

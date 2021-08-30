@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// This class was ported over from the official mongo db driver
     /// </summary>
-    internal static class StringFieldDefinitionHelper
+    public static class StringFieldDefinitionHelper
     {
         public static void Resolve(
             string fieldName,

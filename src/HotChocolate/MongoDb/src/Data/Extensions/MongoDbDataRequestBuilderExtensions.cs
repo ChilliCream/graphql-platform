@@ -2,7 +2,9 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Data.MongoDb;
 using HotChocolate.Data.MongoDb.Paging;
+using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
+using MongoDB.Bson;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -55,6 +57,22 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             string? name = null) =>
             builder.ConfigureSchema(s => s.AddMongoDbProjections(name));
+
+        /// <summary>
+        /// Adds converter
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        public static IRequestExecutorBuilder AddObjectIdConverters(
+            this IRequestExecutorBuilder builder) =>
+            builder
+                .BindRuntimeType<ObjectId, StringType>()
+                .AddTypeConverter<ObjectId, string>(x => x.ToString())
+                .AddTypeConverter<string, ObjectId>(x => new ObjectId(x));
 
         /// <summary>
         /// Adds the MongoDB cursor and offset paging providers.

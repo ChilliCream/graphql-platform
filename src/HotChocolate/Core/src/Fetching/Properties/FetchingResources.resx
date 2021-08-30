@@ -138,4 +138,7 @@
   <data name="ThrowHelper_DataLoader_InvalidType" xml:space="preserve">
     <value>The provided type {0} is not a dataloader</value>
   </data>
+  <data name="BatchDispatcherResult_NoExceptions" xml:space="preserve">
+    <value>There must be at least one exception to create an error result.</value>
+  </data>
 </root>

@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// This class was ported over from the official mongo db driver
     /// </summary>
-    internal sealed class MongoDbCombinedProjectionDefinition : MongoDbProjectionDefinition
+    public sealed class MongoDbCombinedProjectionDefinition : MongoDbProjectionDefinition
     {
         private readonly MongoDbProjectionDefinition[] _projections;
 

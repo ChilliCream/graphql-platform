@@ -1353,6 +1353,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ErrorHelper_NoSchemaTypesAllowedAsRuntimeType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSchemaTypesAllowedAsRuntimeType", resourceCulture);
+            }
+        }
+        
         internal static string FieldInitHelper_CompleteFields_MaxFieldCountToSmall {
             get {
                 return ResourceManager.GetString("FieldInitHelper_CompleteFields_MaxFieldCountToSmall", resourceCulture);

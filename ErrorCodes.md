@@ -44,5 +44,12 @@
 | HC0042 | Server            | The variable path must start with `variables`.                                                                                           |
 | HC0043 | Server            | Invalid JSON in the `map` multipart field; Expected type of Dictionary<string, string[]>.                                                |
 | HC0044 | Server            | No `map` specified.                                                                                                                      |
+| HC0045 | Server            | The request exceeded the configured timeout.                                                                                             |
+| HC0046 | Server            | The introspection is not allowed for the current request                                                                                 |
+| HC0047 | Server            | The operation complexity was exceeded.                                                                                                   |
+| HC0048 | Server            | The analyzer needs a documentId, operationId, document and coerced variables.                                                            |
+| HC0049 | Server            | The request was cancelled                                                                                                                |
+| HC0050 | Server            | The middleware order of a field pipeline is incorrect.                                                                                   |
+| HC0051 | Server            | Type system members are not supported as runtime types                                                                                   |
 | HC0052 | Execution         | This server only allows persisted queries. No query id was provided.                                                                     |
 | HC0053 | Execution         | This server only allows persisted queries but a document was provided.                                                                   |

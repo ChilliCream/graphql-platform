@@ -193,7 +193,6 @@ HotChocolate.AspNetCore.ToolDefaultFileMiddleware.Invoke(Microsoft.AspNetCore.Ht
 HotChocolate.AspNetCore.ToolDefaultFileMiddleware.ToolDefaultFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
 HotChocolate.AspNetCore.ToolOptionsFileMiddleware
 HotChocolate.AspNetCore.ToolOptionsFileMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
-HotChocolate.AspNetCore.ToolOptionsFileMiddleware.ToolOptionsFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, HotChocolate.Execution.IRequestExecutorResolver! executorResolver, HotChocolate.AspNetCore.Serialization.IHttpResultSerializer! resultSerializer, HotChocolate.NameString schemaName, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
 HotChocolate.AspNetCore.ToolStaticFileMiddleware
 HotChocolate.AspNetCore.ToolStaticFileMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.AspNetCore.ToolStaticFileMiddleware.ToolStaticFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void

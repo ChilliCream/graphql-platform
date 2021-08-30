@@ -149,6 +149,11 @@ namespace HotChocolate
             /// The middleware order of a field pipeline is incorrect.
             /// </summary>
             public const string MiddlewareOrderInvalid = "HC0050";
+
+            /// <summary>
+            /// Type system members are not supported as runtime types
+            /// </summary>
+            public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
         }
 
         public static class Scalars

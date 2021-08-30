@@ -615,6 +615,24 @@ namespace HotChocolate.Types
             }
         }
 
+        [Fact]
+        public void InputObjectType_InInputObjectType_ThrowsSchemaException()
+        {
+            // arrange
+            // act
+            Exception ex = Record.Exception(
+                () => SchemaBuilder
+                    .New()
+                    .AddQueryType(x => x.Name("Query").Field("Foo").Resolve("bar"))
+                    .AddType<InputObjectType<InputObjectType<Foo>>>()
+                    .ModifyOptions(o => o.StrictRuntimeTypeValidation = true)
+                    .Create());
+
+            // assert
+            Assert.IsType<SchemaException>(ex);
+            ex.Message.MatchSnapshot();
+        }
+
         public class QueryWithInterfaceInput
         {
             public string Test(InputWithInterface input) => "Foo";
@@ -772,7 +790,15 @@ namespace HotChocolate.Types
             [DefaultValue(null)]
             public string WithNullDefault { get; set; }
 
+            [DefaultValue(FooEnum.Bar)]
+            public FooEnum Enum { get; set; }
+
             public string WithoutDefault { get; set; }
+        }
+
+        public enum FooEnum
+        {
+            Bar, Baz
         }
     }
 }
