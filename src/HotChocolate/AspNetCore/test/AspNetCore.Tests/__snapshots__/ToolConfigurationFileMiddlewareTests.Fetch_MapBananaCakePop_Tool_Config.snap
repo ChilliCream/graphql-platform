@@ -1,5 +1,5 @@
 ﻿{
-  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"graphQLDocument\":\"# foo\",\"credentials\":\"same-origin\",\"httpHeaders\":{\"Content-Type\":\"application/json\"},\"httpMethod\":\"GET\"}",
+  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"schemaEndpoint\":\"..\"}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [

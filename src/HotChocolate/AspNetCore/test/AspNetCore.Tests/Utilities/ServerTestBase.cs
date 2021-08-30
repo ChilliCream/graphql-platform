@@ -8,6 +8,7 @@ using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Routing;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -89,6 +90,33 @@ namespace HotChocolate.AspNetCore.Utilities
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
                     }));
+        }
+
+        protected virtual TestServer CreateServer(
+            Action<IEndpointRouteBuilder> configureConventions = default)
+        {
+            return ServerFactory.Create(
+                services =>
+                {
+                    TestSocketSessionInterceptor testInterceptor = new();
+
+                    services.AddSingleton(testInterceptor);
+
+                    services
+                        .AddRouting()
+                        .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                        .AddGraphQLServer()
+                        .AddStarWarsTypes()
+                        .AddTypeExtension<QueryExtension>()
+                        .AddTypeExtension<SubscriptionsExtensions>()
+                        .AddExportDirectiveType()
+                        .AddSocketSessionInterceptor(_ => testInterceptor)
+                        .AddStarWarsRepositories();
+                },
+                app => app
+                    .UseWebSockets()
+                    .UseRouting()
+                    .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
         }
     }
 }
