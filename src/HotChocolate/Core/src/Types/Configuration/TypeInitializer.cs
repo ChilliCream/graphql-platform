@@ -28,6 +28,8 @@ namespace HotChocolate.Configuration
         private readonly TypeReferenceResolver _typeReferenceResolver;
         private readonly List<RegisteredType> _next = new();
         private readonly List<RegisteredType> _temp = new();
+        private readonly List<ITypeReference> _typeRefs = new();
+        private readonly HashSet<ITypeReference> _typeRefSet = new();
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -469,18 +471,12 @@ namespace HotChocolate.Configuration
         {
             foreach (RegisteredType type in _next)
             {
-                var process = false;
-
-                if (TryNormalizeDependencies(type.Conditionals, out var normalized))
+                if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
+                    processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
                 {
-                    if (processed.IsSupersetOf(normalized.Except(type.References)))
-                    {
-                        process = true;
-                        yield return type;
-                    }
+                    yield return type;
                 }
-
-                if(!process)
+                else
                 {
                     _temp.Add(type);
                 }
@@ -492,6 +488,25 @@ namespace HotChocolate.Configuration
             {
                 _next.AddRange(_temp);
                 _temp.Clear();
+            }
+
+            List<ITypeReference> GetTypeRefsExceptSelfRefs(
+                RegisteredType type,
+                IReadOnlyList<ITypeReference> normalizedTypeReferences)
+            {
+                _typeRefs.Clear();
+                _typeRefSet.Clear();
+                _typeRefSet.UnionWith(type.References);
+
+                foreach (var typeRef in normalizedTypeReferences)
+                {
+                    if (_typeRefSet.Add(typeRef))
+                    {
+                        _typeRefs.Add(typeRef);
+                    }
+                }
+
+                return _typeRefs;
             }
         }
 
