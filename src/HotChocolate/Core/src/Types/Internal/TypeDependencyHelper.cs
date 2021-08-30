@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -112,15 +111,7 @@ namespace HotChocolate.Internal
 
                 if (field.Type is not null)
                 {
-                    var hasDefaultValue =
-                        field.DefaultValue is not null ||
-                        field.RuntimeDefaultValue is not null;
-
-                    TypeDependencyKind kind = hasDefaultValue
-                        ? TypeDependencyKind.Completed
-                        : TypeDependencyKind.Default;
-
-                    dependencies.Add(new(field.Type, kind));
+                    dependencies.Add(new(field.Type, GetDefaultValueDependencyKind(field)));
                 }
 
                 CollectDirectiveDependencies(field, dependencies);
@@ -177,15 +168,9 @@ namespace HotChocolate.Internal
                 {
                     if (argument.Type is not null)
                     {
-                        var hasDefaultValue =
-                            argument.DefaultValue is not null ||
-                            argument.RuntimeDefaultValue is not null;
-
-                        TypeDependencyKind kind = hasDefaultValue
-                            ? TypeDependencyKind.Completed
-                            : TypeDependencyKind.Default;
-
-                        dependencies.Add(new(argument.Type, TypeDependencyKind.Completed));
+                        dependencies.Add(new(
+                            argument.Type,
+                            GetDefaultValueDependencyKind(argument)));
                     }
                 }
             }
@@ -335,6 +320,18 @@ namespace HotChocolate.Internal
             }
 
             CollectDependencies(definition, context.Dependencies);
+        }
+
+        private static TypeDependencyKind GetDefaultValueDependencyKind(
+            ArgumentDefinition argumentDefinition)
+        {
+            var hasDefaultValue =
+                argumentDefinition.DefaultValue is not null and not NullValueNode ||
+                argumentDefinition.RuntimeDefaultValue is not null;
+
+            return hasDefaultValue
+                ? TypeDependencyKind.Completed
+                : TypeDependencyKind.Default;
         }
     }
 }

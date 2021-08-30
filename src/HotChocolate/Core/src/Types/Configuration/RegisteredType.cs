@@ -12,6 +12,7 @@ namespace HotChocolate.Configuration
     {
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
+        private List<TypeDependency>? _conditionals;
 
         public RegisteredType(
             TypeSystemObjectBase type,
@@ -63,6 +64,8 @@ namespace HotChocolate.Configuration
 
         public List<TypeDependency> Dependencies { get; } = new();
 
+        public List<TypeDependency> Conditionals => _conditionals ??= new();
+
         public bool IsInferred { get; }
 
         public bool IsExtension { get; }
@@ -81,6 +84,14 @@ namespace HotChocolate.Configuration
 
         public List<ISchemaError> Errors => _errors ??= new();
 
+        public void ClearConditionals()
+        {
+            if (_conditionals is { Count: > 0 })
+            {
+                _conditionals.Clear();
+            }
+        }
+
         public override string? ToString()
         {
             if (IsSchema)
@@ -92,7 +103,7 @@ namespace HotChocolate.Configuration
             {
                 return IsDirective ? $"@{hasName.Name}" : hasName.Name;
             }
-            
+
             return Type.ToString();
         }
     }
