@@ -4,13 +4,16 @@
       {
         "list": [
           {
-            "int": "a"
+            "string": "1",
+            "int": 1
           },
           {
-            "int": "b"
+            "string": "2",
+            "int": 2
           },
           {
-            "int": "c"
+            "string": "3",
+            "int": 2
           }
         ]
       }
@@ -18,7 +21,8 @@
   </data>
   <query>
     {
-      list @maxBy(key: "someOtherProperty"){
+      list @max{
+        string
         int
       }
     }
@@ -27,7 +31,8 @@
     <json>
       {
         "list": {
-          "int": "a"
+          "string": "1",
+          "int": 1
         }
       }
     </json>

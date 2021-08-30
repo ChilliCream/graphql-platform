@@ -38,7 +38,7 @@
     {
       list {
         single {
-          list @maxBy(key: "int") {
+          list @max {
             int
           }
         }
@@ -52,14 +52,14 @@
           {
             "single": {
               "list": {
-                "int": 2
+                "int": 1
               }
             }
           },
           {
             "single": {
               "list": {
-                "int": 3
+                "int": 1
               }
             }
           }

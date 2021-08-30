@@ -5,20 +5,23 @@
         "list": [
           {
             "string": "1",
-            "int": null
+            "int": 1
           },
           {
             "string": "2",
-            "int": null
+            "int": 2
           },
-          null
+          {
+            "string": "3",
+            "int": 2
+          }
         ]
       }
     </json>
   </data>
   <query>
     {
-      list @maxBy(key: "int"){
+      list @max(by: "int"){
         string
         int
       }
@@ -28,9 +31,9 @@
     <json>
       {
         "list": {
-            "string": "1",
-            "int": null
-          }
+          "string": "2",
+          "int": 2
+        }
       }
     </json>
   </result>

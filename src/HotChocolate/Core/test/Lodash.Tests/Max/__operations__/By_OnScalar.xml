@@ -8,7 +8,7 @@
   </data>
   <query>
     {
-      int @maxBy(key: "int")
+      int @max(by: "int")
     }
   </query>
   <result>

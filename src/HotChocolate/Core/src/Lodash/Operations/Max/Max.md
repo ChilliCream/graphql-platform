@@ -1,14 +1,14 @@
-### MaxBy
+### Max
+
 **Directive**
 
 ```graphql
-directive @maxBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @max(by: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 ```
 
-:: *@maxBy* can only be applied list of objects of depth 1. 
-Nested lists can be flattened with *@flatten* first.
-*@maxBy* returns the object where the value of the field with name `key` is the highest.
-If no value was found, *@maxBy* retruns the first element of the list.
+:: *@max* search a list for the highest value. If `by` is provided and *@max* is applied to a list of objects of depth
+1, it returns the object where the value of the field with name `by` is the highest Nested lists can be flattened with *
+@flatten* first. If no value was found, *@max* retruns the first element of the list or {null};
 
 Given the following data:
 
@@ -27,7 +27,8 @@ Given the following data:
       "string": "c",
       "int": 3
     }
-  ]
+  ],
+  "intList": [ 1, 2, 3]
 }
 ```
 
@@ -35,10 +36,11 @@ The execution of the following query:
 
 ```graphql example
 {
-  list @maxBy(key: "int"){
+  list @max(by: "int"){
     string
     int
   }
+  intList @max
 }
 ```
 
@@ -49,7 +51,8 @@ will retrun the following result:
   "list": {
     "string": "c",
     "int": 3
-  }
+  },
+  "intList": 3
 }
 ```
 
@@ -57,16 +60,34 @@ will retrun the following result:
 
 {node} is the value node where the directive is applied
 
-RewriteMaxBy(node):
-* Let {key} be the value of the argument `key` of the directive
+RewriteMax(node):
+
+* Let {by} be the value of the argument `by` of the directive
 * If {node} is *ObjectValue*
   * Assert: *AG0001*
 * Otherwise If {node} is *ScalarValue*
   * Assert: *AG0004*
-* Otherwise 
-  * Return {RewriteMaxByArray(node)}
+* Otherwise
+  * If {by} is NOT specified
+    * Return {RewriteMaxArray(node)}
+  * Otherwise
+    * Return {RewriteMaxArrayBy(node, by)}
 
-RewriteMaxByArray(value):
+RewriteMaxArray(value):
+* If {value} has 0 elements
+  * Return {null}
+* Let {lastValue} be a {null}
+* Let {result} be a the first element of {value}
+* For each {element} in {value}
+  * If {element} is *ScalarValue*
+    * If {IsConvertibleToComparable(element)}
+      * Let {convertedValue} be {ConvertToComparable(element)}
+      * If {lastValue} is {null} OR {convertedValue} is greater than {lastValue}
+        * Set value of {result} to {element}
+        * Set value of {lastValue} to {convertedValue}
+* Return {result}
+
+RewriteMaxArrayBy(value):
 * If {value} has 0 elements
   * Return {null}
 * Let {lastValue} be a {null}
@@ -79,8 +100,8 @@ RewriteMaxByArray(value):
   * Otherwise If {element} is *ScalarValue*
     * Assert: *AG0002*
   * Otherwise If {element} is *ObjectValue*
-    * If {Exists(element, key)} 
-      * Let {fieldValue} be {Get(element, key)}
+    * If {Exists(element, by)}
+      * Let {fieldValue} be {Get(element, by)}
       * If {IsConvertibleToComparable(fieldValue)}
         * Let {convertedValue} be {ConvertToComparable(fieldValue)}
         * If {result} is {null} OR {lastValue} is {null} OR {convertedValue} is greater than {lastValue}

@@ -3,14 +3,14 @@
     <json>
       {
         "single": {
-          "int": null
+          "int": 1
         }
       }
     </json>
   </data>
   <query>
     {
-      single @maxBy(key: "int"){
+      single @max(by: "missingProperty"){
         int
       }
     }

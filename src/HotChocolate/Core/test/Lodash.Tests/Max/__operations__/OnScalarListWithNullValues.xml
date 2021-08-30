@@ -4,7 +4,7 @@
       {
         "intList": [
           1,
-          2,
+          null,
           3
         ]
       }
@@ -12,10 +12,14 @@
   </data>
   <query>
     {
-      intList @maxBy(key: "int")
+      intList @max
     }
   </query>
   <result>
-    <error-code>AG0002</error-code>
+    <json>
+      {
+        "intList": 3
+      }
+    </json>
   </result>
 </test>

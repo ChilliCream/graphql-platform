@@ -1,0 +1,38 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "single": {
+                "int": 1
+              }
+            }
+          },
+          {
+            "single": {
+              "single": {
+                "int": 2
+              }
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          single @max {
+            int
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0001</error-code>
+  </result>
+</test>

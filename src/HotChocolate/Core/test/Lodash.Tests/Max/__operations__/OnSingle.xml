@@ -10,7 +10,7 @@
   </data>
   <query>
     {
-      single @maxBy(key: "missingProperty"){
+      single @max {
         int
       }
     }

@@ -15,7 +15,7 @@ namespace HotChocolate
                 .AddDirectiveType<KeyByDirectiveType>()
                 .AddDirectiveType<KeysDirectiveType>()
                 .AddDirectiveType<MapDirectiveType>()
-                .AddDirectiveType<MaxByDirectiveType>()
+                .AddDirectiveType<MaxDirectiveType>()
                 .AddDirectiveType<MeanByDirectiveType>()
                 .AddDirectiveType<MinByDirectiveType>()
                 .AddDirectiveType<SumByDirectiveType>()

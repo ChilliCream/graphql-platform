@@ -50,7 +50,7 @@ directive @keys repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
 directive @map(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
-directive @maxBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
+directive @max(by: String) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 
 directive @meanBy(key: String!) repeatable on QUERY | MUTATION | SUBSCRIPTION | FIELD
 

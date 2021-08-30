@@ -4,11 +4,13 @@
       {
         "list": [
           {
-            "int": 1
+            "int": "a"
           },
-          1,
           {
-            "int": 3
+            "int": "b"
+          },
+          {
+            "int": "c"
           }
         ]
       }
@@ -16,12 +18,18 @@
   </data>
   <query>
     {
-      list @maxBy(key: "int"){
+      list @max(by: "someOtherProperty"){
         int
       }
     }
   </query>
   <result>
-    <error-code>AG0002</error-code>
+    <json>
+      {
+        "list": {
+          "int": "a"
+        }
+      }
+    </json>
   </result>
 </test>

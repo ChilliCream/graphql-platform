@@ -1,0 +1,25 @@
+<test>
+  <data>
+    <json>
+      {
+        "intList": [
+          null,
+          null,
+          null
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      intList @max
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "intList": null
+      }
+    </json>
+  </result>
+</test>

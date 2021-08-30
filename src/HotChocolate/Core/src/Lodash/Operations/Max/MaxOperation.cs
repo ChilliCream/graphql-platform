@@ -1,17 +1,16 @@
 using System;
-using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace HotChocolate.Lodash
 {
-    public class MaxByOperation : AggregationOperation
+    public class MaxOperation : AggregationOperation
     {
-        public MaxByOperation(string key)
+        public MaxOperation(string? by)
         {
-            Key = key;
+            By = by;
         }
 
-        public string Key { get; }
+        public string? By { get; }
 
         public override bool Rewrite(JsonNode? node, out JsonNode? rewritten)
         {
@@ -33,14 +32,40 @@ namespace HotChocolate.Lodash
 
             if (node is JsonArray arr)
             {
-                rewritten = RewriteArray(arr);
+                rewritten = By is null ? RewriteArray(arr) : RewriteArrayBy(arr, By);
                 return true;
             }
 
             throw new ArgumentOutOfRangeException(nameof(node));
         }
 
-        private JsonObject? RewriteArray(JsonArray value)
+        private JsonNode? RewriteArray(JsonArray list)
+        {
+            if (list.Count == 0)
+            {
+                return null;
+            }
+
+            IComparable? lastValue = null;
+            JsonNode? result = list[0];
+
+            while (list.Count > 0)
+            {
+                JsonNode? element = list[0];
+                list.RemoveAt(0);
+                if (element is JsonValue node &&
+                    node.TryConvertToComparable(out IComparable? converted) &&
+                    (lastValue is null || lastValue.CompareTo(converted) < 0))
+                {
+                    lastValue = converted;
+                    result = element;
+                }
+            }
+
+            return result;
+        }
+
+        private JsonObject? RewriteArrayBy(JsonArray value, string by)
         {
             if (value.Count == 0)
             {
@@ -62,7 +87,7 @@ namespace HotChocolate.Lodash
                         throw ThrowHelper.ExpectObjectButReceivedScalar(element.GetPath());
                     case JsonObject obj:
                     {
-                        if (obj.TryGetPropertyValue(Key, out JsonNode? jsonNode) &&
+                        if (obj.TryGetPropertyValue(by, out JsonNode? jsonNode) &&
                             jsonNode.TryConvertToComparable(out IComparable? converted))
                         {
                             if (result is null ||

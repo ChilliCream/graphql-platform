@@ -31,12 +31,26 @@
   </data>
   <query>
     {
-      nestedList @maxBy(key: "int"){
+      nestedList @max{
         int
       }
     }
   </query>
   <result>
-    <error-code>AG0003</error-code>
+    <json>
+      {
+        "nestedList": [
+          {
+            "int": 1
+          },
+          {
+            "int": 1
+          },
+          {
+            "int": 1
+          }
+        ]
+      }
+    </json>
   </result>
 </test>
