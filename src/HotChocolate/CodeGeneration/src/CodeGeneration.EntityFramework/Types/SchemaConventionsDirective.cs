@@ -13,6 +13,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
         internal string GeneratedIdFieldName { get; set; } = "id";
 
+        internal string GeneratedIdPropertyName { get; set; } = "Id";
+
         internal Type GeneratedIdRuntimeType { get; set; } = typeof(int);
 
         public bool UsePluralizedTableNames { get; set; } = true;

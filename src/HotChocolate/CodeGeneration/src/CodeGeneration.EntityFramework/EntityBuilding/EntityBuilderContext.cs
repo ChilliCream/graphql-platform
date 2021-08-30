@@ -34,7 +34,12 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
         public TableDirective? TableDirective { get; set; }
 
-        public PrimaryKeyField[]? PrimaryKey { get; set; }
+        public string? PrimaryKeyName { get; set; }
+
+        public PrimaryKeyColumn[]? PrimaryKeyColumns { get; set; }
+
+        public PrimaryKeyColumn[] RequiredPrimaryKeyColumns
+            => PrimaryKeyColumns ?? throw new Exception("Primary key is required");
 
         public ClassDeclarationSyntax? EntityClass { get; set; }
 

@@ -1,0 +1,48 @@
+type FooNoKey {
+  Name: String!
+}
+
+type FooDerivedKey1 {
+  id: ID!
+}
+
+type FooDerivedKey2 {
+  Id: ID!
+}
+
+type FooDerivedKey3 {
+  ID: ID!
+}
+
+type FooDerivedKey4 {
+  fooDerivedKey4id: ID!
+}
+
+type FooDerivedKey5 {
+  fooDerivedKey5Id: ID!
+}
+
+type FooDerivedKey6 {
+  fooDerivedKey6ID: ID!
+}
+
+type FooExplicitKey {
+  id: ID! @key
+}
+
+type FooCompositeKey {
+  fooId: ID! @key
+  barId: ID! @key
+}
+
+type FooCustomKeyName {
+  id: ID! @key(name: "PK_CustomPKName")
+}
+
+type FooCustomCompositeKeyName {
+  fooId: ID! @key(name: "PK_CustomPKName")
+  barId: ID! @key(name: "PK_CustomPKName")
+}
+
+# // TODO: test that nullable fields are rejected
+# // Needs a discussion about how we handle/output errors though

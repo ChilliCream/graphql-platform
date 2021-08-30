@@ -4,7 +4,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     public class ForeignKeyDirective
     {
-        public string To { get; set; } = default!; // TODO: Potentially this supports nullable and can be derived by the field it annotates
+        public string To { get; set; } = default!;
 
         public string? Name { get; set; }
     }

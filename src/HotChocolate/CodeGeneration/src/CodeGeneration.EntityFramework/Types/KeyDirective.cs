@@ -4,6 +4,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     public class KeyDirective
     {
+        /// <summary>
+        /// The name to use for the primary key in the database schema.
+        /// If none is provided, PK_TableName will be used.
+        /// </summary>
         public string? Name { get; set; }
     }
 
@@ -13,6 +17,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
         {
             descriptor
                 .Name("key")
+                .Description(
+                    "Annotates a field as a primary key. " +
+                    "If used on multiple fields within the same type, a composite key will be formed.")
                 .Location(DirectiveLocation.FieldDefinition);
 
             descriptor

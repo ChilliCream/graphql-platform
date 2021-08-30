@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Schema.graphql" />
-    <EmbeddedResource Include="Schema.graphql" />
+    <None Remove="**/Schema.graphql" />
+    <EmbeddedResource Include="**/Schema.graphql" />
   </ItemGroup>
 
   <ItemGroup>

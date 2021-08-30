@@ -84,6 +84,16 @@ namespace HotChocolate.CodeGeneration
             throw new NotSupportedException();
         }
 
+        public static string ToGlobalTypeName(this Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return Global(type.ToTypeName());
+        }
+
         private static string ToTypeName(this Type type)
         {
             if (type is null)

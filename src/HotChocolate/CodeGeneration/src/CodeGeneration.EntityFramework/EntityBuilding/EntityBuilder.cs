@@ -9,18 +9,14 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static HotChocolate.CodeGeneration.EntityFramework.SyntaxConstants;
+using static HotChocolate.CodeGeneration.TypeNames;
 using System.Collections.Generic;
 
 namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 {
     public static partial class EntityBuilder
     {
-        private static readonly string[] IdFieldNames = new[]
-        {
-            "Id",
-            "ID",
-            "id"
-        };
+        private const string x = "x";
 
         public static void Process(EntityBuilderContext context)
         {
@@ -56,20 +52,57 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
         private static void SetPrimaryKey(EntityBuilderContext context, ObjectType objectType)
         {
             IObjectField[] fieldsMarkedAsKey = objectType.Fields
-                            .Where(f => f.Directives.Any(d => d is KeyDirective))
-                            .ToArray();
+                .Where(f => f.Directives.Any(d => d is KeyDirective))
+                .ToArray();
             if (fieldsMarkedAsKey.Any())
             {
-                context.PrimaryKey = fieldsMarkedAsKey.Select(f => new PrimaryKeyField(f)).ToArray();
+                var nullabilityViolations = fieldsMarkedAsKey
+                    .Where(f => f.Type.IsNullableType())
+                    .Select(f => f.Name.Value)
+                    .ToArray();
+                if (nullabilityViolations.Any())
+                {
+                    throw new Exception(
+                        $"@key can't be applied to a nullable field. " +
+                        $"Violating field/s: {string.Join(", ", nullabilityViolations)}.");
+                }
+
+                try
+                {
+                    var pkName = fieldsMarkedAsKey
+                        .Select(f => f.Directives.OfType<KeyDirective>().Single().Name)
+                        .Distinct()
+                        .Single();
+                    if (pkName is not null)
+                    {
+                        context.PrimaryKeyName = pkName;
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new Exception(
+                        $"@key can't be applied to multiple fields in the same different " +
+                        $"with a varying custom PK name.",
+                        ex);
+                }
+
+                context.PrimaryKeyColumns = fieldsMarkedAsKey
+                    .Select(f => new PrimaryKeyColumn(f))
+                    .ToArray();
             }
             else // try find one
             {
-                var possibleKeyFieldNames = IdFieldNames
-                    .Concat(IdFieldNames.Select(name => $"{context.EntityName}{name}"))
-                    .ToArray();
+                var possibleKeyFieldNames = new[]
+                {
+                    "id",
+                    $"{context.EntityName}id"
+                };
 
                 IObjectField[] possibleKeyFields = objectType.Fields
-                    .Where(f => possibleKeyFieldNames.Contains(f.Name.Value))
+                    .Where(f =>
+                        possibleKeyFieldNames
+                            .Any(pkfn => pkfn.Equals(f.Name.Value, StringComparison.OrdinalIgnoreCase)) &&
+                        !f.Type.IsNullableType())
                     .ToArray();
 
                 if (possibleKeyFields.Length > 1)
@@ -81,15 +114,13 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
                 if (possibleKeyFields.Length == 1)
                 {
-                    context.PrimaryKey = possibleKeyFields.Select(f => new PrimaryKeyField(f)).ToArray();
+                    context.PrimaryKeyColumns = possibleKeyFields.Select(f => new PrimaryKeyColumn(f)).ToArray();
                 }
                 else // create one from convention
                 {
-                    context.PrimaryKey = new[]
+                    context.PrimaryKeyColumns = new[]
                     {
-                        new PrimaryKeyField(
-                            context.Conventions.GeneratedIdFieldName,
-                        context.Conventions.GeneratedIdRuntimeType)
+                        new PrimaryKeyColumn(context.Conventions.GeneratedIdRuntimeType)
                     };
                 }
             }
@@ -103,6 +134,20 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword));
+
+            // Auto-add a PK property if the type doesn't have a field for it
+            foreach (PrimaryKeyColumn pk in context.RequiredPrimaryKeyColumns)
+            {
+                if (pk.Field is null)
+                {
+                    context.EntityClass =
+                       context.EntityClass.AddProperty(
+                           context.Conventions.GeneratedIdPropertyName,
+                           IdentifierName(pk.RuntimeType.ToGlobalTypeName()),
+                           description: null,
+                           setable: true);
+                }
+            }
 
             foreach (IObjectField field in context.ObjectType.Fields.Where(t => !t.IsIntrospectionField))
             {
@@ -139,6 +184,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             {
                 configurationStatements.Add(GetTableNameConfigurationExpression(tableName));
             }
+
+            // Configure the PK
+            configurationStatements.Add(GetPrimaryKeyConfigurationExpression(context));
 
             // Run through other model configuring directives and build up statements 
             foreach (IModelConfiguringDirective directive in context.ObjectType.Directives
@@ -210,5 +258,72 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                                 LiteralExpression(
                                     SyntaxKind.StringLiteralExpression,
                                     Literal(tableName)))))));
+
+        private static ExpressionStatementSyntax GetPrimaryKeyConfigurationExpression(
+            EntityBuilderContext context)
+        {
+            PrimaryKeyColumn[]? primaryKeyColumns = context.RequiredPrimaryKeyColumns;
+            
+            ExpressionSyntax keySelectorExprBody;
+
+            if (primaryKeyColumns.Length == 1)
+            {
+                // .HasKey(x => x.Id)
+
+                PrimaryKeyColumn pkCol = primaryKeyColumns[0];
+                keySelectorExprBody =
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(x),
+                        IdentifierName(
+                            pkCol.Field?.Name.Value
+                                ?? context.Conventions.GeneratedIdPropertyName));
+            }
+            else
+            {
+                // .HasKey(x => new { x.FooId, x.BarId })
+
+                var bits = new List<SyntaxNodeOrToken>(primaryKeyColumns.Length * 2 - 1);
+                PrimaryKeyColumn lastPkCol = primaryKeyColumns.Last();
+                foreach (PrimaryKeyColumn? pkCol in primaryKeyColumns)
+                {
+                    // x.FooId
+                    bits.Add(
+                        AnonymousObjectMemberDeclarator(
+                            MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName(x),
+                                IdentifierName(
+                                    pkCol.Field?.Name.Value
+                                        ?? context.Conventions.GeneratedIdPropertyName))));
+
+                    // ,
+                    if (pkCol != lastPkCol)
+                    {
+                        bits.Add(Token(SyntaxKind.CommaToken));
+                    }
+                }
+
+                keySelectorExprBody =
+                    AnonymousObjectCreationExpression(
+                        SeparatedList<AnonymousObjectMemberDeclaratorSyntax>(
+                            bits));
+            }
+
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        IdentifierName(BuilderArgumentName),
+                        IdentifierName("HasKey")))
+                .WithArgumentList(
+                        ArgumentList(
+                            SingletonSeparatedList(
+                                Argument(
+                                    SimpleLambdaExpression(
+                                        Parameter(
+                                            Identifier(x)))
+                                    .WithExpressionBody(keySelectorExprBody))))));
+        }
     }
 }

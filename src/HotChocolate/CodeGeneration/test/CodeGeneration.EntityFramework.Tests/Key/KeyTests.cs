@@ -4,11 +4,11 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.CodeGeneration.EntityFramework
+namespace HotChocolate.CodeGeneration.EntityFramework.KeyDirective
 {
-    public class CodeGeneratorTests
+    public class KeyTests
     {
-        private static readonly string _currentNamespace = typeof(CodeGeneratorTests).Namespace!;
+        private static readonly string _currentNamespace = typeof(KeyTests).Namespace!;
 
         [Fact]
         public void Works()
