@@ -4,7 +4,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.CodeGeneration.EntityFramework.KeyDirective
+namespace HotChocolate.CodeGeneration.EntityFramework.Key
 {
     public class KeyTests
     {
