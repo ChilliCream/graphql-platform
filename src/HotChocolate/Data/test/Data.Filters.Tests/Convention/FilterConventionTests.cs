@@ -388,7 +388,7 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public async Task FilterConvention_Should_NotAdd()
+        public async Task FilterConvention_Should_NotAddAnd()
         {
             // arrange
             var convention = new FilterConvention(
