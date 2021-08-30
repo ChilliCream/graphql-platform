@@ -1,4 +1,6 @@
-﻿using HotChocolate.Types;
+using System;
+using System.Reflection;
+using HotChocolate.Types;
 
 #nullable enable
 
@@ -35,10 +37,10 @@ namespace HotChocolate.Configuration
         bool UseXmlDocumentation { get; }
 
         /// <summary>
-        /// Defines the name of the XML documenatation file to be read.
+        /// A delegate which defines the name of the XML documentatation file to be read.
         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
         /// </summary>
-        string? XmlDocumentationFileName { get; }
+        Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.

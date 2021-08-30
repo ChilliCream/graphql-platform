@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
@@ -13,15 +13,15 @@ namespace HotChocolate.Types.Descriptors
     {
         private const string _bin = "bin";
 
-        private readonly string? _xmlDocumentationFileName;
+        private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName = null;
 
         private readonly ConcurrentDictionary<string, XDocument> _cache =
             new ConcurrentDictionary<string, XDocument>(
                 StringComparer.OrdinalIgnoreCase);
 
-        public XmlDocumentationFileResolver(string? xmlDocumentationFileName = null)
+        public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName = null)
         {
-            _xmlDocumentationFileName = xmlDocumentationFileName;
+            _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
         }
 
         public bool TryGetXmlDocument(Assembly assembly, out XDocument document)
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Descriptors
                     return null;
                 }
 
-                var expectedDocFile = _xmlDocumentationFileName is null ? $"{assemblyName.Name}.xml" : _xmlDocumentationFileName;
+                var expectedDocFile = _resolveXmlDocumentationFileName is null ? $"{assemblyName.Name}.xml" : _resolveXmlDocumentationFileName(assembly);
 
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))

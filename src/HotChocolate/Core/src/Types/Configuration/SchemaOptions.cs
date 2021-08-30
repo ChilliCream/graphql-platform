@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using HotChocolate.Types;
 
 #nullable enable
@@ -35,10 +37,10 @@ namespace HotChocolate.Configuration
         public bool UseXmlDocumentation { get; set; } = true;
 
         /// <summary>
-        /// Defines the name of the XML documenatation file to be read.
+        /// A delegate which defines the name of the XML documentatation file to be read.
         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
         /// </summary>
-        public string? XmlDocumentationFileName { get; set; }
+        public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; } = null;
 
         /// <summary>
         /// Defines if fields shall be sorted by name.
@@ -89,7 +91,7 @@ namespace HotChocolate.Configuration
                 SubscriptionTypeName = options.SubscriptionTypeName,
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
-                XmlDocumentationFileName = options.XmlDocumentationFileName,
+                ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName,
                 FieldMiddleware = options.FieldMiddleware,
                 DefaultBindingBehavior = options.DefaultBindingBehavior,
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,

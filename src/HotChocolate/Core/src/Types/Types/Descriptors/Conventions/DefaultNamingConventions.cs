@@ -26,11 +26,11 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        public DefaultNamingConventions(bool useXmlDocumentation, string? xmlDocumentationFileName = null)
+        public DefaultNamingConventions(bool useXmlDocumentation, Func<Assembly, string>? resolveXmlDocumentationFileName = null)
         {
             _documentation = useXmlDocumentation
                 ? (IDocumentationProvider)new XmlDocumentationProvider(
-                    new XmlDocumentationFileResolver(xmlDocumentationFileName))
+                    new XmlDocumentationFileResolver(resolveXmlDocumentationFileName))
                 : new NoopDocumentationProvider();
         }
 

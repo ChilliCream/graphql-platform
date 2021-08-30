@@ -1230,7 +1230,7 @@ HotChocolate.Configuration.IReadOnlySchemaOptions.SortFieldsByName.get -> bool
 HotChocolate.Configuration.IReadOnlySchemaOptions.StrictValidation.get -> bool
 HotChocolate.Configuration.IReadOnlySchemaOptions.SubscriptionTypeName.get -> string?
 HotChocolate.Configuration.IReadOnlySchemaOptions.UseXmlDocumentation.get -> bool
-HotChocolate.Configuration.IReadOnlySchemaOptions.XmlDocumentationFileName.get -> string?
+HotChocolate.Configuration.IReadOnlySchemaOptions.ResolveXmlDocumentationFileName.get -> System.Func<System.Reflection.Assembly!, string!>?
 HotChocolate.Configuration.ISchemaConfiguration
 HotChocolate.Configuration.ISchemaConfigurationExtension
 HotChocolate.Configuration.ISchemaInterceptor
@@ -1253,8 +1253,8 @@ HotChocolate.Configuration.ISchemaOptions.StrictValidation.get -> bool
 HotChocolate.Configuration.ISchemaOptions.StrictValidation.set -> void
 HotChocolate.Configuration.ISchemaOptions.UseXmlDocumentation.get -> bool
 HotChocolate.Configuration.ISchemaOptions.UseXmlDocumentation.set -> void
-HotChocolate.Configuration.ISchemaOptions.XmlDocumentationFileName.get -> string?
-HotChocolate.Configuration.ISchemaOptions.XmlDocumentationFileName.set -> void
+HotChocolate.Configuration.ISchemaOptions.ResolveXmlDocumentationFileName.get -> System.Func<System.Reflection.Assembly!, string!>?
+HotChocolate.Configuration.ISchemaOptions.ResolveXmlDocumentationFileName.set -> void
 HotChocolate.Configuration.ITypeCompletionContext
 HotChocolate.Configuration.ITypeCompletionContext.GetDirectiveType(HotChocolate.Types.Descriptors.IDirectiveReference! directiveRef) -> HotChocolate.Types.DirectiveType!
 HotChocolate.Configuration.ITypeCompletionContext.GetResolver(HotChocolate.NameString fieldName) -> HotChocolate.Resolvers.FieldResolver!
@@ -1325,7 +1325,7 @@ HotChocolate.Configuration.ReadOnlySchemaOptions.RemoveUnreachableTypes.get -> b
 HotChocolate.Configuration.ReadOnlySchemaOptions.SortFieldsByName.get -> bool
 HotChocolate.Configuration.ReadOnlySchemaOptions.StrictValidation.get -> bool
 HotChocolate.Configuration.ReadOnlySchemaOptions.UseXmlDocumentation.get -> bool
-HotChocolate.Configuration.ReadOnlySchemaOptions.XmlDocumentationFileName.get -> string?
+HotChocolate.Configuration.ReadOnlySchemaOptions.ResolveXmlDocumentationFileName.get -> System.Func<System.Reflection.Assembly!, string!>?
 HotChocolate.Configuration.SchemaInterceptor
 HotChocolate.Configuration.SchemaInterceptor.SchemaInterceptor() -> void
 HotChocolate.Configuration.SchemaOptions
@@ -1348,8 +1348,8 @@ HotChocolate.Configuration.SchemaOptions.StrictValidation.get -> bool
 HotChocolate.Configuration.SchemaOptions.StrictValidation.set -> void
 HotChocolate.Configuration.SchemaOptions.UseXmlDocumentation.get -> bool
 HotChocolate.Configuration.SchemaOptions.UseXmlDocumentation.set -> void
-HotChocolate.Configuration.SchemaOptions.XmlDocumentationFileName.get -> string?
-HotChocolate.Configuration.SchemaOptions.XmlDocumentationFileName.set -> void
+HotChocolate.Configuration.SchemaOptions.ResolveXmlDocumentationFileName.get -> System.Func<System.Reflection.Assembly!, string!>?
+HotChocolate.Configuration.SchemaOptions.ResolveXmlDocumentationFileName.set -> void
 HotChocolate.Configuration.SchemaTypeResolver
 HotChocolate.Configuration.TypeInterceptor
 HotChocolate.Configuration.TypeInterceptor.TypeInterceptor() -> void
@@ -1688,7 +1688,7 @@ HotChocolate.Types.Descriptors.ConventionExtension.ConventionExtension() -> void
 HotChocolate.Types.Descriptors.ConventionExtension<TDefinition>.ConventionExtension() -> void
 HotChocolate.Types.Descriptors.DefaultNamingConventions
 HotChocolate.Types.Descriptors.DefaultNamingConventions.DefaultNamingConventions() -> void
-HotChocolate.Types.Descriptors.DefaultNamingConventions.DefaultNamingConventions(bool useXmlDocumentation, string? xmlDocumentationFileName = null) -> void
+HotChocolate.Types.Descriptors.DefaultNamingConventions.DefaultNamingConventions(bool useXmlDocumentation, System.Func<System.Reflection.Assembly!, string!>? resolveXmlDocumentationFileName = null) -> void
 HotChocolate.Types.Descriptors.DefaultNamingConventions.DefaultNamingConventions(HotChocolate.Types.Descriptors.IDocumentationProvider! documentation) -> void
 HotChocolate.Types.Descriptors.DefaultNamingConventions.DocumentationProvider.get -> HotChocolate.Types.Descriptors.IDocumentationProvider!
 HotChocolate.Types.Descriptors.DefaultTypeInspector

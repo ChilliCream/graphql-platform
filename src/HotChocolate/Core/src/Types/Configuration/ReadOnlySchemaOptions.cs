@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Reflection;
 using HotChocolate.Types;
 
 #nullable enable
@@ -32,7 +33,7 @@ namespace HotChocolate.Configuration
             StrictValidation = options.StrictValidation;
             SortFieldsByName = options.SortFieldsByName;
             UseXmlDocumentation = options.UseXmlDocumentation;
-            XmlDocumentationFileName = options.XmlDocumentationFileName;
+            ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName;
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
@@ -67,10 +68,10 @@ namespace HotChocolate.Configuration
         public bool UseXmlDocumentation { get; }
 
         /// <summary>
-        /// Defines the name of the XML documenatation file to be read.
+        /// A delegate which defines the name of the XML documentatation file to be read.
         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
         /// </summary>
-        public string XmlDocumentationFileName { get; }
+        public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.
