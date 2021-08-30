@@ -29,7 +29,7 @@ Automatic persisted queries allow us to store queries dynamically on the server 
 
 # Persisted State
 
-Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head of [here](/docs/strawberryshake/caching).
+Apart from focusing on reducing network request size we also can optimize using the network less by using the stores more efficiently. If you are not yet familiar with the store concepts first head over to [here](/docs/strawberryshake/caching).
 
 One thing particular here is to persist the state that is aggregated in the stores to either the browsers IndexDB or to some small database like SQLite or LiteDB. When the user leaves the app and later returns to (closes the browser and reopens it) we can fill the state from our storage and have immediately data for the user while our store at the same time will start refreshing that data over the network if that is available.
 

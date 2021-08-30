@@ -1,9 +1,9 @@
 import { graphql, useStaticQuery } from "gatsby";
 import { GatsbyImage } from "gatsby-plugin-image";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import { GetHotChocolateImageQuery } from "../../../graphql-types";
 
-export const HotChocolate: FunctionComponent = () => {
+export const HotChocolate: FC = () => {
   const data = useStaticQuery<GetHotChocolateImageQuery>(graphql`
     query getHotChocolateImage {
       file(
@@ -14,7 +14,6 @@ export const HotChocolate: FunctionComponent = () => {
           gatsbyImageData(
             layout: CONSTRAINED
             width: 1200
-            pngOptions: { quality: 90 }
           )
         }
       }

@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
@@ -30,15 +31,22 @@ namespace HotChocolate.AspNetCore.Subscriptions
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)
         {
-            if (TryParseMessage(slice, out OperationMessage? message))
+            try
             {
-                await HandleMessageAsync(connection, message, cancellationToken);
+                if (TryParseMessage(slice, out OperationMessage? message))
+                {
+                    await HandleMessageAsync(connection, message, cancellationToken);
+                }
+                else
+                {
+                    await connection.SendAsync(
+                        KeepConnectionAliveMessage.Default,
+                        CancellationToken.None);
+                }
             }
-            else
+            catch (WebSocketException)
             {
-                await connection.SendAsync(
-                    KeepConnectionAliveMessage.Default,
-                    CancellationToken.None);
+                // we will just stop receiving
             }
         }
 

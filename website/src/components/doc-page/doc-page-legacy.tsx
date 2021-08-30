@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
@@ -7,7 +7,7 @@ import { State } from "../../state";
 import { hideLegacyDocHeader, showLegacyDocInfo } from "../../state/common";
 import { Link } from "../misc/link";
 
-export const DocPageLegacy: FunctionComponent = () => {
+export const DocPageLegacy: FC = () => {
   const show = useSelector<State, boolean>(
     (state) => state.common.showLegacyDocInfo
   );
