@@ -12,22 +12,18 @@ enum UserRole {
   DEFAULT,
   ADMINISTRATOR
 }
-```
 
-Learn more about enums [here](https://graphql.org/learn/schema/#enumeration-types).
-
-# Usage
-
-Given is the following schema:
-
-```sdl
 type Query {
   role: UserRole
   usersByRole(role: UserRole): [User]
 }
 ```
 
-When querying for an enum value, it will be serialized as a string.
+# Usage
+
+Given is the schema from above.
+
+When querying a field returning an enum type, the enum value will be serialized as a string.
 
 **Request**
 
@@ -39,7 +35,7 @@ When querying for an enum value, it will be serialized as a string.
 
 **Response**
 
-````json
+```json
 {
   "data": {
     "role": "STANDARD"
@@ -57,7 +53,7 @@ When using an enum value as an argument, it is represented as a literal and **no
     id
   }
 }
-````
+```
 
 When used as a type for a variable, it is represented as a string in the variables object, since JSON does not offer support for literals.
 
@@ -202,7 +198,7 @@ public class UserRoleType : EnumType<string>
 
         descriptor
             .Value("Default")
-            .Name("Standard");
+            .Name("STANDARD");
     }
 }
 
