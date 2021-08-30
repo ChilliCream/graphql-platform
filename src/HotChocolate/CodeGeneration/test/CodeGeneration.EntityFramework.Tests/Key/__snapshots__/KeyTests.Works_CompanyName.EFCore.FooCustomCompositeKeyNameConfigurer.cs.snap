@@ -11,7 +11,7 @@ namespace CompanyName.EFCore
             builder.HasKey(x => new
             {
             x.FooId, x.BarId
-            });
+            }).HasName("PK_CustomPKName");
         }
     }
 }

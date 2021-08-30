@@ -8,7 +8,7 @@ namespace CompanyName.EFCore
     {
         public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<FooCustomKeyName> builder)
         {
-            builder.HasKey(x => x.Id);
+            builder.HasKey(x => x.Id).HasName("PK_CustomPKName");
         }
     }
 }

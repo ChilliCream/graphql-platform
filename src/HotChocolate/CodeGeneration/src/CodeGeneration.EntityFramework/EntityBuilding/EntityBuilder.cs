@@ -310,7 +310,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                             bits));
             }
 
-            return ExpressionStatement(
+            InvocationExpressionSyntax hasKeyExpr = 
                 InvocationExpression(
                     MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -323,7 +323,28 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                                     SimpleLambdaExpression(
                                         Parameter(
                                             Identifier(x)))
-                                    .WithExpressionBody(keySelectorExprBody))))));
+                                    .WithExpressionBody(keySelectorExprBody)))));
+
+            if (context.PrimaryKeyName is not { } primaryKeyName)
+            {
+                return ExpressionStatement(hasKeyExpr);
+            }
+
+            // Chains on
+            // .HasName("PK_Something")
+            return ExpressionStatement(
+                InvocationExpression(
+                    MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        hasKeyExpr,
+                        IdentifierName("HasName")))
+                .WithArgumentList(
+                    ArgumentList(
+                        SingletonSeparatedList(
+                            Argument(
+                                LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    Literal(primaryKeyName)))))));
         }
     }
 }

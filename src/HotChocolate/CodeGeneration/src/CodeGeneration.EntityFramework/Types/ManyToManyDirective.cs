@@ -4,12 +4,12 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     public class ManyToManyDirective
     {
-        
+
         public string JoinTable { get; set; } = default!;
 
-        public string ForeignKey { get; set; } = default!; 
+        public string ForeignKey { get; set; } = default!;
 
-        public string InverseField { get; set; } = default!; 
+        public string InverseField { get; set; } = default!;
     }
 
     public class ManyToManyDirectiveType : DirectiveType<ManyToManyDirective>
