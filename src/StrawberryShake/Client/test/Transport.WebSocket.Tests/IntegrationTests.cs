@@ -30,6 +30,8 @@ namespace StrawberryShake.Transport.WebSockets
         [Fact]
         public async Task Simple_Request()
         {
+            Snapshot.FullName();
+
             await TryTest(async ct =>
             {
                 // arrange
@@ -72,23 +74,24 @@ namespace StrawberryShake.Transport.WebSockets
         [Fact]
         public async Task Execution_Error()
         {
+            Snapshot.FullName();
+
             await TryTest(async ct =>
             {
                 // arrange
                 using IWebHost host = TestServerHelper.CreateServer(
                     x => x.AddTypeExtension<StringSubscriptionExtensions>(),
                     out var port);
+
                 var serviceCollection = new ServiceCollection();
                 serviceCollection
                     .AddProtocol<GraphQLWebSocketProtocolFactory>()
                     .AddWebSocketClient(
                         "Foo",
                         c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                IServiceProvider services =
-                    serviceCollection.BuildServiceProvider();
 
-                ISessionPool sessionPool =
-                    services.GetRequiredService<ISessionPool>();
+                IServiceProvider services = serviceCollection.BuildServiceProvider();
+                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
 
                 List<JsonDocument> results = new();
                 MockDocument document = new("subscription Test { onTest }");
@@ -105,7 +108,6 @@ namespace StrawberryShake.Transport.WebSockets
                     }
                 }
 
-
                 // assert
                 results.Select(x => x.RootElement.ToString()).ToList().MatchSnapshot();
             });
@@ -114,6 +116,8 @@ namespace StrawberryShake.Transport.WebSockets
         [Fact]
         public async Task Validation_Error()
         {
+            Snapshot.FullName();
+
             await TryTest(async ct =>
             {
                 // arrange
@@ -155,6 +159,8 @@ namespace StrawberryShake.Transport.WebSockets
         [Fact]
         public async Task Request_With_ConnectionPayload()
         {
+            Snapshot.FullName();
+
             await TryTest(async ct =>
             {
                 // arrange
@@ -207,6 +213,8 @@ namespace StrawberryShake.Transport.WebSockets
         [Fact]
         public async Task Parallel_Request_SameSocket()
         {
+            Snapshot.FullName();
+
             await TryTest(async ct =>
             {
                 // arrange
@@ -275,166 +283,17 @@ namespace StrawberryShake.Transport.WebSockets
             });
         }
 
-        // TODO : we need to have a look after we have updated the server.
-        [Fact(Skip = "Fails ... Fix it")]
-        public async Task Parallel_Request_DifferentSockets()
-        {
-            await TryTest(async ct =>
-            {
-                // arrange
-                using IWebHost host = TestServerHelper
-                    .CreateServer(
-                        x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                        out var port);
-
-                ServiceCollection serviceCollection = new();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>();
-
-                for (var i = 0; i < 10; i++)
-                {
-                    serviceCollection.AddWebSocketClient(
-                        "Foo" + i,
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                }
-
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
-
-                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
-                ConcurrentDictionary<int, List<JsonDocument>> results = new();
-
-                async Task CreateSubscription(int client, int id)
-                {
-                    var connection =
-                        new WebSocketConnection(async _ =>
-                            await sessionPool.CreateAsync("Foo" + client, _));
-                    var document =
-                        new MockDocument($"subscription Test {{ onTest(id:{id.ToString()}) }}");
-                    var request = new OperationRequest("Test", document);
-                    await foreach (var response in connection.ExecuteAsync(request, ct))
-                    {
-                        if (response.Body is not null)
-                        {
-                            results.AddOrUpdate(client * 100 + id,
-                                _ => new List<JsonDocument> { response.Body },
-                                (_, l) =>
-                                {
-                                    l.Add(response.Body);
-                                    return l;
-                                });
-                        }
-                    }
-                }
-
-                // act
-                var list = new List<Task>();
-                for (var i = 0; i < 5; i++)
-                {
-                    for (var j = 0; j < 10; j++)
-                    {
-                        list.Add(CreateSubscription(i, j));
-                    }
-                }
-
-                await Task.WhenAll(list);
-
-                // assert
-                var str = "";
-                foreach (KeyValuePair<int, List<JsonDocument>> sub in results.OrderBy(x => x.Key))
-                {
-                    JsonDocument[] jsonDocuments = sub.Value.ToArray();
-
-                    str += "Operation " + sub.Key + "\n";
-                    for (var index = 0; index < jsonDocuments.Length; index++)
-                    {
-                        str += "Operation " + jsonDocuments[index].RootElement + "\n";
-                    }
-                }
-
-                str.MatchSnapshot();
-            });
-        }
-
-        [Fact(Skip = "This test is flaky")]
-        public async Task LoadTest_MessagesReceivedInCorrectOrder()
-        {
-            await TryTest(async ct =>
-            {
-                // arrange
-                using IWebHost host = TestServerHelper
-                    .CreateServer(
-                        x => x.AddTypeExtension<StringSubscriptionExtensions>(),
-                        out var port);
-
-                ServiceCollection serviceCollection = new();
-                serviceCollection
-                    .AddProtocol<GraphQLWebSocketProtocolFactory>();
-
-
-                for (var i = 0; i < 10; i++)
-                {
-                    serviceCollection.AddWebSocketClient(
-                        "Foo" + i,
-                        c => c.Uri = new Uri("ws://localhost:" + port + "/graphql"));
-                }
-
-                IServiceProvider services = serviceCollection.BuildServiceProvider();
-
-                ISessionPool sessionPool = services.GetRequiredService<ISessionPool>();
-
-                var globalCounter = 0;
-
-                async Task CreateSubscription(int client)
-                {
-                    var connection =
-                        new WebSocketConnection(async _ =>
-                            await sessionPool.CreateAsync("Foo" + client, _));
-                    var document = new MockDocument($"subscription Test {{ countUp }}");
-                    var request = new OperationRequest("Test", document);
-                    var counter = 0;
-                    await foreach (var response in connection.ExecuteAsync(request, ct))
-                    {
-                        if (response.Body is not null)
-                        {
-                            Interlocked.Increment(ref globalCounter);
-                            var received = response.Body.RootElement
-                                .GetProperty("data")
-                                .GetProperty("countUp")
-                                .GetInt32();
-
-                            if (counter != received)
-                            {
-                                throw new InvalidOperationException();
-                            }
-
-                            counter++;
-                        }
-                    }
-                }
-
-                // act
-                var list = new List<Task>();
-                for (var i = 0; i < 10; i++)
-                {
-                    for (var j = 0; j < 10; j++)
-                    {
-                        list.Add(CreateSubscription(i));
-                    }
-                }
-
-                await Task.WhenAll(list);
-
-                // assert
-                Assert.Equal(10000, globalCounter);
-            });
-        }
-
         [ExtendObjectType("Subscription")]
         public class StringSubscriptionExtensions
         {
             [SubscribeAndResolve]
             public async IAsyncEnumerable<string> OnTest(int? id)
             {
+                if (id is null)
+                {
+                    throw new Exception();
+                }
+
                 for (var i = 0; i < 10; i++)
                 {
                     await Task.Delay(1);
