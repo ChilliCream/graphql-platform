@@ -6,6 +6,7 @@
       "Books": [
         {
           "Id": 1,
+          "AuthorId": 0,
           "Title": "Foo1",
           "Author": null,
           "Publisher": null
@@ -19,6 +20,7 @@
       "Books": [
         {
           "Id": 2,
+          "AuthorId": 0,
           "Title": "Bar1",
           "Author": null,
           "Publisher": null
@@ -32,6 +34,7 @@
       "Books": [
         {
           "Id": 3,
+          "AuthorId": 0,
           "Title": "Baz1",
           "Author": null,
           "Publisher": null
