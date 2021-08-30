@@ -37,7 +37,7 @@ When querying a field returning an interface, we can query the fields defined in
 }
 ```
 
-If we need to access fields that are part of an object type implementing the interface, we can do so using [fragments](<(https://graphql.org/learn/queries/#fragments)>).
+If we need to access fields that are part of an object type implementing the interface, we can do so using [fragments](https://graphql.org/learn/queries/#fragments).
 
 ```graphql
 {
