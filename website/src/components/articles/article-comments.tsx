@@ -1,16 +1,16 @@
 import { graphql } from "gatsby";
 import { Disqus } from "gatsby-plugin-disqus";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { ArticleCommentsFragment } from "../../../graphql-types";
 
-interface ArticleCommentsProperties {
+interface ArticleCommentsProps {
   data: ArticleCommentsFragment;
   path: string;
   title: string;
 }
 
-export const ArticleComments: FunctionComponent<ArticleCommentsProperties> = ({
+export const ArticleComments: FC<ArticleCommentsProps> = ({
   data,
   path,
   title,

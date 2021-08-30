@@ -1,4 +1,7 @@
 abstract HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> System.Linq.Expressions.Expression!
+const HotChocolate.Data.Projections.Expressions.QueryableProjectionProvider.SkipProjectionKey = "SkipProjection" -> string!
+const HotChocolate.Data.Sorting.Expressions.QueryableSortProvider.ContextApplySortingKey = "ApplySorting" -> string!
+HotChocolate.Data.Filters.Expressions.ApplyFiltering
 HotChocolate.Data.Filters.Expressions.QueryableBooleanEqualsHandler.QueryableBooleanEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableBooleanNotEqualsHandler.QueryableBooleanNotEqualsHandler(HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableBooleanOperationHandler.QueryableBooleanOperationHandler(HotChocolate.Types.InputParser! inputParser) -> void
@@ -19,6 +22,7 @@ HotChocolate.Data.Filters.Expressions.QueryableEnumEqualsHandler.QueryableEnumEq
 HotChocolate.Data.Filters.Expressions.QueryableEnumInHandler.QueryableEnumInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter, HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumNotEqualsHandler.QueryableEnumNotEqualsHandler(HotChocolate.Utilities.ITypeConverter! typeConverter, HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableEnumNotInHandler.QueryableEnumNotInHandler(HotChocolate.Utilities.ITypeConverter! typeConverter, HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Data.Filters.Expressions.QueryableFilterExtensions
 HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.QueryableListAnyOperationHandler(HotChocolate.Utilities.ITypeConverter! typeConverter, HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.InputParser.get -> HotChocolate.Types.InputParser!
 HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.QueryableOperationHandlerBase(HotChocolate.Types.InputParser! inputParser) -> void
@@ -45,11 +49,15 @@ HotChocolate.Data.Filters.IFilterConvention.IsAndAllowed() -> bool
 HotChocolate.Data.Filters.IFilterConvention.IsOrAllowed() -> bool
 HotChocolate.Data.Filters.IFilterConventionDescriptor.AllowAnd(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
 HotChocolate.Data.Filters.IFilterConventionDescriptor.AllowOr(bool allow = true) -> HotChocolate.Data.Filters.IFilterConventionDescriptor!
+HotChocolate.Data.Projections.Expressions.ApplyProjection
+HotChocolate.Data.Projections.Expressions.QueryableProjectExtensions
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.AddAbstractType(System.Type! type, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>! memberAssignments) -> void
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.GetAbstractTypes() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<System.Type!, System.Collections.Generic.Queue<System.Linq.Expressions.MemberAssignment!>!>>!
 HotChocolate.Data.Projections.Expressions.QueryableProjectionScope.HasAbstractTypes() -> bool
 HotChocolate.Data.Projections.ISelectionVisitorContext.ResolvedType.get -> System.Collections.Generic.Stack<HotChocolate.Types.INamedType?>!
 HotChocolate.Data.Projections.SelectionVisitorContext.ResolvedType.get -> System.Collections.Generic.Stack<HotChocolate.Types.INamedType?>!
+HotChocolate.Data.Sorting.Expressions.ApplySorting
+HotChocolate.Data.Sorting.Expressions.QueryableSortExtensions
 override HotChocolate.Data.Filters.Expressions.QueryableListAnyOperationHandler.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> System.Linq.Expressions.Expression!
 override HotChocolate.Data.Filters.Expressions.QueryableOperationHandlerBase.TryHandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.ObjectFieldNode! node, out System.Linq.Expressions.Expression? result) -> bool
 override HotChocolate.Data.Filters.Expressions.QueryableStringContainsHandler.HandleOperation(HotChocolate.Data.Filters.Expressions.QueryableFilterContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.IValueNode! value, object? parsedValue) -> System.Linq.Expressions.Expression!
@@ -59,7 +67,15 @@ override HotChocolate.Data.Sorting.SortInputType.OnCompleteFields(HotChocolate.C
 override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeCompleteName(HotChocolate.Configuration.ITypeCompletionContext! completionContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase? definition, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> void
 override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeCompleteType(HotChocolate.Configuration.ITypeCompletionContext! completionContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase? definition, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> void
 override HotChocolate.Data.Sorting.SortTypeInterceptor.OnBeforeRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! discoveryContext, HotChocolate.Types.Descriptors.Definitions.DefinitionBase? definition, System.Collections.Generic.IDictionary<string!, object?>! contextData) -> void
+static HotChocolate.Data.Filters.Expressions.QueryableFilterExtensions.Filter<T>(this HotChocolate.Data.QueryableExecutable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> HotChocolate.Data.QueryableExecutable<T>!
+static HotChocolate.Data.Filters.Expressions.QueryableFilterExtensions.Filter<T>(this System.Collections.Generic.IEnumerable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> System.Collections.Generic.IEnumerable<T>!
+static HotChocolate.Data.Projections.Expressions.QueryableProjectExtensions.Project<T>(this HotChocolate.Data.QueryableExecutable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> HotChocolate.Data.QueryableExecutable<T>!
+static HotChocolate.Data.Projections.Expressions.QueryableProjectExtensions.Project<T>(this System.Collections.Generic.IEnumerable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> System.Collections.Generic.IEnumerable<T>!
 static HotChocolate.Data.Projections.Expressions.QueryableProjectionScopeExtensions.CreateMemberInit(this HotChocolate.Data.Projections.Expressions.QueryableProjectionScope! scope) -> System.Linq.Expressions.Expression!
+static HotChocolate.Data.Sorting.Expressions.QueryableSortExtensions.Sort<T>(this HotChocolate.Data.QueryableExecutable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> HotChocolate.Data.QueryableExecutable<T>!
+static HotChocolate.Data.Sorting.Expressions.QueryableSortExtensions.Sort<T>(this System.Collections.Generic.IEnumerable<T>! enumerable, HotChocolate.Resolvers.IResolverContext! context) -> System.Collections.Generic.IEnumerable<T>!
+static readonly HotChocolate.Data.Filters.Expressions.QueryableFilterProvider.ContextApplyFilteringKey -> string!
+static readonly HotChocolate.Data.Projections.Expressions.QueryableProjectionProvider.ContextApplyProjectionKey -> string!
 virtual HotChocolate.Data.Filters.FilterOperationHandler<TContext, T>.TryHandleOperation(TContext! context, HotChocolate.Data.Filters.IFilterOperationField! field, HotChocolate.Language.ObjectFieldNode! node, out T? result) -> bool
 virtual HotChocolate.Data.Projections.SelectionVisitor<TContext>.VisitObjectType(HotChocolate.Types.IOutputField! field, HotChocolate.Types.ObjectType! objectType, HotChocolate.Language.SelectionSetNode? selectionSet, TContext context) -> HotChocolate.Data.Projections.ISelectionVisitorAction!
 *REMOVED*static HotChocolate.Data.Projections.Expressions.QueryableProjectionScopeExtensions.CreateMemberInit(this HotChocolate.Data.Projections.Expressions.QueryableProjectionScope! scope) -> System.Linq.Expressions.MemberInitExpression!

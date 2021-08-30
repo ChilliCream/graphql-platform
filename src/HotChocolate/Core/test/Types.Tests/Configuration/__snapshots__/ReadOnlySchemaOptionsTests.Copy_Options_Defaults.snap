@@ -13,5 +13,6 @@
   "DefaultDirectiveVisibility": "Public",
   "AllowInlining": true,
   "DefaultResolverStrategy": "Parallel",
-  "ValidatePipelineOrder": true
+  "ValidatePipelineOrder": true,
+  "StrictRuntimeTypeValidation": false
 }

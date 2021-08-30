@@ -130,6 +130,17 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             Type? resultType);
 
+        /// <summary>
+        /// Resolve a value using the <paramref name="propertyOrMethod"/> 
+        /// member selector on <typeparamref name="TResolver"/>.
+        /// </summary>
+        /// </summary>
+        /// <param name="propertyOrMethod">
+        /// The member selector.
+        /// </param>
+        /// <typeparam name="TResolver">
+        /// The resolver type.
+        /// </typeparam>
         IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object?>> propertyOrMethod);
 

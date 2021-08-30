@@ -41,6 +41,7 @@ namespace HotChocolate
             AllowInlining = options.AllowInlining;
             DefaultResolverStrategy = options.DefaultResolverStrategy;
             ValidatePipelineOrder = options.ValidatePipelineOrder;
+            StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         }
 
         /// <summary>
@@ -119,5 +120,10 @@ namespace HotChocolate
         /// Defines if the order of important middleware components shall be validated.
         /// </summary>
         public bool ValidatePipelineOrder { get; }
+
+        /// <summary>
+        /// Defines if the runtime types of types shall be validated.
+        /// </summary>
+        public bool StrictRuntimeTypeValidation { get; }
     }
 }

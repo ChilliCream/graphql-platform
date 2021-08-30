@@ -1,12 +1,12 @@
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-interface ArticleContentFooterProperties {
+interface ArticleContentFooterProps {
   readonly lastUpdated: string;
   readonly lastAuthorName: string;
 }
 
-export const ArticleContentFooter: FunctionComponent<ArticleContentFooterProperties> = ({
+export const ArticleContentFooter: FC<ArticleContentFooterProps> = ({
   lastUpdated,
   lastAuthorName,
 }) => {

@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from "react";
+import React, { FC, useState } from "react";
 import styled from "styled-components";
 
 function copyToClipboard(content: string): void {
@@ -17,7 +17,7 @@ interface CoopyProps {
   content: string;
 }
 
-export const Copy: FunctionComponent<CoopyProps> = ({ content }) => {
+export const Copy: FC<CoopyProps> = ({ content }) => {
   const [showToast, setShowToast] = useState(false);
 
   return (
@@ -47,7 +47,7 @@ export const Copy: FunctionComponent<CoopyProps> = ({ content }) => {
   );
 };
 
-const CopySuccessToast: FunctionComponent = () => {
+const CopySuccessToast: FC = () => {
   return (
     <ToastContainer>
       <ToastText>Copied code example</ToastText>

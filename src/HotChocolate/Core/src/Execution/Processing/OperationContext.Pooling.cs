@@ -53,7 +53,6 @@ namespace HotChocolate.Execution.Processing
             _resolveQueryRootValue = resolveQueryRootValue;
             _isInitialized = true;
 
-            batchDispatcher.Initialize(this);
             _workScheduler.Initialize(batchDispatcher);
         }
 
