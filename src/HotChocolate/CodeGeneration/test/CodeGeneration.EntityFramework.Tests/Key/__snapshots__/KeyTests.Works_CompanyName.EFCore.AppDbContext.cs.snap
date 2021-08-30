@@ -1,0 +1,69 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public class AppDbContext : global::Microsoft.EntityFrameworkCore.DbContext
+{
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooNoKey> FooNoKeys
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey1> FooDerivedKey1s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey2> FooDerivedKey2s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey3> FooDerivedKey3s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey4> FooDerivedKey4s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey5> FooDerivedKey5s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooDerivedKey6> FooDerivedKey6s
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooExplicitKey> FooExplicitKeys
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooCompositeKey> FooCompositeKeys
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooCustomKeyName> FooCustomKeyNames
+    {
+        get;
+        set;
+    }
+
+    public global::Microsoft.EntityFrameworkCore.DbSet<global::CompanyName.EFCore.FooCustomCompositeKeyName> FooCustomCompositeKeyNames
+    {
+        get;
+        set;
+    }
+}

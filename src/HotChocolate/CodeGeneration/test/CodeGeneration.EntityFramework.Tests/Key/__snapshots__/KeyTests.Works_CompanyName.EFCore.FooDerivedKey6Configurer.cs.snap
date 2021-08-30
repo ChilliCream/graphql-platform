@@ -1,0 +1,14 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CompanyName.EFCore
+{
+    [global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+    public class FooDerivedKey6Configurer : global::Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<FooDerivedKey6>
+    {
+        public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<FooDerivedKey6> builder)
+        {
+            builder.HasKey(x => x.FooDerivedKey6ID);
+        }
+    }
+}

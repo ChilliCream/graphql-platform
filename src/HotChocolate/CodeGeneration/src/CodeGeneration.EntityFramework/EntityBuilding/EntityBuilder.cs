@@ -52,7 +52,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
         private static void SetPrimaryKey(EntityBuilderContext context, ObjectType objectType)
         {
             IObjectField[] fieldsMarkedAsKey = objectType.Fields
-                .Where(f => f.Directives.Any(d => d is KeyDirective))
+                .Where(f => f.GetFirstDirective<KeyDirective>(KeyDirectiveType.NameConst) is not null)
                 .ToArray();
             if (fieldsMarkedAsKey.Any())
             {
@@ -70,7 +70,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                 try
                 {
                     var pkName = fieldsMarkedAsKey
-                        .Select(f => f.Directives.OfType<KeyDirective>().Single().Name)
+                        .Select(f => f.GetFirstDirective<KeyDirective>(KeyDirectiveType.NameConst)!.Name)
                         .Distinct()
                         .Single();
                     if (pkName is not null)
@@ -276,7 +276,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                         SyntaxKind.SimpleMemberAccessExpression,
                         IdentifierName(x),
                         IdentifierName(
-                            pkCol.Field?.Name.Value
+                            pkCol.Field?.GetPropertyName()
                                 ?? context.Conventions.GeneratedIdPropertyName));
             }
             else
@@ -294,7 +294,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 IdentifierName(x),
                                 IdentifierName(
-                                    pkCol.Field?.Name.Value
+                                    pkCol.Field?.GetPropertyName()
                                         ?? context.Conventions.GeneratedIdPropertyName))));
 
                     // ,

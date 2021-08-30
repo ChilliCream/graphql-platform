@@ -13,10 +13,12 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
     public class KeyDirectiveType : DirectiveType<KeyDirective>
     {
+        public const string NameConst = "key";
+
         protected override void Configure(IDirectiveTypeDescriptor<KeyDirective> descriptor)
         {
             descriptor
-                .Name("key")
+                .Name(NameConst)
                 .Description(
                     "Annotates a field as a primary key. " +
                     "If used on multiple fields within the same type, a composite key will be formed.")

@@ -1,0 +1,9 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class FooExplicitKey
+{
+    public global::System.String Id
+    {
+        get;
+        set;
+    }
+}
