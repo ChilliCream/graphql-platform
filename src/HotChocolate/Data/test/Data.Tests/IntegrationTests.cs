@@ -691,7 +691,7 @@ namespace HotChocolate.Data
             IExecutionResult result = await executor.ExecuteAsync(
                 @"
                 {
-                    books(book: {id: 1}) {
+                    books(book: {id: 1, authorId: 0}) {
                         title
                     }
                 }
