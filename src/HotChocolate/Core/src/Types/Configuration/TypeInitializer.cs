@@ -26,6 +26,10 @@ namespace HotChocolate.Configuration
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
         private readonly TypeReferenceResolver _typeReferenceResolver;
+        private readonly List<RegisteredType> _next = new();
+        private readonly List<RegisteredType> _temp = new();
+        private readonly List<ITypeReference> _typeRefs = new();
+        private readonly HashSet<ITypeReference> _typeRefSet = new();
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -398,7 +402,7 @@ namespace HotChocolate.Configuration
                 if (!failed)
                 {
                     batch.Clear();
-                    batch.AddRange(GetNextBatch(processed, kind));
+                    batch.AddRange(GetNextBatch(processed));
                 }
             }
 
@@ -411,15 +415,11 @@ namespace HotChocolate.Configuration
                         ? type.Type.Name.Value
                         : type.References[0].ToString()!;
 
-                    ITypeReference[] references =
-                        type.Dependencies.Where(t => t.Kind == kind)
-                            .Select(t => t.TypeReference).ToArray();
-
                     IReadOnlyList<ITypeReference> needed =
-                        TryNormalizeDependencies(references,
+                        TryNormalizeDependencies(type.Conditionals,
                             out IReadOnlyList<ITypeReference>? normalized)
                             ? normalized.Except(processed).ToArray()
-                            : references;
+                            : type.Conditionals.Select(t => t.TypeReference).ToArray();
 
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(
@@ -439,41 +439,87 @@ namespace HotChocolate.Configuration
         private IEnumerable<RegisteredType> GetInitialBatch(
             TypeDependencyKind kind)
         {
-            return _typeRegistry.Types.Where(t => t.Dependencies.All(d => d.Kind != kind));
-        }
+            _next.Clear();
 
-        private IEnumerable<RegisteredType> GetNextBatch(
-            ISet<ITypeReference> processed,
-            TypeDependencyKind kind)
-        {
-            foreach (RegisteredType type in _typeRegistry.Types)
+            foreach (var registeredType in _typeRegistry.Types)
             {
-                if (!processed.Contains(type.References[0]))
-                {
-                    IEnumerable<ITypeReference> references =
-                        type.Dependencies.Where(t => t.Kind == kind)
-                            .Select(t => t.TypeReference);
+                var conditional = false;
+                registeredType.ClearConditionals();
 
-                    if (TryNormalizeDependencies(references,
-                        out IReadOnlyList<ITypeReference>? normalized)
-                        && processed.IsSupersetOf(normalized))
+                foreach (var dependency in registeredType.Dependencies)
+                {
+                    if (dependency.Kind == kind)
                     {
-                        yield return type;
+                        conditional = true;
+                        registeredType.Conditionals.Add(dependency);
                     }
+                }
+
+                if (conditional)
+                {
+                    _next.Add(registeredType);
+                }
+                else
+                {
+                    yield return registeredType;
                 }
             }
         }
 
+        private IEnumerable<RegisteredType> GetNextBatch(
+            ISet<ITypeReference> processed)
+        {
+            foreach (RegisteredType type in _next)
+            {
+                if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
+                    processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
+                {
+                    yield return type;
+                }
+                else
+                {
+                    _temp.Add(type);
+                }
+            }
+
+            _next.Clear();
+
+            if (_temp.Count > 0)
+            {
+                _next.AddRange(_temp);
+                _temp.Clear();
+            }
+
+            List<ITypeReference> GetTypeRefsExceptSelfRefs(
+                RegisteredType type,
+                IReadOnlyList<ITypeReference> normalizedTypeReferences)
+            {
+                _typeRefs.Clear();
+                _typeRefSet.Clear();
+                _typeRefSet.UnionWith(type.References);
+
+                foreach (var typeRef in normalizedTypeReferences)
+                {
+                    if (_typeRefSet.Add(typeRef))
+                    {
+                        _typeRefs.Add(typeRef);
+                    }
+                }
+
+                return _typeRefs;
+            }
+        }
+
         private bool TryNormalizeDependencies(
-            IEnumerable<ITypeReference> dependencies,
+            List<TypeDependency> dependencies,
             [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
         {
             var n = new List<ITypeReference>();
 
-            foreach (ITypeReference reference in dependencies)
+            foreach (TypeDependency dependency in dependencies)
             {
                 if (!_typeLookup.TryNormalizeReference(
-                    reference,
+                    dependency.TypeReference,
                     out ITypeReference? nr))
                 {
                     normalized = null;
