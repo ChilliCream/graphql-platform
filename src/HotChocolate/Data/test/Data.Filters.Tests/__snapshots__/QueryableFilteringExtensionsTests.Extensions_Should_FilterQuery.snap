@@ -1,0 +1,10 @@
+﻿{
+  "data": {
+    "shouldWork": [
+      {
+        "bar": true,
+        "baz": "a"
+      }
+    ]
+  }
+}

@@ -4,6 +4,7 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -67,6 +68,30 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(filterProvider), filterProvider)
                     .Build());
 
+        public static SchemaException Filtering_FilteringWasNotFound(IResolverContext context) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(DataResources.Filtering_FilteringWasNotFound)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                    .Build());
+
+        public static SchemaException Filtering_TypeMissmatch(
+            IResolverContext context,
+            Type expectedType,
+            Type resultType) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.Filtering_TypeMissmatch,
+                        expectedType.FullName ?? expectedType.Name,
+                        resultType.FullName ?? resultType.Name)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                    .Build());
+
         public static SchemaException FilterInterceptor_NoHandlerFoundForField(
             FilterInputTypeDefinition type,
             FilterFieldDefinition field) =>
@@ -89,8 +114,7 @@ namespace HotChocolate.Data
                         type.Name)
                     .Build());
 
-        public static GraphQLException FilterConvention_CouldNotConvertValue(
-            IValueNode node) =>
+        public static GraphQLException FilterConvention_CouldNotConvertValue(IValueNode node) =>
             new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(DataResources.FilterConvention_CouldNotConvertValue)
@@ -175,8 +199,7 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(sortProvider), sortProvider)
                     .Build());
 
-        public static SchemaException SortDescriptorContextExtensions_NoConvention(
-            string? scope) =>
+        public static SchemaException SortDescriptorContextExtensions_NoConvention(string? scope) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
@@ -258,13 +281,36 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(sortOperation), sortOperation)
                     .Build());
 
-        public static SchemaException Sorting_TypeOfInvalidFormat(
-            IType type) =>
+        public static SchemaException Sorting_TypeOfInvalidFormat(IType type) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         DataResources.Sorting_TypeOfInvalidFormat,
                         type.Print())
+                    .Build());
+
+        public static SchemaException Sorting_SortingWasNotFound(IResolverContext context) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(DataResources.Sorting_SortingWasNotFound)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                    .Build());
+
+        public static SchemaException Sorting_TypeMissmatch(
+            IResolverContext context,
+            Type expectedType,
+            Type resultType) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.Sorting_TypeMissmatch,
+                        expectedType.FullName ?? expectedType.Name,
+                        resultType.FullName ?? resultType.Name)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
                     .Build());
 
         public static SchemaException ProjectionProvider_NoHandlersConfigured(
@@ -293,6 +339,30 @@ namespace HotChocolate.Data
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
+                    .Build());
+
+        public static SchemaException Projection_ProjectionWasNotFound(IResolverContext context) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(DataResources.Projection_ProjectionWasNotFound)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                    .Build());
+
+        public static SchemaException Projection_TypeMissmatch(
+            IResolverContext context,
+            Type expectedType,
+            Type resultType) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.Projection_TypeMissmatch,
+                        expectedType.FullName ?? expectedType.Name,
+                        resultType.FullName ?? resultType.Name)
+                    .SetPath(context.Path)
+                    .SetExtension("fieldName", context.Field.Name)
+                    .SetExtension("typeName", context.Field.Type.NamedType().Name)
                     .Build());
     }
 }
