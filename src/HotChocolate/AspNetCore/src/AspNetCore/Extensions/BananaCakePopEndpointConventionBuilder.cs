@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Builder;
 namespace HotChocolate.AspNetCore.Extensions
 {
     /// <summary>
-    /// Represents the endpoint convention builder for GraphQL.
+    /// Represents the endpoint convention builder for Banana Cake Pop.
     /// </summary>
-    public sealed class GraphQLEndpointConventionBuilder : IEndpointConventionBuilder
+    public sealed class BananaCakePopEndpointConventionBuilder : IEndpointConventionBuilder
     {
         private readonly IEndpointConventionBuilder _builder;
 
-        internal GraphQLEndpointConventionBuilder(IEndpointConventionBuilder builder)
+        internal BananaCakePopEndpointConventionBuilder(IEndpointConventionBuilder builder)
         {
             _builder = builder;
         }

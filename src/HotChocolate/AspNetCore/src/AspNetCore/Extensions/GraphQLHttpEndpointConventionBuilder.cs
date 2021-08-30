@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Builder;
 namespace HotChocolate.AspNetCore.Extensions
 {
     /// <summary>
-    /// Represents the endpoint convention builder for GraphQL.
+    /// Represents the endpoint convention builder for GraphQL HTTP requests.
     /// </summary>
-    public sealed class GraphQLEndpointConventionBuilder : IEndpointConventionBuilder
+    public sealed class GraphQLHttpEndpointConventionBuilder : IEndpointConventionBuilder
     {
         private readonly IEndpointConventionBuilder _builder;
 
-        internal GraphQLEndpointConventionBuilder(IEndpointConventionBuilder builder)
+        internal GraphQLHttpEndpointConventionBuilder(IEndpointConventionBuilder builder)
         {
             _builder = builder;
         }

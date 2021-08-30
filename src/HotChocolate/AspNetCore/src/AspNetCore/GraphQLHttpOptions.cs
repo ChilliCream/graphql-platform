@@ -1,15 +1,10 @@
 namespace HotChocolate.AspNetCore
 {
     /// <summary>
-    /// Represents the GraphQL server options.
+    /// Represents the GraphQL HTTP options.
     /// </summary>
-    public class GraphQLServerOptions
+    public class GraphQLHttpOptions
     {
-        /// <summary>
-        /// Gets the GraphQL tool options for Banana Cake Pop.
-        /// </summary>
-        public GraphQLToolOptions Tool { get; internal set; } = new();
-
         /// <summary>
         /// Gets or sets which GraphQL options are allowed on GET requests.
         /// </summary>
@@ -25,10 +20,5 @@ namespace HotChocolate.AspNetCore
         /// Defines if GraphQL HTTP Multipart requests are allowed.
         /// </summary>
         public bool EnableMultipartRequests { get; set; } = true;
-
-        /// <summary>
-        /// Defines if the GraphQL schema SDL can be downloaded.
-        /// </summary>
-        public bool EnableSchemaRequests { get; set; } = true;
     }
 }

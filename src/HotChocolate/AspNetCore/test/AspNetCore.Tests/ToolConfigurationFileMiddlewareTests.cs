@@ -1,11 +1,16 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.StarWars;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -77,10 +82,23 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
-        private async Task<Result> GetAsync(TestServer server)
+        [Fact]
+        public async Task Fetch_MapBananaCakePop_Tool_Config()
+        {
+            // arrange
+            TestServer server = CreateServer(endpoint => endpoint.MapBananaCakePop());
+
+            // act
+            Result result = await GetAsync(server, "/graphql/ui");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        private async Task<Result> GetAsync(TestServer server, string url = "/graphql")
         {
             HttpResponseMessage response = await server.CreateClient().GetAsync(
-                TestServerExtensions.CreateUrl("/graphql/bcp-config.json"));
+                TestServerExtensions.CreateUrl($"{url}/bcp-config.json"));
             var content = await response.Content.ReadAsStringAsync();
 
             return new Result

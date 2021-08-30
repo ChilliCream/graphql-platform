@@ -30,18 +30,8 @@ namespace HotChocolate.AspNetCore
             IFileProvider fileProvider,
             PathString matchUrl)
         {
-            if (next is null)
-            {
-                throw new ArgumentNullException(nameof(next));
-            }
-
-            if (fileProvider is null)
-            {
-                throw new ArgumentNullException(nameof(fileProvider));
-            }
-
-            _next = next;
-            _fileProvider = fileProvider;
+            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _fileProvider = fileProvider ?? throw new ArgumentNullException(nameof(fileProvider));
             _matchUrl = matchUrl;
         }
 
@@ -66,10 +56,12 @@ namespace HotChocolate.AspNetCore
                     // Check if any of our default files exist.
                     var file = _fileProvider.GetFileInfo(subPath.Value + _defaultFile);
 
-                    // TryMatchPath will make sure subpath always ends with a "/" by adding it if needed.
+                    // TryMatchPath will make sure subpath always ends with a "/"
+                    // by adding it if needed.
                     if (file.Exists)
                     {
-                        // If the path matches a directory but does not end in a slash, redirect to add the slash.
+                        // If the path matches a directory but does not end in a slash,
+                        // redirect to add the slash.
                         // This prevents relative links from breaking.
                         if (!context.Request.PathEndsInSlash())
                         {
@@ -84,7 +76,8 @@ namespace HotChocolate.AspNetCore
                             return Task.CompletedTask;
                         }
 
-                        // Match found, re-write the url. A later middleware will actually serve the file.
+                        // Match found, re-write the url.
+                        // A later middleware will actually serve the file.
                         context.Request.Path =
                             new PathString(context.Request.Path.Value + _defaultFile);
                     }

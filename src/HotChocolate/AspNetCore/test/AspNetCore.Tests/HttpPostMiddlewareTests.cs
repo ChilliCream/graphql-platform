@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
@@ -24,6 +25,20 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task MapGraphQLHttp_Simple_IsAlive_Test()
+        {
+            // arrange
+            TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
 
             // act
             ClientQueryResult result = await server.PostAsync(
