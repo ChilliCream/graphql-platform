@@ -11,14 +11,10 @@
   </data>
   <query>
     {
-      stringList @count
+      stringList @count(by: "string")
     }
   </query>
   <result>
-    <json>
-      {
-        "stringList": 2
-      }
-    </json>
+    <error-code>AG0002</error-code>
   </result>
 </test>

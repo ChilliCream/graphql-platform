@@ -38,7 +38,7 @@
     {
       list {
         single {
-          list @count {
+          list @count(by: "string") {
             string
           }
         }
@@ -51,12 +51,18 @@
         "list": [
           {
             "single": {
-              "list": 2
+              "list": {
+                "a": 1,
+                "b": 1
+              }
             }
           },
           {
             "single": {
-              "list": 3
+              "list": {
+                "a": 2,
+                "b": 1
+              }
             }
           }
         ]

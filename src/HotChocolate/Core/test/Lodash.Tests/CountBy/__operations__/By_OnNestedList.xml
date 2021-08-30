@@ -31,16 +31,12 @@
   </data>
   <query>
     {
-      nestedList @count {
+      nestedList @count(by: "string"){
         string
       }
     }
   </query>
   <result>
-    <json>
-      {
-        "nestedList": 2
-      }
-    </json>
+    <error-code>AG0003</error-code>
   </result>
 </test>

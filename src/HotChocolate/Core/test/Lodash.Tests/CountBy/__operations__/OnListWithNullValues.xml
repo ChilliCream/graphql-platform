@@ -19,7 +19,7 @@
   </data>
   <query>
     {
-      list @countBy(key: "string"){
+      list @count{
         string
       }
     }
@@ -27,11 +27,7 @@
   <result>
     <json>
       {
-        "list": {
-          "null": 1,
-          "b": 1,
-          "c": 1
-        }
+        "list": 4
       }
     </json>
   </result>

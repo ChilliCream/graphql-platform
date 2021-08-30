@@ -10,7 +10,7 @@
   </data>
   <query>
     {
-      single @count{
+      single @count(by: "string"){
         string
       }
     }

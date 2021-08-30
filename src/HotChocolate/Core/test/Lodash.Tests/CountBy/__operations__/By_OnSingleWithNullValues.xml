@@ -3,14 +3,14 @@
     <json>
       {
         "single": {
-          "string": "a"
+          "string": null
         }
       }
     </json>
   </data>
   <query>
     {
-      single @countBy(key: "missingProperty"){
+      single @count(by: "string"){
         string
       }
     }

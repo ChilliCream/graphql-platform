@@ -16,12 +16,16 @@
   </data>
   <query>
     {
-      list @countBy(key: "string"){
+      list @count{
         string
       }
     }
   </query>
   <result>
-    <error-code>AG0002</error-code>
+    <json>
+      {
+        "list": 3
+      }
+    </json>
   </result>
 </test>

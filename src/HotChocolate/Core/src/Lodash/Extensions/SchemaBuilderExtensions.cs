@@ -7,7 +7,7 @@ namespace HotChocolate
         public static ISchemaBuilder AddAggregationDirectives(this ISchemaBuilder schemaBuilder) =>
             schemaBuilder
                 .AddDirectiveType<ChunkDirectiveType>()
-                .AddDirectiveType<CountByDirectiveType>()
+                .AddDirectiveType<CountDirectiveType>()
                 .AddDirectiveType<DropDirectiveType>()
                 .AddDirectiveType<DropRightDirectiveType>()
                 .AddDirectiveType<FlattenDirectiveType>()

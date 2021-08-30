@@ -7,7 +7,7 @@
             "string": "a"
           },
           {
-            "string": "b"
+            "string": "a"
           },
           {
             "string": "c"
@@ -18,7 +18,7 @@
   </data>
   <query>
     {
-      list @countBy(key: "someOtherProperty"){
+      list @count(by: "string"){
         string
       }
     }
@@ -26,7 +26,10 @@
   <result>
     <json>
       {
-        "list": {}
+        "list": {
+          "a": 2,
+          "c": 1
+        }
       }
     </json>
   </result>

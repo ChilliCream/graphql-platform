@@ -8,7 +8,7 @@
   </data>
   <query>
     {
-      string @count
+      string @count(by: "string")
     }
   </query>
   <result>

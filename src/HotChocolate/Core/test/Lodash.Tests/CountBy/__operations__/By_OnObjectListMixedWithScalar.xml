@@ -6,9 +6,7 @@
           {
             "string": "a"
           },
-          {
-            "string": "a"
-          },
+          "a",
           {
             "string": "c"
           }
@@ -18,16 +16,12 @@
   </data>
   <query>
     {
-      list @count{
+      list @count(by: "string"){
         string
       }
     }
   </query>
   <result>
-    <json>
-      {
-        "list": 3
-      }
-    </json>
+    <error-code>AG0002</error-code>
   </result>
 </test>

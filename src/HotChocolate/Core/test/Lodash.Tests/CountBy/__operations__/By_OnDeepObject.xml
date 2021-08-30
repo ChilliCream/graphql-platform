@@ -25,7 +25,7 @@
     {
       list {
         single {
-          single @count {
+          single @count(by: "string") {
             string
           }
         }

@@ -4,10 +4,11 @@
       {
         "list": [
           {
-            "string": "a"
+            "string": null
           },
+          null,
           {
-            "string": "a"
+            "string": "b"
           },
           {
             "string": "c"
@@ -18,7 +19,7 @@
   </data>
   <query>
     {
-      list @count{
+      list @count(by: "string"){
         string
       }
     }
@@ -26,7 +27,11 @@
   <result>
     <json>
       {
-        "list": 3
+        "list": {
+          "null": 1,
+          "b": 1,
+          "c": 1
+        }
       }
     </json>
   </result>
