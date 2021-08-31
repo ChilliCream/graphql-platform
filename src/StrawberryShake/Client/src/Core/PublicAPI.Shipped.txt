@@ -259,8 +259,8 @@ StrawberryShake.OperationRequest.GetExtensionsOrNull() -> System.Collections.Gen
 StrawberryShake.OperationRequest.GetHash() -> string!
 StrawberryShake.OperationRequest.Id.get -> string?
 StrawberryShake.OperationRequest.Name.get -> string!
-StrawberryShake.OperationRequest.OperationRequest(string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
-StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default) -> void
+StrawberryShake.OperationRequest.OperationRequest(string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default, System.Collections.Generic.IDictionary<string!, string!>? contentHeaders = null, System.Collections.Generic.IDictionary<string!, string!>? requestHeaders = null, System.Net.Http.Headers.AuthenticationHeaderValue? authenticationHeaderValue = null) -> void
+StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default, System.Collections.Generic.IDictionary<string!, string!>? contentHeaders = null, System.Collections.Generic.IDictionary<string!, string!>? requestHeaders = null, System.Net.Http.Headers.AuthenticationHeaderValue? authenticationHeaderValue = null) -> void
 StrawberryShake.OperationRequest.Strategy.get -> StrawberryShake.RequestStrategy
 StrawberryShake.OperationRequest.Variables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>!
 StrawberryShake.OperationResult
