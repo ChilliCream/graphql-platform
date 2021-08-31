@@ -6,6 +6,7 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters.Spatial
@@ -15,21 +16,27 @@ namespace HotChocolate.Data.Filters.Spatial
     {
         private readonly IExtendedType _runtimeType;
 
-        protected abstract int Operation { get; }
-
-        protected abstract bool IsTrue { get; }
-        protected string GeometryFieldName { get; }
-        protected string BufferFieldName { get; }
-
         protected QueryableSpatialBooleanMethodHandler(
             IFilterConvention convention,
             ITypeInspector inspector,
+            InputParser inputParser,
             MethodInfo method)
         {
+            InputParser = inputParser;
             _runtimeType = inspector.GetReturnType(method);
             GeometryFieldName = convention.GetOperationName(SpatialFilterOperations.Geometry);
             BufferFieldName = convention.GetOperationName(SpatialFilterOperations.Buffer);
         }
+
+        protected abstract int Operation { get; }
+
+        protected abstract bool IsTrue { get; }
+
+        protected string GeometryFieldName { get; }
+
+        protected string BufferFieldName { get; }
+
+        protected InputParser InputParser { get; }
 
         public override bool CanHandle(
             ITypeCompletionContext context,
@@ -108,5 +115,17 @@ namespace HotChocolate.Data.Filters.Spatial
             action = SyntaxVisitor.Continue;
             return true;
         }
+
+        protected bool TryGetParameter<T>(
+            IFilterField parentField,
+            IValueNode node,
+            string fieldName,
+            [NotNullWhen(true)] out T fieldNode)
+            => SpatialOperationHandlerHelper.TryGetParameter(
+                parentField,
+                node,
+                fieldName,
+                InputParser,
+                out fieldNode);
     }
 }

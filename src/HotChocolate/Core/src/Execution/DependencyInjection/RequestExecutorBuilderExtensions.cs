@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((sp, sb) => configureSchema(sb))));
+                    new SchemaBuilderAction((_, sb) => configureSchema(sb))));
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((sp, sb, ct) => configureSchema(sb, ct))));
+                    new SchemaBuilderAction((_, sb, ct) => configureSchema(sb, ct))));
         }
 
         /// <summary>
@@ -188,9 +188,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="modify">
+        /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure
+        /// a schema and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ModifyRequestOptionsAsync(
             this IRequestExecutorBuilder builder,
             Func<RequestExecutorOptions, CancellationToken, ValueTask> modify)
@@ -214,9 +221,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="modify">
+        /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
+        /// schema and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ModifyRequestOptions(
             this IRequestExecutorBuilder builder,
             Action<IServiceProvider, RequestExecutorOptions> modify)
@@ -241,9 +255,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="modify">
+        /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
+        /// schema and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ModifyRequestOptionsAsync(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, RequestExecutorOptions, CancellationToken, ValueTask> modify)
@@ -267,9 +288,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="factory">A delegate that is used to create the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="factory">
+        /// A delegate that is used to create the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
+        /// schema and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder SetRequestOptions(
             this IRequestExecutorBuilder builder,
             Func<RequestExecutorOptions> factory)
@@ -292,9 +320,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to create the <see cref="RequestExecutorOptions"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="factory">A delegate that is used to create the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="factory">
+        /// A delegate that is used to create the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a
+        /// schema and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder SetRequestOptions(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, RequestExecutorOptions> factory)

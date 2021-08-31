@@ -1,0 +1,27 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "__typename": "Query"
+  },
+  "Errors": null,
+  "Extensions": {
+    "queryPlan": {
+      "flow": {
+        "type": "Operation",
+        "root": {
+          "type": "Resolver",
+          "strategy": "Parallel",
+          "selections": [
+            {
+              "id": 0,
+              "field": "Query.__typename",
+              "responseName": "__typename"
+            }
+          ]
+        }
+      },
+      "selections": "{\n  ... on Query {\n    __typename @__execute(id: 0, kind: DEFAULT, type: LEAF)\n  }\n}"
+    }
+  }
+}

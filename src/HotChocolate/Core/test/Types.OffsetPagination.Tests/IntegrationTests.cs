@@ -72,6 +72,62 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task No_Paging_Boundaries()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters {
+                        items
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task MaxPageSizeReached()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync($@"
+                {{
+                    letters(take: {51}) {{
+                        items
+                        pageInfo {{
+                            hasNextPage
+                            hasPreviousPage
+                        }}
+                    }}
+                }}")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Attribute_Simple_StringList_Default_Items()
         {
             Snapshot.FullName();
@@ -703,7 +759,7 @@ namespace HotChocolate.Types.Pagination
 
         public string Print()
         {
-            return _source.ToString();
+            return _source.ToString()!;
         }
     }
 }

@@ -10,9 +10,9 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             IObjectTypeDescriptor<SomeOtherContract> descriptor)
         {
             descriptor
-                .AsNode()
+                .ImplementsNode()
                 .IdField(t => t.Id)
-                .NodeResolver((ctx, id) =>
+                .ResolveNode((ctx, id) =>
                 {
                     return Task.FromResult(
                         ctx.Service<ContractStorage>()
@@ -23,14 +23,9 @@ namespace HotChocolate.Stitching.Schemas.Contracts
 
             descriptor.Implements<ContractType>();
 
-            descriptor.Field(t => t.Id)
-                .Type<NonNullType<IdType>>();
-
-            descriptor.Field(t => t.CustomerId)
-                .Type<NonNullType<IdType>>();
-
-            descriptor.Field(t => t.ExpiryDate)
-                .Type<NonNullType<DateTimeType>>();
+            descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+            descriptor.Field(t => t.CustomerId).Type<NonNullType<IdType>>();
+            descriptor.Field(t => t.ExpiryDate).Type<NonNullType<DateTimeType>>();
         }
     }
 }

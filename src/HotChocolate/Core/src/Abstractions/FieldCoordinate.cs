@@ -1,4 +1,7 @@
 using System;
+using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate
 {
@@ -119,7 +122,7 @@ namespace HotChocolate
         /// true if <paramref name="obj">obj</paramref> and this instance
         /// are the same type and represent the same value; otherwise, false.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is FieldCoordinate other && Equals(other);
         }
@@ -155,6 +158,62 @@ namespace HotChocolate
             }
 
             return $"{TypeName}.{FieldName}({ArgumentName})";
+        }
+
+        /// <summary>
+        /// Converts a field coordinate string into a <see cref="FieldCoordinate"/> instance.
+        /// </summary>
+        /// <param name="s">
+        /// The field coordinate string.
+        /// </param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="s"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// The format of <paramref name="s"/> is wrong.
+        /// </exception>
+        public static implicit operator FieldCoordinate(string s)
+        {
+            if (s is null)
+            {
+                throw new ArgumentNullException(nameof(s));
+            }
+
+            var parts = s.Split('.');
+
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException(
+                    AbstractionResources.FieldCoordinate_Parse_InvalidComponentCount,
+                    nameof(s));
+            }
+
+            var fieldParts = parts[1].Split('(');
+
+            if (fieldParts.Length > 2)
+            {
+                throw new ArgumentException(
+                    AbstractionResources.FieldCoordinate_Parse_InvalidFieldComponentCount,
+                    nameof(s));
+            }
+
+            if (fieldParts.Length == 1)
+            {
+                return new FieldCoordinate(parts[0], parts[1]);
+            }
+
+            if (fieldParts.Length == 2)
+            {
+                return new FieldCoordinate(
+                    parts[0],
+                    fieldParts[0],
+                    fieldParts[1].TrimEnd().TrimEnd(')'));
+            }
+
+            throw new ArgumentException(
+                AbstractionResources.FieldCoordinate_Parse_InvalidFormat,
+                nameof(s));
         }
     }
 }

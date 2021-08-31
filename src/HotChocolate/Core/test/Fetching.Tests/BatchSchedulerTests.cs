@@ -1,6 +1,7 @@
-using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Fetching;
+using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -9,17 +10,21 @@ namespace HotChocolate
     public class BatchSchedulerTests
     {
         [Fact]
-        public void Dispatch_OneAction_ShouldDispatchOneAction()
+        public async Task Dispatch_OneAction_ShouldDispatchOneAction()
         {
             // arrange
-            var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            var context = new Mock<IExecutionTaskContext>();
+            context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
 
-            scheduler.Schedule(dispatch);
+            var scheduler = new BatchScheduler();
+
+            ValueTask Dispatch() => default;
+
+            scheduler.Schedule(Dispatch);
             Assert.True(scheduler.HasTasks);
 
             // act
-            scheduler.Dispatch(d => { });
+            await scheduler.DispatchAsync();
 
             // assert
             Assert.False(scheduler.HasTasks);
@@ -40,10 +45,10 @@ namespace HotChocolate
         {
             // arrange
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(scheduler.HasTasks);
@@ -55,15 +60,12 @@ namespace HotChocolate
             // arrange
             var hasBeenRaised = false;
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () => default;
+            ValueTask Dispatch() => default;
 
-            scheduler.TaskEnqueued += (s, e) =>
-            {
-                hasBeenRaised = true;
-            };
+            scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
 
             // act
-            scheduler.Schedule(dispatch);
+            scheduler.Schedule(Dispatch);
 
             // assert
             Assert.True(hasBeenRaised);

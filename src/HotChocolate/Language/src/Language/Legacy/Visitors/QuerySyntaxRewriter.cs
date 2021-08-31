@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
@@ -51,8 +51,7 @@ namespace HotChocolate.Language
                     return node;
 
                 default:
-                    throw new NotSupportedException(
-                        LangResources.QuerySyntaxRewriter_NotSupported);
+                    throw new NotSupportedException(QuerySyntaxRewriter_NotSupported);
             }
         }
 
@@ -106,11 +105,8 @@ namespace HotChocolate.Language
                     current.WithDirectives);
             }
 
-            if (current.SelectionSet != null)
-            {
-                current = Rewrite(current, current.SelectionSet, context,
-                    RewriteSelectionSet, current.WithSelectionSet);
-            }
+            current = Rewrite(current, current.SelectionSet, context,
+                RewriteSelectionSet, current.WithSelectionSet);
 
             return current;
         }
@@ -156,11 +152,8 @@ namespace HotChocolate.Language
                 (p, c) => RewriteMany(p, c, RewriteDirective),
                 current.WithDirectives);
 
-            if (current.SelectionSet != null)
-            {
-                current = Rewrite(current, current.SelectionSet, context,
-                    RewriteSelectionSet, current.WithSelectionSet);
-            }
+            current = Rewrite(current, current.SelectionSet, context,
+                RewriteSelectionSet, current.WithSelectionSet);
 
             return current;
         }
@@ -262,11 +255,8 @@ namespace HotChocolate.Language
                 (p, c) => RewriteMany(p, c, RewriteDirective),
                 current.WithDirectives);
 
-            if (current.SelectionSet != null)
-            {
-                current = Rewrite(current, current.SelectionSet, context,
-                    RewriteSelectionSet, current.WithSelectionSet);
-            }
+            current = Rewrite(current, current.SelectionSet, context,
+                RewriteSelectionSet, current.WithSelectionSet);
 
             return current;
         }

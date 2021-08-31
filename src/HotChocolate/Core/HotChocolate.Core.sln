@@ -39,7 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Validation", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Abstractions.Tests", "test\Abstractions.Tests\HotChocolate.Abstractions.Tests.csproj", "{80F8703D-804D-4921-A409-AF4BB26E59BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "test\StarWars\HotChocolate.StarWars.csproj", "{AADFF9B1-B275-48B4-8F32-F6CD837619E5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars.Tests", "test\StarWars\HotChocolate.StarWars.Tests.csproj", "{AADFF9B1-B275-48B4-8F32-F6CD837619E5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Tests", "test\Types.Tests\HotChocolate.Types.Tests.csproj", "{CD2B383F-2957-4A83-B965-070DC8CF36F6}"
 EndProject
@@ -94,6 +94,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.NodaTime", "src\Types.NodaTime\HotChocolate.Types.NodaTime.csproj", "{07F3E312-EC4C-4B71-A095-E478DF4CB52B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.NodaTime.Tests", "test\Types.NodaTime.Tests\HotChocolate.Types.NodaTime.Tests.csproj", "{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AspNetCore", "..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj", "{4AD904D1-7727-48EF-88D9-7B38D98EB314}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -597,6 +599,18 @@ Global
 		{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB}.Release|x64.Build.0 = Release|Any CPU
 		{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB}.Release|x86.ActiveCfg = Release|Any CPU
 		{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB}.Release|x86.Build.0 = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|x64.Build.0 = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Debug|x86.Build.0 = Debug|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|x64.ActiveCfg = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|x64.Build.0 = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|x86.ActiveCfg = Release|Any CPU
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -643,6 +657,7 @@ Global
 		{670D3B20-401F-4004-AD0B-865560D02CC3} = {37B9D3B1-CA34-4720-9A0B-CFF1E64F52C2}
 		{07F3E312-EC4C-4B71-A095-E478DF4CB52B} = {37B9D3B1-CA34-4720-9A0B-CFF1E64F52C2}
 		{414B6DBE-1A3A-42DC-9116-3F9A433C6BBB} = {7462D089-D350-44D6-8131-896D949A65B7}
+		{4AD904D1-7727-48EF-88D9-7B38D98EB314} = {7637D30E-7339-4D4E-9424-87CF2394D234}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E4D94C77-6657-4630-9D42-0A9AC5153A1B}

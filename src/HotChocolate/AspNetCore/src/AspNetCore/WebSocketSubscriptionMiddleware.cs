@@ -25,9 +25,11 @@ namespace HotChocolate.AspNetCore
             {
                 IRequestExecutor executor = await GetExecutorAsync(context.RequestAborted);
                 var messagePipeline = executor.Services.GetRequiredService<IMessagePipeline>();
+                var socketSessionInterceptor =
+                    executor.Services.GetRequiredService<ISocketSessionInterceptor>();
 
                 await WebSocketSession
-                    .New(context, messagePipeline)
+                    .New(context, messagePipeline, socketSessionInterceptor)
                     .HandleAsync(context.RequestAborted);
             }
             else

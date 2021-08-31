@@ -1,55 +1,54 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Helpers
 {
     internal static class FieldMiddlewareCompiler
     {
         public static FieldDelegate Compile(
             IReadOnlyList<FieldMiddleware> globalComponents,
-            IReadOnlyList<FieldMiddleware> fieldComponents,
+            IReadOnlyList<FieldMiddlewareDefinition> fieldComponents,
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
             FieldResolverDelegate fieldResolver,
             bool skipMiddleware)
         {
-            if (globalComponents is null)
+            if (skipMiddleware ||
+                globalComponents.Count == 0 &&
+                fieldComponents.Count == 0 &&
+                resultConverters.Count == 0)
             {
-                throw new ArgumentNullException(nameof(globalComponents));
+                return fieldResolver is null
+                    ? null
+                    : CreateResolverMiddleware(fieldResolver);
             }
 
-            if (fieldComponents is null)
-            {
-                throw new ArgumentNullException(nameof(fieldComponents));
-            }
-
-            if (skipMiddleware
-                || (globalComponents.Count == 0
-                    && fieldComponents.Count == 0))
-            {
-                if (fieldResolver is null)
-                {
-                    return null;
-                }
-                return CreateResolverMiddleware(fieldResolver);
-            }
-
-            return BuildMiddleware(
+            return CompilePipeline(
                 globalComponents,
                 fieldComponents,
+                resultConverters,
                 fieldResolver);
         }
 
-        private static FieldDelegate BuildMiddleware(
-            IReadOnlyList<FieldMiddleware> components,
-            IReadOnlyList<FieldMiddleware> mappedComponents,
-            FieldResolverDelegate fieldResolver)
-        {
-            return IntegrateComponents(components,
-                IntegrateComponents(mappedComponents,
-                    CreateResolverMiddleware(fieldResolver)));
-        }
+        public static PureFieldDelegate Compile(
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
+            PureFieldDelegate fieldResolver,
+            bool skipMiddleware)
+            => skipMiddleware || resultConverters.Count == 0
+                ? fieldResolver
+                : CompileResultConverters(resultConverters, fieldResolver);
 
-        private static FieldDelegate IntegrateComponents(
+        private static FieldDelegate CompilePipeline(
+            IReadOnlyList<FieldMiddleware> components,
+            IReadOnlyList<FieldMiddlewareDefinition> mappedComponents,
+            IReadOnlyList<ResultConverterDefinition> resultConverters,
+            FieldResolverDelegate fieldResolver)
+            => CompileMiddlewareComponents(components,
+                CompileMiddlewareComponents(mappedComponents,
+                    CompileResultConverters(resultConverters,
+                        CreateResolverMiddleware(fieldResolver))));
+
+        private static FieldDelegate CompileMiddlewareComponents(
             IReadOnlyList<FieldMiddleware> components,
             FieldDelegate first)
         {
@@ -57,23 +56,77 @@ namespace HotChocolate.Types
 
             for (var i = components.Count - 1; i >= 0; i--)
             {
-                next = components[i].Invoke(next);
+                next = components[i](next);
             }
 
             return next;
         }
 
-        private static FieldDelegate CreateResolverMiddleware(
-            FieldResolverDelegate fieldResolver)
+        private static FieldDelegate CompileMiddlewareComponents(
+            IReadOnlyList<FieldMiddlewareDefinition> components,
+            FieldDelegate first)
         {
-            return async ctx =>
+            FieldDelegate next = first;
+
+            for (var i = components.Count - 1; i >= 0; i--)
             {
-                if (!ctx.IsResultModified && fieldResolver is { })
+                next = components[i].Middleware(next);
+            }
+
+            return next;
+        }
+
+        private static FieldDelegate CompileResultConverters(
+            IReadOnlyList<ResultConverterDefinition> components,
+            FieldDelegate first)
+        {
+            FieldDelegate next = first;
+
+            for (var i = components.Count - 1; i >= 0; i--)
+            {
+                next = CreateConverterMiddleware(components[i].Converter)(next);
+            }
+
+            return next;
+        }
+
+        private static PureFieldDelegate CompileResultConverters(
+            IReadOnlyList<ResultConverterDefinition> components,
+            PureFieldDelegate first)
+        {
+            PureFieldDelegate next = first;
+
+            for (var i = components.Count - 1; i >= 0; i--)
+            {
+                next = CreatePureConverterMiddleware(components[i].Converter, next);
+            }
+
+            return next;
+        }
+
+        private static FieldMiddleware CreateConverterMiddleware(ResultConverterDelegate convert)
+            => n => async c =>
+            {
+                await n(c);
+                c.Result = convert(c, c.Result);
+            };
+
+        private static PureFieldDelegate CreatePureConverterMiddleware(
+            ResultConverterDelegate convert,
+            PureFieldDelegate next)
+            => c =>
+            {
+                var result = next(c);
+                return convert(c, result);
+            };
+
+        private static FieldDelegate CreateResolverMiddleware(FieldResolverDelegate fieldResolver)
+            => async ctx =>
+            {
+                if (!ctx.IsResultModified && fieldResolver is not null)
                 {
                     ctx.Result = await fieldResolver(ctx).ConfigureAwait(false);
                 }
             };
-        }
     }
-
 }

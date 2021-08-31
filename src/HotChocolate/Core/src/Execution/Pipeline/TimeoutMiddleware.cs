@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Options;
@@ -26,6 +27,13 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
+            // if the debugger is attached we will skip the current middleware.
+            if (Debugger.IsAttached)
+            {
+                await _next(context).ConfigureAwait(false);
+                return;
+            }
+
             using var timeout = new CancellationTokenSource(_timeout);
 
             // We do not dispose the combined token in this middleware at all times.

@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class BsonDocumentExtensions
+    public static class BsonDocumentExtensions
     {
         private static readonly IBsonSerializerRegistry SerializerRegistry =
             BsonSerializer.SerializerRegistry;

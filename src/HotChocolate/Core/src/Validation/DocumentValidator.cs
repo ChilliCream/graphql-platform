@@ -11,7 +11,8 @@ namespace HotChocolate.Validation
     public sealed class DocumentValidator : IDocumentValidator
     {
         private readonly DocumentValidatorContextPool _contextPool;
-        private readonly IDocumentValidatorRule[] _rules;
+        private readonly IDocumentValidatorRule[] _allRules;
+        private readonly IDocumentValidatorRule[] _nonCacheableRules;
 
         /// <summary>
         /// Creates a new instance of <see cref="DocumentValidator"/>.
@@ -33,20 +34,22 @@ namespace HotChocolate.Validation
             }
 
             _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
-            _rules = rules.ToArray();
+            _allRules = rules.ToArray();
+            _nonCacheableRules = _allRules.Where(t => !t.IsCacheable).ToArray();
         }
 
         /// <inheritdoc />
         public DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document) =>
-            Validate(schema, document, null);
+            Validate(schema, document, new Dictionary<string, object?>());
 
         /// <inheritdoc />
         public DocumentValidatorResult Validate(
             ISchema schema,
             DocumentNode document,
-            IEnumerable<KeyValuePair<string, object?>>? contextData)
+            IDictionary<string, object?> contextData,
+            bool onlyNonCacheable = false)
         {
             if (schema is null)
             {
@@ -58,15 +61,21 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(document));
             }
 
+            if (onlyNonCacheable && _nonCacheableRules.Length == 0)
+            {
+                return DocumentValidatorResult.Ok;
+            }
+
             DocumentValidatorContext context = _contextPool.Get();
+            IDocumentValidatorRule[] rules = onlyNonCacheable ? _nonCacheableRules : _allRules;
 
             try
             {
                 PrepareContext(schema, document, context, contextData);
 
-                for (var i = 0; i < _rules.Length; i++)
+                foreach (var rule in rules)
                 {
-                    _rules[i].Validate(context, document);
+                    rule.Validate(context, document);
                 }
 
                 return context.Errors.Count > 0
@@ -83,27 +92,21 @@ namespace HotChocolate.Validation
             ISchema schema,
             DocumentNode document,
             DocumentValidatorContext context,
-            IEnumerable<KeyValuePair<string, object?>>? contextData)
+            IDictionary<string, object?> contextData)
         {
             context.Schema = schema;
 
             for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode definitionNode = document.Definitions[i];
-                if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
+                if (definitionNode.Kind is SyntaxKind.FragmentDefinition)
                 {
                     var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
                     context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
                 }
             }
 
-            if (contextData is not null)
-            {
-                foreach (KeyValuePair<string, object?> entry in contextData)
-                {
-                    context.ContextData[entry.Key] = entry.Value;
-                }
-            }
+            context.ContextData = contextData;
         }
     }
 }

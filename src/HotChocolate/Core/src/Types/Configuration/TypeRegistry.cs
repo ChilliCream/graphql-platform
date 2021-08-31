@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -150,7 +151,28 @@ namespace HotChocolate.Configuration
             if (addToTypes)
             {
                 _types.Add(registeredType);
-                _typeRegistryInterceptor.OnTypeRegistered(registeredType.DiscoveryContext);
+                _typeRegistryInterceptor.OnTypeRegistered(registeredType);
+            }
+
+            if (!registeredType.IsExtension)
+            {
+                if (registeredType.IsNamedType &&
+                    registeredType.Type is IHasTypeDefinition { Definition: { } typeDef } &&
+                    !_nameRefs.ContainsKey(typeDef.Name))
+                {
+                    _nameRefs.Add(typeDef.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Scalar &&
+                    registeredType.Type is ScalarType scalar)
+                {
+                    _nameRefs.Add(scalar.Name, registeredType.References[0]);
+                }
+                else if (registeredType.Kind == TypeKind.Directive &&
+                    registeredType.Type is DirectiveType directive &&
+                    !_nameRefs.ContainsKey(directive.Definition!.Name))
+                {
+                    _nameRefs.Add(directive.Definition.Name, registeredType.References[0]);
+                }
             }
         }
 
@@ -196,26 +218,20 @@ namespace HotChocolate.Configuration
 
         public void CompleteDiscovery()
         {
-            var refs = new List<ITypeReference>();
-
             foreach (RegisteredType registeredType in _types)
             {
-                refs.Clear();
-
                 ITypeReference reference = TypeReference.Create(registeredType.Type);
-                refs.Add(reference);
+                registeredType.References.TryAdd(reference);
 
                 _typeRegister[reference] = registeredType;
 
                 if (registeredType.Type.Scope is { } s)
                 {
                     reference = TypeReference.Create(registeredType.Type, s);
-                    refs.Add(reference);
+                    registeredType.References.TryAdd(reference);
 
                     _typeRegister[reference] = registeredType;
                 }
-
-                registeredType.AddReferences(refs);
             }
         }
     }

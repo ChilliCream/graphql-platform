@@ -128,6 +128,23 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
+        public void StartProcessing(IRequestContext context)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].StartProcessing(context);
+            }
+        }
+
+        public void StopProcessing(IRequestContext context)
+        {
+            for (var i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].StopProcessing(context);
+            }
+        }
+
+
         public IActivityScope ExecuteSubscription(ISubscription subscription)
         {
             var scopes = new IActivityScope[_listeners.Length];
@@ -216,12 +233,16 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void BatchDispatched(IRequestContext context)
+        public IActivityScope DispatchBatch(IRequestContext context)
         {
+            var scopes = new IActivityScope[_listeners.Length];
+
             for (var i = 0; i < _listeners.Length; i++)
             {
-                _listeners[i].BatchDispatched(context);
+                scopes[i] = _listeners[i].DispatchBatch(context);
             }
+
+            return new AggregateActivityScope(scopes);
         }
 
         public void ExecutorCreated(string name, IRequestExecutor executor)

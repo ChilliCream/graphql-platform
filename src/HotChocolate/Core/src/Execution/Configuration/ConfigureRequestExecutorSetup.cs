@@ -1,10 +1,8 @@
 using System;
-using System.ComponentModel.Design;
 
 namespace HotChocolate.Execution.Configuration
 {
-    public sealed class ConfigureRequestExecutorSetup
-        : IConfigureRequestExecutorSetup
+    public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSetup
     {
         private readonly Action<RequestExecutorSetup> _configure;
 

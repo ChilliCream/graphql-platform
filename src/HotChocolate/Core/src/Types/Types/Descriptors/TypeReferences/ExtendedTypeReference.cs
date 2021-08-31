@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             TypeContext context,
             string? scope = null)
-            : base(context, scope)
+            : base(TypeReferenceKind.ExtendedType, context, scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }

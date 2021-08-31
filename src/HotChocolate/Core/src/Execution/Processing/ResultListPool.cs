@@ -5,17 +5,16 @@ namespace HotChocolate.Execution.Processing
     internal sealed class ResultListPool
         : DefaultObjectPool<ResultObjectBuffer<ResultList>>
     {
-        public ResultListPool(int maximumRetained) 
+        public ResultListPool(int maximumRetained)
             : base(new BufferPolicy(), maximumRetained)
         {
         }
 
         private class BufferPolicy : IPooledObjectPolicy<ResultObjectBuffer<ResultList>>
         {
-            private static readonly ResultMapPolicy _policy = new ResultMapPolicy();
+            private static readonly ResultMapPolicy _policy = new();
 
-            public ResultObjectBuffer<ResultList> Create() =>
-                new ResultObjectBuffer<ResultList>(16, _policy);
+            public ResultObjectBuffer<ResultList> Create() => new(16, _policy);
 
             public bool Return(ResultObjectBuffer<ResultList> obj)
             {

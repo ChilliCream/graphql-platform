@@ -55,6 +55,7 @@ namespace HotChocolate.Data.Projections.Handlers
                     context.CompileResolverPipeline(nodesField, nodesFieldNode);
 
                 var compiledSelection = new Selection(
+                    context.GetNextId(),
                     context.Type,
                     nodesField,
                     nodesFieldNode,

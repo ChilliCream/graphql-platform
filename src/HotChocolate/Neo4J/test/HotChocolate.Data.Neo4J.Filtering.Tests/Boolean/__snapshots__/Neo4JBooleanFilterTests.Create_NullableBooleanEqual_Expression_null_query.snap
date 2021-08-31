@@ -1,0 +1,1 @@
+﻿MATCH (fooNullable:FooNullable) WHERE fooNullable.Bar = NULL RETURN fooNullable {.Bar}

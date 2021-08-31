@@ -1,32 +1,32 @@
 using System.Linq;
-using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
-    public class TypeFactoryTests
-        : TypeTestBase
+    public class TypeFactoryTests : TypeTestBase
     {
         [Fact]
         public void CreateObjectType()
         {
             // arrange
-            string source = "type Simple { a: String b: [String] }";
+            var source = @"
+                type Simple {
+                    a: String
+                    b: [String]
+                }
+                schema { query: Simple }";
+
+            var resolvers = new
+            {
+                Simple = new { A = "hello", B = new[] { "hello" } }
+            };
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.BindResolver(ctx =>
-                    Task.FromResult<object>("hello"))
-                    .To("Simple", "a");
-
-                c.BindResolver(ctx =>
-                    Task.FromResult<object>(new[] { "hello" }))
-                    .To("Simple", "b");
-
-                c.Options.QueryTypeName = "Simple";
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddRootResolver(resolvers)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -36,17 +36,17 @@ namespace HotChocolate.Types
         public void ObjectFieldDeprecationReason()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type Simple {
                     a: String @deprecated(reason: ""reason123"")
-                }";
+                }
+                schema { query: Simple }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.Use(next => context => default(ValueTask));
-                c.Options.QueryTypeName = "Simple";
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .Use(_ => _)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -56,22 +56,19 @@ namespace HotChocolate.Types
         public void CreateObjectTypeDescriptions()
         {
             // arrange
-            string source = @"
+            var source = @"
                 ""SimpleDesc""
                 type Simple {
                     ""ADesc""
                     a(""ArgDesc""arg: String): String
-                }";
+                }
+                schema { query: Simple }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.BindResolver(ctx =>
-                    Task.FromResult<object>("hello"))
-                    .To("Simple", "a");
-
-                c.Options.QueryTypeName = "Simple";
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .Use(_ => _)
+                .Create();
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -81,14 +78,14 @@ namespace HotChocolate.Types
         public void CreateInterfaceType()
         {
             // arrange
-            string source = "interface Simple { a: String b: [String] }";
+            var source = "interface Simple { a: String b: [String] }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("Simple");
@@ -115,17 +112,17 @@ namespace HotChocolate.Types
         public void InterfaceFieldDeprecationReason()
         {
             // arrange
-            string source = @"
-                    interface Simple {
-                        a: String @deprecated(reason: ""reason123"")
-                    }";
+            var source = @"
+                interface Simple {
+                    a: String @deprecated(reason: ""reason123"")
+                }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-                c.Options.StrictValidation = false;
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("Simple");
@@ -140,17 +137,17 @@ namespace HotChocolate.Types
         public void InterfaceFieldDeprecationWithoutReason()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface Simple {
                     a: String @deprecated
                 }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.Options.StrictValidation = false;
-                c.RegisterQueryType<DummyQuery>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("Simple");
@@ -171,23 +168,23 @@ namespace HotChocolate.Types
                 .Name("A")
                 .Field("a")
                 .Type<StringType>()
-                .Resolver("a"));
+                .Resolve("a"));
 
             var objectTypeB = new ObjectType(d => d
                 .Name("B")
                 .Field("a")
                 .Type<StringType>()
-                .Resolver("b"));
+                .Resolve("b"));
 
             var source = "union X = A | B";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.RegisterType(objectTypeA);
-                c.RegisterType(objectTypeB);
-                c.RegisterQueryType<DummyQuery>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .AddType(objectTypeA)
+                .AddType(objectTypeB)
+                .Create();
 
             // assert
             UnionType type = schema.GetType<UnionType>("X");
@@ -205,10 +202,10 @@ namespace HotChocolate.Types
             var source = "enum Abc { A B C }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Abc");
@@ -224,18 +221,18 @@ namespace HotChocolate.Types
         public void EnumValueDeprecationReason()
         {
             // arrange
-            string source = @"
-                    enum Abc {
-                        A
-                        B @deprecated(reason: ""reason123"")
-                        C
-                    }";
+            var source = @"
+                enum Abc {
+                    A
+                    B @deprecated(reason: ""reason123"")
+                    C
+                }";
 
             // act
-            var schema = Schema.Create(source, c =>
-            {
-                c.RegisterQueryType<DummyQuery>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .Create();
 
             // assert
             EnumType type = schema.GetType<EnumType>("Abc");
@@ -250,19 +247,18 @@ namespace HotChocolate.Types
         public void CreateInputObjectType()
         {
             // arrange
-            string source = "input Simple { a: String b: [String] }";
+            var source = @"
+                input Simple {
+                    a: String @bind(to: ""Name"")
+                    b: [String] @bind(to: ""Friends"")
+                }";
 
             // act
-            var schema = Schema.Create(
-                source,
-                c =>
-                {
-                    c.BindType<SimpleInputObject>()
-                        .To("Simple")
-                        .Field(t => t.Name).Name("a")
-                        .Field(t => t.Friends).Name("b");
-                    c.RegisterQueryType<DummyQuery>();
-                });
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .BindRuntimeType<SimpleInputObject>("Simple")
+                .Create();
 
             // assert
             InputObjectType type = schema.GetType<InputObjectType>("Simple");
@@ -287,20 +283,26 @@ namespace HotChocolate.Types
         public void CreateDirectiveType()
         {
             // arrange
-            string schemaSdl = "directive @foo(a:String) on QUERY";
+            var source = "directive @foo(a:String) on QUERY";
 
             // act
-            var schema = Schema.Create(
-                schemaSdl,
-                c => c.RegisterQueryType<DummyQuery>());
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .Create();
 
             // assert
             DirectiveType type = schema.GetDirectiveType("foo");
+
             Assert.Equal("foo", type.Name);
             Assert.False(type.IsRepeatable);
-            Assert.Collection(type.Locations,
+
+            Assert.Collection(
+                type.Locations,
                 t => Assert.Equal(DirectiveLocation.Query, t));
-            Assert.Collection(type.Arguments,
+
+            Assert.Collection(
+                type.Arguments,
                 t =>
                 {
                     Assert.Equal("a", t.Name);
@@ -312,20 +314,23 @@ namespace HotChocolate.Types
         public void CreateRepeatableDirectiveType()
         {
             // arrange
-            string schemaSdl = "directive @foo(a:String) repeatable on QUERY";
+            var source = "directive @foo(a:String) repeatable on QUERY";
 
             // act
-            var schema = Schema.Create(
-                schemaSdl,
-                c => c.RegisterQueryType<DummyQuery>());
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(source)
+                .AddQueryType<DummyQuery>()
+                .Create();
 
             // assert
             DirectiveType type = schema.GetDirectiveType("foo");
 
             Assert.Equal("foo", type.Name);
             Assert.True(type.IsRepeatable);
+
             Assert.Collection(type.Locations,
                 t => Assert.Equal(DirectiveLocation.Query, t));
+
             Assert.Collection(type.Arguments,
                 t =>
                 {

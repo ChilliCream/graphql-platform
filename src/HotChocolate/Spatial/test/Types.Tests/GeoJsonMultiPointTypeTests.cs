@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Spatial
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Resolver(_geom))
+                        .Resolve(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Spatial
                         .Name("Query")
                         .Field("test")
                         .Type<GeoJsonMultiPointType>()
-                        .Resolver(_geom))
+                        .Resolve(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Spatial
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Resolver(_geom))
+                        .Resolve(_geom))
                 .Create();
 
             // act

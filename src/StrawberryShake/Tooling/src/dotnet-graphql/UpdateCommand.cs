@@ -5,37 +5,33 @@ namespace StrawberryShake.Tools
 {
     public static class UpdateCommand
     {
-        public static CommandLineApplication Create()
+        public static void Build(CommandLineApplication update)
         {
-            var init = new CommandLineApplication();
-            init.AddName("update");
-            init.AddHelp<UpdateHelpTextGenerator>();
+            update.Description = "Update local schema";
 
-            CommandOption pathArg = init.Option(
+            CommandOption pathArg = update.Option(
                 "-p|--Path",
                 "The directory where the client shall be located.",
                 CommandOptionType.SingleValue);
 
-            CommandOption urlArg = init.Option(
+            CommandOption urlArg = update.Option(
                 "-u|--uri",
                 "The URL to the GraphQL endpoint.",
                 CommandOptionType.SingleValue);
 
-            CommandOption jsonArg = init.Option(
+            CommandOption jsonArg = update.Option(
                 "-j|--json",
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
-            AuthArguments authArguments = init.AddAuthArguments();
+            AuthArguments authArguments = update.AddAuthArguments();
 
-            init.OnExecuteAsync(cancellationToken =>
+            update.OnExecuteAsync(cancellationToken =>
             {
                 var arguments = new UpdateCommandArguments(urlArg, pathArg, authArguments);
-                var handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
+                UpdateCommandHandler handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
-
-            return init;
         }
     }
 }

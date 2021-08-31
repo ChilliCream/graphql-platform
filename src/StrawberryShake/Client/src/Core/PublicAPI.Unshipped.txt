@@ -1,6 +1,21 @@
+*REMOVED*const StrawberryShake.Serialization.BuiltInScalarNames.Uuid = "Uuid" -> string!
+*REMOVED*override StrawberryShake.Serialization.UuidSerializer.Format(System.Guid runtimeValue) -> string!
+*REMOVED*override StrawberryShake.Serialization.UuidSerializer.Parse(string! serializedValue) -> System.Guid
+*REMOVED*StrawberryShake.Serialization.UuidSerializer
+*REMOVED*StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid") -> void
+*REMOVED*StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid", string! format = "D") -> void
+const StrawberryShake.Serialization.BuiltInScalarNames.UUID = "UUID" -> string!
+override StrawberryShake.Serialization.JsonSerializer.Format(System.Text.Json.JsonDocument! runtimeValue) -> System.Text.Json.JsonElement
+override StrawberryShake.Serialization.JsonSerializer.Parse(System.Text.Json.JsonElement serializedValue) -> System.Text.Json.JsonDocument!
+override StrawberryShake.Serialization.UUIDSerializer.Format(System.Guid runtimeValue) -> string!
+override StrawberryShake.Serialization.UUIDSerializer.Parse(string! serializedValue) -> System.Guid
 StrawberryShake.OperationRequest.AuthenticationHeaderValue.get -> System.Net.Http.Headers.AuthenticationHeaderValue?
 StrawberryShake.OperationRequest.ContentHeaders.get -> System.Collections.Generic.IDictionary<string!, string!>!
 StrawberryShake.OperationRequest.Deconstruct(out string? id, out string! name, out StrawberryShake.IDocument! document, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>! variables, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>? extensions, out System.Collections.Generic.IReadOnlyDictionary<string!, object?>? contextData, out StrawberryShake.RequestStrategy strategy, out System.Collections.Generic.IDictionary<string!, string!>! contentHeaders, out System.Collections.Generic.IDictionary<string!, string!>! requestHeaders, out System.Net.Http.Headers.AuthenticationHeaderValue? authenticationHeaderValue) -> void
 StrawberryShake.OperationRequest.OperationRequest(string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default, System.Collections.Generic.IDictionary<string!, string!>? contentHeaders = null, System.Collections.Generic.IDictionary<string!, string!>? requestHeaders = null, System.Net.Http.Headers.AuthenticationHeaderValue? authenticationHeaderValue = null) -> void
 StrawberryShake.OperationRequest.OperationRequest(string? id, string! name, StrawberryShake.IDocument! document, System.Collections.Generic.IReadOnlyDictionary<string!, object?>? variables = null, StrawberryShake.RequestStrategy strategy = StrawberryShake.RequestStrategy.Default, System.Collections.Generic.IDictionary<string!, string!>? contentHeaders = null, System.Collections.Generic.IDictionary<string!, string!>? requestHeaders = null, System.Net.Http.Headers.AuthenticationHeaderValue? authenticationHeaderValue = null) -> void
 StrawberryShake.OperationRequest.RequestHeaders.get -> System.Collections.Generic.IDictionary<string!, string!>!
+StrawberryShake.Serialization.JsonSerializer
+StrawberryShake.Serialization.JsonSerializer.JsonSerializer(string! typeName = "Any") -> void
+StrawberryShake.Serialization.UUIDSerializer
+StrawberryShake.Serialization.UUIDSerializer.UUIDSerializer(string! typeName = "UUID", string! format = "D") -> void

@@ -7,7 +7,7 @@ namespace HotChocolate
         internal NamePathSegment(Path? parent, NameString name)
         {
             Parent = parent;
-            Depth = parent is null ? 0 : parent.Depth + 1;
+            Depth = parent?.Depth + 1 ?? 0;
             Name = name;
         }
 

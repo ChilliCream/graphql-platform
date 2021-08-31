@@ -123,7 +123,7 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             return TestHelper.ExpectError(
-                "type Query { a: String } type Mutation { bar: String }",
+                @"type Query { a: String } type Mutation { bar: String }",
                 "mutation { foo }");
         }
 

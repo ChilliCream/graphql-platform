@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
 
             descriptor.Field("fieldB")
                 .Type<NonNullType<StringType>>()
-                .Resolver(() => "foo");
+                .Resolve(() => "foo");
         }
     }
 }

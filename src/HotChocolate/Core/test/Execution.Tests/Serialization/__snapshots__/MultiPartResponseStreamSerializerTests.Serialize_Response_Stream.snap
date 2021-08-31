@@ -12,9 +12,9 @@ Content-Length: 123
 
 ---
 Content-Type: application/json; charset=utf-8
-Content-Length: 82
+Content-Length: 85
 
-{"path":["hero","friends","nodes",2],"data":{"name":"Leia Organa"},"hasNext":true}
+{"path":["hero","friends","nodes",0],"data":{"name":"Luke Skywalker"},"hasNext":true}
 
 ---
 Content-Type: application/json; charset=utf-8
@@ -24,8 +24,8 @@ Content-Length: 79
 
 ---
 Content-Type: application/json; charset=utf-8
-Content-Length: 86
+Content-Length: 83
 
-{"path":["hero","friends","nodes",0],"data":{"name":"Luke Skywalker"},"hasNext":false}
+{"path":["hero","friends","nodes",2],"data":{"name":"Leia Organa"},"hasNext":false}
 
 -----

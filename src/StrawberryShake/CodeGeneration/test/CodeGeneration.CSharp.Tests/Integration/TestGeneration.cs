@@ -81,6 +81,18 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 }");
 
         [Fact]
+        public void AnyScalarDefaultSerialization() =>
+            AssertResult(
+                CreateIntegrationTest(),
+                skipWarnings: true,
+                @"query GetJson {
+                    json
+                }",
+                @"type Query {
+                    json: Any!
+                }");
+
+        [Fact]
         public void StarWarsTypeNameOnInterfaces() =>
             AssertStarWarsResult(
                 CreateIntegrationTest(),
@@ -127,7 +139,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 {
                     new TransportProfile("Default", TransportType.InMemory)
                 }),
-                true,
+                skipWarnings: true,
                 @"
                 query GetFoo {
                     foo {

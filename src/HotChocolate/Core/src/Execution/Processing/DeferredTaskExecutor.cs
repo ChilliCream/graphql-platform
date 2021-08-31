@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Mime;
 using System.Threading;
+using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -20,8 +22,9 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 IOperationContext context = _operationContextOwner.OperationContext;
+                QueryPlan rootQueryPlan = context.QueryPlan;
 
-                while (context.Execution.DeferredTaskBacklog.TryTake(
+                while (context.Scheduler.DeferredWork.TryTake(
                     out IDeferredExecutionTask? deferredTask))
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -30,7 +33,8 @@ namespace HotChocolate.Execution.Processing
                     }
 
                     context.Result.Clear();
-                    context.Execution.Reset();
+                    context.Scheduler.Reset();
+                    context.QueryPlan = rootQueryPlan;
 
                     yield return await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
                 }

@@ -14,7 +14,10 @@ namespace HotChocolate.Types.Relay
     {
         public IDAttribute(string? typeName = null)
         {
-            TypeName = typeName;
+            if (typeName is not null)
+            {
+                TypeName = typeName;
+            }
         }
 
         public NameString TypeName { get; }

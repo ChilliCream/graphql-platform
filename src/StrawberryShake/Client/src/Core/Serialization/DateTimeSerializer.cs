@@ -4,6 +4,9 @@ using System.Globalization;
 
 namespace StrawberryShake.Serialization
 {
+    /// <summary>
+    /// This serializer handles date-time scalars.
+    /// </summary>
     public class DateTimeSerializer : ScalarSerializer<string, DateTimeOffset>
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";

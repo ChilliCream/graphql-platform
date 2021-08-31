@@ -78,7 +78,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
                 }
             }
 
-            AddDefaultScalarInfos(leafTypes);
+            AddDefaultScalarInfos(builder, leafTypes);
 
             return builder
                 .SetSchema(d => d.Extend().OnBeforeCreate(
@@ -174,7 +174,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
 
                 if (name is { Value: StringValueNode stringValue })
                 {
-                    BooleanValueNode? valueTypeValue = valueType?.Value as BooleanValueNode;
+                    var valueTypeValue = valueType?.Value as BooleanValueNode;
                     return new(stringValue.Value, valueTypeValue?.Value);
                 }
             }
@@ -215,6 +215,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
         }
 
         private static void AddDefaultScalarInfos(
+            ISchemaBuilder schemaBuilder,
             Dictionary<NameString, LeafTypeInfo> leafTypes)
         {
             TryAddLeafType(leafTypes, ScalarNames.String, TypeNames.String);
@@ -226,14 +227,35 @@ namespace StrawberryShake.CodeGeneration.Utilities
             TryAddLeafType(leafTypes, ScalarNames.Long, TypeNames.Int64, TypeNames.Int64);
             TryAddLeafType(leafTypes, ScalarNames.Float, TypeNames.Double, TypeNames.Double);
             TryAddLeafType(leafTypes, ScalarNames.Decimal, TypeNames.Decimal, TypeNames.Decimal);
-            TryAddLeafType(leafTypes, ScalarNames.Url, TypeNames.Uri);
-            TryAddLeafType(leafTypes, ScalarNames.Uuid, TypeNames.Guid, TypeNames.String);
+            TryAddLeafType(leafTypes, ScalarNames.URL, TypeNames.Uri);
+            TryAddLeafType(leafTypes, "URI", TypeNames.Uri);
+            TryAddLeafType(leafTypes, "Url", TypeNames.Uri);
+            TryAddLeafType(leafTypes, "Uri", TypeNames.Uri);
+            TryAddLeafType(leafTypes, ScalarNames.UUID, TypeNames.Guid, TypeNames.String);
             TryAddLeafType(leafTypes, "Uuid", TypeNames.Guid, TypeNames.String);
             TryAddLeafType(leafTypes, "Guid", TypeNames.Guid, TypeNames.String);
             TryAddLeafType(leafTypes, ScalarNames.DateTime, TypeNames.DateTimeOffset);
             TryAddLeafType(leafTypes, ScalarNames.Date, TypeNames.DateTime);
             TryAddLeafType(leafTypes, ScalarNames.TimeSpan, TypeNames.TimeSpan);
-            TryAddLeafType(leafTypes, ScalarNames.ByteArray, TypeNames.ByteArray, TypeNames.ByteArray);
+            TryAddLeafType(
+                leafTypes,
+                typeName: ScalarNames.ByteArray,
+                runtimeType: TypeNames.ByteArray,
+                serializationType: TypeNames.ByteArray);
+            TryAddLeafType(
+                leafTypes,
+                typeName: ScalarNames.Any,
+                runtimeType: TypeNames.JsonDocument,
+                serializationType: TypeNames.JsonElement);
+
+            // register aliases
+            schemaBuilder.AddType(new UrlType());
+            schemaBuilder.AddType(new UrlType("URI"));
+            schemaBuilder.AddType(new UrlType("Url"));
+            schemaBuilder.AddType(new UrlType("Uri"));
+            schemaBuilder.AddType(new UuidType());
+            schemaBuilder.AddType(new UuidType("Uuid"));
+            schemaBuilder.AddType(new UuidType("Guid"));
         }
 
         private static bool TryGetKeys(

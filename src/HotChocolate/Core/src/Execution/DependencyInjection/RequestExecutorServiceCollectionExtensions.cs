@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GreenDonut;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -27,16 +29,28 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddOptions();
 
+            services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+            services.TryAddSingleton<ObjectPool<StringBuilder>>(sp =>
+            {
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new StringBuilderPooledObjectPolicy();
+                return provider.Create(policy);
+            });
+
             // core services
             services
                 .TryAddRequestExecutorFactoryOptionsMonitor()
                 .TryAddTypeConverter()
+                .TryAddInputFormatter()
+                .TryAddInputParser()
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()
                 .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
-                .TryAddIdSerializer();
+                .TryAddIdSerializer()
+                .TryAddDataLoaderParameterExpressionBuilder();
 
             // pools
             services
@@ -141,7 +155,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.RemoveAll<IDocumentCache>();
             services.AddSingleton<IDocumentCache>(
-                sp => new DefaultDocumentCache(capacity));
+                _ => new DefaultDocumentCache(capacity));
             return services;
         }
 
@@ -150,8 +164,16 @@ namespace Microsoft.Extensions.DependencyInjection
             int capacity = 100)
         {
             services.RemoveAll<IPreparedOperationCache>();
+            services.RemoveAll<IQueryPlanCache>();
+            services.RemoveAll<IComplexityAnalyzerCache>();
+
             services.AddSingleton<IPreparedOperationCache>(
                 sp => new DefaultPreparedOperationCache(capacity));
+            services.AddSingleton<IQueryPlanCache>(
+                sp => new DefaultQueryPlanCache(capacity));
+            services.AddSingleton<IComplexityAnalyzerCache>(
+                _ => new DefaultComplexityAnalyzerCache(capacity));
+
             return services;
         }
 

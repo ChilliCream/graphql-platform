@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         public void DocumentIsNull()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            ISchema schema = ValidationUtils.CreateSchema();
             IDocumentValidator queryValidator = CreateValidator();
 
             // act
@@ -30,7 +30,7 @@ namespace HotChocolate.Validation
         public void SchemaIsNull()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            ISchema schema = ValidationUtils.CreateSchema();
             IDocumentValidator queryValidator = CreateValidator();
 
             // act

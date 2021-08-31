@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
             ITypeSystemMember type,
             TypeContext? context = null,
             string? scope = null)
-            : base(context ?? InferTypeContext(type), scope)
+            : base(TypeReferenceKind.SchemaType, context ?? InferTypeContext(type), scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }

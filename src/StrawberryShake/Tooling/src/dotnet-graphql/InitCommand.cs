@@ -5,11 +5,9 @@ namespace StrawberryShake.Tools
 {
     public static class InitCommand
     {
-        public static CommandLineApplication Create()
+        public static void Build(CommandLineApplication init)
         {
-            var init = new CommandLineApplication();
-            init.AddName("init");
-            init.AddHelp<InitHelpTextGenerator>();
+            init.Description = "Initialize project and download schema";
 
             CommandArgument uriArg = init.Argument(
                 "uri",
@@ -44,8 +42,6 @@ namespace StrawberryShake.Tools
                     CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });
-
-            return init;
         }
     }
 }

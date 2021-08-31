@@ -18,9 +18,7 @@ namespace HotChocolate.Utilities
         private readonly IServiceProvider _first;
         private readonly IServiceProvider _second;
 
-        public CombinedServiceProvider(
-            IServiceProvider first,
-            IServiceProvider second)
+        public CombinedServiceProvider(IServiceProvider first, IServiceProvider second)
         {
             _first = first ?? throw new ArgumentNullException(nameof(first));
             _second = second ?? throw new ArgumentNullException(nameof(second));
@@ -39,8 +37,8 @@ namespace HotChocolate.Utilities
                 _iEnumerableTypeInfo.IsAssignableFrom(serviceTypeInfo) &&
                 _genericIEnumerableType == serviceTypeInfo.GetGenericTypeDefinition())
             {
-                object? firstResult = _first.GetService(serviceType);
-                object? secondResult = _second.GetService(serviceType);
+                var firstResult = _first.GetService(serviceType);
+                var secondResult = _second.GetService(serviceType);
                 return Concat(serviceType, firstResult, secondResult);
             }
 

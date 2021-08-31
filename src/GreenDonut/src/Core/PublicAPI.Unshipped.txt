@@ -1,0 +1,16 @@
+abstract GreenDonut.BatchDataLoader<TKey, TValue>.LoadBatchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>!>!
+abstract GreenDonut.CacheDataLoader<TKey, TValue>.LoadSingleAsync(TKey key, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TValue>!
+abstract GreenDonut.GroupedDataLoader<TKey, TValue>.LoadGroupedBatchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Linq.ILookup<TKey, TValue>!>!
+GreenDonut.AutoBatchScheduler
+GreenDonut.AutoBatchScheduler.AutoBatchScheduler() -> void
+GreenDonut.AutoBatchScheduler.Schedule(System.Func<System.Threading.Tasks.ValueTask>! dispatch) -> void
+GreenDonut.BatchDataLoader<TKey, TValue>
+GreenDonut.BatchDataLoader<TKey, TValue>.BatchDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
+GreenDonut.CacheDataLoader<TKey, TValue>
+GreenDonut.CacheDataLoader<TKey, TValue>.CacheDataLoader(int cacheSize) -> void
+GreenDonut.GroupedDataLoader<TKey, TValue>
+GreenDonut.GroupedDataLoader<TKey, TValue>.GroupedDataLoader(GreenDonut.IBatchScheduler! batchScheduler, GreenDonut.DataLoaderOptions<TKey>? options = null) -> void
+override sealed GreenDonut.BatchDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue>>!>
+override sealed GreenDonut.CacheDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue>>!>
+override sealed GreenDonut.GroupedDataLoader<TKey, TValue>.FetchAsync(System.Collections.Generic.IReadOnlyList<TKey>! keys, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<GreenDonut.Result<TValue[]!>>!>
+static GreenDonut.AutoBatchScheduler.Default.get -> GreenDonut.AutoBatchScheduler!

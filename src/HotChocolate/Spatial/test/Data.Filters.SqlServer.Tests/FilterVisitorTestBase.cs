@@ -58,7 +58,7 @@ namespace HotChocolate.Data.Filters.Spatial
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolve(resolver)
                         .Use(
                             next => async context =>
                             {

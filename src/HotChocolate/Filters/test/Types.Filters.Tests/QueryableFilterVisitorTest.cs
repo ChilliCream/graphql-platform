@@ -21,10 +21,11 @@ namespace HotChocolate.Types.Filters
                 new QueryableFilterVisitorContext(
                     fooType,
                     typeof(Foo),
-                    null,
+                    null!,
                     ExpressionFieldHandlers.All,
                     DefaultTypeConverter.Default,
-                    true);
+                    true,
+                    new(new DefaultTypeConverter()));
             };
 
             // act
@@ -45,9 +46,10 @@ namespace HotChocolate.Types.Filters
                     fooType,
                     typeof(Foo),
                     ExpressionOperationHandlers.All,
-                    null,
+                    null!,
                     DefaultTypeConverter.Default,
-                    true);
+                    true,
+                    new(new DefaultTypeConverter()));
             };
 
             // act
@@ -67,8 +69,9 @@ namespace HotChocolate.Types.Filters
                 new QueryableFilterVisitorContext(
                     fooType,
                     typeof(Foo),
-                    null,
-                    true);
+                    null!,
+                    true,
+                    new(new DefaultTypeConverter()));
             };
 
             // act
@@ -87,9 +90,10 @@ namespace HotChocolate.Types.Filters
             {
                 new QueryableFilterVisitorContext(
                     fooType,
-                    null,
+                    null!,
                     DefaultTypeConverter.Default,
-                    true);
+                    true,
+                    new(new DefaultTypeConverter()));
             };
 
             // act
@@ -105,10 +109,11 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                    null,
+                    null!,
                     typeof(Foo),
                     DefaultTypeConverter.Default,
-                    true);
+                    true,
+                    new(new DefaultTypeConverter()));
             };
 
             // act

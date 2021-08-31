@@ -1,25 +1,20 @@
 using System.Collections.Generic;
-using System.Globalization;
-using HotChocolate.Language.Properties;
+using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Type Definition section.
     public ref partial struct Utf8GraphQLParser
     {
-        private static readonly List<EnumValueDefinitionNode> emptyEnumValues =
-            new List<EnumValueDefinitionNode>();
-        private static readonly List<InputValueDefinitionNode> _emptyInputVals =
-            new List<InputValueDefinitionNode>();
-        private static List<FieldDefinitionNode> _emptyFieldDefinitions =
-            new List<FieldDefinitionNode>();
+        private static readonly List<EnumValueDefinitionNode> emptyEnumValues = new();
+        private static readonly List<InputValueDefinitionNode> _emptyInputValues = new();
+        private static readonly List<FieldDefinitionNode> _emptyFieldDefinitions = new();
 
         /// <summary>
         /// Parses a description.
         /// <see cref="StringValueNode" />:
         /// StringValue
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private StringValueNode? ParseDescription()
         {
             if (TokenHelper.IsDescription(in _reader))
@@ -34,7 +29,6 @@ namespace HotChocolate.Language
         /// <see cref="SchemaDefinitionNode" />:
         /// schema Directives[isConstant:true]? { OperationTypeDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private SchemaDefinitionNode ParseSchemaDefinition()
         {
             TokenInfo start = Start();
@@ -47,11 +41,9 @@ namespace HotChocolate.Language
             if (_reader.Kind != TokenKind.LeftBrace)
             {
                 throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
+                    ParseMany_InvalidOpenToken,
+                    TokenKind.LeftBrace,
+                    TokenPrinter.Print(in _reader));
             }
 
             var operationTypeDefinitions =
@@ -84,7 +76,6 @@ namespace HotChocolate.Language
         /// <see cref="OperationTypeDefinitionNode" />:
         /// OperationType : NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private OperationTypeDefinitionNode ParseOperationTypeDefinition()
         {
             TokenInfo start = Start();
@@ -109,7 +100,6 @@ namespace HotChocolate.Language
         /// Description?
         /// scalar Name Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
         {
             TokenInfo start = Start();
@@ -137,7 +127,6 @@ namespace HotChocolate.Language
         /// Description?
         /// type Name ImplementsInterfaces? Directives[isConstant=true]? FieldsDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
         {
             TokenInfo start = Start();
@@ -168,14 +157,13 @@ namespace HotChocolate.Language
         /// <see cref="List{NamedTypeNode}" />:
         /// implements &amp;? NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private List<NamedTypeNode> ParseImplementsInterfaces()
         {
             var list = new List<NamedTypeNode>();
 
             if (SkipImplementsKeyword())
             {
-                // skip optional leading amperdand.
+                // skip optional leading ampersand.
                 SkipAmpersand();
 
                 do
@@ -193,7 +181,6 @@ namespace HotChocolate.Language
         /// <see cref="IReadOnlyList{FieldDefinitionNode}" />:
         /// { FieldDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private List<FieldDefinitionNode> ParseFieldsDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
@@ -225,15 +212,13 @@ namespace HotChocolate.Language
         /// Description?
         /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private FieldDefinitionNode ParseFieldDefinition()
         {
             TokenInfo start = Start();
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions();
+            List<InputValueDefinitionNode> arguments = ParseArgumentDefinitions();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
             List<DirectiveNode> directives = ParseDirectives(true);
@@ -256,7 +241,6 @@ namespace HotChocolate.Language
         /// <see cref="List{InputValueDefinitionNode}" />:
         /// ( InputValueDefinition+ )
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private List<InputValueDefinitionNode> ParseArgumentDefinitions()
         {
             if (_reader.Kind == TokenKind.LeftParenthesis)
@@ -277,7 +261,7 @@ namespace HotChocolate.Language
                 return list;
             }
 
-            return _emptyInputVals;
+            return _emptyInputValues;
         }
 
         /// <summary>
@@ -285,7 +269,6 @@ namespace HotChocolate.Language
         /// <see cref="InputValueDefinitionNode" />:
         /// Description? Name : Type DefaultValue? Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private InputValueDefinitionNode ParseInputValueDefinition()
         {
             TokenInfo start = Start();
@@ -315,11 +298,10 @@ namespace HotChocolate.Language
 
         /// <summary>
         /// Parses an interface type definition.
-        /// <see cref="InterfaceTypeDefinition" />:
+        /// <see cref="InterfaceTypeDefinitionNode" />:
         /// Description? interface Name Directives[isConstant=true]?
         /// FieldsDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
         {
             TokenInfo start = Start();
@@ -327,12 +309,9 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<NamedTypeNode> interfaces =
-                ParseImplementsInterfaces();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition();
+            List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
             Location? location = CreateLocation(in start);
 
@@ -353,7 +332,6 @@ namespace HotChocolate.Language
         /// Description? union Name Directives[isConstant=true]?
         /// UnionMemberTypes?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private UnionTypeDefinitionNode ParseUnionTypeDefinition()
         {
             TokenInfo start = Start();
@@ -361,8 +339,7 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
             List<NamedTypeNode> types = ParseUnionMemberTypes();
 
             Location? location = CreateLocation(in start);
@@ -382,7 +359,6 @@ namespace HotChocolate.Language
         /// <see cref="List{NamedTypeNode}" />:
         /// = `|`? NamedType
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private List<NamedTypeNode> ParseUnionMemberTypes()
         {
             var list = new List<NamedTypeNode>();
@@ -407,7 +383,6 @@ namespace HotChocolate.Language
         /// <see cref="EnumTypeDefinitionNode" />:
         /// Description? enum Name Directives[Const]? EnumValuesDefinition?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private EnumTypeDefinitionNode ParseEnumTypeDefinition()
         {
             TokenInfo start = Start();
@@ -435,7 +410,6 @@ namespace HotChocolate.Language
         /// <see cref="List{EnumValueDefinitionNode}" />:
         /// { EnumValueDefinition+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private List<EnumValueDefinitionNode> ParseEnumValuesDefinition()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
@@ -466,15 +440,13 @@ namespace HotChocolate.Language
         /// <see cref="EnumValueDefinitionNode" />:
         /// Description? EnumValue Directives[isConstant=true]?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         private EnumValueDefinitionNode ParseEnumValueDefinition()
         {
             TokenInfo start = Start();
 
             StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
             Location? location = CreateLocation(in start);
 
@@ -494,10 +466,8 @@ namespace HotChocolate.Language
             MoveNext();
 
             NameNode name = ParseName();
-            List<DirectiveNode> directives =
-                ParseDirectives(true);
-            List<InputValueDefinitionNode> fields =
-                ParseInputFieldsDefinition();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<InputValueDefinitionNode> fields = ParseInputFieldsDefinition();
 
             Location? location = CreateLocation(in start);
 
@@ -531,7 +501,7 @@ namespace HotChocolate.Language
                 return list;
             }
 
-            return _emptyInputVals;
+            return _emptyInputValues;
         }
     }
 }

@@ -13,6 +13,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         internal const byte Delimiter = 0x07;
         private readonly CancellationTokenSource _session;
+        private readonly ISocketSessionInterceptor _sessionInterceptor;
         private readonly CancellationToken _sessionToken;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
@@ -24,6 +25,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public SubscriptionSession(
             CancellationTokenSource session,
+            ISocketSessionInterceptor sessionInterceptor,
             ISocketConnection connection,
             IResponseStream responseStream,
             ISubscription subscription,
@@ -32,6 +34,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             _session = session ??
                 throw new ArgumentNullException(nameof(session));
+            _sessionInterceptor = sessionInterceptor ??
+                throw new ArgumentNullException(nameof(sessionInterceptor));
             _connection = connection ??
                 throw new ArgumentNullException(nameof(connection));
             _responseStream = responseStream ??
@@ -103,6 +107,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                             await _connection.SendAsync(
                                 new DataCompleteMessage(Id),
                                 cancellationToken);
+                            await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
                         }
                     }
                     catch

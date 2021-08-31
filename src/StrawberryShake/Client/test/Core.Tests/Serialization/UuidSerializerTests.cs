@@ -16,7 +16,7 @@ namespace Core.Tests.Serialization
         public void Parse_Different_Formats(string format)
         {
             // arrange
-            var serializer = new UuidSerializer();
+            var serializer = new UUIDSerializer();
             var guid = Guid.NewGuid();
 
             // act
@@ -30,7 +30,7 @@ namespace Core.Tests.Serialization
         public void Parse_Exception()
         {
             // arrange
-            var serializer = new UuidSerializer();
+            var serializer = new UUIDSerializer();
 
             // assert
             Assert.Throws<GraphQLClientException>(() => serializer.Parse(string.Empty));
@@ -45,7 +45,7 @@ namespace Core.Tests.Serialization
         public void Format(string format)
         {
             // arrange
-            var serializer = new UuidSerializer(format: format);
+            var serializer = new UUIDSerializer(format: format);
             var guid = Guid.NewGuid();
 
             // act

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using Xunit;
 

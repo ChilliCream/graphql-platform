@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     public interface IHasSyntaxNode
     {
         /// <summary>
-        /// The associated syntax node from the GraphQL SDL.
+        /// Gets the associated syntax node from the GraphQL SDL.
         /// </summary>
         ISyntaxNode? SyntaxNode { get; }
     }

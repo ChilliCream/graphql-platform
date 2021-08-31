@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,116 +7,170 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Fetching
 {
+    /// <summary>
+    /// The execution engine batch dispatcher.
+    /// </summary>
     public class BatchScheduler
         : IBatchScheduler
         , IBatchDispatcher
     {
-        private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly object _sync = new();
+        private readonly List<Func<ValueTask>> _tasks = new();
+        private readonly List<Func<ValueTask>> _taskQueue = new();
+        private bool _dispatchOnSchedule;
 
-        public bool HasTasks => _queue.Count > 0;
-
+        /// <inheritdoc />
         public event EventHandler? TaskEnqueued;
 
-        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
-        {
-            lock (_queue)
-            {
-                if (_queue.Count > 0)
-                {
-                    var tasks = new List<Func<ValueTask>>();
+        /// <inheritdoc />
+        public bool HasTasks => _tasks.Count > 0;
 
-                    while (_queue.TryDequeue(out Func<ValueTask>? dispatch))
+        /// <inheritdoc />
+        public bool DispatchOnSchedule
+        {
+            get => _dispatchOnSchedule;
+            set
+            {
+                lock (_sync)
+                {
+                    _dispatchOnSchedule = value;
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public Task<BatchDispatcherResult> DispatchAsync(
+            CancellationToken cancellationToken = default)
+            => DispatchAsync(_tasks, _taskQueue, cancellationToken);
+
+        private async Task<BatchDispatcherResult> DispatchAsync(
+            List<Func<ValueTask>> tasks,
+            List<Func<ValueTask>> taskQueue,
+            CancellationToken cancellationToken)
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+
+            try
+            {
+                EnqueueTasksForProcessing();
+
+                if (taskQueue.Count == 0)
+                {
+                    return BatchDispatcherResult.Success;
+                }
+
+                var processing = new Task<Exception?>[taskQueue.Count];
+
+                for (var i = 0; i < taskQueue.Count; i++)
+                {
+                    processing[i] = ExecuteBatchAsync(taskQueue[i]);
+                }
+
+                await Task.WhenAll(processing);
+
+                List<Exception>? errors = null;
+
+                foreach (var task in processing)
+                {
+                    if (task.Exception is not null)
                     {
-                        tasks.Add(dispatch);
+                        (errors ??= new()).Add(task.Exception);
+                    }
+                }
+
+                return errors is null
+                    ? BatchDispatcherResult.Success
+                    : new BatchDispatcherResult(errors);
+            }
+            finally
+            {
+                _taskQueue.Clear();
+                _semaphore.Release();
+            }
+
+            async Task<Exception?> ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
+            {
+                try
+                {
+                    await executeBatchAsync.Invoke().ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    // If we run into this exception the request was aborted.
+                    // In this case we do nothing and just return.
+                }
+                catch (Exception ex)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        // if cancellation is request we do no longer report errors to the
+                        // operation context.
+                        return null;
                     }
 
-                    enqueue(new BatchExecutionTaskDefinition(tasks));
+                    return ex;
+                }
+
+                return null;
+            }
+
+            void EnqueueTasksForProcessing()
+            {
+                lock (_sync)
+                {
+                    if (tasks.Count > 0)
+                    {
+                        taskQueue.AddRange(tasks);
+                        tasks.Clear();
+                    }
                 }
             }
         }
 
         public void Schedule(Func<ValueTask> dispatch)
         {
-            _queue.Enqueue(dispatch);
-            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            bool dispatchOnSchedule;
+
+            lock (_sync)
+            {
+                if (_dispatchOnSchedule)
+                {
+                    dispatchOnSchedule = true;
+                }
+                else
+                {
+                    dispatchOnSchedule = false;
+                    _tasks.Add(dispatch);
+                }
+            }
+
+            if (dispatchOnSchedule)
+            {
+                BeginDispatchOnEnqueue(dispatch);
+            }
+            else
+            {
+                TaskEnqueued?.Invoke(this, EventArgs.Empty);
+            }
         }
 
-        private class BatchExecutionTaskDefinition
-            : IExecutionTaskDefinition
+#pragma warning disable 4014
+        private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch) =>
+            DispatchOnEnqueue(dispatch);
+#pragma warning restore 4014
+
+        private async Task DispatchOnEnqueue(Func<ValueTask> dispatch)
         {
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
+            await _semaphore.WaitAsync().ConfigureAwait(false);
 
-            public BatchExecutionTaskDefinition(IReadOnlyList<Func<ValueTask>> tasks)
+            try
             {
-                _tasks = tasks;
+                await dispatch().ConfigureAwait(false);
             }
-
-            public IExecutionTask Create(IExecutionTaskContext context)
+            finally
             {
-                return new BatchExecutionTask(context, _tasks);
-            }
-        }
-
-        private class BatchExecutionTask
-            : IExecutionTask
-        {
-            private readonly IExecutionTaskContext _context;
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-            private ValueTask _task;
-
-            public BatchExecutionTask(
-                IExecutionTaskContext context,
-                IReadOnlyList<Func<ValueTask>> tasks)
-            {
-                _context = context;
-                _tasks = tasks;
-            }
-
-            public bool IsCompleted => _task.IsCompleted;
-
-            public bool IsCanceled { get; private set; }
-
-            public void BeginExecute(CancellationToken cancellationToken)
-            {
-                _context.Started();
-                _task = ExecuteAsync(cancellationToken);
-            }
-
-            private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    using (_context.Track(this))
-                    {
-                        foreach (Func<ValueTask> task in _tasks)
-                        {
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                return;
-                            }
-
-                            try
-                            {
-                                await task.Invoke().ConfigureAwait(false);
-                            }
-                            catch (Exception ex)
-                            {
-                                _context.ReportError(this, ex);
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    IsCanceled = cancellationToken.IsCancellationRequested;
-                    try
-                    {
-                        _context.Completed();
-                    }
-                    catch (ObjectDisposedException)
-                    {
-                    }
-                }
+                _semaphore.Release();
             }
         }
     }

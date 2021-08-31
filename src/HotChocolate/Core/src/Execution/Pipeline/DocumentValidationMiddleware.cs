@@ -34,30 +34,31 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                if (context.ValidationResult is null)
+                using (_diagnosticEvents.ValidateDocument(context))
                 {
-                    using (_diagnosticEvents.ValidateDocument(context))
-                    {
-                        context.ValidationResult = _documentValidator.Validate(
-                            context.Schema,
-                            context.Document,
-                            context.ContextData);
-                    }
+                    context.ValidationResult = _documentValidator.Validate(
+                        context.Schema,
+                        context.Document,
+                        context.ContextData,
+                        context.ValidationResult is not null);
                 }
 
-                if (context.ValidationResult is { HasErrors: true } validationResult)
+                if (context.IsValidDocument)
                 {
+                    await _next(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    DocumentValidatorResult validationResult = context.ValidationResult;
+
                     context.Result = QueryResultBuilder.CreateError(
                         validationResult.Errors,
                         new Dictionary<string, object?>
                         {
                             { WellKnownContextData.ValidationErrors, true }
                         });
+
                     _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
-                }
-                else
-                {
-                    await _next(context).ConfigureAwait(false);
                 }
             }
         }

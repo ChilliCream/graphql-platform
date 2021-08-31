@@ -48,6 +48,28 @@ namespace StrawberryShake.Json
         }
 
         [Fact]
+        public void Serialize_Request_With_Json()
+        {
+            // arrange
+            var json = JsonDocument.Parse(@"{ ""abc"": { ""def"": ""def"" } }");
+
+            // act
+            using var stream = new MemoryStream();
+            using var jsonWriter = new Utf8JsonWriter(stream, new() { Indented = true });
+            var serializer = new JsonOperationRequestSerializer();
+            serializer.Serialize(
+                new OperationRequest(
+                    "abc",
+                    new Document(),
+                    new Dictionary<string, object?> { { "abc", json.RootElement } }),
+                jsonWriter);
+            jsonWriter.Flush();
+
+            // assert
+            Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
+        }
+
+        [Fact]
         public void Serialize_Request_With_Extensions()
         {
             // arrange

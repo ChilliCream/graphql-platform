@@ -251,10 +251,8 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (node.TypeCondition is not null && 
-                _schema.TryGetType(
-                    node.TypeCondition.Name.Value,
-                    out INamedType? type))
+            if (node.TypeCondition is not null &&
+                _schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out var type))
             {
                 _type.Push(type);
                 _action.Push(VisitorAction.Continue);
@@ -284,9 +282,7 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
-                out INamedType type))
+            if (_schema.TryGetType<INamedType>(node.TypeCondition.Name.Value, out var type))
             {
                 _touchedFragments.Add(node.Name.Value);
                 _type.Push(type);

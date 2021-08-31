@@ -1,8 +1,11 @@
 using System;
 using System.Security.Cryptography;
+using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -14,6 +17,21 @@ namespace HotChocolate.Execution.Processing
             {
                 AssertInitialized();
                 return _operation;
+            }
+        }
+
+        public QueryPlan QueryPlan
+        {
+            get
+            {
+                AssertInitialized();
+                return _queryPlan;
+            }
+            set
+            {
+                AssertInitialized();
+                _queryPlan = value;
+                _workScheduler.ResetStateMachine();
             }
         }
 
@@ -53,12 +71,21 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public IExecutionContext Execution
+        public IWorkScheduler Scheduler
         {
             get
             {
                 AssertInitialized();
-                return _executionContext;
+                return _workScheduler;
+            }
+        }
+
+        public ObjectPool<ResolverTask> ResolverTasks
+        {
+            get
+            {
+                AssertInitialized();
+                return _resolverTaskPool;
             }
         }
 
@@ -85,7 +112,7 @@ namespace HotChocolate.Execution.Processing
         {
             AssertInitialized();
 
-            object? query = _resolveQueryRootValue();
+            var query = _resolveQueryRootValue();
 
             if (query is null &&
                 typeof(T) == typeof(object) &&
