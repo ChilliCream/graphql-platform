@@ -261,7 +261,7 @@ namespace HotChocolate.Types
         {
             foreach (ITypeReference typeReference in definition.Types)
             {
-                if (context.TryGetType(typeReference, out ObjectType ot))
+                if (context.TryGetType(typeReference, out ObjectType? ot))
                 {
                     typeSet.Add(ot);
                 }

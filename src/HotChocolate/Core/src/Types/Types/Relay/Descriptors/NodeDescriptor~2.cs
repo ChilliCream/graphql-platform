@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            MemberInfo member = method.TryExtractMember();
+            MemberInfo? member = method.TryExtractMember();
 
             if (member is MethodInfo m)
             {
