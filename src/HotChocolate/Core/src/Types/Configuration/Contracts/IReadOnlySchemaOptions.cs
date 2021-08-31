@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration
         bool UseXmlDocumentation { get; }
 
         /// <summary>
-        /// A delegate which defines the name of the XML documentatation file to be read.
+        /// A delegate which resolves the name of the XML documentatation file to be read.
         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
         /// </summary>
         Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
