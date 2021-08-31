@@ -23,7 +23,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
         private const string _serializerResolver = "serializerResolver";
         private const string _request = "request";
         private const string _value = "value";
-        private const string _headers = "headers";
+        private const string _contentHeaders = "contentHeaders";
+        private const string _requestHeaders = "requestHeaders";
+        private const string _authenticationHeaderValue = "authenticationHeaderValue";
         private const string _cancellationToken = "cancellationToken";
 
         protected override void Generate(
@@ -191,7 +193,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             }
 
             if (withHeader)
-                createRequestMethodCall.AddArgument(_headers);
+            {
+                createRequestMethodCall.AddArgument(_contentHeaders);
+                createRequestMethodCall.AddArgument(_requestHeaders);
+                createRequestMethodCall.AddArgument(_authenticationHeaderValue);
+            }
 
             return createRequestMethodCall;
         }
@@ -262,8 +268,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             if (withHeader)
             {
                 executeMethod
-                    .AddParameter(_headers)
-                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String));
+                    .AddParameter(_contentHeaders)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                    .SetDefault("null");
+
+                executeMethod
+                    .AddParameter(_requestHeaders)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                    .SetDefault("null");
+
+                executeMethod
+                    .AddParameter(_authenticationHeaderValue)
+                    .SetType(TypeNames.AuthenticationHeaderValue.MakeNullable())
+                    .SetDefault("null");
             }
 
             executeMethod
@@ -306,10 +323,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                             .WithGeneric(TypeNames.String, TypeNames.Object.MakeNullable())
                             .MakeNullable()))
                 .AddParameter(
-                    _headers,
+                    _contentHeaders,
                     x => x.SetType(
                         TypeNames.IDictionary
                             .WithGeneric(TypeNames.String, TypeNames.String)
+                            .MakeNullable()))
+                .AddParameter(
+                    _requestHeaders,
+                    x => x.SetType(
+                        TypeNames.IDictionary
+                            .WithGeneric(TypeNames.String, TypeNames.String)
+                            .MakeNullable()))
+                .AddParameter(
+                    _authenticationHeaderValue,
+                    x => x.SetType(
+                        TypeNames.AuthenticationHeaderValue
                             .MakeNullable()));
 
             MethodCallBuilder newOperationRequest = MethodCallBuilder
@@ -321,7 +349,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 .AddArgument("name: " + descriptor.Name.AsStringToken())
                 .AddArgument($"document: {typeName}.Instance")
                 .AddArgument($"strategy: {TypeNames.RequestStrategy}.{descriptor.Strategy}")
-                .AddArgument($"headers: {_headers}");
+                .AddArgument($"contentHeaders: {_contentHeaders}")
+                .AddArgument($"requestHeaders: {_requestHeaders}")
+                .AddArgument($"authenticationHeaderValue: {_authenticationHeaderValue}");
 
             if (descriptor.Arguments.Count > 0)
             {
@@ -386,11 +416,21 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                 createRequestWithVariables.AddArgument("null");
             }
 
-            method.AddParameter(_headers)
+            method.AddParameter(_contentHeaders)
                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
                    .SetDefault("null");
 
-            createRequestWithVariables.AddArgument(_headers);
+            method.AddParameter(_requestHeaders)
+                   .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                   .SetDefault("null");
+
+            method.AddParameter(_authenticationHeaderValue)
+                   .SetType(TypeNames.AuthenticationHeaderValue.MakeNullable())
+                   .SetDefault("null");
+
+            createRequestWithVariables.AddArgument(_contentHeaders);
+            createRequestWithVariables.AddArgument(_requestHeaders);
+            createRequestWithVariables.AddArgument(_authenticationHeaderValue);
 
             return method
                 .AddEmptyLine()

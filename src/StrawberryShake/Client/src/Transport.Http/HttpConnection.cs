@@ -80,16 +80,32 @@ namespace StrawberryShake.Transport.Http
             var content = new ByteArrayContent(CreateRequestMessageBody(request));
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            if (request.Headers.Count > 0)
-                foreach (KeyValuePair<string, string> header in request.Headers)
+            if (request.ContentHeaders.Count > 0)
+            {
+                foreach (KeyValuePair<string, string> header in request.ContentHeaders)
+                {
                     content.Headers.Add(header.Key, header.Value);
+                }
+            }
 
-            return new()
+            HttpRequestMessage httpRequestMessage = new()
             {
                 RequestUri = baseAddress,
                 Method = HttpMethod.Post,
                 Content = content
             };
+
+            httpRequestMessage.Headers.Authorization = request.AuthenticationHeaderValue;
+
+            if (request.RequestHeaders.Count > 0)
+            {
+                foreach (KeyValuePair<string, string> header in request.RequestHeaders)
+                {
+                    httpRequestMessage.Headers.Add(header.Key, header.Value);
+                }
+            }
+
+            return httpRequestMessage;
         }
 
         private byte[] CreateRequestMessageBody(

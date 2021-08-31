@@ -10,8 +10,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
     public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDescriptor>
     {
         private const string _strategy = "strategy";
+        private const string _contentHeaders = "contentHeaders";
+        private const string _requestHeaders = "requestHeaders";
+        private const string _authenticationHeaderValue = "authenticationHeaderValue";
         private const string _cancellationToken = "cancellationToken";
-        private const string _headers = "headers";
 
         protected override void Generate(OperationDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
@@ -104,8 +106,19 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             if (withHeader)
             {
                 executeMethod
-                    .AddParameter(_headers)
-                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String));
+                    .AddParameter(_contentHeaders)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                    .SetDefault("null");
+
+                executeMethod
+                    .AddParameter(_requestHeaders)
+                    .SetType(TypeNames.IDictionary.WithGeneric(TypeNames.String, TypeNames.String).MakeNullable())
+                    .SetDefault("null");
+
+                executeMethod
+                    .AddParameter(_authenticationHeaderValue)
+                    .SetType(TypeNames.AuthenticationHeaderValue.MakeNullable())
+                    .SetDefault("null");
             }
 
             executeMethod

@@ -125,6 +125,7 @@ namespace StrawberryShake.CodeGeneration
             "global::Microsoft.AspNetCore.Components.ParameterAttribute";
 
         public const string IHttpClientFactory = "global::System.Net.Http.IHttpClientFactory";
+        public const string AuthenticationHeaderValue = "global::System.Net.Http.Headers.AuthenticationHeaderValue";
         public const string TryAddSingleton= DependencyInjectionExtensions + "TryAddSingleton";
         public const string GenericCollectionsNamespace = "global::System.Collections.Generic.";
         public const string StrawberryshakeNamespace = "global::StrawberryShake.";

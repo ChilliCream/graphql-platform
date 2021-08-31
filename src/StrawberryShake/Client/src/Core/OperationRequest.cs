@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using StrawberryShake.Helper;
 using StrawberryShake.Internal;
@@ -27,14 +28,18 @@ namespace StrawberryShake
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
         /// <param name="strategy">The request strategy to the connection.</param>
-        /// <param name="headers">The request headers.</param>
+        /// <param name="contentHeaders">The content headers.</param>
+        /// <param name="requestHeaders">The request headers.</param>
+        /// <param name="authenticationHeaderValue">The authentication header value.</param>
         public OperationRequest(
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
             RequestStrategy strategy = RequestStrategy.Default,
-            IDictionary<string, string>? headers = null)
-            : this(null, name, document, variables, strategy, headers)
+            IDictionary<string, string>? contentHeaders = null,
+            IDictionary<string, string>? requestHeaders = null,
+            AuthenticationHeaderValue? authenticationHeaderValue = null)
+            : this(null, name, document, variables, strategy, contentHeaders, requestHeaders, authenticationHeaderValue)
         {
         }
 
@@ -46,21 +51,27 @@ namespace StrawberryShake
         /// <param name="document">The GraphQL query document containing this operation.</param>
         /// <param name="variables">The request variable values.</param>
         /// <param name="strategy">The request strategy to the connection.</param>
-        /// <param name="headers">The request headers.</param>
+        /// <param name="contentHeaders">The content headers.</param>
+        /// <param name="requestHeaders">The request headers.</param>
+        /// <param name="authenticationHeaderValue">The authentication header value.</param>
         public OperationRequest(
             string? id,
             string name,
             IDocument document,
             IReadOnlyDictionary<string, object?>? variables = null,
             RequestStrategy strategy = RequestStrategy.Default,
-            IDictionary<string, string>? headers = null)
+            IDictionary<string, string>? contentHeaders = null,
+            IDictionary<string, string>? requestHeaders = null,
+            AuthenticationHeaderValue? authenticationHeaderValue = null)
         {
             Id = id;
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Document = document ?? throw new ArgumentNullException(nameof(document));
             _variables = variables ?? ImmutableDictionary<string, object?>.Empty;
             Strategy = strategy;
-            Headers = headers ?? new Dictionary<string, string>();
+            ContentHeaders = contentHeaders ?? new Dictionary<string, string>();
+            RequestHeaders = requestHeaders ?? new Dictionary<string, string>();
+            AuthenticationHeaderValue = authenticationHeaderValue;
         }
 
         /// <summary>
@@ -73,6 +84,9 @@ namespace StrawberryShake
         /// <param name="extensions">The request extension values.</param>
         /// <param name="contextData">The local context data.</param>
         /// <param name="strategy">The request strategy to the connection.</param>
+        /// <param name="contentHeaders">The content headers.</param>
+        /// <param name="requestHeaders">The request headers.</param>
+        /// <param name="authenticationHeaderValue">The authentication header value.</param>
         public void Deconstruct(
             out string? id,
             out string name,
@@ -80,7 +94,10 @@ namespace StrawberryShake
             out IReadOnlyDictionary<string, object?> variables,
             out IReadOnlyDictionary<string, object?>? extensions,
             out IReadOnlyDictionary<string, object?>? contextData,
-            out RequestStrategy strategy)
+            out RequestStrategy strategy,
+            out IDictionary<string, string> contentHeaders,
+            out IDictionary<string, string> requestHeaders,
+            out AuthenticationHeaderValue? authenticationHeaderValue)
         {
             id = Id;
             name = Name;
@@ -89,6 +106,9 @@ namespace StrawberryShake
             extensions = _extensions;
             contextData = _contextData;
             strategy = Strategy;
+            contentHeaders = ContentHeaders;
+            requestHeaders = RequestHeaders;
+            authenticationHeaderValue = AuthenticationHeaderValue;
         }
 
         /// <summary>
@@ -134,9 +154,19 @@ namespace StrawberryShake
         }
 
         /// <summary>
+        /// Gets the content headers.
+        /// </summary>
+        public IDictionary<string, string> ContentHeaders { get; private set; }
+
+        /// <summary>
         /// Gets the request headers.
         /// </summary>
-        public IDictionary<string, string> Headers { get; private set; }
+        public IDictionary<string, string> RequestHeaders { get; private set; }
+
+        /// <summary>
+        /// Gets the authentication header value.
+        /// </summary>
+        public AuthenticationHeaderValue? AuthenticationHeaderValue { get; private set; }
 
         /// <summary>
         /// Defines the request strategy to the connection.
