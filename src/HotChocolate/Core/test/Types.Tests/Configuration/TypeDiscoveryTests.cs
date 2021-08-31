@@ -40,11 +40,11 @@ namespace HotChocolate.Configuration
                 descriptor.Name("Query");
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
-                    .Resolver(string.Empty);
+                    .Resolve(string.Empty);
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
-                    .Resolver(string.Empty);
+                    .Resolve(string.Empty);
             }
         }
 

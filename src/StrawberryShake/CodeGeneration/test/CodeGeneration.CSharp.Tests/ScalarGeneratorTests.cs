@@ -85,7 +85,19 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")");
 
         [Fact]
-        public void Complete_Schema_With_Uuid_And_DateTime()
+        public void Any_Scalar() =>
+            AssertResult(
+                "query GetPerson { person { name data } }",
+                "type Query { person: Person }",
+                "type Person { name: String! data: Any }",
+                "scalar Any",
+                @"extend scalar Any
+                    @runtimeType(name: ""global::System.Object"")
+                    @serializationType(name: ""global::System.Text.Json.JsonElement"")",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void Complete_Schema_With_UUID_And_DateTime()
         {
             AssertResult(
                 FileResource.Open("AllExpenses.graphql"),

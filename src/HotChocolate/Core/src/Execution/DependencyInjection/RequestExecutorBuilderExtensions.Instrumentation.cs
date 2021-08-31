@@ -58,7 +58,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IDiagnosticEventListener>(sp => diagnosticEventListener(sp)));
+                s => s.AddSingleton<IDiagnosticEventListener>(
+                    sp => diagnosticEventListener(sp.GetCombinedServices())));
         }
     }
 }

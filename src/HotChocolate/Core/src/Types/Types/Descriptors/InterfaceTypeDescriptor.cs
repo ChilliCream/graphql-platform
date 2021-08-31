@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -40,10 +41,15 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+
+            foreach (InterfaceFieldDefinition field in definition.Fields)
+            {
+                Fields.Add(InterfaceFieldDescriptor.From(Context, field));
+            }
         }
 
         protected internal override InterfaceTypeDefinition Definition { get; protected set; } =
-            new InterfaceTypeDefinition();
+            new();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();

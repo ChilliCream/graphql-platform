@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Helpers
 {
     internal static class DirectiveHelper
     {

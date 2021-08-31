@@ -79,6 +79,12 @@ namespace HotChocolate.Language
         {
             Location = location;
             _uShortValue = value;
+
+            Span<byte> buffer = stackalloc byte[32];
+            Utf8Formatter.TryFormat(value, buffer, out int written);
+            var memory = new Memory<byte>(new byte[written]);
+            buffer.Slice(0, written).CopyTo(memory.Span);
+            _memory = memory;
         }
 
         public IntValueNode(uint value)
@@ -90,6 +96,12 @@ namespace HotChocolate.Language
         {
             Location = location;
             _uIntValue = value;
+
+            Span<byte> buffer = stackalloc byte[32];
+            Utf8Formatter.TryFormat(value, buffer, out int written);
+            var memory = new Memory<byte>(new byte[written]);
+            buffer.Slice(0, written).CopyTo(memory.Span);
+            _memory = memory;
         }
 
         public IntValueNode(ulong value)
@@ -101,6 +113,12 @@ namespace HotChocolate.Language
         {
             Location = location;
             _uLongValue = value;
+
+            Span<byte> buffer = stackalloc byte[32];
+            Utf8Formatter.TryFormat(value, buffer, out int written);
+            var memory = new Memory<byte>(new byte[written]);
+            buffer.Slice(0, written).CopyTo(memory.Span);
+            _memory = memory;
         }
 
         public IntValueNode(ReadOnlyMemory<byte> value)

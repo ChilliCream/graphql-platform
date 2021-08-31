@@ -24,7 +24,7 @@ namespace StrawberryShake.Serialization
             var serializer = new BooleanSerializer();
 
             // act
-            object? result = serializer.Format(null);
+            var result = serializer.Format(null);
 
             // assert
             Assert.Null(result);
@@ -37,7 +37,7 @@ namespace StrawberryShake.Serialization
             var serializer = new BooleanSerializer();
 
             // act
-            object? result = serializer.Format(true);
+            var result = serializer.Format(true);
 
             // assert
             Assert.True(Assert.IsType<bool>(result));
@@ -50,7 +50,7 @@ namespace StrawberryShake.Serialization
             var serializer = new BooleanSerializer();
 
             // act
-            object? result = serializer.Format(false);
+            var result = serializer.Format(false);
 
             // assert
             Assert.False(Assert.IsType<bool>(result));

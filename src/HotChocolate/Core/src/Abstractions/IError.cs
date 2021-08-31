@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace HotChocolate
 {
     /// <summary>
-    /// Represents a schema or query error.
+    /// Represents a GraphQL execution error.
     /// </summary>
     public interface IError
     {

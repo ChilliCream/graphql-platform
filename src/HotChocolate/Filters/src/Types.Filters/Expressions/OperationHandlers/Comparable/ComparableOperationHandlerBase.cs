@@ -38,8 +38,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
             object ParseValue()
             {
-
-                object? parsedValue = type.ParseLiteral(value);
+                var parsedValue = context.InputParser.ParseLiteral(value, type);
 
                 if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
                 {

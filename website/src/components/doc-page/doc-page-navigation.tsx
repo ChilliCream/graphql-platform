@@ -196,7 +196,10 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
       />
 
       <ProductSwitcher>
-        <ProductSwitcherButton onClick={toggleProductSwitcher}>
+        <ProductSwitcherButton
+          fullWidth={!hasVersions}
+          onClick={toggleProductSwitcher}
+        >
           {activeProduct?.title}
 
           <IconContainer size={16}>
@@ -204,18 +207,15 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
           </IconContainer>
         </ProductSwitcherButton>
 
-        <ProductSwitcherButton
-          disabled={!hasVersions}
-          onClick={toggleVersionSwitcher}
-        >
-          {activeVersion?.title}
+        {hasVersions && (
+          <ProductSwitcherButton onClick={toggleVersionSwitcher}>
+            {activeVersion?.title}
 
-          {hasVersions && (
             <IconContainer size={12}>
               {versionSwitcherOpen ? <ArrowUpIconSvg /> : <ArrowDownIconSvg />}
             </IconContainer>
-          )}
-        </ProductSwitcherButton>
+          </ProductSwitcherButton>
+        )}
       </ProductSwitcher>
 
       <ProductSwitcherDialog
@@ -255,15 +255,17 @@ export const DocPageNavigation: FC<DocPageNavigationProps> = ({
       </ProductVersionDialog>
 
       {!productSwitcherOpen && activeVersion?.items && (
-        <MostProminentSection>
-          <NavigationContainer
-            basePath={`/docs/${activeProduct!.path!}${
-              !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
-            }`}
-            items={subItems}
-            selectedPath={selectedPath}
-          />
-        </MostProminentSection>
+        <ScrollContainer>
+          <MostProminentSection>
+            <NavigationContainer
+              basePath={`/docs/${activeProduct!.path!}${
+                !!activeVersion?.path?.length ? "/" + activeVersion.path! : ""
+              }`}
+              items={subItems}
+              selectedPath={selectedPath}
+            />
+          </MostProminentSection>
+        </ScrollContainer>
       )}
     </Navigation>
   );
@@ -319,6 +321,10 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
   padding: 25px 0 0;
   transition: margin-left 250ms;
   background-color: white;
+  overflow-y: hidden;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
 
   ${({ show }) => show && `margin-left: 0 !important;`}
 
@@ -333,7 +339,7 @@ export const Navigation = styled.nav<{ height: string; show: boolean }>`
   `)}
 `;
 
-const ProductSwitcherButton = styled.button`
+const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
   flex-direction: row;
@@ -344,6 +350,7 @@ const ProductSwitcherButton = styled.button`
   height: 38px;
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
+  ${({ fullWidth }) => fullWidth && `width: 100%;`}
 
   > ${IconContainer} {
     margin-left: auto;
@@ -368,6 +375,7 @@ const ProductSwitcher = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
 
   > ${ProductSwitcherButton}:not(:last-child) {
     margin-right: 4px;
@@ -543,4 +551,8 @@ const NavigationItem = styled.li<{ active: boolean }>`
         font-weight: bold;
       }
     `}
+`;
+
+const ScrollContainer = styled.div`
+  overflow-y: auto;
 `;

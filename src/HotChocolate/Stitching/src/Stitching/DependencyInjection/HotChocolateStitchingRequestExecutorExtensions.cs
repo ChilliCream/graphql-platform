@@ -190,7 +190,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     services.TryAddSingleton(
                         sp => new HttpRequestClient(
-                            sp.GetApplicationService<IHttpClientFactory>(),
+                            sp.GetCombinedServices().GetRequiredService<IHttpClientFactory>(),
                             sp.GetRequiredService<IErrorHandler>(),
                             sp.GetRequiredService<IHttpStitchingRequestInterceptor>()));
 
@@ -218,7 +218,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         schemaBuilder.AddDocument(document);
 
                         // ... which will fail if any resolver is actually used ...
-                        schemaBuilder.Use(next => context => throw new NotSupportedException());
+                        schemaBuilder.Use(_ => _ => throw new NotSupportedException());
                     })
                 // ... instead we are using a special request pipeline that does everything like
                 // the standard pipeline except the last middleware will not start the execution

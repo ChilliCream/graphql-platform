@@ -250,7 +250,7 @@ namespace HotChocolate.Data.MongoDb.Projections
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(take:10, skip:1){ items { bar baz } }}")
+                    .SetQuery("{ root(take:10, skip:1) { items { bar baz } } }")
                     .Create());
 
             res1.MatchDocumentSnapshot();

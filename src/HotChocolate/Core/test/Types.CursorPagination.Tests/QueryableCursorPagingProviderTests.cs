@@ -427,7 +427,11 @@ namespace HotChocolate.Types.Pagination
                 _arguments = arguments;
             }
 
-            public IServiceProvider Services => throw new NotImplementedException();
+            public IServiceProvider Services
+            {
+                get => throw new NotImplementedException();
+                set => throw new NotImplementedException();
+            }
 
             public ISchema Schema => throw new NotImplementedException();
 
@@ -466,7 +470,7 @@ namespace HotChocolate.Types.Pagination
 
             public CancellationToken RequestAborted => default;
 
-            public IDictionary<string, object> ContextData => throw new NotImplementedException();
+            public IDictionary<string, object?> ContextData => throw new NotImplementedException();
 
             public T Argument<T>(NameString name)
             {
@@ -536,6 +540,11 @@ namespace HotChocolate.Types.Pagination
                 }
 
                 throw new NotSupportedException();
+            }
+
+            public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+            {
+                throw new NotImplementedException();
             }
 
             public IReadOnlyList<IFieldSelection> GetSelections(

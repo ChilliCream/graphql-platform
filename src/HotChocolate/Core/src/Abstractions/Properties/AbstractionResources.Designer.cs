@@ -164,5 +164,29 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SingleValueExtensionData_KeyIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string FieldCoordinate_Parse_InvalidComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFieldComponentCount {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFieldComponentCount", resourceCulture);
+            }
+        }
+        
+        internal static string FieldCoordinate_Parse_InvalidFormat {
+            get {
+                return ResourceManager.GetString("FieldCoordinate_Parse_InvalidFormat", resourceCulture);
+            }
+        }
+        
+        internal static string AggregateError_Message {
+            get {
+                return ResourceManager.GetString("AggregateError_Message", resourceCulture);
+            }
+        }
     }
 }

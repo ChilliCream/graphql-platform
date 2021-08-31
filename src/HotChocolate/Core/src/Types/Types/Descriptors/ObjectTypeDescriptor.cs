@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
@@ -44,7 +45,7 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
 
-            foreach (var field in definition.Fields)
+            foreach (ObjectFieldDefinition field in definition.Fields)
             {
                 Fields.Add(ObjectFieldDescriptor.From(Context, field));
             }
@@ -69,6 +70,21 @@ namespace HotChocolate.Types.Descriptors
                 Definition.AttributesAreApplied = true;
             }
 
+            foreach (ObjectFieldDescriptor field in Fields)
+            {
+                if (!field.Definition.Ignore)
+                {
+                    continue;
+                }
+
+                // if this definition is used for a type extension we need a 
+                // binding to a field which shall be ignored. In case this is a 
+                // definition for the type it will be ignored by the type initialization.
+                Definition.FieldIgnores.Add(new ObjectFieldBinding(
+                    field.Definition.Name,
+                    ObjectFieldBindingType.Field));
+            }
+
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
@@ -90,73 +106,7 @@ namespace HotChocolate.Types.Descriptors
             IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            DiscoverResolvers(fields);
-        }
 
-        protected void DiscoverResolvers(
-            IDictionary<NameString, ObjectFieldDefinition> fields)
-        {
-            var processed = new HashSet<string>();
-
-            if (Definition.RuntimeType != typeof(object))
-            {
-                foreach (Type resolverType in Context.TypeInspector
-                    .GetResolverTypes(Definition.RuntimeType))
-                {
-                    ResolverTypes.Add(resolverType);
-                }
-            }
-
-            foreach (Type resolverType in ResolverTypes)
-            {
-                AddResolvers(
-                    fields,
-                    processed,
-                    Definition.RuntimeType ?? typeof(object),
-                    resolverType);
-            }
-        }
-
-        private void AddResolvers(
-            IDictionary<NameString, ObjectFieldDefinition> fields,
-            ISet<string> processed,
-            Type sourceType,
-            Type resolverType)
-        {
-            foreach (MemberInfo member in Context.TypeInspector.GetMembers(resolverType))
-            {
-                if (IsResolverRelevant(sourceType, member))
-                {
-                    ObjectFieldDefinition fieldDefinition =
-                        ObjectFieldDescriptor
-                            .New(Context, member, sourceType, resolverType)
-                            .CreateDefinition();
-
-                    if (processed.Add(fieldDefinition.Name))
-                    {
-                        fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
-        }
-
-        private static bool IsResolverRelevant(
-            Type sourceType,
-            MemberInfo resolver)
-        {
-            switch (resolver)
-            {
-                case PropertyInfo:
-                    return true;
-
-                case MethodInfo m:
-                    ParameterInfo? parent = m.GetParameters().FirstOrDefault(
-                        t => t.IsDefined(typeof(ParentAttribute)));
-                    return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
-
-                default:
-                    return false;
-            }
         }
 
         public IObjectTypeDescriptor SyntaxNode(
@@ -232,17 +182,6 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectTypeDescriptor Include<TResolver>()
-        {
-            if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
-            {
-                throw new ArgumentException(ObjectTypeDescriptor_Resolver_SchemaType);
-            }
-
-            ResolverTypes.Add(typeof(TResolver));
-            return this;
-        }
-
         public IObjectTypeDescriptor IsOfType(IsOfType? isOfType)
         {
             Definition.IsOfType = isOfType
@@ -265,8 +204,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod) =>
-            Field<TResolver, object>(propertyOrMethod);
+            Expression<Func<TResolver, object?>> propertyOrMethod) =>
+            Field<TResolver, object?>(propertyOrMethod);
 
         public IObjectFieldDescriptor Field(
             MemberInfo propertyOrMethod)

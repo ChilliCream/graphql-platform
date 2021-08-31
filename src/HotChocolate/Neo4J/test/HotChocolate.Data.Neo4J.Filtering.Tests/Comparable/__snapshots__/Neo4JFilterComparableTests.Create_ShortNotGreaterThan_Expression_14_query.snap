@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE NOT (foo.BarShort > 14) RETURN foo {.BarShort}

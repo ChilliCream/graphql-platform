@@ -9,6 +9,7 @@ namespace HotChocolate.Types
 {
     public class UuidType : ScalarType<Guid, StringValueNode>
     {
+        private const string _specifiedBy = "https://tools.ietf.org/html/rfc4122";
         private readonly string _format;
         private readonly bool _enforceFormat;
 
@@ -24,8 +25,8 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="defaultFormat">
         /// The expected format of GUID strings by this scalar.
-        /// <c>'N'</c> (default): nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
-        /// <c>'D'</c>: nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
+        /// <c>'N'</c>: nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn
+        /// <c>'D'</c>(default):  nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn
         /// <c>'B'</c>: {nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn}
         /// <c>'P'</c>: (nnnnnnnn-nnnn-nnnn-nnnn-nnnnnnnnnnnn)
         /// </param>
@@ -37,11 +38,12 @@ namespace HotChocolate.Types
         /// </param>
         public UuidType(char defaultFormat = '\0', bool enforceFormat = false)
             : this(
-                ScalarNames.Uuid,
+                ScalarNames.UUID,
                 defaultFormat: defaultFormat,
                 enforceFormat: enforceFormat,
                 bind: BindingBehavior.Implicit)
         {
+            SpecifiedBy = new Uri(_specifiedBy);
         }
 
         /// <summary>
@@ -195,7 +197,7 @@ namespace HotChocolate.Types
                 throw new ArgumentException(TypeResources.UuidType_FormatUnknown, nameof(format));
             }
 
-            return format == '\0' ? "N" : format.ToString();
+            return format == '\0' ? "D" : format.ToString();
         }
     }
 }

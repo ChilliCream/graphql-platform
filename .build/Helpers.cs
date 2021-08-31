@@ -11,14 +11,17 @@ class Helpers
     public static readonly string[] Directories =
     {
         "GreenDonut",
+        Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "MongoDb"),
+        Path.Combine("HotChocolate", "Neo4J"),
         Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Spatial"),
         Path.Combine("StrawberryShake", "Client"),
@@ -92,5 +95,13 @@ class Helpers
         list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
+    }
+
+    public static void TryDelete(string fileName) 
+    {
+        if(File.Exists(fileName))
+        {
+            File.Delete(fileName);
+        }
     }
 }

@@ -1,0 +1,12 @@
+<svg id="bcp-logo" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 2000 2000">
+    <defs>
+        <radialGradient id="bcp-logo-gradient" cx="744.62" cy="1903.86" r="1793.53"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f8437e" />
+            <stop offset="1" stop-color="#f4125b" />
+        </radialGradient>
+    </defs>
+    <path
+        d="M1000,0C447.72,0,0,447.72,0,1000S447.72,2000,1000,2000s1000-447.72,1000-1000S1552.28,0,1000,0Zm121.57,1057.22a374.11,374.11,0,0,1-77.36-8.1L803.92,1708.2s-15.68,23.53-54.9,7.84-31.37-39.22-31.37-39.22l231.94-661.7C830.42,953,749,828.36,749,684.67c0-205.76,166.8-372.55,372.55-372.55s372.55,166.79,372.55,372.55S1327.32,1057.22,1121.57,1057.22Z" fill="url(#bcp-logo-gradient)" />
+</svg>

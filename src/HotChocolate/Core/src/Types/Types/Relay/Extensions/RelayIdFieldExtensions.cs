@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Relay;
@@ -59,8 +58,10 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = n => c => default;
-            descriptor.Use(placeholder);
+            ResultConverterDefinition placeholder =
+                new((_, r) => r, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
+
+            descriptor.Extend().Definition.ResultConverters.Add(placeholder);
             descriptor.Extend().OnBeforeCreate(RewriteObjectFieldType);
             descriptor.Extend().OnBeforeCompletion(
                 (c, d) => AddSerializerToObjectField(c, d, placeholder, typeName));
@@ -167,7 +168,7 @@ namespace HotChocolate.Types
 
             if (definition is InputFieldDefinition inputField)
             {
-                resultType = typeInspector.GetReturnType(inputField.Property, true);
+                resultType = typeInspector.GetReturnType(inputField.Property!, true);
             }
             else if (definition.Parameter is not null)
             {
@@ -191,7 +192,7 @@ namespace HotChocolate.Types
         private static void AddSerializerToObjectField(
             ITypeCompletionContext completionContext,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            ResultConverterDefinition placeholder,
             NameString typeName)
         {
             ITypeInspector typeInspector = completionContext.TypeInspector;
@@ -214,42 +215,42 @@ namespace HotChocolate.Types
             }
 
             NameString schemaName = default;
-            completionContext.DescriptorContext.SchemaCompleted += (sender, args) =>
+            completionContext.DescriptorContext.SchemaCompleted += (_, args) =>
                 schemaName = args.Schema.Name;
 
             IIdSerializer serializer =
                 completionContext.Services.GetService<IIdSerializer>() ??
                 new IdSerializer();
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
+            var index = definition.ResultConverters.IndexOf(placeholder);
 
             if (typeName.IsEmpty)
             {
                 typeName = completionContext.Type.Name;
             }
 
-            definition.MiddlewareComponents[index] = next => async context =>
+            definition.ResultConverters[index] = new((_, result) =>
             {
-                await next(context).ConfigureAwait(false);
-
-                if (context.Result is not null)
+                if (result is not null)
                 {
                     if (resultType.IsArrayOrList)
                     {
                         var list = new List<object?>();
-                        foreach (var element in (IEnumerable)context.Result)
+
+                        foreach (var element in (IEnumerable)result)
                         {
                             list.Add(element is null
                                 ? element
                                 : serializer.Serialize(schemaName, typeName, element));
                         }
-                        context.Result = list;
+
+                        return list;
                     }
-                    else
-                    {
-                        context.Result = serializer.Serialize(schemaName, typeName, context.Result);
-                    }
+
+                    return serializer.Serialize(schemaName, typeName, result);
                 }
-            };
+
+                return result;
+            }, key: WellKnownMiddleware.GlobalId, isRepeatable: false);
         }
 
         private static IInputValueFormatter CreateSerializer(

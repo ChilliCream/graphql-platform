@@ -1,13 +1,14 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Extensions;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
-using System;
-using HotChocolate.AspNetCore.Extensions;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Routing;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -28,6 +29,10 @@ namespace HotChocolate.AspNetCore.Utilities
             return ServerFactory.Create(
                 services =>
                 {
+                    TestSocketSessionInterceptor testInterceptor = new();
+
+                    services.AddSingleton(testInterceptor);
+
                     services
                         .AddRouting()
                         .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
@@ -36,6 +41,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddTypeExtension<QueryExtension>()
                         .AddTypeExtension<SubscriptionsExtensions>()
                         .AddExportDirectiveType()
+                        .AddSocketSessionInterceptor(x => testInterceptor)
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions()
                         .UseAutomaticPersistedQueryPipeline()
@@ -84,6 +90,33 @@ namespace HotChocolate.AspNetCore.Utilities
                         endpoints.MapGraphQL("/arguments", "arguments");
                         endpoints.MapGraphQL("/upload", "upload");
                     }));
+        }
+
+        protected virtual TestServer CreateServer(
+            Action<IEndpointRouteBuilder> configureConventions = default)
+        {
+            return ServerFactory.Create(
+                services =>
+                {
+                    TestSocketSessionInterceptor testInterceptor = new();
+
+                    services.AddSingleton(testInterceptor);
+
+                    services
+                        .AddRouting()
+                        .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
+                        .AddGraphQLServer()
+                        .AddStarWarsTypes()
+                        .AddTypeExtension<QueryExtension>()
+                        .AddTypeExtension<SubscriptionsExtensions>()
+                        .AddExportDirectiveType()
+                        .AddSocketSessionInterceptor(_ => testInterceptor)
+                        .AddStarWarsRepositories();
+                },
+                app => app
+                    .UseWebSockets()
+                    .UseRouting()
+                    .UseEndpoints(endpoints => configureConventions?.Invoke(endpoints)));
         }
     }
 }

@@ -6,21 +6,21 @@ namespace HotChocolate.Types.Relay
 {
     internal static class RelayHelper
     {
-        public static RelayOptions GetRelayOptions(
+        public static MutationPayloadOptions GetMutationPayloadOptions(
             this IDescriptorContext context)
         {
-            if (context.ContextData.TryGetValue(typeof(RelayOptions).FullName!, out object? o) &&
-                o is RelayOptions casted)
+            if (context.ContextData.TryGetValue(typeof(MutationPayloadOptions).FullName!, out var o) &&
+                o is MutationPayloadOptions casted)
             {
                 return casted;
             }
 
-            return new RelayOptions();
+            return new MutationPayloadOptions();
         }
 
-        public static ISchemaBuilder SetRelayOptions(
+        public static ISchemaBuilder SetMutationPayloadOptions(
             this ISchemaBuilder schemaBuilder,
-            RelayOptions options) =>
-            schemaBuilder.SetContextData(typeof(RelayOptions).FullName!, options);
+            MutationPayloadOptions options) =>
+            schemaBuilder.SetContextData(typeof(MutationPayloadOptions).FullName!, options);
     }
 }

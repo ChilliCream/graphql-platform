@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters
             : base(definition, default)
         {
             Member = definition.Member;
-            Handler = definition.Handler;
+            Handler = definition.Handler!;
         }
 
         public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
@@ -29,9 +29,10 @@ namespace HotChocolate.Data.Filters
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             InputFieldDefinition definition)
         {
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
 
             if (Member?.DeclaringType is not null)
             {

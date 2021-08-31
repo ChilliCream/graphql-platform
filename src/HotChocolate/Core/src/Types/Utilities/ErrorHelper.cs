@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -11,7 +12,7 @@ namespace HotChocolate.Utilities
     {
         public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
             ITypeSystemObject interfaceOrObject,
-            ISyntaxNode? node)=>
+            ISyntaxNode? node) =>
             SchemaErrorBuilder.New()
                 .SetMessage("COULD NOT RESOLVE INTERFACE")
                 .SetCode(ErrorCodes.Schema.MissingType)
@@ -67,7 +68,7 @@ namespace HotChocolate.Utilities
                 .SetExtension("Source", source)
                 .Build();
 
-        public static ISchemaError  DirectiveCollection_ArgumentDoesNotExist(
+        public static ISchemaError DirectiveCollection_ArgumentDoesNotExist(
             DirectiveType directiveType,
             ITypeSystemObject type,
             DirectiveNode? syntaxNode,
@@ -104,7 +105,9 @@ namespace HotChocolate.Utilities
                 .Build();
 
         public static ISchemaError ObjectType_UnableToInferOrResolveType(
-            NameString typeName, ObjectType type, ObjectFieldDefinition field) =>
+            NameString typeName,
+            ObjectType type,
+            ObjectFieldDefinition field) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
                     "Unable to infer or resolve the type of " +
@@ -118,6 +121,46 @@ namespace HotChocolate.Utilities
                 .SetTypeSystemObject(type)
                 .SetPath(Path.New(typeName).Append(field.Name))
                 .SetExtension(TypeErrorFields.Definition, field)
+                .Build();
+
+        public static ISchemaError ObjectField_HasNoResolver(
+            NameString typeName,
+            NameString fieldName,
+            ITypeSystemObject type,
+            ISyntaxNode? syntaxNode) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ErrorHelper_ObjectField_HasNoResolver,
+                    typeName,
+                    fieldName)
+                .SetCode(ErrorCodes.Schema.NoResolver)
+                .SetTypeSystemObject(type)
+                .AddSyntaxNode(syntaxNode)
+                .Build();
+
+        public static ISchemaError MiddlewareOrderInvalid(
+            FieldCoordinate field,
+            ITypeSystemObject type,
+            ISyntaxNode? syntaxNode,
+            string currentOrder)
+            => SchemaErrorBuilder.New()
+                .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+                .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
+                .SetTypeSystemObject(type)
+                .AddSyntaxNode(syntaxNode)
+                .SetExtension(nameof(field), field)
+                .Build();
+
+        public static ISchemaError NoSchemaTypesAllowedAsRuntimeType(
+            ITypeSystemObject type,
+            Type runtimeType)
+            => SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.ErrorHelper_NoSchemaTypesAllowedAsRuntimeType,
+                    type.Name,
+                    runtimeType.FullName ?? runtimeType.Name)
+                .SetCode(ErrorCodes.Schema.NoSchemaTypesAllowedAsRuntimeType)
+                .SetTypeSystemObject(type)
                 .Build();
     }
 }

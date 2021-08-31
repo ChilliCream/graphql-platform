@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -9,8 +10,9 @@ namespace HotChocolate.Data.Filters.Expressions
         : QueryableComparableOperationHandler
     {
         public QueryableComparableGreaterThanOrEqualsHandler(
-            ITypeConverter typeConverter)
-            : base(typeConverter)
+            ITypeConverter typeConverter,
+            InputParser inputParser)
+            : base(typeConverter, inputParser)
         {
             CanBeNull = false;
         }
@@ -32,7 +34,8 @@ namespace HotChocolate.Data.Filters.Expressions
             }
 
             return FilterExpressionBuilder.GreaterThanOrEqual(
-                property, parsedValue);
+                property,
+                parsedValue);
         }
     }
 }

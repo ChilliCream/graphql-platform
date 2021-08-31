@@ -30,12 +30,15 @@ type LifeInsuranceContract implements Node & Contract {
 }
 
 type Query {
-  node(id: ID!): Node
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
   contract(contractId: ID!): Contract
   contracts(customerId: ID!): [Contract!]
   extendedScalar(d: DateTime): DateTime
   int(i: Int!): Int!
-  guid(guid: Uuid!): Uuid!
+  guid(guid: UUID!): UUID!
 }
 
 type SomeOtherContract implements Node & Contract {
@@ -70,4 +73,4 @@ scalar Decimal
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
 
-scalar Uuid
+scalar UUID @specifiedBy(url: "https:\/\/tools.ietf.org\/html\/rfc4122")

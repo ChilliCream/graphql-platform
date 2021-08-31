@@ -1,0 +1,1 @@
+﻿MATCH (foo:Foo) WHERE (foo.Bar = True OR foo.Bar = False) RETURN foo {.Bar}

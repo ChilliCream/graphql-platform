@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -466,7 +467,7 @@ namespace HotChocolate.Data.Projections
                 IObjectFieldDescriptor descriptor,
                 MemberInfo member)
             {
-                descriptor.Resolver(
+                descriptor.Resolve(
                     new List<Bar>
                     {
                         new Bar { BarBaz = "a_a", BarQux = "a_c" },

@@ -16,8 +16,7 @@ namespace HotChocolate.Types.Descriptors
         private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName = null;
 
         private readonly ConcurrentDictionary<string, XDocument> _cache =
-            new ConcurrentDictionary<string, XDocument>(
-                StringComparer.OrdinalIgnoreCase);
+            new(StringComparer.OrdinalIgnoreCase);
 
         public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName = null)
         {
@@ -34,9 +33,7 @@ namespace HotChocolate.Types.Descriptors
 
                 if (File.Exists(pathToXmlFile))
                 {
-                    doc = XDocument.Load(
-                        pathToXmlFile,
-                        LoadOptions.PreserveWhitespace);
+                    doc = XDocument.Load(pathToXmlFile, LoadOptions.PreserveWhitespace);
                     _cache[fullName] = doc;
                 }
             }
@@ -70,9 +67,8 @@ namespace HotChocolate.Types.Descriptors
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))
                 {
-                    var assemblyDirectory =
-                        IOPath.GetDirectoryName(assembly.Location);
-                    path = IOPath.Combine(assemblyDirectory, expectedDocFile);
+                    var assemblyDirectory = IOPath.GetDirectoryName(assembly.Location);
+                    path = IOPath.Combine(assemblyDirectory!, expectedDocFile);
                     if (File.Exists(path))
                     {
                         return path;
@@ -83,8 +79,7 @@ namespace HotChocolate.Types.Descriptors
                 if (!string.IsNullOrEmpty(codeBase))
                 {
                     path = IOPath.Combine(
-                        IOPath.GetDirectoryName(
-                            codeBase.Replace("file:///", string.Empty)),
+                        IOPath.GetDirectoryName(codeBase.Replace("file:///", string.Empty))!,
                         expectedDocFile)
                         .Replace("file:\\", string.Empty);
 
@@ -103,10 +98,7 @@ namespace HotChocolate.Types.Descriptors
                         return path;
                     }
 
-                    return IOPath.Combine(
-                        baseDirectory,
-                        _bin,
-                        expectedDocFile);
+                    return IOPath.Combine(baseDirectory, _bin, expectedDocFile);
                 }
 
                 var currentDirectory = Directory.GetCurrentDirectory();
@@ -116,10 +108,7 @@ namespace HotChocolate.Types.Descriptors
                     return path;
                 }
 
-                path = IOPath.Combine(
-                    currentDirectory,
-                    _bin,
-                    expectedDocFile);
+                path = IOPath.Combine(currentDirectory, _bin, expectedDocFile);
 
                 if (File.Exists(path))
                 {

@@ -1,0 +1,1 @@
+﻿MATCH (fooNullable:FooNullable) WHERE NOT (fooNullable.Bar CONTAINS 'a') RETURN fooNullable {.Bar}

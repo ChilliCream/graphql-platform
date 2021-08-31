@@ -4,28 +4,30 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using System.Threading.Tasks;
 using System.Threading;
+using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class SchemaRequestExecutorBuilderExtensions
     {
-        public static IRequestExecutorBuilder AddResolver(
-            this IRequestExecutorBuilder builder,
-            FieldResolver fieldResolver)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (fieldResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            return builder.ConfigureSchema(b => b.AddResolver(fieldResolver));
-        }
-
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -45,6 +47,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -64,6 +84,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -83,6 +121,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -104,6 +160,24 @@ namespace Microsoft.Extensions.DependencyInjection
 
         // Resolver()
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -123,6 +197,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -142,6 +234,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -161,6 +271,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -182,6 +310,24 @@ namespace Microsoft.Extensions.DependencyInjection
 
         // Resolver(IResolverContext, CancellationToken)
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -201,6 +347,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -220,6 +384,24 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, resolver));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="resolver">
+        /// The resolver delegate.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
@@ -241,32 +423,130 @@ namespace Microsoft.Extensions.DependencyInjection
 
         // Constant
 
+        /// <summary>
+        /// Adds a resolver delegate that returns a constant result.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="constantResult">
+        /// The constant result that will be returned for the specified field.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            object? constantValue)
+            object? constantResult)
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantValue));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantResult));
         }
 
+        /// <summary>
+        /// Adds a resolver delegate that returns a constant result.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <param name="fieldName">
+        /// The field to which the resolver is bound.
+        /// </param>
+        /// <param name="constantResult">
+        /// The constant result that will be returned for the specified field.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
         public static IRequestExecutorBuilder AddResolver<TResult>(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            TResult constantValue)
+            TResult constantResult)
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantValue));
+            return builder.ConfigureSchema(b => b.AddResolver(typeName, fieldName, constantResult));
+        }
+
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <typeparam name="TResolver">
+        /// The type that holds one or many resolvers
+        /// for the specified <paramref name="typeName"/>.
+        /// </typeparam>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
+        public static IRequestExecutorBuilder AddResolver<TResolver>(
+            this IRequestExecutorBuilder builder,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.ConfigureSchema(b => b.AddResolver<TResolver>(typeName));
+        }
+
+        /// <summary>
+        /// Adds a resolver delegate for a specific field.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="ISchemaBuilder"/>.
+        /// </param>
+        /// <param name="resolverType">
+        /// The type that holds one or many resolvers
+        /// for the specified <paramref name="typeName"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type to which the resolver is bound.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="ISchemaBuilder"/> to allow configuration chaining.
+        /// </returns>
+        public static IRequestExecutorBuilder AddResolver(
+            this IRequestExecutorBuilder builder,
+            Type resolverType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (resolverType is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.ConfigureSchema(b => b.AddResolver(resolverType, typeName));
         }
     }
 }

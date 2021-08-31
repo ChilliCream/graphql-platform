@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "You must provide a \u0060first\u0060 or \u0060last\u0060 value to properly paginate the \u0060LettersConnection\u0060.",
+      "path": [
+        "letters"
+      ],
+      "extensions": {
+        "code": "HC0052",
+        "field": "Query.letters"
+      }
+    }
+  ],
+  "data": {
+    "letters": null
+  }
+}

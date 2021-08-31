@@ -8,6 +8,17 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class VariableCoercionHelper
     {
+        private readonly InputFormatter _inputFormatter;
+        private readonly InputParser _inputParser;
+
+        public VariableCoercionHelper(InputFormatter inputFormatter, InputParser inputParser)
+        {
+            _inputFormatter = inputFormatter ??
+                throw new ArgumentNullException(nameof(inputFormatter));
+            _inputParser = inputParser ??
+                throw new ArgumentNullException(nameof(inputParser));
+        }
+
         public void CoerceVariableValues(
             ISchema schema,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
@@ -39,35 +50,47 @@ namespace HotChocolate.Execution.Processing
                 VariableDefinitionNode variableDefinition = variableDefinitions[i];
                 var variableName = variableDefinition.Variable.Name.Value;
                 IInputType variableType = AssertInputType(schema, variableDefinition);
+                VariableValueOrLiteral coercedVariable;
 
-                if (!values.TryGetValue(variableName, out var value) &&
-                    variableDefinition.DefaultValue is { } defaultValue)
+                var hasValue = values.TryGetValue(variableName, out var value);
+
+                if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
                 {
                     value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
                 }
 
-                if (value is null || value is NullValueNode)
+                if (!hasValue || value is null || value is NullValueNode)
                 {
                     if (variableType.IsNonNullType())
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] =
-                        new VariableValueOrLiteral(variableType, null, NullValueNode.Default);
+
+                    // if we do not have any value we will not create an entry to the
+                    // coerced variables.
+                    if (!hasValue)
+                    {
+                        continue;
+                    }
+
+                    coercedVariable = new(variableType, null, NullValueNode.Default);
                 }
                 else
                 {
-                    coercedValues[variableName] =
-                        CoerceVariableValue(variableDefinition, variableType, value);
+                    coercedVariable = CoerceVariableValue(variableDefinition, variableType, value);
                 }
+
+                coercedValues[variableName] = coercedVariable;
             }
         }
 
-        private static VariableValueOrLiteral CoerceVariableValue(
+        private VariableValueOrLiteral CoerceVariableValue(
             VariableDefinitionNode variableDefinition,
             IInputType variableType,
             object value)
         {
+            Path root = Path.New(variableDefinition.Variable.Name.Value);
+
             if (value is IValueNode valueLiteral)
             {
                 try
@@ -77,8 +100,12 @@ namespace HotChocolate.Execution.Processing
 
                     return new VariableValueOrLiteral(
                         variableType,
-                        variableType.ParseLiteral(valueLiteral),
+                        _inputParser.ParseLiteral(valueLiteral, variableType, root),
                         valueLiteral);
+                }
+                catch (GraphQLException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -86,15 +113,9 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (variableType.TryDeserialize(value, out var deserialized))
-            {
-                return new VariableValueOrLiteral(
-                    variableType,
-                    deserialized,
-                    variableType.ParseResult(value));
-            }
-
-            throw ThrowHelper.VariableValueInvalidType(variableDefinition);
+            var runtimeValue = _inputParser.ParseResult(value, variableType, root);
+            IValueNode literal = _inputFormatter.FormatResult(value, variableType, root);
+            return new VariableValueOrLiteral(variableType, runtimeValue, literal);
         }
 
         private static IInputType AssertInputType(
@@ -122,7 +143,7 @@ namespace HotChocolate.Execution.Processing
                     return Rewrite(inputType, lv);
 
                 case StringValueNode sv:
-                    return inputType.Kind == TypeKind.Enum
+                    return inputType.Kind is TypeKind.Enum
                         ? new EnumValueNode(sv.Location, sv.Value)
                         : node;
 
@@ -146,7 +167,7 @@ namespace HotChocolate.Execution.Processing
             {
                 ObjectFieldNode current = node.Fields[i];
 
-                if(!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
+                if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
                 {
                     continue;
                 }

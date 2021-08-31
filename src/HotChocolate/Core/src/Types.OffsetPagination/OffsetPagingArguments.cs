@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Pagination
         /// <param name="take">
         /// The count of items that shall be included into the page.
         /// </param>
-        public OffsetPagingArguments(int? skip, int take)
+        public OffsetPagingArguments(int? skip, int? take)
         {
             Skip = skip;
             Take = take;
@@ -30,6 +30,6 @@ namespace HotChocolate.Types.Pagination
         /// The count of items that shall be included into the page.
         /// </summary>
         /// <value></value>
-        public int Take { get; }
+        public int? Take { get; }
     }
 }

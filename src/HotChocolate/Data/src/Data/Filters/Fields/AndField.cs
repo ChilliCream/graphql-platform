@@ -1,7 +1,6 @@
 ﻿using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
@@ -10,10 +9,8 @@ namespace HotChocolate.Data.Filters
         : InputField
         , IAndField
     {
-        internal AndField(
-            IDescriptorContext context,
-            string? scope)
-            : base(CreateDefinition(context, scope), default)
+        internal AndField(IDescriptorContext context, int index, string? scope)
+            : base(CreateDefinition(context, scope), index)
         {
         }
 
@@ -23,16 +20,15 @@ namespace HotChocolate.Data.Filters
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             InputFieldDefinition definition)
         {
-            definition.Type = TypeReference.Create(
-                new ListTypeNode(
-                    new NonNullTypeNode(
-                        new NamedTypeNode(context.Type.Name))),
+            definition.Type = TypeReference.Parse(
+                $"[{context.Type.Name}!]",
                 TypeContext.Input,
                 context.Type.Scope);
 
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
         }
 
         private static InputFieldDefinition CreateDefinition(

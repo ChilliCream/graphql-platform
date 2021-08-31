@@ -31,7 +31,11 @@ namespace HotChocolate.Execution.Processing
         public bool IsResultModified =>
             _middlewareContext.IsResultModified;
 
-        public IServiceProvider Services => _middlewareContext.Services;
+        public IServiceProvider Services
+        {
+            get => _middlewareContext.Services;
+            set => _middlewareContext.Services = value;
+        }
 
         public ISchema Schema =>
             _middlewareContext.Schema;
@@ -42,6 +46,7 @@ namespace HotChocolate.Execution.Processing
         public IObjectType ObjectType =>
             _middlewareContext.ObjectType;
 
+        [Obsolete("Use Selection.Field or Selection.Type.")]
         public IObjectField Field =>
             _middlewareContext.Field;
 
@@ -112,6 +117,9 @@ namespace HotChocolate.Execution.Processing
 
         public void ReportError(IError error) =>
             _middlewareContext.ReportError(error);
+
+        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null) =>
+            _middlewareContext.ReportError(exception, configure);
 
         public T Resolver<T>() =>
             _middlewareContext.Resolver<T>();

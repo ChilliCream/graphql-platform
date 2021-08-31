@@ -69,10 +69,8 @@ namespace HotChocolate
             return services
                 .RemoveService<IReadStoredQueries>()
                 .RemoveService<IWriteStoredQueries>()
-                .AddSingleton<RedisQueryStorage>(sp =>
-                    new RedisQueryStorage(databaseFactory(sp)))
-                .AddSingleton<IReadStoredQueries>(sp =>
-                    sp.GetRequiredService<RedisQueryStorage>());
+                .AddSingleton(sp => new RedisQueryStorage(databaseFactory(sp)))
+                .AddSingleton<IReadStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
         private static IServiceCollection RemoveService<TService>(

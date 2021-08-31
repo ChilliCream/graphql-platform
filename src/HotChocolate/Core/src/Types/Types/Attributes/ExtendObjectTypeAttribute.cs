@@ -6,7 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public sealed class ExtendObjectTypeAttribute : ObjectTypeDescriptorAttribute
+    public sealed class ExtendObjectTypeAttribute
+        : ObjectTypeDescriptorAttribute
+        , ITypeAttribute
     {
         private string? _name;
 
@@ -28,6 +30,15 @@ namespace HotChocolate.Types
             get => _name;
             [Obsolete("Use the new constructor.")] set => _name = value;
         }
+
+        /// <summary>
+        /// Defines if this attribute is inherited. The default is <c>false</c>.
+        /// </summary>
+        public bool Inherited { get; set; }
+
+        TypeKind ITypeAttribute.Kind => TypeKind.Object;
+
+        bool ITypeAttribute.IsTypeExtension => true;
 
         /// <summary>
         /// Gets the .NET type to which this extension is bound to.

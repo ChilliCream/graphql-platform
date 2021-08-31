@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Tests
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar"));
+                        .Resolve("bar"));
 
             configure(builder);
 

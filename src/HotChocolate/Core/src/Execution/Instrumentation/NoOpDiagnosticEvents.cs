@@ -39,6 +39,14 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
+        public void StartProcessing(IRequestContext context)
+        {
+        }
+
+        public void StopProcessing(IRequestContext context)
+        {
+        }
+
         public IActivityScope ExecuteSubscription(ISubscription subscription) => this;
 
         public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context) => this;
@@ -75,9 +83,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public void BatchDispatched(IRequestContext context)
-        {
-        }
+        public IActivityScope DispatchBatch(IRequestContext context) => this;
 
         public void ExecutorCreated(string name, IRequestExecutor executor)
         {

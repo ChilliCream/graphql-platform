@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Directives
 {
     public class MultiplierPathStringTests
     {

@@ -8,7 +8,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// This class was ported over from the official mongo db driver
     /// </summary>
-    internal sealed class AndFilterDefinition : MongoDbFilterDefinition
+    public sealed class AndFilterDefinition : MongoDbFilterDefinition
     {
         private static readonly string[] __operatorsThatCannotBeCombined = new[]
         {

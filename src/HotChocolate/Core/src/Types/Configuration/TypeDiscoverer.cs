@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -15,10 +14,12 @@ namespace HotChocolate.Configuration
     {
         private readonly List<ITypeReference> _unregistered = new();
         private readonly List<ISchemaError> _errors = new();
+        private readonly List<ITypeReference> _resolved = new();
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
         private readonly ITypeInspector _typeInspector;
+        private readonly ITypeInterceptor _interceptor;
 
         public TypeDiscoverer(
             IDescriptorContext context,
@@ -57,10 +58,8 @@ namespace HotChocolate.Configuration
 
             if (includeSystemTypes)
             {
-                _unregistered.AddRange(
-                    IntrospectionTypes.CreateReferences(context.TypeInspector));
-                _unregistered.AddRange(
-                    Directives.CreateReferences(context.TypeInspector));
+                _unregistered.AddRange(IntrospectionTypes.CreateReferences(context));
+                _unregistered.AddRange(Directives.CreateReferences(context.TypeInspector));
             }
 
             _unregistered.AddRange(typeRegistry.GetTypeRefs());
@@ -70,17 +69,23 @@ namespace HotChocolate.Configuration
 
             _handlers = new ITypeRegistrarHandler[]
             {
-                new SchemaTypeReferenceHandler(),
                 new ExtendedTypeReferenceHandler(context.TypeInspector),
-                new SyntaxTypeReferenceHandler(context.TypeInspector)
+                new SchemaTypeReferenceHandler(),
+                new SyntaxTypeReferenceHandler(context.TypeInspector),
+                new FactoryTypeReferenceHandler(context),
+                new DependantFactoryTypeReferenceHandler(context)
             };
 
             _typeInspector = context.TypeInspector;
+            _interceptor = interceptor;
         }
 
         public IReadOnlyList<ISchemaError> DiscoverTypes()
         {
             const int max = 1000;
+            var processed = new HashSet<ITypeReference>();
+
+DISCOVER:
             var tries = 0;
             var resolved = false;
 
@@ -106,6 +111,23 @@ namespace HotChocolate.Configuration
             }
             while (resolved && tries < max && _errors.Count == 0);
 
+            if (_errors.Count == 0 && _unregistered.Count == 0)
+            {
+                foreach (ITypeReference typeReference in
+                    _interceptor.RegisterMoreTypes(_typeRegistry.Types))
+                {
+                    if (processed.Add(typeReference))
+                    {
+                        _unregistered.Add(typeReference);
+                    }
+                }
+
+                if (_unregistered.Count > 0)
+                {
+                    goto DISCOVER;
+                }
+            }
+
             CollectErrors();
 
             if (_errors.Count == 0)
@@ -120,9 +142,9 @@ namespace HotChocolate.Configuration
         {
             while (_unregistered.Count > 0)
             {
-                for (var i = 0; i < _handlers.Length; i++)
+                foreach (var typeRef in _unregistered)
                 {
-                    _handlers[i].Register(_typeRegistrar, _unregistered);
+                    _handlers[(int)typeRef.Kind].Handle(_typeRegistrar, typeRef);
                 }
 
                 _unregistered.Clear();
@@ -134,25 +156,34 @@ namespace HotChocolate.Configuration
         {
             var inferred = false;
 
-            foreach (ExtendedTypeReference unresolvedType in
-                _typeRegistrar.GetUnresolved().OfType<ExtendedTypeReference>())
+            foreach (var typeRef in _typeRegistrar.Unresolved)
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
+                if (typeRef is ExtendedTypeReference unresolvedType)
                 {
-                    inferred = true;
+                    if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
+                    {
+                        inferred = true;
 
-                    ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
-                    _unregistered.Add(typeReference);
-                    _typeRegistrar.MarkResolved(unresolvedType);
-                    _typeRegistry.TryRegister(unresolvedType, typeReference);
+                        ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
+                        _unregistered.Add(typeReference);
+                        _resolved.Add(unresolvedType);
+                        _typeRegistry.TryRegister(unresolvedType, typeReference);
+                    }
+                    else if (SchemaTypeResolver.TryInferSchemaType(
+                        _typeInspector, unresolvedType, out ExtendedTypeReference? schemaType))
+                    {
+                        inferred = true;
+                        _unregistered.Add(schemaType);
+                        _resolved.Add(unresolvedType);
+                    }
                 }
-                else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
-                {
-                    inferred = true;
+            }
 
-                    _unregistered.Add(schemaType);
-                    _typeRegistrar.MarkResolved(unresolvedType);
+            if (_resolved.Count > 0)
+            {
+                foreach (ITypeReference typeRef in _resolved)
+                {
+                    _typeRegistrar.MarkResolved(typeRef);
                 }
             }
 
@@ -161,17 +192,19 @@ namespace HotChocolate.Configuration
 
         private void CollectErrors()
         {
-            foreach (TypeDiscoveryContext context in
-                _typeRegistry.Types.Select(t => t.DiscoveryContext))
+            foreach (RegisteredType type in _typeRegistry.Types)
             {
-                _errors.AddRange(context.Errors);
+                if (type.Errors.Count == 0)
+                {
+                    continue;
+                }
+
+                _errors.AddRange(type.Errors);
             }
 
-            IReadOnlyCollection<ITypeReference> unresolved = _typeRegistrar.GetUnresolved();
-
-            if (_errors.Count == 0 && unresolved.Count > 0)
+            if (_errors.Count == 0 && _typeRegistrar.Unresolved.Count > 0)
             {
-                foreach (ITypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
+                foreach (ITypeReference unresolvedReference in _typeRegistrar.Unresolved)
                 {
                     var types = _typeRegistry.Types.Where(
                         t => t.Dependencies.Select(d => d.TypeReference)

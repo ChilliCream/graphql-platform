@@ -4,7 +4,7 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb
 {
-    internal static class FilterDefinitionExtensions
+    public static class FilterDefinitionExtensions
     {
         public static MongoDbFilterDefinition Wrap<T>(
             this FilterDefinition<T> filterDefinition) =>

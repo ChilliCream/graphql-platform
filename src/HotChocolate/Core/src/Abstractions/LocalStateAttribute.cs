@@ -3,8 +3,7 @@ using System;
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class LocalStateAttribute
-         : Attribute
+    public class LocalStateAttribute : Attribute
     {
         public LocalStateAttribute()
         {
@@ -15,6 +14,6 @@ namespace HotChocolate
             Key = key;
         }
 
-        public string Key { get; }
+        public string? Key { get; }
     }
 }

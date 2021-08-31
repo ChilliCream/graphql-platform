@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -7,8 +8,9 @@ namespace HotChocolate.Data.Filters.Expressions
         : QueryableComparableNotEqualsHandler
     {
         public QueryableEnumNotEqualsHandler(
-            ITypeConverter typeConverter)
-            : base(typeConverter)
+            ITypeConverter typeConverter,
+            InputParser inputParser)
+            : base(typeConverter, inputParser)
         {
         }
 

@@ -140,6 +140,24 @@ namespace HotChocolate.Execution.Instrumentation
         void TaskError(IExecutionTask task, IError error);
 
         /// <summary>
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        void StartProcessing(IRequestContext context);
+
+        /// <summary>
+        /// This event is called when the request execution pipeline scales
+        /// the task processors up or down.
+        /// </summary>
+        /// <param name="context">
+        /// The request that is being executed.
+        /// </param>
+        void StopProcessing(IRequestContext context);
+
+        /// <summary>
         /// Called when a subscription was created.
         /// </summary>
         /// <param name="subscription">
@@ -184,13 +202,13 @@ namespace HotChocolate.Execution.Instrumentation
         void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
 
         /// <summary>
-        /// Called when an error occured while producing the subscription event result.
+        /// Called when an error occurred while producing the subscription event result.
         /// </summary>
         /// <param name="subscription">
         /// The subscription object.
         /// </param>
         /// <param name="exception">
-        /// The exception that occured.
+        /// The exception that occurred.
         /// </param>
         void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
@@ -245,7 +263,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
-        void BatchDispatched(IRequestContext context);
+        IActivityScope DispatchBatch(IRequestContext context);
 
         /// <summary>
         /// A GraphQL request executor was created and is now able to execute GraphQL requests.

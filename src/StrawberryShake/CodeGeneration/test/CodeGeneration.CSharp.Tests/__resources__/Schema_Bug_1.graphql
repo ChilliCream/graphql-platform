@@ -6,7 +6,7 @@ type ActionType {
   name: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
   feats(order: [FeatSortInput!] where: FeatFilterInput): [Feat!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type ActionTypeCollectionSegment {
@@ -20,7 +20,7 @@ type Alignment {
   name: String!
   deities(order: [DeitySortInput!] where: DeityFilterInput): [Deity!]!
   planes(order: [PlaneSortInput!] where: PlaneFilterInput): [Plane!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type AlignmentCollectionSegment {
@@ -32,7 +32,7 @@ type AlignmentCollectionSegment {
 
 type ArmorGroup {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type ArmorGroupCollectionSegment {
@@ -43,12 +43,12 @@ type ArmorGroupCollectionSegment {
 }
 
 type BasePrerequisiteBinding {
-  id: Uuid!
+  id: UUID!
 }
 
 type BenefitType {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type BenefitTypeCollectionSegment {
@@ -62,7 +62,7 @@ type Bulk {
   name: String!
   lightWeight: Int!
   bulkWeight: Int!
-  id: Uuid!
+  id: UUID!
 }
 
 type BulkCollectionSegment {
@@ -75,7 +75,7 @@ type BulkCollectionSegment {
 type Class {
   name: String!
   baseHealth: Int!
-  id: Uuid!
+  id: UUID!
 }
 
 type ClassCollectionSegment {
@@ -95,19 +95,19 @@ type CollectionSegmentInfo {
 
 type Deity {
   name: String!
-  categoryId: Uuid!
+  categoryId: UUID!
   category: DeityCategory!
-  alignmentId: Uuid!
+  alignmentId: UUID!
   alignment: Alignment!
   followerAlignments(order: [DeityFollowerAlignmentSortInput!] where: DeityFollowerAlignmentFilterInput): [DeityFollowerAlignment!]!
   divineFonts(order: [DivineFontSortInput!] where: DivineFontFilterInput): [DivineFont!]!
   domains(order: [DomainSortInput!] where: DomainFilterInput): [Domain!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type DeityCategory {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type DeityCategoryCollectionSegment {
@@ -125,11 +125,11 @@ type DeityCollectionSegment {
 }
 
 type DeityFollowerAlignment {
-  deityId: Uuid!
+  deityId: UUID!
   deity: Deity!
-  alignmentId: Uuid!
+  alignmentId: UUID!
   alignment: Alignment!
-  id: Uuid!
+  id: UUID!
 }
 
 type DeityFollowerAlignmentCollectionSegment {
@@ -142,7 +142,7 @@ type DeityFollowerAlignmentCollectionSegment {
 type DivineFont {
   name: String!
   deities(order: [DeitySortInput!] where: DeityFilterInput): [Deity!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type DivineFontCollectionSegment {
@@ -156,7 +156,7 @@ type Domain {
   name: String!
   description: String!
   deities(order: [DeitySortInput!] where: DeityFilterInput): [Deity!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type DomainCollectionSegment {
@@ -172,25 +172,25 @@ type Feat {
   special: String
   trigger: String
   level: Int!
-  actionTypeId: Uuid!
+  actionTypeId: UUID!
   actionType: ActionType!
-  featTypeId: Uuid!
+  featTypeId: UUID!
   featType: FeatType!
-  frequencyId: Uuid
+  frequencyId: UUID
   frequency: Frequency
   rollableEffect: RollableEffect
-  rollableEffectId: Uuid
+  rollableEffectId: UUID
   details(order: [FeatDetailsBlockSortInput!] where: FeatDetailsBlockFilterInput): [FeatDetailsBlock!]!
   prerequisites(order: [FeatBindingSortInput!] where: FeatBindingFilterInput): [FeatBinding!]!
   requirements(order: [FeatRequirementSortInput!] where: FeatRequirementFilterInput): [FeatRequirement!]!
   traits(order: [TraitSortInput!] where: TraitFilterInput): [Trait!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type FeatBinding {
-  featId: Uuid!
+  featId: UUID!
   feat: Feat!
-  id: Uuid!
+  id: UUID!
 }
 
 type FeatCollectionSegment {
@@ -203,21 +203,21 @@ type FeatCollectionSegment {
 type FeatDetailsBlock {
   text: String!
   feat: Feat!
-  featId: Uuid!
-  id: Uuid!
+  featId: UUID!
+  id: UUID!
 }
 
 type FeatRequirement {
   text: String!
   feat: Feat!
-  featId: Uuid!
-  id: Uuid!
+  featId: UUID!
+  id: UUID!
 }
 
 type FeatType {
   name: String!
   feats(order: [FeatSortInput!] where: FeatFilterInput): [Feat!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type FeatTypeCollectionSegment {
@@ -231,7 +231,7 @@ type Frequency {
   name: String!
   amount: Int!
   timeSpan: TimeSpan!
-  id: Uuid!
+  id: UUID!
 }
 
 type FrequencyCollectionSegment {
@@ -244,10 +244,10 @@ type FrequencyCollectionSegment {
 type Heritage {
   name: String!
   description: String!
-  rarityId: Uuid!
+  rarityId: UUID!
   rarity: HeritageRarity!
   races(order: [RaceSortInput!] where: RaceFilterInput): [Race!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type HeritageCollectionSegment {
@@ -260,7 +260,7 @@ type HeritageCollectionSegment {
 type HeritageRarity {
   name: String!
   heritages(order: [HeritageSortInput!] where: HeritageFilterInput): [Heritage!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type HeritageRarityCollectionSegment {
@@ -274,7 +274,7 @@ type ItemCategory {
   name: String!
   description: String!
   pageNumber: Int!
-  id: Uuid!
+  id: UUID!
 }
 
 type ItemCategoryCollectionSegment {
@@ -286,10 +286,10 @@ type ItemCategoryCollectionSegment {
 
 type Language {
   name: String!
-  typeId: Uuid!
+  typeId: UUID!
   type: LanguageType!
   races(order: [RaceSortInput!] where: RaceFilterInput): [Race!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type LanguageCollectionSegment {
@@ -301,7 +301,7 @@ type LanguageCollectionSegment {
 
 type LanguageType {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type LanguageTypeCollectionSegment {
@@ -313,9 +313,9 @@ type LanguageTypeCollectionSegment {
 
 type Lore {
   name: String!
-  statModifierId: Uuid!
+  statModifierId: UUID!
   statModifier: Stat!
-  id: Uuid!
+  id: UUID!
 }
 
 type LoreCollectionSegment {
@@ -328,7 +328,7 @@ type LoreCollectionSegment {
 type MagicEssence {
   name: String!
   description: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type MagicEssenceCollectionSegment {
@@ -343,7 +343,7 @@ type MagicSchool {
   abbreviation: String!
   description: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type MagicSchoolCollectionSegment {
@@ -357,7 +357,7 @@ type MagicTradition {
   name: String!
   description: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type MagicTraditionCollectionSegment {
@@ -370,19 +370,19 @@ type MagicTraditionCollectionSegment {
 type Plane {
   name: String!
   description: String!
-  categoryId: Uuid!
+  categoryId: UUID!
   category: PlaneCategory!
-  alignmentId: Uuid!
+  alignmentId: UUID!
   alignment: Alignment!
   traits(order: [PlaneTraitSortInput!] where: PlaneTraitFilterInput): [PlaneTrait!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type PlaneCategory {
   name: String!
   description: String!
   planes(order: [PlaneSortInput!] where: PlaneFilterInput): [Plane!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type PlaneCategoryCollectionSegment {
@@ -403,7 +403,7 @@ type PlaneTrait {
   name: String!
   description: String!
   planes(order: [PlaneSortInput!] where: PlaneFilterInput): [Plane!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type PlaneTraitCollectionSegment {
@@ -414,9 +414,9 @@ type PlaneTraitCollectionSegment {
 }
 
 type Prerequisite {
-  bindingId: Uuid!
+  bindingId: UUID!
   binding: BasePrerequisiteBinding!
-  id: Uuid!
+  id: UUID!
 }
 
 type PrerequisiteCollectionSegment {
@@ -428,7 +428,7 @@ type PrerequisiteCollectionSegment {
 
 type Proficiency {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type ProficiencyCollectionSegment {
@@ -485,14 +485,14 @@ type Race {
   name: String!
   baseSpeed: Int!
   baseHealth: Int!
-  sizeId: Uuid!
+  sizeId: UUID!
   size: RaceSize!
-  rarityId: Uuid!
+  rarityId: UUID!
   rarity: RaceRarity!
   languages(order: [LanguageSortInput!] where: LanguageFilterInput): [Language!]!
   raceTraits(order: [RaceTraitSortInput!] where: RaceTraitFilterInput): [RaceTrait!]!
   heritages(order: [HeritageSortInput!] where: HeritageFilterInput): [Heritage!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type RaceCollectionSegment {
@@ -504,7 +504,7 @@ type RaceCollectionSegment {
 
 type RaceRarity {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type RaceRarityCollectionSegment {
@@ -520,7 +520,7 @@ type RaceSize {
   heightReach: Int!
   breadthReach: Int!
   races(order: [RaceSortInput!] where: RaceFilterInput): [Race!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type RaceSizeCollectionSegment {
@@ -533,7 +533,7 @@ type RaceSizeCollectionSegment {
 type RaceTrait {
   name: String!
   races(order: [RaceSortInput!] where: RaceFilterInput): [Race!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type RaceTraitCollectionSegment {
@@ -548,12 +548,12 @@ type RollableEffect {
   success: String
   failure: String
   criticalFailure: String
-  id: Uuid!
+  id: UUID!
 }
 
 type SavingThrowStat {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type SavingThrowStatCollectionSegment {
@@ -567,9 +567,9 @@ type Skill {
   name: String!
   hasArmorCheckPenalty: Boolean!
   hasRecallKnowledgeAction: Boolean!
-  statModifierId: Uuid!
+  statModifierId: UUID!
   statModifier: Stat!
-  id: Uuid!
+  id: UUID!
 }
 
 type SkillCollectionSegment {
@@ -581,7 +581,7 @@ type SkillCollectionSegment {
 
 type Source {
   name: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type SourceCollectionSegment {
@@ -601,16 +601,16 @@ type Spell {
   isDismissable: Boolean!
   area: String
   duration: String
-  actionTypeId: Uuid
+  actionTypeId: UUID
   actionType: ActionType
-  spellTypeId: Uuid!
+  spellTypeId: UUID!
   spellType: SpellType!
-  savingThrowStatId: Uuid
+  savingThrowStatId: UUID
   savingThrowStat: SavingThrowStat
   rollableEffect: RollableEffect
-  rollableEffectId: Uuid
+  rollableEffectId: UUID
   magicSchool: MagicSchool!
-  magicSchoolId: Uuid!
+  magicSchoolId: UUID!
   additionalDetails(order: [SpellDetailBlockSortInput!] where: SpellDetailBlockFilterInput): [SpellDetailBlock!]!
   traditions(order: [MagicTraditionSortInput!] where: MagicTraditionFilterInput): [MagicTradition!]!
   components(order: [SpellComponentSortInput!] where: SpellComponentFilterInput): [SpellComponent!]!
@@ -618,7 +618,7 @@ type Spell {
   heightenings(order: [SpellHeighteningSortInput!] where: SpellHeighteningFilterInput): [SpellHeightening!]!
   triggers(order: [SpellTriggerSortInput!] where: SpellTriggerFilterInput): [SpellTrigger!]!
   requirements(order: [SpellRequirementSortInput!] where: SpellRequirementFilterInput): [SpellRequirement!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellCollectionSegment {
@@ -632,7 +632,7 @@ type SpellComponent {
   name: String!
   description: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellComponentCollectionSegment {
@@ -645,45 +645,45 @@ type SpellComponentCollectionSegment {
 type SpellDetailBlock {
   text: String!
   spell: Spell!
-  spellId: Uuid!
-  id: Uuid!
+  spellId: UUID!
+  id: UUID!
 }
 
 type SpellHeightening {
   level: Int!
   description: String!
   details(order: [SpellHeighteningDetailBlockSortInput!] where: SpellHeighteningDetailBlockFilterInput): [SpellHeighteningDetailBlock!]!
-  spellId: Uuid!
+  spellId: UUID!
   spell: Spell!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellHeighteningDetailBlock {
   text: String!
-  spellHeighteningId: Uuid!
+  spellHeighteningId: UUID!
   spellHeightening: SpellHeightening!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellRequirement {
   text: String!
   spell: Spell!
-  spellId: Uuid!
-  id: Uuid!
+  spellId: UUID!
+  id: UUID!
 }
 
 type SpellTrigger {
   text: String!
-  spellId: Uuid!
+  spellId: UUID!
   spell: Spell!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellType {
   name: String!
   description: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type SpellTypeCollectionSegment {
@@ -696,7 +696,7 @@ type SpellTypeCollectionSegment {
 type Stat {
   name: String!
   abbreviation: String!
-  id: Uuid!
+  id: UUID!
 }
 
 type StatCollectionSegment {
@@ -711,7 +711,7 @@ type Trait {
   description: String!
   spells(order: [SpellSortInput!] where: SpellFilterInput): [Spell!]!
   feats(order: [FeatSortInput!] where: FeatFilterInput): [Feat!]!
-  id: Uuid!
+  id: UUID!
 }
 
 type TraitCollectionSegment {
@@ -819,18 +819,18 @@ input ClassSortInput {
 }
 
 input ComparableGuidOperationFilterInput {
-  eq: Uuid
-  neq: Uuid
-  in: [Uuid!]
-  nin: [Uuid!]
-  gt: Uuid
-  ngt: Uuid
-  gte: Uuid
-  ngte: Uuid
-  lt: Uuid
-  nlt: Uuid
-  lte: Uuid
-  nlte: Uuid
+  eq: UUID
+  neq: UUID
+  in: [UUID!]
+  nin: [UUID!]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
 }
 
 input ComparableInt32OperationFilterInput {
@@ -849,18 +849,18 @@ input ComparableInt32OperationFilterInput {
 }
 
 input ComparableNullableOfGuidOperationFilterInput {
-  eq: Uuid
-  neq: Uuid
-  in: [Uuid]
-  nin: [Uuid]
-  gt: Uuid
-  ngt: Uuid
-  gte: Uuid
-  ngte: Uuid
-  lt: Uuid
-  nlt: Uuid
-  lte: Uuid
-  nlte: Uuid
+  eq: UUID
+  neq: UUID
+  in: [UUID]
+  nin: [UUID]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
 }
 
 input ComparableNullableOfInt32OperationFilterInput {
@@ -1852,4 +1852,4 @@ directive @stream("If this argument label has a value other than null, it will b
 "The `TimeSpan` scalar represents an ISO-8601 compliant duration type."
 scalar TimeSpan
 
-scalar Uuid
+scalar UUID

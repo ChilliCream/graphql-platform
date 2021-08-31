@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
-                Definition.NativeDefaultValue = defaultValue;
+                Definition.RuntimeDefaultValue = defaultValue;
             }
         }
 
@@ -150,16 +150,16 @@ namespace HotChocolate.Types.Descriptors
         public static InputFieldDescriptor New(
             IDescriptorContext context,
             NameString fieldName) =>
-            new InputFieldDescriptor(context, fieldName);
+            new(context, fieldName);
 
         public static InputFieldDescriptor New(
             IDescriptorContext context,
             PropertyInfo property) =>
-            new InputFieldDescriptor(context, property);
+            new(context, property);
 
         public static InputFieldDescriptor From(
             IDescriptorContext context,
             InputFieldDefinition definition) =>
-            new InputFieldDescriptor(context, definition);
+            new(context, definition);
     }
 }

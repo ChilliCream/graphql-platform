@@ -12,21 +12,21 @@ namespace HotChocolate
             sourceType == typeof(string)
             || base.CanConvertFrom(context, sourceType);
 
-        public override object ConvertFrom(
+        public override object? ConvertFrom(
             ITypeDescriptorContext context,
             CultureInfo culture,
-            object value) =>
+            object? value) =>
             value is string s
-                ? NameString.ConvertFromString(s)
+                ? (object?)NameString.ConvertFromString(s)
                 : base.ConvertFrom(context, culture, value);
 
-        public override object ConvertTo(
+        public override object? ConvertTo(
             ITypeDescriptorContext context,
             CultureInfo culture,
-            object value,
+            object? value,
             Type destinationType) =>
             destinationType == typeof(string)
-                ? value.ToString()
+                ? value?.ToString()
                 : base.ConvertTo(context, culture, value, destinationType);
     }
 }

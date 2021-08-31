@@ -79,10 +79,10 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
+                .UseMiddleware<ToolOptionsFileMiddleware>(path)
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
                 .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
-                .Use(next => context =>
+                .Use(_ => context =>
                 {
                     context.Response.StatusCode = 404;
                     return Task.CompletedTask;
@@ -92,6 +92,203 @@ namespace Microsoft.AspNetCore.Builder
                 endpointRouteBuilder
                     .Map(pattern, requestPipeline.Build())
                     .WithDisplayName("Hot Chocolate GraphQL Pipeline"));
+        }
+
+        /// <summary>
+        /// Adds a GraphQL HTTP endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL HTTP endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
+            this IEndpointRouteBuilder endpointRouteBuilder,
+            RoutePattern? pattern = default,
+            NameString schemaName = default)
+        {
+            if (endpointRouteBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(endpointRouteBuilder));
+            }
+
+            pattern ??= RoutePatternFactory.Parse("/graphql");
+
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            requestPipeline
+                .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+                .Use(_ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+            return new GraphQLHttpEndpointConventionBuilder(
+                endpointRouteBuilder
+                    .Map(pattern, requestPipeline.Build())
+                    .WithDisplayName("Hot Chocolate GraphQL HTTP Pipeline"));
+        }
+
+        /// <summary>
+        /// Adds a GraphQL WebSocket endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL WebSocket endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static IEndpointConventionBuilder MapGraphQLWebSocket(
+            this IEndpointRouteBuilder endpointRouteBuilder,
+            RoutePattern? pattern = default,
+            NameString schemaName = default)
+        {
+            if (endpointRouteBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(endpointRouteBuilder));
+            }
+
+            pattern ??= RoutePatternFactory.Parse("/graphql/ws");
+
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            requestPipeline
+                .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                .Use(_ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+            return new GraphQLEndpointConventionBuilder(
+                endpointRouteBuilder
+                    .Map(pattern, requestPipeline.Build())
+                    .WithDisplayName("Hot Chocolate GraphQL WebSocket Pipeline"));
+        }
+
+        /// <summary>
+        /// Adds a GraphQL schema SDL endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL schema SDL endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static IEndpointConventionBuilder MapGraphQLSchema(
+            this IEndpointRouteBuilder endpointRouteBuilder,
+            RoutePattern? pattern = default,
+            NameString schemaName = default)
+        {
+            if (endpointRouteBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(endpointRouteBuilder));
+            }
+
+            pattern ??= RoutePatternFactory.Parse("/graphql/sdl");
+
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            requestPipeline
+                .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                .Use(_ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+            return new GraphQLEndpointConventionBuilder(
+                endpointRouteBuilder
+                    .Map(pattern, requestPipeline.Build())
+                    .WithDisplayName("Hot Chocolate GraphQL Schema Pipeline"));
+        }
+
+        /// <summary>
+        /// Adds a Banana Cake Pop endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="toolPath">
+        /// The path to which banana cake pop is mapped.
+        /// </param>
+        /// <param name="relativeRequestPath">
+        /// The relative path on which the server is listening for GraphQL requests.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        public static BananaCakePopEndpointConventionBuilder MapBananaCakePop(
+            this IEndpointRouteBuilder endpointRouteBuilder,
+            PathString? toolPath = default,
+            string? relativeRequestPath = "..")
+        {
+            if (endpointRouteBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(endpointRouteBuilder));
+            }
+
+            toolPath ??= "/graphql/ui";
+            relativeRequestPath ??= "..";
+
+            RoutePattern pattern = RoutePatternFactory.Parse(toolPath.ToString() + "/{**slug}");
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            IFileProvider fileProvider = CreateFileProvider();
+
+            requestPipeline
+                .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, toolPath)
+                .UseMiddleware<ToolOptionsFileMiddleware>(toolPath)
+                .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, toolPath)
+                .Use(_ => context =>
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
+
+            IEndpointConventionBuilder builder = endpointRouteBuilder
+                .Map(pattern, requestPipeline.Build())
+                .WithDisplayName("Banana Cake Pop Pipeline")
+                .WithMetadata(new GraphQLEndpointOptions { GraphQLEndpoint = relativeRequestPath });
+
+            return new BananaCakePopEndpointConventionBuilder(builder);
         }
 
         /// <summary>
@@ -112,30 +309,46 @@ namespace Microsoft.AspNetCore.Builder
             GraphQLServerOptions serverOptions) =>
             builder.WithMetadata(serverOptions);
 
-        [Obsolete("Use the new routing API.")]
-        public static IApplicationBuilder UseGraphQL(
-            this IApplicationBuilder applicationBuilder,
-            PathString pathMatch = default,
-            NameString schemaName = default)
-        {
-            if (applicationBuilder is null)
+        /// <summary>
+        /// Specifies the GraphQL HTTP request options.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="GraphQLEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="httpOptions">
+        /// The GraphQL HTTP request options.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="GraphQLEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        public static GraphQLHttpEndpointConventionBuilder WithOptions(
+            this GraphQLHttpEndpointConventionBuilder builder,
+            GraphQLHttpOptions httpOptions) =>
+            builder.WithMetadata(new GraphQLServerOptions
             {
-                throw new ArgumentNullException(nameof(applicationBuilder));
-            }
+                AllowedGetOperations = httpOptions.AllowedGetOperations,
+                EnableGetRequests = httpOptions.EnableGetRequests,
+                EnableMultipartRequests = httpOptions.EnableMultipartRequests
+            });
 
-            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
-
-            return applicationBuilder.Map(
-                pathMatch,
-                app =>
-                {
-                    app.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
-                    app.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
-                    app.UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault);
-                    app.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
-                    app.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
-                });
-        }
+        /// <summary>
+        /// Specifies the Banana Cake Pop tooling options.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="BananaCakePopEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="toolOptions">
+        /// The Banana Cake Pop tooling options.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="BananaCakePopEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        public static BananaCakePopEndpointConventionBuilder WithOptions(
+            this BananaCakePopEndpointConventionBuilder builder,
+            GraphQLToolOptions toolOptions) =>
+            builder.WithMetadata(new GraphQLServerOptions { Tool = toolOptions });
 
         private static IFileProvider CreateFileProvider()
         {

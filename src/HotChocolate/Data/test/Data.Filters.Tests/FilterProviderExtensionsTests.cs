@@ -2,8 +2,11 @@ using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Data
@@ -14,8 +17,10 @@ namespace HotChocolate.Data
         public void Merge_Should_Merge_HandlersAndPrependExtensionHandlers()
         {
             // arrange
-            var firstFieldHandler = new QueryableStringContainsHandler();
-            var extensionFieldHandler = new QueryableStringContainsHandler();
+            var typeConverterMock = new Mock<ITypeConverter>();
+            var inputParser = new InputParser(typeConverterMock.Object);
+            var firstFieldHandler = new QueryableStringContainsHandler(inputParser);
+            var extensionFieldHandler = new QueryableStringContainsHandler(inputParser);
             var convention = new MockProvider(x => x.AddFieldHandler(firstFieldHandler));
             var extension = new MockProviderExtensions(
                 x => x.AddFieldHandler(extensionFieldHandler));
