@@ -19,7 +19,6 @@ namespace HotChocolate.Configuration
                 StrictValidation = false,
                 SortFieldsByName = true,
                 UseXmlDocumentation = false,
-                ResolveXmlDocumentationFileName = assembly => "docs.xml",
                 DefaultBindingBehavior = BindingBehavior.Explicit,
                 FieldMiddleware = FieldMiddlewareApplication.AllFields,
                 PreserveSyntaxNodes = true
@@ -30,6 +29,33 @@ namespace HotChocolate.Configuration
 
             // assert
             copied.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Copy_Options_ResolveXmlDocumentationFileName()
+        {
+            // arrange
+            var options = new SchemaOptions
+            {
+                QueryTypeName = "A",
+                MutationTypeName = "B",
+                SubscriptionTypeName = "C",
+                StrictValidation = false,
+                SortFieldsByName = true,
+                UseXmlDocumentation = false,
+                ResolveXmlDocumentationFileName = assembly => "docs.xml",
+                DefaultBindingBehavior = BindingBehavior.Explicit,
+                FieldMiddleware = FieldMiddlewareApplication.AllFields,
+                PreserveSyntaxNodes = true
+            };
+
+            // act
+            var copied = new ReadOnlySchemaOptions(options);
+
+            // assert
+            Assert.Same(
+                options.ResolveXmlDocumentationFileName, 
+                copied.ResolveXmlDocumentationFileName);
         }
 
         [Fact]

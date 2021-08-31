@@ -24,14 +24,13 @@ namespace HotChocolate.Types.Descriptors
             _resolveXmlDocumentationFileName = null;
         }
 
-        public XmlDocumentationFileResolver(
-            Func<Assembly, string>? resolveXmlDocumentationFileName)
+        public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
         {
             _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
         }
 
         public bool TryGetXmlDocument(
-            Assembly assembly, 
+            Assembly assembly,
             [NotNullWhen(true)] out XDocument? document)
         {
             var fullName = assembly.GetName().FullName;
@@ -51,7 +50,7 @@ namespace HotChocolate.Types.Descriptors
             return document != null;
         }
 
-        private string? GetXmlDocumentationPath(Assembly assembly)
+        private string? GetXmlDocumentationPath(Assembly? assembly)
         {
             try
             {
@@ -71,8 +70,8 @@ namespace HotChocolate.Types.Descriptors
                     return null;
                 }
 
-                var expectedDocFile = _resolveXmlDocumentationFileName is null 
-                    ? $"{assemblyName.Name}.xml" 
+                var expectedDocFile = _resolveXmlDocumentationFileName is null
+                    ? $"{assemblyName.Name}.xml"
                     : _resolveXmlDocumentationFileName(assembly);
 
                 string path;
