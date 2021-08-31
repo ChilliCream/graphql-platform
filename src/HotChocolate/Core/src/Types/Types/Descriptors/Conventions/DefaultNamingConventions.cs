@@ -21,12 +21,15 @@ namespace HotChocolate.Types.Descriptors
                 ?? throw new ArgumentNullException(nameof(documentation));
         }
 
-        public DefaultNamingConventions()
-            : this(true)
+        public DefaultNamingConventions() : this(true)
+        {
+        }
+        
+        public DefaultNamingConventions(bool useXmlDocumentation) : this(useXmlDocumentation, null)
         {
         }
 
-        public DefaultNamingConventions(bool useXmlDocumentation, Func<Assembly, string>? resolveXmlDocumentationFileName = null)
+        public DefaultNamingConventions(bool useXmlDocumentation, Func<Assembly, string>? resolveXmlDocumentationFileName)
         {
             _documentation = useXmlDocumentation
                 ? (IDocumentationProvider)new XmlDocumentationProvider(
