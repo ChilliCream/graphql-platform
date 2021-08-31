@@ -79,7 +79,8 @@ namespace HotChocolate.Types.Descriptors
                         () => Options.UseXmlDocumentation
                             ? new DefaultNamingConventions(
                                 new XmlDocumentationProvider(
-                                    new XmlDocumentationFileResolver(),
+                                    new XmlDocumentationFileResolver(
+                                        Options.ResolveXmlDocumentationFileName),
                                     Services.GetService<ObjectPool<StringBuilder>>() ??
                                     new NoOpStringBuilderPool()))
                             : new DefaultNamingConventions(
