@@ -312,7 +312,7 @@ namespace StrawberryShake
                 {
                     hash ^= GetHashCodeFromList(inner) * 397;
                 }
-                else if (element is not null)
+                else if(element is not null)
                 {
                     hash ^= element.GetHashCode() * 397;
                 }
