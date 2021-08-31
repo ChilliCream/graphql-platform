@@ -40,17 +40,17 @@ namespace StrawberryShake.Transport.Http
 
             try
             {
-#if NETSTANDARD2_0
+                #if NETSTANDARD2_0
                 using Stream stream =
                     await responseMessage.Content
                         .ReadAsStreamAsync()
                         .ConfigureAwait(false);
-#else
+                #else
                 await using Stream stream =
                     await responseMessage.Content
                         .ReadAsStreamAsync()
                         .ConfigureAwait(false);
-#endif
+                #endif
 
                 body = await JsonDocument
                     .ParseAsync(stream, cancellationToken: cancellationToken)

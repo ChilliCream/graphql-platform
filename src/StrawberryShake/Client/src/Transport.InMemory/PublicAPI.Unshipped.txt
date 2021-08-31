@@ -1,0 +1,8 @@
+StrawberryShake.Transport.InMemory.DefaultInMemoryClientFactory.DefaultInMemoryClientFactory(IRequestExecutorResolver! requestExecutorResolver, IOptionsMonitor<StrawberryShake.Transport.InMemory.InMemoryClientFactoryOptions!>! optionsMonitor) -> void
+StrawberryShake.Transport.InMemory.IInMemoryClient.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<IExecutionResult!>
+StrawberryShake.Transport.InMemory.IInMemoryClient.SchemaName.get -> NameString!
+StrawberryShake.Transport.InMemory.IInMemoryRequestInterceptor.OnCreateAsync(System.IServiceProvider! serviceProvider, StrawberryShake.OperationRequest! request, IQueryRequestBuilder! requestBuilder, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+StrawberryShake.Transport.InMemory.InMemoryClient.ExecuteAsync(StrawberryShake.OperationRequest! request, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<IExecutionResult!>
+StrawberryShake.Transport.InMemory.InMemoryClient.SchemaName.get -> NameString!
+~StrawberryShake.Transport.InMemory.IInMemoryClient.Executor.get -> IRequestExecutor?
+~StrawberryShake.Transport.InMemory.InMemoryClient.Executor.get -> IRequestExecutor?
