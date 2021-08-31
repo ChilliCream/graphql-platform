@@ -9,7 +9,7 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors
 {
-        public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
+    public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
     {
         private const string _bin = "bin";
 
