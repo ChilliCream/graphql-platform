@@ -96,6 +96,22 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
+        public void When_we_use_custom_documentation_files_they_are_correctly_loaded()
+        {
+            // arrange
+            var documentationProvider = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver(_ => "Dummy.xml"),
+                new NoOpStringBuilderPool());
+
+            // act
+            var description = documentationProvider.GetDescription(
+                typeof(BaseBaseClass));
+
+            // assert
+            Assert.Equal("I am the most base class from dummy.", description);
+        }
+
+        [Fact]
         public void When_parameter_has_inheritdoc_then_it_is_resolved()
         {
             // arrange

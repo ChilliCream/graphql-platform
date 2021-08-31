@@ -1,6 +1,10 @@
+using System;
+using System.Reflection;
+using HotChocolate.Types;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Types;
+
+#nullable enable
 
 namespace HotChocolate
 {
@@ -12,17 +16,17 @@ namespace HotChocolate
         /// <summary>
         /// Gets or sets the name of the query type.
         /// </summary>
-        public string QueryTypeName { get; set; }
+        public string? QueryTypeName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the mutation type.
         /// </summary>
-        public string MutationTypeName { get; set; }
+        public string? MutationTypeName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the subscription type.
         /// </summary>
-        public string SubscriptionTypeName { get; set; }
+        public string? SubscriptionTypeName { get; set; }
 
         /// <summary>
         /// Defines if the schema allows the query type to be omitted.
@@ -33,6 +37,12 @@ namespace HotChocolate
         /// Defines if the CSharp XML documentation shall be integrated.
         /// </summary>
         public bool UseXmlDocumentation { get; set; } = true;
+
+        /// <summary>
+        /// A delegate which defines the name of the XML documentation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
+        public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; } = null;
 
         /// <summary>
         /// Defines if fields shall be sorted by name.
@@ -104,6 +114,7 @@ namespace HotChocolate
                 SubscriptionTypeName = options.SubscriptionTypeName,
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
+                ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName,
                 FieldMiddleware = options.FieldMiddleware,
                 DefaultBindingBehavior = options.DefaultBindingBehavior,
                 PreserveSyntaxNodes = options.PreserveSyntaxNodes,
@@ -111,7 +122,10 @@ namespace HotChocolate
                 DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
                 AllowInlining = options.AllowInlining,
                 DefaultResolverStrategy = options.DefaultResolverStrategy,
-                ValidatePipelineOrder = options.ValidatePipelineOrder
+                ValidatePipelineOrder = options.ValidatePipelineOrder,
+                StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
+                RemoveUnreachableTypes = options.RemoveUnreachableTypes,
+                SortFieldsByName = options.SortFieldsByName
             };
         }
     }
