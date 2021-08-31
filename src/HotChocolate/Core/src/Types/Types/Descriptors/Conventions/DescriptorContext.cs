@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 
@@ -80,7 +79,8 @@ namespace HotChocolate.Types.Descriptors
                         () => Options.UseXmlDocumentation
                             ? new DefaultNamingConventions(
                                 new XmlDocumentationProvider(
-                                    new XmlDocumentationFileResolver(),
+                                    new XmlDocumentationFileResolver(
+                                        Options.ResolveXmlDocumentationFileName),
                                     Services.GetService<ObjectPool<StringBuilder>>() ??
                                     new NoOpStringBuilderPool()))
                             : new DefaultNamingConventions(
@@ -183,8 +183,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 for (var i = 0; i < factories.Count; i++)
                 {
-                    IConvention conv = factories[i](_services);
-                    if (conv is IConventionExtension extension)
+                    IConvention convention = factories[i](_services);
+                    if (convention is IConventionExtension extension)
                     {
                         extensions.Add(extension);
                     }
@@ -195,11 +195,11 @@ namespace HotChocolate.Types.Descriptors
                             throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
                                 typeof(T),
                                 createdConvention,
-                                conv,
+                                convention,
                                 scope);
                         }
 
-                        createdConvention = conv;
+                        createdConvention = convention;
                     }
                 }
             }

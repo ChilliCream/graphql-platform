@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -11,20 +14,34 @@ namespace HotChocolate.Types.Descriptors
     {
         private const string _bin = "bin";
 
+        private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
+
         private readonly ConcurrentDictionary<string, XDocument> _cache =
             new(StringComparer.OrdinalIgnoreCase);
 
-        public bool TryGetXmlDocument(Assembly assembly, out XDocument document)
+        public XmlDocumentationFileResolver()
+        {
+            _resolveXmlDocumentationFileName = null;
+        }
+
+        public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
+        {
+            _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
+        }
+
+        public bool TryGetXmlDocument(
+            Assembly assembly,
+            [NotNullWhen(true)] out XDocument? document)
         {
             var fullName = assembly.GetName().FullName;
 
-            if (!_cache.TryGetValue(fullName, out XDocument doc))
+            if (!_cache.TryGetValue(fullName, out XDocument? doc))
             {
-                var pathToXmlFile = GetXmlDocumentationPath(assembly);
+                var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
 
-                if (File.Exists(pathToXmlFile))
+                if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
                 {
-                    doc = XDocument.Load(pathToXmlFile, LoadOptions.PreserveWhitespace);
+                    doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
                     _cache[fullName] = doc;
                 }
             }
@@ -33,7 +50,7 @@ namespace HotChocolate.Types.Descriptors
             return document != null;
         }
 
-        private string GetXmlDocumentationPath(Assembly assembly)
+        private string? GetXmlDocumentationPath(Assembly? assembly)
         {
             try
             {
@@ -53,7 +70,9 @@ namespace HotChocolate.Types.Descriptors
                     return null;
                 }
 
-                var expectedDocFile = $"{assemblyName.Name}.xml";
+                var expectedDocFile = _resolveXmlDocumentationFileName is null
+                    ? $"{assemblyName.Name}.xml"
+                    : _resolveXmlDocumentationFileName(assembly);
 
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))

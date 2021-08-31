@@ -1,9 +1,11 @@
-﻿using System;
-using HotChocolate.Configuration;
+using System;
+using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
-namespace HotChocolate
+#nullable enable
+
+namespace HotChocolate.Configuration
 {
     /// <summary>
     /// Represents read-only schema options.
@@ -32,6 +34,7 @@ namespace HotChocolate
             StrictValidation = options.StrictValidation;
             SortFieldsByName = options.SortFieldsByName;
             UseXmlDocumentation = options.UseXmlDocumentation;
+            ResolveXmlDocumentationFileName = options.ResolveXmlDocumentationFileName;
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
             FieldMiddleware = options.FieldMiddleware;
@@ -68,6 +71,12 @@ namespace HotChocolate
         /// Defines if the CSharp XML documentation shall be integrated.
         /// </summary>
         public bool UseXmlDocumentation { get; }
+
+         /// <summary>
+         /// A delegate which resolves the name of the XML documentation file to be read.
+         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+         /// </summary>
+        public Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.
