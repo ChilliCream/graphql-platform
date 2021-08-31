@@ -1,4 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Pagination
@@ -40,6 +47,52 @@ namespace HotChocolate.Types.Pagination
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public async Task Extend_Edge_Type_And_Inject_Edge_Value_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddTypeExtension<UsersEdgeExtensions>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Extend_Edge_Type_And_Inject_Edge_Value_Request()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddTypeExtension<UsersEdgeExtensions>()
+                .ExecuteRequestAsync("{ users { edges { test } } }")
+                .MatchSnapshotAsync();
+        }
+
+        public class Query
+        {
+            [UsePaging]
+            public IEnumerable<User> GetUsers() => new[] { new User { Name = "Hello" } };
+        }
+
+        [ExtendObjectType("UsersEdge")]
+        public class UsersEdgeExtensions
+        {
+            public string Test([Parent] Edge<User> edge)
+            {
+                return edge.Node.Name;
+            }
+        }
+
+        public class User
+        {
+            public string Name { get; set; }
         }
     }
 }
