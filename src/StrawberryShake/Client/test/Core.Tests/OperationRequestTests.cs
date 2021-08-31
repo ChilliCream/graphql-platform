@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using Moq;
 using Xunit;
 
@@ -104,6 +105,132 @@ namespace StrawberryShake
         }
 
         [Fact]
+        public void Equals_With_ContentHeaders()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var c = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                new Dictionary<string, string> { { "c", "cc" } });
+
+            // act
+            // assert
+            Assert.True(a.Equals(b));
+
+            // act
+            // assert
+            Assert.False(a.Equals(c));
+        }
+
+        [Fact]
+        public void Equals_With_RequestHeaders()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var c = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                new Dictionary<string, string> { { "c", "cc" } });
+
+            // act
+            // assert
+            Assert.True(a.Equals(b));
+
+            // act
+            // assert
+            Assert.False(a.Equals(c));
+        }
+
+        [Fact]
+        public void Equals_With_AuthenticationHeaderValue()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                null,
+                new AuthenticationHeaderValue("Bearer", "myToken"));
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                null,
+                new AuthenticationHeaderValue("Bearer", "myToken"));
+
+            var c = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                null,
+                new AuthenticationHeaderValue("Bearer", "myToken2"));
+
+            // act
+            // assert
+            Assert.True(a.Equals(b));
+
+            // act
+            // assert
+            Assert.False(a.Equals(c));
+        }
+
+        [Fact]
         public void GetHashCode_With_Variables()
         {
             // arrange
@@ -154,6 +281,102 @@ namespace StrawberryShake
         }
 
         [Fact]
+        public void GetHashCode_With_ContentHeaders()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            // act
+            var hashCodeA = a.GetHashCode();
+            var hashCodeB = b.GetHashCode();
+
+            // assert
+            Assert.Equal(hashCodeA, hashCodeB);
+        }
+
+        [Fact]
+        public void GetHashCode_With_RequestHeaders()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                new Dictionary<string, string> { { "a", "aa" } });
+
+            // act
+            var hashCodeA = a.GetHashCode();
+            var hashCodeB = b.GetHashCode();
+
+            // assert
+            Assert.Equal(hashCodeA, hashCodeB);
+        }
+
+        [Fact]
+        public void GetHashCode_With_AuthenticationHeaderValue()
+        {
+            // arrange
+            var document = new Mock<IDocument>();
+
+            var a = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                null,
+                new AuthenticationHeaderValue("Bearer", "myToken"));
+
+            var b = new OperationRequest(
+                null,
+                "abc",
+                document.Object,
+                null,
+                RequestStrategy.Default,
+                null,
+                null,
+                new AuthenticationHeaderValue("Bearer", "myToken"));
+
+            // act
+            var hashCodeA = a.GetHashCode();
+            var hashCodeB = b.GetHashCode();
+
+            // assert
+            Assert.Equal(hashCodeA, hashCodeB);
+        }
+
+        [Fact]
         public void Deconstruct()
         {
             // arrange
@@ -172,7 +395,10 @@ namespace StrawberryShake
             IReadOnlyDictionary<string, object?>? ext;
             IReadOnlyDictionary<string, object?>? contextData;
             RequestStrategy strategy;
-            (id, name, doc, vars, ext, contextData, strategy) = request;
+            IDictionary<string, string> contentHeaders;
+            IDictionary<string, string> requestHeaders;
+            AuthenticationHeaderValue? authenticationHeaderValue;
+            (id, name, doc, vars, ext, contextData, strategy, contentHeaders, requestHeaders, authenticationHeaderValue) = request;
 
             // assert
             Assert.Equal(request.Id, id);
@@ -182,6 +408,9 @@ namespace StrawberryShake
             Assert.Null(ext);
             Assert.Null(contextData);
             Assert.Equal(request.Strategy, strategy);
+            Assert.Equal(request.ContentHeaders, contentHeaders);
+            Assert.Equal(request.RequestHeaders, requestHeaders);
+            Assert.Equal(request.AuthenticationHeaderValue, authenticationHeaderValue);
         }
     }
 }
