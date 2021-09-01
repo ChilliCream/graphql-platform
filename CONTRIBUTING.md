@@ -60,8 +60,12 @@ Core contributors will review your pull request and provide feedback.
 
 ## How to launch and build the solution
 
-1. Run one of the build scripts in the root of the repository (build.ps1, build.sh or build.cmd). 
-2. Open the All.sln file the script created for you in the src directory.
+We use [Nuke](https://nuke.build/) for build automation. It can be used to bootstrap you a complete solution file.
+Simply run build.ps1, build.sh or build.cmd and then in the src directory you can open up All.sln.
+
+There are other available commands too. As setup in the [.build](./.build/) directory.
+
+Other more focused solution files exist if you want to narrow in on a particular part of the platform.
 
 ## Code of conduct
 
