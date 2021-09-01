@@ -4,8 +4,7 @@ namespace GreenDonut
 {
     public static class DataLoaderOptionsExtensions
     {
-        public static int GetBatchSize<TKey>(this DataLoaderOptions<TKey> options)
-            where TKey : notnull
+        public static int GetBatchSize(this DataLoaderOptions options)
         {
             if (options == null)
             {

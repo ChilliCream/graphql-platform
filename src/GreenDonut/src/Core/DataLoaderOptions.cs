@@ -3,13 +3,10 @@ namespace GreenDonut
     /// <summary>
     /// An options object to configure the behavior for <c>DataLoader</c>.
     /// </summary>
-    /// <typeparam name="TKey">A key type.</typeparam>
-    public class DataLoaderOptions<TKey>
-        where TKey : notnull
+    public class DataLoaderOptions
     {
         /// <summary>
         /// Initializes a new instance of the
-        /// <see cref="DataLoaderOptions{TKey}"/> class.
         /// </summary>
         public DataLoaderOptions()
         {
@@ -31,14 +28,16 @@ namespace GreenDonut
         /// dataloader will use the default cache implementation.
         /// The default value is set to <c>null</c>.
         /// </summary>
-        public ITaskCache? Cache {get; set;}
+        public ITaskCache? Cache { get; set; }
+
+        public IDataLoaderDiagnosticEvents DiagnosticEvents { get; set; }
 
         /// <summary>
         /// Gets or sets a delegate which resolves the cache key which might
         /// differ from the key that is used to accessing the backend.
         /// The default value is set to <c>null</c>.
         /// </summary>
-        public CacheKeyResolverDelegate<TKey>? CacheKeyResolver { get; set; }
+        public CacheKeyResolverDelegate CacheKeyResolver { get; set; }
 
         /// <summary>
         /// Gets or sets the cache size. If set to <c>10</c> for example, it
@@ -60,5 +59,10 @@ namespace GreenDonut
         /// default value is set to <c>0</c>.
         /// </summary>
         public int MaxBatchSize { get; set; }
+    }
+
+    public interface IDataLoaderDiagnosticEvents
+    {
+        void ReceivedValueFromCache(object key, object cacheKey, object value);
     }
 }

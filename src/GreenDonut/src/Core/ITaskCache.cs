@@ -61,5 +61,7 @@ namespace GreenDonut
         /// A value indicating whether the get request returned an entry.
         /// </returns>
         bool TryGetValue(object key, [NotNullWhen(true)]out object? value);
+
+        object GetOrSetValue(object key, Func<object> createValue);
     }
 }
