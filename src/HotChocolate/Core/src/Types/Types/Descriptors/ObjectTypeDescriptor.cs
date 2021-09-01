@@ -247,7 +247,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = propertyOrMethod.TryExtractMember();
+            MemberInfo? member = propertyOrMethod.TryExtractMember();
 
             if (member is PropertyInfo or MethodInfo)
             {
