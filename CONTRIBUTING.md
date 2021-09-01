@@ -32,6 +32,8 @@ Before you spend time writing code, make sure of the following things:
 
 After this you can fork our repository to implement your changes. If you are unfamiliar with forking, be sure to read [this guide](https://guides.github.com/activities/forking/) first.
 
+To get started with the codebase, see [How to launch and build the solution](#how-to-launch-and-build-the-solution).
+
 ### Before submitting a pull request
 
 Before submitting a pull request containing your changes, make sure that it checks the following requirements:
@@ -55,6 +57,11 @@ Follow [this guide](https://docs.github.com/en/github/collaborating-with-issues-
 ### During pull request review
 
 Core contributors will review your pull request and provide feedback.
+
+## How to launch and build the solution
+
+1. Run one of the build scripts in the root of the repository (build.ps1, build.sh or build.cmd). 
+2. Open the All.sln file the script created for you in the src directory.
 
 ## Code of conduct
 
