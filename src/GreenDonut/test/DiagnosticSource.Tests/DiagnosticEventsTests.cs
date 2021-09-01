@@ -8,6 +8,7 @@ using Xunit;
 
 namespace GreenDonut
 {
+    /*
     public class DiagnosticEventsTests
     {
         private readonly Dictionary<string, Result<string>> _results =
@@ -79,4 +80,5 @@ namespace GreenDonut
             }
         }
     }
+    */
 }

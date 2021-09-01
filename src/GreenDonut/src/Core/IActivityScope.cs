@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Execution.Instrumentation
+namespace GreenDonut
 {
     /// <summary>
     /// An activity scope represents the execution of a certain activity.

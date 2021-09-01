@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,13 +14,18 @@ namespace GreenDonut
         /// returned in the exact same order the keys were provided.
         /// </summary>
         /// <param name="keys">A list of keys.</param>
+        /// <param name="results">
+        /// The resolved values which need to be in the exact same
+        /// order as the keys were provided.
+        /// </param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>
         /// A list of results which are in the exact same order as the provided
         /// keys.
         /// </returns>
-        protected abstract ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected abstract ValueTask FetchAsync(
             IReadOnlyList<TKey> keys,
+            Memory<Result<TValue>> results,
             CancellationToken cancellationToken);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,29 +13,34 @@ namespace GreenDonut
     {
         protected BatchDataLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions<TKey>? options = null)
+            DataLoaderOptions? options = null)
             : base(batchScheduler, options)
         { }
 
-        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask FetchAsync(
             IReadOnlyList<TKey> keys,
+            Memory<Result<TValue>> results,
             CancellationToken cancellationToken)
         {
             IReadOnlyDictionary<TKey, TValue> result =
                 await LoadBatchAsync(keys, cancellationToken)
                     .ConfigureAwait(false);
 
-            var items = new Result<TValue>[keys.Count];
+            CopyResults(keys, results.Span, result);
+        }
 
+        private void CopyResults(
+            IReadOnlyList<TKey> keys,
+            Span<Result<TValue>> results,
+            IReadOnlyDictionary<TKey, TValue> resultMap)
+        {
             for (var i = 0; i < keys.Count; i++)
             {
-                if (result.TryGetValue(keys[i], out TValue? value))
+                if (resultMap.TryGetValue(keys[i], out TValue? value))
                 {
-                    items[i] = value;
+                    results[i] = value;
                 }
             }
-
-            return items;
         }
 
         protected abstract Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(

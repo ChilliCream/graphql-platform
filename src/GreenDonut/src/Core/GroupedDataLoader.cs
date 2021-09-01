@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,26 +14,31 @@ namespace GreenDonut
     {
         protected GroupedDataLoader(
             IBatchScheduler batchScheduler,
-            DataLoaderOptions<TKey>? options = null)
+            DataLoaderOptions? options = null)
             : base(batchScheduler, options)
         { }
 
-        protected sealed override async ValueTask<IReadOnlyList<Result<TValue[]>>> FetchAsync(
+        protected sealed override async ValueTask FetchAsync(
             IReadOnlyList<TKey> keys,
+            Memory<Result<TValue[]>> results,
             CancellationToken cancellationToken)
         {
             ILookup<TKey, TValue> result =
                 await LoadGroupedBatchAsync(keys, cancellationToken)
                     .ConfigureAwait(false);
 
-            var items = new Result<TValue[]>[keys.Count];
+            CopyResults(keys, results.Span, result);
+        }
 
+        private void CopyResults(
+            IReadOnlyList<TKey> keys,
+            Span<Result<TValue[]>> results,
+            ILookup<TKey, TValue> resultLookup)
+        {
             for (var i = 0; i < keys.Count; i++)
             {
-                items[i] = result[keys[i]].ToArray();
+                results[i] = resultLookup[keys[i]].ToArray();
             }
-
-            return items;
         }
 
         protected abstract Task<ILookup<TKey, TValue>> LoadGroupedBatchAsync(

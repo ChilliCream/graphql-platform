@@ -1,5 +1,3 @@
-using System;
-
 namespace GreenDonut
 {
     /// <summary>
@@ -8,6 +6,9 @@ namespace GreenDonut
     /// in any way.
     /// </summary>
     /// <param name="key">A key.</param>
+    /// <param name="type">A type.</param>
     /// <returns>A cache key.</returns>
-    public delegate object CacheKeyResolverDelegate(object key, Type valueType);
+    public delegate TaskCacheKey CacheKeyFactoryDelegate(string type, object key);
+
+    public delegate string CacheKeyTypeFactoryDelegate(IDataLoader dataLoader);
 }

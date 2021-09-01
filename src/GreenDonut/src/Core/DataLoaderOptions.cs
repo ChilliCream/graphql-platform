@@ -6,20 +6,11 @@ namespace GreenDonut
     public class DataLoaderOptions
     {
         /// <summary>
-        /// Initializes a new instance of the
+        /// Gets or sets the maximum batch size per request. If set to
+        /// <c>0</c>, the request will be not cut into smaller batches. The
+        /// default value is set to <c>0</c>.
         /// </summary>
-        public DataLoaderOptions()
-        {
-            Batch = true;
-            CacheSize = Defaults.CacheSize;
-            Caching = true;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether requests should be sliced into smaller batches.
-        /// The default value is <c>true</c>.
-        /// </summary>
-        public bool Batch { get; set; }
+        public int MaxBatchSize { get; set; }
 
         /// <summary>
         /// Gets or sets a cache instance to either share a cache instance
@@ -30,39 +21,36 @@ namespace GreenDonut
         /// </summary>
         public ITaskCache? Cache { get; set; }
 
-        public IDataLoaderDiagnosticEvents DiagnosticEvents { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether caching is enabled. The
+        /// default value is <c>true</c>.
+        /// </summary>
+        public bool Caching { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a delegate which resolves the cache key which might
         /// differ from the key that is used to accessing the backend.
         /// The default value is set to <c>null</c>.
         /// </summary>
-        public CacheKeyResolverDelegate CacheKeyResolver { get; set; }
+        public CacheKeyFactoryDelegate CacheKeyFactory { get; set; } =
+            (type, key) => new TaskCacheKey(type, key);
 
-        /// <summary>
-        /// Gets or sets the cache size. If set to <c>10</c> for example, it
-        /// says only <c>10</c> cache entries can live inside the cache. When
-        /// adding an additional entry the least recently used entry will be
-        /// removed. The default value is set to <c>100</c>.
-        /// </summary>
-        public int CacheSize { get; set; }
+        public CacheKeyTypeFactoryDelegate CacheKeyTypeFactory { get; set; } =
+            dl => dl.GetType().FullName ?? dl.GetType().Name;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether caching is enabled. The
-        /// default value is <c>true</c>.
-        /// </summary>
-        public bool Caching { get; set; }
+        public IDataLoaderDiagnosticEvents DiagnosticEvents { get; set; }
 
-        /// <summary>
-        /// Gets or sets the maximum batch size per request. If set to
-        /// <c>0</c>, the request will be not cut into smaller batches. The
-        /// default value is set to <c>0</c>.
-        /// </summary>
-        public int MaxBatchSize { get; set; }
-    }
-
-    public interface IDataLoaderDiagnosticEvents
-    {
-        void ReceivedValueFromCache(object key, object cacheKey, object value);
+        public DataLoaderOptions Copy()
+        {
+            return new()
+            {
+                MaxBatchSize = MaxBatchSize,
+                Cache = Cache,
+                Caching = Caching,
+                CacheKeyFactory = CacheKeyFactory,
+                CacheKeyTypeFactory = CacheKeyTypeFactory,
+                DiagnosticEvents = DiagnosticEvents,
+            };
+        }
     }
 }

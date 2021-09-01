@@ -1,10 +1,9 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using System.Threading.Tasks;
+using static GreenDonut.Errors;
 
 namespace GreenDonut
 {
@@ -31,34 +30,48 @@ namespace GreenDonut
         private readonly object _sync = new();
         private readonly CancellationTokenSource _disposeTokenSource = new();
         private readonly IBatchScheduler _batchScheduler;
-        private readonly CacheKeyResolverDelegate _cacheKeyResolver;
+        private readonly CacheKeyFactoryDelegate _cacheKeyFactory;
+        private readonly string _cacheKeyType;
         private readonly int _maxBatchSize;
         private readonly ITaskCache? _cache;
+        private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
-        private readonly DataLoaderOptions _options;
         private Batch<TKey, TValue>? _currentBatch;
+        private Result<TValue>[]? _buffer;
         private bool _disposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataLoader{TKey, TValue}"/> class.
+        /// Initializes a new instance of the <see cref="DataLoaderBase{TKey, TValue}"/> class.
         /// </summary>
         /// <param name="batchScheduler">
         /// A scheduler to tell the <c>DataLoader</c> when to dispatch buffered batches.
         /// </param>
         /// <param name="options">
         /// An options object to configure the behavior of this particular
-        /// <see cref="DataLoader{TKey, TValue}"/>.
+        /// <see cref="DataLoaderBase{TKey, TValue}"/>.
         /// </param>
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="options"/> is <c>null</c>.
         /// </exception>
         protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
         {
-            _options = options ?? new DataLoaderOptions();
-            _cache = _options.Cache;
-            _cacheKeyResolver = _options.CacheKeyResolver;
+            options ??= new DataLoaderOptions();
+            _diagnosticEvents = options.DiagnosticEvents;
+
+            if (options.Caching && options.Cache is null)
+            {
+                _cacheOwner = new TaskCacheOwner();
+                _cache = _cacheOwner.Cache;
+            }
+            else
+            {
+                _cache = options.Cache;
+            }
+
             _batchScheduler = batchScheduler;
-            _maxBatchSize = _options.GetBatchSize();
+            _maxBatchSize = options.MaxBatchSize;
+            _cacheKeyType = options.CacheKeyTypeFactory(this);
+            _cacheKeyFactory = options.CacheKeyFactory;
         }
 
         /// <inheritdoc />
@@ -70,17 +83,17 @@ namespace GreenDonut
             }
 
             var cached = true;
-            object cacheKey = _cacheKeyResolver(key, this, typeof(TValue));
+            TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
 
             lock (_sync)
             {
                 if (_cache is not null)
                 {
-                    var cachedTask = (Task<TValue>)_cache.GetOrSetValue(cacheKey, CreatePromise);
+                    Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
                     {
-                        _diagnosticEvents.ReceivedValueFromCache(key, cacheKey, cachedTask);
+                        _diagnosticEvents.ResolvedTaskFromCache(cacheKey, cachedTask);
                     }
 
                     return cachedTask;
@@ -133,13 +146,13 @@ namespace GreenDonut
 
                     cached = true;
                     currentKey = key;
-                    object cacheKey = _cacheKeyResolver(key, this, typeof(TValue));
+                    TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
 
-                    var cachedTask = (Task<TValue>)_cache.GetOrSetValue(cacheKey, CreatePromise);
+                    Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
                     {
-                        _diagnosticEvents.ReceivedValueFromCache(key, cacheKey, cachedTask);
+                        _diagnosticEvents.ResolvedTaskFromCache(cacheKey, cachedTask);
                     }
 
                     tasks[index++] = cachedTask;
@@ -177,8 +190,8 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                object cacheKey = _cacheKeyResolver(key, this, typeof(TValue));
-                _cache.Remove(cacheKey);
+                TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
+                _cache.TryRemove(cacheKey);
             }
         }
 
@@ -197,7 +210,7 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                object cacheKey = _cacheKeyResolver(key, this, typeof(TValue));
+                TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
                 _cache.TryAdd(cacheKey, value);
             }
         }
@@ -205,16 +218,17 @@ namespace GreenDonut
         private void BatchOperationFailed(
             Batch<TKey, TValue> batch,
             IReadOnlyList<TKey> keys,
-            Exception error)
+            Exception error,
+            IActivityScope scope)
         {
-            DiagnosticEvents.ReceivedBatchError(keys, error);
+            _diagnosticEvents.BatchError(scope, keys, error);
 
             for (var i = 0; i < keys.Count; i++)
             {
                 if (_cache is not null)
                 {
-                    object cacheKey = _cacheKeyResolver(keys[i], this, typeof(TValue));
-                    _cache.Remove(cacheKey);
+                    TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, keys[i]);
+                    _cache.TryRemove(cacheKey);
                 }
 
                 batch.Get(keys[i]).SetException(error);
@@ -224,22 +238,23 @@ namespace GreenDonut
         private void BatchOperationSucceeded(
             Batch<TKey, TValue> batch,
             IReadOnlyList<TKey> keys,
-            IReadOnlyList<Result<TValue>> results)
+            IReadOnlyList<Result<TValue>> results,
+            IActivityScope scope)
         {
-            if (keys.Count == results.Count)
+            for (var i = 0; i < keys.Count; i++)
             {
-                for (var i = 0; i < keys.Count; i++)
-                {
-                    SetSingleResult(batch.Get(keys[i]), keys[i], results[i]);
-                }
-            }
-            else
-            {
-                // in case we got here less or more results as expected, the
-                // complete batch operation failed.
-                Exception error = Errors.CreateKeysAndValuesMustMatch(keys.Count, results.Count);
+                Result<TValue> value = results[i];
 
-                BatchOperationFailed(batch, keys, error);
+                if (value.Kind is ResultKind.Value)
+                {
+                    // in case we got here less or more results as expected, the
+                    // complete batch operation failed.
+                    Exception error = CreateKeysAndValuesMustMatch(keys.Count, i + 1);
+                    BatchOperationFailed(batch, keys, error, scope);
+                    return;
+                }
+
+                SetSingleResult(batch.Get(keys[i]), keys[i], results[i], scope);
             }
         }
 
@@ -249,21 +264,33 @@ namespace GreenDonut
         {
             return batch.StartDispatchingAsync(async () =>
             {
-                Activity? activity = DiagnosticEvents.StartBatching(batch.Keys);
-                IReadOnlyList<Result<TValue>> results = Array.Empty<Result<TValue>>();
+                using IActivityScope scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
+                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
+
+                buffer ??= new Result<TValue>[batch.Keys.Count];
+
+                if (buffer.Length < batch.Keys.Count)
+                {
+                    Array.Resize(ref buffer, batch.Keys.Count);
+                }
+
+                Memory<Result<TValue>> results = batch.Keys.Count == buffer.Length
+                    ? buffer.AsMemory()
+                    : buffer.AsMemory().Slice(0, batch.Keys.Count);
 
                 try
                 {
-                    results = await FetchAsync(batch.Keys, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, results);
+                    await FetchAsync(batch.Keys, results, cancellationToken).ConfigureAwait(false);
+                    BatchOperationSucceeded(batch, batch.Keys, buffer, scope);
+                    _diagnosticEvents.BatchResults<TKey, TValue>(scope, batch.Keys, results.Span);
                 }
                 catch (Exception ex)
                 {
-                    BatchOperationFailed(batch, batch.Keys, ex);
+                    BatchOperationFailed(batch, batch.Keys, ex, scope);
                 }
 
-                DiagnosticEvents.StopBatching(activity, batch.Keys,
-                    results.Select(result => result.Value).ToArray());
+                results.Span.Clear();
+                Interlocked.Exchange(ref _buffer, buffer);
             });
         }
 
@@ -285,19 +312,20 @@ namespace GreenDonut
             return newPromise!;
         }
 
-        private static void SetSingleResult(
+        private void SetSingleResult(
             TaskCompletionSource<TValue> promise,
             TKey key,
-            Result<TValue> result)
+            Result<TValue> result,
+            IActivityScope scope)
         {
-            if (result.IsError)
+            if (result.Kind is ResultKind.Value)
             {
-                DiagnosticEvents.ReceivedError(key, result!);
-                promise.SetException(result!);
+                promise.SetResult(result);
             }
             else
             {
-                promise.SetResult(result);
+                _diagnosticEvents.BatchItemError(scope, key, result.Error!);
+                promise.SetException(result.Error!);
             }
         }
 

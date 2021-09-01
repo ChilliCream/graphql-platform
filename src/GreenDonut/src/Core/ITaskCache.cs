@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace GreenDonut
 {
@@ -18,19 +18,7 @@ namespace GreenDonut
         /// </summary>
         int Usage { get; }
 
-        /// <summary>
-        /// Clears the complete cache.
-        /// </summary>
-        void Clear();
-
-        /// <summary>
-        /// Removes a specific entry from the cache.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        void Remove(object key);
+        T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
 
         /// <summary>
         /// Tries to add a single entry to the cache. It does nothing if the
@@ -47,21 +35,20 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the add was successful.
         /// </returns>
-        bool TryAdd(object key, object value);
+        bool TryAdd<T>(TaskCacheKey key, T value) where T : Task;
 
         /// <summary>
-        /// Tries to gets a single entry from the cache.
+        /// Removes a specific entry from the cache.
         /// </summary>
         /// <param name="key">A cache entry key.</param>
-        /// <param name="value">A single cache entry value.</param>
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="key"/> is <c>null</c>.
         /// </exception>
-        /// <returns>
-        /// A value indicating whether the get request returned an entry.
-        /// </returns>
-        bool TryGetValue(object key, [NotNullWhen(true)]out object? value);
+        bool TryRemove(TaskCacheKey key);
 
-        object GetOrSetValue(object key, Func<object> createValue);
+        /// <summary>
+        /// Clears the complete cache.
+        /// </summary>
+        void Clear();
     }
 }
