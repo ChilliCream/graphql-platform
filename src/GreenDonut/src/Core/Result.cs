@@ -102,11 +102,4 @@ namespace GreenDonut
         public static implicit operator TValue(Result<TValue> result)
             => result.Value;
     }
-
-    public enum ResultKind
-    {
-        Undefined,
-        Value,
-        Error
-    }
 }

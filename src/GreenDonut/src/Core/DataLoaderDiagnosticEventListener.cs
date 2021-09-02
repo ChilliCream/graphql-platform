@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace GreenDonut
 {
+    /// <summary>
+    /// A base class to create a DataLoader diagnostic event listener.
+    /// </summary>
     public class DataLoaderDiagnosticEventListener : IDataLoaderDiagnosticEvents
     {
         /// <summary>
@@ -14,6 +17,7 @@ namespace GreenDonut
 
         /// <inheritdoc />
         public virtual void ResolvedTaskFromCache(
+            IDataLoader dataLoader,
             TaskCacheKey cacheKey,
             Task task)
         { }

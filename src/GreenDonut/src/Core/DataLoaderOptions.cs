@@ -28,25 +28,23 @@ namespace GreenDonut
         public bool Caching { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a delegate which resolves the cache key which might
-        /// differ from the key that is used to accessing the backend.
-        /// The default value is set to <c>null</c>.
+        /// Gets the <see cref="IDataLoaderDiagnosticEvents"/> to intercept DataLoader events.
         /// </summary>
-        public CacheKeyFactoryDelegate CacheKeyFactory { get; set; } =
-            (type, key) => new TaskCacheKey(type, key);
-
         public IDataLoaderDiagnosticEvents? DiagnosticEvents { get; set; }
 
+        /// <summary>
+        /// Creates a new options object that contains all the property values of this instance.
+        /// </summary>
+        /// <returns>
+        /// The new options object that contains all the property values of this instance.
+        /// </returns>
         public DataLoaderOptions Copy()
-        {
-            return new()
+            => new()
             {
                 MaxBatchSize = MaxBatchSize,
                 Cache = Cache,
                 Caching = Caching,
-                CacheKeyFactory = CacheKeyFactory,
                 DiagnosticEvents = DiagnosticEvents,
             };
-        }
     }
 }

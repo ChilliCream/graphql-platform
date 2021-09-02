@@ -18,22 +18,25 @@ namespace GreenDonut
         private int _usage;
         private Entry? _head;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="TaskCache"/>.
+        /// </summary>
+        /// <param name="size">
+        /// The size of the cache. The minimum cache size is 10.
+        /// </param>
         public TaskCache(int size)
         {
             _size = size < _minimumSize ? _minimumSize : size;
             _order = Convert.ToInt32(size * 0.7);
         }
 
-        /// <summary>
-        /// Gets the maximum size of the cache.
-        /// </summary>
+        /// <inheritdoc />
         public int Size => _size;
 
-        /// <summary>
-        /// Gets the count of the entries inside the cache.
-        /// </summary>
+        /// <inheritdoc />
         public int Usage => _usage;
 
+        /// <inheritdoc />
         public T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task
         {
             if (key.Type is null)
@@ -62,21 +65,7 @@ namespace GreenDonut
             return (T)entry.Value;
         }
 
-        /// <summary>
-        /// Tries to add a single entry to the cache. It does nothing if the
-        /// cache entry exists already.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <param name="value">A cache entry value.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="value"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A value indicating whether the add was successful.
-        /// </returns>
+        /// <inheritdoc />
         public bool TryAdd<T>(TaskCacheKey key, T value) where T : Task
         {
             if (key.Type is null)
@@ -100,21 +89,7 @@ namespace GreenDonut
             return !read;
         }
 
-        /// <summary>
-        /// Tries to add a single entry to the cache. It does nothing if the
-        /// cache entry exists already.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <param name="value">A cache entry value.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="value"/> is <c>null</c>.
-        /// </exception>
-        /// <returns>
-        /// A value indicating whether the add was successful.
-        /// </returns>
+        /// <inheritdoc />
         public bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task
         {
           if (key.Type is null)
@@ -138,13 +113,7 @@ namespace GreenDonut
           return !read;
         }
 
-        /// <summary>
-        /// Removes a specific entry from the cache.
-        /// </summary>
-        /// <param name="key">A cache entry key.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="key"/> is <c>null</c>.
-        /// </exception>
+        /// <inheritdoc />
         public bool TryRemove(TaskCacheKey key)
         {
             if (_map.TryRemove(key, out Entry? entry))
@@ -160,9 +129,7 @@ namespace GreenDonut
             return false;
         }
 
-        /// <summary>
-        /// Clears the complete cache.
-        /// </summary>
+        /// <inheritdoc />
         public void Clear()
         {
             lock (_sync)
@@ -170,30 +137,6 @@ namespace GreenDonut
                 _map.Clear();
                 _head = null;
                 _usage = 0;
-            }
-        }
-
-        internal TaskCacheKey[] GetKeys()
-        {
-            lock (_sync)
-            {
-                if (_head is null)
-                {
-                    return Array.Empty<TaskCacheKey>();
-                }
-
-                var index = 0;
-                var keys = new TaskCacheKey[_usage];
-                Entry current = _head!;
-
-                do
-                {
-                    keys[index++] = current!.Key;
-                    current = current.Next!;
-
-                } while (current != _head);
-
-                return keys;
             }
         }
 

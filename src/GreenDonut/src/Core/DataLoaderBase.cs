@@ -29,7 +29,6 @@ namespace GreenDonut
         private readonly object _sync = new();
         private readonly CancellationTokenSource _disposeTokenSource = new();
         private readonly IBatchScheduler _batchScheduler;
-        private readonly CacheKeyFactoryDelegate _cacheKeyFactory;
         private readonly string _cacheKeyType;
         private readonly int _maxBatchSize;
         private readonly ITaskCache? _cache;
@@ -70,14 +69,17 @@ namespace GreenDonut
             _batchScheduler = batchScheduler;
             _maxBatchSize = options.MaxBatchSize;
             _cacheKeyType = GetCacheKeyType(GetType());
-            _cacheKeyFactory = options.CacheKeyFactory;
         }
 
+        /// <summary>
+        /// Gets access to the cache of this DataLoader.
+        /// </summary>
         protected ITaskCache? Cache => _cache;
 
+        /// <summary>
+        /// Gets the cache key type for this DataLoader.
+        /// </summary>
         protected string CacheKeyType => _cacheKeyType;
-
-        protected CacheKeyFactoryDelegate CacheKeyFactory => _cacheKeyFactory;
 
         /// <inheritdoc />
         public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken)
@@ -88,7 +90,7 @@ namespace GreenDonut
             }
 
             var cached = true;
-            TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
+            TaskCacheKey cacheKey = new(_cacheKeyType, key);
 
             lock (_sync)
             {
@@ -98,7 +100,7 @@ namespace GreenDonut
 
                     if (cached)
                     {
-                        _diagnosticEvents.ResolvedTaskFromCache(cacheKey, cachedTask);
+                        _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
                     }
 
                     return cachedTask;
@@ -151,13 +153,13 @@ namespace GreenDonut
 
                     cached = true;
                     currentKey = key;
-                    TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
+                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
 
                     Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
                     {
-                        _diagnosticEvents.ResolvedTaskFromCache(cacheKey, cachedTask);
+                        _diagnosticEvents.ResolvedTaskFromCache(this, cacheKey, cachedTask);
                     }
 
                     tasks[index++] = cachedTask;
@@ -195,7 +197,7 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
                 _cache.TryRemove(cacheKey);
             }
         }
@@ -215,7 +217,7 @@ namespace GreenDonut
 
             if (_cache is not null)
             {
-                TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, key);
+                TaskCacheKey cacheKey = new(_cacheKeyType, key);
                 _cache.TryAdd(cacheKey, value);
             }
         }
@@ -232,7 +234,7 @@ namespace GreenDonut
             {
                 if (_cache is not null)
                 {
-                    TaskCacheKey cacheKey = _cacheKeyFactory(_cacheKeyType, keys[i]);
+                    TaskCacheKey cacheKey = new(_cacheKeyType, keys[i]);
                     _cache.TryRemove(cacheKey);
                 }
 
@@ -341,6 +343,20 @@ namespace GreenDonut
             }
         }
 
+        /// <summary>
+        /// A helper to add additional cache lookups to a resolved entity.
+        /// </summary>
+        /// <param name="cacheKeyType">
+        /// The cache key type that shall be used to refer to the entity.
+        /// </param>
+        /// <param name="items">
+        /// The items that shall be associated with other cache keys.
+        /// </param>
+        /// <param name="key">A delegate to create the key part.</param>
+        /// <param name="value">A delegate to create the value that shall be associated.</param>
+        /// <typeparam name="TItem">The item type.</typeparam>
+        /// <typeparam name="TK">The key type.</typeparam>
+        /// <typeparam name="TV">The value type.</typeparam>
         protected void TryAddToCache<TItem, TK, TV>(
             string cacheKeyType,
             IEnumerable<TItem> items,
@@ -352,12 +368,22 @@ namespace GreenDonut
             {
                 foreach (TItem item in items)
                 {
-                    TaskCacheKey cacheKey = _cacheKeyFactory(cacheKeyType, key(item));
+                    TaskCacheKey cacheKey = new(cacheKeyType, key(item));
                     _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
                 }
             }
         }
 
+        /// <summary>
+        /// A helper to adds an additional cache lookup to a resolved entity.
+        /// </summary>
+        /// <param name="cacheKeyType">
+        /// The cache key type that shall be used to refer to the entity.
+        /// </param>
+        /// <param name="key">The key.</param>
+        /// <param name="value">The value.</param>
+        /// <typeparam name="TK">The key type.</typeparam>
+        /// <typeparam name="TV">The value type.</typeparam>
         protected void TryAddToCache<TK, TV>(
             string cacheKeyType,
             TK key,
@@ -366,15 +392,31 @@ namespace GreenDonut
         {
             if (_cache is not null)
             {
-                TaskCacheKey cacheKey = _cacheKeyFactory(cacheKeyType, key);
+                TaskCacheKey cacheKey = new(cacheKeyType, key);
                 _cache.TryAdd(cacheKey, () => Task.FromResult(value));
             }
         }
 
+        /// <summary>
+        /// A helper to create a cache key type for a DataLoader.
+        /// </summary>
+        /// <typeparam name="TDataLoader">The DataLoader type.</typeparam>
+        /// <returns>
+        /// Returns the DataLoader cache key.
+        /// </returns>
         protected static string GetCacheKeyType<TDataLoader>()
             where TDataLoader : IDataLoader
             => GetCacheKeyType(typeof(TDataLoader));
 
+        /// <summary>
+        /// A helper to create a cache key type for a DataLoader.
+        /// </summary>
+        /// <param name="type">
+        /// The DataLoader type.
+        /// </param>
+        /// <returns>
+        /// Returns the DataLoader cache key.
+        /// </returns>
         protected static string GetCacheKeyType(Type type)
             => type.FullName ?? type.Name;
 
