@@ -63,7 +63,9 @@ namespace GreenDonut
             }
             else
             {
-                _cache = options.Cache;
+                _cache = options.Caching
+                    ? options.Cache
+                    : null;
             }
 
             _batchScheduler = batchScheduler;
@@ -82,7 +84,7 @@ namespace GreenDonut
         protected string CacheKeyType => _cacheKeyType;
 
         /// <inheritdoc />
-        public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken)
+        public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken = default)
         {
             if (key is null)
             {
@@ -119,7 +121,7 @@ namespace GreenDonut
         /// <inheritdoc />
         public Task<IReadOnlyList<TValue>> LoadAsync(
             IReadOnlyCollection<TKey> keys,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (keys is null)
             {
@@ -238,7 +240,7 @@ namespace GreenDonut
                     _cache.TryRemove(cacheKey);
                 }
 
-                batch.GetPromise<TValue>(keys[i]).SetException(error);
+                batch.GetPromise<TValue>(keys[i]).TrySetException(error);
             }
         }
 
@@ -256,7 +258,7 @@ namespace GreenDonut
                 {
                     // in case we got here less or more results as expected, the
                     // complete batch operation failed.
-                    Exception error = CreateKeysAndValuesMustMatch(keys.Count, i + 1);
+                    Exception error = CreateKeysAndValuesMustMatch(keys.Count, i);
                     BatchOperationFailed(batch, keys, error, scope);
                     return;
                 }
@@ -311,18 +313,15 @@ namespace GreenDonut
 
         private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
         {
-            if (_currentBatch is not null &&
-                _currentBatch.Size < _maxBatchSize)
+            if (_currentBatch is not null && _currentBatch.Size < _maxBatchSize)
             {
                 return _currentBatch.GetOrCreatePromise<TValue>(key);
             }
 
             Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
-
             TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
             _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
             _currentBatch = newBatch;
-
             return newPromise;
         }
 

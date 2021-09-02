@@ -22,7 +22,10 @@ namespace GreenDonut
 
         public void Schedule(Func<ValueTask> dispatch)
         {
-            _queue.Enqueue(dispatch);
+            lock (_sync)
+            {
+                _queue.Enqueue(dispatch);
+            }
         }
     }
 }

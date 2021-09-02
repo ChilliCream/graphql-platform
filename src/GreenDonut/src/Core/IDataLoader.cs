@@ -33,7 +33,7 @@ namespace GreenDonut
         /// </returns>
         Task<object?> LoadAsync(
             object key,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
@@ -50,7 +50,7 @@ namespace GreenDonut
         /// </returns>
         Task<IReadOnlyList<object?>> LoadAsync(
             IReadOnlyCollection<object> keys,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Removes a single entry from the cache.
