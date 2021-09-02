@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using HotChocolate.ConferencePlanner.Data;
 using GreenDonut;
+using HotChocolate.ConferencePlanner.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.ConferencePlanner.DataLoader
 {
-    public class SpeakerByIdDataLoader : BatchDataLoader<int, Speaker>
+    public class SpeakerBySessionIdDataLoader : GroupedDataLoader<int, Speaker>
     {
+        private static readonly string _sessionCacheKey = GetCacheKeyType<SessionByIdDataLoader>();
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-        public SpeakerByIdDataLoader(
+        public SpeakerBySessionIdDataLoader(
             IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
             DataLoaderOptions options)
@@ -23,16 +24,23 @@ namespace HotChocolate.ConferencePlanner.DataLoader
                 throw new ArgumentNullException(nameof(dbContextFactory));
         }
 
-        protected override async Task<IReadOnlyDictionary<int, Speaker>> LoadBatchAsync(
+        protected override async Task<ILookup<int, Speaker>> LoadGroupedBatchAsync(
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
             await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
-            return await dbContext.Speakers
+            List<SessionSpeaker> list = await dbContext.Sessions
                 .Where(s => keys.Contains(s.Id))
-                .ToDictionaryAsync(t => t.Id, cancellationToken);
+                .Include(s => s.SessionSpeakers)
+                .SelectMany(s => s.SessionSpeakers)
+                .Include(s => s.Speaker)
+                .ToListAsync(cancellationToken);
+
+            TryAddToCache(_sessionCacheKey, list, item => item.SpeakerId, item => item.Speaker!);
+
+            return list.ToLookup(t => t.SessionId, t => t.Speaker!);
         }
     }
 }

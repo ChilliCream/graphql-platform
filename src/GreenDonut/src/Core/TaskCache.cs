@@ -101,6 +101,44 @@ namespace GreenDonut
         }
 
         /// <summary>
+        /// Tries to add a single entry to the cache. It does nothing if the
+        /// cache entry exists already.
+        /// </summary>
+        /// <param name="key">A cache entry key.</param>
+        /// <param name="value">A cache entry value.</param>
+        /// <exception cref="ArgumentNullException">
+        /// Throws if <paramref name="key"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// Throws if <paramref name="value"/> is <c>null</c>.
+        /// </exception>
+        /// <returns>
+        /// A value indicating whether the add was successful.
+        /// </returns>
+        public bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task
+        {
+          if (key.Type is null)
+          {
+            throw new ArgumentNullException(nameof(key));
+          }
+
+          if (createTask is null)
+          {
+            throw new ArgumentNullException(nameof(createTask));
+          }
+
+          var read = true;
+
+          _map.GetOrAdd(key, k =>
+          {
+            read = false;
+            return AddNewEntry(k, createTask());
+          });
+
+          return !read;
+        }
+
+        /// <summary>
         /// Removes a specific entry from the cache.
         /// </summary>
         /// <param name="key">A cache entry key.</param>

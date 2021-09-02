@@ -69,9 +69,15 @@ namespace GreenDonut
 
             _batchScheduler = batchScheduler;
             _maxBatchSize = options.MaxBatchSize;
-            _cacheKeyType = options.CacheKeyTypeFactory(this);
+            _cacheKeyType = GetCacheKeyType(GetType());
             _cacheKeyFactory = options.CacheKeyFactory;
         }
+
+        protected ITaskCache? Cache => _cache;
+
+        protected string CacheKeyType => _cacheKeyType;
+
+        protected CacheKeyFactoryDelegate CacheKeyFactory => _cacheKeyFactory;
 
         /// <inheritdoc />
         public Task<TValue> LoadAsync(TKey key, CancellationToken cancellationToken)
@@ -335,6 +341,42 @@ namespace GreenDonut
             }
         }
 
+        protected void TryAddToCache<TItem, TK, TV>(
+            string cacheKeyType,
+            IEnumerable<TItem> items,
+            Func<TItem, TK> key,
+            Func<TItem, TV> value)
+            where TK : notnull
+        {
+            if (_cache is not null)
+            {
+                foreach (TItem item in items)
+                {
+                    TaskCacheKey cacheKey = _cacheKeyFactory(cacheKeyType, key(item));
+                    _cache.TryAdd(cacheKey, () => Task.FromResult(value(item)));
+                }
+            }
+        }
+
+        protected void TryAddToCache<TK, TV>(
+            string cacheKeyType,
+            TK key,
+            TV value)
+            where TK : notnull
+        {
+            if (_cache is not null)
+            {
+                TaskCacheKey cacheKey = _cacheKeyFactory(cacheKeyType, key);
+                _cache.TryAdd(cacheKey, () => Task.FromResult(value));
+            }
+        }
+
+        protected static string GetCacheKeyType<TDataLoader>()
+            where TDataLoader : IDataLoader
+            => GetCacheKeyType(typeof(TDataLoader));
+
+        protected static string GetCacheKeyType(Type type)
+            => type.FullName ?? type.Name;
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing,

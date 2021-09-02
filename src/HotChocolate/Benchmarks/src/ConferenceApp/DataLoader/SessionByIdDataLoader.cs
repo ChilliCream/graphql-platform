@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using HotChocolate.ConferencePlanner.Data;
 using GreenDonut;
-using HotChocolate.Fetching;
 
 namespace HotChocolate.ConferencePlanner.DataLoader
 {
@@ -18,19 +17,19 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
             DataLoaderOptions options)
-            : base(batchScheduler)
+            : base(batchScheduler, options)
         {
-            _dbContextFactory = dbContextFactory ?? 
+            _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));
         }
 
         protected override async Task<IReadOnlyDictionary<int, Session>> LoadBatchAsync(
-            IReadOnlyList<int> keys, 
+            IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            await using ApplicationDbContext dbContext = 
+            await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
-            
+
             return await dbContext.Sessions
                 .Where(s => keys.Contains(s.Id))
                 .ToDictionaryAsync(t => t.Id, cancellationToken);

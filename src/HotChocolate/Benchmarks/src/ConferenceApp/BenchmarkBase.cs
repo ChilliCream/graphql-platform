@@ -185,7 +185,9 @@ namespace HotChocolate.ConferencePlanner
                     // Now we add some the DataLoader to our system.
                     .AddDataLoader<AttendeeByIdDataLoader>()
                     .AddDataLoader<SessionByIdDataLoader>()
+                    .AddDataLoader<SessionBySpeakerIdDataLoader>()
                     .AddDataLoader<SpeakerByIdDataLoader>()
+                    .AddDataLoader<SpeakerBySessionIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
                     // .AddDiagnosticEventListener<BatchDiagnostics>()

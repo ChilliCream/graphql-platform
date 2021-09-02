@@ -18,9 +18,9 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
             DataLoaderOptions options)
-            : base(batchScheduler)
+            : base(batchScheduler, options)
         {
-            _dbContextFactory = dbContextFactory ?? 
+            _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));
         }
 
@@ -28,7 +28,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            await using ApplicationDbContext dbContext = 
+            await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
             return await dbContext.Attendees

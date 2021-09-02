@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using HotChocolate.ConferencePlanner.Data;
 using GreenDonut;
-using HotChocolate.Fetching;
 
 namespace HotChocolate.ConferencePlanner.DataLoader
 {
@@ -18,7 +17,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
             DataLoaderOptions options)
-            : base(batchScheduler)
+            : base(batchScheduler, options)
         {
             _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));

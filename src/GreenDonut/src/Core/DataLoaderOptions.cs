@@ -35,9 +35,6 @@ namespace GreenDonut
         public CacheKeyFactoryDelegate CacheKeyFactory { get; set; } =
             (type, key) => new TaskCacheKey(type, key);
 
-        public CacheKeyTypeFactoryDelegate CacheKeyTypeFactory { get; set; } =
-            dl => dl.GetType().FullName ?? dl.GetType().Name;
-
         public IDataLoaderDiagnosticEvents? DiagnosticEvents { get; set; }
 
         public DataLoaderOptions Copy()
@@ -48,7 +45,6 @@ namespace GreenDonut
                 Cache = Cache,
                 Caching = Caching,
                 CacheKeyFactory = CacheKeyFactory,
-                CacheKeyTypeFactory = CacheKeyTypeFactory,
                 DiagnosticEvents = DiagnosticEvents,
             };
         }
