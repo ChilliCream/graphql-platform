@@ -3,7 +3,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut
 {
-    internal sealed class TaskCacheOwner : IDisposable
+    public sealed class TaskCacheOwner : IDisposable
     {
         private readonly ObjectPool<TaskCache> _pool;
         private readonly TaskCache _cache;
@@ -13,6 +13,12 @@ namespace GreenDonut
         {
             _pool = TaskCachePool.Shared;
             _cache = TaskCachePool.Shared.Get();
+        }
+
+        public TaskCacheOwner(ObjectPool<TaskCache> pool)
+        {
+            _pool = pool ?? throw new ArgumentNullException(nameof(pool));
+            _cache = pool.Get();
         }
 
         public ITaskCache Cache => _cache;

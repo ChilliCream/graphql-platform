@@ -14,7 +14,7 @@ namespace GreenDonut
             Result<string> value = "Bar";
 
             // act
-            bool result = error.Equals(value);
+            var result = error.Equals(value);
 
             // assert
             Assert.False(result);
@@ -28,7 +28,7 @@ namespace GreenDonut
             Result<string> errorB = new Exception("Bar");
 
             // act
-            bool result = errorA.Equals(errorB);
+            var result = errorA.Equals(errorB);
 
             // assert
             Assert.False(result);
@@ -41,7 +41,7 @@ namespace GreenDonut
             Result<string> error = new Exception("Foo");
 
             // act
-            bool result = error.Equals(error);
+            var result = error.Equals(error);
 
             // assert
             Assert.True(result);
@@ -55,7 +55,7 @@ namespace GreenDonut
             Result<string> valueB = "Bar";
 
             // act
-            bool result = valueA.Equals(valueB);
+            var result = valueA.Equals(valueB);
 
             // assert
             Assert.False(result);
@@ -68,63 +68,62 @@ namespace GreenDonut
             Result<string> value = "Foo";
 
             // act
-            bool result = value.Equals(value);
+            var result = value.Equals(value);
 
             // assert
             Assert.True(result);
         }
 
         [Fact(DisplayName = "Equals: Should return false if object is null")]
-        public void EqualsOpjectNull()
+        public void EqualsObjectNull()
         {
             // arrange
-            object obj = null;
             Result<string> value = "Foo";
 
             // act
-            bool result = value.Equals(obj);
+            var result = value.Equals(default(object));
 
             // assert
             Assert.False(result);
         }
 
         [Fact(DisplayName = "Equals: Should return false if object type is different")]
-        public void EqualsOpjectNotEqual()
+        public void EqualsObjectNotEqual()
         {
             // arrange
             object obj = "Foo";
             Result<string> value = "Bar";
 
             // act
-            bool result = value.Equals(obj);
+            var result = value.Equals(obj);
 
             // assert
             Assert.False(result);
         }
 
         [Fact(DisplayName = "Equals: Should return false if object value is different")]
-        public void EqualsOpjectValueNotEqual()
+        public void EqualsObjectValueNotEqual()
         {
             // arrange
             object obj = (Result<string>)"Foo";
             Result<string> value = "Bar";
 
             // act
-            bool result = value.Equals(obj);
+            var result = value.Equals(obj);
 
             // assert
             Assert.False(result);
         }
 
         [Fact(DisplayName = "Equals: Should return true if object value is equal")]
-        public void EqualsOpjectValueEqual()
+        public void EqualsObjectValueEqual()
         {
             // arrange
             object obj = (Result<string>)"Foo";
             Result<string> value = "Foo";
 
             // act
-            bool result = value.Equals(obj);
+            var result = value.Equals(obj);
 
             // assert
             Assert.True(result);
@@ -134,10 +133,8 @@ namespace GreenDonut
         public void GetHashCodeEmpty()
         {
             // arrange
-            string value = null;
-
             // act
-            Result<string> result = value;
+            Result<string> result = default(string);
 
             // assert
             Assert.Equal(0, result.GetHashCode());
@@ -173,13 +170,11 @@ namespace GreenDonut
         public void ImplicitRejectErrorIsNull()
         {
             // arrange
-            Exception error = null;
-
             // act
-            Result<object> result = error;
+            Result<object> result = default(Exception);
 
             // assert
-            Assert.False(result.IsError);
+            Assert.Equal(ResultKind.Undefined, result.Kind);
             Assert.Null(result.Error);
             Assert.Null(result.Value);
         }
@@ -195,7 +190,7 @@ namespace GreenDonut
             Result<string> result = error;
 
             // assert
-            Assert.True(result.IsError);
+            Assert.Equal(ResultKind.Error, result.Kind);
             Assert.Equal(error, result.Error);
             Assert.Null(result.Value);
         }
@@ -211,7 +206,7 @@ namespace GreenDonut
             var result = Result<string>.Reject(error);
 
             // assert
-            Assert.True(result.IsError);
+            Assert.Equal(ResultKind.Error, result.Kind);
             Assert.Equal("Foo", result.Error?.Message);
             Assert.Null(result.Value);
         }
@@ -225,8 +220,8 @@ namespace GreenDonut
             Result<string> result = value;
 
             // assert
+            Assert.Equal(ResultKind.Value, result.Kind);
             Assert.Null(result.Error);
-            Assert.False(result.IsError);
             Assert.Equal(value, result);
         }
 
@@ -239,8 +234,8 @@ namespace GreenDonut
             var result = Result<string>.Resolve(value);
 
             // assert
+            Assert.Equal(ResultKind.Value, result.Kind);
             Assert.Null(result.Error);
-            Assert.False(result.IsError);
             Assert.Equal(value, result.Value);
         }
 
@@ -254,8 +249,8 @@ namespace GreenDonut
             var result = Result<IReadOnlyCollection<string>>.Resolve(value);
 
             // assert
+            Assert.Equal(ResultKind.Value, result.Kind);
             Assert.Null(result.Error);
-            Assert.False(result.IsError);
             Assert.Equal(value, result.Value);
         }
     }

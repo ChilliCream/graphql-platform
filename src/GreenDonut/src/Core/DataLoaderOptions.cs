@@ -10,7 +10,7 @@ namespace GreenDonut
         /// <c>0</c>, the request will be not cut into smaller batches. The
         /// default value is set to <c>0</c>.
         /// </summary>
-        public int MaxBatchSize { get; set; }
+        public int MaxBatchSize { get; set; } = 1024;
 
         /// <summary>
         /// Gets or sets a cache instance to either share a cache instance
@@ -38,7 +38,7 @@ namespace GreenDonut
         public CacheKeyTypeFactoryDelegate CacheKeyTypeFactory { get; set; } =
             dl => dl.GetType().FullName ?? dl.GetType().Name;
 
-        public IDataLoaderDiagnosticEvents DiagnosticEvents { get; set; }
+        public IDataLoaderDiagnosticEvents? DiagnosticEvents { get; set; }
 
         public DataLoaderOptions Copy()
         {

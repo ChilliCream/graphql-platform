@@ -25,7 +25,7 @@ namespace GreenDonut
         /// <returns>
         /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
         /// </returns>
-        public static ObjectPool<TaskCache> Create(int cacheSize, int? maximumRetained = null)
+        public static ObjectPool<TaskCache> Create(int cacheSize = 256, int? maximumRetained = null)
             => new DefaultObjectPool<TaskCache>(
                 new TaskCachePooledObjectPolicy(cacheSize),
                 maximumRetained ?? Environment.ProcessorCount * 2);
@@ -42,7 +42,7 @@ namespace GreenDonut
         /// <returns>
         /// Returns the newly created instance of <see cref="DefaultObjectPool{TaskCache}"/>.
         /// </returns>
-        public static ObjectPool<TaskCache> Create(ObjectPoolProvider provider, int cacheSize)
+        public static ObjectPool<TaskCache> Create(ObjectPoolProvider provider, int cacheSize = 256)
             => provider.Create(new TaskCachePooledObjectPolicy(cacheSize));
     }
 }

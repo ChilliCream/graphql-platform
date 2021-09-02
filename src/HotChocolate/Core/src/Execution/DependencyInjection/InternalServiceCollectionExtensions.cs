@@ -79,6 +79,30 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
+        internal static IServiceCollection TryAddDataLoaderTaskCachePool(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(
+                sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
+            services.TryAddScoped(
+                sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDataLoaderOptions(
+            this IServiceCollection services)
+        {
+            services.TryAddScoped(
+                sp => new DataLoaderOptions
+                {
+                    Caching = true,
+                    Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
+                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
+                    MaxBatchSize = 1024
+                });
+            return services;
+        }
+
         internal static IServiceCollection TryAddTypeConverter(
             this IServiceCollection services)
         {

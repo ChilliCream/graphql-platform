@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +55,7 @@ namespace GreenDonut
         protected DataLoaderBase(IBatchScheduler batchScheduler, DataLoaderOptions? options = null)
         {
             options ??= new DataLoaderOptions();
-            _diagnosticEvents = options.DiagnosticEvents;
+            _diagnosticEvents = options.DiagnosticEvents ?? new DataLoaderDiagnosticEventListener();
 
             if (options.Caching && options.Cache is null)
             {
@@ -245,7 +244,7 @@ namespace GreenDonut
             {
                 Result<TValue> value = results[i];
 
-                if (value.Kind is ResultKind.Value)
+                if (value.Kind is ResultKind.Undefined)
                 {
                     // in case we got here less or more results as expected, the
                     // complete batch operation failed.
@@ -265,9 +264,9 @@ namespace GreenDonut
             return batch.StartDispatchingAsync(async () =>
             {
                 using IActivityScope scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
-                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
 
-                buffer ??= new Result<TValue>[batch.Keys.Count];
+                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
+                buffer ??= new Result<TValue>[batch.Keys.Count < 4 ? 4 : batch.Keys.Count];
 
                 if (buffer.Length < batch.Keys.Count)
                 {
@@ -353,6 +352,7 @@ namespace GreenDonut
                     Clear();
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
+                    _cacheOwner?.Dispose();
                 }
 
                 _disposed = true;
