@@ -174,6 +174,25 @@ namespace GreenDonut
             Assert.Same(expected, resolved);
         }
 
+        [Fact(DisplayName = "TryAdd: Should result in a new cache entry and use the factory")]
+        public void TryAddNewCacheEntryWithFactory()
+        {
+            // arrange
+            var cacheSize = 10;
+            var cache = new TaskCache(cacheSize);
+            var key = new TaskCacheKey("a", "Foo");
+            var expected = Task.FromResult("Bar");
+
+            // act
+            var added = cache.TryAdd(key, () => expected);
+
+            // assert
+            Task<string> resolved = cache.GetOrAddTask(key, () => Task.FromResult("Baz"));
+
+            Assert.True(added);
+            Assert.Same(expected, resolved);
+        }
+
         [Fact(DisplayName = "TryAdd: Should result in 'Bar'")]
         public void TryAddTwice()
         {
