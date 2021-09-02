@@ -6,34 +6,37 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut
 {
-    public class Batch<TKey, TValue> where TKey : notnull
+    public class Batch<TKey> where TKey : notnull
     {
         private readonly object _sync = new();
-        private readonly Dictionary<TKey, TaskCompletionSource<TValue>> _items = new();
-        private bool _hasDispatched;
+        private readonly Dictionary<TKey, object> _items = new();
+        private List<TKey> _keys = new();
+        private bool _dispatched;
 
-        public IReadOnlyList<TKey> Keys => _items.Keys.ToArray();
+        public int Size => _keys.Count;
 
-        public int Size => _items.Count;
+        public IReadOnlyList<TKey> Keys => _keys;
 
-        public bool TryGetOrCreate(
+        public bool TryGetOrCreate<TValue>(
             TKey key,
             [NotNullWhen(true)] out TaskCompletionSource<TValue>? promise)
         {
-            if (!_hasDispatched)
+            if (!_dispatched)
             {
                 lock (_sync)
                 {
-                    if (!_hasDispatched)
+                    if (!_dispatched)
                     {
                         if (_items.ContainsKey(key))
                         {
-                            promise = _items[key];
+                            promise = (TaskCompletionSource<TValue>)_items[key];
                         }
                         else
                         {
                             promise = new TaskCompletionSource<TValue>(
                                 TaskCreationOptions.RunContinuationsAsynchronously);
+
+                            _keys.Add(key);
                             _items.Add(key, promise);
                         }
 
@@ -45,23 +48,21 @@ namespace GreenDonut
             promise = null;
             return false;
         }
-
-        public TaskCompletionSource<TValue> Get(TKey key)
-        {
-            return _items[key];
-        }
+        
+        public TaskCompletionSource<TValue> GetUnsafe<TValue>(TKey key)
+            => (TaskCompletionSource<TValue>)_items[key];
 
         public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
         {
             var execute = false;
 
-            if (!_hasDispatched)
+            if (!_dispatched)
             {
                 lock (_sync)
                 {
-                    if (!_hasDispatched)
+                    if (!_dispatched)
                     {
-                        execute = _hasDispatched = true;
+                        execute = _dispatched = true;
                     }
                 }
             }

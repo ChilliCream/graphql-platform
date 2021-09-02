@@ -15,8 +15,9 @@ namespace HotChocolate.ConferencePlanner.DataLoader
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
         public TrackByIdDataLoader(
+            IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
-            IDbContextFactory<ApplicationDbContext> dbContextFactory)
+            DataLoaderOptions options)
             : base(batchScheduler)
         {
             _dbContextFactory = dbContextFactory ??
@@ -27,11 +28,6 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            if (keys.Count == 1)
-            {
-                Counter.One();
-            }
-
             await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
@@ -39,12 +35,5 @@ namespace HotChocolate.ConferencePlanner.DataLoader
                 .Where(s => keys.Contains(s.Id))
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
         }
-    }
-
-    public static class Counter
-    {
-        public static int Count = 0;
-
-        public static int One() => Interlocked.Increment(ref Count);
     }
 }
