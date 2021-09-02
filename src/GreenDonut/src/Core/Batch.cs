@@ -1,78 +1,65 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.ObjectPool;
 
 namespace GreenDonut
 {
-    public class Batch<TKey> where TKey : notnull
+    internal class Batch<TKey> where TKey : notnull
     {
-        private readonly object _sync = new();
+        private readonly List<TKey> _keys = new();
         private readonly Dictionary<TKey, object> _items = new();
-        private List<TKey> _keys = new();
-        private bool _dispatched;
 
         public int Size => _keys.Count;
 
         public IReadOnlyList<TKey> Keys => _keys;
 
-        public bool TryGetOrCreate<TValue>(
-            TKey key,
-            [NotNullWhen(true)] out TaskCompletionSource<TValue>? promise)
+        public TaskCompletionSource<TValue> GetOrCreatePromise<TValue>(TKey key)
         {
-            if (!_dispatched)
+            if(_items.TryGetValue(key, out var value))
             {
-                lock (_sync)
-                {
-                    if (!_dispatched)
-                    {
-                        if (_items.ContainsKey(key))
-                        {
-                            promise = (TaskCompletionSource<TValue>)_items[key];
-                        }
-                        else
-                        {
-                            promise = new TaskCompletionSource<TValue>(
-                                TaskCreationOptions.RunContinuationsAsynchronously);
-
-                            _keys.Add(key);
-                            _items.Add(key, promise);
-                        }
-
-                        return true;
-                    }
-                }
+                return (TaskCompletionSource<TValue>)value;
             }
 
-            promise = null;
-            return false;
+            var promise = new TaskCompletionSource<TValue>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+
+            _keys.Add(key);
+            _items.Add(key, promise);
+
+            return promise;
         }
-        
-        public TaskCompletionSource<TValue> GetUnsafe<TValue>(TKey key)
+
+        public TaskCompletionSource<TValue> GetPromise<TValue>(TKey key)
             => (TaskCompletionSource<TValue>)_items[key];
 
-        public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
+        internal void ClearUnsafe()
         {
-            var execute = false;
+            _keys.Clear();
+            _items.Clear();
+        }
+    }
 
-            if (!_dispatched)
-            {
-                lock (_sync)
-                {
-                    if (!_dispatched)
-                    {
-                        execute = _dispatched = true;
-                    }
-                }
-            }
+    internal static class BatchPool<TKey> where TKey : notnull
+    {
+        public static ObjectPool<Batch<TKey>> Shared { get; } = Create();
 
-            if (execute)
-            {
-                return dispatch();
-            }
+        private static ObjectPool<Batch<TKey>> Create()
+            => new DefaultObjectPool<Batch<TKey>>(
+                new BatchPooledObjectPolicy<TKey>(),
+                Environment.ProcessorCount * 2);
+    }
 
-            return default;
+    internal class BatchPooledObjectPolicy<TKey>
+        : PooledObjectPolicy<Batch<TKey>>
+        where TKey : notnull
+    {
+        public override Batch<TKey> Create() => new();
+
+        public override bool Return(Batch<TKey> obj)
+        {
+            obj.ClearUnsafe();
+            return true;
         }
     }
 }

@@ -35,7 +35,7 @@ namespace GreenDonut
         private readonly ITaskCache? _cache;
         private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
-        private Batch<TKey, TValue>? _currentBatch;
+        private Batch<TKey>? _currentBatch;
         private Result<TValue>[]? _buffer;
         private bool _disposed;
 
@@ -215,7 +215,7 @@ namespace GreenDonut
         }
 
         private void BatchOperationFailed(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
             Exception error,
             IActivityScope scope)
@@ -230,12 +230,12 @@ namespace GreenDonut
                     _cache.TryRemove(cacheKey);
                 }
 
-                batch.Get(keys[i]).SetException(error);
+                batch.GetPromise<TValue>(keys[i]).SetException(error);
             }
         }
 
         private void BatchOperationSucceeded(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
             IReadOnlyList<Result<TValue>> results,
             IActivityScope scope)
@@ -253,24 +253,31 @@ namespace GreenDonut
                     return;
                 }
 
-                SetSingleResult(batch.Get(keys[i]), keys[i], results[i], scope);
+                SetSingleResult(batch.GetPromise<TValue>(keys[i]), keys[i], results[i], scope);
             }
         }
 
         private ValueTask DispatchBatchAsync(
-            Batch<TKey, TValue> batch,
+            Batch<TKey> batch,
             CancellationToken cancellationToken)
         {
-            return batch.StartDispatchingAsync(async () =>
+            lock (_sync)
+            {
+                _currentBatch = null;
+            }
+
+            return StartDispatchingAsync();
+
+            async ValueTask StartDispatchingAsync()
             {
                 using IActivityScope scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
 
                 Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
-                buffer ??= new Result<TValue>[batch.Keys.Count < 4 ? 4 : batch.Keys.Count];
+                buffer ??= new Result<TValue>[batch.Keys.Count];
 
-                if (buffer.Length < batch.Keys.Count)
+                if (buffer.Length < batch.Size)
                 {
-                    Array.Resize(ref buffer, batch.Keys.Count);
+                    Array.Resize(ref buffer, batch.Size);
                 }
 
                 Memory<Result<TValue>> results = batch.Keys.Count == buffer.Length
@@ -290,25 +297,25 @@ namespace GreenDonut
 
                 results.Span.Clear();
                 Interlocked.Exchange(ref _buffer, buffer);
-            });
+                BatchPool<TKey>.Shared.Return(batch);
+            }
         }
 
         private TaskCompletionSource<TValue> GetOrCreatePromiseUnsafe(TKey key)
         {
             if (_currentBatch is not null &&
-                _currentBatch.Size < _maxBatchSize &&
-                _currentBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? promise))
+                _currentBatch.Size < _maxBatchSize)
             {
-                return promise;
+                return _currentBatch.GetOrCreatePromise<TValue>(key);
             }
 
-            var newBatch = new Batch<TKey, TValue>();
+            Batch<TKey> newBatch = BatchPool<TKey>.Shared.Get();
 
-            newBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? newPromise);
+            TaskCompletionSource<TValue> newPromise = newBatch.GetOrCreatePromise<TValue>(key);
             _batchScheduler.Schedule(() => DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
             _currentBatch = newBatch;
 
-            return newPromise!;
+            return newPromise;
         }
 
         private void SetSingleResult(
@@ -353,6 +360,12 @@ namespace GreenDonut
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
                     _cacheOwner?.Dispose();
+
+                    if (_currentBatch is not null)
+                    {
+                        BatchPool<TKey>.Shared.Return(_currentBatch);
+                        _currentBatch = null;
+                    }
                 }
 
                 _disposed = true;
