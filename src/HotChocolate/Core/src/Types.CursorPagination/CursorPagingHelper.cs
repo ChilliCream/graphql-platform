@@ -67,13 +67,13 @@ namespace HotChocolate.Types.Pagination
                 slicedSource = ApplyTake(slicedSource, take);
             }
 
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
+            IReadOnlyList<Edge<TEntity>> selectedEdges =
                 await ExecuteAsync(slicedSource, skip, cancellationToken);
 
             var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
             var isSequenceFromStart = range.Start == 0;
 
-            selectedEdges = new SkipLastCollection<IndexEdge<TEntity>>(
+            selectedEdges = new SkipLastCollection<Edge<TEntity>>(
                 selectedEdges,
                 moreItemsReturnedThanRequested);
 
@@ -103,7 +103,7 @@ namespace HotChocolate.Types.Pagination
         /// <summary>
         /// Override this to implement the query execution.
         /// </summary>
-        protected abstract ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteAsync(
+        protected abstract ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
             TSource source,
             int offset,
             CancellationToken cancellationToken);
@@ -111,7 +111,7 @@ namespace HotChocolate.Types.Pagination
         private static ConnectionPageInfo CreatePageInfo(
             bool isSequenceFromStart,
             bool moreItemsReturnedThanRequested,
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges)
+            IReadOnlyList<Edge<TEntity>> selectedEdges)
         {
             // We know that there is a next page if more items than requested are returned
             var hasNextPage = moreItemsReturnedThanRequested;
@@ -120,8 +120,8 @@ namespace HotChocolate.Types.Pagination
             // If you point to index 2 of a empty list, we assume that there is a previous page
             var hasPreviousPage = !isSequenceFromStart;
 
-            IndexEdge<TEntity>? firstEdge = null;
-            IndexEdge<TEntity>? lastEdge = null;
+            Edge<TEntity>? firstEdge = null;
+            Edge<TEntity>? lastEdge = null;
 
             if (selectedEdges.Count > 0)
             {

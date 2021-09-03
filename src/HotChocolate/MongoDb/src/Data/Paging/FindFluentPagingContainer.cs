@@ -26,7 +26,7 @@ namespace HotChocolate.Data.MongoDb.Paging
                 .ConfigureAwait(false);
         }
 
-        public async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteQueryAsync(
+        public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
             int offset,
             CancellationToken cancellationToken)
         {

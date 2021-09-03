@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb.Paging
     {
         Task<int> CountAsync(CancellationToken cancellationToken);
 
-        ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteQueryAsync(
+        ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
             int offset,
             CancellationToken cancellationToken);
 

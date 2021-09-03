@@ -23,7 +23,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             CancellationToken cancellationToken)
             => await source.CountAsync(cancellationToken).ConfigureAwait(false);
 
-        protected override ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteAsync(
+        protected override ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
             IMongoPagingContainer<TEntity> source,
             int offset,
             CancellationToken cancellationToken)

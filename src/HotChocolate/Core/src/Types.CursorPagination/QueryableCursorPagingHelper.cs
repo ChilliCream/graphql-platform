@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Pagination
             CancellationToken cancellationToken)
             => await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
 
-        protected override async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteAsync(
+        protected override async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
             IQueryable<TEntity> source,
             int offset,
             CancellationToken cancellationToken)
