@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities
 
             MethodInfo info = _enumerableTypeInfo
                 .DeclaredMethods
-                .First(m => m.Name == _methodNameAny && m.IsStatic)
+                .First(m => m.Name == _methodNameAny && m.IsStatic && m.GetParameters().Length == 1)
                 .MakeGenericMethod(genericArgumentType);
 
             return (bool)info.Invoke(null, new[] { enumerable })!;
