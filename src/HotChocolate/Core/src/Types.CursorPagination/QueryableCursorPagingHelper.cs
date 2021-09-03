@@ -5,28 +5,28 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
-    internal sealed class QueryableCursorPagingHelper<TEntity>
-        : CursorPagingHelper<IQueryable<TEntity>, TEntity>
+    internal sealed class QueryableCursorPagination<TEntity>
+        : CursorPaginationAlgorithm<IQueryable<TEntity>, TEntity>
     {
-        protected override IQueryable<TEntity> ApplySkip(IQueryable<TEntity> source, int skip)
-            => source.Skip(skip);
+        protected override IQueryable<TEntity> ApplySkip(IQueryable<TEntity> query, int skip)
+            => query.Skip(skip);
 
-        protected override IQueryable<TEntity> ApplyTake(IQueryable<TEntity> source, int take)
-            => source.Take(take);
+        protected override IQueryable<TEntity> ApplyTake(IQueryable<TEntity> query, int take)
+            => query.Take(take);
 
         protected override async ValueTask<int> CountAsync(
-            IQueryable<TEntity> source,
+            IQueryable<TEntity> query,
             CancellationToken cancellationToken)
-            => await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
+            => await Task.Run(query.Count, cancellationToken).ConfigureAwait(false);
 
         protected override async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
-            IQueryable<TEntity> source,
+            IQueryable<TEntity> query,
             int offset,
             CancellationToken cancellationToken)
         {
             var list = new List<IndexEdge<TEntity>>();
 
-            if (source is IAsyncEnumerable<TEntity> enumerable)
+            if (query is IAsyncEnumerable<TEntity> enumerable)
             {
                 var index = offset;
                 await foreach (TEntity item in enumerable
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Pagination
                 await Task.Run(() =>
                     {
                         var index = offset;
-                        foreach (TEntity item in source)
+                        foreach (TEntity item in query)
                         {
                             if (cancellationToken.IsCancellationRequested)
                             {

@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Pagination
 {
     public class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
     {
-        private readonly QueryableCursorPagingHelper<TEntity> _pagingHelper = new();
+        private readonly QueryableCursorPagination<TEntity> _pagination = new();
 
         public QueryableCursorPagingHandler(PagingOptions options)
             : base(options)
@@ -34,6 +34,6 @@ namespace HotChocolate.Types.Pagination
             IQueryable<TEntity> source,
             CursorPagingArguments arguments = default,
             CancellationToken cancellationToken = default)
-            => _pagingHelper.ApplyPagination(source, arguments, cancellationToken);
+            => _pagination.ApplyPagination(source, arguments, cancellationToken);
     }
 }

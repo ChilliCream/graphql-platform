@@ -7,7 +7,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     internal class MongoDbCursorPagingHandler<TEntity> : CursorPagingHandler
     {
-        private readonly MongoCursorPagingHandler<TEntity> _pagingHelper = new();
+        private readonly MongoCursorPagination<TEntity> _pagination = new();
 
         public MongoDbCursorPagingHandler(PagingOptions options) : base(options)
         {
@@ -17,7 +17,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             IResolverContext context,
             object source,
             CursorPagingArguments arguments)
-            => _pagingHelper.ApplyPagination(
+            => _pagination.ApplyPagination(
                 CreatePagingContainer(source),
                 arguments,
                 context.RequestAborted);

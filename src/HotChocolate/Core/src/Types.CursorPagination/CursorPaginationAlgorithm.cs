@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,28 +11,28 @@ namespace HotChocolate.Types.Pagination
     /// This base class is a helper class for cursor paging handlers and contains the basic
     /// algorithm for cursor pagination.
     /// </summary>
-    /// <typeparam name="TSource">
-    /// The data source.
+    /// <typeparam name="TQuery">
+    /// The type representing the query builder.
     /// </typeparam>
     /// <typeparam name="TEntity">
-    /// The entity.
+    /// The entity type.
     /// </typeparam>
-    public abstract class CursorPagingHelper<TSource, TEntity>
+    public abstract class CursorPaginationAlgorithm<TQuery, TEntity>
     {
         /// <summary>
         /// Applies the pagination algorithm to the provided data.
         /// </summary>
-        /// <param name="source">The provided data.</param>
+        /// <param name="query">The query builder.</param>
         /// <param name="arguments">The paging arguments.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
         public async ValueTask<Connection> ApplyPagination(
-            TSource source,
+            TQuery query,
             CursorPagingArguments arguments,
             CancellationToken cancellationToken)
         {
             var maxElementCount = int.MaxValue;
-            Func<CancellationToken, ValueTask<int>> executeCount = ct => CountAsync(source, ct);
+            Func<CancellationToken, ValueTask<int>> executeCount = ct => CountAsync(query, ct);
 
             // We only need the maximal element count if no `before` counter is set and no `first`
             // argument is provided.
@@ -56,10 +57,10 @@ namespace HotChocolate.Types.Pagination
                 take++;
             }
 
-            TSource slicedSource = source;
+            TQuery slicedSource = query;
             if (skip != 0)
             {
-                slicedSource = ApplySkip(source, skip);
+                slicedSource = ApplySkip(query, skip);
             }
 
             if (take != maxElementCount)
@@ -86,25 +87,25 @@ namespace HotChocolate.Types.Pagination
         /// <summary>
         /// Override this method to apply a skip on top of the provided query.
         /// </summary>
-        protected abstract TSource ApplySkip(TSource source, int skip);
+        protected abstract TQuery ApplySkip(TQuery query, int skip);
 
         /// <summary>
         /// Override this method to apply a take (limit) on top of the provided query.
         /// </summary>
-        protected abstract TSource ApplyTake(TSource source, int take);
+        protected abstract TQuery ApplyTake(TQuery query, int take);
 
         /// <summary>
         /// Override this to implement a count function on top of the provided query.
         /// </summary>
         protected abstract ValueTask<int> CountAsync(
-            TSource source,
+            TQuery query,
             CancellationToken cancellationToken);
 
         /// <summary>
         /// Override this to implement the query execution.
         /// </summary>
         protected abstract ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
-            TSource source,
+            TQuery query,
             int offset,
             CancellationToken cancellationToken);
 

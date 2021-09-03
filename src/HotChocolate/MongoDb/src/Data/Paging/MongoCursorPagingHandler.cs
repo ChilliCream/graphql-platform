@@ -5,28 +5,28 @@ using HotChocolate.Types.Pagination;
 
 namespace HotChocolate.Data.MongoDb.Paging
 {
-    internal sealed class MongoCursorPagingHandler<TEntity>
-        : CursorPagingHelper<IMongoPagingContainer<TEntity>, TEntity>
+    internal sealed class MongoCursorPagination<TEntity>
+        : CursorPaginationAlgorithm<IMongoPagingContainer<TEntity>, TEntity>
     {
         protected override IMongoPagingContainer<TEntity> ApplySkip(
-            IMongoPagingContainer<TEntity> source,
+            IMongoPagingContainer<TEntity> query,
             int skip)
-            => source.Skip(skip);
+            => query.Skip(skip);
 
         protected override IMongoPagingContainer<TEntity> ApplyTake(
-            IMongoPagingContainer<TEntity> source,
+            IMongoPagingContainer<TEntity> query,
             int take)
-            => source.Take(take);
+            => query.Take(take);
 
         protected override async ValueTask<int> CountAsync(
-            IMongoPagingContainer<TEntity> source,
+            IMongoPagingContainer<TEntity> query,
             CancellationToken cancellationToken)
-            => await source.CountAsync(cancellationToken).ConfigureAwait(false);
+            => await query.CountAsync(cancellationToken).ConfigureAwait(false);
 
         protected override ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
-            IMongoPagingContainer<TEntity> source,
+            IMongoPagingContainer<TEntity> query,
             int offset,
             CancellationToken cancellationToken)
-            => source.ExecuteQueryAsync(offset, cancellationToken);
+            => query.ExecuteQueryAsync(offset, cancellationToken);
     }
 }
