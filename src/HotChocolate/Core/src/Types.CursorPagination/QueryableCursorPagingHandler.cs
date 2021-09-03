@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Pagination
 {
     public class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
     {
+        private readonly QueryableCursorPagination<TEntity> _pagination = new();
+
         public QueryableCursorPagingHandler(PagingOptions options)
             : base(options)
         {
@@ -28,12 +30,10 @@ namespace HotChocolate.Types.Pagination
             };
         }
 
-        private async ValueTask<Connection> ResolveAsync(
+        private ValueTask<Connection> ResolveAsync(
             IQueryable<TEntity> source,
             CursorPagingArguments arguments = default,
             CancellationToken cancellationToken = default)
-        {
-            return await source.ApplyCursorPaginationAsync(arguments, cancellationToken);
-        }
+            => _pagination.ApplyPagination(source, arguments, cancellationToken);
     }
 }
