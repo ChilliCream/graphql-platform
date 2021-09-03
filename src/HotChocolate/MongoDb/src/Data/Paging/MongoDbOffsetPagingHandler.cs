@@ -8,6 +8,7 @@ namespace HotChocolate.Data.MongoDb.Paging
     internal class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
     {
         private readonly MongoOffsetPagination<TEntity> _pagination = new();
+
         public MongoDbOffsetPagingHandler(PagingOptions options) : base(options)
         {
         }

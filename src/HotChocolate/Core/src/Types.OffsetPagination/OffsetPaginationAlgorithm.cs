@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace HotChocolate.Types.Pagination
 {
     /// <summary>
-    /// This base class is a helper class for cursor paging handlers and contains the basic
-    /// algorithm for cursor pagination.
+    /// This base class is a helper class for offset paging handlers and contains the basic
+    /// algorithm for offset pagination.
     /// </summary>
     /// <typeparam name="TQuery">
     /// The type representing the query builder.

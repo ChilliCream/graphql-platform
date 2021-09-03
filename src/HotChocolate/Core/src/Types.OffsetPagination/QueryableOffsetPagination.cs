@@ -14,7 +14,6 @@ namespace HotChocolate.Types.Pagination
         protected override IQueryable<TEntity> ApplyTake(IQueryable<TEntity> query, int take)
             => query.Take(take);
 
-        /// <inheritdoc />
         protected override async ValueTask<int> CountAsync(
             IQueryable<TEntity> query,
             CancellationToken cancellationToken)
