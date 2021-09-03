@@ -11,7 +11,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
 {
     public class SpeakerBySessionIdDataLoader : GroupedDataLoader<int, Speaker>
     {
-        private static readonly string _sessionCacheKey = GetCacheKeyType<SessionByIdDataLoader>();
+        private static readonly string _speakerCacheKey = GetCacheKeyType<SpeakerByIdDataLoader>();
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
         public SpeakerBySessionIdDataLoader(
@@ -38,7 +38,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
                 .Include(s => s.Speaker)
                 .ToListAsync(cancellationToken);
 
-            TryAddToCache(_sessionCacheKey, list, item => item.SpeakerId, item => item.Speaker!);
+            TryAddToCache(_speakerCacheKey, list, item => item.SpeakerId, item => item.Speaker!);
 
             return list.ToLookup(t => t.SessionId, t => t.Speaker!);
         }
