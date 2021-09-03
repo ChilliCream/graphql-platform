@@ -32,6 +32,8 @@ Before you spend time writing code, make sure of the following things:
 
 After this you can fork our repository to implement your changes. If you are unfamiliar with forking, be sure to read [this guide](https://guides.github.com/activities/forking/) first.
 
+To get started with the codebase, see [How to launch and build the solution](#how-to-launch-and-build-the-solution).
+
 ### Before submitting a pull request
 
 Before submitting a pull request containing your changes, make sure that it checks the following requirements:
@@ -55,6 +57,15 @@ Follow [this guide](https://docs.github.com/en/github/collaborating-with-issues-
 ### During pull request review
 
 Core contributors will review your pull request and provide feedback.
+
+## How to launch and build the solution
+
+We use [Nuke](https://nuke.build/) for build automation. It can be used to bootstrap you a complete solution file.
+Simply run build.ps1, build.sh or build.cmd and then in the src directory you can open up All.sln.
+
+There are other available commands too. As setup in the [.build](./.build/) directory.
+
+Other more focused solution files exist if you want to narrow in on a particular part of the platform.
 
 ## Code of conduct
 

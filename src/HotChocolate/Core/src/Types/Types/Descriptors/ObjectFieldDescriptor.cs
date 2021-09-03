@@ -83,9 +83,9 @@ namespace HotChocolate.Types.Descriptors
             Definition.IsParallelExecutable =
                 context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
 
-            MemberInfo member = expression.TryExtractCallMember();
+            MemberInfo? member = expression.TryExtractCallMember();
 
-            if (member is { })
+            if (member is not null)
             {
                 Definition.Name = context.Naming.GetMemberName(
                     member,
@@ -311,7 +311,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             MemberInfo member = propertyOrMethod.ExtractMember();
-            if (member is PropertyInfo || member is MethodInfo)
+            if (member is PropertyInfo or MethodInfo)
             {
                 Type resultType = member.GetReturnType();
 

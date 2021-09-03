@@ -75,8 +75,10 @@ namespace HotChocolate.Subscriptions.InMemory
                         yield break;
                     }
 
-                    yield return await _channel.Reader.ReadAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    while (_channel.Reader.TryRead(out T? value))
+                    {
+                        yield return value;
+                    }
                 }
             }
 

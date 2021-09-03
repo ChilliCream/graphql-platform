@@ -77,8 +77,8 @@ namespace HotChocolate.Types.Descriptors
                     continue;
                 }
 
-                // if this definition is used for a type extension we need a 
-                // binding to a field which shall be ignored. In case this is a 
+                // if this definition is used for a type extension we need a
+                // binding to a field which shall be ignored. In case this is a
                 // definition for the type it will be ignored by the type initialization.
                 Definition.FieldIgnores.Add(new ObjectFieldBinding(
                     field.Definition.Name,
@@ -247,9 +247,9 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = propertyOrMethod.TryExtractMember();
+            MemberInfo? member = propertyOrMethod.TryExtractMember();
 
-            if (member is PropertyInfo || member is MethodInfo)
+            if (member is PropertyInfo or MethodInfo)
             {
                 ObjectFieldDescriptor? fieldDescriptor = Fields.FirstOrDefault(
                     t => t.Definition.Member == member);

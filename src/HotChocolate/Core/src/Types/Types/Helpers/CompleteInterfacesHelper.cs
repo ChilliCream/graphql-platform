@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Helpers
 
             foreach (ITypeReference interfaceRef in interfaceReferences)
             {
-                if (!context.TryGetType(interfaceRef, out InterfaceType type))
+                if (!context.TryGetType(interfaceRef, out InterfaceType? type))
                 {
                     context.ReportError(
                         CompleteInterfacesHelper_UnableToResolveInterface(
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Helpers
 
                 if (index == 0 || Array.IndexOf(implements, type, 0, index) == -1)
                 {
-                    implements[index++] = type;
+                    implements[index++] = type!;
                 }
             }
 
