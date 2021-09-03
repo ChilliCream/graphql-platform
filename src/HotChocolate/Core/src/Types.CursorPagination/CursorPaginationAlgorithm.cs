@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Pagination
         /// <returns>
         /// Returns the connection.
         /// </returns>
-        public async ValueTask<Connection> ApplyPaginationAsync(
+        public async ValueTask<Connection<TEntity>> ApplyPaginationAsync(
             TQuery query,
             CursorPagingArguments arguments,
             CancellationToken cancellationToken)

@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Pagination.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -928,6 +930,21 @@ namespace HotChocolate.Types.Pagination
         {
             [UsePaging(ProviderName = "Abc")]
             public string[] Abc => Array.Empty<string>();
+        }
+
+        public class FluentPaging
+        {
+            [UsePaging(ProviderName = "Items")]
+            public async Task<Connection<string>> GetItems(
+                int? first,
+                int? last,
+                string? before,
+                string? after,
+                CancellationToken cancellationToken)
+                => await new[] { "a", "b", "c", "d" }
+                    .AsQueryable()
+                    .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
+
         }
 
         public class DummyProvider : CursorPagingProvider

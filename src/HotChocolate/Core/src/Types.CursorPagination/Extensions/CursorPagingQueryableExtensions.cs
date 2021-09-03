@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Pagination.Extensions
         /// Returns a connection instance that represents the result of applying the
         /// cursor paging algorithm to the provided <paramref name="query"/>.
         /// </returns>
-        public static ValueTask<Connection> ApplyCursorPaginationAsync<TEntity>(
+        public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
             this IQueryable<TEntity> query,
             int? first = null,
             int? last = null,
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Pagination.Extensions
         /// Returns a connection instance that represents the result of applying the
         /// cursor paging algorithm to the provided <paramref name="query"/>.
         /// </returns>
-        public static ValueTask<Connection> ApplyCursorPaginationAsync<TEntity>(
+        public static ValueTask<Connection<TEntity>> ApplyCursorPaginationAsync<TEntity>(
             this IQueryable<TEntity> query,
             CursorPagingArguments arguments,
             CancellationToken cancellationToken = default)
