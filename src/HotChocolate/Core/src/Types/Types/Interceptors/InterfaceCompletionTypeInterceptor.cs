@@ -110,7 +110,9 @@ namespace HotChocolate.Types.Interceptors
 
                 foreach (var interfaceRef in typeDef.Interfaces)
                 {
-                    if (completionContext.TryGetType(interfaceRef, out InterfaceType interfaceType))
+                    if (completionContext.TryGetType(
+                        interfaceRef,
+                        out InterfaceType? interfaceType))
                     {
                         _completed.Add(interfaceType.Name);
                         _backlog.Enqueue(interfaceType);
@@ -133,7 +135,9 @@ namespace HotChocolate.Types.Interceptors
 
                 foreach (var interfaceRef in objectTypeDef.Interfaces)
                 {
-                    if (completionContext.TryGetType(interfaceRef, out InterfaceType interfaceType))
+                    if (completionContext.TryGetType(
+                        interfaceRef,
+                        out InterfaceType? interfaceType))
                     {
                         _completed.Add(interfaceType.Name);
                         _backlog.Enqueue(interfaceType);

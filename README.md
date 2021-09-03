@@ -55,6 +55,10 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 - [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop)
 - [HotChocolate examples](https://github.com/ChilliCream/hotchocolate-examples)
 
+## Contributing
+
+[Become a code contributor](CONTRIBUTING.md) and help us make the ChilliCream GraphQL platform even better!
+
 ## From our community
 
 [Check out](COMMUNITY.md) what members of our awesome community have made!

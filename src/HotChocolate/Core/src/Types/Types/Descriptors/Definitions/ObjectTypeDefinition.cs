@@ -233,7 +233,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
                     ParameterInfo? parent = parameters.FirstOrDefault(
                         t => t.IsDefined(typeof(ParentAttribute), true));
                     if (parent is not null &&
-                        !parent.ParameterType.IsAssignableFrom(target.RuntimeType))
+                        !parent.ParameterType.IsAssignableFrom(target.RuntimeType) &&
+                        !target.RuntimeType.IsAssignableFrom(parent.ParameterType))
                     {
                         continue;
                     }

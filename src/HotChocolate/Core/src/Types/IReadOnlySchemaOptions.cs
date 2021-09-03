@@ -1,4 +1,6 @@
-﻿using HotChocolate.Configuration;
+using System;
+using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 
@@ -35,6 +37,12 @@ namespace HotChocolate
         /// Defines if the CSharp XML documentation shall be integrated.
         /// </summary>
         bool UseXmlDocumentation { get; }
+
+        /// <summary>
+        /// A delegate which resolves the name of the XML documentation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
+        Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.
