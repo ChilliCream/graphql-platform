@@ -1,50 +1,52 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
-    public static class CursorPagingHelper
+    /// <summary>
+    /// This base class is a helper class for cursor paging handlers and contains the basic
+    /// algorithm for cursor pagination.
+    /// </summary>
+    /// <typeparam name="TQuery">
+    /// The type representing the query builder.
+    /// </typeparam>
+    /// <typeparam name="TEntity">
+    /// The entity type.
+    /// </typeparam>
+    public abstract class CursorPaginationAlgorithm<TQuery, TEntity>
     {
-        public delegate ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
-            ToIndexEdgesAsync<in TSource, TEntity>(
-            TSource source,
-            int offset,
-            CancellationToken cancellationToken);
-
-        public delegate TSource ApplySkip<TSource>(TSource source, int skip);
-
-        public delegate TSource ApplyTake<TSource>(TSource source, int take);
-
-        public delegate ValueTask<int> CountAsync<in TSource>(
-            TSource source,
-            CancellationToken cancellationToken);
-
-        public static async ValueTask<Connection> ApplyPagination<TSource, TEntity>(
-            TSource source,
+        /// <summary>
+        /// Applies the pagination algorithm to the provided data.
+        /// </summary>
+        /// <param name="query">The query builder.</param>
+        /// <param name="arguments">The paging arguments.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns></returns>
+        public async ValueTask<Connection> ApplyPagination(
+            TQuery query,
             CursorPagingArguments arguments,
-            ApplySkip<TSource> applySkip,
-            ApplyTake<TSource> applyTake,
-            ToIndexEdgesAsync<TSource, TEntity> toIndexEdgesAsync,
-            CountAsync<TSource> countAsync,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
+            var maxElementCount = int.MaxValue;
+            Func<CancellationToken, ValueTask<int>> executeCount = ct => CountAsync(query, ct);
+
             // We only need the maximal element count if no `before` counter is set and no `first`
             // argument is provided.
-            var maxElementCount = int.MaxValue;
             if (arguments.Before is null && arguments.First is null)
             {
-                var count = await countAsync(source, cancellationToken);
+                var count = await executeCount(cancellationToken);
                 maxElementCount = count;
 
                 // in case we already know the total count, we override the countAsync parameter
                 // so that we do not have to fetch the count twice
-                countAsync = (_, _) => new ValueTask<int>(count);
+                executeCount = _ => new ValueTask<int>(count);
             }
 
-            Range range = SliceRange<TEntity>(arguments, maxElementCount);
+            CursorPagingRange range = SliceRange(arguments, maxElementCount);
 
             var skip = range.Start;
             var take = range.Count();
@@ -55,40 +57,62 @@ namespace HotChocolate.Types.Pagination
                 take++;
             }
 
-            TSource slicedSource = source;
+            TQuery slicedSource = query;
             if (skip != 0)
             {
-                slicedSource = applySkip(source, skip);
+                slicedSource = ApplySkip(query, skip);
             }
 
             if (take != maxElementCount)
             {
-                slicedSource = applyTake(slicedSource, take);
+                slicedSource = ApplyTake(slicedSource, take);
             }
 
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                await toIndexEdgesAsync(slicedSource, skip, cancellationToken);
+            IReadOnlyList<Edge<TEntity>> selectedEdges =
+                await ExecuteAsync(slicedSource, skip, cancellationToken);
 
             var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
             var isSequenceFromStart = range.Start == 0;
 
-            selectedEdges = new SkipLastCollection<IndexEdge<TEntity>>(
+            selectedEdges = new SkipLastCollection<Edge<TEntity>>(
                 selectedEdges,
                 moreItemsReturnedThanRequested);
 
             ConnectionPageInfo pageInfo =
                 CreatePageInfo(isSequenceFromStart, moreItemsReturnedThanRequested, selectedEdges);
 
-            return new Connection<TEntity>(
-                selectedEdges,
-                pageInfo,
-                async ct => await countAsync(source, ct));
+            return new Connection<TEntity>(selectedEdges, pageInfo, executeCount);
         }
 
-        private static ConnectionPageInfo CreatePageInfo<TEntity>(
+        /// <summary>
+        /// Override this method to apply a skip on top of the provided query.
+        /// </summary>
+        protected abstract TQuery ApplySkip(TQuery query, int skip);
+
+        /// <summary>
+        /// Override this method to apply a take (limit) on top of the provided query.
+        /// </summary>
+        protected abstract TQuery ApplyTake(TQuery query, int take);
+
+        /// <summary>
+        /// Override this to implement a count function on top of the provided query.
+        /// </summary>
+        protected abstract ValueTask<int> CountAsync(
+            TQuery query,
+            CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Override this to implement the query execution.
+        /// </summary>
+        protected abstract ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteAsync(
+            TQuery query,
+            int offset,
+            CancellationToken cancellationToken);
+
+        private static ConnectionPageInfo CreatePageInfo(
             bool isSequenceFromStart,
             bool moreItemsReturnedThanRequested,
-            IReadOnlyList<IndexEdge<TEntity>> selectedEdges)
+            IReadOnlyList<Edge<TEntity>> selectedEdges)
         {
             // We know that there is a next page if more items than requested are returned
             var hasNextPage = moreItemsReturnedThanRequested;
@@ -97,8 +121,8 @@ namespace HotChocolate.Types.Pagination
             // If you point to index 2 of a empty list, we assume that there is a previous page
             var hasPreviousPage = !isSequenceFromStart;
 
-            IndexEdge<TEntity>? firstEdge = null;
-            IndexEdge<TEntity>? lastEdge = null;
+            Edge<TEntity>? firstEdge = null;
+            Edge<TEntity>? lastEdge = null;
 
             if (selectedEdges.Count > 0)
             {
@@ -113,7 +137,7 @@ namespace HotChocolate.Types.Pagination
                 lastEdge?.Cursor);
         }
 
-        private static Range SliceRange<TEntity>(
+        private static CursorPagingRange SliceRange(
             CursorPagingArguments arguments,
             int maxElementCount)
         {
@@ -141,7 +165,7 @@ namespace HotChocolate.Types.Pagination
                 startIndex = 0;
             }
 
-            Range range = new(startIndex, before);
+            CursorPagingRange range = new(startIndex, before);
 
             //[SPEC] If first is less than 0 throw an error
             ValidateFirst(arguments, out var first);
@@ -206,53 +230,6 @@ namespace HotChocolate.Types.Pagination
             public T this[int index] => _items[index];
         }
 
-        internal class Range
-        {
-            public Range(int start, int end)
-            {
-                Start = start;
-                End = end;
-            }
-
-            public int Start { get; private set; }
-
-            public int End { get; private set; }
-
-            public int Count()
-            {
-                if (End < Start)
-                {
-                    return 0;
-                }
-
-                return End - Start;
-            }
-
-            public void Take(int? first)
-            {
-                if (first is { })
-                {
-                    var end = Start + first.Value;
-                    if (End > end)
-                    {
-                        End = end;
-                    }
-                }
-            }
-
-            public void TakeLast(int? last)
-            {
-                if (last is { })
-                {
-                    var start = End - last.Value;
-                    if (Start < start)
-                    {
-                        Start = start;
-                    }
-                }
-            }
-        }
-
         private static void ValidateFirst(
             CursorPagingArguments arguments,
             out int? first)
@@ -278,4 +255,3 @@ namespace HotChocolate.Types.Pagination
         }
     }
 }
-

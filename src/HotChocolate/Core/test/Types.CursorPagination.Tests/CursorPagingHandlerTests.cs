@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Pagination
         public void Range_Count_0()
         {
             // arrange
-            var range = new CursorPagingHelper.Range(0, 0);
+            var range = new CursorPagingRange(0, 0);
 
             // act
             var count = range.Count();
@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Pagination
         public void Range_Count_1()
         {
             // arrange
-            var range = new CursorPagingHelper.Range(0, 1);
+            var range = new CursorPagingRange(0, 1);
 
             // act
             var count = range.Count();
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Pagination
         public void Range_Count_2()
         {
             // arrange
-            var range = new CursorPagingHelper.Range(2, 4);
+            var range = new CursorPagingRange(2, 4);
 
             // act
             var count = range.Count();
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Pagination
         public async Task ApplyPagination_EmptyList()
         {
             // arrange
-            var data = new Foo[0];
+            var data = Array.Empty<Foo>();
 
             // act
             Connection result = await Apply(data);
@@ -907,36 +907,9 @@ namespace HotChocolate.Types.Pagination
             string? before = default,
             int? first = default,
             int? last = default)
-        {
-            return CursorPagingHelper.ApplyPagination(
-                foos,
+            => new QueryableCursorPagination<Foo>().ApplyPagination(
+                foos.AsQueryable(),
                 new CursorPagingArguments(first, last, after, before),
-                (x, skip) => x.Skip(skip),
-                (x, take) => x.Take(take),
-                ExecuteQueryableAsync,
-                (x, _) => new ValueTask<int>(x.Count()),
                 default);
-        }
-
-        private static ValueTask<IReadOnlyList<IndexEdge<Foo>>> ExecuteQueryableAsync(
-            IEnumerable<Foo> queryable,
-            int offset,
-            CancellationToken cancellationToken)
-        {
-            var list = new List<IndexEdge<Foo>>();
-
-            var index = offset;
-            foreach (Foo item in queryable)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                list.Add(IndexEdge<Foo>.Create(item, index++));
-            }
-
-            return new ValueTask<IReadOnlyList<IndexEdge<Foo>>>(list);
-        }
     }
 }
