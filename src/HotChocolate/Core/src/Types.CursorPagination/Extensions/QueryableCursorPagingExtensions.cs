@@ -20,7 +20,7 @@ namespace HotChocolate.Types
                 new CursorPagingArguments(first, last, after, before),
                 (x, skip) => x.Skip(skip),
                 (x, take) => x.Take(take),
-                Execute,
+                ExecuteQueryAsync,
                 CountAsync,
                 cancellationToken);
 
@@ -33,72 +33,50 @@ namespace HotChocolate.Types
                 arguments,
                 (x, skip) => x.Skip(skip),
                 (x, take) => x.Take(take),
-                Execute,
+                ExecuteQueryAsync,
                 CountAsync,
                 cancellationToken);
 
-        private static async ValueTask<int> CountAsync<TEntity>(
-            IQueryable<TEntity> source,
+        private static async ValueTask<int> CountAsync<T>(
+            IQueryable<T> source,
             CancellationToken cancellationToken) =>
             await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
 
-        private static async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> Execute<TEntity>(
-            IQueryable<TEntity> queryable,
+        private static async ValueTask<IReadOnlyList<IndexEdge<T>>> ExecuteQueryAsync<T>(
+            IQueryable<T> queryable,
             int offset,
             CancellationToken cancellationToken)
         {
-            var list = new List<IndexEdge<TEntity>>();
+            var list = new List<IndexEdge<T>>();
 
-            if (queryable is IAsyncEnumerable<TEntity> enumerable)
+            if (queryable is IAsyncEnumerable<T> enumerable)
             {
                 var index = offset;
-                await foreach (TEntity item in enumerable.WithCancellation(cancellationToken)
+                await foreach (T item in enumerable.WithCancellation(cancellationToken)
                     .ConfigureAwait(false))
                 {
-                    list.Add(IndexEdge<TEntity>.Create(item, index++));
+                    list.Add(IndexEdge<T>.Create(item, index++));
                 }
             }
             else
             {
                 await Task.Run(() =>
+                {
+                    var index = offset;
+                    foreach (T item in queryable)
+                    {
+                        if (cancellationToken.IsCancellationRequested)
                         {
-                            var index = offset;
-                            foreach (TEntity item in queryable)
-                            {
-                                if (cancellationToken.IsCancellationRequested)
-                                {
-                                    break;
-                                }
+                            break;
+                        }
 
-                                list.Add(IndexEdge<TEntity>.Create(item, index++));
-                            }
-                        },
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                        list.Add(IndexEdge<T>.Create(item, index++));
+                    }
+                },
+                cancellationToken).ConfigureAwait(false);
             }
 
             return list;
         }
-
-        public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
-            this IEnumerable<TSource> source,
-            int? first = null,
-            int? last = null,
-            string? after = null,
-            string? before = null,
-            CancellationToken cancellationToken = default) =>
-            ApplyCursorPaginationAsync(
-                source.AsQueryable(),
-                first,
-                last,
-                after,
-                before,
-                cancellationToken);
-
-        public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
-            this IEnumerable<TSource> source,
-            CursorPagingArguments arguments,
-            CancellationToken cancellationToken = default) =>
-            ApplyCursorPaginationAsync(source.AsQueryable(), arguments, cancellationToken);
     }
 }

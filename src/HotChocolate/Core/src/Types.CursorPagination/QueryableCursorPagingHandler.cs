@@ -28,12 +28,10 @@ namespace HotChocolate.Types.Pagination
             };
         }
 
-        private async ValueTask<Connection> ResolveAsync(
+        private ValueTask<Connection> ResolveAsync(
             IQueryable<TEntity> source,
             CursorPagingArguments arguments = default,
             CancellationToken cancellationToken = default)
-        {
-            return await source.ApplyCursorPaginationAsync(arguments, cancellationToken);
-        }
+            => source.ApplyCursorPaginationAsync(arguments, cancellationToken);
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,16 +11,16 @@ namespace HotChocolate.Types.Pagination
     public static class CursorPagingHelper
     {
         public delegate ValueTask<IReadOnlyList<IndexEdge<TEntity>>>
-            ToIndexEdgesAsync<in TSource, TEntity>(
-            TSource source,
-            int offset,
-            CancellationToken cancellationToken);
+            ExecuteQueryAsync<in TSource, TEntity>(
+                TSource source,
+                int offset,
+                CancellationToken cancellationToken);
 
         public delegate TSource ApplySkip<TSource>(TSource source, int skip);
 
         public delegate TSource ApplyTake<TSource>(TSource source, int take);
 
-        public delegate ValueTask<int> CountAsync<in TSource>(
+        public delegate ValueTask<int> ExecuteCountAsync<in TSource>(
             TSource source,
             CancellationToken cancellationToken);
 
@@ -27,8 +29,8 @@ namespace HotChocolate.Types.Pagination
             CursorPagingArguments arguments,
             ApplySkip<TSource> applySkip,
             ApplyTake<TSource> applyTake,
-            ToIndexEdgesAsync<TSource, TEntity> toIndexEdgesAsync,
-            CountAsync<TSource> countAsync,
+            ExecuteQueryAsync<TSource, TEntity> executeQuery,
+            ExecuteCountAsync<TSource> executeCount,
             CancellationToken cancellationToken = default)
         {
             // We only need the maximal element count if no `before` counter is set and no `first`
@@ -36,12 +38,12 @@ namespace HotChocolate.Types.Pagination
             var maxElementCount = int.MaxValue;
             if (arguments.Before is null && arguments.First is null)
             {
-                var count = await countAsync(source, cancellationToken);
+                var count = await executeCount(source, cancellationToken);
                 maxElementCount = count;
 
                 // in case we already know the total count, we override the countAsync parameter
                 // so that we do not have to fetch the count twice
-                countAsync = (_, _) => new ValueTask<int>(count);
+                executeCount = (_, _) => new ValueTask<int>(count);
             }
 
             Range range = SliceRange<TEntity>(arguments, maxElementCount);
@@ -66,8 +68,10 @@ namespace HotChocolate.Types.Pagination
                 slicedSource = applyTake(slicedSource, take);
             }
 
+            Debug.Assert(slicedSource is IQueryable, "The slicedSource must be queryable.");
+
             IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                await toIndexEdgesAsync(slicedSource, skip, cancellationToken);
+                await executeQuery(slicedSource, skip, cancellationToken);
 
             var moreItemsReturnedThanRequested = selectedEdges.Count > range.Count();
             var isSequenceFromStart = range.Start == 0;
@@ -82,7 +86,7 @@ namespace HotChocolate.Types.Pagination
             return new Connection<TEntity>(
                 selectedEdges,
                 pageInfo,
-                async ct => await countAsync(source, ct));
+                async ct => await executeCount(source, ct));
         }
 
         private static ConnectionPageInfo CreatePageInfo<TEntity>(
