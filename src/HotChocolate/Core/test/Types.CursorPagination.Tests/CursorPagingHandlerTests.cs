@@ -907,7 +907,7 @@ namespace HotChocolate.Types.Pagination
             string? before = default,
             int? first = default,
             int? last = default)
-            => new QueryableCursorPagination<Foo>().ApplyPagination(
+            => new QueryableCursorPagination<Foo>().ApplyPaginationAsync(
                 foos.AsQueryable(),
                 new CursorPagingArguments(first, last, after, before),
                 default);

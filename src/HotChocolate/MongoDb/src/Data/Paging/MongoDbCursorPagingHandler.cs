@@ -17,7 +17,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             IResolverContext context,
             object source,
             CursorPagingArguments arguments)
-            => _pagination.ApplyPagination(
+            => _pagination.ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
                 context.RequestAborted);
