@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     public static class EnumerableCursorPagingExtensions
     {
         public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
-            this IEnumerable<TSource> source,
+            this IQueryable<TSource> source,
             int? first = null,
             int? last = null,
             string? after = null,
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
                 cancellationToken);
 
         public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
-            this IEnumerable<TSource> source,
+            this IQueryable<TSource> source,
             CursorPagingArguments arguments,
             CancellationToken cancellationToken = default) =>
             CursorPagingHelper.ApplyPagination(
@@ -38,12 +38,12 @@ namespace HotChocolate.Types
                 cancellationToken);
 
         private static async ValueTask<int> CountAsync<TEntity>(
-            IEnumerable<TEntity> source,
+            IQueryable<TEntity> source,
             CancellationToken cancellationToken) =>
             await Task.Run(source.Count, cancellationToken).ConfigureAwait(false);
 
         private static async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> Execute<TEntity>(
-            IEnumerable<TEntity> queryable,
+            IQueryable<TEntity> queryable,
             int offset,
             CancellationToken cancellationToken)
         {
@@ -79,5 +79,26 @@ namespace HotChocolate.Types
 
             return list;
         }
+
+        public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
+            this IEnumerable<TSource> source,
+            int? first = null,
+            int? last = null,
+            string? after = null,
+            string? before = null,
+            CancellationToken cancellationToken = default) =>
+            ApplyCursorPaginationAsync(
+                source.AsQueryable(),
+                first,
+                last,
+                after,
+                before,
+                cancellationToken);
+
+        public static ValueTask<Connection> ApplyCursorPaginationAsync<TSource>(
+            this IEnumerable<TSource> source,
+            CursorPagingArguments arguments,
+            CancellationToken cancellationToken = default) =>
+            ApplyCursorPaginationAsync(source.AsQueryable(), arguments, cancellationToken);
     }
 }
