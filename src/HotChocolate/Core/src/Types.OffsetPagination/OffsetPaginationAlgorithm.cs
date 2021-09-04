@@ -25,11 +25,11 @@ namespace HotChocolate.Types.Pagination
         /// <param name="arguments">The paging arguments.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public ValueTask<CollectionSegment> ApplyPagination(
+        public ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
             TQuery query,
             OffsetPagingArguments arguments,
             CancellationToken cancellationToken) =>
-            ApplyPagination(query, arguments, null, cancellationToken);
+            ApplyPaginationAsync(query, arguments, null, cancellationToken);
 
         /// <summary>
         /// Applies the pagination algorithm to the provided data.
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Pagination
         /// <param name="totalCount">Specify the total amount of elements</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns></returns>
-        public async ValueTask<CollectionSegment> ApplyPagination(
+        public async ValueTask<CollectionSegment<TEntity>> ApplyPaginationAsync(
             TQuery query,
             OffsetPagingArguments arguments,
             int? totalCount,
@@ -71,8 +71,8 @@ namespace HotChocolate.Types.Pagination
 
             items = new SkipLastCollection<TEntity>(items, skipLast: hasNextPage);
 
-            return new CollectionSegment(
-                (IReadOnlyCollection<object>)items,
+            return new CollectionSegment<TEntity>(
+                items,
                 pageInfo,
                 getTotalCount);
         }

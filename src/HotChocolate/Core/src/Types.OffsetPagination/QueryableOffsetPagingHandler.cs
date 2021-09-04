@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Pagination
                 }
             }
 
-            return await _pagination.ApplyPagination(
+            return await _pagination.ApplyPaginationAsync(
                 queryable,
                 arguments,
                 totalCount,

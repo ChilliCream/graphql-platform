@@ -739,6 +739,29 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task FluentPagingTests()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<FluentPaging>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    items {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task SelectDefaultProvider()
         {
             Snapshot.FullName();

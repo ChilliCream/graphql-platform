@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Pagination
     internal sealed class QueryableOffsetPagination<TEntity>
         : OffsetPaginationAlgorithm<IQueryable<TEntity>, TEntity>
     {
+        public static QueryableOffsetPagination<TEntity> Instance { get; } = new();
+
         protected override IQueryable<TEntity> ApplySkip(IQueryable<TEntity> query, int skip)
             => query.Skip(skip);
 
