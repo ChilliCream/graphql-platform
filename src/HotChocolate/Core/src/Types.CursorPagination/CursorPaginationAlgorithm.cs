@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Pagination
     public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : notnull
     {
         /// <summary>
-        /// Applies the pagination algorithm to the provided data.
+        /// Applies the pagination algorithm to the provided query.
         /// </summary>
         /// <param name="query">The query builder.</param>
         /// <param name="arguments">The paging arguments.</param>
