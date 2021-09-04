@@ -89,9 +89,7 @@ export const ArticleSectionsGraphQLFragment = graphql`
   }
 `;
 
-const Container = styled.section`
-  margin-bottom: 20px;
-`;
+const Container = styled.section``;
 
 const Title = styled.h6`
   padding: 0 25px;

@@ -225,6 +225,24 @@
             ]
           },
           {
+            "path": "server",
+            "title": "Server",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "configuration",
+                "title": "Configuration"
+              },
+              {
+                "path": "interceptors",
+                "title": "Interceptors"
+              }
+            ]
+          },
+          {
             "path": "api-reference",
             "title": "API Reference",
             "items": [

@@ -374,3 +374,5 @@ public class Startup
 ```
 
 The `IHttpRequestInterceptor` can be used for many other things as well, not just for modifying the `ClaimsPrincipal`.
+
+[Learn more about the IHttpRequestInterceptor](/docs/hotchocolate/server/interceptors#ihttprequestinterceptor)
