@@ -944,7 +944,6 @@ namespace HotChocolate.Types.Pagination
                 => await new[] { "a", "b", "c", "d" }
                     .AsQueryable()
                     .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
-
         }
 
         public class DummyProvider : CursorPagingProvider
