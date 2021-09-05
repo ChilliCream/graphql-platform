@@ -129,6 +129,9 @@ const TocListItem = styled.li<TocListItemProps>`
   margin: 5px 0;
   padding: 0;
   line-height: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 
   > ${TocItemContainer} {
     padding-right: 0;

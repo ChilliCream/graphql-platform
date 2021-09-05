@@ -49,19 +49,11 @@ public override ValueTask OnCreateAsync(HttpContext context,
 
 > ⚠️ Note: `base.OnCreateAsync` should always be invoked, since the default implementation takes care of adding the dependencey injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
 
-If we want to overwrite configuration done by the default implementation, we can call it first and then apply our own customizations.
+Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
-```csharp
-public override ValueTask OnCreateAsync(HttpContext context,
-    IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
-    CancellationToken cancellationToken)
-{
-    await base.OnCreateAsync(context, requestExecutor, requestBuilder,
-            cancellationToken);
+[Learn more about the IQueryRequestBuilder](#iqueryrequestbuilder)
 
-    // our own configuration
-}
-```
+If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
 # ISocketSessionInterceptor
 
@@ -154,17 +146,11 @@ public override ValueTask OnRequestAsync(ISocketConnection connection,
 
 > ⚠️ Note: `base.OnRequestAsync` should always be invoked, since the default implementation takes care of adding the dependencey injection services as well as some important global state variables, such as the `ClaimsPrinicpal`. Not doing this can lead to unexpected issues.
 
-If we want to overwrite configuration done by the default implementation, we can call it first and then apply our own customizations.
+Most of the configuration will be done through the `IQueryRequestBuilder`, injected as argument to this method.
 
-```csharp
-public override async ValueTask OnRequestAsync(ISocketConnection connection,
-    IQueryRequestBuilder requestBuilder, CancellationToken cancellationToken)
-{
-    await base.OnRequestAsync(connection, requestBuilder, cancellationToken);
+[Learn more about the IQueryRequestBuilder](#iqueryrequestbuilder)
 
-    // our own configuration
-}
-```
+If we want to fail the request, before it is being executed, we can throw a `GraphQLException`. The middleware will then translate this exception to a proper GraphQL error response for the client.
 
 ## OnCloseAsync
 
@@ -172,7 +158,7 @@ This method is invoked, once a client closes the WebSocket connection or the con
 
 # IQueryRequestBuilder
 
-Both in the `IHttpRequestInterceptor.OnCreateAsync` as well as the `ISocketSessionInterceptor.OnRequestAsync`, we have access to the `IQueryRequestBuilder`. It allows us to influence the execution of a GraphQL request.
+The `IQueryRequestBuilder` allows us to influence the execution of a GraphQL request.
 
 It has many capabilities, but most of them are only used internally. In the following we are going to cover the methods that are most relevant to us as consumers.
 
@@ -216,8 +202,14 @@ requestBuilder.SetProperties(properties);
 `SetServices` allows us to add an `IServiceProvider` which should be used for dependency injection during the request.
 
 ```csharp
+var provider = new ServiceCollection()
+                .AddSingleton<ExampleService>()
+                .BuildServiceProvider();
+
 requestBuilder.SetServices(provider);
 ```
+
+There is also `TrySetServices`, which only sets the `IServiceProvider`, if it hasn't yet been set.
 
 ## AllowIntrospection
 
