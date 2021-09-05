@@ -15,3 +15,9 @@ Interceptors allow us to intercept GraphQL requests before they are being execut
 In the case of WebSockets the interceptor also allows us to handle life cycle events such as when a client first connects.
 
 [Learn more about interceptors](/docs/hotchocolate/server/interceptors)
+
+# Uploading files
+
+Even though it is not considered one of the responsibilities of a GraphQL server, Hot Chocolate provides the possibility to upload files for convenience reasons.
+
+[Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
