@@ -8,7 +8,6 @@ namespace HotChocolate.Execution.Instrumentation
 {
     internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticEvents
     {
-        private static EmptyActivityScope _empty = new();
         private readonly IExecutionDiagnosticEventListener[] _listeners;
         private readonly IExecutionDiagnosticEventListener[] _resolverListener;
 
@@ -82,7 +81,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             if (_listeners.Length == 0)
             {
-                return _empty;
+                return ExecutionDiagnosticEventListener.EmptyScope;
             }
 
             var scopes = new IDisposable[_resolverListener.Length];
@@ -107,7 +106,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
             if (_listeners.Length == 0)
             {
-                return _empty;
+                return ExecutionDiagnosticEventListener.EmptyScope;
             }
 
             var scopes = new IDisposable[_resolverListener.Length];
@@ -281,13 +280,6 @@ namespace HotChocolate.Execution.Instrumentation
                     }
                     _disposed = true;
                 }
-            }
-        }
-
-        private class EmptyActivityScope : IDisposable
-        {
-            public void Dispose()
-            {
             }
         }
     }

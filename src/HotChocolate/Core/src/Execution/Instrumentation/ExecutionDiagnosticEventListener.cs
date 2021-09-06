@@ -20,10 +20,10 @@ namespace HotChocolate.Execution.Instrumentation
         public virtual bool EnableResolveFieldValue => false;
 
         /// <summary>
-        /// A no-op <see cref="IActivityScope"/> that can be returned from
+        /// A no-op activity scope that can be returned from
         /// event methods that are not interested in when the scope is disposed.
         /// </summary>
-        protected IDisposable EmptyScope { get; } = new EmptyActivityScope();
+        internal protected static IDisposable EmptyScope { get; } = new EmptyActivityScope();
 
         /// <inheritdoc />
         public virtual IDisposable ExecuteRequest(IRequestContext context)
