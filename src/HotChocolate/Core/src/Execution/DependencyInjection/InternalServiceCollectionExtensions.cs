@@ -7,6 +7,7 @@ using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
@@ -92,6 +93,20 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddDataLoaderOptions(
             this IServiceCollection services)
         {
+            services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
+                sp =>
+                {
+                    IDataLoaderDiagnosticEventListener[] listeners =
+                        sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
+
+                    return listeners.Length switch
+                    {
+                        0 => new DataLoaderDiagnosticEventListener(),
+                        1 => listeners[0],
+                        _ => new AggregateDataLoaderDiagnosticEventListener(listeners)
+                    };
+                });
+
             services.TryAddScoped(
                 sp => new DataLoaderOptions
                 {

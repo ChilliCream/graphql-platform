@@ -227,10 +227,9 @@ namespace GreenDonut
         private void BatchOperationFailed(
             Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
-            Exception error,
-            IActivityScope scope)
+            Exception error)
         {
-            _diagnosticEvents.BatchError(scope, keys, error);
+            _diagnosticEvents.BatchError(keys, error);
 
             for (var i = 0; i < keys.Count; i++)
             {
@@ -247,8 +246,7 @@ namespace GreenDonut
         private void BatchOperationSucceeded(
             Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
-            IReadOnlyList<Result<TValue>> results,
-            IActivityScope scope)
+            IReadOnlyList<Result<TValue>> results)
         {
             for (var i = 0; i < keys.Count; i++)
             {
@@ -259,11 +257,11 @@ namespace GreenDonut
                     // in case we got here less or more results as expected, the
                     // complete batch operation failed.
                     Exception error = CreateKeysAndValuesMustMatch(keys.Count, i);
-                    BatchOperationFailed(batch, keys, error, scope);
+                    BatchOperationFailed(batch, keys, error);
                     return;
                 }
 
-                SetSingleResult(batch.GetPromise<TValue>(keys[i]), keys[i], results[i], scope);
+                SetSingleResult(batch.GetPromise<TValue>(keys[i]), keys[i], results[i]);
             }
         }
 
@@ -280,7 +278,7 @@ namespace GreenDonut
 
             async ValueTask StartDispatchingAsync()
             {
-                using IActivityScope scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
+                using IDisposable scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
 
                 Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
                 buffer ??= new Result<TValue>[batch.Keys.Count];
@@ -297,12 +295,12 @@ namespace GreenDonut
                 try
                 {
                     await FetchAsync(batch.Keys, results, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, buffer, scope);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(scope, batch.Keys, results.Span);
+                    BatchOperationSucceeded(batch, batch.Keys, buffer);
+                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, results.Span);
                 }
                 catch (Exception ex)
                 {
-                    BatchOperationFailed(batch, batch.Keys, ex, scope);
+                    BatchOperationFailed(batch, batch.Keys, ex);
                 }
 
                 results.Span.Clear();
@@ -328,8 +326,7 @@ namespace GreenDonut
         private void SetSingleResult(
             TaskCompletionSource<TValue> promise,
             TKey key,
-            Result<TValue> result,
-            IActivityScope scope)
+            Result<TValue> result)
         {
             if (result.Kind is ResultKind.Value)
             {
@@ -337,7 +334,7 @@ namespace GreenDonut
             }
             else
             {
-                _diagnosticEvents.BatchItemError(scope, key, result.Error!);
+                _diagnosticEvents.BatchItemError(key, result.Error!);
                 promise.SetException(result.Error!);
             }
         }
