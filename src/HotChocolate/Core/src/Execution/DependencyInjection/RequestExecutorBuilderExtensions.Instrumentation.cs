@@ -43,7 +43,8 @@ namespace Microsoft.Extensions.DependencyInjection
             if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
                 builder.Services.AddSingleton<T>();
-                builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEvents)s.GetService<T>());
+                builder.Services.AddSingleton(
+                    s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
             }
             else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
@@ -79,13 +80,13 @@ namespace Microsoft.Extensions.DependencyInjection
             if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
                 builder.Services.AddSingleton(
-                    s => (IDataLoaderDiagnosticEvents)diagnosticEventListener(s));
+                    s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
             }
             else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
                 builder.ConfigureSchemaServices(
                     s => s.AddSingleton(
-                        sp => (IDataLoaderDiagnosticEvents)diagnosticEventListener(
+                        sp => (IExecutionDiagnosticEventListener)diagnosticEventListener(
                             sp.GetCombinedServices())));
             }
             else

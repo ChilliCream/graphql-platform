@@ -257,6 +257,9 @@ namespace HotChocolate.Execution.Processing
 
             async ValueTask<bool> InvokeDispatch()
             {
+                // we yield here to give back control so that the lock can be released.
+                await Task.Yield();
+
                 do
                 {
                     await _batchDispatcher.DispatchAsync(_requestAborted).ConfigureAwait(false);

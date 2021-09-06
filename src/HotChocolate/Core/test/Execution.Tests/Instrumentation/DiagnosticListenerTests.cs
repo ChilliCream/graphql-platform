@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Instrumentation
                .AddStarWarsRepositories());
 
             // act
-            var result = await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Instrumentation
                .AddStarWarsRepositories());
 
             // act
-            var result = await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(result.Errors);
