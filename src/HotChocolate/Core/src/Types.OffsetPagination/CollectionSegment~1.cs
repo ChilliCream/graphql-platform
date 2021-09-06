@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// The collection segment represents one page of a pageable dataset / collection.
+    /// </summary>
     public class CollectionSegment<T> : CollectionSegment
     {
         /// <summary>
@@ -35,7 +37,11 @@ namespace HotChocolate.Types.Pagination
         /// </summary>
         public new IReadOnlyCollection<T> Items { get; }
 
-        private class CollectionWrapper : IReadOnlyCollection<object>
+        /// <summary>
+        /// This wrapper is used to be able to pass along the items collection to the base class
+        /// which demands <see cref="IReadOnlyCollection{Object}"/>.
+        /// </summary>
+        private sealed class CollectionWrapper : IReadOnlyCollection<object>
         {
             private readonly IReadOnlyCollection<T> _collection;
 
@@ -43,6 +49,8 @@ namespace HotChocolate.Types.Pagination
             {
                 _collection = collection;
             }
+
+            public int Count => _collection.Count;
 
             public IEnumerator<object> GetEnumerator()
             {
@@ -52,13 +60,7 @@ namespace HotChocolate.Types.Pagination
                 }
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public int Count => _collection.Count;
-
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }
