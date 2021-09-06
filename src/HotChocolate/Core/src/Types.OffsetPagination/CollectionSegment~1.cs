@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Pagination
 
             public CollectionWrapper(IReadOnlyCollection<T> collection)
             {
-                _collection = collection;
+                _collection = collection ?? throw new ArgumentNullException(nameof(collection));
             }
 
             public int Count => _collection.Count;
