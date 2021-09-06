@@ -94,6 +94,49 @@ namespace GreenDonut
             (await loadResult).MatchSnapshot();
         }
 
+        [Fact(DisplayName = "LoadAsync: Should match snapshot when same key is load twice")]
+        public async Task LoadSingleResultTwice()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
+            var batchScheduler = new DelayDispatcher();
+            var loader = new DataLoader<string, string>(fetch, batchScheduler);
+            var key = "Foo";
+
+            // first load.
+            (await loader.LoadAsync(key)).MatchSnapshot();
+
+            // act
+            var result = await loader.LoadAsync(key);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(DisplayName = "LoadAsync: Should match snapshot when using no cache")]
+        public async Task LoadSingleResultNoCache()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(
+                fetch,
+                batchScheduler,
+                new DataLoaderOptions
+                {
+                    Caching = false
+                });
+            var key = "Foo";
+
+            // act
+            Task<string> loadResult = loader.LoadAsync(key);
+
+            // assert
+            await Task.Delay(25);
+            batchScheduler.Dispatch();
+            (await loadResult).MatchSnapshot();
+        }
+
         [Fact(DisplayName = "LoadAsync: Should return one error")]
         public async Task LoadSingleErrorResult()
         {
@@ -209,6 +252,49 @@ namespace GreenDonut
             FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
             var batchScheduler = new ManualBatchScheduler();
             var loader = new DataLoader<string, string>(fetch, batchScheduler);
+            var keys = new List<string> { "Foo" };
+
+            // act
+            Task<IReadOnlyList<string>> loadResult = loader.LoadAsync(keys, CancellationToken.None);
+            batchScheduler.Dispatch();
+
+            // assert
+            (await loadResult).MatchSnapshot();
+        }
+
+        [Fact(DisplayName = "LoadAsync: Should match snapshot if same key is fetched twice")]
+        public async Task LoadCollectionResultTwice()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
+            var batchScheduler = new DelayDispatcher();
+            var loader = new DataLoader<string, string>(
+                fetch,
+                batchScheduler);
+            var keys = new List<string> { "Foo" };
+
+            (await loader.LoadAsync(keys, CancellationToken.None)).MatchSnapshot();
+
+            // act
+            IReadOnlyList<string> result = await loader.LoadAsync(keys, CancellationToken.None);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact(DisplayName = "LoadAsync: Should return one result when cache is deactivated")]
+        public async Task LoadCollectionResultNoCache()
+        {
+            // arrange
+            FetchDataDelegate<string, string> fetch = CreateFetch<string, string>("Bar");
+            var batchScheduler = new ManualBatchScheduler();
+            var loader = new DataLoader<string, string>(
+                fetch,
+                batchScheduler,
+                new DataLoaderOptions
+                {
+                    Caching = false
+                });
             var keys = new List<string> { "Foo" };
 
             // act
@@ -346,11 +432,11 @@ namespace GreenDonut
         [InlineData(5, 25, 25, 0, true, false)]
         [InlineData(5, 25, 25, 0, false, true)]
         [InlineData(5, 25, 25, 0, false, false)]
-        [InlineData(100, 1000, 25, 25, true, true)]
-        [InlineData(100, 1000, 25, 0, true, true)]
-        [InlineData(100, 1000, 25, 0, true, false)]
-        [InlineData(100, 1000, 25, 25, false, true)]
-        [InlineData(100, 1000, 25, 0, false, false)]
+        // [InlineData(100, 1000, 25, 25, true, true)]
+        // [InlineData(100, 1000, 25, 0, true, true)]
+        // [InlineData(100, 1000, 25, 0, true, false)]
+        // [InlineData(100, 1000, 25, 25, false, true)]
+        // [InlineData(100, 1000, 25, 0, false, false)]
         [Theory(DisplayName = "LoadAsync: Runs integration tests with different settings")]
         public async Task LoadTest(
             int uniqueKeys,
