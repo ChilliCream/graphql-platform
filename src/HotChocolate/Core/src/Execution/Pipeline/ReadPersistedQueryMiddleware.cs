@@ -8,12 +8,12 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class ReadPersistedQueryMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IReadStoredQueries _persistedQueryStore;
 
         public ReadPersistedQueryMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IReadStoredQueries persistedQueryStore)
         {
             _next = next ??

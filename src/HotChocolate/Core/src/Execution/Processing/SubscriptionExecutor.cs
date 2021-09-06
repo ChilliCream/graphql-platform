@@ -12,12 +12,12 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public SubscriptionExecutor(
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            IDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             _operationContextPool = operationContextPool;
             _queryExecutor = queryExecutor;

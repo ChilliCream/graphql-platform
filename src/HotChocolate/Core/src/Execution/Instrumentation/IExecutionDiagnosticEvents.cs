@@ -8,8 +8,8 @@ namespace HotChocolate.Execution.Instrumentation
     /// <summary>
     /// Diagnostic events that can be triggered by the execution engine.
     /// </summary>
-    /// <seealso cref="IDiagnosticEventListener"/>
-    public interface IDiagnosticEvents
+    /// <seealso cref="IExecutionDiagnosticEventListener"/>
+    public interface IExecutionDiagnosticEvents
     {
         /// <summary>
         /// Called when starting to execute a request.
@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the execution has finished.
         /// </returns>
-        IActivityScope ExecuteRequest(IRequestContext context);
+        IDisposable ExecuteRequest(IRequestContext context);
 
         /// <summary>
         /// Called at the end of the execution if an exception occurred at some point,
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when parsing has finished.
         /// </returns>
-        IActivityScope ParseDocument(IRequestContext context);
+        IDisposable ParseDocument(IRequestContext context);
 
         /// <summary>
         /// Called if a syntax error is detected in a document during parsing.
@@ -70,7 +70,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the validation has finished.
         /// </returns>
-        IActivityScope ValidateDocument(IRequestContext context);
+        IDisposable ValidateDocument(IRequestContext context);
 
         /// <summary>
         /// Called if there are any document validation errors.
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to resolve a field value.
         /// </summary>
         /// <remarks>
-        /// <see cref="IDiagnosticEventListener.EnableResolveFieldValue"/> must be true if
+        /// <see cref="IExecutionDiagnosticEventListener.EnableResolveFieldValue"/> must be true if
         /// a listener implements this method to ensure that it is called.
         /// </remarks>
         /// <param name="context">
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the field resolution has finished.
         /// </returns>
-        IActivityScope ResolveFieldValue(IMiddlewareContext context);
+        IDisposable ResolveFieldValue(IMiddlewareContext context);
 
         /// <summary>
         /// Called for any errors during field resolution, including unhandled exceptions.
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// Called when starting to run an execution engine task.
         /// </summary>
         /// <remarks>
-        /// <see cref="IDiagnosticEventListener.EnableResolveFieldValue"/> must be true if
+        /// <see cref="IExecutionDiagnosticEventListener.EnableResolveFieldValue"/> must be true if
         /// a listener implements this method to ensure that it is called.
         /// </remarks>
         /// <param name="task">
@@ -125,7 +125,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the task has finished.
         /// </returns>
-        IActivityScope RunTask(IExecutionTask task);
+        IDisposable RunTask(IExecutionTask task);
 
         /// <summary>
         /// Called for any errors reported on a <see cref="IExecutionTaskContext"/>
@@ -166,7 +166,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the subscription has completed.
         /// </returns>
-        IActivityScope ExecuteSubscription(ISubscription subscription);
+        IDisposable ExecuteSubscription(ISubscription subscription);
 
         /// <summary>
         /// Called when an event was raised and a new subscription result is being produced.
@@ -177,7 +177,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// <returns>
         /// A scope that will be disposed when the subscription event execution has completed.
         /// </returns>
-        IActivityScope OnSubscriptionEvent(SubscriptionEventContext context);
+        IDisposable OnSubscriptionEvent(SubscriptionEventContext context);
 
         /// <summary>
         /// Called when a result for a specific subscription event was produced.
@@ -263,7 +263,7 @@ namespace HotChocolate.Execution.Instrumentation
         /// The request context encapsulates all GraphQL-specific information about an
         /// individual GraphQL request.
         /// </param>
-        IActivityScope DispatchBatch(IRequestContext context);
+        IDisposable DispatchBatch(IRequestContext context);
 
         /// <summary>
         /// A GraphQL request executor was created and is now able to execute GraphQL requests.

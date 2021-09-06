@@ -90,7 +90,7 @@ namespace HotChocolate.Execution
                 re = new RegisteredExecutor(
                     schemaServices.GetRequiredService<IRequestExecutor>(),
                     schemaServices,
-                    schemaServices.GetRequiredService<IDiagnosticEvents>(),
+                    schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
                     options,
                     schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
@@ -222,8 +222,8 @@ namespace HotChocolate.Execution
             }
 
             // register global diagnostic listener
-            foreach (IDiagnosticEventListener diagnosticEventListener in
-                _applicationServices.GetServices<IDiagnosticEventListener>())
+            foreach (IExecutionDiagnosticEventListener diagnosticEventListener in
+                _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
             {
                 serviceCollection.AddSingleton(diagnosticEventListener);
             }
@@ -253,7 +253,7 @@ namespace HotChocolate.Execution
                     sp.GetRequiredService<IErrorHandler>(),
                     _applicationServices.GetRequiredService<ITypeConverter>(),
                     sp.GetRequiredService<IActivator>(),
-                    sp.GetRequiredService<IDiagnosticEvents>(),
+                    sp.GetRequiredService<IExecutionDiagnosticEvents>(),
                     version);
                 return provider.Create(policy);
             });
@@ -418,7 +418,7 @@ namespace HotChocolate.Execution
             public RegisteredExecutor(
                 IRequestExecutor executor,
                 IServiceProvider services,
-                IDiagnosticEvents diagnosticEvents,
+                IExecutionDiagnosticEvents diagnosticEvents,
                 RequestExecutorSetup setup,
                 TypeModuleChangeMonitor typeModuleChangeMonitor)
             {
@@ -433,7 +433,7 @@ namespace HotChocolate.Execution
 
             public IServiceProvider Services { get; }
 
-            public IDiagnosticEvents DiagnosticEvents { get; }
+            public IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
             public RequestExecutorSetup Setup { get; }
 
@@ -553,14 +553,14 @@ namespace HotChocolate.Execution
             private readonly IErrorHandler _errorHandler;
             private readonly ITypeConverter _converter;
             private readonly IActivator _activator;
-            private readonly IDiagnosticEvents _diagnosticEvents;
+            private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
             public RequestContextPooledObjectPolicy(
                 ISchema schema,
                 IErrorHandler errorHandler,
                 ITypeConverter converter,
                 IActivator activator,
-                IDiagnosticEvents diagnosticEvents,
+                IExecutionDiagnosticEvents diagnosticEvents,
                 ulong executorVersion)
             {
                 _schema = schema ??

@@ -1,39 +1,41 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Execution.Instrumentation
+namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    internal sealed class NoopDiagnosticEvents
-        : IDiagnosticEvents
-        , IActivityScope
+    internal sealed class NoopExecutionDiagnosticEvents
+        : IExecutionDiagnosticEvents
+        , IDisposable
     {
-        public IActivityScope ExecuteRequest(IRequestContext context) => this;
+        public IDisposable ExecuteRequest(IRequestContext context) => this;
 
         public void RequestError(IRequestContext context, Exception exception)
         {
         }
 
-        public IActivityScope ParseDocument(IRequestContext context) => this;
+        public IDisposable ParseDocument(IRequestContext context) => this;
 
         public void SyntaxError(IRequestContext context, IError error)
         {
         }
 
-        public IActivityScope ValidateDocument(IRequestContext context) => this;
+        public IDisposable ValidateDocument(IRequestContext context) => this;
 
         public void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
         {
         }
 
-        public IActivityScope ResolveFieldValue(IMiddlewareContext context) => this;
+        public IDisposable ResolveFieldValue(IMiddlewareContext context) => this;
 
         public void ResolverError(IMiddlewareContext context, IError error)
         {
         }
 
-        public IActivityScope RunTask(IExecutionTask task) => this;
+        public IDisposable RunTask(IExecutionTask task) => this;
 
         public void TaskError(IExecutionTask task, IError error)
         {
@@ -47,9 +49,9 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public IActivityScope ExecuteSubscription(ISubscription subscription) => this;
+        public IDisposable ExecuteSubscription(ISubscription subscription) => this;
 
-        public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context) => this;
+        public IDisposable OnSubscriptionEvent(SubscriptionEventContext context) => this;
 
         public void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result)
         {
@@ -83,7 +85,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        public IActivityScope DispatchBatch(IRequestContext context) => this;
+        public IDisposable DispatchBatch(IRequestContext context) => this;
 
         public void ExecutorCreated(string name, IRequestExecutor executor)
         {

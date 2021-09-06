@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentCacheMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 cache,
                 hashProvider);
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentCacheMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 cache,
                 hashProvider);
 
@@ -93,7 +93,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentCacheMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 cache,
                 hashProvider);
 
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution.Pipeline
                     context.DocumentId = "a";
                     return default;
                 },
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 cache,
                 hashProvider);
 
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var parserMiddleware = new DocumentParserMiddleware(
                 context => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 hashProvider);
 
             var middleware = new DocumentCacheMiddleware(
@@ -187,7 +187,7 @@ namespace HotChocolate.Execution.Pipeline
                 {
                     return parserMiddleware.InvokeAsync(context);
                 },
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 cache,
                 hashProvider);
 

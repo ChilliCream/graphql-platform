@@ -6,13 +6,13 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Execution.Instrumentation
 {
     /// <summary>
-    /// This class can be used as a base class for <see cref="IDiagnosticEventListener"/>
+    /// This class can be used as a base class for <see cref="IExecutionDiagnosticEventListener"/>
     /// implementations, so that they only have to override the methods they
     /// are interested in instead of having to provide implementations for all of them.
     /// </summary>
-    public class DiagnosticEventListener : IDiagnosticEventListener
+    public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListener
     {
-        protected DiagnosticEventListener()
+        protected ExecutionDiagnosticEventListener()
         {
         }
 
@@ -23,10 +23,10 @@ namespace HotChocolate.Execution.Instrumentation
         /// A no-op <see cref="IActivityScope"/> that can be returned from
         /// event methods that are not interested in when the scope is disposed.
         /// </summary>
-        protected IActivityScope EmptyScope { get; } = new EmptyActivityScope();
+        protected IDisposable EmptyScope { get; } = new EmptyActivityScope();
 
         /// <inheritdoc />
-        public virtual IActivityScope ExecuteRequest(IRequestContext context)
+        public virtual IDisposable ExecuteRequest(IRequestContext context)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ParseDocument(IRequestContext context)
+        public virtual IDisposable ParseDocument(IRequestContext context)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ValidateDocument(IRequestContext context)
+        public virtual IDisposable ValidateDocument(IRequestContext context)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        public virtual IDisposable ResolveFieldValue(IMiddlewareContext context)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope RunTask(IExecutionTask task)
+        public virtual IDisposable RunTask(IExecutionTask task)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -81,12 +81,12 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope ExecuteSubscription(
+        public virtual IDisposable ExecuteSubscription(
             ISubscription subscription)
             => EmptyScope;
 
         /// <inheritdoc />
-        public virtual IActivityScope OnSubscriptionEvent(
+        public virtual IDisposable OnSubscriptionEvent(
             SubscriptionEventContext context)
             => EmptyScope;
 
@@ -137,7 +137,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         /// <inheritdoc />
-        public virtual IActivityScope DispatchBatch(IRequestContext context)
+        public virtual IDisposable DispatchBatch(IRequestContext context)
             => EmptyScope;
 
         /// <inheritdoc />
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
-        private sealed class EmptyActivityScope : IActivityScope
+        private sealed class EmptyActivityScope : IDisposable
         {
             public void Dispose()
             {

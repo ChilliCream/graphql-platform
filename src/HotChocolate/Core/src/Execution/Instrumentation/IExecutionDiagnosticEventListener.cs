@@ -7,14 +7,14 @@ namespace HotChocolate.Execution.Instrumentation
     /// listen to diagnostic events. Multiple implementations can be registered
     /// and they will all be called in the registration order.
     /// </summary>
-    /// <seealso cref="DiagnosticEventListener"/>
-    public interface IDiagnosticEventListener : IDiagnosticEvents
+    /// <seealso cref="ExecutionDiagnosticEventListener"/>
+    public interface IExecutionDiagnosticEventListener : IExecutionDiagnosticEvents
     {
         /// <summary>
         /// Return true to tell the event dispatcher that the listener has
-        /// implemented 
-        /// <see cref="IDiagnosticEvents.ResolveFieldValue(IMiddlewareContext)"/> or
-        /// <see cref="IDiagnosticEvents.RunTask(IExecutionTask)"/>.
+        /// implemented
+        /// <see cref="IExecutionDiagnosticEvents.ResolveFieldValue(IMiddlewareContext)"/> or
+        /// <see cref="IExecutionDiagnosticEvents.RunTask(IExecutionTask)"/>.
         /// </summary>
         /// <remarks>
         /// Returning false allow the event dispatcher to avoid

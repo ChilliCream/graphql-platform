@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,18 +54,18 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
 
-        private class TestListener : DiagnosticEventListener
+        private class TestListener : ExecutionDiagnosticEventListener
         {
             public List<object> Results { get; } = new();
 
             public override bool EnableResolveFieldValue => true;
 
-            public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+            public override IDisposable ResolveFieldValue(IMiddlewareContext context)
             {
                 return new ResolverActivityScope(context, Results);
             }
 
-            private class ResolverActivityScope : IActivityScope
+            private class ResolverActivityScope : IDisposable
             {
                 public ResolverActivityScope(IMiddlewareContext context, List<object> results)
                 {

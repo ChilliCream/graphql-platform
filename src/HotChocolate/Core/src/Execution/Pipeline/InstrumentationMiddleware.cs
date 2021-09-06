@@ -7,11 +7,11 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class InstrumentationMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public InstrumentationMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));

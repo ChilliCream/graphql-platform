@@ -68,7 +68,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 connection,
                 stream,
                 subscription.Object,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 "123");
             connection.Subscriptions.Register(subscriptionSession);
 
