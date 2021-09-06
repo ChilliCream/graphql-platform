@@ -43,8 +43,6 @@ namespace HotChocolate.Execution.Instrumentation
                 .Services
                 .BuildServiceProvider();
 
-
-
             // act
             await services.ExecuteRequestAsync("{ hero { name } }");
 

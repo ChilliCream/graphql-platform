@@ -246,7 +246,7 @@ namespace GreenDonut
         private void BatchOperationSucceeded(
             Batch<TKey> batch,
             IReadOnlyList<TKey> keys,
-            IReadOnlyList<Result<TValue>> results)
+            Result<TValue>[] results)
         {
             for (var i = 0; i < keys.Count; i++)
             {

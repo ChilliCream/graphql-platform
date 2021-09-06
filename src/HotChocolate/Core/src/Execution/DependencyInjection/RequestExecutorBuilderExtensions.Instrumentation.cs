@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, T> diagnosticEventListener)
-            where T : IExecutionDiagnosticEventListener
+            where T : class
         {
             if (builder is null)
             {
