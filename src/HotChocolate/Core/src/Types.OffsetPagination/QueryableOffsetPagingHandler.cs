@@ -9,12 +9,14 @@ namespace HotChocolate.Types.Pagination
     /// <summary>
     /// Represents the default paging handler for in-memory collections and queryables.
     /// </summary>
-    /// <typeparam name="TItemType">
+    /// <typeparam name="TEntity">
     /// The entity type.
     /// </typeparam>
-    public class QueryableOffsetPagingHandler<TItemType>
+    public class QueryableOffsetPagingHandler<TEntity>
         : OffsetPagingHandler
     {
+        private readonly QueryableOffsetPagination<TEntity> _pagination = new();
+
         public QueryableOffsetPagingHandler(PagingOptions options)
             : base(options)
         {
@@ -27,20 +29,21 @@ namespace HotChocolate.Types.Pagination
         {
             return source switch
             {
-                IQueryable<TItemType> q => ResolveAsync(context, q, arguments),
-                IEnumerable<TItemType> e => ResolveAsync(context, e.AsQueryable(), arguments),
-                IExecutable<TItemType> ex => SliceAsync(context, ex.Source, arguments),
+                IQueryable<TEntity> q => ResolveAsync(context, q, arguments),
+                IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments),
+                IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
         }
 
         private async ValueTask<CollectionSegment> ResolveAsync(
             IResolverContext context,
-            IQueryable<TItemType> queryable,
+            IQueryable<TEntity> queryable,
             OffsetPagingArguments arguments = default)
         {
-            OffsetPagingHelper.CountAsync<IQueryable<TItemType>> getTotalCount =
-                (_, _) => throw new InvalidOperationException();
+            // When totalCount is included in the selection set we prefetch it, then capture the
+            // count in a variable, to pass it into the handler
+            int totalCount = 0;
 
             // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
@@ -51,32 +54,19 @@ namespace HotChocolate.Types.Pagination
                 IReadOnlyList<IFieldSelection> selections =
                     context.GetSelections(objectType, selectionSet, true);
 
-                var includeTotalCount = false;
                 for (var i = 0; i < selections.Count; i++)
                 {
                     if (selections[i].Field.Name.Value is "totalCount")
                     {
-                        includeTotalCount = true;
-                        break;
+                        totalCount = queryable.Count();
                     }
-                }
-
-                // When totalCount is included in the selection set we prefetch it, then capture the
-                // count in a variable, to pass it into the clojure
-                if (includeTotalCount)
-                {
-                    var captureCount = queryable.Count();
-                    getTotalCount = (_, _) => new ValueTask<int>(captureCount);
                 }
             }
 
-            return await OffsetPagingHelper.ApplyPagination(
+            return await _pagination.ApplyPaginationAsync(
                 queryable,
                 arguments,
-                (x, skip) => x.Skip(skip),
-                (x, take) => x.Take(take),
-                OffsetPagingHelper.ExecuteEnumerable,
-                getTotalCount,
+                totalCount,
                 context.RequestAborted);
         }
     }

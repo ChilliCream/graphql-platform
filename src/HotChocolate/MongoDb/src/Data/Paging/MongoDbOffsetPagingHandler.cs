@@ -5,18 +5,18 @@ using MongoDB.Driver;
 
 namespace HotChocolate.Data.MongoDb.Paging
 {
-    internal class MongoDbCursorPagingHandler<TEntity> : CursorPagingHandler
+    internal class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
     {
-        private readonly MongoCursorPagination<TEntity> _pagination = new();
+        private readonly MongoOffsetPagination<TEntity> _pagination = new();
 
-        public MongoDbCursorPagingHandler(PagingOptions options) : base(options)
+        public MongoDbOffsetPagingHandler(PagingOptions options) : base(options)
         {
         }
 
-        protected override async ValueTask<Connection> SliceAsync(
+        protected override async ValueTask<CollectionSegment> SliceAsync(
             IResolverContext context,
             object source,
-            CursorPagingArguments arguments)
+            OffsetPagingArguments arguments)
             => await _pagination.ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
