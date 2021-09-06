@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Instrumentation
 
 
             // act
-            IExecutionResult result = await services.ExecuteRequestAsync("{ hero { name } }");
+            await services.ExecuteRequestAsync("{ hero { name } }");
 
             // assert
             Assert.True(services.GetRequiredService<Touched>().Signal);
