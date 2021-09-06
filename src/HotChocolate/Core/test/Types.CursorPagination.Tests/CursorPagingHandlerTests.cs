@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Types.Pagination.Extensions;
 using Xunit;
 
 #nullable enable
@@ -901,15 +901,13 @@ namespace HotChocolate.Types.Pagination
             public static Foo Create(int index) => new(index);
         }
 
-        private static ValueTask<Connection> Apply(
+        private static async ValueTask<Connection> Apply(
             IEnumerable<Foo> foos,
             string? after = default,
             string? before = default,
             int? first = default,
             int? last = default)
-            => new QueryableCursorPagination<Foo>().ApplyPagination(
-                foos.AsQueryable(),
-                new CursorPagingArguments(first, last, after, before),
-                default);
+            => await foos.AsQueryable().ApplyCursorPaginationAsync(
+                first, last, after, before);
     }
 }
