@@ -40,6 +40,24 @@ namespace GreenDonut
             Assert.Equal("Value:0abc", await result2);
         }
 
+        [Fact]
+        public async Task LoadTheSameKeyTwiceWillYieldSamePromise()
+        {
+            // arrange
+            var dataLoader = new CustomBatchDataLoader(
+                new DelayDispatcher(),
+                new DataLoaderOptions());
+
+            // act
+            Task<string> result1 = dataLoader.LoadAsync("1abc");
+            Task<string> result2 = dataLoader.LoadAsync("1abc");
+
+            // assert
+            Assert.Same(result1, result2);
+            Assert.Equal("Value:1abc", await result1);
+            Assert.Equal("Value:1abc", await result2);
+        }
+
         public class CustomBatchDataLoader : BatchDataLoader<string, string>
         {
             public CustomBatchDataLoader(
