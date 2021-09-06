@@ -41,7 +41,6 @@ public static class Program
         }
 
         Console.WriteLine(list.Sum(t => t.Milliseconds) / list.Count);
-        Console.WriteLine($"{list.Count + 2} runs {Counter.Count} one item batches.");
     }
 
     private static async Task RunItem(QueryBenchmarks bench, ConcurrentBag<TimeSpan> list)

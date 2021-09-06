@@ -7,25 +7,42 @@ namespace GreenDonut
     {
         public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>()
         {
-            return async (keys, cancellationToken) => await Task.FromResult(new Result<TValue>[0]);
+            return (_, _, _) => default;
         }
 
         public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(Exception error)
         {
-            return async (keys, cancellationToken) =>
-                await Task.FromResult(new[] { (Result<TValue>)error });
+            return (_, results, _) =>
+            {
+                results.Span[0] = error;
+                return default;
+            };
         }
 
         public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
             Result<TValue> value)
         {
-            return async (keys, cancellationToken) => await Task.FromResult(new[] { value });
+            return (_, results, _) =>
+            {
+                results.Span[0] = value;
+                return default;
+            };
         }
 
         public static FetchDataDelegate<TKey, TValue> CreateFetch<TKey, TValue>(
             Result<TValue>[] values)
         {
-            return async (keys, cancellationToken) => await Task.FromResult(values);
+            return (_, results, _) =>
+            {
+                Span<Result<TValue>> span = results.Span;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    span[i] = values[i];
+                }
+
+                return default;
+            };
         }
     }
 }

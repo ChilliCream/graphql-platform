@@ -10,12 +10,12 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class DocumentValidationMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentValidator _documentValidator;
 
         public DocumentValidationMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IDocumentValidator documentValidator)
         {
             _next = next ??

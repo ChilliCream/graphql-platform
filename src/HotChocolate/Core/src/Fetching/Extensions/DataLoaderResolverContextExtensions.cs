@@ -32,8 +32,11 @@ namespace HotChocolate.Types
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            FetchBatchDataLoader<TKey, TValue> Loader() =>
-                new(services.GetRequiredService<IBatchScheduler>(), fetch);
+            FetchBatchDataLoader<TKey, TValue> Loader()
+                => new(
+                    fetch,
+                    services.GetRequiredService<IBatchScheduler>(),
+                    services.GetRequiredService<DataLoaderOptions>());
 
             return key is null
                 ? reg.GetOrRegister(Loader)
@@ -75,8 +78,11 @@ namespace HotChocolate.Types
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            FetchGroupedDataLoader<TKey, TValue> Loader() =>
-                new(services.GetRequiredService<IBatchScheduler>(), fetch);
+            FetchGroupedDataLoader<TKey, TValue> Loader()
+                => new(
+                    fetch,
+                    services.GetRequiredService<IBatchScheduler>(),
+                    services.GetRequiredService<DataLoaderOptions>());
 
             return key is null
                 ? reg.GetOrRegister(Loader)
@@ -103,8 +109,7 @@ namespace HotChocolate.Types
         public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             FetchCacheCt<TKey, TValue> fetch,
-            string? key = null,
-            int cacheSize = DataLoaderDefaults.CacheSize)
+            string? key = null)
             where TKey : notnull
         {
             if (context is null)
@@ -119,7 +124,8 @@ namespace HotChocolate.Types
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            FetchCacheDataLoader<TKey, TValue> Loader() => new(fetch, cacheSize);
+            FetchCacheDataLoader<TKey, TValue> Loader()
+                => new(fetch, services.GetRequiredService<DataLoaderOptions>());
 
             return key is null
                 ? reg.GetOrRegister(Loader)
@@ -130,8 +136,7 @@ namespace HotChocolate.Types
         public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            FetchCacheCt<TKey, TValue> fetch,
-            int cacheSize = DataLoaderDefaults.CacheSize)
+            FetchCacheCt<TKey, TValue> fetch)
             where TKey : notnull
         {
             if (string.IsNullOrEmpty(key))
@@ -141,7 +146,7 @@ namespace HotChocolate.Types
                     nameof(key));
             }
 
-            return CacheDataLoader(context, fetch, key, cacheSize);
+            return CacheDataLoader(context, fetch, key);
         }
 
         public static Task<TValue> FetchOnceAsync<TValue>(
@@ -162,8 +167,7 @@ namespace HotChocolate.Types
             return CacheDataLoader<string, TValue>(
                 context,
                 (_, ct) => fetch(ct),
-                key,
-                cacheSize: 1)
+                key)
                 .LoadAsync("default", context.RequestAborted);
         }
 

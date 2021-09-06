@@ -7,33 +7,41 @@ namespace GreenDonut
     /// error.
     /// </summary>
     /// <typeparam name="TValue">A value type.</typeparam>
-    public struct Result<TValue>
-        : IEquatable<Result<TValue>>
+    public readonly struct Result<TValue> : IEquatable<Result<TValue>>
     {
-        /// <summary>
-        /// Gets an error if <see cref="IsError"/> is <c>true</c>;
-        /// otherwise <c>null</c>.
-        /// </summary>
-        public Exception? Error { get; private set; }
+        public Result(TValue value) : this()
+        {
+            Value = value;
+            Kind = ResultKind.Value;
+        }
+
+        public Result(Exception? error) : this()
+        {
+            Error = error;
+            Kind = ResultKind.Error;
+        }
 
         /// <summary>
-        /// Gets a value indicating whether the result is an error.
+        /// Gets a value indicating whether the result is an error, a value or undefined.
         /// </summary>
-        public bool IsError { get; private set; }
+        public ResultKind Kind { get; }
 
         /// <summary>
-        /// Gets the value. If <see cref="IsError"/> is <c>true</c>, returns
+        /// Gets the value. If <see cref="Kind"/> is <see cref="ResultKind.Error"/>, returns
         /// <c>null</c> or <c>default</c> depending on its type.
         /// </summary>
-        public TValue Value { get; private set; }
+        public TValue Value { get; }
+
+        /// <summary>
+        /// Gets an error If <see cref="Kind"/> is <see cref="ResultKind.Error"/>;
+        /// otherwise <c>null</c>.
+        /// </summary>
+        public Exception? Error { get; }
 
         /// <inheritdoc />
         public bool Equals(Result<TValue> other)
-        {
-            return IsError == other.IsError &&
-                Error == other.Error &&
-                Equals(Value, other.Value);
-        }
+            => Error == other.Error &&
+               Equals(Value, other.Value);
 
         /// <inheritdoc />
         public override bool Equals(object? obj)
@@ -48,82 +56,50 @@ namespace GreenDonut
 
         /// <inheritdoc />
         public override int GetHashCode()
-        {
-            return (IsError)
-                ? Error!.GetHashCode()
+            => Error is not null
+                ? Error.GetHashCode()
                 : Value?.GetHashCode() ?? 0;
-        }
 
         /// <summary>
         /// Creates a new error result.
         /// </summary>
         /// <param name="error">An arbitrary error.</param>
         /// <returns>An error result.</returns>
-        public static Result<TValue> Reject(Exception error)
-        {
-            return error;
-        }
+        public static Result<TValue> Reject(Exception error) => new(error);
 
         /// <summary>
         /// Creates a new value result.
         /// </summary>
         /// <param name="value">An arbitrary value.</param>
         /// <returns>A value result.</returns>
-        public static Result<TValue> Resolve(TValue value)
-        {
-            return value;
-        }
+        public static Result<TValue> Resolve(TValue value) => new(value);
 
         /// <summary>
         /// Creates a new error result.
         /// </summary>
         /// <param name="error">An arbitrary error.</param>
         public static implicit operator Result<TValue>(Exception? error)
-        {
-            if (error == null)
-            {
-                return new Result<TValue>
-                {
-                    IsError = false
-                };
-            }
-
-            return new Result<TValue>
-            {
-                Error = error,
-                IsError = true
-            };
-        }
+            => error is null ? default : new Result<TValue>(error);
 
         /// <summary>
         /// Creates a new value result.
         /// </summary>
         /// <param name="value">An arbitrary value.</param>
         public static implicit operator Result<TValue>(TValue value)
-        {
-            return new Result<TValue>
-            {
-                Value = value,
-                IsError = false
-            };
-        }
+            => new(value);
 
         /// <summary>
         /// Extracts the error from a result.
         /// </summary>
         /// <param name="result">An arbitrary result.</param>
         public static implicit operator Exception?(Result<TValue> result)
-        {
-            return result.Error;
-        }
+            => result.Error;
 
         /// <summary>
         /// Extracts the value from a result.
         /// </summary>
         /// <param name="result">An arbitrary result.</param>
         public static implicit operator TValue(Result<TValue> result)
-        {
-            return result.Value;
-        }
+            => result.Value;
     }
 }

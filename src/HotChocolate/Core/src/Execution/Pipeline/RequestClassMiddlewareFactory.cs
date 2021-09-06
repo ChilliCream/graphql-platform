@@ -111,7 +111,7 @@ namespace HotChocolate.Execution.Pipeline
 
             AddService<IActivator>(list, schemaServices);
             AddService<IErrorHandler>(list, schemaServices);
-            AddService<IDiagnosticEvents>(list, schemaServices);
+            AddService<IExecutionDiagnosticEvents>(list, schemaServices);
             AddService<IWriteStoredQueries>(list, schemaServices);
             AddService<IReadStoredQueries>(list, schemaServices);
             AddService<QueryExecutor>(list, schemaServices);

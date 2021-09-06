@@ -1,7 +1,9 @@
 using System;
+using GreenDonut;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -22,30 +24,46 @@ namespace Microsoft.Extensions.DependencyInjection
                 return builder;
             }
 
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IDiagnosticEventListener>(
-                    sp => new ApolloTracingDiagnosticEventListener(
-                        tracingPreference,
-                        timestampProvider ?? sp.GetService<ITimestampProvider>())));
+            return builder.AddDiagnosticEventListener(
+                sp => new ApolloTracingDiagnosticEventListener(
+                    tracingPreference,
+                    timestampProvider ?? sp.GetService<ITimestampProvider>()));
         }
 
         public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
             this IRequestExecutorBuilder builder)
-            where T : class, IDiagnosticEventListener
+            where T : class
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.ConfigureSchemaServices(s => s.AddSingleton<IDiagnosticEventListener, T>());
+            if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+            {
+                builder.Services.TryAddSingleton<T>();
+                builder.Services.AddSingleton(
+                    s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
+            }
+            else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+            {
+                builder.Services.TryAddSingleton<T>();
+                builder.ConfigureSchemaServices(
+                    s => s.AddSingleton(
+                        sp => (IExecutionDiagnosticEventListener)sp.GetApplicationService<T>()));
+            }
+            else
+            {
+                throw new NotSupportedException("The diagnostic listener is not supported.");
+            }
+
             return builder;
         }
 
         public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, T> diagnosticEventListener)
-            where T : IDiagnosticEventListener
+            where T : class
         {
             if (builder is null)
             {
@@ -57,9 +75,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(diagnosticEventListener));
             }
 
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IDiagnosticEventListener>(
-                    sp => diagnosticEventListener(sp.GetCombinedServices())));
+            if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+            {
+                builder.Services.AddSingleton(
+                    s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
+            }
+            else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+            {
+                builder.ConfigureSchemaServices(
+                    s => s.AddSingleton(
+                        sp => (IExecutionDiagnosticEventListener)diagnosticEventListener(
+                            sp.GetCombinedServices())));
+            }
+            else
+            {
+                throw new NotSupportedException("The diagnostic listener is not supported.");
+            }
+
+            return builder;
         }
     }
 }

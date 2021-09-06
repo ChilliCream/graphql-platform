@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
@@ -12,12 +13,10 @@ namespace HotChocolate.Fetching
     {
         private readonly FetchCacheCt<TKey, TValue> _fetch;
 
-        public FetchCacheDataLoader(
-            FetchCacheCt<TKey, TValue> fetch, 
-            int cacheSize)
-            : base(cacheSize)
+        public FetchCacheDataLoader(FetchCacheCt<TKey, TValue> fetch, DataLoaderOptions options)
+            : base(options)
         {
-            _fetch = fetch;
+            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
         protected override Task<TValue> LoadSingleAsync(

@@ -8,12 +8,12 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class DocumentParserMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentHashProvider _documentHashProvider;
 
         public DocumentParserMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IDocumentHashProvider documentHashProvider)
         {
             _next = next ??

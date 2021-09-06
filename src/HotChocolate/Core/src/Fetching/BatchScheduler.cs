@@ -49,7 +49,7 @@ namespace HotChocolate.Fetching
             List<Func<ValueTask>> taskQueue,
             CancellationToken cancellationToken)
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
             try
             {
@@ -67,7 +67,7 @@ namespace HotChocolate.Fetching
                     processing[i] = ExecuteBatchAsync(taskQueue[i]);
                 }
 
-                await Task.WhenAll(processing);
+                await Task.WhenAll(processing).ConfigureAwait(false);
 
                 List<Exception>? errors = null;
 

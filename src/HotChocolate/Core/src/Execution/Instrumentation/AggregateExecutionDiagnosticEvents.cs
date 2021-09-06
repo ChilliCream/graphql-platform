@@ -6,21 +6,20 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal sealed class AggregateDiagnosticEvents : IDiagnosticEvents
+    internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticEvents
     {
-        private static EmptyActivityScope _empty = new();
-        private readonly IDiagnosticEventListener[] _listeners;
-        private readonly IDiagnosticEventListener[] _resolverListener;
+        private readonly IExecutionDiagnosticEventListener[] _listeners;
+        private readonly IExecutionDiagnosticEventListener[] _resolverListener;
 
-        public AggregateDiagnosticEvents(IDiagnosticEventListener[] listeners)
+        public AggregateExecutionDiagnosticEvents(IExecutionDiagnosticEventListener[] listeners)
         {
             _listeners = listeners;
             _resolverListener = listeners.Where(t => t.EnableResolveFieldValue).ToArray();
         }
 
-        public IActivityScope ExecuteRequest(IRequestContext context)
+        public IDisposable ExecuteRequest(IRequestContext context)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -38,9 +37,9 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope ParseDocument(IRequestContext context)
+        public IDisposable ParseDocument(IRequestContext context)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -58,9 +57,9 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope ValidateDocument(IRequestContext context)
+        public IDisposable ValidateDocument(IRequestContext context)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -78,14 +77,14 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        public IDisposable ResolveFieldValue(IMiddlewareContext context)
         {
             if (_listeners.Length == 0)
             {
-                return _empty;
+                return ExecutionDiagnosticEventListener.EmptyScope;
             }
 
-            var scopes = new IActivityScope[_resolverListener.Length];
+            var scopes = new IDisposable[_resolverListener.Length];
 
             for (var i = 0; i < _resolverListener.Length; i++)
             {
@@ -103,14 +102,14 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope RunTask(IExecutionTask task)
+        public IDisposable RunTask(IExecutionTask task)
         {
             if (_listeners.Length == 0)
             {
-                return _empty;
+                return ExecutionDiagnosticEventListener.EmptyScope;
             }
 
-            var scopes = new IActivityScope[_resolverListener.Length];
+            var scopes = new IDisposable[_resolverListener.Length];
 
             for (var i = 0; i < _resolverListener.Length; i++)
             {
@@ -145,9 +144,9 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
 
-        public IActivityScope ExecuteSubscription(ISubscription subscription)
+        public IDisposable ExecuteSubscription(ISubscription subscription)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -157,9 +156,9 @@ namespace HotChocolate.Execution.Instrumentation
             return new AggregateActivityScope(scopes);
         }
 
-        public IActivityScope OnSubscriptionEvent(SubscriptionEventContext context)
+        public IDisposable OnSubscriptionEvent(SubscriptionEventContext context)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -233,9 +232,9 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public IActivityScope DispatchBatch(IRequestContext context)
+        public IDisposable DispatchBatch(IRequestContext context)
         {
-            var scopes = new IActivityScope[_listeners.Length];
+            var scopes = new IDisposable[_listeners.Length];
 
             for (var i = 0; i < _listeners.Length; i++)
             {
@@ -261,12 +260,12 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        private class AggregateActivityScope : IActivityScope
+        private class AggregateActivityScope : IDisposable
         {
-            private readonly IActivityScope[] _scopes;
+            private readonly IDisposable[] _scopes;
             private bool _disposed;
 
-            public AggregateActivityScope(IActivityScope[] scopes)
+            public AggregateActivityScope(IDisposable[] scopes)
             {
                 _scopes = scopes;
             }
@@ -281,13 +280,6 @@ namespace HotChocolate.Execution.Instrumentation
                     }
                     _disposed = true;
                 }
-            }
-        }
-
-        private class EmptyActivityScope : IActivityScope
-        {
-            public void Dispose()
-            {
             }
         }
     }

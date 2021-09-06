@@ -91,34 +91,8 @@ HotChocolate.Execution.Instrumentation.DefaultTimestampProvider.NowInNanoseconds
 HotChocolate.Execution.Instrumentation.DefaultTimestampProvider.UtcNow() -> System.DateTime
 HotChocolate.Execution.Instrumentation.DiagnosticEventListener
 HotChocolate.Execution.Instrumentation.DiagnosticEventListener.DiagnosticEventListener() -> void
-HotChocolate.Execution.Instrumentation.DiagnosticEventListener.EmptyScope.get -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IActivityScope
 HotChocolate.Execution.Instrumentation.IDiagnosticEventListener
-HotChocolate.Execution.Instrumentation.IDiagnosticEventListener.EnableResolveFieldValue.get -> bool
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.AddedDocumentToCache(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.AddedOperationToCache(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.BatchDispatched(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ExecuteRequest(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ExecuteSubscription(HotChocolate.Execution.Processing.ISubscription! subscription) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ExecutorCreated(string! name, HotChocolate.Execution.IRequestExecutor! executor) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ExecutorEvicted(string! name, HotChocolate.Execution.IRequestExecutor! executor) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.OnSubscriptionEvent(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ParseDocument(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.RequestError(HotChocolate.Execution.IRequestContext! context, System.Exception! exception) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ResolveFieldValue(HotChocolate.Resolvers.IMiddlewareContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ResolverError(HotChocolate.Resolvers.IMiddlewareContext! context, HotChocolate.IError! error) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.RetrievedDocumentFromCache(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.RetrievedDocumentFromStorage(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.RetrievedOperationFromCache(HotChocolate.Execution.IRequestContext! context) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.RunTask(HotChocolate.Execution.IExecutionTask! task) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.SubscriptionEventError(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, System.Exception! exception) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.SubscriptionEventResult(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, HotChocolate.Execution.IQueryResult! result) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.SubscriptionTransportError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.SyntaxError(HotChocolate.Execution.IRequestContext! context, HotChocolate.IError! error) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.TaskError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ValidateDocument(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-HotChocolate.Execution.Instrumentation.IDiagnosticEvents.ValidationErrors(HotChocolate.Execution.IRequestContext! context, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
 HotChocolate.Execution.Instrumentation.ITimestampProvider
 HotChocolate.Execution.Instrumentation.ITimestampProvider.NowInNanoseconds() -> long
 HotChocolate.Execution.Instrumentation.ITimestampProvider.UtcNow() -> System.DateTime
@@ -132,7 +106,6 @@ HotChocolate.Execution.Internal.IInternalRequestExecutorResolver.GetRequestExecu
 HotChocolate.Execution.IRequestContext
 HotChocolate.Execution.IRequestContext.Activator.get -> HotChocolate.Execution.Processing.IActivator!
 HotChocolate.Execution.IRequestContext.Converter.get -> HotChocolate.Utilities.ITypeConverter!
-HotChocolate.Execution.IRequestContext.DiagnosticEvents.get -> HotChocolate.Execution.Instrumentation.IDiagnosticEvents!
 HotChocolate.Execution.IRequestContext.Document.get -> HotChocolate.Language.DocumentNode?
 HotChocolate.Execution.IRequestContext.Document.set -> void
 HotChocolate.Execution.IRequestContext.DocumentHash.get -> string?
@@ -460,7 +433,6 @@ static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddDataLoader<T>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddDataLoader<TService, TImplementation>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddDefaultTransactionScopeHandler(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
-static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddDiagnosticEventListener<T>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<System.IServiceProvider!, T>! diagnosticEventListener) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddDiagnosticEventListener<T>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddErrorFilter(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<HotChocolate.IError!, HotChocolate.IError!>! errorFilter) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddErrorFilter(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<HotChocolate.IError!, HotChocolate.IError!>! errorFilter) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
@@ -659,29 +631,5 @@ static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExte
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.UseField(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.Resolvers.FieldMiddleware! middleware) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.UseField<TMiddleware>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Func<System.IServiceProvider!, HotChocolate.Resolvers.FieldDelegate!, TMiddleware!>! factory) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.UseField<TMiddleware>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.AddedDocumentToCache(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.AddedOperationToCache(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.BatchDispatched(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.EnableResolveFieldValue.get -> bool
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ExecuteRequest(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ExecuteSubscription(HotChocolate.Execution.Processing.ISubscription! subscription) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ExecutorCreated(string! name, HotChocolate.Execution.IRequestExecutor! executor) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ExecutorEvicted(string! name, HotChocolate.Execution.IRequestExecutor! executor) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.OnSubscriptionEvent(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ParseDocument(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.RequestError(HotChocolate.Execution.IRequestContext! context, System.Exception! exception) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ResolveFieldValue(HotChocolate.Resolvers.IMiddlewareContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ResolverError(HotChocolate.Resolvers.IMiddlewareContext! context, HotChocolate.IError! error) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.RetrievedDocumentFromCache(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.RetrievedDocumentFromStorage(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.RetrievedOperationFromCache(HotChocolate.Execution.IRequestContext! context) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.RunTask(HotChocolate.Execution.IExecutionTask! task) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.SubscriptionEventError(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, System.Exception! exception) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.SubscriptionEventResult(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, HotChocolate.Execution.IQueryResult! result) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.SubscriptionTransportError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.SyntaxError(HotChocolate.Execution.IRequestContext! context, HotChocolate.IError! error) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.TaskError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ValidateDocument(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Instrumentation.IActivityScope!
-virtual HotChocolate.Execution.Instrumentation.DiagnosticEventListener.ValidationErrors(HotChocolate.Execution.IRequestContext! context, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
 virtual HotChocolate.Execution.Processing.DefaultTransactionScopeHandler.Create(HotChocolate.Execution.IRequestContext! context) -> HotChocolate.Execution.Processing.ITransactionScope!
 virtual HotChocolate.Execution.RequestExecutorProxy.Dispose(bool disposing) -> void
