@@ -5,7 +5,6 @@ HotChocolate.Execution.Configuration.ITypeModule.CreateTypesAsync(HotChocolate.T
 HotChocolate.Execution.Configuration.ITypeModule.TypesChanged -> System.EventHandler<System.EventArgs!>!
 HotChocolate.Execution.Configuration.RequestExecutorSetup.TypeModules.get -> System.Collections.Generic.IList<HotChocolate.Execution.Configuration.ITypeModule!>!
 HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener
-HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.EmptyScope.get -> System.IDisposable!
 HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ExecutionDiagnosticEventListener() -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEventListener
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEventListener.EnableResolveFieldValue.get -> bool
@@ -92,6 +91,7 @@ HotChocolate.Execution.Processing.SelectionExecutionStrategy.Pure = 2 -> HotChoc
 HotChocolate.Execution.Processing.SelectionExecutionStrategy.Serial = 1 -> HotChocolate.Execution.Processing.SelectionExecutionStrategy
 HotChocolate.Execution.Processing.SelectionOptimizerContext.GetNextId() -> int
 Microsoft.Extensions.DependencyInjection.ResolverCompilerBuilderExtensions
+static HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.EmptyScope.get -> System.IDisposable!
 static HotChocolate.Execution.Options.ComplexityAnalyzerSettings.DefaultCalculation(HotChocolate.Execution.Pipeline.Complexity.ComplexityContext context) -> int
 static HotChocolate.Execution.Processing.ArgumentCoercionHelper.TryCoerceArguments(this HotChocolate.Execution.Processing.IArgumentMap! arguments, HotChocolate.Resolvers.IResolverContext! resolverContext, out System.Collections.Generic.IReadOnlyDictionary<HotChocolate.NameString, HotChocolate.Execution.Processing.ArgumentValue!>? coercedArgs) -> bool
 static HotChocolate.Execution.Processing.OperationCompiler.Compile(string! operationId, HotChocolate.Language.DocumentNode! document, HotChocolate.Language.OperationDefinitionNode! operation, HotChocolate.ISchema! schema, HotChocolate.Types.ObjectType! rootType, HotChocolate.Types.InputParser! inputParser, System.Collections.Generic.IEnumerable<HotChocolate.Execution.Processing.ISelectionOptimizer!>? optimizers = null) -> HotChocolate.Execution.Processing.IPreparedOperation!
@@ -146,7 +146,6 @@ static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExte
 *REMOVED*static HotChocolate.Execution.Processing.OperationCompiler.Compile(string! operationId, HotChocolate.Language.DocumentNode! document, HotChocolate.Language.OperationDefinitionNode! operation, HotChocolate.ISchema! schema, HotChocolate.Types.ObjectType! rootType, System.Collections.Generic.IEnumerable<HotChocolate.Execution.Processing.ISelectionOptimizer!>? optimizers = null) -> HotChocolate.Execution.Processing.IPreparedOperation!
 *REMOVED*static Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.AddConvention<TConvetion, TConcreteConvention>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, string? scope = null) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 *REMOVED*static HotChocolate.Execution.Processing.VariableRewriter.Rewrite(HotChocolate.Language.IValueNode! node, HotChocolate.Execution.IVariableValueCollection! variableValues) -> HotChocolate.Language.IValueNode!
-*REMOVED*HotChocolate.Execution.Instrumentation.DiagnosticEventListener.EmptyScope.get -> HotChocolate.Execution.Instrumentation.IActivityScope!
 *REMOVED*HotChocolate.Execution.Instrumentation.IActivityScope
 *REMOVED*HotChocolate.Execution.Instrumentation.IDiagnosticEventListener.EnableResolveFieldValue.get -> bool
 *REMOVED*HotChocolate.Execution.Instrumentation.IDiagnosticEvents.AddedDocumentToCache(HotChocolate.Execution.IRequestContext! context) -> void
