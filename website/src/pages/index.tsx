@@ -22,9 +22,11 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 // Logos
+import AdditivLogoSvg from "../images/companies/additiv.svg";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BdnaLogoSvg from "../images/companies/bdna.svg"
 import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
@@ -34,7 +36,9 @@ import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
+import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import OrderinLogoSvg from "../images/companies/orderin.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
@@ -212,6 +216,11 @@ const IndexPage: FC = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
+            <Logo width={140}>
+                <Link to="https://additiv.com">
+                  <AdditivLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={160}>
                 <Link to="https://aeieng.com">
                   <AeiLogoSvg />
@@ -225,6 +234,11 @@ const IndexPage: FC = () => {
               <Logo width={180}>
                 <Link to="https://www.autoguru.com.au">
                   <AutoguruLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={150}>
+                <Link to="https://bdna.com.au">
+                  <BdnaLogoSvg />
                 </Link>
               </Logo>
               <Logo width={150}>
@@ -272,9 +286,19 @@ const IndexPage: FC = () => {
                   <IncloudLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={200}>
+                <Link to="https://www.infoslips.com">
+                  <InfoslipsLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={160}>
                 <Link to="https://motitech.co.uk">
                   <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://orderin.co.za">
+                  <OrderinLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>
