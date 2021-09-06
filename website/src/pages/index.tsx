@@ -39,6 +39,7 @@ import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
+import SpeedwayMotors from "../images/companies/speedway-motors.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
@@ -293,6 +294,11 @@ const IndexPage: FC = () => {
               <Logo width={130}>
                 <Link to="https://sonika.se">
                   <SonikaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://www.speedwaymotors.com/">
+                  <SpeedwayMotors />
                 </Link>
               </Logo>
               <Logo width={120}>
