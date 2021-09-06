@@ -24,11 +24,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 return builder;
             }
 
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IExecutionDiagnosticEventListener>(
-                    sp => new ApolloTracingDiagnosticEventListener(
-                        tracingPreference,
-                        timestampProvider ?? sp.GetService<ITimestampProvider>())));
+            return builder.AddDiagnosticEventListener(
+                sp => new ApolloTracingDiagnosticEventListener(
+                    tracingPreference,
+                    timestampProvider ?? sp.GetService<ITimestampProvider>()));
         }
 
         public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
@@ -42,17 +41,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
             if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
-                builder.Services.AddSingleton<T>();
+                builder.Services.TryAddSingleton<T>();
                 builder.Services.AddSingleton(
                     s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
             }
             else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
             {
-                builder.ConfigureSchemaServices(s =>
-                {
-                    s.AddSingleton<T>();
-                    s.AddSingleton(sp => (IExecutionDiagnosticEventListener)sp.GetService<T>());
-                });
+                builder.Services.TryAddSingleton<T>();
+                builder.ConfigureSchemaServices(
+                    s => s.AddSingleton(
+                        sp => (IExecutionDiagnosticEventListener)sp.GetApplicationService<T>()));
             }
             else
             {

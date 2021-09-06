@@ -32,6 +32,27 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         [Fact]
+        public async Task Intercept_Resolver_Result_With_Listener_2()
+        {
+            // arrange
+            ServiceProvider services = new ServiceCollection()
+                .AddSingleton<Touched>()
+                .AddGraphQL()
+                .AddDiagnosticEventListener<TouchedListener>()
+                .AddStarWars()
+                .Services
+                .BuildServiceProvider();
+
+
+
+            // act
+            IExecutionResult result = await services.ExecuteRequestAsync("{ hero { name } }");
+
+            // assert
+            Assert.True(services.GetRequiredService<Touched>().Signal);
+        }
+
+        [Fact]
         public async Task Intercept_Resolver_Result_With_Multiple_Listener()
         {
             // arrange
@@ -53,6 +74,26 @@ namespace HotChocolate.Execution.Instrumentation
             Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
         }
 
+        public class Touched
+        {
+            public bool Signal = false;
+        }
+
+        public class TouchedListener : ExecutionDiagnosticEventListener
+        {
+            private readonly Touched _touched;
+
+            public TouchedListener(Touched touched)
+            {
+                _touched = touched;
+            }
+
+            public override IDisposable ExecuteRequest(IRequestContext context)
+            {
+                _touched.Signal = true;
+                return EmptyScope;
+            }
+        }
 
         private class TestListener : ExecutionDiagnosticEventListener
         {
