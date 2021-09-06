@@ -113,3 +113,7 @@ With version 11, we added support for records and added the ability to infer att
 ```csharp
 public record Foo([property: ID] string Id);
 ```
+
+# Instrumentation
+
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
