@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using Microsoft.Extensions.FileProviders.Physical;
 using Xunit;
 
 namespace HotChocolate.Execution.Processing
