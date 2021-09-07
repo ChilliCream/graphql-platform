@@ -10,10 +10,14 @@ HotChocolate.AspNetCore.GraphQLHttpOptions.EnableGetRequests.set -> void
 HotChocolate.AspNetCore.GraphQLHttpOptions.EnableMultipartRequests.get -> bool
 HotChocolate.AspNetCore.GraphQLHttpOptions.EnableMultipartRequests.set -> void
 HotChocolate.AspNetCore.GraphQLHttpOptions.GraphQLHttpOptions() -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.DisableTelemetry.get -> bool?
+HotChocolate.AspNetCore.GraphQLToolOptions.DisableTelemetry.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.GaTrackingId.get -> string?
 HotChocolate.AspNetCore.GraphQLToolOptions.GaTrackingId.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.GraphQLEndpoint.get -> string?
 HotChocolate.AspNetCore.GraphQLToolOptions.GraphQLEndpoint.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.IncludeCookies.get -> bool?
+HotChocolate.AspNetCore.GraphQLToolOptions.IncludeCookies.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.Title.get -> string?
 HotChocolate.AspNetCore.GraphQLToolOptions.Title.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.UseBrowserUrlAsGraphQLEndpoint.get -> bool
@@ -39,3 +43,9 @@ static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.WithOptions(t
 *REMOVED*static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.UseGraphQL(this Microsoft.AspNetCore.Builder.IApplicationBuilder! applicationBuilder, Microsoft.AspNetCore.Http.PathString pathMatch = default(Microsoft.AspNetCore.Http.PathString), HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> Microsoft.AspNetCore.Builder.IApplicationBuilder!
 *REMOVED*HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.IErrorHandler! errorHandler, HotChocolate.Execution.Instrumentation.IDiagnosticEvents! diagnosticEvents) -> void
 *REMOVED*HotChocolate.AspNetCore.HttpGetSchemaMiddleware.HttpGetSchemaMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, HotChocolate.Execution.IRequestExecutorResolver! executorResolver, HotChocolate.AspNetCore.Serialization.IHttpResultSerializer! resultSerializer, HotChocolate.NameString schemaName) -> void
+*REMOVED*HotChocolate.AspNetCore.DefaultCredentials
+*REMOVED*HotChocolate.AspNetCore.DefaultCredentials.Include = 0 -> HotChocolate.AspNetCore.DefaultCredentials
+*REMOVED*HotChocolate.AspNetCore.DefaultCredentials.Omit = 1 -> HotChocolate.AspNetCore.DefaultCredentials
+*REMOVED*HotChocolate.AspNetCore.DefaultCredentials.SameOrigin = 2 -> HotChocolate.AspNetCore.DefaultCredentials
+*REMOVED*HotChocolate.AspNetCore.GraphQLToolOptions.Credentials.get -> HotChocolate.AspNetCore.DefaultCredentials?
+*REMOVED*HotChocolate.AspNetCore.GraphQLToolOptions.Credentials.set -> void
