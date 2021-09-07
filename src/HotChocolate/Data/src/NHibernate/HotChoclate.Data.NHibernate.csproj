@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.NHibernate</PackageId>
+    <AssemblyName>HotChocolate.Data.NHibernate</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+   
+  </PropertyGroup>
+
+ 
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FluentNHibernate" Version="3.1.0" />
+    <PackageReference Include="NHibernate" Version="5.3.9" />
+  </ItemGroup>
+</Project>
