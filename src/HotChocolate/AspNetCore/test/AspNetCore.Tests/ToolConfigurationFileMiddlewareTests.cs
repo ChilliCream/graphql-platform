@@ -102,12 +102,18 @@ namespace HotChocolate.AspNetCore
                 Tool =
                 {
                     Document = "# foo",
-                    Credentials = DefaultCredentials.SameOrigin,
+                    IncludeCookies = true,
                     HttpHeaders = new HeaderDictionary
                     {
                         { "Content-Type", "application/json" }
                     },
-                    HttpMethod = DefaultHttpMethod.Get
+                    HttpMethod = DefaultHttpMethod.Get,
+                    Enable = true,
+                    Title = "Hello",
+                    GaTrackingId = "GA-FOO",
+                    GraphQLEndpoint = "/foo/bar",
+                    UseBrowserUrlAsGraphQLEndpoint = true,
+                    DisableTelemetry = true
                 }
             };
             TestServer server = CreateStarWarsServer("/graphql",
