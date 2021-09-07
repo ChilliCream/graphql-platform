@@ -59,7 +59,7 @@ namespace HotChocolate
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>
-        public bool RemoveUnreachableTypes { get; set; } = false;
+        public bool RemoveUnreachableTypes { get; set; }
 
         /// <summary>
         /// Defines the default binding behavior.
@@ -103,7 +103,7 @@ namespace HotChocolate
         /// <summary>
         /// Defines if the runtime types of types shall be validated.
         /// </summary>
-        public bool StrictRuntimeTypeValidation { get; set; } = false;
+        public bool StrictRuntimeTypeValidation { get; set; }
 
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
