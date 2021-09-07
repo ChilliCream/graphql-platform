@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
             Name = name;
             Value = value;
             IsNullable = isNullable;
-            HasValue = true;
+            IsInitialized = true;
         }
 
         public string Name { get; }
@@ -20,12 +20,12 @@ namespace HotChocolate.Execution
 
         public bool IsNullable { get; }
 
-        public bool HasValue { get; }
+        public bool IsInitialized { get; }
 
         public override bool Equals(object? obj)
         {
             return obj is ResultValue value &&
-                HasValue == value.HasValue &&
+                IsInitialized == value.IsInitialized &&
                 Name == value.Name &&
                 Value == value.Value;
         }
@@ -37,12 +37,12 @@ namespace HotChocolate.Execution
                 return false;
             }
 
-            if (HasValue != other.Value.HasValue)
+            if (IsInitialized != other.Value.IsInitialized)
             {
                 return false;
             }
 
-            if (HasValue == false)
+            if (IsInitialized == false)
             {
                 return true;
             }
