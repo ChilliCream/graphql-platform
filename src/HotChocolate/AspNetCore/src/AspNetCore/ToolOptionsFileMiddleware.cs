@@ -55,10 +55,11 @@ namespace HotChocolate.AspNetCore
                             config.SchemaEndpoint = options.GraphQLEndpoint;
                         }
 
-                        config.Credentials = ConvertCredentialsToString(options.Credentials);
+                        config.IncludeCookies = options.IncludeCookies;
                         config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
                         config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
                         config.GaTrackingId = options.GaTrackingId;
+                        config.DisableTelemetry = options.DisableTelemetry;
                     }
 
                     _config = config;
@@ -70,24 +71,6 @@ namespace HotChocolate.AspNetCore
             {
                 await _next(context);
             }
-        }
-
-        private static string? ConvertCredentialsToString(DefaultCredentials? credentials)
-        {
-            if (credentials is not null)
-            {
-                switch (credentials)
-                {
-                    case DefaultCredentials.Include:
-                        return "include";
-                    case DefaultCredentials.Omit:
-                        return "omit";
-                    case DefaultCredentials.SameOrigin:
-                        return "same-origin";
-                }
-            }
-
-            return null;
         }
 
         private static IDictionary<string, string>? ConvertHttpHeadersToDictionary(
@@ -134,13 +117,15 @@ namespace HotChocolate.AspNetCore
 
             public string? GraphQLDocument { get; set; }
 
-            public string? Credentials { get; set; }
+            public bool? IncludeCookies { get; set; }
 
             public IDictionary<string, string>? HttpHeaders { get; set; }
 
             public string? HttpMethod { get; set; }
 
             public string? GaTrackingId { get; set; }
+
+            public bool? DisableTelemetry { get; set; }
         }
     }
 }

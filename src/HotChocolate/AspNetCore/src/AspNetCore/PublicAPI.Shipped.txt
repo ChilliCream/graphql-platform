@@ -7,10 +7,6 @@ HotChocolate.AspNetCore.AllowedContentType.None = 0 -> HotChocolate.AspNetCore.A
 HotChocolate.AspNetCore.AllowedGetOperations
 HotChocolate.AspNetCore.AllowedGetOperations.Query = 0 -> HotChocolate.AspNetCore.AllowedGetOperations
 HotChocolate.AspNetCore.AllowedGetOperations.QueryAndMutation = 1 -> HotChocolate.AspNetCore.AllowedGetOperations
-HotChocolate.AspNetCore.DefaultCredentials
-HotChocolate.AspNetCore.DefaultCredentials.Include = 0 -> HotChocolate.AspNetCore.DefaultCredentials
-HotChocolate.AspNetCore.DefaultCredentials.Omit = 1 -> HotChocolate.AspNetCore.DefaultCredentials
-HotChocolate.AspNetCore.DefaultCredentials.SameOrigin = 2 -> HotChocolate.AspNetCore.DefaultCredentials
 HotChocolate.AspNetCore.DefaultHttpMethod
 HotChocolate.AspNetCore.DefaultHttpMethod.Get = 0 -> HotChocolate.AspNetCore.DefaultHttpMethod
 HotChocolate.AspNetCore.DefaultHttpMethod.Post = 1 -> HotChocolate.AspNetCore.DefaultHttpMethod
@@ -38,8 +34,6 @@ HotChocolate.AspNetCore.GraphQLServerOptions.EnableSchemaRequests.set -> void
 HotChocolate.AspNetCore.GraphQLServerOptions.GraphQLServerOptions() -> void
 HotChocolate.AspNetCore.GraphQLServerOptions.Tool.get -> HotChocolate.AspNetCore.GraphQLToolOptions!
 HotChocolate.AspNetCore.GraphQLToolOptions
-HotChocolate.AspNetCore.GraphQLToolOptions.Credentials.get -> HotChocolate.AspNetCore.DefaultCredentials?
-HotChocolate.AspNetCore.GraphQLToolOptions.Credentials.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.Document.get -> string?
 HotChocolate.AspNetCore.GraphQLToolOptions.Document.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.Enable.get -> bool
