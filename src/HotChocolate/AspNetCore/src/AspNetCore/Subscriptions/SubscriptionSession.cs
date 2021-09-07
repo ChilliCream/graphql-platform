@@ -17,7 +17,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly CancellationToken _sessionToken;
         private readonly ISocketConnection _connection;
         private readonly IResponseStream _responseStream;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private bool _disposed;
 
         /// <inheritdoc />
@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             ISocketConnection connection,
             IResponseStream responseStream,
             ISubscription subscription,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             string clientSubscriptionId)
         {
             _session = session ??

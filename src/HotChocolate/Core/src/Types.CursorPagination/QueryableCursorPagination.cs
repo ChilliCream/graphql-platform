@@ -8,6 +8,8 @@ namespace HotChocolate.Types.Pagination
     internal sealed class QueryableCursorPagination<TEntity>
         : CursorPaginationAlgorithm<IQueryable<TEntity>, TEntity>
     {
+        public static QueryableCursorPagination<TEntity> Instance { get; } = new();
+
         protected override IQueryable<TEntity> ApplySkip(IQueryable<TEntity> query, int skip)
             => query.Skip(skip);
 

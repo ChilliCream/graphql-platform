@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using MongoDB.Driver;
 
@@ -47,66 +43,5 @@ namespace HotChocolate.Data.MongoDb.Paging
         private static MongoDbOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
             PagingOptions options) => new(options);
 
-        private class MongoDbOffsetPagingHandler<TEntity> : OffsetPagingHandler
-        {
-            public MongoDbOffsetPagingHandler(PagingOptions options) : base(options)
-            {
-            }
-
-            protected override ValueTask<CollectionSegment> SliceAsync(
-                IResolverContext context,
-                object source,
-                OffsetPagingArguments arguments)
-            {
-                IMongoPagingContainer<TEntity> f = CreatePagingContainer(source);
-                return OffsetPagingHelper.ApplyPagination(
-                    f,
-                    arguments,
-                    ApplySkip,
-                    ApplyTake,
-                    Execute,
-                    CountAsync,
-                    context.RequestAborted);
-            }
-
-            private IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
-            {
-                return source switch
-                {
-                    IAggregateFluent<TEntity> e => AggregateFluentPagingContainer<TEntity>.New(e),
-                    IFindFluent<TEntity, TEntity> f => FindFluentPagingContainer<TEntity>.New(f),
-                    IMongoCollection<TEntity> m => FindFluentPagingContainer<TEntity>.New(
-                        m.Find(FilterDefinition<TEntity>.Empty)),
-                    MongoDbCollectionExecutable<TEntity> mce =>
-                        CreatePagingContainer(mce.BuildPipeline()),
-                    MongoDbAggregateFluentExecutable<TEntity> mae =>
-                        CreatePagingContainer(mae.BuildPipeline()),
-                    MongoDbFindFluentExecutable<TEntity> mfe =>
-                        CreatePagingContainer(mfe.BuildPipeline()),
-                    _ => throw ThrowHelper.PagingTypeNotSupported(source.GetType())
-                };
-            }
-
-            private static async ValueTask<IReadOnlyList<TEntity>> Execute(
-                IMongoPagingContainer<TEntity> source,
-                CancellationToken cancellationToken)
-            {
-                return await source.ToListAsync(cancellationToken);
-            }
-
-            private static IMongoPagingContainer<TEntity> ApplySkip(
-                IMongoPagingContainer<TEntity> source,
-                int skip) => source.Skip(skip);
-
-
-            private static IMongoPagingContainer<TEntity> ApplyTake(
-                IMongoPagingContainer<TEntity> source,
-                int take) => source.Take(take);
-
-            private static async ValueTask<int> CountAsync(
-                IMongoPagingContainer<TEntity> source,
-                CancellationToken cancellationToken) =>
-                await source.CountAsync(cancellationToken);
-        }
     }
 }

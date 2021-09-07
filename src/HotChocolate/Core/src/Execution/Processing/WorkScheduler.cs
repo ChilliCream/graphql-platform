@@ -246,17 +246,18 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 _processing = false;
+                _diagnosticEvents.StopProcessing(_requestContext);
 
-                if (TryCompleteProcessingUnsafe())
-                {
-                    return new(true);
-                }
-
-                return InvokePause();
+                return TryCompleteProcessingUnsafe()
+                    ? new(true)
+                    : InvokePause();
             }
 
             async ValueTask<bool> InvokeDispatch()
             {
+                // we yield here to give back control so that the lock can be released.
+                await Task.Yield();
+
                 do
                 {
                     await _batchDispatcher.DispatchAsync(_requestAborted).ConfigureAwait(false);

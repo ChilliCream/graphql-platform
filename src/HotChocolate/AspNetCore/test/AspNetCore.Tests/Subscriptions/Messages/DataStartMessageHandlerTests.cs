@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 executor,
                 interceptor,
                 errorHandler.Object,
-                new NoopDiagnosticEvents());
+                new NoopExecutionDiagnosticEvents());
 
             var message = new DataStartMessage(
                 "123",
@@ -56,7 +56,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 executor,
                 interceptor,
                 errorHandler.Object,
-                new NoopDiagnosticEvents());
+                new NoopExecutionDiagnosticEvents());
             KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
@@ -91,7 +91,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 executor,
                 interceptor,
                 errorHandler.Object,
-                new NoopDiagnosticEvents());
+                new NoopExecutionDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
@@ -144,7 +144,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 executor,
                 interceptor,
                 errorHandler.Object,
-                new NoopDiagnosticEvents());
+                new NoopExecutionDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
@@ -199,7 +199,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 executor,
                 interceptor,
                 errorHandler.Object,
-                new NoopDiagnosticEvents());
+                new NoopExecutionDiagnosticEvents());
             var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             // act
