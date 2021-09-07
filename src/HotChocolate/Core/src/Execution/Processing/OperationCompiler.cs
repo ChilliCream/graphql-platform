@@ -488,7 +488,7 @@ namespace HotChocolate.Execution.Processing
                         value.GetValueKind(),
                         true,
                         isDefaultValue,
-                        ParseLiteral(argument, value),
+                        _parser.ParseLiteral(value, argument),
                         value);
                 }
                 catch (SerializationException ex)
@@ -536,15 +536,6 @@ namespace HotChocolate.Execution.Processing
             }
 
             return true;
-        }
-
-        private object? ParseLiteral(IInputField argument, IValueNode value)
-        {
-            IInputType type = argument.Type is NonNullType
-                ? (IInputType)argument.Type.InnerType()
-                : argument.Type;
-
-            return _parser.ParseLiteral(value, argument);
         }
 
         internal FieldDelegate CreateFieldMiddleware(
