@@ -290,7 +290,6 @@ HotChocolate.Execution.Processing.ResultList.Parent.set -> void
 HotChocolate.Execution.Processing.ResultList.ResultList() -> void
 HotChocolate.Execution.Processing.ResultMap
 HotChocolate.Execution.Processing.ResultMap.Clear() -> void
-HotChocolate.Execution.Processing.ResultMap.Complete() -> void
 HotChocolate.Execution.Processing.ResultMap.Count.get -> int
 HotChocolate.Execution.Processing.ResultMap.EnsureCapacity(int capacity) -> void
 HotChocolate.Execution.Processing.ResultMap.GetEnumerator() -> System.Collections.Generic.IEnumerator<HotChocolate.Execution.ResultValue>!

@@ -223,3 +223,4 @@ virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.
 virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.TaskError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
 virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ValidateDocument(HotChocolate.Execution.IRequestContext! context) -> System.IDisposable!
 virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ValidationErrors(HotChocolate.Execution.IRequestContext! context, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
+*REMOVED*HotChocolate.Execution.Processing.ResultMap.Complete() -> void
