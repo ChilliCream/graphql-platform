@@ -1,16 +1,11 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.StarWars;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -32,6 +27,49 @@ namespace HotChocolate.AspNetCore
 
             // act
             Result result = await GetAsync(server);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Fetch_Tool_Config_Without_Options_Explicit_Route()
+        {
+            // arrange
+            TestServer server = CreateServer(b => b.MapBananaCakePop());
+
+            // act
+            Result result = await GetAsync(server, "/graphql/ui");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Combined()
+        {
+            // arrange
+            TestServer server = CreateServer(b =>
+            {
+                b.MapGraphQLHttp();
+                b.MapBananaCakePop();
+            });
+
+            // act
+            Result result = await GetAsync(server, "/graphql/ui");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Fetch_Tool_Config_Without_Options_Explicit_Route_Explicit_Path()
+        {
+            // arrange
+            TestServer server = CreateServer(b => b.MapBananaCakePop("/foo/bar"));
+
+            // act
+            Result result = await GetAsync(server, "/foo/bar");
 
             // assert
             result.MatchSnapshot();
