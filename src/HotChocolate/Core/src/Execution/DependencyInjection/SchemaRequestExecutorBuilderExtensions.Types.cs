@@ -334,8 +334,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <paramref name="builder"/> or <paramref name="configure"/> is null.
         /// </exception>
         /// <exception cref="ArgumentException">
-        /// - <typeparamref name="T"/> is either not a class or is a schema type.
-        ///
         /// - A mutation type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddMutationType(
@@ -543,8 +541,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <paramref name="builder"/> or <paramref name="configure"/> is null.
         /// </exception>
         /// <exception cref="ArgumentException">
-        /// - <typeparamref name="T"/> is either not a class or is a schema type.
-        ///
         /// - A subscription type was already added.
         /// </exception>
         public static IRequestExecutorBuilder AddSubscriptionType(
@@ -907,7 +903,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return builder.ConfigureSchema(b => b.AddUnionType(configure));
+            return builder.ConfigureSchema(b => b.AddUnionType<T>(configure));
         }
 
         /// <summary>
