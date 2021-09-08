@@ -171,8 +171,8 @@
                 "title": "Overview"
               },
               {
-                "path": "configuration",
-                "title": "Configuration"
+                "path": "middlewares",
+                "title": "Middlewares"
               },
               {
                 "path": "interceptors",

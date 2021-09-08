@@ -1,10 +1,10 @@
 ---
-title: Configuration
+title: Server middlewares
 ---
 
-Configuration
+In Order for Hot Chocolate to be accessible using a HTTP endpoint, we need to register some middlewares with ASP.NET Core.
 
-# Services
+<!-- # Services
 
 In order for Hot Chocolate to function correctly we have to register some services that are used within the server middleware as well as in the schema creation process.
 
@@ -22,13 +22,9 @@ public class Startup
 }
 ```
 
-The `AddGraphQLServer()` method also has an optional `schemaName` argument, which becomes relevant as soon as we want to host [multiple schemas](#multiple-schemas) using a single GraphQL server. Most users will be able to safely ignore this argument.
+The `AddGraphQLServer()` method also has an optional `schemaName` argument, which becomes relevant as soon as we want to host multiple schemas using a single GraphQL server. Most users will be able to safely ignore this argument. -->
 
-# Middleware
-
-Once we have registered all of the relevant services it is time for middlewares. Hot Chocolate offers some extension methods on the `IEndpointRouteBuilder` allowing us to either register all GraphQL server middlewares using one call or being explicit about the middlewares we want to add.
-
-## MapGraphQL
+# MapGraphQL
 
 We can call `MapGraphQL()` on the `IEndpointRouteBuilder` in the `Configure()` method of the `Startup` class to register all of the middlewares a standard GraphQL server requires.
 
@@ -47,7 +43,9 @@ public class Startup
 }
 ```
 
-Per default this makes our GraphQL server available at `/graphql`. We can customize the path at which the GraphQL server responds like the following.
+Per default this makes our GraphQL server available at `/graphql`.
+
+We can customize the path at which the GraphQL server responds like the following.
 
 ```csharp
 endpoints.MapGraphQL("/my/graphql/endpoint");
@@ -60,11 +58,20 @@ Calling `MapGraphQL()` will enable the following functionality on the specified 
 - Including the query string `?sdl` after the endpoint will download the GraphQL schema
 - Accessing the endpoint from a browser will load our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
 
-### GraphQLServerOptions
+We can customize the combined middleware using `GraphQLServerOptions` as shown below or we can only include the middlewares we need and configure them explicitly.
+
+The following middlewares are available:
+
+- [MapBananaCakePop](#mapbananacakepop)
+- [MapGraphQLHttp](#mapgraphqlhttp)
+- [MapGraphQLWebsocket](#mapgraphqlwebsocket)
+- [MapGraphQLSchema](#mapgraphqlschema)
+
+## GraphQLServerOptions
 
 We can influence the behavior of the middlewares registered by `MapGraphQL` using `GraphQLServerOptions`.
 
-#### EnableSchemaRequests
+### EnableSchemaRequests
 
 ```csharp
 endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
@@ -75,7 +82,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the schema of the GraphQL server can be downloaded by appending `?sdl` to the endpoint.
 
-#### EnableGetRequests
+### EnableGetRequests
 
 ```csharp
 endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
@@ -86,7 +93,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the GraphQL server is able to handle GraphQL operations sent via the query string in a HTTP GET request.
 
-#### EnableMultipartRequests
+### EnableMultipartRequests
 
 ```csharp
 endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
@@ -97,7 +104,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
 
-#### AllowedGetOperations
+### AllowedGetOperations
 
 ```csharp
 endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
@@ -108,7 +115,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 Using this setting and the `AllowedGetOperations` we can control whether our GraphQL server only accepts queries or queries and mutations.
 
-#### Tool
+### Tool
 
 We can specify options for the Banana Cake Pop GraphQL IDE using the `Tool` property.
 
@@ -126,7 +133,7 @@ public class Startup
             endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
             {
                 Tool = {
-                    Enabled = env.IsDevelopment()
+                    Enable = env.IsDevelopment()
                 }
             });
         });
@@ -134,9 +141,9 @@ public class Startup
 }
 ```
 
-[Learn more about possible GraphQLToolOptions](#GraphQLToolOptions)
+[Learn more about possible GraphQLToolOptions](#graphqltooloptions)
 
-## MapBananaCakePop
+# MapBananaCakePop
 
 If we want to serve [Banana Cake Pop](/docs/bananacakepop) on a different route than the actual GraphQL server, we can do so using the `MapBananaCakePop` middleware.
 
@@ -157,11 +164,11 @@ public class Startup
 
 This would make Banana Cake Pop accessible at the `/ui` endpoint.
 
-### GraphQLToolOptions
+## GraphQLToolOptions
 
 We can configure Banana Cake Pop using `GraphQLToolOptions`.
 
-#### Enable
+### Enable
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -172,7 +179,7 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 This setting controls whether Banana Cake Pop should be served or not.
 
-#### GraphQLEndpoint
+### GraphQLEndpoint
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -183,7 +190,7 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 This setting sets the GraphQL endpoint to use when creating new documents within Banana Cake Pop.
 
-#### UseBrowserUrlAsGraphQLEndpoint
+### UseBrowserUrlAsGraphQLEndpoint
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -194,9 +201,9 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 If set to `true` the current Web Browser URL is treated as the GraphQL endpoint when creating new documents within Banana Cake Pop.
 
-> ⚠️ Note: [GraphQLEndpoint](#GraphQLEndpoint) takes precedence over this setting.
+> ⚠️ Note: [GraphQLEndpoint](#graphqlendpoint) takes precedence over this setting.
 
-#### Document
+### Document
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -207,9 +214,18 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 This setting allows us to set a default GraphQL document that should be a placeholder for each new document created using Banana Cake Pop.
 
-#### HttpMethod
+### HttpMethod
 
-#### HttpHeaders
+```csharp
+endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+{
+    HttpMethod = DefaultHttpMethod.Get
+});
+```
+
+This setting controls the default HTTP method used to execute GraphQL operations when creating new documents within Banana Cake Pop.
+
+### HttpHeaders
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -223,9 +239,18 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 This setting allows us to specify default HTTP Headers that will be added to each new document created using Banana Cake Pop.
 
-#### IncludeCookies
+### IncludeCookies
 
-#### Title
+```csharp
+endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+{
+    IncludeCookies = true
+});
+```
+
+This setting specifies the default for including cookies in cross-origin when creating new documents within Banana Cake Pop.
+
+### Title
 
 ```csharp
 endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
@@ -236,12 +261,40 @@ endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
 
 This setting controls the tab name, when Banana Cake Pop is opened inside of a Web Browser.
 
-#### DisableTelemetry
+### DisableTelemetry
 
-#### GaTrackingId
+```csharp
+endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+{
+    DisableTelemetry = true
+});
+```
 
-## MapGraphQLHttp
+This setting allows us to disable telemetry events.
 
-## MapGraphQLWebsocket
+### GaTrackingId
 
-## MapGraphQLSchema
+```csharp
+endpoints.MapBananaCakePop("/ui").WithOptions(new GraphQLToolOptions
+{
+    GaTrackingId = "google-analytics-id"
+});
+```
+
+This setting allows us to set a custom Google Analytics Id, which in turn allows us to gain insights into the usage of Banana Cake Pop hosted as part of our GraphQL server.
+
+The following information is collected:
+
+| Name                 | Description                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| `deviceId`           | Random string generated on a per-device basis                         |
+| `operatingSystem`    | Name of the operating system: `Windows`, `macOS`, `Linux` & `Unknown` |
+| `userAgent`          | `User-Agent` header                                                   |
+| `applicationType`    | The type of application: `app` (Electron) or `middleware`             |
+| `applicationVersion` | Version of Banana Cake Pop                                            |
+
+# MapGraphQLHttp
+
+# MapGraphQLWebsocket
+
+# MapGraphQLSchema
