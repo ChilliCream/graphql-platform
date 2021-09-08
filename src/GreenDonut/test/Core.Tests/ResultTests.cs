@@ -174,7 +174,7 @@ namespace GreenDonut
             Result<object> result = default(Exception);
 
             // assert
-            Assert.Equal(ResultKind.Undefined, result.Kind);
+            Assert.Equal(ResultKind.Value, result.Kind);
             Assert.Null(result.Error);
             Assert.Null(result.Value);
         }
