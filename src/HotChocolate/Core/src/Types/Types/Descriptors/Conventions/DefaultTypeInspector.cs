@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
     /// </summary>
     public class DefaultTypeInspector
         : Convention
-            , ITypeInspector
+        , ITypeInspector
     {
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
@@ -30,7 +30,6 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly TypeCache _typeCache = new();
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
-        private readonly Dictionary<Type, bool> _records = new();
 
         public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
         {

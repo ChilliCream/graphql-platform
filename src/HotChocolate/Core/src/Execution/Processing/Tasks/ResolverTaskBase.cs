@@ -19,7 +19,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         protected IOperationContext OperationContext => _operationContext;
 
-        protected IDiagnosticEvents DiagnosticEvents => OperationContext.DiagnosticEvents;
+        protected IExecutionDiagnosticEvents DiagnosticEvents => OperationContext.DiagnosticEvents;
 
         public ISelection Selection => _selection;
 

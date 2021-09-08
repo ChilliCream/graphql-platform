@@ -7,6 +7,7 @@ using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Processing.Tasks;
@@ -76,6 +77,44 @@ namespace Microsoft.Extensions.DependencyInjection
                 return provider.Create(policy);
             });
 
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDataLoaderTaskCachePool(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton(
+                sp => TaskCachePool.Create(sp.GetRequiredService<ObjectPoolProvider>()));
+            services.TryAddScoped(
+                sp => new TaskCacheOwner(sp.GetRequiredService<ObjectPool<TaskCache>>()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDataLoaderOptions(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IDataLoaderDiagnosticEvents>(
+                sp =>
+                {
+                    IDataLoaderDiagnosticEventListener[] listeners =
+                        sp.GetServices<IDataLoaderDiagnosticEventListener>().ToArray();
+
+                    return listeners.Length switch
+                    {
+                        0 => new DataLoaderDiagnosticEventListener(),
+                        1 => listeners[0],
+                        _ => new AggregateDataLoaderDiagnosticEventListener(listeners)
+                    };
+                });
+
+            services.TryAddScoped(
+                sp => new DataLoaderOptions
+                {
+                    Caching = true,
+                    Cache = sp.GetRequiredService<TaskCacheOwner>().Cache,
+                    DiagnosticEvents = sp.GetService<IDataLoaderDiagnosticEvents>(),
+                    MaxBatchSize = 1024
+                });
             return services;
         }
 
@@ -210,8 +249,23 @@ namespace Microsoft.Extensions.DependencyInjection
 
             public override bool Return(OperationContext obj)
             {
+                if (!obj.IsInitialized)
+                {
+                    return true;
+                }
+
+                // if work related to the operation context has completed we can
+                // reuse the operation context.
+                if (obj.Scheduler.IsCompleted)
+                {
+                    obj.Clean();
+                    return true;
+                }
+
+                // we also clean if we cannot reuse the context so that the context is
+                // gracefully discarded and can be garbage collected.
                 obj.Clean();
-                return true;
+                return false;
             }
         }
     }

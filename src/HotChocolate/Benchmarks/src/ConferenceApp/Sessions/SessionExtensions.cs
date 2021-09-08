@@ -18,18 +18,9 @@ namespace HotChocolate.ConferencePlanner.Sessions
         [BindMember(nameof(Session.SessionSpeakers))]
         public async Task<IEnumerable<Speaker>> GetSpeakersAsync(
             [Parent] Session session,
-            [ScopedService] ApplicationDbContext dbContext,
-            SpeakerByIdDataLoader speakerById,
+            SpeakerBySessionIdDataLoader speakerById,
             CancellationToken cancellationToken)
-        {
-            int[] speakerIds = await dbContext.Sessions
-                .Where(s => s.Id == session.Id)
-                .Include(s => s.SessionSpeakers)
-                .SelectMany(s => s.SessionSpeakers.Select(t => t.SpeakerId))
-                .ToArrayAsync(cancellationToken);
-
-            return await speakerById.LoadAsync(speakerIds, cancellationToken);
-        }
+            => await speakerById.LoadAsync(session.Id, cancellationToken);
 
         [UseApplicationDbContext]
         [BindMember(nameof(Session.SessionAttendees))]
@@ -64,7 +55,7 @@ namespace HotChocolate.ConferencePlanner.Sessions
 
         [ID(nameof(Track))]
         [BindMember(nameof(Session.TrackId))]
-        public int? TrackId([Parent] Session session) => session.TrackId; 
+        public int? TrackId([Parent] Session session) => session.TrackId;
 
         [NodeResolver]
         public Task<Session> GetSessionAsync(

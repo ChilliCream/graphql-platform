@@ -140,5 +140,17 @@ namespace HotChocolate.Data.Filters
         /// the field descriptor where the filtering is applied
         /// </param>
         void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
+
+        /// <summary>
+        /// Checks if the filtering should contain the AND operator
+        /// </summary>
+        /// <returns>Return true if AND is allowed</returns>
+        bool IsAndAllowed();
+
+        /// <summary>
+        /// Checks if the filtering should contain the OR operator
+        /// </summary>
+        /// <returns>Return true if OR is allowed</returns>
+        bool IsOrAllowed();
     }
 }

@@ -470,6 +470,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task BindResolver_With_Field()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BindResolver_With_Property_PersonDto>()
+                .AddTypeExtension<BindResolver_With_Field_PersonResolvers>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Remove_Properties_Globally()
         {
             Snapshot.FullName();
@@ -761,15 +774,21 @@ namespace HotChocolate.Types
 
         public class BindResolver_With_Property_PersonDto
         {
-            public int FriendId { get; } = 1;
+            public int FriendId => 1;
         }
 
         [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
         public class BindResolver_With_Property_PersonResolvers
         {
             [BindMember(nameof(BindResolver_With_Property_PersonDto.FriendId))]
-            public List<BindResolver_With_Property_PersonDto?>? Friends() =>
-                new();
+            public List<BindResolver_With_Property_PersonDto?> Friends() => new();
+        }
+
+        [ExtendObjectType(typeof(BindResolver_With_Property_PersonDto))]
+        public class BindResolver_With_Field_PersonResolvers
+        {
+            [BindFieldAttribute("friendId")]
+            public List<BindResolver_With_Property_PersonDto?> Friends() => new();
         }
 
         public class Remove_Properties_Globally_PersonDto

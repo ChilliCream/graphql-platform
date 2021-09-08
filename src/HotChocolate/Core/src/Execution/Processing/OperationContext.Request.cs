@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public IDiagnosticEvents DiagnosticEvents
+        public IExecutionDiagnosticEvents DiagnosticEvents
         {
             get
             {

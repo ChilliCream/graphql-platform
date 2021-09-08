@@ -10,12 +10,12 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class OperationCacheMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IPreparedOperationCache _operationCache;
 
         public OperationCacheMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IPreparedOperationCache operationCache)
         {
             _next = next ??

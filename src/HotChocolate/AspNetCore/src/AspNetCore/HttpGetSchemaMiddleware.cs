@@ -9,21 +9,29 @@ namespace HotChocolate.AspNetCore
 {
     public class HttpGetSchemaMiddleware : MiddlewareBase
     {
+        private readonly MiddlewareRoutingType _routing;
 
         public HttpGetSchemaMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            NameString schemaName)
+            NameString schemaName,
+            MiddlewareRoutingType routing)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
+            _routing = routing;
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (HttpMethods.IsGet(context.Request.Method) &&
-                context.Request.Query.ContainsKey("SDL") &&
-                (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true))
+            var handle = _routing == MiddlewareRoutingType.Integrated
+                ? HttpMethods.IsGet(context.Request.Method) &&
+                  context.Request.Query.ContainsKey("SDL") &&
+                  (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true)
+                : HttpMethods.IsGet(context.Request.Method) &&
+                  (context.GetGraphQLServerOptions()?.EnableSchemaRequests ?? true);
+
+            if (handle)
             {
                 await HandleRequestAsync(context);
             }

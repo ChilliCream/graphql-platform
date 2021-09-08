@@ -11,36 +11,43 @@ namespace GreenDonut
         : DataLoaderBase<TKey, TValue>
         where TKey : notnull
     {
-        protected CacheDataLoader(int cacheSize)
+        protected CacheDataLoader(DataLoaderOptions? options = null)
             : base(
                 AutoBatchScheduler.Default,
-                new DataLoaderOptions<TKey> { CacheSize = cacheSize, MaxBatchSize = 1 })
+                options is null
+                    ? new DataLoaderOptions { MaxBatchSize = 1 }
+                    : CreateLocalOptions(options))
         { }
 
-        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask FetchAsync(
             IReadOnlyList<TKey> keys,
+            Memory<Result<TValue>> results,
             CancellationToken cancellationToken)
         {
-            var items = new Result<TValue>[keys.Count];
-
             for (var i = 0; i < keys.Count; i++)
             {
                 try
                 {
-                    items[i] = await LoadSingleAsync(keys[i], cancellationToken)
+                    TValue value = await LoadSingleAsync(keys[i], cancellationToken)
                         .ConfigureAwait(false);
+                    results.Span[i] = value;
                 }
                 catch (Exception ex)
                 {
-                    items[i] = ex;
+                    results.Span[i] = ex;
                 }
             }
-
-            return items;
         }
 
         protected abstract Task<TValue> LoadSingleAsync(
             TKey key,
             CancellationToken cancellationToken);
+
+        private static DataLoaderOptions CreateLocalOptions(DataLoaderOptions options)
+        {
+            DataLoaderOptions local = options.Copy();
+            local.MaxBatchSize = 1;
+            return local;
+        }
     }
 }

@@ -282,7 +282,7 @@ namespace HotChocolate.Execution.Serialization
             for (var i = 0; i < resultMap.Count; i++)
             {
                 ResultValue value = resultMap[i];
-                if (value.HasValue)
+                if (value.IsInitialized)
                 {
                     writer.WritePropertyName(value.Name);
                     WriteFieldValue(writer, value.Value);

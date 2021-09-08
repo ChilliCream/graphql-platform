@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => default,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -105,7 +105,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => throw new Exception("Should not be called."),
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
@@ -145,7 +145,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var middleware = new DocumentValidationMiddleware(
                 _ => throw new Exception("Should not be called."),
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 validator.Object);
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()

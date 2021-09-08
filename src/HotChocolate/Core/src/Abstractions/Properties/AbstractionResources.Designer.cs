@@ -188,5 +188,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("AggregateError_Message", resourceCulture);
             }
         }
+        
+        internal static string ResultValue_NameIsNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ResultValue_NameIsNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

@@ -18,8 +18,8 @@ namespace HotChocolate.Execution.Processing
             private readonly ulong _id;
             private readonly ObjectPool<OperationContext> _operationContextPool;
             private readonly QueryExecutor _queryExecutor;
-            private readonly IDiagnosticEvents _diagnosticEvents;
-            private IActivityScope? _subscriptionScope;
+            private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+            private IDisposable? _subscriptionScope;
             private readonly IRequestContext _requestContext;
             private readonly QueryPlan _queryPlan;
             private readonly ObjectType _subscriptionType;
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution.Processing
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
                 Func<object?> resolveQueryRootValue,
-                IDiagnosticEvents diagnosticEvents)
+                IExecutionDiagnosticEvents diagnosticEvents)
             {
                 unchecked
                 {
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Processing
             /// <param name="resolveQueryRootValue">
             /// A delegate to resolve the subscription instance.
             /// </param>
-            /// <param name="diagnosticsEvents">
+            /// <param name="executionDiagnosticsEvents">
             /// The internal diagnostic events to report telemetry.
             /// </param>
             /// <returns>
@@ -93,7 +93,7 @@ namespace HotChocolate.Execution.Processing
                 ObjectType subscriptionType,
                 ISelectionSet rootSelections,
                 Func<object?> resolveQueryRootValue,
-                IDiagnosticEvents diagnosticsEvents)
+                IExecutionDiagnosticEvents executionDiagnosticsEvents)
             {
                 var subscription = new Subscription(
                     operationContextPool,
@@ -103,10 +103,10 @@ namespace HotChocolate.Execution.Processing
                     subscriptionType,
                     rootSelections,
                     resolveQueryRootValue,
-                    diagnosticsEvents);
+                    executionDiagnosticsEvents);
 
                 subscription._subscriptionScope =
-                    diagnosticsEvents.ExecuteSubscription(subscription);
+                    executionDiagnosticsEvents.ExecuteSubscription(subscription);
 
                 subscription._sourceStream =
                     await subscription.SubscribeAsync().ConfigureAwait(false);
@@ -159,7 +159,7 @@ namespace HotChocolate.Execution.Processing
             /// </returns>
             private async Task<IQueryResult> OnEvent(object payload)
             {
-                using IActivityScope es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
+                using IDisposable es = _diagnosticEvents.OnSubscriptionEvent(new(this, payload));
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
 
                 OperationContext operationContext = _operationContextPool.Get();

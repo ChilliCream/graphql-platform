@@ -50,13 +50,15 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
                 .TryAddIdSerializer()
-                .TryAddDataLoaderParameterExpressionBuilder();
+                .TryAddDataLoaderParameterExpressionBuilder()
+                .TryAddDataLoaderOptions();
 
             // pools
             services
                 .TryAddResultPool()
                 .TryAddResolverTaskPool()
-                .TryAddOperationContextPool();
+                .TryAddOperationContextPool()
+                .TryAddDataLoaderTaskCachePool();
 
             // global executor services
             services

@@ -4,12 +4,10 @@ using System.Threading.Tasks;
 
 namespace GreenDonut
 {
-    public class ManualBatchScheduler
-        : IBatchScheduler
+    public class ManualBatchScheduler : IBatchScheduler
     {
         private readonly object _sync = new object();
-        private readonly ConcurrentQueue<Func<ValueTask>> _queue =
-            new ConcurrentQueue<Func<ValueTask>>();
+        private readonly ConcurrentQueue<Func<ValueTask>> _queue = new();
 
         public void Dispatch()
         {
@@ -24,7 +22,10 @@ namespace GreenDonut
 
         public void Schedule(Func<ValueTask> dispatch)
         {
-            _queue.Enqueue(dispatch);
+            lock (_sync)
+            {
+                _queue.Enqueue(dispatch);
+            }
         }
     }
 }

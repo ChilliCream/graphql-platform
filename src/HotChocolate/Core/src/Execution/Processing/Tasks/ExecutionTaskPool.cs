@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 

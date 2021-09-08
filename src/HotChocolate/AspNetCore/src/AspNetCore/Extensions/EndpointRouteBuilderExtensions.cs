@@ -7,6 +7,7 @@ using Microsoft.Extensions.FileProviders;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Extensions;
+using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -34,8 +35,8 @@ namespace Microsoft.AspNetCore.Builder
         public static GraphQLEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
             string path = "/graphql",
-            NameString schemaName = default) =>
-                MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
+            NameString schemaName = default)
+            => MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
         /// <summary>
         /// Adds a GraphQL endpoint to the endpoint configurations.
@@ -68,7 +69,7 @@ namespace Microsoft.AspNetCore.Builder
 
             path = path.ToString().TrimEnd('/');
 
-            RoutePattern pattern = RoutePatternFactory.Parse(path + "/{**slug}");
+            RoutePattern pattern = Parse(path + "/{**slug}");
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
             IFileProvider fileProvider = CreateFileProvider();
@@ -77,7 +78,9 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
-                .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpGetSchemaMiddleware>(
+                    schemaNameOrDefault,
+                    MiddlewareRoutingType.Integrated)
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
                 .UseMiddleware<ToolOptionsFileMiddleware>(path)
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
@@ -115,6 +118,31 @@ namespace Microsoft.AspNetCore.Builder
         /// </exception>
         public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
             this IEndpointRouteBuilder endpointRouteBuilder,
+            string pattern,
+            NameString schemaName = default)
+            => MapGraphQLHttp(endpointRouteBuilder, Parse(pattern), schemaName);
+
+        /// <summary>
+        /// Adds a GraphQL HTTP endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL HTTP endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static GraphQLHttpEndpointConventionBuilder MapGraphQLHttp(
+            this IEndpointRouteBuilder endpointRouteBuilder,
             RoutePattern? pattern = default,
             NameString schemaName = default)
         {
@@ -123,7 +151,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            pattern ??= RoutePatternFactory.Parse("/graphql");
+            pattern ??= Parse("/graphql");
 
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -165,6 +193,31 @@ namespace Microsoft.AspNetCore.Builder
         /// </exception>
         public static IEndpointConventionBuilder MapGraphQLWebSocket(
             this IEndpointRouteBuilder endpointRouteBuilder,
+            string pattern,
+            NameString schemaName = default)
+            => MapGraphQLWebSocket(endpointRouteBuilder, Parse(pattern), schemaName);
+
+        /// <summary>
+        /// Adds a GraphQL WebSocket endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL WebSocket endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static IEndpointConventionBuilder MapGraphQLWebSocket(
+            this IEndpointRouteBuilder endpointRouteBuilder,
             RoutePattern? pattern = default,
             NameString schemaName = default)
         {
@@ -173,7 +226,7 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            pattern ??= RoutePatternFactory.Parse("/graphql/ws");
+            pattern ??= Parse("/graphql/ws");
 
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
@@ -213,6 +266,31 @@ namespace Microsoft.AspNetCore.Builder
         /// </exception>
         public static IEndpointConventionBuilder MapGraphQLSchema(
             this IEndpointRouteBuilder endpointRouteBuilder,
+            string pattern,
+            NameString schemaName = default)
+            => MapGraphQLSchema(endpointRouteBuilder, Parse(pattern), schemaName);
+
+        /// <summary>
+        /// Adds a GraphQL schema SDL endpoint to the endpoint configurations.
+        /// </summary>
+        /// <param name="endpointRouteBuilder">
+        /// The <see cref="IEndpointConventionBuilder"/>.
+        /// </param>
+        /// <param name="pattern">
+        /// The path to which the GraphQL schema SDL endpoint shall be mapped.
+        /// </param>
+        /// <param name="schemaName">
+        /// The name of the schema that shall be used by this endpoint.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IEndpointConventionBuilder"/> so that
+        /// configuration can be chained.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// The <paramref name="endpointRouteBuilder" /> is <c>null</c>.
+        /// </exception>
+        public static IEndpointConventionBuilder MapGraphQLSchema(
+            this IEndpointRouteBuilder endpointRouteBuilder,
             RoutePattern? pattern = default,
             NameString schemaName = default)
         {
@@ -221,13 +299,15 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            pattern ??= RoutePatternFactory.Parse("/graphql/sdl");
+            pattern ??= Parse("/graphql/sdl");
 
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
             requestPipeline
-                .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpGetSchemaMiddleware>(
+                    schemaNameOrDefault,
+                    MiddlewareRoutingType.Explicit)
                 .Use(_ => context =>
                 {
                     context.Response.StatusCode = 404;
@@ -269,7 +349,7 @@ namespace Microsoft.AspNetCore.Builder
             toolPath ??= "/graphql/ui";
             relativeRequestPath ??= "..";
 
-            RoutePattern pattern = RoutePatternFactory.Parse(toolPath.ToString() + "/{**slug}");
+            RoutePattern pattern = Parse(toolPath.ToString() + "/{**slug}");
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             IFileProvider fileProvider = CreateFileProvider();
 

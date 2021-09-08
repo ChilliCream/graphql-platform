@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Func<IServiceProvider, T> factory)
             where T : class, IDataLoader
         {
-            builder.Services.TryAddScoped<T>(factory);
+            builder.Services.TryAddScoped(factory);
             return builder;
         }
     }

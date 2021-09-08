@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the diagnostic events logger.
         /// </summary>
-        IDiagnosticEvents DiagnosticEvents { get; }
+        IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
         /// <summary>
         /// Gets or sets the initial query request.

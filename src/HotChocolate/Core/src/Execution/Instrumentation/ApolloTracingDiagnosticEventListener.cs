@@ -6,7 +6,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
 {
-    internal class ApolloTracingDiagnosticEventListener : DiagnosticEventListener
+    internal class ApolloTracingDiagnosticEventListener : ExecutionDiagnosticEventListener
     {
         private const string _extensionKey = "tracing";
         private readonly TracingPreference _tracingPreference;
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Instrumentation
 
         public override bool EnableResolveFieldValue => true;
 
-        public override IActivityScope ExecuteRequest(IRequestContext context)
+        public override IDisposable ExecuteRequest(IRequestContext context)
         {
             if (IsEnabled(context.ContextData))
             {
@@ -39,21 +39,21 @@ namespace HotChocolate.Execution.Instrumentation
             return EmptyScope;
         }
 
-        public override IActivityScope ParseDocument(IRequestContext context)
+        public override IDisposable ParseDocument(IRequestContext context)
         {
             return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
                 ? new ParseDocumentScope(builder, _timestampProvider)
                 : EmptyScope;
         }
 
-        public override IActivityScope ValidateDocument(IRequestContext context)
+        public override IDisposable ValidateDocument(IRequestContext context)
         {
             return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
                 ? new ValidateDocumentScope(builder, _timestampProvider)
                 : EmptyScope;
         }
 
-        public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        public override IDisposable ResolveFieldValue(IMiddlewareContext context)
         {
             return TryGetBuilder(context.ContextData, out ApolloTracingResultBuilder? builder)
                 ? new ResolveFieldValueScope(context, builder, _timestampProvider)
@@ -90,7 +90,7 @@ namespace HotChocolate.Execution.Instrumentation
                     contextData.ContainsKey(WellKnownContextData.EnableTracing)));
         }
 
-        private class RequestScope : IActivityScope
+        private class RequestScope : IDisposable
         {
             private readonly IRequestContext _context;
             private readonly DateTime _startTime;
@@ -128,7 +128,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        private class ParseDocumentScope : IActivityScope
+        private class ParseDocumentScope : IDisposable
         {
             private readonly ApolloTracingResultBuilder _builder;
             private readonly ITimestampProvider _timestampProvider;
@@ -156,7 +156,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        private class ValidateDocumentScope : IActivityScope
+        private class ValidateDocumentScope : IDisposable
         {
             private readonly ApolloTracingResultBuilder _builder;
             private readonly ITimestampProvider _timestampProvider;
@@ -184,7 +184,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        private class ResolveFieldValueScope : IActivityScope
+        private class ResolveFieldValueScope : IDisposable
         {
             private readonly IMiddlewareContext _context;
             private readonly ApolloTracingResultBuilder _builder;

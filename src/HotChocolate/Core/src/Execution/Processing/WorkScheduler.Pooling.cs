@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing
         private IBatchDispatcher _batchDispatcher = default!;
         private IErrorHandler _errorHandler = default!;
         private IResultHelper _result = default!;
-        private IDiagnosticEvents _diagnosticEvents = default!;
+        private IExecutionDiagnosticEvents _diagnosticEvents = default!;
         private CancellationToken _requestAborted;
 
         private bool _isInitialized;

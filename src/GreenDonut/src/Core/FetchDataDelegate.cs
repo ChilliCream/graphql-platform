@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +13,18 @@ namespace GreenDonut
     /// <typeparam name="TKey">A key type.</typeparam>
     /// <typeparam name="TValue">A value type.</typeparam>
     /// <param name="keys">A list of keys.</param>
+    /// <param name="results">
+    /// The resolved values which need to be in the exact same
+    /// order as the keys were provided.
+    /// </param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>
     /// A list of results which are in the exact same order as the provided
     /// keys.
     /// </returns>
-    public delegate ValueTask<IReadOnlyList<Result<TValue>>> FetchDataDelegate<TKey, TValue>(
+    public delegate ValueTask FetchDataDelegate<in TKey, TValue>(
         IReadOnlyList<TKey> keys,
+        Memory<Result<TValue>> results,
         CancellationToken cancellationToken)
-            where TKey : notnull;
+        where TKey : notnull;
 }

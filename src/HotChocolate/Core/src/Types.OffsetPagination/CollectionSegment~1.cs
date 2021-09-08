@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Pagination
             {
                 foreach (T element in _collection)
                 {
-                    yield return element;
+                    yield return element!;
                 }
             }
 

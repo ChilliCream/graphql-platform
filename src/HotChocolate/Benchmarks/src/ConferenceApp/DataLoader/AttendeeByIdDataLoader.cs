@@ -15,11 +15,12 @@ namespace HotChocolate.ConferencePlanner.DataLoader
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
         public AttendeeByIdDataLoader(
+            IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
-            IDbContextFactory<ApplicationDbContext> dbContextFactory)
-            : base(batchScheduler)
+            DataLoaderOptions options)
+            : base(batchScheduler, options)
         {
-            _dbContextFactory = dbContextFactory ?? 
+            _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));
         }
 
@@ -27,12 +28,7 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            if (keys.Count == 1)
-            {
-                Counter.One();
-            }
-
-            await using ApplicationDbContext dbContext = 
+            await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
             return await dbContext.Attendees
