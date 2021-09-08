@@ -34,30 +34,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchema(b => b.AddConvention(convention, factory, scope));
         }
 
-        public static IRequestExecutorBuilder TryAddConvention(
-            this IRequestExecutorBuilder builder,
-            Type convention,
-            CreateConvention factory,
-            string? scope = null)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (convention is null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (factory is null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            return builder.ConfigureSchema(b => b.TryAddConvention(convention, factory, scope));
-        }
-
         public static IRequestExecutorBuilder AddConvention<T>(
             this IRequestExecutorBuilder builder,
             Type type,
@@ -181,6 +157,30 @@ namespace Microsoft.Extensions.DependencyInjection
             where TConcreteConvention : IConvention =>
             builder.ConfigureSchema(
                 b => b.AddConvention(typeof(TConvention), typeof(TConcreteConvention), scope));
+
+        public static IRequestExecutorBuilder TryAddConvention(
+            this IRequestExecutorBuilder builder,
+            Type convention,
+            CreateConvention factory,
+            string? scope = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return builder.ConfigureSchema(b => b.TryAddConvention(convention, factory, scope));
+        }
 
         public static IRequestExecutorBuilder TryAddConvention(
             this IRequestExecutorBuilder builder,
