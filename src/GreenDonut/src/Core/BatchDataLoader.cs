@@ -60,6 +60,10 @@ namespace GreenDonut
                 {
                     results[i] = value;
                 }
+                else
+                {
+                    results[i] = null;
+                }
             }
         }
 

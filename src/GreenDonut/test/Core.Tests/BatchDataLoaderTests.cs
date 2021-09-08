@@ -58,6 +58,33 @@ namespace GreenDonut
             Assert.Equal("Value:1abc", await result2);
         }
 
+        [Fact]
+        public async Task Null_Result()
+        {
+            // arrange
+            var dataLoader = new EmptyBatchDataLoader(new AutoBatchScheduler());
+
+            // act
+            var result = await dataLoader.LoadAsync("1");
+
+            // assert
+            Assert.Null(result);
+        }
+
+        public class EmptyBatchDataLoader : BatchDataLoader<string, string>
+        {
+            public EmptyBatchDataLoader(IBatchScheduler batchScheduler)
+                : base(batchScheduler)
+            {
+            }
+
+            protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
+                IReadOnlyList<string> keys,
+                CancellationToken cancellationToken)
+                => Task.FromResult<IReadOnlyDictionary<string, string>>(
+                    new Dictionary<string, string>());
+        }
+
         public class CustomBatchDataLoader : BatchDataLoader<string, string>
         {
             public CustomBatchDataLoader(
