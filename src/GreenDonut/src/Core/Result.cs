@@ -9,15 +9,25 @@ namespace GreenDonut
     /// <typeparam name="TValue">A value type.</typeparam>
     public readonly struct Result<TValue> : IEquatable<Result<TValue>>
     {
+        /// <summary>
+        /// Creates a new value result.
+        /// </summary>
+        /// <param name="value">The value.</param>
         public Result(TValue value) : this()
         {
             Value = value;
             Kind = ResultKind.Value;
         }
 
-        public Result(Exception? error) : this()
+        /// <summary>
+        /// Creates a new error result.
+        /// </summary>
+        /// <param name="error">
+        /// The error.
+        /// </param>
+        public Result(Exception error) : this()
         {
-            Error = error;
+            Error = error ?? throw new ArgumentNullException(nameof(error));
             Kind = ResultKind.Error;
         }
 
@@ -75,11 +85,11 @@ namespace GreenDonut
         public static Result<TValue> Resolve(TValue value) => new(value);
 
         /// <summary>
-        /// Creates a new error result.
+        /// Creates a new error result or a null result.
         /// </summary>
         /// <param name="error">An arbitrary error.</param>
         public static implicit operator Result<TValue>(Exception? error)
-            => error is null ? default : new Result<TValue>(error);
+            => error is null ? new Result<TValue>(default(TValue)!) : new Result<TValue>(error);
 
         /// <summary>
         /// Creates a new value result.
