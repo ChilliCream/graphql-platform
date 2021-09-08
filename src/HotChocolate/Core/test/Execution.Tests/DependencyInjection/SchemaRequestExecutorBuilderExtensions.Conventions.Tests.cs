@@ -111,8 +111,6 @@ namespace HotChocolate.Execution.DependencyInjection
         [Fact]
         public async Task AddConventionWithType()
         {
-            var conventionCreated = false;
-
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
@@ -123,8 +121,6 @@ namespace HotChocolate.Execution.DependencyInjection
                         () => throw new NotSupportedException());
                 })
                 .BuildSchemaAsync();
-
-            Assert.True(conventionCreated);
         }
 
         [Fact]

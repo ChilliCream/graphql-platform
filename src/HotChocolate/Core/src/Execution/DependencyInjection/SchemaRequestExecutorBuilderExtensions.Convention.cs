@@ -44,6 +44,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return builder.ConfigureSchema(b => b.AddConvention(typeof(T), type, scope));
         }
 
