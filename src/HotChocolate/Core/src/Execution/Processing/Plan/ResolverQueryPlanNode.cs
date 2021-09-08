@@ -26,9 +26,9 @@ namespace HotChocolate.Execution.Processing.Plan
             Selections.Add(first);
         }
 
-        public ISelection? FirstParent { get; }
-
         public ISelection First { get; }
+
+        public ISelection? FirstParent { get; }
 
         public List<ISelection> Selections { get; } = new();
 
