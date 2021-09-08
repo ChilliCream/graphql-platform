@@ -210,7 +210,7 @@ type Query {
 }
 ```
 
-While it is not part of the specification, it is recommended to add an ability for plural fetches. That's why Hot Chocolate adds a `nodes` field allowing use to refetch multiple objects in one round trip.
+While it is not part of the specification, it is recommended to add the ability for plural fetches. That's why Hot Chocolate adds a `nodes` field allowing us to refetch multiple objects in one round trip.
 
 ```sdl
 type Query {
