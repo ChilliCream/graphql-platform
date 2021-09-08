@@ -117,3 +117,53 @@ public record Foo([property: ID] string Id);
 # Instrumentation
 
 We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
+
+# DataLoader
+
+We have consolidated the DataLoader base classes into the GreenDonut package which has no dependency on any HotChocolate packages. This allows for people using DataLoader in their business layer without having to reference GraphQL related packages. In your DataLoader classes the namespace `HotChocolate.Fetching` and `HotChocolate.DataLOader` are no longer needed.
+
+Second, we optimized memory usage of DataLoader and it is now best practice to let the DI inject the DataLoaderOptions into the DataLoader.
+
+**Hot Chocolate 11**
+
+```csharp
+public class CustomBatchDataLoader : BatchDataLoader<string, string?>
+{
+    public CustomBatchDataLoader(IBatchScheduler batchScheduler)
+        : base(batchScheduler)
+    {
+
+    }
+
+    // code omitted for brevity.
+}
+```
+
+**Hot Chocolate 12**
+
+```csharp
+public class CustomBatchDataLoader : BatchDataLoader<string, string?>
+{
+    public CustomBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : base(batchScheduler, options)
+    {
+
+    }
+
+    // code omitted for brevity.
+}
+```
+
+Allowing the DI to inject the options will allow the DataLoader to use the new shared pooled cache objects.
+
+# Resolvers
+
+We have reworked the resolver compiler and are now demanding that the `ParentAttribute` is used when an argument is referring to the parent object.
+This is done since in some cases people want to get the parent object which is the same runtime type as an argument value.
+
+```csharp
+public async Task<string> MyResolver([Parent] Person parent, Person input)
+{
+    // code omitted for brevity.
+}
+```
