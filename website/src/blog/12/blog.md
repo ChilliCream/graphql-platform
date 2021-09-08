@@ -43,3 +43,5 @@ ASP.NET Core improvements
 Schema-First Support
 
 Banana Cake Pop
+
+Diagnostics
