@@ -1,5 +1,5 @@
 ---
-title: Server middlewares
+title: Middlewares
 ---
 
 In Order for Hot Chocolate to be accessible using a HTTP endpoint, we need to register some middlewares with ASP.NET Core.
@@ -26,7 +26,7 @@ The `AddGraphQLServer()` method also has an optional `schemaName` argument, whic
 
 # MapGraphQL
 
-We can call `MapGraphQL()` on the `IEndpointRouteBuilder` in the `Configure()` method of the `Startup` class to register all of the middlewares a standard GraphQL server requires.
+We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middlewares a standard GraphQL server requires.
 
 ```csharp
 public class Startup
@@ -145,7 +145,7 @@ public class Startup
 
 # MapBananaCakePop
 
-If we want to serve [Banana Cake Pop](/docs/bananacakepop) on a different route than the actual GraphQL server, we can do so using the `MapBananaCakePop` middleware.
+We can call `MapBananaCakePop()` on the `IEndpointRouteBuilder` to serve [Banana Cake Pop](/docs/bananacakepop) on a different endpoint than the actual GraphQL endpoint.
 
 ```csharp
 public class Startup
@@ -156,13 +156,13 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapBananaCakePop("/ui");
+            endpoints.MapBananaCakePop("/graphql/ui");
         });
     }
 }
 ```
 
-This would make Banana Cake Pop accessible at the `/ui` endpoint.
+This would make Banana Cake Pop accessible via a Web Browser at the `/graphql/ui` endpoint.
 
 ## GraphQLToolOptions
 
@@ -295,6 +295,78 @@ The following information is collected:
 
 # MapGraphQLHttp
 
+We can call `MapGraphQLHttp()` on the `IEndpointRouteBuilder` to make our GraphQL server available via HTTP at a specific endpoint.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQLHttp("/graphql/http");
+        });
+    }
+}
+```
+
+With the above configuration we could now issue HTTP GET / POST requests against the `/graphql/http` endpoint.
+
+## GraphQLHttpOptions
+
+The HTTP endpoint can be configured using `GraphQLHttpOptions`.
+
+```csharp
+endpoints.MapGraphQLHttp("/graphql/http").WithOptions(new GraphQLHttpOptions
+{
+    EnableGetRequests = false
+});
+```
+
+The `GraphQLHttpOptions` are the same as the `GraphQLServerOptions` except that there are no `Tool` and `EnableSchemaRequests` properties.
+
+[Learn more about GraphQLServerOptions](#graphqlserveroptions)
+
 # MapGraphQLWebsocket
 
+We can call `MapGraphQLWebSocket()` on the `IEndpointRouteBuilder` to make our GraphQL server available via WebSockets at a specific endpoint.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQLWebSocket("/graphql/ws");
+        });
+    }
+}
+```
+
+With the above configuration we could now issue GraphQL subscription requests via WebSocket against the `/graphql/ws` endpoint.
+
 # MapGraphQLSchema
+
+We can call `MapGraphQLSchema()` on the `IEndpointRouteBuilder` to make our GraphQL schema available at a specific endpoint.
+
+```csharp
+public class Startup
+{
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQLSchema("/graphql/schema");
+        });
+    }
+}
+```
+
+With the above configuration we could now download our `schema.graphql` file from the `/graphql/schema` endpoint.
