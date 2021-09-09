@@ -4,6 +4,7 @@
     <PackageId>HotChocolate.Stitching.DAPR</PackageId>
     <RootNamespace>HotChocolate.Stitching.DAPR</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+    <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
