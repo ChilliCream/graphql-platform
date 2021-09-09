@@ -46,7 +46,7 @@ namespace HotChocolate.Types.Pagination
         {
             // When totalCount is included in the selection set we prefetch it, then capture the
             // count in a variable, to pass it into the handler
-            int totalCount = 0;
+            int? totalCount = null;
 
             // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
