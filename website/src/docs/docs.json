@@ -171,8 +171,8 @@
                 "title": "Overview"
               },
               {
-                "path": "middlewares",
-                "title": "Middlewares"
+                "path": "middleware",
+                "title": "Middleware"
               },
               {
                 "path": "interceptors",

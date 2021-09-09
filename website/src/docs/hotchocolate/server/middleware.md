@@ -26,7 +26,7 @@ The `AddGraphQLServer()` method also has an optional `schemaName` argument, whic
 
 # MapGraphQL
 
-We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middlewares a standard GraphQL server requires.
+We can call `MapGraphQL()` on the `IEndpointRouteBuilder` to register all of the middleware a standard GraphQL server requires.
 
 ```csharp
 public class Startup
@@ -45,7 +45,7 @@ public class Startup
 
 Per default this makes our GraphQL server available at `/graphql`.
 
-We can customize the path at which the GraphQL server responds like the following.
+We can customize the endpoint at which the GraphQL server is hosted like the following.
 
 ```csharp
 endpoints.MapGraphQL("/my/graphql/endpoint");
@@ -58,9 +58,9 @@ Calling `MapGraphQL()` will enable the following functionality on the specified 
 - Including the query string `?sdl` after the endpoint will download the GraphQL schema
 - Accessing the endpoint from a browser will load our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
 
-We can customize the combined middleware using `GraphQLServerOptions` as shown below or we can only include the middlewares we need and configure them explicitly.
+We can customize the combined middleware using `GraphQLServerOptions` as shown below or we can only include the parts of the middleware we need and configure them explicitly.
 
-The following middlewares are available:
+The following middleware are available:
 
 - [MapBananaCakePop](#mapbananacakepop)
 - [MapGraphQLHttp](#mapgraphqlhttp)
@@ -69,7 +69,7 @@ The following middlewares are available:
 
 ## GraphQLServerOptions
 
-We can influence the behavior of the middlewares registered by `MapGraphQL` using `GraphQLServerOptions`.
+We can influence the behavior of the middleware registered by `MapGraphQL` using `GraphQLServerOptions`.
 
 ### EnableSchemaRequests
 
