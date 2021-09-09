@@ -324,7 +324,7 @@ public class ProductNodeResolver
 }
 ```
 
-When wanting to place the `Node` functionality in an extension type, it is important to keep in mind that the `[Node]` attribute needs to be defined on the class extending the original type.
+When placing the `Node` functionality in an extension type, it is important to keep in mind that the `[Node]` attribute needs to be defined on the class extending the original type.
 
 ```csharp
 [Node]
