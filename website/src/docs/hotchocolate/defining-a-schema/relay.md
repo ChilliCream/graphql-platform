@@ -480,7 +480,7 @@ This allows us to immediately process the affected entity in the client applicat
 
 Sometimes a mutation might affect other parts of our application as well. Maybe the `likePost` mutation needs to update an Activity Feed.
 
-For this scenario we can expose a `query` field on our payload type to allow the client application to fetch everything it needs to update its state in one round trip.
+For this scenario, we can expose a `query` field on our payload type to allow the client application to fetch everything it needs to update its state in one round trip.
 
 ```sdl
 type LikePostPayload {
