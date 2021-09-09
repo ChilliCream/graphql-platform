@@ -1,5 +1,6 @@
 using System;
 using HotChocolate;
+using HotChocolate.Stitching.DAPR;
 using HotChocolate.Stitching.SchemaDefinitions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -14,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return descriptor.SetSchemaDefinitionPublisher(sp =>
             {
-                return new DAPRSchemaDefinitionPublisher(configurationName, connection);
+                return new DAPRSchemaDefinitionPublisher(configurationName);
             });
         }
     }

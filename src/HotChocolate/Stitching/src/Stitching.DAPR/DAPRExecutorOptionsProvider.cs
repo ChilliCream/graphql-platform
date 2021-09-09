@@ -83,6 +83,8 @@ namespace HotChocolate.Stitching.DAPR
             //DAPRValue[] items = await _database.SetMembersAsync(_configurationName.Value)
             //    .ConfigureAwait(false);
 
+            // TODO: Make this work!
+
             var items = new List<string>();
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();

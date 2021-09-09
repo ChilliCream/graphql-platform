@@ -1,12 +1,8 @@
-HotChocolate.Stitching.DAPR.Component
-HotChocolate.Stitching.DAPR.Component.Component(string! PubSub, string! StateStore) -> void
-HotChocolate.Stitching.DAPR.Component.StateStore.init -> void
-HotChocolate.Stitching.DAPR.Component.PubSub.init -> void
-HotChocolate.Stitching.DAPR.Component.StateStore.get -> string!
-HotChocolate.Stitching.DAPR.Component.PubSub.get -> string!
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController.StitchingSubscription(HotChocolate.Stitching.RemoteSchemaDefinition! schemaDefinition) -> System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult!>!
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController.SubscriptionController() -> void
-HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.DAPRSchemaDefinitionPublisher(HotChocolate.NameString configurationName, string! daprComponent) -> void
+HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher
+HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.DAPRSchemaDefinitionPublisher(HotChocolate.NameString configurationName) -> void
+HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.PublishAsync(HotChocolate.Stitching.RemoteSchemaDefinition! schemaDefinition, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static Microsoft.Extensions.DependencyInjection.HotChocolateStitchingDAPRPublishSchemaDefinitionDescriptorExtensions.PublishToDAPR(this HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor! descriptor, HotChocolate.NameString configurationName, System.Func<System.IServiceProvider!, IConnectionMultiplexer!>! connectionFactory) -> HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor!
 static Microsoft.Extensions.DependencyInjection.HotChocolateStitchingDAPRRequestExecutorBuilderExtensions.AddRemoteSchemasFromDAPR(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.NameString configurationName, System.Func<System.IServiceProvider!, IConnectionMultiplexer!>! connectionFactory) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
