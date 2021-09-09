@@ -343,7 +343,7 @@ public class ProductExtensions
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-In the Code-first approach we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
+In the Code-first approach, we have multiple APIs on the `IObjectTypeDescriptor` to fulfill these criteria:
 
 - `ImplementsNode`: Implements the `Node` interface.
 - `IdField`: Selects the property that represents the unique identifier of the object.
