@@ -478,7 +478,7 @@ type LikePostPayload {
 
 This allows us to immediately process the affected entity in the client application responsible for the mutation.
 
-Sometimes a mutation might also affect other parts of our application as well. Maybe the `likePost` mutation needs to update an Activity Feed.
+Sometimes a mutation might affect other parts of our application as well. Maybe the `likePost` mutation needs to update an Activity Feed.
 
 For this scenario we can expose a `query` field on our payload type to allow the client application to fetch everything it needs to update its state in one round trip.
 
