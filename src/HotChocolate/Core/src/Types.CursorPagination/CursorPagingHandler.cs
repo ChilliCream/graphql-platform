@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Pagination
         {
             DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+            IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
             RequirePagingBoundaries = options.RequirePagingBoundaries ?? false;
 
             if (MaxPageSize < DefaultPageSize)
@@ -34,6 +35,11 @@ namespace HotChocolate.Types.Pagination
         /// API consumer to specify paging boundaries.
         /// </summary>
         protected bool RequirePagingBoundaries { get; }
+
+        /// <summary>
+        /// Result should include total count.
+        /// </summary>
+        protected bool IncludeTotalCount { get; }
 
         public void ValidateContext(IResolverContext context)
         {
