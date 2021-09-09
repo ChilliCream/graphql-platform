@@ -2,7 +2,7 @@
 title: Middleware
 ---
 
-In Order for Hot Chocolate to be accessible using a HTTP endpoint, we need to register some middlewares with ASP.NET Core.
+In Order for Hot Chocolate to be accessible using a HTTP endpoint, we need to register some middleware with ASP.NET Core.
 
 <!-- # Services
 
