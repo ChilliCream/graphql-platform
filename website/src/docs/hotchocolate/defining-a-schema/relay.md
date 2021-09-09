@@ -68,7 +68,7 @@ public class ProductType : ObjectType<Product>
 
 If no arguments are passed to `ID()`, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-The `ID()` can not only be used on primary key fields, but also on fields that act as foreign keys. For these we have to specify the name of the type they are referencing manually. In the below example a type named `Foo` is being referencing using its Id.
+The `ID()` can not only be used on primary key fields but also on fields that act as foreign keys. For these, we have to specify the name of the type they are referencing manually. In the below example, a type named `Foo` is being referenced using its Id.
 
 ```csharp
 descriptor.Field(f => f.FooId).ID("Foo");
