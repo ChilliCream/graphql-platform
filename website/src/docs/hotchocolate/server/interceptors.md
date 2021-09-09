@@ -2,7 +2,7 @@
 title: Interceptors
 ---
 
-Interceptors allow us to hook into protocol specific events. We can for example intercept an incoming HTTP request or a client connecting or disconnecting a WebSocket session.
+Interceptors allow us to hook into protocol-specific events. We can, for example, intercept an incoming HTTP request or a client connecting or disconnecting a WebSocket session.
 
 # IHttpRequestInterceptor
 
