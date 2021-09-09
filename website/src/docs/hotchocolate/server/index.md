@@ -12,7 +12,7 @@ Hot Chocolate comes with ASP.NET Core middlewares for accepting HTTP / WebSocket
 
 # Interceptors
 
-Interceptors allow us to intercept GraphQL requests before they are being executed. There are interceptors for both GraphQL requests sent via HTTP as well as via WebSockets.
+Interceptors allow us to intercept GraphQL requests before they are executed. There are interceptors for both GraphQL requests sent via HTTP as well as via WebSockets.
 
 In the case of WebSockets the interceptor also allows us to handle life cycle events such as when a client first connects.
 
