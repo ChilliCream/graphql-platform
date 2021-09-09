@@ -16,7 +16,7 @@ As part of a specification Relay proposes some schema design principles for Grap
 
 If an output type contains an `id: ID!` field, [Relay](https://relay.dev) and other GraphQL clients will consider this the unique identifier of the entity and might use it to construct a flat cache. This can be problematic, since we could have the same identifier for two of our types. When using a database for example, a `Foo` and `Bar` entity could both contain a row with the identifier `1` in their respective tables.
 
-We could try and enforce unique identifiers using the technology responsible for producing the Ids, but as soon as we introduce a different data source, we might be facing the same problem again.
+We could try and enforce unique identifiers for our Ids. Still, as soon as we introduce another data source to our schema, we might be facing identifier collisions between entities of our various data sources.
 
 Fortunately there is an easier, more integrated way to go about solving this problem in Hot Chocolate: Global identifiers.
 
