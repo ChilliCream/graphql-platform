@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
@@ -85,6 +86,13 @@ namespace HotChocolate.Types
                     ITypeReference? typeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
+
+                    if (typeRef is null && 
+                        d.Type is SyntaxTypeReference syntaxTypeRef && 
+                        syntaxTypeRef.Type.IsListType())
+                    {
+                        typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                    }
 
                     MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                     d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
