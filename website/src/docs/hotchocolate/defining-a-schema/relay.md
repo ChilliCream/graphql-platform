@@ -305,7 +305,7 @@ public static Product OtherMethod(string id)
 }
 ```
 
-In case we want to resolve the object using another class, we can reference the class / method like the following.
+If we want to resolve the object using another class, we can reference the class/method like the following.
 
 ```csharp
 [Node(NodeResolverType = typeof(ProductNodeResolver),
