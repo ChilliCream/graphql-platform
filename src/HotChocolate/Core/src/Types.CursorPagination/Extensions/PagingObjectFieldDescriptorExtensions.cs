@@ -87,8 +87,8 @@ namespace HotChocolate.Types
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
 
-                    if (typeRef is null && 
-                        d.Type is SyntaxTypeReference syntaxTypeRef && 
+                    if (typeRef is null &&
+                        d.Type is SyntaxTypeReference syntaxTypeRef &&
                         syntaxTypeRef.Type.IsListType())
                     {
                         typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
@@ -241,6 +241,24 @@ namespace HotChocolate.Types
                         resolverMember,
                         null),
                     TypeContext.Output);
+            }
+
+            // if the node type is a syntax type reference we will try to preserve the actual
+            // runtime type for later usage.
+            if (nodeType.Kind == TypeReferenceKind.Syntax)
+            {
+                IExtendedType type =
+                    PagingHelper.GetSchemaType(
+                        context.TypeInspector,
+                        resolverMember,
+                        null);
+
+                if (context.TypeInspector.TryCreateTypeInfo(type, out ITypeInfo? typeInfo))
+                {
+                    context.TryBindRuntimeType(
+                        ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
+                        typeInfo.NamedType);
+                }
             }
 
             options = context.GetSettings(options);

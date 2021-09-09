@@ -294,7 +294,6 @@ namespace HotChocolate
                     .AddGraphQL()
                     .AddDocumentFromString(sdl)
                     .BindRuntimeType<QueryWithPersons>("Query")
-                    .BindRuntimeType<Person>()
                     .BuildSchemaAsync();
 
             // assert
