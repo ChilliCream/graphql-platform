@@ -6,7 +6,7 @@ In this section we will learn how we can configure our GraphQL server and look a
 
 # Middlewares
 
-Hot Chocolate comes with ASP.NET Core middlewares for accepting HTTP / WebSocket GraphQL requests, downloading the GraphQL schema or serving the [Banana Cake Pop](/docs/bananacakepop) GraphQL IDE.
+Hot Chocolate comes with ASP.NET Core middlewares for accepting HTTP / WebSocket GraphQL requests, downloading the GraphQL schema, or serving the [Banana Cake Pop](/docs/bananacakepop) GraphQL IDE.
 
 [Learn more about middlewares](/docs/hotchocolate/server/middlewares)
 
