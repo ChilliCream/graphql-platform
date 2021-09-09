@@ -35,7 +35,7 @@ If needed, we can also inject services into our custom `HttpRequestInterceptor` 
 
 ## OnCreateAsync
 
-This method is invoked for **every** GraphQL request sent via HTTP. It is a great place to set global state variables, extend the identity of the authenticated user or anything that we want to do on a per-request basis.
+This method is invoked for **every** GraphQL request sent via HTTP. It is a great place to set global state variables, extend the identity of the authenticated user or do anything that we want to do on a per-request basis.
 
 ```csharp
 public override ValueTask OnCreateAsync(HttpContext context,
