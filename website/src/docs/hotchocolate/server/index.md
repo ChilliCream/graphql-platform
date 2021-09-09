@@ -2,7 +2,7 @@
 title: Overview
 ---
 
-In this section we will learn how we can configure our GraphQL server and look at some transport protocol related details.
+In this section, we will learn how we can configure our GraphQL server and look at some transport protocol-related details.
 
 # Middlewares
 
