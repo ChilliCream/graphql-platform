@@ -41,7 +41,7 @@ public class Product
 
 If no arguments are passed to the `[ID]` attribute, it will use the name of the output type, in this case `Product`, to serialize the Id.
 
-The `[ID]` attribute can not only be used on primary key fieldss, but also on fields that act as foreign keys. For these we have to specify the name of the type they are referencing manually. In the below example a type named `Foo` is being referencing using its Id.
+The `[ID]` attribute can be used on primary key fields and on fields that act as foreign keys. For these, we have to specify the name of the type they are referencing manually. In the below example, a type named `Foo` is being referenced using its Id.
 
 ```csharp
 [ID("Foo")]
