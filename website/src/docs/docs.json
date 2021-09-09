@@ -87,6 +87,10 @@
               {
                 "path": "versioning",
                 "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
               }
             ]
           },
