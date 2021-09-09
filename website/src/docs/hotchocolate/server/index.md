@@ -20,6 +20,6 @@ In the case of WebSockets the interceptor also allows us to handle life cycle ev
 
 # Uploading files
 
-Even though it is not considered one of the responsibilities of a GraphQL server, Hot Chocolate provides the possibility to upload files for convenience reasons.
+Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support.
 
 [Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
