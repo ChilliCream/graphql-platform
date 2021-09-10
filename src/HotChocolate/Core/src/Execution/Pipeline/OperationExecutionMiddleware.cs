@@ -40,7 +40,7 @@ namespace HotChocolate.Execution.Pipeline
             _subscriptionExecutor = subscriptionExecutor ??
                 throw new ArgumentNullException(nameof(subscriptionExecutor));
             _queryPlanCache = queryPlanCache ??
-                throw new ArgumentNullException(nameof(subscriptionExecutor));
+                throw new ArgumentNullException(nameof(queryPlanCache));
             _transactionScopeHandler = transactionScopeHandler ??
                 throw new ArgumentNullException(nameof(transactionScopeHandler));
         }
