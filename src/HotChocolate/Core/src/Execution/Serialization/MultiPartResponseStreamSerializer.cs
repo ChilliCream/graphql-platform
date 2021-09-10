@@ -77,7 +77,7 @@ namespace HotChocolate.Execution.Serialization
             using var writer = new ArrayWriter();
             _payloadSerializer.Serialize(result, writer);
 
-            await WriteResultHeaderAsync(outputStream, writer.Length, cancellationToken)
+            await WriteResultHeaderAsync(outputStream, cancellationToken)
                 .ConfigureAwait(false);
 
             // The payload is sent, followed by two CRLFs.
@@ -94,39 +94,27 @@ namespace HotChocolate.Execution.Serialization
 
         private async Task WriteResultHeaderAsync(
             Stream outputStream,
-            int contentLength,
             CancellationToken cancellationToken)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(128);
+            // Each part of the multipart response must start with --- and a CRLF
+            await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
 
-            try
-            {
-                Utf8Formatter.TryFormat(contentLength, buffer, out var w);
-
-                // Each part of the multipart response must start with --- and a CRLF
-                await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
-
-                // Each part of the multipart response must contain a Content-Type header.
-                // Similar to the GraphQL specification this specification does not require
-                // a specific serialization format. For consistency and ease of notation,
-                // examples of the response are given in JSON throughout the spec.
-                await outputStream.WriteAsync(
+            // Each part of the multipart response must contain a Content-Type header.
+            // Similar to the GraphQL specification this specification does not require
+            // a specific serialization format. For consistency and ease of notation,
+            // examples of the response are given in JSON throughout the spec.
+            await outputStream.WriteAsync(
                     ContentType, 0, ContentType.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
 
-                // After all headers, an additional CRLF is sent.
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            // After all headers, an additional CRLF is sent.
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }
