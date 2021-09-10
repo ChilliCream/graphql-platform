@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         public void AddSelectionSet(
-            IObjectType typeContext, 
+            IObjectType typeContext,
             IReadOnlyList<ISelection> selections,
             IReadOnlyList<IFragment>? fragments,
             bool isConditional)
@@ -99,6 +99,24 @@ namespace HotChocolate.Execution.Processing
                     _secondType = null;
                     _secondSelections = null;
                 }
+            }
+        }
+
+        public void ReplaceSelectionSet(IObjectType typeContext, ISelectionSet selectionSet)
+        {
+            if (_map is not null)
+            {
+                _map[typeContext] = selectionSet;
+            }
+
+            if (ReferenceEquals(_firstType, typeContext))
+            {
+                _firstSelections = selectionSet;
+            }
+
+            if (ReferenceEquals(_secondType, typeContext))
+            {
+                _secondSelections = selectionSet;
             }
         }
     }
