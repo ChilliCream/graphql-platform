@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing.Tasks
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
 
-        protected MiddlewareContext ResolverContext => _resolverContext;
+        protected internal MiddlewareContext ResolverContext => _resolverContext;
 
         protected IOperationContext OperationContext => _operationContext;
 

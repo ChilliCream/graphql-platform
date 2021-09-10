@@ -39,6 +39,18 @@ namespace HotChocolate.Execution.Processing.Plan
             return _deferredPlans[fragmentId];
         }
 
+        public QueryPlan GetStreamPlan(int selectionId)
+        {
+            if (selectionId >= _deferredPlans.Length)
+            {
+                throw new ArgumentException(
+                    Resources.QueryPlan_InvalidFragmentId,
+                    nameof(selectionId));
+            }
+
+            return _deferredPlans[selectionId];
+        }
+
         internal bool TryGetStep(
             IExecutionTask executionTask,
             [MaybeNullWhen(false)] out QueryPlanStep step) =>

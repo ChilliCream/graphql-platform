@@ -71,6 +71,46 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
+        public static async ValueTask<ResultMap?> ExecuteElementAsync(
+            IOperationContext operationContext,
+            ISelection selection,
+            object? parent,
+            Path path,
+            int index,
+            IAsyncEnumerator<object?> value,
+            IImmutableDictionary<string, object?> scopedContext)
+        {
+            if (await value.MoveNextAsync())
+            {
+                ResultMap resultMap = operationContext.Result.RentResultMap(1);
+                List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+                ResolverTask resolverTask = CreateResolverTask(operationContext, selection, parent, 0, path, resultMap, scopedContext);
+
+                try
+                {
+                    CompleteInline(
+                        operationContext,
+                        resolverTask.ResolverContext,
+                        selection,
+                        selection.Type.ElementType(),
+                        path.Append(index),
+                        0,
+                        resultMap,
+                        value.Current,
+                        bufferedTasks);
+                }
+                finally
+                {
+                    Interlocked.Exchange(ref _pooled, bufferedTasks);
+                }
+
+                return resultMap;
+            }
+
+
+            return null;
+        }
+
         public static ResultMap EnqueueOrInlineResolverTasks(
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
@@ -140,23 +180,98 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap,
             List<IExecutionTask> bufferedTasks)
         {
-            object? completedValue = null;
-
             try
             {
-                if (TryExecute(out var resolverResult) &&
-                    ValueCompletion.TryComplete(
+                if (TryExecute(out var resolverResult))
+                {
+                    CompleteInline(
+                        operationContext,
+                        resolverContext,
+                        selection,
+                        selection.Type,
+                        path,
+                        responseIndex,
+                        resultMap,
+                        resolverResult,
+                        bufferedTasks);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // If we run into this exception the request was aborted.
+                // In this case we do nothing and just return.
+            }
+            catch (Exception ex)
+            {
+                if (operationContext.RequestAborted.IsCancellationRequested)
+                {
+                    // if cancellation is request we do no longer report errors to the
+                    // operation context.
+                    return;
+                }
+
+                ValueCompletion.ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    ex);
+            }
+
+            bool TryExecute(out object? result)
+            {
+                try
+                {
+                    if (resolverContext.TryCreatePureContext(
+                        selection, path, parentType, parent,
+                        out IPureResolverContext? childContext))
+                    {
+                        result = selection.PureResolver!(childContext);
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ValueCompletion.ReportError(
                         operationContext,
                         resolverContext,
                         selection,
                         path,
-                        selection.Type,
-                        selection.ResponseName,
-                        responseIndex,
-                        resolverResult,
-                        bufferedTasks,
-                        out completedValue) &&
-                    selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
+                        ex);
+                }
+
+                result = null;
+                return false;
+            }
+        }
+
+        private static void CompleteInline(
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            IType elementType,
+            Path path,
+            int responseIndex,
+            ResultMap resultMap,
+            object? value,
+            List<IExecutionTask> bufferedTasks)
+        {
+            object? completedValue = null;
+
+            try
+            {
+                if (ValueCompletion.TryComplete(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    elementType,
+                    selection.ResponseName,
+                    responseIndex,
+                    value,
+                    bufferedTasks,
+                    out completedValue) &&
+                    elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
                     completedValue is IHasResultDataParent result)
                 {
                     result.Parent = resultMap;
@@ -204,32 +319,6 @@ namespace HotChocolate.Execution.Processing.Tasks
                     completedValue,
                     isNullable);
             }
-
-            bool TryExecute(out object? result)
-            {
-                try
-                {
-                    if (resolverContext.TryCreatePureContext(
-                        selection, path, parentType, parent,
-                        out IPureResolverContext? childContext))
-                    {
-                        result = selection.PureResolver!(childContext);
-                        return true;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    ValueCompletion.ReportError(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        path,
-                        ex);
-                }
-
-                result = null;
-                return false;
-            }
         }
 
         private static IExecutionTask CreateResolverTask(
@@ -255,7 +344,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             return task;
         }
 
-        private static IExecutionTask CreateResolverTask(
+        private static ResolverTask CreateResolverTask(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
