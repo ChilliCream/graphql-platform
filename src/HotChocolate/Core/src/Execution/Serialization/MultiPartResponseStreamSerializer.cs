@@ -119,18 +119,6 @@ namespace HotChocolate.Execution.Serialization
                 await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
                     .ConfigureAwait(false);
 
-                // Each part of the multipart response must contain a Content-Length header.
-                // This should be the number of bytes of the payload of the response.
-                // It does not include the size of the headers, boundaries,
-                // or CRLFs used to separate the content.
-                await outputStream.WriteAsync(
-                        ContentLength, 0, ContentLength.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(buffer, 0, w, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
-
                 // After all headers, an additional CRLF is sent.
                 await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
                     .ConfigureAwait(false);
