@@ -724,6 +724,18 @@ namespace HotChocolate
             NameString typeName,
             Type runtimeType)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
             if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
                 o is Dictionary<NameString, Type> runtimeTypes)
             {

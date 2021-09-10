@@ -231,34 +231,25 @@ namespace HotChocolate.Types
             ITypeReference? nodeType,
             PagingOptions options)
         {
+            ITypeInspector typeInspector = context.TypeInspector;
+
             if (nodeType is null)
             {
                 // if there is no explicit node type provided we will try and
                 // infer the schema type from the resolver member.
                 nodeType = TypeReference.Create(
-                    PagingHelper.GetSchemaType(
-                        context.TypeInspector,
-                        resolverMember,
-                        null),
+                    PagingHelper.GetSchemaType(typeInspector, resolverMember),
                     TypeContext.Output);
             }
 
             // if the node type is a syntax type reference we will try to preserve the actual
             // runtime type for later usage.
-            if (nodeType.Kind == TypeReferenceKind.Syntax)
+            if (nodeType.Kind == TypeReferenceKind.Syntax &&
+                PagingHelper.TryGetNamedType(typeInspector, resolverMember, out Type? namedType))
             {
-                IExtendedType type =
-                    PagingHelper.GetSchemaType(
-                        context.TypeInspector,
-                        resolverMember,
-                        null);
-
-                if (context.TypeInspector.TryCreateTypeInfo(type, out ITypeInfo? typeInfo))
-                {
-                    context.TryBindRuntimeType(
-                        ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
-                        typeInfo.NamedType);
-                }
+                context.TryBindRuntimeType(
+                    ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
+                    namedType);
             }
 
             options = context.GetSettings(options);
