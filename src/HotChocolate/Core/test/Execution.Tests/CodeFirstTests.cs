@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -306,6 +307,33 @@ namespace HotChocolate.Execution
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task EnsureThatMutationFlowsAreAbortedWhenOneMutationFails()
+        {
+            // arrange
+            var mutation = new Mutation();
+
+            // act
+            await new ServiceCollection()
+                .AddSingleton(mutation)
+                .AddGraphQLServer()
+                .AddMutationType<Mutation>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync("mutation { foo bar }");
+
+            // assert
+            Assert.False(mutation.BarExecuted);
+
+            await new ServiceCollection()
+                .AddSingleton(mutation)
+                .AddGraphQLServer()
+                .AddMutationType<Mutation>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .ExecuteRequestAsync("mutation { bar }");
+
+            Assert.True(mutation.BarExecuted);
+        }
+
         private static ISchema CreateSchema()
             => SchemaBuilder.New()
                 .AddQueryType<QueryType>()
@@ -540,6 +568,21 @@ namespace HotChocolate.Execution
         public class QueryWithDefaultValue
         {
             public string Foo(string value = "abc") => value;
+        }
+
+        #nullable enable
+
+        public class Mutation
+        {
+            public bool BarExecuted { get; set; }
+
+            public bool Foo() => throw new NotSupportedException();
+
+            public bool Bar()
+            {
+                BarExecuted = true;
+                return true;
+            }
         }
     }
 }
