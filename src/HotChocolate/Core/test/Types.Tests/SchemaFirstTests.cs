@@ -319,6 +319,24 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task SchemaFirst_Cursor_Paging_With_Objects_Execute()
+        {
+            // arrange
+            var sdl = "type Query { items: [Person!] } type Person { name: String }";
+
+            // act
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithPersons>("Query")
+                    .ExecuteRequestAsync("{ items { nodes { name } } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SchemaFirst_Cursor_Paging_With_Resolver()
         {
             // arrange
