@@ -1,7 +1,11 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
+using QueryRequestBuilder = HotChocolate.Execution.QueryRequestBuilder;
 
 namespace HotChocolate.Types
 {
@@ -55,6 +59,40 @@ namespace HotChocolate.Types
                     .ContainsField("foo"));
         }
 
+        [Fact]
+        public void Infer_Default_Values_From_Attribute()
+        {
+            SchemaBuilder.New()
+                .AddInputObjectType<InputWithDefaults>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Infer_Default_Values_From_Attribute_Execute()
+        {
+            await SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+
+                    d.Field("foo")
+                        .Argument("a", a => a.Type<InputObjectType<InputWithDefaults>>())
+                        .Resolve(ctx => ctx.ArgumentValue<InputWithDefaults>("a"));
+                })
+                .AddInputObjectType<InputWithDefaults>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("{ foo(a: { }) { foo bar baz quox } }")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
         public class Object1
         {
             [RenameField]
@@ -95,6 +133,21 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("Bar");
             }
+        }
+
+        public class InputWithDefaults
+        {
+            [DefaultValue("DefaultValue123")]
+            public string Foo { get; set; }
+
+            [DefaultValue(2)]
+            public int Bar { get; set; }
+
+            [DefaultValue(1.2)]
+            public double Baz { get; set; }
+
+            [DefaultValue(true)]
+            public bool Quox { get; set; }
         }
     }
 }
