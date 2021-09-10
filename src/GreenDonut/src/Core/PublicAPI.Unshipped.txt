@@ -47,7 +47,7 @@ GreenDonut.ITaskCache.TryAdd<T>(GreenDonut.TaskCacheKey key, System.Func<T!>! cr
 GreenDonut.ITaskCache.TryAdd<T>(GreenDonut.TaskCacheKey key, T! value) -> bool
 GreenDonut.ITaskCache.TryRemove(GreenDonut.TaskCacheKey key) -> bool
 GreenDonut.Result<TValue>.Kind.get -> GreenDonut.ResultKind
-GreenDonut.Result<TValue>.Result(System.Exception error) -> void
+GreenDonut.Result<TValue>.Result(System.Exception! error) -> void
 GreenDonut.Result<TValue>.Result(TValue value) -> void
 GreenDonut.ResultKind
 GreenDonut.ResultKind.Error = 2 -> GreenDonut.ResultKind

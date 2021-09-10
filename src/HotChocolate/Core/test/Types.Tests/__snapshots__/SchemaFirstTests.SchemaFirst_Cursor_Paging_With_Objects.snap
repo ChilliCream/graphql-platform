@@ -9,7 +9,7 @@ type ItemsConnection {
   "A list of edges."
   edges: [ItemsEdge!]
   "A flattened list of the nodes."
-  nodes: [String!]
+  nodes: [Person!]
 }
 
 "An edge in a connection."
@@ -17,7 +17,7 @@ type ItemsEdge {
   "A cursor for use in pagination."
   cursor: String!
   "The item at the end of the edge."
-  node: String!
+  node: Person!
 }
 
 "Information about pagination in a connection."
@@ -30,6 +30,10 @@ type PageInfo {
   startCursor: String
   "When paginating forwards, the cursor to continue."
   endCursor: String
+}
+
+type Person {
+  name: String
 }
 
 type Query {

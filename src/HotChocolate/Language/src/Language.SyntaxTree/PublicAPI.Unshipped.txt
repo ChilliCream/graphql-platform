@@ -1,1 +1,2 @@
 HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, int value) -> void
+static HotChocolate.Language.TypeNodeExtensions.ElementType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
