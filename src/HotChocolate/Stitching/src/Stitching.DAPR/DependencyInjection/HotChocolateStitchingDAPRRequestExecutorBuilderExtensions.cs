@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Stitching.DAPR;
+using Dapr.Client;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -12,13 +13,13 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddRemoteSchemasFromDAPR(
             this IRequestExecutorBuilder builder,
             NameString configurationName,
-            string daprComponent)
+            DaprClient daprClient)
         {
             configurationName.EnsureNotEmpty(nameof(configurationName));
 
             builder.Services.AddSingleton<IRequestExecutorOptionsProvider>(sp =>
             {
-                return new DAPRExecutorOptionsProvider(builder.Name, configurationName);
+                return new DAPRExecutorOptionsProvider(builder.Name, configurationName, daprClient);
             });
 
             // Last but not least, we will setup the stitching context which will

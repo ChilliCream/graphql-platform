@@ -10,11 +10,11 @@ namespace HotChocolate.Stitching.DAPR
         private readonly NameString _configurationName;
         private readonly DaprClient _daprClient;
 
-        public DAPRSchemaDefinitionPublisher(NameString configurationName)
+        public DAPRSchemaDefinitionPublisher(NameString configurationName, DaprClient daprClient)
         {
             _configurationName = configurationName;
 
-            _daprClient = (new DaprClientBuilder()).Build();
+            _daprClient = daprClient;
         }
 
         public async ValueTask PublishAsync(

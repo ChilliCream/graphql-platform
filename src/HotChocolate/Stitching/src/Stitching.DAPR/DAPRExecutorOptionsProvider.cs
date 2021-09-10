@@ -20,12 +20,13 @@ namespace HotChocolate.Stitching.DAPR
 
         public DAPRExecutorOptionsProvider(
             NameString schemaName,
-            NameString configurationName)
+            NameString configurationName,
+            DaprClient daprClient)
         {
             _schemaName = schemaName;
             _configurationName = configurationName;
 
-            _daprClient = (new DaprClientBuilder()).Build();
+            _daprClient = daprClient;
 
             
 
