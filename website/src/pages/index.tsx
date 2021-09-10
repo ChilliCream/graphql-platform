@@ -39,10 +39,12 @@ import IncloudLogoSvg from "../images/companies/incloud.svg";
 import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import OrderinLogoSvg from "../images/companies/orderin.svg";
+import PoweredSoftLogoSvg from "../images/companies/powered-soft.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
+import SplashbackLogoSvg from "../images/companies/splashback.svg";
 import SpeedwayMotorsLogoSvg from "../images/companies/speedway-motors.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
@@ -282,11 +284,11 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={200}>
-                <Link to="https://www.incloud.de/">
+                <Link to="https://www.incloud.de">
                   <IncloudLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={200}>
+              <Logo width={120}>
                 <Link to="https://www.infoslips.com">
                   <InfoslipsLogoSvg />
                 </Link>
@@ -299,6 +301,11 @@ const IndexPage: FC = () => {
               <Logo width={160}>
                 <Link to="https://orderin.co.za">
                   <OrderinLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://poweredsoft.com">
+                  <PoweredSoftLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>
@@ -322,8 +329,13 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={120}>
-                <Link to="https://www.speedwaymotors.com/">
+                <Link to="https://www.speedwaymotors.com">
                   <SpeedwayMotorsLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://splashback.io">
+                  <SplashbackLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
@@ -342,7 +354,7 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={180}>
-                <Link to="https://travel-soft.com/">
+                <Link to="https://travel-soft.com">
                   <TravelSoftLogoSvg />
                 </Link>
               </Logo>
