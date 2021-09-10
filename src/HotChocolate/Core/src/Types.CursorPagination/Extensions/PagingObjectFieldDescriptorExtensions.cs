@@ -16,6 +16,23 @@ namespace HotChocolate.Types
 {
     public static class PagingObjectFieldDescriptorExtensions
     {
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging<TNodeType, TEntity>(
             this IObjectFieldDescriptor descriptor,
             GetCursorPagingProvider? resolvePagingProvider = null,
@@ -29,6 +46,26 @@ namespace HotChocolate.Types
                 connectionName,
                 options);
 
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="entityType">
+        /// The entity type represents the runtime type of the node.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging<TNodeType>(
             this IObjectFieldDescriptor descriptor,
             Type? entityType = null,
@@ -44,6 +81,29 @@ namespace HotChocolate.Types
                 connectionName,
                 options);
 
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="nodeType">
+        /// The schema type of the node.
+        /// </param>
+        /// <param name="entityType">
+        /// The entity type represents the runtime type of the node.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
             Type? nodeType = null,
@@ -141,6 +201,13 @@ namespace HotChocolate.Types
                     ITypeReference? typeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
+
+                    if (typeRef is null &&
+                        d.Type is SyntaxTypeReference syntaxTypeRef &&
+                        syntaxTypeRef.Type.IsListType())
+                    {
+                        typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                    }
 
                     d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
                 });

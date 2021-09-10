@@ -282,6 +282,24 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task SchemaFirst_Cursor_OffsetPaging()
+        {
+            // arrange
+            var sdl = "type Query { items: [String!] }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithOffsetItems>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SchemaFirst_Cursor_Paging_With_Objects()
         {
             // arrange
@@ -293,6 +311,25 @@ namespace HotChocolate
                     .AddGraphQL()
                     .AddDocumentFromString(sdl)
                     .BindRuntimeType<QueryWithPersons>("Query")
+                    .BuildSchemaAsync();
+
+            // assert
+            schema.Print().MatchSnapshot();
+        }
+
+        // we need to apply the changes we did to cursor paging to offset paging.
+        [Fact(Skip = "Offset paging for schema first is not supported in 12.")]
+        public async Task SchemaFirst_Cursor_OffSetPaging_With_Objects()
+        {
+            // arrange
+            var sdl = "type Query { items: [Person!] } type Person { name: String }";
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddDocumentFromString(sdl)
+                    .BindRuntimeType<QueryWithOffsetPersons>("Query")
                     .BuildSchemaAsync();
 
             // assert
@@ -371,33 +408,45 @@ namespace HotChocolate
             // assert
             schema.Print().MatchSnapshot();
         }
-        }
+    }
 
-        public class Query
-        {
-            public string Hello() => "World";
-        }
+    public class Query
+    {
+        public string Hello() => "World";
+    }
 
-        public class QueryWithItems
-        {
-            [UsePaging]
-            public string[] GetItems() => new[] { "a", "b" };
-        }
+    public class QueryWithItems
+    {
+        [UsePaging]
+        public string[] GetItems() => new[] { "a", "b" };
+    }
 
-        public class QueryWithPersons
-        {
-            [UsePaging]
-            public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
-        }
+    public class QueryWithOffsetItems
+    {
+        [UseOffsetPaging]
+        public string[] GetItems() => new[] { "a", "b" };
+    }
 
-        public class QueryCodeFirst
-        {
-            [GraphQLType("Person!")]
-            public object GetPerson() => new Person { Name = "Hello" };
-        }
+    public class QueryWithPersons
+    {
+        [UsePaging]
+        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+    }
 
-        public class Person
-        {
-            public string Name { get; set; }
-        }
+    public class QueryWithOffsetPersons
+    {
+        [UseOffsetPaging]
+        public Person[] GetItems() => new[] { new Person { Name = "Foo" } };
+    }
+
+    public class QueryCodeFirst
+    {
+        [GraphQLType("Person!")]
+        public object GetPerson() => new Person { Name = "Hello" };
+    }
+
+    public class Person
+    {
+        public string Name { get; set; }
+    }
 }
