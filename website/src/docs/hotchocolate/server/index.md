@@ -18,6 +18,12 @@ In the case of WebSockets, the interceptor also allows us to handle life cycle e
 
 [Learn more about interceptors](/docs/hotchocolate/server/interceptors)
 
+# Global State
+
+With Global State we can define properties on a per-request basis to be made available between all resolvers and middleware.
+
+[Learn more about Global State](/docs/hotchocolate/server/global-state)
+
 # Uploading files
 
 Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support.

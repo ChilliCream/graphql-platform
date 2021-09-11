@@ -1,0 +1,5 @@
+---
+title: Global State
+---
+
+# Usage

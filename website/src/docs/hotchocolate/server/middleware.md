@@ -93,6 +93,19 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the GraphQL server is able to handle GraphQL operations sent via the query string in a HTTP GET request.
 
+### AllowedGetOperations
+
+```csharp
+endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
+{
+    AllowedGetOperations = AllowedGetOperations.Query
+});
+```
+
+If [EnableGetRequests](#enablegetrequests) is `true` we can control the allowed operations for HTTP GET requests using the `AllowedGetOperations` setting.
+
+Per default only queries are accepted via HTTP GET. We can also allow mutations by setting `AllowedGetOperations` to `AllowedGetOperations.QueryAndMutation`.
+
 ### EnableMultipartRequests
 
 ```csharp
@@ -104,16 +117,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
 
-### AllowedGetOperations
-
-```csharp
-endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
-{
-    AllowedGetOperations = AllowedGetOperations.Query
-});
-```
-
-Using this setting and the `AllowedGetOperations` we can control whether our GraphQL server only accepts queries or queries and mutations.
+[Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
 
 ### Tool
 

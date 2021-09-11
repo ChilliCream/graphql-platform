@@ -179,6 +179,10 @@
                 "title": "Interceptors"
               },
               {
+                "path": "global-state",
+                "title": "Global State"
+              },
+              {
                 "path": "uploading-files",
                 "title": "Uploading files"
               }

@@ -164,7 +164,9 @@ It has many capabilities, but most of them are only used internally. In the foll
 
 ## Properties
 
-We can set `Properties` on the `IQueryRequestBuilder`, which can then be referenced in middleware, field resolvers, etc. as global state.
+We can set `Properties`, also called Global State, on the `IQueryRequestBuilder`, which can then be referenced in middleware, field resolvers, etc.
+
+[Learn more about Global State](/docs/hotchocolate/server/global-state)
 
 ### SetProperty
 
