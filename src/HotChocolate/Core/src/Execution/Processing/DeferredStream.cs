@@ -1,36 +1,34 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
-    /// <summary>
-    /// Represents a deprioritized fragment of the query that will be executed after
-    /// the main execution has finished.
-    /// </summary>
-    internal sealed class DeferredFragment : IDeferredExecutionTask
+    internal sealed class DeferredStream : IDeferredExecutionTask
     {
         /// <summary>
         /// Initializes a new instance of <see cref="DeferredFragment"/>.
         /// </summary>
-        public DeferredFragment(
-            IFragment fragment,
+        public DeferredStream(
+            ISelection selection,
             string? label,
             Path path,
             object? parent,
+            int index,
+            IAsyncEnumerator<object> enumerator,
             IImmutableDictionary<string, object?> scopedContextData)
         {
-            Fragment = fragment;
+            Selection = selection;
             Label = label;
             Path = path;
             Parent = parent;
+            Index = index;
+            Enumerator = enumerator;
             ScopedContextData = scopedContextData;
         }
 
-        /// <summary>
-        /// Gets the deferred fragment.
-        /// </summary>
-        public IFragment Fragment { get; }
+        public ISelection Selection { get; }
 
         /// <summary>
         /// If this argument label has a value other than null, it will be passed
@@ -45,10 +43,17 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         public Path Path { get; }
 
+        public int Index { get; private set; }
+
         /// <summary>
         /// Gets the parent / source value.
         /// </summary>
         public object? Parent { get; }
+
+        /// <summary>
+        /// Gets the enumerator to retrieve the payloads of the stream.
+        /// </summary>
+        public IAsyncEnumerator<object> Enumerator { get; }
 
         /// <summary>
         /// Gets the preserved scoped context from the parent resolver.
@@ -67,18 +72,24 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
         {
-            operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
+            operationContext.QueryPlan = operationContext.QueryPlan.GetStreamPlan(Selection.Id);
 
-            ResultMap resultMap = EnqueueResolverTasks(
+            Index++;
+
+            ValueTask<ResultMap?> task = ResolverTaskFactory.ExecuteElementAsync(
                 operationContext,
-                Fragment.SelectionSet,
+                Selection,
                 Parent,
                 Path,
+                Index,
+                Enumerator,
                 ScopedContextData);
 
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-            IsCompleted = true;
+            ResultMap? resultMap = await task.ConfigureAwait(false);
+
+            IsCompleted = await Enumerator.MoveNextAsync() == false;
 
             return operationContext
                 .TrySetNext(true)
