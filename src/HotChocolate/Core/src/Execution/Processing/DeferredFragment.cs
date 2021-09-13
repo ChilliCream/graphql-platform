@@ -143,24 +143,30 @@ namespace HotChocolate.Execution.Processing
         public IDeferredExecutionTask? Previous { get; set; }
 
         /// <inheritdoc/>
-        public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
+        public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
         {
             operationContext.QueryPlan = operationContext.QueryPlan.GetStreamPlan(Selection.Id);
 
             Index++;
 
-            ResultMap? resultMap = await ExecuteElementAsync(
+            if (await Value.MoveNextAsync() == false)
+            {
+                return null;
+            }
+
+            ValueTask<ResultMap?> task = ExecuteElementAsync(
                 operationContext,
                 Selection,
                 Parent,
                 Path,
                 Index,
                 Value,
-                ScopedContextData)
-                .ConfigureAwait(false);
+                ScopedContextData);
 
 
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+
+            ResultMap? resultMap = await task.ConfigureAwait(false);
 
             return operationContext
                 .TrySetNext(true)
