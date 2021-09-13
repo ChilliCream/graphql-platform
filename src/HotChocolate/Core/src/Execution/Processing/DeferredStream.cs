@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Processing
             Path path,
             object? parent,
             int index,
-            IAsyncEnumerator<object> enumerator,
+            IAsyncEnumerator<object?> enumerator,
             IImmutableDictionary<string, object?> scopedContextData)
         {
             Selection = selection;
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the enumerator to retrieve the payloads of the stream.
         /// </summary>
-        public IAsyncEnumerator<object> Enumerator { get; }
+        public IAsyncEnumerator<object?> Enumerator { get; }
 
         /// <summary>
         /// Gets the preserved scoped context from the parent resolver.

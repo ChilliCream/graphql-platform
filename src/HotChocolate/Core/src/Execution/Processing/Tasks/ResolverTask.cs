@@ -94,43 +94,113 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             await ResolverContext.ResolverPipeline!(ResolverContext).ConfigureAwait(false);
 
-            switch (ResolverContext.Result)
+            if (Selection.IsStreamable &&
+                ResolverContext.Result is not null &&
+                ResolverContext.Result is not IError &&
+                ResolverContext.Result is not IEnumerable<IError>)
             {
-                case IExecutable executable:
-                    ResolverContext.Result = await executable
-                        .ToListAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    break;
+                IAsyncEnumerable<object?> enumerable =
+                    Selection.CreateStream(ResolverContext.Result);
+                ResolverContext.Result = CreateStreamResultAsync(enumerable);
+            }
+            else
+            {
+                switch (ResolverContext.Result)
+                {
+                    case IExecutable executable:
+                        ResolverContext.Result = await executable
+                            .ToListAsync(cancellationToken)
+                            .ConfigureAwait(false);
+                        break;
 
-                case IQueryable queryable:
-                    ResolverContext.Result = await Task.Run(() =>
-                    {
-                        var items = new List<object?>();
-                        foreach (var o in queryable)
+                    case IQueryable queryable:
+                        ResolverContext.Result = await Task.Run(() =>
                         {
-                            items.Add(o);
-
-                            if (cancellationToken.IsCancellationRequested)
+                            var items = new List<object?>();
+                            foreach (var o in queryable)
                             {
-                                break;
+                                items.Add(o);
+
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
                             }
-                        }
-                        return items;
-                    }, cancellationToken);
-                    break;
 
-                case IError error:
-                    ResolverContext.ReportError(error);
-                    ResolverContext.Result = null;
-                    break;
+                            return items;
+                        }, cancellationToken);
+                        break;
 
-                case IEnumerable<IError> errors:
-                    foreach (IError error in errors)
-                    {
+                    case IError error:
                         ResolverContext.ReportError(error);
+                        ResolverContext.Result = null;
+                        break;
+
+                    case IEnumerable<IError> errors:
+                        foreach (IError error in errors)
+                        {
+                            ResolverContext.ReportError(error);
+                        }
+
+                        ResolverContext.Result = null;
+                        break;
+                }
+            }
+        }
+
+        private async ValueTask<List<object?>> CreateStreamResultAsync(
+            IAsyncEnumerable<object?> enumerable)
+        {
+            IAsyncEnumerator<object?>? enumerator = enumerable.GetAsyncEnumerator();
+            var next = false;
+
+            try
+            {
+                next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                var list = new List<object?>();
+                var initialCount = Selection.Stream.InitialCount;
+                var count = 0;
+
+                if (initialCount > 0)
+                {
+                    while (next)
+                    {
+                        count++;
+                        list.Add(enumerator.Current);
+                        next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+                        if (count >= initialCount)
+                        {
+                            break;
+                        }
                     }
-                    ResolverContext.Result = null;
-                    break;
+                }
+
+                if (next)
+                {
+                    // if the stream has more items than the initial requested items then we will
+                    // defer the rest of the stream.
+                    OperationContext.Scheduler.DeferredWork.Register(
+                        new DeferredStream(
+                            Selection,
+                            Selection.Stream.Label,
+                            ResolverContext.Path,
+                            ResolverContext.Parent<object>(),
+                            count - 1, enumerator,
+                            ResolverContext.ScopedContextData));
+                }
+
+                return list;
+            }
+            finally
+            {
+                if (!next)
+                {
+                    // if there is no deferred work we will just dispose the enumerator.
+                    // in the case we have deferred work, the deferred stream handler is
+                    // responsible of handling the dispose.
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
             }
         }
     }

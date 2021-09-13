@@ -187,7 +187,7 @@ namespace HotChocolate.Types
             }
         }
 
-        internal static bool IsType(this IType type, TypeKind kind)
+        private static bool IsType(this IType type, TypeKind kind)
         {
             if (type.Kind == kind)
             {

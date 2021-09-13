@@ -33,7 +33,8 @@ namespace HotChocolate.Execution.Processing
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false,
-            SelectionExecutionStrategy? strategy = null)
+            SelectionExecutionStrategy? strategy = null,
+            bool? isStreamable = null)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
@@ -52,6 +53,7 @@ namespace HotChocolate.Execution.Processing
                 selection.Name.Value;
             ResolverPipeline = resolverPipeline;
             PureResolver = pureResolver;
+            IsStreamable = isStreamable ?? false;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
@@ -81,6 +83,11 @@ namespace HotChocolate.Execution.Processing
 
         public Selection(Selection selection)
         {
+            if (selection is null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
             Id = selection.Id;
             Strategy = selection.Strategy;
             _includeConditions = selection._includeConditions;
@@ -96,6 +103,7 @@ namespace HotChocolate.Execution.Processing
             PureResolver = selection.PureResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
+            IsStreamable = selection.IsStreamable;
         }
 
         /// <inheritdoc />
@@ -147,6 +155,9 @@ namespace HotChocolate.Execution.Processing
 
         /// <inheritdoc />
         public IArgumentMap Arguments { get; }
+
+        /// <inheritdoc />
+        public bool IsStreamable { get; }
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }

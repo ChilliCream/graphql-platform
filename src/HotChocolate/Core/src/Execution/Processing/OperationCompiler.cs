@@ -231,6 +231,11 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
+                    if (field.Type.IsListType() && selection.IsStreamable())
+                    {
+
+                    }
+
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(

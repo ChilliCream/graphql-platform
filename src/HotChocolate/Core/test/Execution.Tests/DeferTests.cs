@@ -171,5 +171,41 @@ namespace HotChocolate.Execution
 
             results.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Stream_Nodes ()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWarsTypes()
+                    .ExecuteRequestAsync(
+                        @"{
+                            hero(episode: NEW_HOPE) {
+                                id
+                                ... @defer(label: ""friends"") {
+                                    friends {
+                                        nodes @stream(initialCount: 2) {
+                                            id
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+
+            results.ToString().MatchSnapshot();
+        }
     }
 }

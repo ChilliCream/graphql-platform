@@ -83,8 +83,19 @@ namespace HotChocolate.Execution.Processing.Tasks
             if (await value.MoveNextAsync())
             {
                 ResultMap resultMap = operationContext.Result.RentResultMap(1);
-                List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
-                ResolverTask resolverTask = CreateResolverTask(operationContext, selection, parent, 0, path, resultMap, scopedContext);
+
+                List<IExecutionTask> bufferedTasks =
+                    Interlocked.Exchange(ref _pooled, null) ??
+                    new List<IExecutionTask>();
+
+                ResolverTask resolverTask = CreateResolverTask(
+                    operationContext,
+                    selection,
+                    parent,
+                    0,
+                    path,
+                    resultMap,
+                    scopedContext);
 
                 try
                 {
