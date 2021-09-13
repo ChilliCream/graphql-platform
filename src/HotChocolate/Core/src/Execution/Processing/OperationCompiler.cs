@@ -231,9 +231,11 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
+                    Func<object, IAsyncEnumerable<object?>>? createStream = null;
+
                     if (field.Type.IsListType() && selection.IsStreamable())
                     {
-
+                        createStream = CreateStream(field.Type.ElementType().ToRuntimeType());
                     }
 
                     // if this is the first time we find a selection to this field we have to

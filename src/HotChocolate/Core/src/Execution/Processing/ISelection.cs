@@ -61,6 +61,6 @@ namespace HotChocolate.Execution.Processing
         /// Creates a enumerable from a streamable selection to allow the execution engine to
         /// stream the field result.
         /// </summary>
-        IAsyncEnumerable<object> CreateStream(object resolverResult);
+        IAsyncEnumerable<object?> CreateStream(object resolverResult);
     }
 }

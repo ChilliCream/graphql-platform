@@ -14,6 +14,8 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     public class Selection : ISelection
     {
+        private readonly Func<object, IAsyncEnumerable<object?>>? _createStream;
+
         private static readonly ArgumentMap _emptyArguments =
             new(new Dictionary<NameString, ArgumentValue>());
 
@@ -34,12 +36,14 @@ namespace HotChocolate.Execution.Processing
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false,
             SelectionExecutionStrategy? strategy = null,
-            bool? isStreamable = null)
+            Func<object, IAsyncEnumerable<object?>>?  createStream = null)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
                 throw new ArgumentNullException(nameof(resolverPipeline));
             }
+
+            _createStream = createStream;
 
             Id = id;
             DeclaringType = declaringType
@@ -53,7 +57,6 @@ namespace HotChocolate.Execution.Processing
                 selection.Name.Value;
             ResolverPipeline = resolverPipeline;
             PureResolver = pureResolver;
-            IsStreamable = isStreamable ?? false;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
@@ -103,7 +106,7 @@ namespace HotChocolate.Execution.Processing
             PureResolver = selection.PureResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
-            IsStreamable = selection.IsStreamable;
+            _createStream = selection._createStream;
         }
 
         /// <inheritdoc />
@@ -157,7 +160,7 @@ namespace HotChocolate.Execution.Processing
         public IArgumentMap Arguments { get; }
 
         /// <inheritdoc />
-        public bool IsStreamable { get; }
+        public bool IsStreamable => _createStream is not null;
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }
@@ -184,6 +187,17 @@ namespace HotChocolate.Execution.Processing
                     allowInternals && EvaluateConditions(variableValues),
                 _ => throw new NotSupportedException()
             };
+        }
+
+        /// <inheritdoc />
+        public IAsyncEnumerable<object?> CreateStream(object resolverResult)
+        {
+            if (_createStream is null)
+            {
+                throw new NotSupportedException("This selection is not streamable.");
+            }
+
+            return _createStream(resolverResult);
         }
 
         private bool EvaluateConditions(IVariableValueCollection variableValues)
