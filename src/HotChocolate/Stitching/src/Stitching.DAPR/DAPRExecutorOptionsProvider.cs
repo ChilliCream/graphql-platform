@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Dapr.Client;
+using System.Net.Http;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace HotChocolate.Stitching.DAPR
 {
@@ -17,6 +20,7 @@ namespace HotChocolate.Stitching.DAPR
         private readonly NameString _configurationName;
         private readonly DaprClient _daprClient;
         private readonly List<OnChangeListener> _listeners = new List<OnChangeListener>();
+        private readonly string _gatewaySchemaListKey;
 
         public DAPRExecutorOptionsProvider(
             NameString schemaName,
@@ -28,7 +32,7 @@ namespace HotChocolate.Stitching.DAPR
 
             _daprClient = daprClient;
 
-            
+            _gatewaySchemaListKey = $"{_configurationName}.SchemaList";
 
             //_database = database;
             //subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
@@ -81,16 +85,11 @@ namespace HotChocolate.Stitching.DAPR
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
             CancellationToken cancellationToken)
         {
-            //DAPRValue[] items = await _database.SetMembersAsync(_configurationName.Value)
-            //    .ConfigureAwait(false);
-
-            // TODO: Make this work!
-
-            var items = new List<string>();
+            List<string> items = await _daprClient.GetStateAsync<List<string>>(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey);
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();
 
-            foreach (var schemaName in items.Select(t => (string)t))
+            foreach (var schemaName in items)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
