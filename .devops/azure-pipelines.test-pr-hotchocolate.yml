@@ -20,6 +20,11 @@ stages:
         strategy:
           parallel: 3
         steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '6.0.100-rc.1.21458.32'
+              includePreviewVersions: true
           - task: CmdLine@2
             displayName: "Run Tests"
             inputs:
