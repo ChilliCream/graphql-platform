@@ -22,10 +22,22 @@ namespace HotChocolate.Types
             Label = label;
         }
 
+        /// <summary>
+        /// Streamed when true.
+        /// </summary>
         public bool If { get; }
 
+        /// <summary>
+        /// If this argument label has a value other than null,
+        /// it will be passed on to the result of this stream directive.
+        /// This label is intended to give client applications a way to identify to
+        /// which fragment a streamed result belongs to.
+        /// </summary>
         public string? Label { get; }
 
+        /// <summary>
+        /// The initial elements that shall be send down to the consumer.
+        /// </summary>
         public int InitialCount { get; }
     }
 }
