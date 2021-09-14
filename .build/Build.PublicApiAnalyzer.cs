@@ -69,7 +69,7 @@ partial class Build : NukeBuild
 
             if (from == to)
             {
-                Colorful.Console.WriteLine("Nothing to diff here.", Color.Yellow);
+                Console.WriteLine("Nothing to diff here.", Color.Yellow);
                 return;
             }
 
@@ -85,14 +85,14 @@ partial class Build : NukeBuild
 
             if (Breaking)
             {
-                Colorful.Console.WriteLine("Unshipped breaking changes:", Color.Red);
+                Console.WriteLine("Unshipped breaking changes:", Color.Red);
             }
             else
             {
-                Colorful.Console.WriteLine("Unshipped changes:");
+                Console.WriteLine("Unshipped changes:");
             }
 
-            Colorful.Console.WriteLine();
+            Console.WriteLine();
 
             foreach (var unshippedFile in unshippedFiles)
             {
@@ -113,11 +113,11 @@ partial class Build : NukeBuild
                     if (unshippedApi.StartsWith(_removedApiPrefix))
                     {
                         var value = unshippedApi[_removedApiPrefix.Length..];
-                        Colorful.Console.WriteLine(value);
+                        Console.WriteLine(value);
                     }
                     else
                     {
-                        Colorful.Console.WriteLine(unshippedApi);
+                        Console.WriteLine(unshippedApi);
                     }
                 }
             }
@@ -126,16 +126,16 @@ partial class Build : NukeBuild
     Target MarkApiShipped => _ => _
         .Executes(async () =>
         {
-            Colorful.Console.WriteLine("This is only supposed to be executed after a release has been published.", Color.Yellow);
-            Colorful.Console.WriteLine("If you just want to stage your API changes, use the AddUnshippedApi script.", Color.Yellow);
-            Colorful.Console.WriteLine("Continue? (y/n)", Color.Yellow);
+            Console.WriteLine("This is only supposed to be executed after a release has been published.", Color.Yellow);
+            Console.WriteLine("If you just want to stage your API changes, use the AddUnshippedApi script.", Color.Yellow);
+            Console.WriteLine("Continue? (y/n)", Color.Yellow);
 
-            if (Colorful.Console.ReadKey().Key != ConsoleKey.Y)
+            if (Console.ReadKey().Key != ConsoleKey.Y)
             {
                 return;
             }
 
-            Colorful.Console.WriteLine();
+            Console.WriteLine();
 
             var shippedFiles = Directory.GetFiles(SourceDirectory, _shippedApiFile, SearchOption.AllDirectories);
 

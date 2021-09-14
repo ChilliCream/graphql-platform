@@ -26,7 +26,8 @@ partial class Build : NukeBuild
     {
         "HotChocolate.Types.Selections.PostgreSql.Tests",
         "HotChocolate.Configuration.Analyzers.Tests",
-        "HotChocolate.Data.Neo4J.Integration.Tests"
+        "HotChocolate.Data.Neo4J.Integration.Tests",
+        "dotnet-graphql"
     };
 
     [Partition(3)] readonly Partition TestPartition;
@@ -70,7 +71,7 @@ partial class Build : NukeBuild
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(() => TestPartition)
+        .Partition(3)
         .Executes(() =>
         {
             try
@@ -123,10 +124,10 @@ partial class Build : NukeBuild
         TestBaseSettings(settings)
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx"));
+                .SetLoggers($"trx;LogFileName={v.Name}.trx"));
 
     IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
-        DotNetTestSettings settings, 
+        DotNetTestSettings settings,
         IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
@@ -136,7 +137,7 @@ partial class Build : NukeBuild
             .SetFramework(Net50)
             .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
@@ -147,7 +148,7 @@ partial class Build : NukeBuild
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>

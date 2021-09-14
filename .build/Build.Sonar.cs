@@ -1,4 +1,3 @@
-using Colorful;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
