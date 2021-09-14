@@ -5,6 +5,9 @@ using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
+    /// <summary>
+    /// Represents the work to executed the deferred elements of a stream.
+    /// </summary>
     internal sealed class DeferredStream : IDeferredExecutionTask
     {
         /// <summary>
