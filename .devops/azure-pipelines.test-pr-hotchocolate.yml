@@ -8,10 +8,10 @@ pr:
 
 stages:
   - stage: ubuntu
-    displayName: "Ubuntu 20.04"
+    displayName: "Ubuntu Latest"
     dependsOn: []
     pool:
-      vmImage: "ubuntu-20.04"
+      vmImage: "ubuntu-latest"
     jobs:
       - job: Test
         displayName: "Test"
@@ -21,6 +21,25 @@ stages:
           parallel: 3
         steps:
           - task: UseDotNet@2
+            displayName: "Install .NET Core 2.1"
+            inputs:
+              packageType: 'sdk'
+              version: '2.1.816'
+              includePreviewVersions: true
+          - task: UseDotNet@2
+            displayName: "Install .NET Core 3.1"
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.409'
+              includePreviewVersions: true
+          - task: UseDotNet@2
+            displayName: "Install .NET 5.0"
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.401'
+              includePreviewVersions: true
+          - task: UseDotNet@2
+            displayName: "Install .NET 6.0"
             inputs:
               packageType: 'sdk'
               version: '6.0.100-rc.1.21458.32'
