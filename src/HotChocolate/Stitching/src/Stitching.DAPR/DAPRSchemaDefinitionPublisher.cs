@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapr.Client;
@@ -25,7 +26,7 @@ namespace HotChocolate.Stitching.DAPR
         {
             string key = $"{_configurationName}.{schemaDefinition.Name}";
 
-            await _daprClient.SaveStateAsync(DaprConfiguration.StateStoreComponent, key, schemaDefinition);
+            await _daprClient.SaveStateAsync(DaprConfiguration.StateStoreComponent, key, new SchemaDefinitionDto {Document = schemaDefinition.Document.ToString(), ExtensionDocuments = schemaDefinition.ExtensionDocuments.Select(_ => _.ToString()).ToList(), Name = schemaDefinition.Name });
 
             while (!(await UpdateSchemaList(key))) { };
 
@@ -36,11 +37,18 @@ namespace HotChocolate.Stitching.DAPR
         {
             (List<string> value, string etag) items = await _daprClient.GetStateAndETagAsync<List<string>>(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey);
 
-            if (!items.value.Contains(key))
-            {
-                items.value.Add(key);
+            List<string> newValues = new List<string>();
 
-                return await _daprClient.TrySaveStateAsync(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey, items.value, items.etag);
+            if (items.value is not null && items.value.Any())
+            {
+                newValues.AddRange(items.value);
+            }
+
+            if (!newValues.Contains(key))
+            {
+                newValues.Add(key);
+
+                return await _daprClient.TrySaveStateAsync(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey, newValues, items.etag ?? string.Empty);
             }
 
             return true;

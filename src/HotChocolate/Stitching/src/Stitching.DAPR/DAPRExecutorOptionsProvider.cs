@@ -85,7 +85,7 @@ namespace HotChocolate.Stitching.DAPR
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
             CancellationToken cancellationToken)
         {
-            List<string> items = await _daprClient.GetStateAsync<List<string>>(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey);
+            List<string> items = await _daprClient.GetStateAsync<List<string>>(DaprConfiguration.StateStoreComponent, _gatewaySchemaListKey) ?? new List<string>();
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();
 
@@ -133,11 +133,9 @@ namespace HotChocolate.Stitching.DAPR
             factoryOptions.Add(new ConfigureRequestExecutorSetup(_schemaName, options));
         }
 
-        private async Task<RemoteSchemaDefinition> GetRemoteSchemaDefinitionAsync(string schemaName)
+        private async Task<RemoteSchemaDefinition> GetRemoteSchemaDefinitionAsync(string schemaKey)
         {
-            string key = $"{_configurationName}.{schemaName}";
-
-            SchemaDefinitionDto dto = await _daprClient.GetStateAsync<SchemaDefinitionDto>(DaprConfiguration.StateStoreComponent, key, default);
+            SchemaDefinitionDto dto = await _daprClient.GetStateAsync<SchemaDefinitionDto>(DaprConfiguration.StateStoreComponent, schemaKey, default);
 
             return new RemoteSchemaDefinition(
                 dto.Name,

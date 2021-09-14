@@ -36,6 +36,8 @@ namespace HotChocolate.Stitching.Integration
 
         private Dictionary<string, SchemaDefinitionDto> mockStateValues = new Dictionary<string, SchemaDefinitionDto>();
         private Dictionary<string, SchemaDefinitionDto> mockQueueValues = new Dictionary<string, SchemaDefinitionDto>();
+        private Dictionary<string, List<string>> mockServerListValues = new Dictionary<string,List<string>>();
+
 
         DaprClient daprClient;
         
@@ -44,23 +46,49 @@ namespace HotChocolate.Stitching.Integration
             Context = context;
             var daprClientMock = new Mock<DaprClient>();
 
-            daprClientMock.Setup(_ => _.SaveStateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SchemaDefinitionDto>(), null, null, default))
+            daprClientMock.Setup(_ => _.SaveStateAsync<SchemaDefinitionDto>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SchemaDefinitionDto>(), null, null, default))
                     .Callback((string storeName, string key, SchemaDefinitionDto value, StateOptions stateOptions, IReadOnlyDictionary<string, string> meta, CancellationToken cancellationToken) =>
                     {
+                        if (mockStateValues.Any(_ => _.Key == key))
+                            mockStateValues.Remove(key);
                         mockStateValues.TryAdd(key, value);
                     });
 
             daprClientMock.Setup(_ => _.GetStateAsync<SchemaDefinitionDto>(It.IsAny<string>(), It.IsAny<string>(), null, null, default))
-                    .Returns((string storeName, string key, ConsistencyMode consistencyMode, IReadOnlyDictionary<string, string> dictionary, CancellationToken cancellationToken) =>
+                    .ReturnsAsync((string storeName, string key, ConsistencyMode consistencyMode, IReadOnlyDictionary<string, string> dictionary, CancellationToken cancellationToken) =>
                     {
-                        return new Task<SchemaDefinitionDto>(() => mockStateValues[key]);
+                        return mockStateValues[key];
+                    });
+
+            daprClientMock.Setup(_ => _.GetStateAsync<List<string>>(It.IsAny<string>(), It.IsAny<string>(), null, null, default))
+                    .ReturnsAsync((string storeName, string key, ConsistencyMode consistencyMode, IReadOnlyDictionary<string, string> dictionary, CancellationToken cancellationToken) =>
+                    {
+                        return mockServerListValues.FirstOrDefault().Value;
                     });
 
             daprClientMock.Setup(_ => _.PublishEventAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SchemaDefinitionDto>(), new Dictionary<string, string>(), default))
-                    .Callback((string storeName, string key, SchemaDefinitionDto value, Dictionary<string, string> data, CancellationToken cancellationToken) => 
-                     {
-                         mockQueueValues.TryAdd(key, value);
+                    .Callback((string storeName, string key, SchemaDefinitionDto value, Dictionary<string, string> data, CancellationToken cancellationToken) =>
+                    {
+                        if (mockQueueValues.Any(_ => _.Key == key))
+                            mockQueueValues.Remove(key);
+                        mockQueueValues.TryAdd(key, value);
                      });
+
+            daprClientMock.Setup(_ => _.TrySaveStateAsync<List<string>>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>(), It.IsAny<string>(), null, null, default))
+                    .Callback((string storeName, string key, List<string> value, string etag, StateOptions stateOptions, IReadOnlyDictionary<string, string> data, CancellationToken cancellationToken) =>
+                    {
+                        if (mockServerListValues.Any(_ => _.Key == key))
+                            mockServerListValues.Remove(key);    
+                        mockServerListValues.Add(key, value);
+                    })
+                    .ReturnsAsync(true);
+
+            daprClientMock.Setup(_ => _.GetStateAndETagAsync<List<string>>(It.IsAny<string>(), It.IsAny<string>(), null, null, default))
+                    .ReturnsAsync((string storeName, string key, ConsistencyMode mode, Dictionary<string,string> data, CancellationToken cancellationToken) =>
+                    {
+                        return (value: mockServerListValues.FirstOrDefault().Value, etag: "1");
+                    });
+
 
             daprClient = daprClientMock.Object;
         }
