@@ -282,31 +282,19 @@ namespace GreenDonut
             {
                 using IDisposable scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
 
-                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
-                buffer ??= new Result<TValue>[batch.Keys.Count];
-
-                if (buffer.Length < batch.Size)
-                {
-                    Array.Resize(ref buffer, batch.Size);
-                }
-
-                Memory<Result<TValue>> results = batch.Keys.Count == buffer.Length
-                    ? buffer.AsMemory()
-                    : buffer.AsMemory().Slice(0, batch.Keys.Count);
+                var buffer = new Result<TValue>[batch.Keys.Count];
 
                 try
                 {
-                    await FetchAsync(batch.Keys, results, cancellationToken).ConfigureAwait(false);
+                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
                     BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, results.Span);
+                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
                 }
                 catch (Exception ex)
                 {
                     BatchOperationFailed(batch, batch.Keys, ex);
                 }
 
-                results.Span.Clear();
-                Interlocked.Exchange(ref _buffer, buffer);
                 BatchPool<TKey>.Shared.Return(batch);
             }
         }
