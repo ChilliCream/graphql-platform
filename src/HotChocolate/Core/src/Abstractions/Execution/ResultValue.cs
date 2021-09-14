@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Specifies if this entry is fully initialized.
         /// </summary>
-        public bool IsInitialized => Name is not null!;
+        public bool IsInitialized => Name is not null;
 
         /// <summary>Indicates whether this instance and a specified object are equal.</summary>
         /// <param name="obj">The object to compare with the current instance.</param>
@@ -85,7 +85,7 @@ namespace HotChocolate.Execution
             }
 
             return string.Equals(Name, other.Name, StringComparison.Ordinal) &&
-                   Equals(Value, other.Value);
+                Equals(Value, other.Value);
         }
 
         /// <summary>

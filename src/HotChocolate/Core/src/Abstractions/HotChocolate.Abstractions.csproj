@@ -8,7 +8,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET6.0'">
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET5.0'">
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETCOREAPP3.1'">
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
   </ItemGroup>

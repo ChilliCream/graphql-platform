@@ -192,7 +192,7 @@ namespace HotChocolate.Types
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver is null! && Middleware is null)
+            if (Resolver is null && Middleware is null)
             {
                 if (_executableDirectives.Length > 0)
                 {

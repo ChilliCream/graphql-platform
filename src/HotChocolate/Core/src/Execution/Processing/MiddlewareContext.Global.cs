@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing
             get => _services;
             set
             {
-                if (value is null!)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }

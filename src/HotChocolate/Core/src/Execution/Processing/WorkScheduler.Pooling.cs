@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause.TryContinueUnsafe();
 
-                if (_batchDispatcher is not null!)
+                if (_batchDispatcher is not null)
                 {
                     _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
                     _batchDispatcher = default!;

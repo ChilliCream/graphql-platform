@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http.Extensions;
 
 namespace HotChocolate.AspNetCore.Warmup
 {
@@ -18,7 +17,7 @@ namespace HotChocolate.AspNetCore.Warmup
             IRequestExecutorResolver executorResolver,
             IEnumerable<WarmupSchema> schemas)
         {
-            if (executorResolver is null!)
+            if (executorResolver is null)
             {
                 throw new ArgumentNullException(nameof(executorResolver));
             }
