@@ -37,6 +37,7 @@ namespace HotChocolate.Stitching.Integration
         private Dictionary<string, SchemaDefinitionDto> mockStateValues = new Dictionary<string, SchemaDefinitionDto>();
         private Dictionary<string, SchemaDefinitionDto> mockQueueValues = new Dictionary<string, SchemaDefinitionDto>();
         private Dictionary<string, List<string>> mockServerListValues = new Dictionary<string,List<string>>();
+        private int i = 0;
 
 
         DaprClient daprClient;
@@ -66,12 +67,13 @@ namespace HotChocolate.Stitching.Integration
                         return mockServerListValues.FirstOrDefault().Value;
                     });
 
-            daprClientMock.Setup(_ => _.PublishEventAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SchemaDefinitionDto>(), new Dictionary<string, string>(), default))
-                    .Callback((string storeName, string key, SchemaDefinitionDto value, Dictionary<string, string> data, CancellationToken cancellationToken) =>
+            daprClientMock.Setup(_ => _.PublishEventAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SchemaDefinitionDto>(), default))
+                    .Callback((string storeName, string key, SchemaDefinitionDto value, CancellationToken cancellationToken) =>
                     {
                         if (mockQueueValues.Any(_ => _.Key == key))
                             mockQueueValues.Remove(key);
-                        mockQueueValues.TryAdd(key, value);
+                        i++;
+                        mockQueueValues.TryAdd(i.ToString(), value);
                      });
 
             daprClientMock.Setup(_ => _.TrySaveStateAsync<List<string>>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<List<string>>(), It.IsAny<string>(), null, null, default))
@@ -150,9 +152,6 @@ namespace HotChocolate.Stitching.Integration
             // act
             Assert.False(raised, "eviction was raised before act.");
             await daprClient.SaveStateAsync(DaprConfiguration.StateStoreComponent, $"{configurationName}.{_accounts}", schemaDefinitionV2);
-
-            //await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
-            //await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
 
             // assert
             Assert.True(raised, "schema evicted.");

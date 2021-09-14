@@ -25,12 +25,13 @@ namespace HotChocolate.Stitching.DAPR
             CancellationToken cancellationToken = default)
         {
             string key = $"{_configurationName}.{schemaDefinition.Name}";
+            var schemaDto = new SchemaDefinitionDto { Document = schemaDefinition.Document.ToString(), ExtensionDocuments = schemaDefinition.ExtensionDocuments.Select(_ => _.ToString()).ToList(), Name = schemaDefinition.Name };
 
-            await _daprClient.SaveStateAsync(DaprConfiguration.StateStoreComponent, key, new SchemaDefinitionDto {Document = schemaDefinition.Document.ToString(), ExtensionDocuments = schemaDefinition.ExtensionDocuments.Select(_ => _.ToString()).ToList(), Name = schemaDefinition.Name });
+            await _daprClient.SaveStateAsync(DaprConfiguration.StateStoreComponent, key, schemaDto);
 
             while (!(await UpdateSchemaList(key))) { };
 
-            await _daprClient.PublishEventAsync(DaprConfiguration.PubSubComponent, DaprConfiguration.PubSubTopic, schemaDefinition);
+            await _daprClient.PublishEventAsync(DaprConfiguration.PubSubComponent, DaprConfiguration.PubSubTopic, schemaDto);
         }
 
         private async Task<bool> UpdateSchemaList(string key)
