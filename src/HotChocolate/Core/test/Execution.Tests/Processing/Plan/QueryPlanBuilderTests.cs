@@ -381,6 +381,100 @@ namespace HotChocolate.Execution.Processing.Plan
             Snapshot(root, defaultStrategy);
         }
 
+        [InlineData(ExecutionStrategy.Parallel)]
+        [InlineData(ExecutionStrategy.Serial)]
+        [Theory]
+        public void GetHero_Stream_Plan(ExecutionStrategy defaultStrategy)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query GetHero($episode: Episode, $withFriends: Boolean!) {
+                    hero(episode: $episode) {
+                        name
+                        friends @include(if: $withFriends) {
+                            nodes @stream(initialCount: 1) {
+                                id
+                                name
+                            }
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
+
+            // act
+            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+
+            // assert
+            Snapshot(root, defaultStrategy);
+        }
+
+        [InlineData(ExecutionStrategy.Parallel)]
+        [InlineData(ExecutionStrategy.Serial)]
+        [Theory]
+        public void GetHero_Stream_Plan_Nested_Streams(ExecutionStrategy defaultStrategy)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                    hero(episode: NEW_HOPE) {
+                        id
+                        ... @defer(label: ""friends"") {
+                            friends {
+                                nodes @stream(initialCount: 1) {
+                                    id
+                                    name
+                                    friends {
+                                        nodes @stream(initialCount: 1) {
+                                            id
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            IPreparedOperation operation =
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType,
+                    new(new DefaultTypeConverter()));
+
+            // act
+            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+
+            // assert
+            Snapshot(root, defaultStrategy);
+        }
+
         private static void Snapshot(
             QueryPlanNode node,
             ExecutionStrategy strategy = ExecutionStrategy.Parallel)

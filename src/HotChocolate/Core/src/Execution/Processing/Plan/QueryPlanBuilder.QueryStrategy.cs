@@ -21,6 +21,11 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }
 
+                if (context.Streams.Count > 0)
+                {
+                    operationNode.Streams.AddRange(context.Streams);
+                }
+
                 return operationNode;
             }
 
@@ -49,6 +54,16 @@ namespace HotChocolate.Execution.Processing.Plan
 
             private static void Visit(ISelection selection, QueryPlanContext context)
             {
+                if (selection.IsStreamable && selection.SelectionSet is not null)
+                {
+                    QueryPlanContext streamContext = context.Branch();
+                    VisitChildren(selection, streamContext);
+                    if (streamContext.Root is not null)
+                    {
+                        context.Streams.Add(new(selection.Id, streamContext.Root));
+                    }
+                }
+
                 if (context.NodePath.Count == 0)
                 {
                     context.Root = new ResolverQueryPlanNode(selection);

@@ -26,8 +26,8 @@ namespace HotChocolate.Execution.Processing
         public static bool IsDeferrable(this FragmentSpreadNode fragmentSpreadNode) =>
             fragmentSpreadNode.Directives.GetDeferDirective() is not null;
 
-        public static bool IsDeferrable(this IReadOnlyList<DirectiveNode> directives) =>
-            directives.GetDeferDirective() is not null;
+        public static bool IsStreamable(this FieldNode field) =>
+            field.Directives.GetStreamDirective() is not null;
 
         private static IValueNode GetIfArgumentValue(DirectiveNode directive)
         {
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution.Processing
 
             if (directiveNode is not null)
             {
-                var @if = false;
+                var @if = true;
                 string? label = null;
 
                 foreach (ArgumentNode argument in directiveNode.Arguments)
@@ -73,9 +73,8 @@ namespace HotChocolate.Execution.Processing
                         case WellKnownDirectives.IfArgument:
                             @if = argument.Value switch
                             {
-                                VariableNode variable =>
-                                    variables.GetVariable<BooleanValueNode>(
-                                        variable.Name.Value).Value,
+                                VariableNode variable
+                                    => variables.GetVariable<bool>(variable.Name.Value),
                                 BooleanValueNode b => b.Value,
                                 _ => @if
                             };
@@ -84,8 +83,8 @@ namespace HotChocolate.Execution.Processing
                         case WellKnownDirectives.LabelArgument:
                             label = argument.Value switch
                             {
-                                VariableNode variable =>
-                                    variables.GetVariable<string?>(variable.Name.Value),
+                                VariableNode variable
+                                    => variables.GetVariable<string?>(variable.Name.Value),
                                 StringValueNode b => b.Value,
                                 _ => label
                             };
@@ -99,9 +98,68 @@ namespace HotChocolate.Execution.Processing
             return null;
         }
 
+        internal static StreamDirective? GetStreamDirective(
+            this IReadOnlyList<DirectiveNode> directives,
+            IVariableValueCollection variables)
+        {
+            DirectiveNode? directiveNode =
+                GetDirective(directives, WellKnownDirectives.Stream);
+
+            if (directiveNode is not null)
+            {
+                var @if = true;
+                string? label = null;
+                var initialCount = 0;
+
+                foreach (ArgumentNode argument in directiveNode.Arguments)
+                {
+                    switch (argument.Name.Value)
+                    {
+                        case WellKnownDirectives.IfArgument:
+                            @if = argument.Value switch
+                            {
+                                VariableNode variable
+                                    => variables.GetVariable<bool>(variable.Name.Value),
+                                BooleanValueNode b => b.Value,
+                                _ => @if
+                            };
+                            break;
+
+                        case WellKnownDirectives.LabelArgument:
+                            label = argument.Value switch
+                            {
+                                VariableNode variable
+                                    => variables.GetVariable<string?>(variable.Name.Value),
+                                StringValueNode b => b.Value,
+                                _ => label
+                            };
+                            break;
+
+                        case WellKnownDirectives.InitialCount:
+                            initialCount = argument.Value switch
+                            {
+                                VariableNode variable
+                                    => variables.GetVariable<int>(variable.Name.Value),
+                                IntValueNode b => b.ToInt32(),
+                                _ => initialCount
+                            };
+                            break;
+                    }
+                }
+
+                return new StreamDirective(@if, initialCount, label);
+            }
+
+            return null;
+        }
+
         private static DirectiveNode? GetDeferDirective(
             this IReadOnlyList<DirectiveNode> directives) =>
             GetDirective(directives, WellKnownDirectives.Defer);
+
+        private static DirectiveNode? GetStreamDirective(
+            this IReadOnlyList<DirectiveNode> directives) =>
+            GetDirective(directives, WellKnownDirectives.Stream);
 
         private static DirectiveNode? GetDirective(
             this IReadOnlyList<DirectiveNode> directives,
