@@ -186,10 +186,15 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap resultMap,
             List<IExecutionTask> bufferedTasks)
         {
+            var committed = false;
+            object? resolverResult = null;
+
             try
             {
-                if (TryExecute(out var resolverResult))
+                if (TryExecute(out resolverResult))
                 {
+                    committed = true;
+
                     CompleteInline(
                         operationContext,
                         resolverContext,
@@ -222,6 +227,17 @@ namespace HotChocolate.Execution.Processing.Tasks
                     selection,
                     path,
                     ex);
+            }
+
+            if (!committed)
+            {
+                CommitValue(
+                    operationContext,
+                    selection,
+                    path,
+                    responseIndex,
+                    resultMap,
+                    resolverResult);
             }
 
             bool TryExecute(out object? result)
@@ -306,6 +322,23 @@ namespace HotChocolate.Execution.Processing.Tasks
                     ex);
             }
 
+            CommitValue(
+                operationContext,
+                selection,
+                path,
+                responseIndex,
+                resultMap,
+                completedValue);
+        }
+
+        private static void CommitValue(
+            IOperationContext operationContext,
+            ISelection selection,
+            Path path,
+            int responseIndex,
+            ResultMap resultMap,
+            object? completedValue)
+        {
             var isNullable = selection.Type.IsNonNullType();
 
             if (completedValue is null && isNullable)
