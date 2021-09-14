@@ -156,7 +156,6 @@ namespace GreenDonut
                     cached = true;
                     currentKey = key;
                     TaskCacheKey cacheKey = new(_cacheKeyType, key);
-
                     Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
@@ -184,8 +183,11 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                cached = false;
-                return GetOrCreatePromiseUnsafe(currentKey).Task;
+                lock (_sync)
+                {
+                    cached = false;
+                    return GetOrCreatePromiseUnsafe(currentKey).Task;
+                }
             }
         }
 
