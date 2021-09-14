@@ -4,13 +4,13 @@ title: Global State
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-TODO
+Global State allows us to define properties on a per-request basis to be made available to all resolvers and middleware.
 
 # Initializing Global State
 
 We can add Global State using the `SetProperty` method on the `IQueryRequestBuilder`. This method takes a `key` and a `value` as an argument. WHile the `key` needs to be a `string` the value can be of any type.
 
-Using an interceptor allows us to initialize the Global State on a per-request basis before the request is being executed.
+Using an interceptor allows us to initialize the Global State before the request is being executed.
 
 ```csharp
 public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -80,8 +80,46 @@ public class Query
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("example")
+            .Resolve(context =>
+            {
+                var userId = context.GetGlobalValue<string>("UserId");
+
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+> ⚠ Note: If no value exists for the specified `key` a default value is returned an no exception is thrown.
+
+We can also access the Global State through the `ContextData` dictionary on the `IResolverContext`.
+
+```csharp
+descriptor
+    .Field("example")
+    .Resolve(context =>
+    {
+        if (!context.ContextData.TryGetValue("UserId", out var value)
+            || value is not string userId)
+        {
+            // handle failed assertion
+        }
+
+        // Omitted code for brevity
+    });
+```
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
+
+Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
