@@ -11,13 +11,22 @@
     <Description>This package contains the abstract syntax tree that is used by the Hot Chocolate parsers.</Description>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET6.0'">
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="6.0.0-rc.1.21452.15" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET5.0'">
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'NETCOREAPP3.1'">
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'NETSTANDARD2.0'">
     <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.0" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
   </ItemGroup>
 
   <ItemGroup>
