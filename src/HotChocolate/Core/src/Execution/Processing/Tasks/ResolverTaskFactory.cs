@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        public static async ValueTask<ResultMap?> ExecuteElementAsync(
+        public static ResultMap EnqueueElementTasks(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
@@ -80,46 +80,41 @@ namespace HotChocolate.Execution.Processing.Tasks
             IAsyncEnumerator<object?> value,
             IImmutableDictionary<string, object?> scopedContext)
         {
-            if (await value.MoveNextAsync())
+            ResultMap resultMap = operationContext.Result.RentResultMap(1);
+
+            List<IExecutionTask> bufferedTasks =
+                Interlocked.Exchange(ref _pooled, null) ??
+                new List<IExecutionTask>();
+
+            ResolverTask resolverTask = CreateResolverTask(
+                operationContext,
+                selection,
+                parent,
+                0,
+                path,
+                resultMap,
+                scopedContext);
+
+            try
             {
-                ResultMap resultMap = operationContext.Result.RentResultMap(1);
-
-                List<IExecutionTask> bufferedTasks =
-                    Interlocked.Exchange(ref _pooled, null) ??
-                    new List<IExecutionTask>();
-
-                ResolverTask resolverTask = CreateResolverTask(
+                CompleteInline(
                     operationContext,
+                    resolverTask.ResolverContext,
                     selection,
-                    parent,
+                    selection.Type.ElementType(),
+                    path.Append(index),
                     0,
-                    path,
                     resultMap,
-                    scopedContext);
-
-                try
-                {
-                    CompleteInline(
-                        operationContext,
-                        resolverTask.ResolverContext,
-                        selection,
-                        selection.Type.ElementType(),
-                        path.Append(index),
-                        0,
-                        resultMap,
-                        value.Current,
-                        bufferedTasks);
-                }
-                finally
-                {
-                    Interlocked.Exchange(ref _pooled, bufferedTasks);
-                }
-
-                return resultMap;
+                    value.Current,
+                    bufferedTasks);
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _pooled, bufferedTasks);
             }
 
-
-            return null;
+            // TODO : we have spec inquiries open regarding this
+            return (ResultMap)resultMap[0].Value!;
         }
 
         public static ResultMap EnqueueOrInlineResolverTasks(
@@ -391,7 +386,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 for (var i = 0; i < fragments.Count; i++)
                 {
                     IFragment fragment = fragments[i];
-                    if (!fragment.IsConditional)
+                    if (!fragment.IsConditional || fragment.IsIncluded(operationContext.Variables))
                     {
                         operationContext.Scheduler.DeferredWork.Register(
                             new DeferredFragment(

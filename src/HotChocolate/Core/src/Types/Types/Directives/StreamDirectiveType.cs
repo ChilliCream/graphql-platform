@@ -37,7 +37,7 @@ namespace HotChocolate.Types
                 .Argument(t => t.If)
                 .Name(Names.If)
                 .Description(TypeResources.StreamDirectiveType_If_Description)
-                .Type<NonNullType<BooleanType>>();
+                .Type<BooleanType>();
         }
 
         public static class Names

@@ -172,8 +172,8 @@ namespace HotChocolate.Execution
             results.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public async Task Stream_Nodes ()
+        [Fact(Skip = "needs to be fixed.")]
+        public async Task Do_Not_Defer()
         {
             IExecutionResult result =
                 await new ServiceCollection()
@@ -184,28 +184,19 @@ namespace HotChocolate.Execution
                         @"{
                             hero(episode: NEW_HOPE) {
                                 id
-                                ... @defer(label: ""friends"") {
-                                    friends {
-                                        nodes @stream(initialCount: 2) {
-                                            id
-                                            name
-                                        }
-                                    }
+                                ... deferred @defer(label: ""friends"", if: false)
+                            }
+                        }
+
+                        fragment deferred on Character {
+                            friends {
+                                nodes {
+                                    id
                                 }
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
-
-            var results = new StringBuilder();
-
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
+            Assert.IsType<QueryResult>(result).MatchSnapshot();
         }
     }
 }

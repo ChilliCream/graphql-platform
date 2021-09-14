@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks
@@ -99,66 +100,74 @@ namespace HotChocolate.Execution.Processing.Tasks
                 ResolverContext.Result is not IError &&
                 ResolverContext.Result is not IEnumerable<IError>)
             {
-                IAsyncEnumerable<object?> enumerable =
-                    Selection.CreateStream(ResolverContext.Result);
-                ResolverContext.Result = CreateStreamResultAsync(enumerable);
-            }
-            else
-            {
-                switch (ResolverContext.Result)
+                StreamDirective streamDirective =
+                    Selection.SyntaxNode.Directives.GetStreamDirective(
+                        ResolverContext.Variables)!;
+                if (streamDirective.If)
                 {
-                    case IExecutable executable:
-                        ResolverContext.Result = await executable
-                            .ToListAsync(cancellationToken)
+                    IAsyncEnumerable<object?> enumerable =
+                        Selection.CreateStream(ResolverContext.Result);
+                    ResolverContext.Result =
+                        await CreateStreamResultAsync(enumerable, streamDirective)
                             .ConfigureAwait(false);
-                        break;
+                    return;
+                }
+            }
 
-                    case IQueryable queryable:
-                        ResolverContext.Result = await Task.Run(() =>
+            switch (ResolverContext.Result)
+            {
+                case IExecutable executable:
+                    ResolverContext.Result = await executable
+                        .ToListAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
+
+                case IQueryable queryable:
+                    ResolverContext.Result = await Task.Run(() =>
+                    {
+                        var items = new List<object?>();
+                        foreach (var o in queryable)
                         {
-                            var items = new List<object?>();
-                            foreach (var o in queryable)
+                            items.Add(o);
+
+                            if (cancellationToken.IsCancellationRequested)
                             {
-                                items.Add(o);
-
-                                if (cancellationToken.IsCancellationRequested)
-                                {
-                                    break;
-                                }
+                                break;
                             }
-
-                            return items;
-                        }, cancellationToken);
-                        break;
-
-                    case IError error:
-                        ResolverContext.ReportError(error);
-                        ResolverContext.Result = null;
-                        break;
-
-                    case IEnumerable<IError> errors:
-                        foreach (IError error in errors)
-                        {
-                            ResolverContext.ReportError(error);
                         }
 
-                        ResolverContext.Result = null;
-                        break;
-                }
+                        return items;
+                    }, cancellationToken);
+                    break;
+
+                case IError error:
+                    ResolverContext.ReportError(error);
+                    ResolverContext.Result = null;
+                    break;
+
+                case IEnumerable<IError> errors:
+                    foreach (IError error in errors)
+                    {
+                        ResolverContext.ReportError(error);
+                    }
+
+                    ResolverContext.Result = null;
+                    break;
             }
         }
 
         private async ValueTask<List<object?>> CreateStreamResultAsync(
-            IAsyncEnumerable<object?> enumerable)
+            IAsyncEnumerable<object?> enumerable,
+            StreamDirective streamDirective)
         {
-            IAsyncEnumerator<object?>? enumerator = enumerable.GetAsyncEnumerator();
+            IAsyncEnumerator<object?> enumerator = enumerable.GetAsyncEnumerator();
             var next = false;
 
             try
             {
                 next = await enumerator.MoveNextAsync().ConfigureAwait(false);
                 var list = new List<object?>();
-                var initialCount = Selection.Stream.InitialCount;
+                var initialCount = streamDirective.InitialCount;
                 var count = 0;
 
                 if (initialCount > 0)
@@ -183,10 +192,11 @@ namespace HotChocolate.Execution.Processing.Tasks
                     OperationContext.Scheduler.DeferredWork.Register(
                         new DeferredStream(
                             Selection,
-                            Selection.Stream.Label,
+                            streamDirective.Label,
                             ResolverContext.Path,
                             ResolverContext.Parent<object>(),
-                            count - 1, enumerator,
+                            count - 1,
+                            enumerator,
                             ResolverContext.ScopedContextData));
                 }
 

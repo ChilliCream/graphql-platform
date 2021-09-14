@@ -76,7 +76,7 @@ namespace HotChocolate.Execution.Processing
 
             Index++;
 
-            ValueTask<ResultMap?> task = ResolverTaskFactory.ExecuteElementAsync(
+            ResultMap resultMap = ResolverTaskFactory.EnqueueElementTasks(
                 operationContext,
                 Selection,
                 Parent,
@@ -85,16 +85,18 @@ namespace HotChocolate.Execution.Processing
                 Enumerator,
                 ScopedContextData);
 
-            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-            ResultMap? resultMap = await task.ConfigureAwait(false);
+            if (operationContext.Scheduler.IsCompleted)
+            {
+                await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+            }
 
             IsCompleted = await Enumerator.MoveNextAsync() == false;
 
             return operationContext
                 .TrySetNext(true)
                 .SetLabel(Label)
-                .SetPath(Path)
+                .SetPath(Path.Append(Index))
                 .SetData(resultMap)
                 .BuildResult();
         }

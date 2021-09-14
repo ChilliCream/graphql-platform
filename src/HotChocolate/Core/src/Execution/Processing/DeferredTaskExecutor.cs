@@ -36,7 +36,8 @@ namespace HotChocolate.Execution.Processing
                     context.Scheduler.Reset();
                     context.QueryPlan = rootQueryPlan;
 
-                    IQueryResult result = await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
+                    IQueryResult result =
+                        await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
 
                     if (!deferredTask.IsCompleted)
                     {
