@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
+using HotChocolate.Utilities.StreamAdapters;
 using HotChocolate.Utilities.Subscriptions;
 
 namespace HotChocolate.Types
@@ -32,7 +33,7 @@ namespace HotChocolate.Types
             return descriptor.Subscribe(async ctx =>
             {
                 IEnumerable<T> enumerable = await subscribe(ctx).ConfigureAwait(false);
-                return new SourceStreamWrapper(new EnumerableSourceStreamAdapter<T>(enumerable));
+                return new SourceStreamWrapper(new EnumerableStreamAdapter<T>(enumerable));
             });
         }
 
@@ -74,7 +75,7 @@ namespace HotChocolate.Types
             string topicName) =>
             SubscribeToTopic<string, TMessage>(
                 descriptor,
-                ctx => topicName);
+                _ => topicName);
 
         /// <summary>
         /// Subscribes to a topic that is represented by an argument value.

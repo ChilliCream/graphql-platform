@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks
@@ -94,6 +95,25 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             await ResolverContext.ResolverPipeline!(ResolverContext).ConfigureAwait(false);
 
+            if (Selection.IsStreamable &&
+                ResolverContext.Result is not null &&
+                ResolverContext.Result is not IError &&
+                ResolverContext.Result is not IEnumerable<IError>)
+            {
+                StreamDirective streamDirective =
+                    Selection.SyntaxNode.Directives.GetStreamDirective(
+                        ResolverContext.Variables)!;
+                if (streamDirective.If)
+                {
+                    IAsyncEnumerable<object?> enumerable =
+                        Selection.CreateStream(ResolverContext.Result);
+                    ResolverContext.Result =
+                        await CreateStreamResultAsync(enumerable, streamDirective)
+                            .ConfigureAwait(false);
+                    return;
+                }
+            }
+
             switch (ResolverContext.Result)
             {
                 case IExecutable executable:
@@ -115,6 +135,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                                 break;
                             }
                         }
+
                         return items;
                     }, cancellationToken);
                     break;
@@ -129,8 +150,67 @@ namespace HotChocolate.Execution.Processing.Tasks
                     {
                         ResolverContext.ReportError(error);
                     }
+
                     ResolverContext.Result = null;
                     break;
+            }
+        }
+
+        private async ValueTask<List<object?>> CreateStreamResultAsync(
+            IAsyncEnumerable<object?> enumerable,
+            StreamDirective streamDirective)
+        {
+            IAsyncEnumerator<object?> enumerator = enumerable.GetAsyncEnumerator();
+            var next = false;
+
+            try
+            {
+                next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                var list = new List<object?>();
+                var initialCount = streamDirective.InitialCount;
+                var count = 0;
+
+                if (initialCount > 0)
+                {
+                    while (next)
+                    {
+                        count++;
+                        list.Add(enumerator.Current);
+                        next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+
+                        if (count >= initialCount)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (next)
+                {
+                    // if the stream has more items than the initial requested items then we will
+                    // defer the rest of the stream.
+                    OperationContext.Scheduler.DeferredWork.Register(
+                        new DeferredStream(
+                            Selection,
+                            streamDirective.Label,
+                            ResolverContext.Path,
+                            ResolverContext.Parent<object>(),
+                            count - 1,
+                            enumerator,
+                            ResolverContext.ScopedContextData));
+                }
+
+                return list;
+            }
+            finally
+            {
+                if (!next)
+                {
+                    // if there is no deferred work we will just dispose the enumerator.
+                    // in the case we have deferred work, the deferred stream handler is
+                    // responsible of handling the dispose.
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
             }
         }
     }

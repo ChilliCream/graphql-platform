@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+        public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
         private bool HasRunningTasks
             => _work.HasRunningTasks ||

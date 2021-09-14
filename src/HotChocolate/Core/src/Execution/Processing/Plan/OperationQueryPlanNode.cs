@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProperties;
@@ -10,6 +11,7 @@ namespace HotChocolate.Execution.Processing.Plan
         private const string _name = "Operation";
         private const string _rootProp = "root";
         private const string _deferredProp = "deferred";
+        private const string _streamsProp = "streams";
 
         public OperationQueryPlanNode(QueryPlanNode operation)
             : base(ExecutionStrategy.Serial)
@@ -21,6 +23,8 @@ namespace HotChocolate.Execution.Processing.Plan
         public QueryPlanNode Operation { get; }
 
         public List<QueryPlanNode> Deferred { get; } = new();
+
+        public List<StreamPlanNode> Streams { get; } = new();
 
         public override QueryPlanStep CreateStep() =>
             Operation.CreateStep();
@@ -44,6 +48,17 @@ namespace HotChocolate.Execution.Processing.Plan
                 writer.WriteEndArray();
             }
 
+            if (Streams.Count > 0)
+            {
+                writer.WritePropertyName(_streamsProp);
+                writer.WriteStartArray();
+                foreach (StreamPlanNode node in Streams)
+                {
+                    node.Serialize(writer);
+                }
+                writer.WriteEndArray();
+            }
+
             writer.WriteEndObject();
         }
 
@@ -58,6 +73,11 @@ namespace HotChocolate.Execution.Processing.Plan
             if (Deferred.Count > 0)
             {
                  serialized[_deferredProp] = Deferred.Select(t => t.Serialize()).ToArray();
+            }
+
+            if (Streams.Count > 0)
+            {
+                serialized[_streamsProp] = Streams.Select(t => t.Serialize()).ToArray();
             }
 
             return serialized;

@@ -43,6 +43,11 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }
 
+                if (context.Streams.Count > 0)
+                {
+                    operationNode.Streams.AddRange(context.Streams);
+                }
+
                 return operationNode;
             }
         }

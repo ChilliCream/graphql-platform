@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Utilities.StreamAdapters;
 using HotChocolate.Utilities.Subscriptions;
 
 namespace HotChocolate.Resolvers.Expressions
@@ -144,7 +145,7 @@ namespace HotChocolate.Resolvers.Expressions
 
         private static ISourceStream ConvertEnumerable<T>(
             IEnumerable<T> enumerable) =>
-            new SourceStreamWrapper(new EnumerableSourceStreamAdapter<T>(enumerable));
+            new SourceStreamWrapper(new EnumerableStreamAdapter<T>(enumerable));
 
         private static ISourceStream ConvertEnumerable<T>(
             IAsyncEnumerable<T> enumerable)
