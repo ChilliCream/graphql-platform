@@ -119,7 +119,7 @@ namespace HotChocolate.Stitching.Integration
             schema.Print().MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Relies on subscriptions")]
         public async Task AutoMerge_HotReload_Schema()
         {
             // arrange

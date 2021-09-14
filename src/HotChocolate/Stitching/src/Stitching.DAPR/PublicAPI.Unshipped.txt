@@ -1,8 +1,12 @@
+const HotChocolate.Stitching.DAPR.DaprConfiguration.PubSubComponent = "HotChocolatePubSub" -> string!
+const HotChocolate.Stitching.DAPR.DaprConfiguration.PubSubTopic = "HotChocolateStitchingTopic" -> string!
+const HotChocolate.Stitching.DAPR.DaprConfiguration.StateStoreComponent = "HotChocolateStateStore" -> string!
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController.StitchingSubscription(HotChocolate.Stitching.RemoteSchemaDefinition! schemaDefinition) -> System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult!>!
 HotChocolate.Stitching.DAPR.Controller.SubscriptionController.SubscriptionController() -> void
+HotChocolate.Stitching.DAPR.DaprConfiguration
 HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher
-HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.DAPRSchemaDefinitionPublisher(HotChocolate.NameString configurationName) -> void
+HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.DAPRSchemaDefinitionPublisher(HotChocolate.NameString configurationName, Dapr.Client.DaprClient! daprClient) -> void
 HotChocolate.Stitching.DAPR.DAPRSchemaDefinitionPublisher.PublishAsync(HotChocolate.Stitching.RemoteSchemaDefinition! schemaDefinition, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
-static Microsoft.Extensions.DependencyInjection.HotChocolateStitchingDAPRPublishSchemaDefinitionDescriptorExtensions.PublishToDAPR(this HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor! descriptor, HotChocolate.NameString configurationName) -> HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor!
+static Microsoft.Extensions.DependencyInjection.HotChocolateStitchingDAPRPublishSchemaDefinitionDescriptorExtensions.PublishToDAPR(this HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor! descriptor, HotChocolate.NameString configurationName, Dapr.Client.DaprClient! daprClient) -> HotChocolate.Stitching.SchemaDefinitions.IPublishSchemaDefinitionDescriptor!
 static Microsoft.Extensions.DependencyInjection.HotChocolateStitchingDAPRRequestExecutorBuilderExtensions.AddRemoteSchemasFromDAPR(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, HotChocolate.NameString configurationName, Dapr.Client.DaprClient! daprClient) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!

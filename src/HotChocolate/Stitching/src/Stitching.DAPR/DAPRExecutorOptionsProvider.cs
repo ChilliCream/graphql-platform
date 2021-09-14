@@ -1,16 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using Dapr.Client;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Dapr.Client;
-using System.Net.Http;
-using Newtonsoft.Json;
-using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.DAPR
 {
@@ -33,9 +29,6 @@ namespace HotChocolate.Stitching.DAPR
             _daprClient = daprClient;
 
             _gatewaySchemaListKey = $"{_configurationName}.SchemaList";
-
-            //_database = database;
-            //subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
         }
 
         public async ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
