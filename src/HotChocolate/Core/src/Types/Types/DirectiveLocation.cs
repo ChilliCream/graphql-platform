@@ -30,11 +30,6 @@ namespace HotChocolate.Types
         Field = 0x8,
 
         /// <summary>
-        /// Location adjacent to a field.
-        /// </summary>
-        VariableDefinition = 0x40000,
-
-        /// <summary>
         /// Location adjacent to a fragment definition.
         /// </summary>
         FragmentDefinition = 0x10,
@@ -48,6 +43,11 @@ namespace HotChocolate.Types
         /// Location adjacent to an inline fragment.
         /// </summary>
         InlineFragment = 0x40,
+
+        /// <summary>
+        /// Location adjacent to a field.
+        /// </summary>
+        VariableDefinition = 0x40000,
 
         /// <summary>
         /// Location adjacent to a schema definition.

@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -85,7 +84,8 @@ namespace HotChocolate.Execution
                 return true;
             }
 
-            return Name.EqualsOrdinal(other.Name) && Equals(Value, other.Value);
+            return string.Equals(Name, other.Name, StringComparison.Ordinal) &&
+                   Equals(Value, other.Value);
         }
 
         /// <summary>

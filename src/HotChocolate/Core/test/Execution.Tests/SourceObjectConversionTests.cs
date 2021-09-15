@@ -56,8 +56,7 @@ namespace HotChocolate.Execution
                 await schema.MakeExecutable().ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot(options =>
-                options.IgnoreField("Errors[0].Exception"));
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

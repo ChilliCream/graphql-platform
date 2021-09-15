@@ -2190,13 +2190,9 @@
               "Name": "if",
               "Description": "Streamed when true.",
               "Type": {
-                "Kind": "NonNull",
-                "Name": null,
-                "OfType": {
-                  "Kind": "Scalar",
-                  "Name": "Boolean",
-                  "OfType": null
-                }
+                "Kind": "Scalar",
+                "Name": "Boolean",
+                "OfType": null
               },
               "DefaultValue": null
             }
@@ -6064,26 +6060,15 @@
               "Description": "Streamed when true.",
               "Type": {
                 "__typename": "__Type",
-                "Name": null,
-                "Kind": "NonNull",
+                "Name": "Boolean",
+                "Kind": "Scalar",
                 "Description": null,
                 "Fields": null,
                 "InputFields": null,
                 "Interfaces": null,
                 "EnumValues": null,
                 "PossibleTypes": null,
-                "OfType": {
-                  "__typename": "__Type",
-                  "Name": "Boolean",
-                  "Kind": "Scalar",
-                  "Description": null,
-                  "Fields": null,
-                  "InputFields": null,
-                  "Interfaces": null,
-                  "EnumValues": null,
-                  "PossibleTypes": null,
-                  "OfType": null
-                }
+                "OfType": null
               },
               "DefaultValue": null
             }

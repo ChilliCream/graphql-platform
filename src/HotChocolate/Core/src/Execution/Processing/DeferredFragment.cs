@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Processing.Plan;
 using static HotChocolate.Execution.Processing.Tasks.ResolverTaskFactory;
 
 namespace HotChocolate.Execution.Processing
@@ -18,13 +17,13 @@ namespace HotChocolate.Execution.Processing
             IFragment fragment,
             string? label,
             Path path,
-            object? value,
+            object? parent,
             IImmutableDictionary<string, object?> scopedContextData)
         {
             Fragment = fragment;
             Label = label;
             Path = path;
-            Value = value;
+            Parent = parent;
             ScopedContextData = scopedContextData;
         }
 
@@ -49,12 +48,15 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the parent / source value.
         /// </summary>
-        public object? Value { get; }
+        public object? Parent { get; }
 
         /// <summary>
         /// Gets the preserved scoped context from the parent resolver.
         /// </summary>
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
+
+        /// <inheritdoc/>
+        public bool IsCompleted { get; private set; }
 
         /// <inheritdoc/>
         public IDeferredExecutionTask? Next { get; set; }
@@ -70,11 +72,13 @@ namespace HotChocolate.Execution.Processing
             ResultMap resultMap = EnqueueResolverTasks(
                 operationContext,
                 Fragment.SelectionSet,
-                Value,
+                Parent,
                 Path,
                 ScopedContextData);
 
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+
+            IsCompleted = true;
 
             return operationContext
                 .TrySetNext(true)

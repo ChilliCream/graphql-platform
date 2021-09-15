@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
@@ -13,16 +14,32 @@ namespace HotChocolate.Execution.Processing.Plan
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            OperationQueryPlanNode operationNode = Prepare(new QueryPlanContext(operation));
+            var context = new QueryPlanContext(operation);
 
-            if (operationNode.Deferred.Count == 0)
+            OperationQueryPlanNode operationNode = Prepare(context);
+            QueryPlan[] deferredPlans = Array.Empty<QueryPlan>();
+            Dictionary<int, QueryPlan>? streamPlans = null;
+
+            if (operationNode.Deferred.Count > 0)
             {
-                return new QueryPlan(operationNode.CreateStep());
+                deferredPlans = new QueryPlan[operationNode.Deferred.Count];
+
+                for (var i = 0; i < operationNode.Deferred.Count; i++)
+                {
+                    deferredPlans[i] = new QueryPlan(operationNode.Deferred[i].CreateStep());
+                }
             }
 
-            return new QueryPlan(
-                operationNode.CreateStep(),
-                operationNode.Deferred.Select(t => new QueryPlan(t.CreateStep())).ToArray());
+            if (context.Streams.Count > 0)
+            {
+                streamPlans = new Dictionary<int, QueryPlan>();
+                foreach (StreamPlanNode streamPlan in context.Streams)
+                {
+                    streamPlans.Add(streamPlan.Id, new QueryPlan(streamPlan.Root.CreateStep()));
+                }
+            }
+
+            return new QueryPlan(operationNode.CreateStep(), deferredPlans, streamPlans);
         }
 
         public static QueryPlanNode Prepare(IPreparedOperation operation)

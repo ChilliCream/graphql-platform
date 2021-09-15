@@ -16,6 +16,11 @@ namespace HotChocolate.Execution.Processing
         IDeferredWorkBacklog DeferredWork { get; }
 
         /// <summary>
+        /// <c>true</c> if there is no work to process; otherwise, <c>false</c>.
+        /// </summary>
+        bool IsEmpty { get;}
+
+        /// <summary>
         /// Defines if the execution is completed.
         /// </summary>
         bool IsCompleted { get; }
