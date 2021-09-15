@@ -57,10 +57,20 @@ namespace HotChocolate.Execution.Processing.Plan
                 if (selection.IsStreamable && selection.SelectionSet is not null)
                 {
                     QueryPlanContext streamContext = context.Branch();
+
                     VisitChildren(selection, streamContext);
+
                     if (streamContext.Root is not null)
                     {
                         context.Streams.Add(new(selection.Id, streamContext.Root));
+                    }
+
+                    if (streamContext.Streams.Count > 0)
+                    {
+                        foreach (StreamPlanNode streamPlan in streamContext.Streams)
+                        {
+                            context.Streams.Add(streamPlan);
+                        }
                     }
                 }
 
