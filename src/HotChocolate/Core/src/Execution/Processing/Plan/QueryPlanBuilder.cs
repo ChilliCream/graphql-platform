@@ -41,12 +41,17 @@ namespace HotChocolate.Execution.Processing.Plan
 
             if (context.Streams.Count > 0)
             {
-                foreach (StreamPlanNode streamPlan in context.Streams)
+                foreach (StreamPlanNode streamPlanNode in context.Streams)
                 {
-                    streamPlans.Add(streamPlan.Id, new QueryPlan(
-                        streamPlan.Root.CreateStep(),
-                        deferredPlans,
-                        streamPlans));
+                    if (!streamPlans!.ContainsKey(streamPlanNode.Id))
+                    {
+                        var streamPlan = new QueryPlan(
+                            streamPlanNode.Root.CreateStep(),
+                            deferredPlans,
+                            streamPlans);
+
+                        streamPlans.Add(streamPlanNode.Id, streamPlan);
+                    }
                 }
             }
 

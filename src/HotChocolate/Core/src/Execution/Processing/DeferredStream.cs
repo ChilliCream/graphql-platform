@@ -102,7 +102,7 @@ namespace HotChocolate.Execution.Processing
                 .TrySetNext(true)
                 .SetLabel(Label)
                 .SetPath(Path.Append(Index))
-                .SetData(resolverTask.ResultMap)
+                .SetData((ResultMap)resolverTask.ResultMap[0].Value!)
                 .BuildResult();
 
             resolverTask.CompleteUnsafe();

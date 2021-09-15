@@ -138,6 +138,8 @@ namespace HotChocolate.Execution.Processing
 
             lock (_sync)
             {
+                bool tracked = task.State is not null;
+
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
@@ -146,13 +148,17 @@ namespace HotChocolate.Execution.Processing
                     _suspended.CopyTo(_work, _serial, _stateMachine);
                 }
 
-                // determine the work queue.
-                WorkQueue work = task.IsSerial ? _serial : _work;
+                // if was registered than we will mark it complete on the queue.
+                if (tracked)
+                {
+                    // determine the work queue.
+                    WorkQueue work = task.IsSerial ? _serial : _work;
 
-                // now we complete the work queue which will signal to the execution context
-                // that work has been completed if it has no more tasks enqueued or marked
-                // running.
-                work.Complete();
+                    // now we complete the work queue which will signal to the execution context
+                    // that work has been completed if it has no more tasks enqueued or marked
+                    // running.
+                    work.Complete();
+                }
 
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks
