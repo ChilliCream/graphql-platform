@@ -285,19 +285,21 @@ namespace GreenDonut
 
             async ValueTask StartDispatchingAsync()
             {
-                using IDisposable scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
-
-                var buffer = new Result<TValue>[batch.Keys.Count];
-
-                try
+                using(_diagnosticEvents.ExecuteBatch(this, batch.Keys))
                 {
-                    await FetchAsync(batch.Keys, buffer, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
-                }
-                catch (Exception ex)
-                {
-                    BatchOperationFailed(batch, batch.Keys, ex);
+                    var buffer = new Result<TValue>[batch.Keys.Count];
+
+                    try
+                    {
+                        await FetchAsync(batch.Keys, buffer, cancellationToken)
+                            .ConfigureAwait(false);
+                        BatchOperationSucceeded(batch, batch.Keys, buffer);
+                        _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+                    }
+                    catch (Exception ex)
+                    {
+                        BatchOperationFailed(batch, batch.Keys, ex);
+                    }
                 }
 
                 BatchPool<TKey>.Shared.Return(batch);
@@ -435,12 +437,6 @@ namespace GreenDonut
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
                     _cacheOwner?.Dispose();
-
-                    if (_currentBatch is not null)
-                    {
-                        BatchPool<TKey>.Shared.Return(_currentBatch);
-                        _currentBatch = null;
-                    }
                 }
 
                 _disposed = true;
