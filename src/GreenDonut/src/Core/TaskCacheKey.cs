@@ -37,7 +37,8 @@ namespace GreenDonut
 
         /// <inheritdoc />
         public bool Equals(TaskCacheKey other)
-            => Type == other.Type && Key.Equals(other.Key);
+            => Type.Equals(other.Type, StringComparison.Ordinal) &&
+               Key.Equals(other.Key);
 
         /// <inheritdoc />
         public override bool Equals(object? obj)

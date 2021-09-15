@@ -35,7 +35,6 @@ namespace GreenDonut
         private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
         private Batch<TKey>? _currentBatch;
-        private Result<TValue>[]? _buffer;
         private bool _disposed;
 
         /// <summary>
@@ -113,8 +112,11 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                cached = false;
-                return GetOrCreatePromiseUnsafe(key).Task;
+                lock (_sync)
+                {
+                    cached = false;
+                    return GetOrCreatePromiseUnsafe(key).Task;
+                }
             }
         }
 
@@ -273,7 +275,10 @@ namespace GreenDonut
         {
             lock (_sync)
             {
-                _currentBatch = null;
+                if (ReferenceEquals(_currentBatch, batch))
+                {
+                    _currentBatch = null;
+                }
             }
 
             return StartDispatchingAsync();
