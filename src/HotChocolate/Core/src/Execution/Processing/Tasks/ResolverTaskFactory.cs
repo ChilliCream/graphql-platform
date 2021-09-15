@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        public static ResultMap EnqueueElementTasks(
+        public static ResolverTask EnqueueElementTasks(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
@@ -113,8 +113,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 Interlocked.Exchange(ref _pooled, bufferedTasks);
             }
 
-            // TODO : we have spec inquiries open regarding this
-            return (ResultMap)resultMap[0].Value!;
+            return resolverTask;
         }
 
         public static ResultMap EnqueueOrInlineResolverTasks(

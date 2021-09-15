@@ -33,6 +33,8 @@ namespace HotChocolate.Execution.Processing.Tasks
 
         public IExecutionTask? Previous { get; set; }
 
+        public ResultMap ResultMap { get; private set; } = default!;
+
         public object? State { get; set; }
 
         public bool IsSerial { get; set; }
@@ -60,6 +62,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 parent,
                 path,
                 scopedContextData);
+            ResultMap = resultMap;
         }
 
         public bool Reset()
@@ -67,6 +70,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             _operationContext = default!;
             _selection = default!;
             _resolverContext.Clean();
+            ResultMap = default!;
             IsCompleted = false;
             IsSerial = false;
             Parent = null;

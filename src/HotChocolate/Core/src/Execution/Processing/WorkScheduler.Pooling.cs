@@ -97,6 +97,7 @@ namespace HotChocolate.Execution.Processing
                 _pause.TryContinueUnsafe();
 
                 _work.Clear();
+                _serial.Clear();
                 _suspended.Clear();
                 _stateMachine.Clear();
                 _stateMachine.Initialize(_operationContext, _operationContext.QueryPlan);

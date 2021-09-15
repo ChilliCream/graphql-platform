@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -18,6 +19,7 @@ namespace HotChocolate.Execution.Processing.Internal
 
         public void Complete()
         {
+            Debug.Assert(_running != 0, "There are no running tasks.");
             _running--;
         }
 
