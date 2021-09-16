@@ -70,7 +70,7 @@ namespace HotChocolate.Internal
 
             if (fieldFactory is null)
             {
-                throw new ArgumentNullException(nameof(fieldDefs));
+                throw new ArgumentNullException(nameof(fieldFactory));
             }
 
             return CompleteFieldsInternal(

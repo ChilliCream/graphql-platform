@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 if (context.Streams.Count > 0)
                 {
-                    operationNode.Streams.AddRange(context.Streams);
+                    operationNode.Streams.AddRange(context.Streams.Values);
                 }
 
                 return operationNode;
@@ -57,10 +57,24 @@ namespace HotChocolate.Execution.Processing.Plan
                 if (selection.IsStreamable && selection.SelectionSet is not null)
                 {
                     QueryPlanContext streamContext = context.Branch();
+
                     VisitChildren(selection, streamContext);
-                    if (streamContext.Root is not null)
+
+                    if (streamContext.Root is not null &&
+                        !context.Streams.ContainsKey(selection.Id))
                     {
-                        context.Streams.Add(new(selection.Id, streamContext.Root));
+                        context.Streams.Add(selection.Id, new(selection.Id, streamContext.Root));
+                    }
+
+                    if (streamContext.Streams.Count > 0)
+                    {
+                        foreach (StreamPlanNode streamPlan in streamContext.Streams.Values)
+                        {
+                            if (!context.Streams.ContainsKey(selection.Id))
+                            {
+                                context.Streams.Add(selection.Id, streamPlan);
+                            }
+                        }
                     }
                 }
 

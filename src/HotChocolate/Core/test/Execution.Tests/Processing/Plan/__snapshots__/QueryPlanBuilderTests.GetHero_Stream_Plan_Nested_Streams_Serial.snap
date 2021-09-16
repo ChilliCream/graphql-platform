@@ -168,87 +168,6 @@
   ],
   "streams": [
     {
-      "id": 22,
-      "root": {
-        "type": "Resolver",
-        "strategy": "Parallel",
-        "selections": [
-          {
-            "id": 23,
-            "field": "Human.id",
-            "responseName": "id",
-            "pure": true
-          },
-          {
-            "id": 25,
-            "field": "Human.friends",
-            "responseName": "friends"
-          },
-          {
-            "id": 26,
-            "field": "FriendsConnection.nodes",
-            "responseName": "nodes"
-          }
-        ],
-        "nodes": [
-          {
-            "type": "Resolver",
-            "strategy": "Serial",
-            "selections": [
-              {
-                "id": 33,
-                "field": "Droid.friends",
-                "responseName": "friends"
-              }
-            ],
-            "nodes": [
-              {
-                "type": "Resolver",
-                "strategy": "Parallel",
-                "selections": [
-                  {
-                    "id": 34,
-                    "field": "FriendsConnection.nodes",
-                    "responseName": "nodes"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "id": 26,
-      "root": {
-        "type": "Resolver",
-        "strategy": "Parallel",
-        "selections": [
-          {
-            "id": 27,
-            "field": "Human.id",
-            "responseName": "id",
-            "pure": true
-          }
-        ]
-      }
-    },
-    {
-      "id": 34,
-      "root": {
-        "type": "Resolver",
-        "strategy": "Parallel",
-        "selections": [
-          {
-            "id": 35,
-            "field": "Human.id",
-            "responseName": "id",
-            "pure": true
-          }
-        ]
-      }
-    },
-    {
       "id": 3,
       "root": {
         "type": "Resolver",
@@ -322,6 +241,87 @@
         "selections": [
           {
             "id": 16,
+            "field": "Human.id",
+            "responseName": "id",
+            "pure": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "root": {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 23,
+            "field": "Human.id",
+            "responseName": "id",
+            "pure": true
+          },
+          {
+            "id": 25,
+            "field": "Human.friends",
+            "responseName": "friends"
+          },
+          {
+            "id": 26,
+            "field": "FriendsConnection.nodes",
+            "responseName": "nodes"
+          }
+        ],
+        "nodes": [
+          {
+            "type": "Resolver",
+            "strategy": "Serial",
+            "selections": [
+              {
+                "id": 33,
+                "field": "Droid.friends",
+                "responseName": "friends"
+              }
+            ],
+            "nodes": [
+              {
+                "type": "Resolver",
+                "strategy": "Parallel",
+                "selections": [
+                  {
+                    "id": 34,
+                    "field": "FriendsConnection.nodes",
+                    "responseName": "nodes"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "root": {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 27,
+            "field": "Human.id",
+            "responseName": "id",
+            "pure": true
+          }
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "root": {
+        "type": "Resolver",
+        "strategy": "Parallel",
+        "selections": [
+          {
+            "id": 35,
             "field": "Human.id",
             "responseName": "id",
             "pure": true
