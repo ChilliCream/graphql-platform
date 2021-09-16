@@ -22,7 +22,6 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 IOperationContext context = _operationContextOwner.OperationContext;
-                QueryPlan rootQueryPlan = context.QueryPlan;
 
                 while (context.Scheduler.DeferredWork.TryTake(
                     out IDeferredExecutionTask? deferredTask))

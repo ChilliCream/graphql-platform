@@ -98,7 +98,7 @@ namespace HotChocolate.Execution.Processing
 
             IsCompleted = await Enumerator.MoveNextAsync() == false;
 
-            var result = operationContext
+            IQueryResult result = operationContext
                 .TrySetNext(true)
                 .SetLabel(Label)
                 .SetPath(Path.Append(Index))

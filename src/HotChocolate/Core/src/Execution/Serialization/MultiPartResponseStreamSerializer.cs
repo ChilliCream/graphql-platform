@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Serialization
             return WriteResponseStreamAsync(responseStream, outputStream, cancellationToken);
         }
 
-        public async Task WriteResponseStreamAsync(
+        private async Task WriteResponseStreamAsync(
             IResponseStream responseStream,
             Stream outputStream,
             CancellationToken cancellationToken = default)
@@ -65,10 +65,20 @@ namespace HotChocolate.Execution.Serialization
                 if (result.HasNext ?? false)
                 {
                     await WriteNextAsync(outputStream, cancellationToken).ConfigureAwait(false);
+                    await outputStream.FlushAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // we will exit the foreach even if there are more items left
+                    // since we were signaled that there are no more items
+                    break;
                 }
             }
 
             await WriteEndAsync(outputStream, cancellationToken).ConfigureAwait(false);
+            await outputStream.FlushAsync(cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task WriteResultAsync(
@@ -82,15 +92,11 @@ namespace HotChocolate.Execution.Serialization
             await WriteResultHeaderAsync(outputStream, cancellationToken)
                 .ConfigureAwait(false);
 
-            // The payload is sent, followed by two CRLFs.
+            // The payload is sent, followed by a CRLF.
             await outputStream.WriteAsync(
                 writer.GetInternalBuffer(), 0, writer.Length, cancellationToken)
                 .ConfigureAwait(false);
             await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                .ConfigureAwait(false);
-            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                .ConfigureAwait(false);
-            await outputStream.FlushAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 
