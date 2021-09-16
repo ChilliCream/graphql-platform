@@ -30,7 +30,7 @@ class Helpers
     };
 
     public static IEnumerable<string> GetAllProjects(
-        string sourceDirectory, 
+        string sourceDirectory,
         IEnumerable<string> directories,
         Func<string, bool> include = null)
     {
@@ -40,7 +40,7 @@ class Helpers
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
                 if (!(include?.Invoke(file) ?? true)
-                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
                 {
@@ -97,7 +97,7 @@ class Helpers
         return list;
     }
 
-    public static void TryDelete(string fileName) 
+    public static void TryDelete(string fileName)
     {
         if(File.Exists(fileName))
         {
