@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Tests;
@@ -88,7 +89,37 @@ namespace HotChocolate.Types
                 .MakeExecutable()
                 .ExecuteAsync(
                     QueryRequestBuilder.New()
-                        .SetQuery("{ foo(a: { }) { foo bar baz quox } }")
+                        .SetQuery("{ foo(a: { }) { foo bar baz qux quux } }")
+                        .Create())
+                .MatchSnapshotAsync();
+        }
+
+
+        [Fact]
+        public async Task Infer_Default_Values_From_Attribute_Execute_With_Variables()
+        {
+            await SchemaBuilder.New()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+
+                    d.Field("foo")
+                        .Argument("a", a => a.Type<InputObjectType<InputWithDefaults>>())
+                        .Resolve(ctx => ctx.ArgumentValue<InputWithDefaults>("a"));
+                })
+                .AddInputObjectType<InputWithDefaults>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .MakeExecutable()
+                .ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query($q: InputWithDefaultsInput) {
+                                foo(a: $q) {
+                                    foo bar baz qux quux
+                                }
+                            }")
+                        .SetVariableValue("q", new Dictionary<string, object>())
                         .Create())
                 .MatchSnapshotAsync();
         }
@@ -147,7 +178,16 @@ namespace HotChocolate.Types
             public double Baz { get; set; }
 
             [DefaultValue(true)]
-            public bool Quox { get; set; }
+            public bool Qux { get; set; }
+
+            [DefaultValue(Quux.Corge)]
+            public Quux Quux { get; set; }
+        }
+
+        public enum Quux
+        {
+            Corge,
+            Grault
         }
     }
 }
