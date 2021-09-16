@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -41,17 +40,14 @@ namespace HotChocolate.Execution.Processing.Plan
 
             if (context.Streams.Count > 0)
             {
-                foreach (StreamPlanNode streamPlanNode in context.Streams)
+                foreach (StreamPlanNode streamPlanNode in context.Streams.Values)
                 {
-                    if (!streamPlans!.ContainsKey(streamPlanNode.Id))
-                    {
-                        var streamPlan = new QueryPlan(
-                            streamPlanNode.Root.CreateStep(),
-                            deferredPlans,
-                            streamPlans);
+                    var streamPlan = new QueryPlan(
+                        streamPlanNode.Root.CreateStep(),
+                        deferredPlans,
+                        streamPlans);
 
-                        streamPlans.Add(streamPlanNode.Id, streamPlan);
-                    }
+                    streamPlans!.Add(streamPlanNode.Id, streamPlan);
                 }
             }
 

@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Processing.Plan
             {
                 writer.WritePropertyName(_streamsProp);
                 writer.WriteStartArray();
-                foreach (StreamPlanNode node in Streams)
+                foreach (StreamPlanNode node in Streams.OrderBy(t => t.Id))
                 {
                     node.Serialize(writer);
                 }
@@ -72,12 +72,14 @@ namespace HotChocolate.Execution.Processing.Plan
 
             if (Deferred.Count > 0)
             {
-                 serialized[_deferredProp] = Deferred.Select(t => t.Serialize()).ToArray();
+                 serialized[_deferredProp] =
+                     Deferred.Select(t => t.Serialize()).ToArray();
             }
 
             if (Streams.Count > 0)
             {
-                serialized[_streamsProp] = Streams.Select(t => t.Serialize()).ToArray();
+                serialized[_streamsProp] =
+                    Streams.OrderBy(t => t.Id).Select(t => t.Serialize()).ToArray();
             }
 
             return serialized;

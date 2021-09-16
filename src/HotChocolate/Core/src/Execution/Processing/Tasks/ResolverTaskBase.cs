@@ -15,34 +15,61 @@ namespace HotChocolate.Execution.Processing.Tasks
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
 
+        /// <summary>
+        /// Gets access to the resolver context for this task.
+        /// </summary>
         protected internal MiddlewareContext ResolverContext => _resolverContext;
 
+        /// <summary>
+        /// Gets access to the operation context.
+        /// </summary>
         protected IOperationContext OperationContext => _operationContext;
 
+        /// <summary>
+        /// Gets access to the diagnostic events.
+        /// </summary>
         protected IExecutionDiagnosticEvents DiagnosticEvents => OperationContext.DiagnosticEvents;
 
+        /// <summary>
+        /// Gets the selection for which a resolver is executed.
+        /// </summary>
         public ISelection Selection => _selection;
 
+        /// <inheritdoc />
         public abstract ExecutionTaskKind Kind { get; }
 
+        /// <inheritdoc />
         public bool IsCompleted { get; protected set; }
 
-        public IExecutionTask? Parent { get; set; }
-
+        /// <inheritdoc />
         public IExecutionTask? Next { get; set; }
 
+        /// <inheritdoc />
         public IExecutionTask? Previous { get; set; }
 
+        /// <summary>
+        /// Gets access to the internal result map into which the task will write the result.
+        /// </summary>
         public ResultMap ResultMap { get; private set; } = default!;
 
+        /// <inheritdoc />
         public object? State { get; set; }
 
+        /// <inheritdoc />
         public bool IsSerial { get; set; }
 
+        /// <inheritdoc />
+        public bool IsRegistered { get; set; }
+
+        /// <inheritdoc />
         public abstract void BeginExecute(CancellationToken cancellationToken);
 
+        /// <inheritdoc />
         public abstract Task WaitForCompletionAsync(CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Initializes this task after it is retrieved from its pool.
+        /// </summary>
         public void Initialize(
             IOperationContext operationContext,
             ISelection selection,
@@ -65,6 +92,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap = resultMap;
         }
 
+        /// <summary>
+        /// Resets the resolver task before returning it to the pool.
+        /// </summary>
+        /// <returns></returns>
         public bool Reset()
         {
             _operationContext = default!;
@@ -73,7 +104,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ResultMap = default!;
             IsCompleted = false;
             IsSerial = false;
-            Parent = null;
+            IsRegistered = false;
             Next = null;
             Previous = null;
             State = null;
@@ -81,6 +112,11 @@ namespace HotChocolate.Execution.Processing.Tasks
             return true;
         }
 
+        /// <summary>
+        /// Completes the resolver result.
+        /// </summary>
+        /// <param name="success">Defines if the resolver succeeded without errors.</param>
+        /// <param name="cancellationToken">The execution cancellation token.</param>
         protected void CompleteValue(bool success, CancellationToken cancellationToken)
         {
             object? completedValue = null;

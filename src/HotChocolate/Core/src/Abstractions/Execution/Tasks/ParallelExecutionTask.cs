@@ -25,9 +25,6 @@ namespace HotChocolate.Execution
         public bool IsCompleted => _task?.IsCompleted ?? false;
 
         /// <inheritdoc />
-        public IExecutionTask? Parent { get; set; }
-
-        /// <inheritdoc />
         public IExecutionTask? Next { get; set; }
 
         /// <inheritdoc />
@@ -40,14 +37,15 @@ namespace HotChocolate.Execution
         public bool IsSerial { get; set; }
 
         /// <inheritdoc />
-        public void BeginExecute(CancellationToken cancellationToken)
-        {
-            _task = ExecuteInternalAsync(cancellationToken).AsTask();
-        }
+        public bool IsRegistered { get; set; }
 
         /// <inheritdoc />
-        public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
-            _task ?? Task.CompletedTask;
+        public void BeginExecute(CancellationToken cancellationToken)
+            => _task = ExecuteInternalAsync(cancellationToken).AsTask();
+
+        /// <inheritdoc />
+        public Task WaitForCompletionAsync(CancellationToken cancellationToken)
+            => _task ?? Task.CompletedTask;
 
         private async ValueTask ExecuteInternalAsync(CancellationToken cancellationToken)
         {

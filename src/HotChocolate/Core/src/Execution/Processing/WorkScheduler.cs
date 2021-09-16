@@ -43,7 +43,12 @@ namespace HotChocolate.Execution.Processing
             }
 
             var started = false;
+
+            // first we initialize the task execution state.
+            // This can be done without acquiring a lock since we only 
+            // interact with the task object itself.
             var state = _stateMachine.TryGetStep(task);
+            task.IsRegistered = true;
 
             lock (_sync)
             {
@@ -83,10 +88,14 @@ namespace HotChocolate.Execution.Processing
 
             var started = false;
 
+            // first we initialize the task execution state.
+            // This can be done without acquiring a lock since we only 
+            // interact with the task object itself.
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
                 task.State ??= _stateMachine.TryGetStep(task);
+                task.IsRegistered = true;
             }
 
             lock (_sync)
@@ -131,15 +140,8 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            if (task.Parent is not null)
-            {
-                return;
-            }
-
             lock (_sync)
             {
-                bool tracked = task.State is not null;
-
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
@@ -149,7 +151,7 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 // if was registered than we will mark it complete on the queue.
-                if (tracked)
+                if (task.IsRegistered)
                 {
                     // determine the work queue.
                     WorkQueue work = task.IsSerial ? _serial : _work;
