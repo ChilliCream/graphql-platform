@@ -33,11 +33,7 @@ namespace HotChocolate.Execution.Processing
                         return;
                     }
 
-                    if (_continuation is not null)
-                    {
-                        Debug.Assert(false, "We should not have to await.");
-                    }
-
+                    Debug.Assert(_continuation is null, "There should only be one awaiter.");
                     _continuation = continuation;
                 }
             }
