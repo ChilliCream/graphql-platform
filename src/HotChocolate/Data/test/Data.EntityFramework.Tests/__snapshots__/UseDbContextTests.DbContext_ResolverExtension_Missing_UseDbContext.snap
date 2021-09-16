@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "Could not retrieve DbContext",
+      "locations": [
+        {
+          "line": 2,
+          "column": 21
+        }
+      ],
+      "path": [
+        "booksWithMissingContext"
+      ]
+    }
+  ],
+  "data": {
+    "booksWithMissingContext": null
+  }
+}

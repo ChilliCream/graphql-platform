@@ -527,6 +527,55 @@ namespace HotChocolate.Data
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task DbContext_ResolverExtension()
+        {
+            // arrange
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    books {
+                        id
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DbContext_ResolverExtension_Missing_UseDbContext()
+        {
+            // arrange
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase(CreateConnectionString()))
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query Test {
+                    booksWithMissingContext {
+                        id
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         private static string CreateConnectionString() =>
             $"Data Source={Guid.NewGuid():N}.db";
     }
