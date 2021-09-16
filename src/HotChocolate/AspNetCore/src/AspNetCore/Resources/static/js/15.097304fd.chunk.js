@@ -1,1 +1,0 @@
-(this["webpackJsonp@banana-cake-pop/main"]=this["webpackJsonp@banana-cake-pop/main"]||[]).push([[15],{625:function(a,n,p){"use strict";p.r(n);var t=p(385);p.d(n,"default",(function(){return t.b}))}}]);
