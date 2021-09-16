@@ -373,6 +373,8 @@ public class ProductType : ObjectType<Product>
 }
 ```
 
+> ⚠️ Note: When using middleware such as `UseDbContext` it needs to be chained after the `ResolveNode` call. The order of middleware still matters.
+
 If the `Id` property of our class is not called `id`, we can either [rename it](/docs/hotchocolate/defining-a-schema/object-types#naming) or specify it through the `IdField` method on the `IObjectTypeDescriptor`. Hot Chocolate will then automatically rename this property to `id` in the schema to properly implement the contract of the `Node` interface.
 
 ```csharp
