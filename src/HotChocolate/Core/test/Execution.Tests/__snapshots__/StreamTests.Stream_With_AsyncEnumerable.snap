@@ -13,7 +13,7 @@
   "data": {
     "name": "Foo"
   },
-  "hasNext": false
+  "hasNext": true
 }
 
 {
@@ -24,6 +24,10 @@
   "data": {
     "name": "Bar"
   },
+  "hasNext": true
+}
+
+{
   "hasNext": false
 }
 

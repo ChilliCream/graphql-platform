@@ -36,7 +36,7 @@
     "id": "1002",
     "name": "Han Solo"
   },
-  "hasNext": false
+  "hasNext": true
 }
 
 {
@@ -50,6 +50,10 @@
     "id": "1003",
     "name": "Leia Organa"
   },
+  "hasNext": true
+}
+
+{
   "hasNext": false
 }
 

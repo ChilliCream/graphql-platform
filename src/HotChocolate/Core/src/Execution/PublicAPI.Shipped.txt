@@ -376,7 +376,6 @@ HotChocolate.Execution.Serialization.JsonQueryResultSerializer.SerializeAsync(Ho
 HotChocolate.Execution.Serialization.MultiPartResponseStreamSerializer
 HotChocolate.Execution.Serialization.MultiPartResponseStreamSerializer.MultiPartResponseStreamSerializer(bool indented = false) -> void
 HotChocolate.Execution.Serialization.MultiPartResponseStreamSerializer.SerializeAsync(HotChocolate.Execution.IResponseStream! responseStream, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
-HotChocolate.Execution.Serialization.MultiPartResponseStreamSerializer.WriteResponseStreamAsync(HotChocolate.Execution.IResponseStream! responseStream, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 HotChocolate.ExecutionResultExtensions
 HotChocolate.ExecutionSchemaExtensions
 Microsoft.Extensions.DependencyInjection.InternalSchemaServiceCollectionExtensions

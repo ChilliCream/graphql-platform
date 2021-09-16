@@ -232,3 +232,4 @@ virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.
 virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ValidateDocument(HotChocolate.Execution.IRequestContext! context) -> System.IDisposable!
 virtual HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ValidationErrors(HotChocolate.Execution.IRequestContext! context, System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>! errors) -> void
 *REMOVED*HotChocolate.Execution.Processing.ResultMap.Complete() -> void
+*REMOVED*HotChocolate.Execution.Serialization.MultiPartResponseStreamSerializer.WriteResponseStreamAsync(HotChocolate.Execution.IResponseStream! responseStream, System.IO.Stream! outputStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
