@@ -528,7 +528,7 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task DbContext_ResolverExtension()
+        public async Task ScopedService_ResolverExtension()
         {
             // arrange
             IRequestExecutor executor =
@@ -552,7 +552,7 @@ namespace HotChocolate.Data
         }
 
         [Fact]
-        public async Task DbContext_ResolverExtension_Missing_UseDbContext()
+        public async Task ScopedService_ResolverExtension_Missing_DbContext()
         {
             // arrange
             IRequestExecutor executor =

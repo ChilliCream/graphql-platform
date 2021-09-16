@@ -43,7 +43,7 @@ namespace HotChocolate.Data
                         .Resolve(ctx =>
                         {
                             DatabaseContext<TEntity> context =
-                                ctx.DbContext<DatabaseContext<TEntity>>();
+                                ctx.ScopedService<DatabaseContext<TEntity>>();
                             BuildContext(context, entities);
                             return context.Data;
                         })
