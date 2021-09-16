@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -23,8 +24,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IWorkScheduler scheduler = operationContext.Scheduler;
-            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
             var final = !selectionSet.IsConditional;
+
+            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
             try
             {
@@ -82,9 +85,8 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             ResultMap resultMap = operationContext.Result.RentResultMap(1);
 
-            List<IExecutionTask> bufferedTasks =
-                Interlocked.Exchange(ref _pooled, null) ??
-                new List<IExecutionTask>();
+            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
             ResolverTask resolverTask = CreateResolverTask(
                 operationContext,
@@ -110,6 +112,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             finally
             {
+                bufferedTasks.Clear();
                 Interlocked.Exchange(ref _pooled, bufferedTasks);
             }
 
