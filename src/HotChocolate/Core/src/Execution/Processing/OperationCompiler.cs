@@ -232,10 +232,12 @@ namespace HotChocolate.Execution.Processing
                 else
                 {
                     Func<object, IAsyncEnumerable<object?>>? createStream = null;
+                    bool isStreamable = selection.IsStreamable();
 
-                    if (field.Type.IsListType() && selection.IsStreamable())
+                    if (field.MaybeStream || field.Type.IsListType() && isStreamable)
                     {
                         IType elementType = field.Type.ElementType();
+
                         if (elementType.IsCompositeType())
                         {
                             Type runtimeType = elementType.ToRuntimeType();
@@ -264,7 +266,8 @@ namespace HotChocolate.Execution.Processing
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
                         internalSelection: context.IsInternalSelection,
-                        createStream: createStream);
+                        createStream: createStream,
+                        isStreamable: isStreamable);
 
                     context.Fields.Add(responseName, preparedSelection);
                 }

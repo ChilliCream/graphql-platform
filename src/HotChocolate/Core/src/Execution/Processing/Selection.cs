@@ -36,7 +36,8 @@ namespace HotChocolate.Execution.Processing
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false,
             SelectionExecutionStrategy? strategy = null,
-            Func<object, IAsyncEnumerable<object?>>?  createStream = null)
+            Func<object, IAsyncEnumerable<object?>>? createStream = null,
+            bool isStreamable = false)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
@@ -77,6 +78,10 @@ namespace HotChocolate.Execution.Processing
                 Strategy = SelectionExecutionStrategy.Default;
             }
 
+            IsStreamable = isStreamable && createStream is not null;
+            MaybeStream = Field.MaybeStream && createStream is not null;
+            IsList = Field.Type.IsListType();
+
             if (includeCondition is not null)
             {
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
@@ -107,6 +112,9 @@ namespace HotChocolate.Execution.Processing
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
             _createStream = selection._createStream;
+            IsStreamable = selection.IsStreamable;
+            MaybeStream = selection.MaybeStream;
+            IsList = selection.IsList;
         }
 
         /// <inheritdoc />
@@ -160,7 +168,13 @@ namespace HotChocolate.Execution.Processing
         public IArgumentMap Arguments { get; }
 
         /// <inheritdoc />
-        public bool IsStreamable => _createStream is not null;
+        public bool IsStreamable { get; }
+
+        /// <inheritdoc />
+        public bool MaybeStream { get; }
+
+        /// <inheritdoc />
+        public bool IsList { get; }
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }
