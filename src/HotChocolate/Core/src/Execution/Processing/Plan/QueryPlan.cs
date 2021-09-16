@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Properties;
 
@@ -7,16 +8,16 @@ namespace HotChocolate.Execution.Processing.Plan
     internal class QueryPlan
     {
         private readonly QueryPlan[] _deferredPlans;
+        private readonly Dictionary<int, QueryPlan>? _streamPlans;
 
-        public QueryPlan(QueryPlanStep root)
-            : this(root, Array.Empty<QueryPlan>())
-        {
-        }
-
-        public QueryPlan(QueryPlanStep root, QueryPlan[] deferredPlans)
+        public QueryPlan(
+            QueryPlanStep root,
+            QueryPlan[]? deferredPlans = null,
+            Dictionary<int, QueryPlan>? streamPlans = null)
         {
             Root = root;
-            _deferredPlans = deferredPlans;
+            _deferredPlans = deferredPlans ?? Array.Empty<QueryPlan>();
+            _streamPlans = streamPlans;
 
             var count = 0;
             AssignId(root, ref count);
@@ -37,6 +38,16 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             return _deferredPlans[fragmentId];
+        }
+
+        public QueryPlan GetStreamPlan(int selectionId)
+        {
+            if (_streamPlans is null)
+            {
+                throw new NotSupportedException("This query plan has no streams.");
+            }
+
+            return _streamPlans[selectionId];
         }
 
         internal bool TryGetStep(

@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+        public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
         private bool HasRunningTasks
             => _work.HasRunningTasks ||
@@ -43,7 +43,12 @@ namespace HotChocolate.Execution.Processing
             }
 
             var started = false;
+
+            // first we initialize the task execution state.
+            // This can be done without acquiring a lock since we only 
+            // interact with the task object itself.
             var state = _stateMachine.TryGetStep(task);
+            task.IsRegistered = true;
 
             lock (_sync)
             {
@@ -83,10 +88,14 @@ namespace HotChocolate.Execution.Processing
 
             var started = false;
 
+            // first we initialize the task execution state.
+            // This can be done without acquiring a lock since we only 
+            // interact with the task object itself.
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
                 task.State ??= _stateMachine.TryGetStep(task);
+                task.IsRegistered = true;
             }
 
             lock (_sync)
@@ -131,11 +140,6 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
-            if (task.Parent is not null)
-            {
-                return;
-            }
-
             lock (_sync)
             {
                 // we first complete the task on the state machine so that if we are completing
@@ -146,13 +150,17 @@ namespace HotChocolate.Execution.Processing
                     _suspended.CopyTo(_work, _serial, _stateMachine);
                 }
 
-                // determine the work queue.
-                WorkQueue work = task.IsSerial ? _serial : _work;
+                // if was registered than we will mark it complete on the queue.
+                if (task.IsRegistered)
+                {
+                    // determine the work queue.
+                    WorkQueue work = task.IsSerial ? _serial : _work;
 
-                // now we complete the work queue which will signal to the execution context
-                // that work has been completed if it has no more tasks enqueued or marked
-                // running.
-                work.Complete();
+                    // now we complete the work queue which will signal to the execution context
+                    // that work has been completed if it has no more tasks enqueued or marked
+                    // running.
+                    work.Complete();
+                }
 
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks

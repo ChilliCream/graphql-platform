@@ -35,7 +35,6 @@ namespace GreenDonut
         private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
         private Batch<TKey>? _currentBatch;
-        private Result<TValue>[]? _buffer;
         private bool _disposed;
 
         /// <summary>
@@ -113,8 +112,11 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                cached = false;
-                return GetOrCreatePromiseUnsafe(key).Task;
+                lock (_sync)
+                {
+                    cached = false;
+                    return GetOrCreatePromiseUnsafe(key).Task;
+                }
             }
         }
 
@@ -156,7 +158,6 @@ namespace GreenDonut
                     cached = true;
                     currentKey = key;
                     TaskCacheKey cacheKey = new(_cacheKeyType, key);
-
                     Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
@@ -184,8 +185,11 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                cached = false;
-                return GetOrCreatePromiseUnsafe(currentKey).Task;
+                lock (_sync)
+                {
+                    cached = false;
+                    return GetOrCreatePromiseUnsafe(currentKey).Task;
+                }
             }
         }
 
@@ -271,40 +275,33 @@ namespace GreenDonut
         {
             lock (_sync)
             {
-                _currentBatch = null;
+                if (ReferenceEquals(_currentBatch, batch))
+                {
+                    _currentBatch = null;
+                }
             }
 
             return StartDispatchingAsync();
 
             async ValueTask StartDispatchingAsync()
             {
-                using IDisposable scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
-
-                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
-                buffer ??= new Result<TValue>[batch.Keys.Count];
-
-                if (buffer.Length < batch.Size)
+                using(_diagnosticEvents.ExecuteBatch(this, batch.Keys))
                 {
-                    Array.Resize(ref buffer, batch.Size);
+                    var buffer = new Result<TValue>[batch.Keys.Count];
+
+                    try
+                    {
+                        await FetchAsync(batch.Keys, buffer, cancellationToken)
+                            .ConfigureAwait(false);
+                        BatchOperationSucceeded(batch, batch.Keys, buffer);
+                        _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+                    }
+                    catch (Exception ex)
+                    {
+                        BatchOperationFailed(batch, batch.Keys, ex);
+                    }
                 }
 
-                Memory<Result<TValue>> results = batch.Keys.Count == buffer.Length
-                    ? buffer.AsMemory()
-                    : buffer.AsMemory().Slice(0, batch.Keys.Count);
-
-                try
-                {
-                    await FetchAsync(batch.Keys, results, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, results.Span);
-                }
-                catch (Exception ex)
-                {
-                    BatchOperationFailed(batch, batch.Keys, ex);
-                }
-
-                results.Span.Clear();
-                Interlocked.Exchange(ref _buffer, buffer);
                 BatchPool<TKey>.Shared.Return(batch);
             }
         }
@@ -440,12 +437,6 @@ namespace GreenDonut
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
                     _cacheOwner?.Dispose();
-
-                    if (_currentBatch is not null)
-                    {
-                        BatchPool<TKey>.Shared.Return(_currentBatch);
-                        _currentBatch = null;
-                    }
                 }
 
                 _disposed = true;

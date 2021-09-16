@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation

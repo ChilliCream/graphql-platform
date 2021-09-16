@@ -171,5 +171,32 @@ namespace HotChocolate.Execution
 
             results.ToString().MatchSnapshot();
         }
+
+        [Fact(Skip = "needs to be fixed.")]
+        public async Task Do_Not_Defer()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWarsTypes()
+                    .ExecuteRequestAsync(
+                        @"{
+                            hero(episode: NEW_HOPE) {
+                                id
+                                ... deferred @defer(label: ""friends"", if: false)
+                            }
+                        }
+
+                        fragment deferred on Character {
+                            friends {
+                                nodes {
+                                    id
+                                }
+                            }
+                        }");
+
+            Assert.IsType<QueryResult>(result).MatchSnapshot();
+        }
     }
 }
