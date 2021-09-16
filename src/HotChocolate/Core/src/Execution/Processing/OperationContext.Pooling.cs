@@ -22,9 +22,6 @@ namespace HotChocolate.Execution.Processing
         private Func<object?> _resolveQueryRootValue = default!;
         private object? _rootValue;
         private bool _isInitialized;
-        private static int _next = 0;
-
-        public int Id { get; }
 
         public OperationContext(
             ObjectPool<ResolverTask> resolverTaskPool,
@@ -33,8 +30,6 @@ namespace HotChocolate.Execution.Processing
             _resolverTaskPool = resolverTaskPool;
             _workScheduler = new WorkScheduler(this);
             _resultHelper = new ResultHelper(resultPool);
-
-            Id = ++_next;
         }
 
         public bool IsInitialized => _isInitialized;
