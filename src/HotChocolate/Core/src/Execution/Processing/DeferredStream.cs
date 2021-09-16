@@ -31,6 +31,9 @@ namespace HotChocolate.Execution.Processing
             ScopedContextData = scopedContextData;
         }
 
+        /// <summary>
+        /// Gets the selection of the streamed field.
+        /// </summary>
         public ISelection Selection { get; }
 
         /// <summary>
@@ -67,47 +70,50 @@ namespace HotChocolate.Execution.Processing
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
 
         /// <inheritdoc/>
-        public bool IsCompleted { get; private set; }
-
-        /// <inheritdoc/>
         public IDeferredExecutionTask? Next { get; set; }
 
         /// <inheritdoc/>
         public IDeferredExecutionTask? Previous { get; set; }
 
         /// <inheritdoc/>
-        public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
+        public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
         {
             operationContext.QueryPlan = operationContext.QueryPlan.GetStreamPlan(Selection.Id);
 
             Index++;
+            var hasNext = await Enumerator.MoveNextAsync();
 
-            ResolverTask resolverTask = ResolverTaskFactory.EnqueueElementTasks(
-                operationContext,
-                Selection,
-                Parent,
-                Path,
-                Index,
-                Enumerator,
-                ScopedContextData);
-
-            if (!operationContext.Scheduler.IsEmpty)
+            if (hasNext)
             {
-                await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+                ResolverTask resolverTask = ResolverTaskFactory.EnqueueElementTasks(
+                    operationContext,
+                    Selection,
+                    Parent,
+                    Path,
+                    Index,
+                    Enumerator,
+                    ScopedContextData);
+
+                if (!operationContext.Scheduler.IsEmpty)
+                {
+                    await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
+                }
+
+                operationContext.Scheduler.DeferredWork.Register(this);
+
+                IQueryResult result = operationContext
+                    .TrySetNext(true)
+                    .SetLabel(Label)
+                    .SetPath(Path.Append(Index))
+                    .SetData((ResultMap)resolverTask.ResultMap[0].Value!)
+                    .BuildResult();
+
+                resolverTask.CompleteUnsafe();
+
+                return result;
             }
 
-            IsCompleted = await Enumerator.MoveNextAsync() == false;
-
-            var result = operationContext
-                .TrySetNext(true)
-                .SetLabel(Label)
-                .SetPath(Path.Append(Index))
-                .SetData((ResultMap)resolverTask.ResultMap[0].Value!)
-                .BuildResult();
-
-            resolverTask.CompleteUnsafe();
-
-            return result;
+            return null;
         }
     }
 }

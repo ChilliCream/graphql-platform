@@ -92,7 +92,7 @@
     "id": "2000",
     "name": "C-3PO"
   },
-  "hasNext": false
+  "hasNext": true
 }
 
 {
@@ -109,6 +109,10 @@
     "id": "2001",
     "name": "R2-D2"
   },
+  "hasNext": true
+}
+
+{
   "hasNext": false
 }
 
