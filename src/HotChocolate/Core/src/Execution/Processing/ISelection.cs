@@ -58,6 +58,16 @@ namespace HotChocolate.Execution.Processing
         bool IsStreamable { get; }
 
         /// <summary>
+        /// Indicates that the result of this resolver might be a stream.
+        /// </summary>
+        bool MaybeStream { get; }
+
+        /// <summary>
+        /// Indicates if the selection return type is a list type.
+        /// </summary>
+        bool IsList { get; }
+
+        /// <summary>
         /// Creates a enumerable from a streamable selection to allow the execution engine to
         /// stream the field result.
         /// </summary>

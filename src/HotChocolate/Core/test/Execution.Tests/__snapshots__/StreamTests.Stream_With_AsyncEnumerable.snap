@@ -1,0 +1,29 @@
+﻿{
+  "data": {
+    "persons": []
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "persons",
+    0
+  ],
+  "data": {
+    "name": "Foo"
+  },
+  "hasNext": false
+}
+
+{
+  "path": [
+    "persons",
+    1
+  ],
+  "data": {
+    "name": "Bar"
+  },
+  "hasNext": false
+}
+
