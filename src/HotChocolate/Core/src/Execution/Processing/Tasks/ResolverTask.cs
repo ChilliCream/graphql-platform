@@ -213,5 +213,15 @@ namespace HotChocolate.Execution.Processing.Tasks
                 }
             }
         }
+
+        public void CompleteUnsafe()
+        {
+            if (!IsCompleted)
+            {
+                IsCompleted = true;
+                OperationContext.Scheduler.Complete(this);
+                _objectPool.Return(this);
+            }
+        }
     }
 }

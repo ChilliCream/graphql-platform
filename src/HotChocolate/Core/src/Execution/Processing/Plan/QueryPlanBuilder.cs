@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Processing.Plan
@@ -17,25 +16,38 @@ namespace HotChocolate.Execution.Processing.Plan
             var context = new QueryPlanContext(operation);
 
             OperationQueryPlanNode operationNode = Prepare(context);
-            QueryPlan[] deferredPlans = Array.Empty<QueryPlan>();
-            Dictionary<int, QueryPlan>? streamPlans = null;
+
+            QueryPlan[] deferredPlans =
+                operationNode.Deferred.Count > 0
+                    ? new QueryPlan[operationNode.Deferred.Count]
+                    : Array.Empty<QueryPlan>();
+
+            Dictionary<int, QueryPlan>? streamPlans =
+                context.Streams.Count > 0
+                    ? new Dictionary<int, QueryPlan>()
+                    : null;
 
             if (operationNode.Deferred.Count > 0)
             {
-                deferredPlans = new QueryPlan[operationNode.Deferred.Count];
-
                 for (var i = 0; i < operationNode.Deferred.Count; i++)
                 {
-                    deferredPlans[i] = new QueryPlan(operationNode.Deferred[i].CreateStep());
+                    deferredPlans[i] = new QueryPlan(
+                        operationNode.Deferred[i].CreateStep(),
+                        deferredPlans,
+                        streamPlans);
                 }
             }
 
             if (context.Streams.Count > 0)
             {
-                streamPlans = new Dictionary<int, QueryPlan>();
-                foreach (StreamPlanNode streamPlan in context.Streams)
+                foreach (StreamPlanNode streamPlanNode in context.Streams.Values)
                 {
-                    streamPlans.Add(streamPlan.Id, new QueryPlan(streamPlan.Root.CreateStep()));
+                    var streamPlan = new QueryPlan(
+                        streamPlanNode.Root.CreateStep(),
+                        deferredPlans,
+                        streamPlans);
+
+                    streamPlans!.Add(streamPlanNode.Id, streamPlan);
                 }
             }
 

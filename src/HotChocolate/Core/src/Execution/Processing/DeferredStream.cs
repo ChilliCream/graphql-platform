@@ -46,6 +46,9 @@ namespace HotChocolate.Execution.Processing
         /// </summary>
         public Path Path { get; }
 
+        /// <summary>
+        /// Gets the index of the last element.
+        /// </summary>
         public int Index { get; private set; }
 
         /// <summary>
@@ -79,7 +82,7 @@ namespace HotChocolate.Execution.Processing
 
             Index++;
 
-            ResultMap resultMap = ResolverTaskFactory.EnqueueElementTasks(
+            ResolverTask resolverTask = ResolverTaskFactory.EnqueueElementTasks(
                 operationContext,
                 Selection,
                 Parent,
@@ -88,20 +91,23 @@ namespace HotChocolate.Execution.Processing
                 Enumerator,
                 ScopedContextData);
 
-
-            if (operationContext.Scheduler.IsCompleted)
+            if (!operationContext.Scheduler.IsEmpty)
             {
                 await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
             }
 
             IsCompleted = await Enumerator.MoveNextAsync() == false;
 
-            return operationContext
+            var result = operationContext
                 .TrySetNext(true)
                 .SetLabel(Label)
                 .SetPath(Path.Append(Index))
-                .SetData(resultMap)
+                .SetData((ResultMap)resolverTask.ResultMap[0].Value!)
                 .BuildResult();
+
+            resolverTask.CompleteUnsafe();
+
+            return result;
         }
     }
 }

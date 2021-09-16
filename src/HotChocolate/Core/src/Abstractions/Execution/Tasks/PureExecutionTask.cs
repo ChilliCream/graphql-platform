@@ -29,13 +29,13 @@ namespace HotChocolate.Execution
         public IExecutionTask? Previous { get; set; }
 
         /// <inheritdoc />
-        public IExecutionTask? Parent { get; set; }
-
-        /// <inheritdoc />
         public object? State { get; set; }
 
         /// <inheritdoc />
         public bool IsSerial { get; set; }
+
+        /// <inheritdoc />
+        public bool IsRegistered { get; set; }
 
         /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
