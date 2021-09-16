@@ -633,6 +633,30 @@ namespace HotChocolate.Types
             ex.Message.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Input_Casing_Is_Recognized()
+        {
+            // arrange
+            // act
+            ISchema schema = await new ServiceCollection()
+                .AddGraphQL()
+                .AddInputObjectType<FieldNameInput>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class FieldNameInput
+        {
+            public string YourFieldName { get; set; }
+
+            [GraphQLDeprecated("This is deprecated")]
+            public string YourFieldname{ get; set; }
+        }
+
         public class QueryWithInterfaceInput
         {
             public string Test(InputWithInterface input) => "Foo";
