@@ -194,5 +194,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ResultValue_NameIsNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string QueryResult_DataAndResultAreNull {
+            get {
+                return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
+            }
+        }
     }
 }

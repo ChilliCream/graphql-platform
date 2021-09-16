@@ -56,16 +56,13 @@ namespace HotChocolate.Execution.Processing
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
 
         /// <inheritdoc/>
-        public bool IsCompleted { get; private set; }
-
-        /// <inheritdoc/>
         public IDeferredExecutionTask? Next { get; set; }
 
         /// <inheritdoc/>
         public IDeferredExecutionTask? Previous { get; set; }
 
         /// <inheritdoc/>
-        public async Task<IQueryResult> ExecuteAsync(IOperationContext operationContext)
+        public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
         {
             operationContext.QueryPlan = operationContext.QueryPlan.GetDeferredPlan(Fragment.Id);
 
@@ -77,8 +74,6 @@ namespace HotChocolate.Execution.Processing
                 ScopedContextData);
 
             await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
-
-            IsCompleted = true;
 
             return operationContext
                 .TrySetNext(true)

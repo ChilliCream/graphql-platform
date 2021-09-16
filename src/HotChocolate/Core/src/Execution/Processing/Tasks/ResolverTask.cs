@@ -168,22 +168,21 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             IAsyncEnumerable<object?> enumerable = Selection.CreateStream(ResolverContext.Result!);
             IAsyncEnumerator<object?> enumerator = enumerable.GetAsyncEnumerator();
-            var next = false;
+            var next = true;
 
             try
             {
-                next = await enumerator.MoveNextAsync().ConfigureAwait(false);
                 var list = new List<object?>();
                 var initialCount = streamDirective.InitialCount;
                 var count = 0;
 
                 if (initialCount > 0)
                 {
-                    while (next)
+                    while(next)
                     {
                         count++;
-                        list.Add(enumerator.Current);
                         next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                        list.Add(enumerator.Current);
 
                         if (count >= initialCount)
                         {
@@ -226,7 +225,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IAsyncEnumerable<object?> enumerable = Selection.CreateStream(ResolverContext.Result!);
             var list = new List<object?>();
 
-            await foreach (object? item in enumerable
+            await foreach (var item in enumerable
                 .WithCancellation(ResolverContext.RequestAborted)
                 .ConfigureAwait(false))
             {
