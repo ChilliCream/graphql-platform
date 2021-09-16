@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -21,14 +21,7 @@ namespace HotChocolate.Execution.Processing
         public IServiceProvider Services
         {
             get => _services;
-            set
-            {
-                if (value is null!)
-                {
-                    throw new ArgumentNullException(nameof(value));
-                }
-                _services = value;
-            }
+            set => _services = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         public ISchema Schema => _operationContext.Schema;
