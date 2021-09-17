@@ -31,4 +31,7 @@ partial class Build : NukeBuild
     AbsolutePath EmptyServerTemplateNuSpec => RootDirectory / "templates" / "Server" / "HotChocolate.Templates.Server.nuspec";
 
     AbsolutePath EmptyServerProj => RootDirectory / "templates" / "Server" / "content" / "HotChocolate.Server.Template.csproj";
+
+
+    AbsolutePath GreenDonutSolution => SourceDirectory / "GreenDonut" / "GreenDonut.sln";
 }

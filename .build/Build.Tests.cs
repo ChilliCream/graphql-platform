@@ -120,11 +120,7 @@ partial class Build : NukeBuild
             }
         });
 
-    IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
-        TestBaseSettings(settings)
-            .CombineWith(TestProjects, (_, v) => _
-                .SetProjectFile(v)
-                .SetLoggers($"trx;LogFileName={v.Name}.trx"));
+
 
     IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
         DotNetTestSettings settings,
