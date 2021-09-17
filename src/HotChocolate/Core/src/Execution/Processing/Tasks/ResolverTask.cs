@@ -95,23 +95,44 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             await ResolverContext.ResolverPipeline!(ResolverContext).ConfigureAwait(false);
 
-            if (Selection.IsStreamable &&
-                ResolverContext.Result is not null &&
-                ResolverContext.Result is not IError &&
-                ResolverContext.Result is not IEnumerable<IError>)
+            if (ResolverContext.Result is null)
+            {
+                return;
+            }
+
+            if (ResolverContext.Result is IError error)
+            {
+                ResolverContext.ReportError(error);
+                ResolverContext.Result = null;
+                return;
+            }
+
+            // if we are not a list we do not need any further result processing.
+            if (!Selection.IsList)
+            {
+                return;
+            }
+
+            if (Selection.IsStreamable)
             {
                 StreamDirective streamDirective =
                     Selection.SyntaxNode.Directives.GetStreamDirective(
                         ResolverContext.Variables)!;
                 if (streamDirective.If)
                 {
-                    IAsyncEnumerable<object?> enumerable =
-                        Selection.CreateStream(ResolverContext.Result);
                     ResolverContext.Result =
-                        await CreateStreamResultAsync(enumerable, streamDirective)
+                        await CreateStreamResultAsync(streamDirective)
                             .ConfigureAwait(false);
                     return;
                 }
+            }
+
+            if (Selection.MaybeStream)
+            {
+                ResolverContext.Result =
+                    await CreateListFromStreamAsync()
+                        .ConfigureAwait(false);
+                return;
             }
 
             switch (ResolverContext.Result)
@@ -139,44 +160,29 @@ namespace HotChocolate.Execution.Processing.Tasks
                         return items;
                     }, cancellationToken);
                     break;
-
-                case IError error:
-                    ResolverContext.ReportError(error);
-                    ResolverContext.Result = null;
-                    break;
-
-                case IEnumerable<IError> errors:
-                    foreach (IError error in errors)
-                    {
-                        ResolverContext.ReportError(error);
-                    }
-
-                    ResolverContext.Result = null;
-                    break;
             }
         }
 
         private async ValueTask<List<object?>> CreateStreamResultAsync(
-            IAsyncEnumerable<object?> enumerable,
             StreamDirective streamDirective)
         {
+            IAsyncEnumerable<object?> enumerable = Selection.CreateStream(ResolverContext.Result!);
             IAsyncEnumerator<object?> enumerator = enumerable.GetAsyncEnumerator();
-            var next = false;
+            var next = true;
 
             try
             {
-                next = await enumerator.MoveNextAsync().ConfigureAwait(false);
                 var list = new List<object?>();
                 var initialCount = streamDirective.InitialCount;
                 var count = 0;
 
                 if (initialCount > 0)
                 {
-                    while (next)
+                    while(next)
                     {
                         count++;
-                        list.Add(enumerator.Current);
                         next = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                        list.Add(enumerator.Current);
 
                         if (count >= initialCount)
                         {
@@ -211,6 +217,31 @@ namespace HotChocolate.Execution.Processing.Tasks
                     // responsible of handling the dispose.
                     await enumerator.DisposeAsync().ConfigureAwait(false);
                 }
+            }
+        }
+
+        private async ValueTask<List<object?>> CreateListFromStreamAsync()
+        {
+            IAsyncEnumerable<object?> enumerable = Selection.CreateStream(ResolverContext.Result!);
+            var list = new List<object?>();
+
+            await foreach (var item in enumerable
+                .WithCancellation(ResolverContext.RequestAborted)
+                .ConfigureAwait(false))
+            {
+                list.Add(item);
+            }
+
+            return list;
+        }
+
+        public void CompleteUnsafe()
+        {
+            if (!IsCompleted)
+            {
+                IsCompleted = true;
+                OperationContext.Scheduler.Complete(this);
+                _objectPool.Return(this);
             }
         }
     }

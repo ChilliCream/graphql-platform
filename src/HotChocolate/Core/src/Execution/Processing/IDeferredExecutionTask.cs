@@ -9,13 +9,6 @@ namespace HotChocolate.Execution.Processing
     internal interface IDeferredExecutionTask
     {
         /// <summary>
-        /// <c>true</c> if the task is fully completed and can no longer be executed.
-        /// <c>false</c> if the task can produce more results by invoking
-        /// <see cref="ExecuteAsync"/>.
-        /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
         /// Executes the deferred execution task with the specified
         /// <paramref name="operationContext"/>.
         /// </summary>
@@ -25,7 +18,7 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// The query result that the deferred execution task produced.
         /// </returns>
-        Task<IQueryResult> ExecuteAsync(IOperationContext operationContext);
+        Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext);
 
         /// <summary>
         /// Next and previous are properties that are used by the execution engine to

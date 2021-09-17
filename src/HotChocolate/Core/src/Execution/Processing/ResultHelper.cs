@@ -226,7 +226,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (_data is null && _errors.Count == 0)
+            if (_data is null && _errors.Count == 0 && _hasNext is not false)
             {
                 throw new InvalidOperationException(
                     Resources.ResultHelper_BuildResult_InvalidResult);

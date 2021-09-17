@@ -24,9 +24,6 @@ namespace HotChocolate.Execution
         public bool IsCompleted => _task?.IsCompleted ?? false;
 
         /// <inheritdoc />
-        public IExecutionTask? Parent { get; set; }
-
-        /// <inheritdoc />
         public IExecutionTask? Next { get; set; }
 
         /// <inheritdoc />
@@ -37,6 +34,9 @@ namespace HotChocolate.Execution
 
         /// <inheritdoc />
         public bool IsSerial { get; set; }
+
+        /// <inheritdoc />
+        public bool IsRegistered { get; set; }
 
         /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)

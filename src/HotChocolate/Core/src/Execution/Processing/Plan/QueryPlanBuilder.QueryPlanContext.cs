@@ -21,7 +21,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
             public List<IFragment> Deferred { get; } = new();
 
-            public List<StreamPlanNode> Streams { get; } = new();
+            public Dictionary<int, StreamPlanNode> Streams { get; } = new();
 
             public QueryPlanContext Branch() => new(Operation);
         }
