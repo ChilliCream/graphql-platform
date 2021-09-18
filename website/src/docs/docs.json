@@ -185,6 +185,10 @@
               {
                 "path": "uploading-files",
                 "title": "Uploading files"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
               }
             ]
           },
@@ -285,10 +289,6 @@
               {
                 "path": "executable",
                 "title": "Executable"
-              },
-              {
-                "path": "apollo-tracing",
-                "title": "Apollo Tracing"
               },
               {
                 "path": "migrate-from-10-to-11",
