@@ -112,11 +112,8 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                lock (_sync)
-                {
-                    cached = false;
-                    return GetOrCreatePromiseUnsafe(key).Task;
-                }
+                cached = false;
+                return GetOrCreatePromiseUnsafe(key).Task;
             }
         }
 
@@ -185,11 +182,8 @@ namespace GreenDonut
 
             Task<TValue> CreatePromise()
             {
-                lock (_sync)
-                {
-                    cached = false;
-                    return GetOrCreatePromiseUnsafe(currentKey).Task;
-                }
+                cached = false;
+                return GetOrCreatePromiseUnsafe(currentKey).Task;
             }
         }
 
@@ -235,15 +229,15 @@ namespace GreenDonut
         {
             _diagnosticEvents.BatchError(keys, error);
 
-            for (var i = 0; i < keys.Count; i++)
+            foreach (TKey key in keys)
             {
                 if (_cache is not null)
                 {
-                    TaskCacheKey cacheKey = new(_cacheKeyType, keys[i]);
+                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
                     _cache.TryRemove(cacheKey);
                 }
 
-                batch.GetPromise<TValue>(keys[i]).TrySetException(error);
+                batch.GetPromise<TValue>(key).TrySetException(error);
             }
         }
 
@@ -254,6 +248,7 @@ namespace GreenDonut
         {
             for (var i = 0; i < keys.Count; i++)
             {
+                TKey key = keys[i];
                 Result<TValue> value = results[i];
 
                 if (value.Kind is ResultKind.Undefined)
@@ -265,7 +260,7 @@ namespace GreenDonut
                     return;
                 }
 
-                SetSingleResult(batch.GetPromise<TValue>(keys[i]), keys[i], results[i]);
+                SetSingleResult(batch.GetPromise<TValue>(key), key, value);
             }
         }
 
@@ -295,14 +290,16 @@ namespace GreenDonut
                             .ConfigureAwait(false);
                         BatchOperationSucceeded(batch, batch.Keys, buffer);
                         _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
+
+                        // we deliberately return the batch here... in case of an error we are
+                        // not reusing this batch.
+                        BatchPool<TKey>.Shared.Return(batch);
                     }
                     catch (Exception ex)
                     {
                         BatchOperationFailed(batch, batch.Keys, ex);
                     }
                 }
-
-                BatchPool<TKey>.Shared.Return(batch);
             }
         }
 
