@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 Array.Resize(ref _state, plan.Count);
 
                 // also we create new state objects for the empty slots.
-                for (var i = 0; i < _state.Length; i++)
+                for (var i = 0; i < plan.Count; i++)
                 {
                     _state[i] ??= new();
                 }
@@ -264,7 +264,7 @@ namespace HotChocolate.Execution.Processing.Plan
         public bool CompleteNext()
         {
 TryAgain:
-            for (var i = 0; i < _state.Length; i++)
+            for (var i = 0; i < _plan.Count; i++)
             {
                 State state = _state[i];
 
