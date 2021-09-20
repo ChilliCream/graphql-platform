@@ -104,7 +104,7 @@ namespace HotChocolate.Execution.Processing.Plan
             return true;
         }
 
-        public bool Complete(IExecutionTask task)
+        public bool Complete(IExecutionTask task, bool success)
         {
             if (task.State is QueryPlanStep step)
             {
@@ -112,22 +112,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
                 if (--state.Tasks == 0)
                 {
-                    return Complete(step);
-                }
-            }
-
-            return false;
-        }
-
-        public bool Complete(object taskState)
-        {
-            if (taskState is QueryPlanStep step)
-            {
-                State state = GetState(step);
-
-                if (--state.Tasks == 0)
-                {
-                    return Complete(step);
+                    return Complete(step, success);
                 }
             }
 
@@ -204,7 +189,7 @@ namespace HotChocolate.Execution.Processing.Plan
             return true;
         }
 
-        private bool Complete(QueryPlanStep step)
+        private bool Complete(QueryPlanStep step, bool success)
         {
             while (true)
             {
@@ -273,7 +258,7 @@ TryAgain:
                     if (_plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
                         step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
                     {
-                        if (Complete(step))
+                        if (Complete(step, false))
                         {
                             return true;
                         }
