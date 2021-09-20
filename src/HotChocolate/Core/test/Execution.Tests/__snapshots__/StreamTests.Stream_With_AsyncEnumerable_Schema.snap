@@ -3,6 +3,7 @@
 }
 
 type Person {
+  groupId: String
   name: String
 }
 
