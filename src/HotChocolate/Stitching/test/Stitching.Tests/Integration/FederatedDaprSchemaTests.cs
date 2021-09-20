@@ -216,9 +216,7 @@ namespace HotChocolate.Stitching.Integration
             Assert.True(preparedOperationCache.TryGetOperation("_Default-1-abc", out _));
 
             // act
-            //await database.StringSetAsync($"{configurationName}.{_accounts}", schemaDefinitionV2);
-            //await _connection.GetSubscriber().PublishAsync(configurationName.Value, _accounts);
-
+            await daprClient.PublishEventAsync(DaprConfiguration.PubSubComponent, DaprConfiguration.PubSubTopic, schemaDefinitionV2);
 
             // assert
             Assert.True(documentCache.TryGetDocument(queryHash, out _));
