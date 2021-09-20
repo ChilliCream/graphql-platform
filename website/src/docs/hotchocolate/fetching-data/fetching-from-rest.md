@@ -152,7 +152,7 @@ public class QueryType : ObjectType<Query>
 // TodoType.cs
 public class TodoType : ObjectType<Todo>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Todo> descriptor)
     {
         descriptor
             .Field(f => f.Id)
