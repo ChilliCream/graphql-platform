@@ -144,7 +144,7 @@ services
     .AddGlobalObjectIdentification();
 ```
 
-[Learn more about Global Object Identification](/docs/hotchocolate/defining-a-schema/relay/#global-object-identification)
+[Learn more about Global Object Identification](/docs/hotchocolate/defining-a-schema/relay#global-object-identification)
 
 ## Query field in Mutation payloads
 
@@ -178,7 +178,7 @@ If you just want to enable the feature without further configuration, you can om
 
 > ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
-[Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay/#query-field-in-mutation-payloads)
+[Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay#query-field-in-mutation-payloads)
 
 # DataLoader
 
