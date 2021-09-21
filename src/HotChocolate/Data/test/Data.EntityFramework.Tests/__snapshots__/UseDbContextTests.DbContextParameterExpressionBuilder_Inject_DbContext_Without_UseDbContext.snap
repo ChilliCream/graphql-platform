@@ -1,0 +1,20 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "authorsNoUseDbContext"
+      ],
+      "extensions": {
+        "message": "The DbContext \u0060HotChocolate.Data.BookContext\u0060 could not be retrieved from \u0060context.LocalContextData\u0060. Annotate the resolver with the \u0060UseDbContext\u0060 middleware: \u0060[UseDbContext(typeof(HotChocolate.Data.BookContext))]\u0060",
+        "stackTrace": "   at HotChocolate.Data.ExpressionHelper.GetLocalState[TContextData](IReadOnlyDictionary\u00602 contextData, String key) in /home/dev/src/hotchocolate/src/HotChocolate/Data/src/EntityFramework/ExpressionHelper.cs:line 23\n   at lambda_method(Closure , IResolverContext )\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.\u003C\u003Ec__DisplayClass9_0.\u003C\u003CCreateResolverMiddleware\u003Eb__0\u003Ed.MoveNext() in /home/dev/src/hotchocolate/src/HotChocolate/Core/src/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 128\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in /home/dev/src/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 80\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in /home/dev/src/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/Tasks/ResolverTask.Execute.cs:line 53"
+      }
+    }
+  ]
+}

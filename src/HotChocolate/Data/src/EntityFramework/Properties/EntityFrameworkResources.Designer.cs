@@ -56,5 +56,11 @@ namespace HotChocolate.Data.Properties {
                 return ResourceManager.GetString("ResolverContext_DbContext_MissingFromLocalState", resourceCulture);
             }
         }
+        
+        internal static string DbContextParameterExpressionBuilder_GetLocalState_DbContextNotFound {
+            get {
+                return ResourceManager.GetString("DbContextParameterExpressionBuilder_GetLocalState_DbContextNotFound", resourceCulture);
+            }
+        }
     }
 }

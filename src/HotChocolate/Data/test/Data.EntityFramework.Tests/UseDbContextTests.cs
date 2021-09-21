@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Data.Extensions;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -574,6 +575,52 @@ namespace HotChocolate.Data
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_Inject_DbContext()
+        {
+            // arrange
+            var executor = await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<QueryDbContextInjection>()
+                .BuildRequestExecutorAsync();
+
+            // act
+            var result = await executor.ExecuteAsync("{ authors { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_Inject_DbContext_Without_UseDbContext()
+        {
+            // arrange
+            var executor = await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<QueryDbContextInjection>()
+                .ModifyRequestOptions(options => options.IncludeExceptionDetails = true)
+                .BuildRequestExecutorAsync();
+
+            // act
+            var result = await executor.ExecuteAsync("{ authorsNoUseDbContext { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot(matchOptions =>
+                matchOptions.IgnoreField("errors[0].extensions.stackTrace"));
         }
 
         private static string CreateConnectionString() =>

@@ -148,4 +148,14 @@ namespace HotChocolate.Data
                 });
         }
     }
+
+    public class QueryDbContextInjection
+    {
+        [UseDbContext(typeof(BookContext))]
+        public IQueryable<Author> GetAuthors(BookContext context)
+            => context.Authors;
+
+        public IQueryable<Author> GetAuthorsNoUseDbContext(BookContext context)
+            => context.Authors;
+    }
 }
