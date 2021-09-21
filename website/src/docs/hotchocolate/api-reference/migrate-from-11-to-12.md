@@ -118,6 +118,10 @@ public record Foo([property: ID] string Id);
 
 We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
 
+# Relay
+
+`.EnableRelaySupport()` is replaced with `.AddGlobalObjectIdentification()`.
+
 # DataLoader
 
 We have consolidated the DataLoader base classes into the GreenDonut package which has no dependency on any HotChocolate packages. This allows for people using DataLoader in their business layer without having to reference GraphQL related packages. In your DataLoader classes the namespace `HotChocolate.Fetching` and `HotChocolate.DataLOader` are no longer needed.
