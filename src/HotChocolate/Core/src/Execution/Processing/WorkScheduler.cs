@@ -150,7 +150,7 @@ namespace HotChocolate.Execution.Processing
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
-                if (_stateMachine.Complete(task) && _suspended.HasWork)
+                if (_stateMachine.Complete(task, false) && _suspended.HasWork)
                 {
                     _suspended.CopyTo(_work, _serial, _stateMachine);
                 }

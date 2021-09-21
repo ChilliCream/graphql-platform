@@ -17,9 +17,9 @@ namespace HotChocolate.Execution
         ExecutionTaskKind Kind { get; }
 
         /// <summary>
-        /// Defines if this task is completed.
+        /// Specifies the status of this task.
         /// </summary>
-        bool IsCompleted { get; }
+        ExecutionTaskStatus Status { get; }
 
         /// <summary>
         /// Next and previous are properties that are used by the execution engine to
@@ -64,5 +64,25 @@ namespace HotChocolate.Execution
         /// The cancellation token.
         /// </param>
         Task WaitForCompletionAsync(CancellationToken cancellationToken);
+    }
+
+    /// <summary>
+    /// Extensions for <see cref="IExecutionTask"/>.
+    /// </summary>
+    public static class ExecutionTaskExtensions
+    {
+        /// <summary>
+        /// Defines if this task is completed.
+        /// </summary>
+        public static bool IsCompleted(this IExecutionTask task)
+            => task.Status is ExecutionTaskStatus.Completed or ExecutionTaskStatus.Faulted;
+    }
+
+    public enum ExecutionTaskStatus
+    {
+        WaitingToRun,
+        Running,
+        Completed,
+        Faulted,
     }
 }

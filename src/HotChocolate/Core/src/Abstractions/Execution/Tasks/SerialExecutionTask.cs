@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace HotChocolate.Execution
     /// </summary>
     public abstract class SerialExecutionTask : IExecutionTask
     {
+        private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
         private Task? _task;
 
         /// <summary>
@@ -21,7 +23,7 @@ namespace HotChocolate.Execution
         public ExecutionTaskKind Kind => ExecutionTaskKind.Serial;
 
         /// <inheritdoc />
-        public bool IsCompleted => _task?.IsCompleted ?? false;
+        public ExecutionTaskStatus Status { get; private set; }
 
         /// <inheritdoc />
         public IExecutionTask? Next { get; set; }
@@ -41,6 +43,7 @@ namespace HotChocolate.Execution
         /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
         {
+            Status = ExecutionTaskStatus.Running;
             _task = ExecuteInternalAsync(cancellationToken).AsTask();
         }
 
@@ -56,6 +59,28 @@ namespace HotChocolate.Execution
                 {
                     await ExecuteAsync(cancellationToken).ConfigureAwait(false);
                 }
+
+                Status = _completionStatus;
+            }
+            catch (OperationCanceledException)
+            {
+                Status = ExecutionTaskStatus.Faulted;
+
+                // If we run into this exception the request was aborted.
+                // In this case we do nothing and just return.
+            }
+            catch (Exception ex)
+            {
+                Status = ExecutionTaskStatus.Faulted;
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // if cancellation is request we do no longer report errors to the
+                    // operation context.
+                    return;
+                }
+
+                Context.ReportError(this, ex);
             }
             finally
             {
@@ -70,5 +95,28 @@ namespace HotChocolate.Execution
         /// The cancellation token.
         /// </param>
         protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Completes the task as faulted.
+        /// </summary>
+        protected void Faulted()
+        {
+            _completionStatus = ExecutionTaskStatus.Faulted;
+        }
+
+        /// <summary>
+        /// Resets the state of this task in case the task object is reused.
+        /// </summary>
+        protected void Reset()
+        {
+            _task = null;
+            Next = null;
+            Previous = null;
+            State = null;
+            IsSerial = false;
+            IsRegistered = false;
+            _completionStatus = ExecutionTaskStatus.Completed;
+            Status = ExecutionTaskStatus.WaitingToRun;
+        }
     }
 }

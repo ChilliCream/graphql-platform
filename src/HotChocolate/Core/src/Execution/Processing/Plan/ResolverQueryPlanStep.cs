@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Processing.Plan
         }
 
         public override bool IsPartOf(IExecutionTask task) =>
-            task is ResolverTaskBase resolverTask &&
+            task is ResolverTask resolverTask &&
             _ids.Contains(resolverTask.Selection.Id);
 
         public override string ToString()
