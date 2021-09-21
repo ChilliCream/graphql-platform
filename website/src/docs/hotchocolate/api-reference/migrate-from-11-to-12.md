@@ -116,7 +116,7 @@ public record Foo([property: ID] string Id);
 
 # Instrumentation
 
-We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.  Most virtual methods previously returning IActivityScope now return IDisposable.
 
 # DataLoader
 
