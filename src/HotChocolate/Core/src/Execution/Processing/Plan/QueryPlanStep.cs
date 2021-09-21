@@ -18,6 +18,8 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public virtual bool Initialize(IOperationContext context) => true;
 
+        public virtual void CompleteTask(IOperationContext context, IExecutionTask task) { }
+
         internal bool IsPartOf(QueryPlanStep step)
         {
             if (Steps.Count == 0)

@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing.Plan
         }
 
         protected internal override string Name =>
-            Strategy == ExecutionStrategy.Serial
+            Strategy is ExecutionStrategy.Serial
                 ? "SerialResolver"
                 : "Resolver";
 
@@ -35,15 +35,23 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             IVariableValueCollection variables = context.Variables;
 
-            for (var i = 0; i < _selections.Length; i++)
+            foreach (var selection in _selections)
             {
-                if (_selections[i].IsIncluded(variables))
+                if (selection.IsIncluded(variables))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public override void CompleteTask(IOperationContext context, IExecutionTask task)
+        {
+            var resolverTask = (ResolverTask)task;
+
+
+            
         }
 
         public override bool IsPartOf(IExecutionTask task) =>
