@@ -133,7 +133,7 @@ namespace HotChocolate.Data
                 .UseDbContext<BookContext>()
                 .Resolve(ctx =>
                 {
-                    BookContext context = ctx.ScopedService<BookContext>();
+                    BookContext context = ctx.DbContext<BookContext>();
 
                     return context.Books;
                 });
@@ -142,7 +142,7 @@ namespace HotChocolate.Data
                 .Field("booksWithMissingContext")
                 .Resolve(ctx =>
                 {
-                    BookContext context = ctx.ScopedService<BookContext>();
+                    BookContext context = ctx.DbContext<BookContext>();
 
                     return context.Books;
                 });
