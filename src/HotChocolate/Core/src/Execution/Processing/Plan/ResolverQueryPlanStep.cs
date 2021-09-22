@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ResolverQueryPlanStep : QueryPlanStep
+    internal sealed class ResolverQueryPlanStep : ExecutionStep
     {
         private readonly HashSet<int> _ids;
         private readonly ISelection[] _selections;
@@ -24,20 +25,20 @@ namespace HotChocolate.Execution.Processing.Plan
             _selections = selections.ToArray();
         }
 
-        protected internal override string Name =>
+        public override string Name =>
             Strategy is ExecutionStrategy.Serial
                 ? "SerialResolver"
                 : "Resolver";
 
         public ExecutionStrategy Strategy { get; }
 
-        public override bool Initialize(IOperationContext context)
+        public override bool TryInitialize(IQueryPlanState state)
         {
-            IVariableValueCollection variables = context.Variables;
+            IVariableValueCollection variables = state.Context.Variables;
 
             foreach (var selection in _selections)
             {
-                if (selection.IsIncluded(variables))
+                if (state.Selections.Contains(selection.Id) && selection.IsIncluded(variables))
                 {
                     return true;
                 }
@@ -46,21 +47,23 @@ namespace HotChocolate.Execution.Processing.Plan
             return false;
         }
 
-        public override void CompleteTask(IOperationContext context, IExecutionTask task)
+        public override void CompleteTask(IQueryPlanState state, IExecutionTask task)
         {
-            var resolverTask = (ResolverTask)task;
+            Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
 
+            ResolverTask resolverTask = (ResolverTask)task;
 
-            
+            foreach (var childTask in resolverTask.ChildTasks)
+            {
+                state.Selections.Add(childTask.Selection.Id);
+            }
+
+            state.Context.Scheduler.Register(resolverTask.ChildTasks);
         }
-
-        public override bool IsPartOf(IExecutionTask task) =>
-            task is ResolverTask resolverTask &&
-            _ids.Contains(resolverTask.Selection.Id);
 
         public override string ToString()
         {
-            return $"{Name}[{string.Join(", ", _ids)}]";
+            return $"{Name}[{string.Join(", ", _selections.Select(t => t.Id))}]";
         }
     }
 }

@@ -75,6 +75,11 @@ namespace HotChocolate.Execution.Processing.Tasks
         /// <inheritdoc />
         public bool IsRegistered { get; set; }
 
+        /// <summary>
+        /// Tasks that were created through the field completion.
+        /// </summary>
+        public List<ResolverTask> ChildTasks => _taskBuffer;
+
         /// <inheritdoc />
         public void BeginExecute(CancellationToken cancellationToken)
         {

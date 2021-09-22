@@ -13,6 +13,8 @@ namespace HotChocolate.Execution.Processing.Plan
         {
         }
 
+        public bool CancelOnError { get; set; }
+
         public override QueryPlanStep CreateStep() =>
             new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
 
