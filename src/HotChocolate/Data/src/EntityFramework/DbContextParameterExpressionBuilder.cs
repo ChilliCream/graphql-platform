@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -23,7 +24,8 @@ namespace HotChocolate.Data
         public bool IsPure => false;
 
         public bool CanHandle(ParameterInfo parameter)
-            => typeof(DbContext).IsAssignableFrom(parameter.ParameterType);
+            => typeof(DbContext).IsAssignableFrom(parameter.ParameterType) &&
+               !parameter.GetCustomAttributesData().Any();
 
         public Expression Build(ParameterInfo parameter, Expression context)
         {

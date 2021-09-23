@@ -157,5 +157,8 @@ namespace HotChocolate.Data
 
         public IQueryable<Author> GetAuthorsNoUseDbContext(BookContext context)
             => context.Authors;
+
+        public IQueryable<Author> GetAuthorsFromService([Service] BookContext context)
+            => context.Authors;
     }
 }

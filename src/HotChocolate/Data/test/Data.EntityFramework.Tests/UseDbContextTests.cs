@@ -623,6 +623,26 @@ namespace HotChocolate.Data
                 matchOptions.IgnoreField("errors[0].extensions.stackTrace"));
         }
 
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_ServiceAttribute()
+        {
+            var executor = await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddDbContext<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType<QueryDbContextInjection>()
+                .BuildRequestExecutorAsync();
+
+            var result = await executor.ExecuteAsync("{ authorsFromService { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
         private static string CreateConnectionString() =>
             $"Data Source={Guid.NewGuid():N}.db";
     }
