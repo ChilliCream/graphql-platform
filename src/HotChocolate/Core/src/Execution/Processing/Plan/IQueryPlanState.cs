@@ -16,5 +16,10 @@ namespace HotChocolate.Execution.Processing.Plan
         /// Gets a set representing the selections that were registered for execution.
         /// </summary>
         ISet<int> Selections { get; }
+
+        /// <summary>
+        /// Registers work with the task backlog.
+        /// </summary>
+        void RegisterUnsafe(IReadOnlyList<IExecutionTask> tasks);
     }
 }

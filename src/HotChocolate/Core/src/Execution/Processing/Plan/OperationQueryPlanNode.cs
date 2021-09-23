@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public List<StreamPlanNode> Streams { get; } = new();
 
-        public override QueryPlanStep CreateStep() =>
+        public override ExecutionStep CreateStep() =>
             Operation.CreateStep();
 
         public override void Serialize(Utf8JsonWriter writer)

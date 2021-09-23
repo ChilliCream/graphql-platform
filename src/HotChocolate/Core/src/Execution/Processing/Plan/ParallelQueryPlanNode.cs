@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
         }
 
-        public override QueryPlanStep CreateStep() =>
+        public override ExecutionStep CreateStep() =>
             new ParallelQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
 
         public override void Serialize(Utf8JsonWriter writer)

@@ -4,29 +4,17 @@ using System.Linq;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ParallelQueryPlanStep : QueryPlanStep
+    internal sealed class ParallelQueryPlanStep : ExecutionStep
     {
-        private readonly QueryPlanStep[] _steps;
-
-        public ParallelQueryPlanStep(QueryPlanStep[] steps)
+        public ParallelQueryPlanStep(ExecutionStep[] steps) : base(steps)
         {
-            Debug.Assert(steps.Length > 0, "Parallel cannot be empty.");
-
-            _steps = steps;
-
-            foreach (QueryPlanStep step in steps)
-            {
-                step.Parent = this;
-            }
         }
 
-        protected internal override string Name => "Parallel";
-
-        internal override IReadOnlyList<QueryPlanStep> Steps => _steps;
+        public override string Name => "Parallel";
 
         public override string ToString()
         {
-            return $"{Name}[{string.Join(", ", _steps.Select(t => t.Name))}]";
+            return $"{Name}[{string.Join(", ", Steps.Select(t => t.Name))}]";
         }
     }
 }

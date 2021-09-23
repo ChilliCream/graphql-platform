@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Processing.Tasks
     {
         private readonly ObjectPool<ResolverTask> _objectPool;
         private readonly MiddlewareContext _resolverContext = new();
-        private readonly List<IExecutionTask> _taskBuffer = new();
+        private readonly List<ResolverTask> _taskBuffer = new();
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
         private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
@@ -120,11 +120,6 @@ namespace HotChocolate.Execution.Processing.Tasks
                         completedValue is IHasResultDataParent result)
                     {
                         result.Parent = _resolverContext.ResultMap;
-                    }
-
-                    if (_taskBuffer.Count > 0)
-                    {
-                        _operationContext.Scheduler.Register(_taskBuffer);
                     }
                 }
             }

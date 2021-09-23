@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -7,7 +5,7 @@ namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class SequenceQueryPlanStep : ExecutionStep
     {
-        public SequenceQueryPlanStep(ExecutionStep[] steps, bool cancelOnError)
+        public SequenceQueryPlanStep(ExecutionStep[] steps, bool cancelOnError = false)
             : base(steps)
         {
             Debug.Assert(steps.Length > 0, "Sequence cannot be empty.");

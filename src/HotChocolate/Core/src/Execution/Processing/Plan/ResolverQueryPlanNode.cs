@@ -32,31 +32,20 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public List<ISelection> Selections { get; } = new();
 
-        public override QueryPlanStep CreateStep()
+        public override ExecutionStep CreateStep()
         {
-            var selectionStep = new ResolverQueryPlanStep(Strategy, Selections);
+            var resolver = new ResolverQueryPlanStep(Strategy, Selections);
 
-            if (Nodes.Count == 0)
+            return Nodes.Count switch
             {
-                return selectionStep;
-            }
-
-            if (Nodes.Count == 1)
-            {
-                return new SequenceQueryPlanStep(
-                    new[]
-                    {
-                        selectionStep,
-                        Nodes[0].CreateStep()
-                    });
-            }
-
-            return new SequenceQueryPlanStep(
-                new QueryPlanStep[]
+                0 => resolver,
+                1 => new SequenceQueryPlanStep(new[] { resolver, Nodes[0].CreateStep() }),
+                _ => new SequenceQueryPlanStep(new ExecutionStep[]
                 {
-                    selectionStep,
+                    resolver,
                     new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray())
-                });
+                })
+            };
         }
 
         public override void Serialize(Utf8JsonWriter writer)

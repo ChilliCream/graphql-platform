@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal partial class WorkScheduler : IWorkScheduler
+    internal partial class WorkScheduler : IWorkScheduler, IQueryPlanState
     {
         /// <inheritdoc/>
         public bool IsCompleted => _completed;
@@ -21,6 +22,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        /// <inheritdoc />
         public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
         private bool HasRunningTasks
@@ -33,6 +35,10 @@ namespace HotChocolate.Execution.Processing
                _work.IsEmpty &&
                _work.HasRunningTasks &&
                !_stateMachine.IsSerial;
+
+        IOperationContext IQueryPlanState.Context => _operationContext;
+
+        ISet<int> IQueryPlanState.Selections => _selections;
 
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
@@ -47,12 +53,12 @@ namespace HotChocolate.Execution.Processing
             // first we initialize the task execution state.
             // This can be done without acquiring a lock since we only
             // interact with the task object itself.
-            var state = _stateMachine.TryGetStep(task);
+            _stateMachine.TryInitializeTask(task);
             task.IsRegistered = true;
 
             lock (_sync)
             {
-                if (_stateMachine.RegisterTask(task, state))
+                if (_stateMachine.RegisterTask(task))
                 {
                     WorkQueue work = task.IsSerial ? _serial : _work;
                     work.Push(task);
@@ -73,7 +79,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         /// <inheritdoc/>
-        public void Register(List<IExecutionTask> tasks)
+        public void Register(IReadOnlyList<IExecutionTask> tasks)
         {
             if (tasks is null)
             {
@@ -94,7 +100,7 @@ namespace HotChocolate.Execution.Processing
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
-                task.State ??= _stateMachine.TryGetStep(task);
+                _stateMachine.TryInitializeTask(task);
                 task.IsRegistered = true;
             }
 
@@ -132,6 +138,24 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        void IQueryPlanState.RegisterUnsafe(IReadOnlyList<IExecutionTask> tasks)
+        {
+            for (var i = 0; i < tasks.Count; i++)
+            {
+                IExecutionTask task = tasks[i];
+
+                if (_stateMachine.RegisterTask(task))
+                {
+                    WorkQueue work = task.IsSerial ? _serial : _work;
+                    work.Push(task);
+                }
+                else
+                {
+                    _suspended.Enqueue(task);
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public void Complete(IExecutionTask task)
         {
@@ -140,6 +164,8 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(task));
             }
 
+            var started = false;
+
             lock (_sync)
             {
                 if (IsCompleted)
@@ -147,10 +173,12 @@ namespace HotChocolate.Execution.Processing
                     return;
                 }
 
+                var registered = _serial.Count + _work.Count;
+
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.
-                if (_stateMachine.Complete(task, false) && _suspended.HasWork)
+                if (_stateMachine.Complete(task) && _suspended.HasWork)
                 {
                     _suspended.CopyTo(_work, _serial, _stateMachine);
                 }
@@ -178,7 +206,21 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
 
+                // if the workload changed through completion we will ensure
+                // that the task processing is running.
+                if (registered != _serial.Count + _work.Count)
+                {
+                    started = TryStartProcessingUnsafe();
+                }
+
                 TryCompleteProcessingUnsafe();
+            }
+
+            if (started)
+            {
+                // we invoke the scale diagnostic event after leaving the lock to not block
+                // if a an event listener is badly implemented.
+                _diagnosticEvents.StartProcessing(_requestContext);
             }
 
             bool NeedsStateMachineCompletion()

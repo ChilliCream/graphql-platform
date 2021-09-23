@@ -8,7 +8,6 @@ namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class ResolverQueryPlanStep : ExecutionStep
     {
-        private readonly HashSet<int> _ids;
         private readonly ISelection[] _selections;
 
         public ResolverQueryPlanStep(
@@ -21,7 +20,6 @@ namespace HotChocolate.Execution.Processing.Plan
             }
 
             Strategy = strategy;
-            _ids = new HashSet<int>(selections.Select(t => t.Id));
             _selections = selections.ToArray();
         }
 
@@ -31,6 +29,8 @@ namespace HotChocolate.Execution.Processing.Plan
                 : "Resolver";
 
         public ExecutionStrategy Strategy { get; }
+
+        public IReadOnlyList<ISelection> Selections => _selections;
 
         public override bool TryInitialize(IQueryPlanState state)
         {
@@ -51,14 +51,17 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
 
-            ResolverTask resolverTask = (ResolverTask)task;
-
-            foreach (var childTask in resolverTask.ChildTasks)
+            if (task is ResolverTask resolverTask)
             {
-                state.Selections.Add(childTask.Selection.Id);
-            }
+                foreach (var childTask in resolverTask.ChildTasks)
+                {
+                    state.Selections.Add(childTask.Selection.Id);
+                    childTask.State = this;
+                    childTask.IsRegistered = true;
+                }
 
-            state.Context.Scheduler.Register(resolverTask.ChildTasks);
+                state.RegisterUnsafe(resolverTask.ChildTasks);
+            }
         }
 
         public override string ToString()

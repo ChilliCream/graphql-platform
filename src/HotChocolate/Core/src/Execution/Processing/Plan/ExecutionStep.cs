@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -12,6 +13,8 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             if (steps is not null)
             {
+                Debug.Assert(steps.Count > 0, "Steps cannot be empty.");
+
                 ExecutionStep? previous = null;
 
                 for (var index = 0; index < steps.Count; index++)
@@ -75,5 +78,16 @@ namespace HotChocolate.Execution.Processing.Plan
         /// The execution task that was spawned from the execution task.
         /// </param>
         public virtual void CompleteTask(IQueryPlanState state, IExecutionTask task) { }
+
+        /// <summary>
+        /// Defines if this execution step owns the given task.
+        /// </summary>
+        /// <param name="task">
+        /// The execution task that is evaluated.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the task is owned by this step; otherwise, <c>false</c>.
+        /// </returns>
+        public virtual bool OwnsTask(IExecutionTask task) => false;
     }
 }

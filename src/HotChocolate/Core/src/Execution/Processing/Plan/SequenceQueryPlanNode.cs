@@ -15,8 +15,8 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public bool CancelOnError { get; set; }
 
-        public override QueryPlanStep CreateStep() =>
-            new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
+        public override ExecutionStep CreateStep()
+            => new SequenceQueryPlanStep(CreateSteps(Nodes), CancelOnError);
 
         public override void Serialize(Utf8JsonWriter writer)
         {
@@ -38,21 +38,21 @@ namespace HotChocolate.Execution.Processing.Plan
         }
 
         public override object Serialize()
-        {
-            return new Dictionary<string, object?>
+            => new Dictionary<string, object?>
             {
                 { TypeProp, _name },
                 { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
             };
-        }
 
         public static SequenceQueryPlanNode Create(params QueryPlanNode[] nodes)
         {
             var sequence = new SequenceQueryPlanNode();
+
             foreach (QueryPlanNode node in nodes)
             {
                 sequence.AddNode(node);
             }
+
             return sequence;
         }
     }
