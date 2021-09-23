@@ -143,6 +143,8 @@ namespace HotChocolate.Execution.Processing
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
+                _stateMachine.TryInitializeTask(task);
+                task.IsRegistered = true;
 
                 if (_stateMachine.RegisterTask(task))
                 {
@@ -371,7 +373,8 @@ namespace HotChocolate.Execution.Processing
                 => !_completed &&
                    !_processing &&
                    IsEmpty &&
-                   !HasRunningTasks;
+                   !HasRunningTasks &&
+                   !_suspended.HasWork;
 
             bool IsCanceled()
                 => !_completed &&

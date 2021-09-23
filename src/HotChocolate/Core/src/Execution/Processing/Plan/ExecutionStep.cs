@@ -21,7 +21,12 @@ namespace HotChocolate.Execution.Processing.Plan
                 {
                     ExecutionStep step = steps[index];
                     step.Parent = this;
-                    step.Next = previous;
+
+                    if (previous is not null)
+                    {
+                        previous.Next = step;
+                    }
+
                     previous = step;
                 }
             }

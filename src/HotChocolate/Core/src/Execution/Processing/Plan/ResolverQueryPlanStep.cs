@@ -56,8 +56,6 @@ namespace HotChocolate.Execution.Processing.Plan
                 foreach (var childTask in resolverTask.ChildTasks)
                 {
                     state.Selections.Add(childTask.Selection.Id);
-                    childTask.State = this;
-                    childTask.IsRegistered = true;
                 }
 
                 state.RegisterUnsafe(resolverTask.ChildTasks);
