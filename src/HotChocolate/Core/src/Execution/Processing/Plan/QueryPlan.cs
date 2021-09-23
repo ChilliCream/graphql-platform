@@ -97,7 +97,7 @@ namespace HotChocolate.Execution.Processing.Plan
             current.Id = stepId++;
             _steps.Add(current);
 
-            if (current is ResolverQueryPlanStep resolverStep)
+            if (current is ResolverStep resolverStep)
             {
                 foreach (ISelection selection in resolverStep.Selections)
                 {

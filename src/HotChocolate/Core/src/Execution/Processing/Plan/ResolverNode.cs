@@ -5,7 +5,7 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ResolverQueryPlanNode : QueryPlanNode
+    internal sealed class ResolverNode : QueryPlanNode
     {
         private const string _name = "Resolver";
         private const string _strategyProp = "strategy";
@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing.Plan
         private const string _responseNameProp = "responseName";
         private const string _pureProp = "pure";
 
-        public ResolverQueryPlanNode(
+        public ResolverNode(
             ISelection first,
             ISelection? firstParent = null,
             ExecutionStrategy? strategy = null)
@@ -34,16 +34,16 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public override ExecutionStep CreateStep()
         {
-            var resolver = new ResolverQueryPlanStep(Strategy, Selections);
+            var resolver = new ResolverStep(Strategy, Selections);
 
             return Nodes.Count switch
             {
                 0 => resolver,
-                1 => new SequenceQueryPlanStep(new[] { resolver, Nodes[0].CreateStep() }),
-                _ => new SequenceQueryPlanStep(new ExecutionStep[]
+                1 => new SequenceStep(new[] { resolver, Nodes[0].CreateStep() }),
+                _ => new SequenceStep(new ExecutionStep[]
                 {
                     resolver,
-                    new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray())
+                    new SequenceStep(Nodes.Select(t => t.CreateStep()).ToArray())
                 })
             };
         }

@@ -155,7 +155,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     return false;
                 }
 
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+                if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
                 {
                     _serial++;
                     Strategy = ExecutionStrategy.Serial;
@@ -163,14 +163,14 @@ namespace HotChocolate.Execution.Processing.Plan
                     break;
                 }
 
-                if (step is SequenceQueryPlanStep sequence)
+                if (step is SequenceStep sequence)
                 {
                     SetActiveStatus(sequence.Id, true);
                     step = sequence.Steps[0];
                     continue;
                 }
 
-                if (step is ParallelQueryPlanStep parallel)
+                if (step is ParallelStep parallel)
                 {
                     SetActiveStatus(parallel.Id, true);
 
@@ -195,7 +195,7 @@ namespace HotChocolate.Execution.Processing.Plan
             {
                 SetActiveStatus(step.Id, false);
 
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+                if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
                 {
                     if (--_serial == 0)
                     {
@@ -203,7 +203,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }
 
-                if (step.Parent is SequenceQueryPlanStep sequence)
+                if (step.Parent is SequenceStep sequence)
                 {
                     if (!success && sequence.CancelOnError)
                     {
@@ -234,7 +234,7 @@ namespace HotChocolate.Execution.Processing.Plan
                     continue;
                 }
 
-                if (step.Parent is ParallelQueryPlanStep parallel)
+                if (step.Parent is ParallelStep parallel)
                 {
                     success = true;
 
@@ -264,7 +264,7 @@ TryAgain:
                 if (state.IsActive && state.Tasks == 0)
                 {
                     if (_plan.TryGetStep(state.Id, out ExecutionStep? step) &&
-                        step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
+                        step is not SequenceStep and not ParallelStep)
                     {
                         if (Complete(step, false))
                         {
@@ -304,7 +304,7 @@ TryAgain:
             if (!state.IsInitialized)
             {
                 state.Id = step.Id;
-                state.IsSerial = step is ResolverQueryPlanStep
+                state.IsSerial = step is ResolverStep
                 { Strategy: ExecutionStrategy.Serial };
                 state.IsInitialized = true;
             }

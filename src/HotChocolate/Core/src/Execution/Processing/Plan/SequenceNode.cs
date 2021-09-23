@@ -5,18 +5,18 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class SequenceQueryPlanNode : QueryPlanNode
+    internal sealed class SequenceNode : QueryPlanNode
     {
         private const string _name = "Sequence";
 
-        public SequenceQueryPlanNode() : base(ExecutionStrategy.Serial)
+        public SequenceNode() : base(ExecutionStrategy.Serial)
         {
         }
 
         public bool CancelOnError { get; set; }
 
         public override ExecutionStep CreateStep()
-            => new SequenceQueryPlanStep(CreateSteps(Nodes), CancelOnError);
+            => new SequenceStep(CreateSteps(Nodes), CancelOnError);
 
         public override void Serialize(Utf8JsonWriter writer)
         {
@@ -44,9 +44,9 @@ namespace HotChocolate.Execution.Processing.Plan
                 { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
             };
 
-        public static SequenceQueryPlanNode Create(params QueryPlanNode[] nodes)
+        public static SequenceNode Create(params QueryPlanNode[] nodes)
         {
-            var sequence = new SequenceQueryPlanNode();
+            var sequence = new SequenceNode();
 
             foreach (QueryPlanNode node in nodes)
             {

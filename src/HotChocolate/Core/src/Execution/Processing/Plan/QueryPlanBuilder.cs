@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using HotChocolate.Language;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -15,7 +19,8 @@ namespace HotChocolate.Execution.Processing.Plan
 
             var context = new QueryPlanContext(operation);
 
-            OperationQueryPlanNode operationNode = Prepare(context);
+            OperationNode operationNode = Prepare(context);
+            File.WriteAllText("/Users/michael/local/hc-1/test.json", JsonSerializer.Serialize(operationNode.Serialize()));
 
             QueryPlan[] deferredPlans =
                 operationNode.Deferred.Count > 0
@@ -64,7 +69,7 @@ namespace HotChocolate.Execution.Processing.Plan
             return Prepare(new QueryPlanContext(operation));
         }
 
-        private static OperationQueryPlanNode Prepare(QueryPlanContext context)
+        private static OperationNode Prepare(QueryPlanContext context)
         {
             return context.Operation.Definition.Operation is OperationType.Mutation
                 ? MutationStrategy.Build(context)

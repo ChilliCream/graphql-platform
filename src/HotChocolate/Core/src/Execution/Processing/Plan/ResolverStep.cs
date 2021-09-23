@@ -6,11 +6,11 @@ using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ResolverQueryPlanStep : ExecutionStep
+    internal sealed class ResolverStep : ExecutionStep
     {
         private readonly ISelection[] _selections;
 
-        public ResolverQueryPlanStep(
+        public ResolverStep(
             ExecutionStrategy strategy,
             IReadOnlyList<ISelection> selections)
         {

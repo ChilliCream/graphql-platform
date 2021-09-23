@@ -1,12 +1,10 @@
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ParallelQueryPlanStep : ExecutionStep
+    internal sealed class ParallelStep : ExecutionStep
     {
-        public ParallelQueryPlanStep(ExecutionStep[] steps) : base(steps)
+        public ParallelStep(ExecutionStep[] steps) : base(steps)
         {
         }
 

@@ -6,9 +6,9 @@ namespace HotChocolate.Execution.Processing.Plan
     {
         private static class MutationStrategy
         {
-            public static OperationQueryPlanNode Build(QueryPlanContext context)
+            public static OperationNode Build(QueryPlanContext context)
             {
-                var root = new SequenceQueryPlanNode();
+                var root = new SequenceNode { CancelOnError = true };
 
                 context.Root = root;
                 context.NodePath.Push(root);
@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 {
                     context.SelectionPath.Push(mutation);
 
-                    var mutationStep = new ResolverQueryPlanNode(
+                    var mutationStep = new ResolverNode(
                         mutation,
                         context.SelectionPath.PeekOrDefault(),
                         ExecutionStrategy.Serial);
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 context.NodePath.Pop();
 
                 QueryPlanNode optimized = QueryStrategy.Optimize(context.Root);
-                var operationNode = new OperationQueryPlanNode(optimized);
+                var operationNode = new OperationNode(optimized);
 
                 if (context.Deferred.Count > 0)
                 {

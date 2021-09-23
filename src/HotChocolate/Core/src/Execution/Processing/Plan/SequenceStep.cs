@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class SequenceQueryPlanStep : ExecutionStep
+    internal sealed class SequenceStep : ExecutionStep
     {
-        public SequenceQueryPlanStep(ExecutionStep[] steps, bool cancelOnError = false)
+        public SequenceStep(ExecutionStep[] steps, bool cancelOnError = false)
             : base(steps)
         {
             Debug.Assert(steps.Length > 0, "Sequence cannot be empty.");

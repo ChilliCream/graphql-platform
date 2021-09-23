@@ -5,16 +5,16 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ParallelQueryPlanNode : QueryPlanNode
+    internal sealed class ParallelNode : QueryPlanNode
     {
         private const string _name = "Parallel";
 
-        public ParallelQueryPlanNode() : base(ExecutionStrategy.Parallel)
+        public ParallelNode() : base(ExecutionStrategy.Parallel)
         {
         }
 
         public override ExecutionStep CreateStep() =>
-            new ParallelQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
+            new ParallelStep(Nodes.Select(t => t.CreateStep()).ToArray());
 
         public override void Serialize(Utf8JsonWriter writer)
         {
@@ -41,9 +41,9 @@ namespace HotChocolate.Execution.Processing.Plan
             };
         }
 
-        public static ParallelQueryPlanNode Create(params QueryPlanNode[] nodes)
+        public static ParallelNode Create(params QueryPlanNode[] nodes)
         {
-            var parallel = new ParallelQueryPlanNode();
+            var parallel = new ParallelNode();
             foreach (QueryPlanNode node in nodes)
             {
                 parallel.AddNode(node);
