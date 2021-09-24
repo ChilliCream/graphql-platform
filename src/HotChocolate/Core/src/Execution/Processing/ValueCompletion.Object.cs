@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -18,7 +19,7 @@ namespace HotChocolate.Execution.Processing
             Path path,
             IType fieldType,
             object result,
-            List<IExecutionTask> bufferedTasks,
+            List<ResolverTask> bufferedTasks,
             [NotNullWhen(true)] out object? completedResult)
         {
             if (TryResolveObjectType(

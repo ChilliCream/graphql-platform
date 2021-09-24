@@ -5,14 +5,14 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal class OperationQueryPlanNode : QueryPlanNode
+    internal class OperationNode : QueryPlanNode
     {
         private const string _name = "Operation";
         private const string _rootProp = "root";
         private const string _deferredProp = "deferred";
         private const string _streamsProp = "streams";
 
-        public OperationQueryPlanNode(QueryPlanNode operation)
+        public OperationNode(QueryPlanNode operation)
             : base(ExecutionStrategy.Serial)
         {
             Operation = operation;
@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public List<StreamPlanNode> Streams { get; } = new();
 
-        public override QueryPlanStep CreateStep() =>
+        public override ExecutionStep CreateStep() =>
             Operation.CreateStep();
 
         public override void Serialize(Utf8JsonWriter writer)
