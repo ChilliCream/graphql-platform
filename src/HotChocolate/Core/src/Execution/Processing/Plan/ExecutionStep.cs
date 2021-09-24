@@ -93,6 +93,6 @@ namespace HotChocolate.Execution.Processing.Plan
         /// <returns>
         /// <c>true</c> if the task is owned by this step; otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool OwnsTask(IExecutionTask task) => false;
+        public virtual bool IsOwningTask(IExecutionTask task) => false;
     }
 }

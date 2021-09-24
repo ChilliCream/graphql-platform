@@ -69,7 +69,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
             foreach (ExecutionStep ts2 in _steps)
             {
-                if (ts2.OwnsTask(task))
+                if (ts2.IsOwningTask(task))
                 {
                     step = ts2;
                     return true;
