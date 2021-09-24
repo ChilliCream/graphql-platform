@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 {
     internal static class ResolverTaskFactory
     {
-        private static List<IExecutionTask>? _pooled = new();
+        private static List<ResolverTask>? _pooled = new();
 
         public static ResultMap EnqueueResolverTasks(
             IOperationContext operationContext,
@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             IWorkScheduler scheduler = operationContext.Scheduler;
             var final = !selectionSet.IsConditional;
 
-            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
             Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
             try
@@ -85,7 +85,7 @@ namespace HotChocolate.Execution.Processing.Tasks
         {
             ResultMap resultMap = operationContext.Result.RentResultMap(1);
 
-            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
             Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
             ResolverTask resolverTask = CreateResolverTask(
@@ -126,7 +126,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ObjectType resultType,
             object result,
             ISelectionSet selectionSet,
-            List<IExecutionTask> bufferedTasks)
+            List<ResolverTask> bufferedTasks)
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
@@ -186,7 +186,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ObjectType parentType,
             object parent,
             ResultMap resultMap,
-            List<IExecutionTask> bufferedTasks)
+            List<ResolverTask> bufferedTasks)
         {
             var committed = false;
             object? resolverResult = null;
@@ -278,7 +278,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             int responseIndex,
             ResultMap resultMap,
             object? value,
-            List<IExecutionTask> bufferedTasks)
+            List<ResolverTask> bufferedTasks)
         {
             object? completedValue = null;
 
@@ -362,7 +362,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private static IExecutionTask CreateResolverTask(
+        private static ResolverTask CreateResolverTask(
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
@@ -435,7 +435,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private sealed class NoOpExecutionTask : ParallelExecutionTask
+        private sealed class NoOpExecutionTask : ExecutionTask
         {
             public NoOpExecutionTask(IOperationContext context)
             {
