@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using HotChocolate.Language;
-using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
@@ -20,7 +16,6 @@ namespace HotChocolate.Execution.Processing.Plan
             var context = new QueryPlanContext(operation);
 
             OperationNode operationNode = Prepare(context);
-            File.WriteAllText("/Users/michael/local/hc-1/test.json", JsonSerializer.Serialize(operationNode.Serialize()));
 
             QueryPlan[] deferredPlans =
                 operationNode.Deferred.Count > 0
