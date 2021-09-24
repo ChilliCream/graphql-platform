@@ -481,12 +481,12 @@ const NavigationList = styled.ol`
   display: flex;
   flex-direction: column;
   margin: 0;
-  padding: 0 18px 20px;
+  padding: 0 18px 0px;
   list-style-type: none;
 
   @media only screen and (min-width: 1070px) {
     display: flex;
-    padding: 0 4px 20px;
+    padding: 0 4px 0px;
   }
 `;
 
@@ -553,6 +553,7 @@ const NavigationItem = styled.li<{ active: boolean }>`
     `}
 `;
 
-const ScrollContainer = styled.div`
+export const ScrollContainer = styled.div`
   overflow-y: auto;
+  padding-bottom: 10px;
 `;

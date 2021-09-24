@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
-        void Register(List<IExecutionTask> tasks);
+        void Register(IReadOnlyList<IExecutionTask> tasks);
 
         /// <summary>
         /// Complete a task

@@ -1,5 +1,7 @@
 using System;
 using System.Buffers.Text;
+using System.Linq;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -87,12 +89,17 @@ namespace HotChocolate.Types
 
         protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out _, _format[0]))
+            if (_enforceFormat)
             {
-                return true;
-            }
+                ReadOnlySpan<byte> value = valueSyntax.AsSpan();
 
-            if (!_enforceFormat && Guid.TryParse(valueSyntax.Value, out _))
+                if (Utf8Parser.TryParse(value, out Guid _, out var consumed, _format[0]) &&
+                    consumed == value.Length)
+                {
+                    return true;
+                }
+            }
+            else if(Guid.TryParse(valueSyntax.Value, out _))
             {
                 return true;
             }
@@ -102,12 +109,17 @@ namespace HotChocolate.Types
 
         protected override Guid ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out _, _format[0]))
+            if (_enforceFormat)
             {
-                return g;
-            }
+                ReadOnlySpan<byte> value = valueSyntax.AsSpan();
 
-            if (!_enforceFormat && Guid.TryParse(valueSyntax.Value, out g))
+                if (Utf8Parser.TryParse(value, out Guid g, out var consumed, _format[0]) &&
+                    consumed == value.Length)
+                {
+                    return g;
+                }
+            }
+            else if(Guid.TryParse(valueSyntax.Value, out Guid g))
             {
                 return g;
             }
@@ -170,10 +182,23 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (resultValue is string s && Guid.TryParse(s, out Guid guid))
+            if (resultValue is string s)
             {
-                runtimeValue = guid;
-                return true;
+                byte[] bytes = Encoding.UTF8.GetBytes(s);
+
+                if (_enforceFormat &&
+                    Utf8Parser.TryParse(bytes, out Guid guid, out var consumed, _format[0]) &&
+                    consumed == bytes.Length)
+                {
+                    runtimeValue = guid;
+                    return true;
+                }
+
+                if (!_enforceFormat && Guid.TryParse(s, out guid))
+                {
+                    runtimeValue = guid;
+                    return true;
+                }
             }
 
             if (resultValue is Guid)

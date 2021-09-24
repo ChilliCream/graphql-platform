@@ -4,5 +4,6 @@ namespace HotChocolate.Execution.Processing.Plan
     {
         public const string TypeProp = "type";
         public const string NodesProp = "nodes";
+        public const string CancelOnErrorProp = "cancelOnError";
     }
 }
