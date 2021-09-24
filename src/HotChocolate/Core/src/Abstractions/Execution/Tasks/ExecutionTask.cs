@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// Provides the base implementation for a parallel executable task.
+    /// Provides the base implementation for a executable task.
     /// </summary>
-    public abstract class ParallelExecutionTask : IExecutionTask
+    /// <remarks>
+    /// The task is by default a parallel execution task.
+    /// </remarks>
+    public abstract class ExecutionTask : IExecutionTask
     {
         private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
         private Task? _task;
@@ -20,7 +23,7 @@ namespace HotChocolate.Execution
         protected abstract IExecutionTaskContext Context { get; }
 
         /// <inheritdoc />
-        public ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
+        public virtual ExecutionTaskKind Kind => ExecutionTaskKind.Parallel;
 
         /// <inheritdoc />
         public ExecutionTaskStatus Status { get; private set; }
@@ -64,14 +67,14 @@ namespace HotChocolate.Execution
             }
             catch (OperationCanceledException)
             {
-                Status = ExecutionTaskStatus.Faulted;
+                Faulted();
 
                 // If we run into this exception the request was aborted.
                 // In this case we do nothing and just return.
             }
             catch (Exception ex)
             {
-                Status = ExecutionTaskStatus.Faulted;
+                Faulted();
 
                 if (cancellationToken.IsCancellationRequested)
                 {

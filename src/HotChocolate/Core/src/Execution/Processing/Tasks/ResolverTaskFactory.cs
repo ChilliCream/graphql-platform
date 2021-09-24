@@ -435,7 +435,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private sealed class NoOpExecutionTask : ParallelExecutionTask
+        private sealed class NoOpExecutionTask : ExecutionTask
         {
             public NoOpExecutionTask(IOperationContext context)
             {
