@@ -26,9 +26,9 @@ namespace HotChocolate.Data.Filters
         {
             // arrange
             IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterInput>(_fooEntities);
-
             const string query =
                 "query Test($where: Boolean){ root(where: {bar: { eq: $where}}){ bar}}";
+
             // act
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
