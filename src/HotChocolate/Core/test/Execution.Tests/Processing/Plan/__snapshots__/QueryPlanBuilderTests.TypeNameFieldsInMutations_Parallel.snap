@@ -2,10 +2,11 @@
   "type": "Operation",
   "root": {
     "type": "Sequence",
+    "cancelOnError": true,
     "nodes": [
       {
         "type": "Resolver",
-        "strategy": "Serial",
+        "strategy": "Parallel",
         "selections": [
           {
             "id": 0,

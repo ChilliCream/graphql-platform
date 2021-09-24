@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public IReadOnlyList<ISelection> Selections => _selections;
 
-        public override bool TryInitialize(IQueryPlanState state)
+        public override bool TryActivate(IQueryPlanState state)
         {
             IVariableValueCollection variables = state.Context.Variables;
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Processing.Plan
         {
             Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
 
-            if (task is ResolverTask resolverTask)
+            if (task is ResolverTask { ChildTasks: { Count: > 0 } } resolverTask)
             {
                 foreach (var childTask in resolverTask.ChildTasks)
                 {

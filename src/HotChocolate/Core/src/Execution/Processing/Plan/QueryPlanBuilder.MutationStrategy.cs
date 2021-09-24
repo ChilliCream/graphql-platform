@@ -20,14 +20,11 @@ namespace HotChocolate.Execution.Processing.Plan
                     var mutationStep = new ResolverNode(
                         mutation,
                         context.SelectionPath.PeekOrDefault(),
-                        ExecutionStrategy.Serial);
+                        GetStrategyFromSelection(mutation));
 
                     root.AddNode(mutationStep);
-                    context.NodePath.Push(mutationStep);
 
                     QueryStrategy.VisitChildren(mutation, context);
-
-                    context.NodePath.Pop();
                 }
 
                 context.NodePath.Pop();

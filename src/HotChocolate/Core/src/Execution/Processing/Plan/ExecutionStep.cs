@@ -60,8 +60,8 @@ namespace HotChocolate.Execution.Processing.Plan
         public IReadOnlyList<ExecutionStep> Steps { get; }
 
         /// <summary>
-        /// Tries to initialize this execution step for the current request.
-        /// If the initialization returns <c>false</c> and does not initialize it is
+        /// Tries to activate this execution step for the current request.
+        /// If the activation returns <c>false</c> and it is
         /// not part of the current request and can be skipped.
         /// </summary>
         /// <param name="state">
@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Processing.Plan
         /// Returns <c>true</c> if this step is part of the current request;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool TryInitialize(IQueryPlanState state) => true;
+        public virtual bool TryActivate(IQueryPlanState state) => true;
 
         /// <summary>
         /// Completes a task that was spawned from this execution step.

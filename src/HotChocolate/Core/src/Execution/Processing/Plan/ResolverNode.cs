@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 writer.WriteStartObject();
                 writer.WriteNumber(_idProp, selection.Id);
                 writer.WriteString(_fieldProp, GetFieldFullName(selection));
-                writer.WriteString(_responseNameProp, selection.ResponseName);
+                writer.WriteString(_responseNameProp, selection.ResponseName.Value);
 
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
@@ -103,7 +103,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 {
                     { _idProp, selection.Id },
                     { _fieldProp, GetFieldFullName(selection) },
-                    { _responseNameProp, selection.ResponseName }
+                    { _responseNameProp, selection.ResponseName.Value }
                 };
 
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)

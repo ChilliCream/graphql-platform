@@ -21,11 +21,16 @@ namespace HotChocolate.Execution.Processing.Plan
         public override void Serialize(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteString("type", "Sequence");
+            writer.WriteString(TypeProp, _name);
+
+            if (CancelOnError)
+            {
+                writer.WriteBoolean(CancelOnErrorProp, true);
+            }
 
             if (Nodes.Count > 0)
             {
-                writer.WritePropertyName("nodes");
+                writer.WritePropertyName(NodesProp);
                 writer.WriteStartArray();
                 foreach (var node in Nodes)
                 {
@@ -38,11 +43,20 @@ namespace HotChocolate.Execution.Processing.Plan
         }
 
         public override object Serialize()
-            => new Dictionary<string, object?>
+        {
+            var props = new Dictionary<string, object?>
             {
                 { TypeProp, _name },
                 { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
             };
+
+            if (CancelOnError)
+            {
+                props.Add(CancelOnErrorProp, true);
+            }
+
+            return props;
+        }
 
         public static SequenceNode Create(params QueryPlanNode[] nodes)
         {

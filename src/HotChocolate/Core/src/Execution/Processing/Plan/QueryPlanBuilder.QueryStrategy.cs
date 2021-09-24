@@ -112,15 +112,13 @@ namespace HotChocolate.Execution.Processing.Plan
                     else if (selection.Strategy == SelectionExecutionStrategy.Default ||
                         context.SelectionPath.Count == 0)
                     {
-                        if (parent is ResolverNode p &&
-                            p.Strategy == ExecutionStrategy.Parallel)
+                        if (parent is ResolverNode { Strategy: ExecutionStrategy.Parallel } p)
                         {
                             p.Selections.Add(selection);
                         }
                         else if (context.SelectionPath.Count > 0 &&
                             context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
-                            grandParent is ResolverNode gp &&
-                            gp.Strategy == ExecutionStrategy.Parallel &&
+                            grandParent is ResolverNode { Strategy: ExecutionStrategy.Parallel } gp &&
                             gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                         {
                             gp.Selections.Add(selection);

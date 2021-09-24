@@ -110,9 +110,14 @@ namespace HotChocolate.Execution.Processing.Plan
                 State state = GetState(step);
                 step.CompleteTask(_planState, task);
 
+                if (task.Status is not ExecutionTaskStatus.Completed)
+                {
+                    state.Failed = true;
+                }
+
                 if (--state.Tasks == 0)
                 {
-                    return Complete(step, task.Status is ExecutionTaskStatus.Completed);
+                    return Complete(step, !state.Failed);
                 }
             }
 
@@ -145,47 +150,61 @@ namespace HotChocolate.Execution.Processing.Plan
 
         private bool Activate(ExecutionStep step)
         {
-            while (true)
+            // first we try to activate the step, if that cannot be done we will mark the state
+            // for this step as not active which will cause this step to be skipped.
+            if (!step.TryActivate(_planState))
             {
-                if (!step.TryInitialize(_planState))
-                {
-                    State state = _stepState[step.Id];
-                    state.Id = step.Id;
-                    state.IsActive = false;
-                    return false;
-                }
-
-                if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
-                {
-                    _serial++;
-                    Strategy = ExecutionStrategy.Serial;
-                    SetActiveStatus(step.Id, true);
-                    break;
-                }
-
-                if (step is SequenceStep sequence)
-                {
-                    SetActiveStatus(sequence.Id, true);
-                    step = sequence.Steps[0];
-                    continue;
-                }
-
-                if (step is ParallelStep parallel)
-                {
-                    SetActiveStatus(parallel.Id, true);
-
-                    for (var i = 0; i < parallel.Steps.Count; i++)
-                    {
-                        Activate(parallel.Steps[i]);
-                    }
-
-                    break;
-                }
-
-                SetActiveStatus(step.Id, true);
-                break;
+                SetSkipped(step.Id);
+                return false;
             }
 
+            if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
+            {
+                _serial++;
+                Strategy = ExecutionStrategy.Serial;
+            }
+            else if (step is SequenceStep sequence)
+            {
+                ExecutionStep? current = sequence.Steps[0];
+                var success = false;
+
+                while (current is not null)
+                {
+                    if (Activate(current))
+                    {
+                        success = true;
+                        break;
+                    }
+
+                    current = current.Next;
+                }
+
+                if (!success)
+                {
+                    SetSkipped(step.Id);
+                    return false;
+                }
+            }
+            else if (step is ParallelStep parallel)
+            {
+                var allSkipped = true;
+
+                for (var i = 0; i < parallel.Steps.Count; i++)
+                {
+                    if (Activate(parallel.Steps[i]))
+                    {
+                        allSkipped = false;
+                    }
+                }
+
+                if (allSkipped)
+                {
+                    SetSkipped(step.Id);
+                    return false;
+                }
+            }
+
+            SetActiveStatus(step.Id, true);
             return true;
         }
 
@@ -266,7 +285,7 @@ TryAgain:
                     if (_plan.TryGetStep(state.Id, out ExecutionStep? step) &&
                         step is not SequenceStep and not ParallelStep)
                     {
-                        if (Complete(step, false))
+                        if (Complete(step, !state.Failed))
                         {
                             return true;
                         }
@@ -297,6 +316,14 @@ TryAgain:
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SetSkipped(int stepId)
+        {
+            State state = _stepState[stepId];
+            state.Id = stepId;
+            state.IsActive = false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private State GetState(ExecutionStep step)
         {
             State state = _stepState[step.Id];
@@ -319,6 +346,7 @@ TryAgain:
             public int Tasks;
             public bool IsSerial;
             public bool IsInitialized;
+            public bool Failed = false;
 
             public void Clear()
             {
@@ -327,6 +355,7 @@ TryAgain:
                 IsSerial = default;
                 IsInitialized = default;
                 Tasks = default;
+                Failed = default;
             }
 
             /// <summary>
