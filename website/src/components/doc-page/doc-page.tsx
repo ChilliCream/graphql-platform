@@ -32,7 +32,11 @@ import {
 import { Aside, DocPageAside } from "./doc-page-aside";
 import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
-import { DocPageNavigation, Navigation } from "./doc-page-navigation";
+import {
+  DocPageNavigation,
+  Navigation,
+  ScrollContainer,
+} from "./doc-page-navigation";
 
 interface DocPageProps {
   readonly data: DocPageFragment;
@@ -126,7 +130,9 @@ export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
         </ArticleWrapper>
         <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
-          <ArticleSections data={data.file!.childMdx!} />
+          <ScrollContainer>
+            <ArticleSections data={data.file!.childMdx!} />
+          </ScrollContainer>
         </DocPageAside>
       </Container>
     </TabGroupProvider>
