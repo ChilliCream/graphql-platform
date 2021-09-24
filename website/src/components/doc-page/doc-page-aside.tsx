@@ -27,7 +27,7 @@ export const DocPageAside: FC = ({ children }) => {
   }, []);
 
   return (
-    <Aside calculatedHeight={height} className={showAside ? "show" : ""}>
+    <Aside height={height} show={showAside}>
       <BodyStyle disableScrolling={showAside} />
       <DocPagePaneHeader
         title="About this article"
@@ -39,22 +39,24 @@ export const DocPageAside: FC = ({ children }) => {
   );
 };
 
-export const Aside = styled.aside<{ calculatedHeight: string }>`
+export const Aside = styled.aside<{ height: string; show: boolean }>`
   ${DocPageStickySideBarStyle}
 
   margin-left: 0;
   transition: transform 250ms;
   background-color: white;
   padding: 25px 0 0;
+  overflow-y: hidden;
+  margin-bottom: 50px;
+  display: flex;
+  flex-direction: column;
 
-  &.show {
-    transform: none;
-  }
+  ${(show) => show && `transform: none;`}
 
-  ${({ calculatedHeight }) =>
+  ${({ height }) =>
     IsSmallDesktop(`
       transform: translateX(100%);
-      height: ${calculatedHeight};
+      height: ${height};
       position: fixed;
       top: 60px;
       right: 0;

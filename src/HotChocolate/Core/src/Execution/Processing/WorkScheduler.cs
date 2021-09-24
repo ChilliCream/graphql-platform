@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Processing
             var started = false;
 
             // first we initialize the task execution state.
-            // This can be done without acquiring a lock since we only 
+            // This can be done without acquiring a lock since we only
             // interact with the task object itself.
             var state = _stateMachine.TryGetStep(task);
             task.IsRegistered = true;
@@ -89,7 +89,7 @@ namespace HotChocolate.Execution.Processing
             var started = false;
 
             // first we initialize the task execution state.
-            // This can be done without acquiring a lock since we only 
+            // This can be done without acquiring a lock since we only
             // interact with the task object itself.
             for (var i = 0; i < tasks.Count; i++)
             {
@@ -142,6 +142,11 @@ namespace HotChocolate.Execution.Processing
 
             lock (_sync)
             {
+                if (IsCompleted)
+                {
+                    return;
+                }
+
                 // we first complete the task on the state machine so that if we are completing
                 // the last task the state machine is marked as complete before the work queue
                 // signals that it is complete.

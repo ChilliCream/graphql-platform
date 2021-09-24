@@ -85,5 +85,18 @@ namespace HotChocolate.Execution
         /// The cancellation token.
         /// </param>
         protected abstract ValueTask ExecuteAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Resets the state of this task in case the task object is reused.
+        /// </summary>
+        protected void Reset()
+        {
+            _task = null;
+            Next = null;
+            Previous = null;
+            State = null;
+            IsSerial = false;
+            IsRegistered = false;
+        }
     }
 }

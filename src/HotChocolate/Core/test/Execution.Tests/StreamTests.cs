@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
@@ -183,6 +186,89 @@ namespace HotChocolate.Execution
             results.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Stream_With_AsyncEnumerable_InitialCount_1()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<Query>()
+                    .ExecuteRequestAsync(
+                        @"{
+                            persons @stream(initialCount: 1) {
+                                name
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Stream_With_DataLoader()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryWithDataLoader>()
+                    .AddDataLoader<PersonsGroupDataLoader>()
+                    .ExecuteRequestAsync(
+                        @"{
+                            persons @stream(initialCount: 0) {
+                                name
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Stream_With_DataLoader_InitialCount_1()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryWithDataLoader>()
+                    .AddDataLoader<PersonsGroupDataLoader>()
+                    .ExecuteRequestAsync(
+                        @"{
+                            persons @stream(initialCount: 1) {
+                                name
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
         public class Query
         {
             public async IAsyncEnumerable<Person> GetPersonsAsync()
@@ -194,8 +280,44 @@ namespace HotChocolate.Execution
             }
         }
 
+        public class QueryWithDataLoader
+        {
+            public async IAsyncEnumerable<Person> GetPersonsAsync(PersonsGroupDataLoader dl)
+            {
+                Person[] persons = await dl.LoadAsync("abc");
+
+                foreach (Person person in persons)
+                {
+                    yield return person;
+                }
+            }
+        }
+
+        public class PersonsGroupDataLoader : GroupedDataLoader<string, Person>
+        {
+            public PersonsGroupDataLoader(
+                IBatchScheduler batchScheduler,
+                DataLoaderOptions options = null)
+                : base(batchScheduler, options)
+            {
+            }
+
+            protected override Task<ILookup<string, Person>> LoadGroupedBatchAsync(
+                IReadOnlyList<string> keys,
+                CancellationToken cancellationToken)
+            {
+                return Task.FromResult(new List<Person>
+                {
+                    new() { GroupId = keys[0], Name = "Foo" },
+                    new() { GroupId = keys[0], Name = "Bar" }
+                }.ToLookup(t => t.GroupId));
+            }
+        }
+
         public class Person
         {
+            public string GroupId { get; set; }
+
             public string Name { get; set; }
         }
     }
