@@ -62,8 +62,6 @@ namespace HotChocolate.Execution
                 {
                     await ExecuteAsync(cancellationToken).ConfigureAwait(false);
                 }
-
-                Status = _completionStatus;
             }
             catch (OperationCanceledException)
             {
@@ -87,6 +85,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
+                Status = _completionStatus;
                 Context.Completed(this);
             }
         }
