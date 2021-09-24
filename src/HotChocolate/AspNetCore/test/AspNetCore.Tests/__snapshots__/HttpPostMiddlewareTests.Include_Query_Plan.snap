@@ -16,12 +16,13 @@
             {
               "id": 0,
               "field": "Query.__typename",
-              "responseName": "__typename"
+              "responseName": "__typename",
+              "pure": true
             }
           ]
         }
       },
-      "selections": "{\n  ... on Query {\n    __typename @__execute(id: 0, kind: DEFAULT, type: LEAF)\n  }\n}"
+      "selections": "{\n  ... on Query {\n    __typename @__execute(id: 0, kind: PURE, type: LEAF)\n  }\n}"
     }
   }
 }
