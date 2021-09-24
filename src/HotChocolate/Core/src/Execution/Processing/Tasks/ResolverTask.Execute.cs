@@ -65,8 +65,6 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
             catch (Exception ex)
             {
-                _completionStatus = ExecutionTaskStatus.Faulted;
-
                 if (!cancellationToken.IsCancellationRequested)
                 {
                     ResolverContext.ReportError(ex);

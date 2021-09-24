@@ -141,12 +141,12 @@ namespace HotChocolate.Execution.Processing.Tasks
 
                 _resolverContext.ReportError(ex);
                 _resolverContext.Result = null;
-                _completionStatus = ExecutionTaskStatus.Faulted;
+                completedValue = null;
             }
 
             CompletedValue = completedValue;
 
-            if (completedValue is null && _resolverContext.Field.Type.IsNonNullType())
+            if (completedValue is null && _selection.Type.IsNonNullType())
             {
                 // if we detect a non-null violation we will stash it for later.
                 // the non-null propagation is delayed so that we can parallelize better.
@@ -155,6 +155,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                     _resolverContext.Selection.SyntaxNode,
                     _resolverContext.Path,
                     _resolverContext.ResultMap);
+                _taskBuffer.Clear();
             }
             else
             {

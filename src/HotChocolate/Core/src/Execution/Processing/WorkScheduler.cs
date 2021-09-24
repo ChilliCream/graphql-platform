@@ -373,8 +373,7 @@ namespace HotChocolate.Execution.Processing
                 => !_completed &&
                    !_processing &&
                    IsEmpty &&
-                   !HasRunningTasks &&
-                   !_suspended.HasWork;
+                   !HasRunningTasks;
 
             bool IsCanceled()
                 => !_completed &&

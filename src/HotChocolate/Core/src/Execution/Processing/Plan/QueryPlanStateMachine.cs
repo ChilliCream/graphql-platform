@@ -85,9 +85,6 @@ namespace HotChocolate.Execution.Processing.Plan
             }
         }
 
-        public object? TryGetStep(IExecutionTask task)
-            => _plan.TryGetStep(task, out var step) ? step : null;
-
         public bool RegisterTask(IExecutionTask task)
         {
             if (task.State is ExecutionStep step)
