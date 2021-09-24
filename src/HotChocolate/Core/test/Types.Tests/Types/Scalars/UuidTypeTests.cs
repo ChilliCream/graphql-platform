@@ -400,6 +400,22 @@ namespace HotChocolate.Types
         [InlineData(false)]
         [InlineData(true)]
         [Theory]
+        public void Parse_Guid_Valid_Input(bool enforceFormat)
+        {
+            // arrange
+            var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f");
+            var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+
+            // act
+            var guid = (Guid)uuidType.ParseLiteral(input)!;
+
+            // assert
+            Assert.Equal(input.Value, guid.ToString("D"));
+        }
+
+        [InlineData(false)]
+        [InlineData(true)]
+        [Theory]
         public void Deserialize_Guid_String_With_Appended_String(bool enforceFormat)
         {
             // arrange
@@ -411,6 +427,22 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<SerializationException>(Fail);
+        }
+
+        [InlineData(false)]
+        [InlineData(true)]
+        [Theory]
+        public void Deserialize_Guid_Valid_Format(bool enforceFormat)
+        {
+            // arrange
+            var input = "fbdef721-93c5-4267-8f92-ca27b60aa51f";
+            var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+
+            // act
+            var guid = (Guid)uuidType.Deserialize(input)!;
+
+            // assert
+            Assert.Equal(input, guid.ToString("D"));
         }
 
         [InlineData(false)]
@@ -429,9 +461,20 @@ namespace HotChocolate.Types
             Assert.False(result);
         }
 
-        public class Query
+        [InlineData(false)]
+        [InlineData(true)]
+        [Theory]
+        public void IsInstanceOf_Guid_Valid_Format(bool enforceFormat)
         {
-            public string GetFoo(Guid id) => $"Hey {id}";
+            // arrange
+            var input = new StringValueNode("fbdef721-93c5-4267-8f92-ca27b60aa51f");
+            var uuidType = new UuidType(defaultFormat: 'D', enforceFormat: enforceFormat);
+
+            // act
+            var result = uuidType.IsInstanceOfType(input);
+
+            // assert
+            Assert.True(result);
         }
     }
 }
