@@ -5,7 +5,7 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class ResolverQueryPlanNode : QueryPlanNode
+    internal sealed class ResolverNode : QueryPlanNode
     {
         private const string _name = "Resolver";
         private const string _strategyProp = "strategy";
@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing.Plan
         private const string _responseNameProp = "responseName";
         private const string _pureProp = "pure";
 
-        public ResolverQueryPlanNode(
+        public ResolverNode(
             ISelection first,
             ISelection? firstParent = null,
             ExecutionStrategy? strategy = null)
@@ -32,31 +32,20 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public List<ISelection> Selections { get; } = new();
 
-        public override QueryPlanStep CreateStep()
+        public override ExecutionStep CreateStep()
         {
-            var selectionStep = new ResolverQueryPlanStep(Strategy, Selections);
+            var resolver = new ResolverStep(Strategy, Selections);
 
-            if (Nodes.Count == 0)
+            return Nodes.Count switch
             {
-                return selectionStep;
-            }
-
-            if (Nodes.Count == 1)
-            {
-                return new SequenceQueryPlanStep(
-                    new[]
-                    {
-                        selectionStep,
-                        Nodes[0].CreateStep()
-                    });
-            }
-
-            return new SequenceQueryPlanStep(
-                new QueryPlanStep[]
+                0 => resolver,
+                1 => new SequenceStep(new[] { resolver, Nodes[0].CreateStep() }),
+                _ => new SequenceStep(new ExecutionStep[]
                 {
-                    selectionStep,
-                    new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray())
-                });
+                    resolver,
+                    new SequenceStep(Nodes.Select(t => t.CreateStep()).ToArray())
+                })
+            };
         }
 
         public override void Serialize(Utf8JsonWriter writer)
@@ -72,7 +61,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 writer.WriteStartObject();
                 writer.WriteNumber(_idProp, selection.Id);
                 writer.WriteString(_fieldProp, GetFieldFullName(selection));
-                writer.WriteString(_responseNameProp, selection.ResponseName);
+                writer.WriteString(_responseNameProp, selection.ResponseName.Value);
 
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)
                 {
@@ -114,7 +103,7 @@ namespace HotChocolate.Execution.Processing.Plan
                 {
                     { _idProp, selection.Id },
                     { _fieldProp, GetFieldFullName(selection) },
-                    { _responseNameProp, selection.ResponseName }
+                    { _responseNameProp, selection.ResponseName.Value }
                 };
 
                 if (selection.Strategy is SelectionExecutionStrategy.Pure)

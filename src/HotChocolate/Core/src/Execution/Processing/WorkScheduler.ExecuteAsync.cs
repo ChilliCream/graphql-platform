@@ -10,7 +10,14 @@ namespace HotChocolate.Execution.Processing
 
         public async Task ExecuteAsync()
         {
-             _processing = true;
+            _stateMachine.Start();
+
+            if (_suspended.HasWork)
+            {
+                _suspended.CopyTo(_work, _serial, _stateMachine);
+            }
+
+            _processing = true;
             IExecutionTask?[] buffer = _buffer;
 
 RESTART:

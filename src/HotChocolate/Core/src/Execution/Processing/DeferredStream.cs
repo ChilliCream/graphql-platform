@@ -108,7 +108,7 @@ namespace HotChocolate.Execution.Processing
         }
 
 
-        private class StreamExecutionTask : ParallelExecutionTask
+        private class StreamExecutionTask : ExecutionTask
         {
             private readonly IOperationContext _operationContext;
             private readonly DeferredStream _deferredStream;

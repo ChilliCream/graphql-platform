@@ -17,9 +17,9 @@ namespace HotChocolate.Execution
         ExecutionTaskKind Kind { get; }
 
         /// <summary>
-        /// Defines if this task is completed.
+        /// Specifies the status of this task.
         /// </summary>
-        bool IsCompleted { get; }
+        ExecutionTaskStatus Status { get; }
 
         /// <summary>
         /// Next and previous are properties that are used by the execution engine to
