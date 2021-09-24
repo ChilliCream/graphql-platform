@@ -141,9 +141,10 @@ namespace HotChocolate.Execution.Processing
                 type.ElementType,
                 NullValueNode.Default,
                 variableValues,
-                out IValueNode? rewritten) && rewritten is ObjectValueNode rewrittenObj
-                ? rewrittenObj
-                : node;
+                out IValueNode? rewritten) &&
+                rewritten is ObjectValueNode rewrittenObj
+                    ? rewrittenObj
+                    : node;
         }
 
         private static ListValueNode Rewrite(
@@ -247,13 +248,7 @@ namespace HotChocolate.Execution.Processing
                     }
                     return true;
 
-                case SyntaxKind.ListValue:
-                    if (type.Kind != TypeKind.List)
-                    {
-                        rewritten = null;
-                        return false;
-                    }
-
+                case SyntaxKind.ListValue when type.Kind == TypeKind.List:
                     rewritten = Rewrite(
                         (ListValueNode)original,
                         (ListType)type,
