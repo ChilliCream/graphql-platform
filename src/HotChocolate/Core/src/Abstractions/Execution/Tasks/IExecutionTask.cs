@@ -65,24 +65,4 @@ namespace HotChocolate.Execution
         /// </param>
         Task WaitForCompletionAsync(CancellationToken cancellationToken);
     }
-
-    /// <summary>
-    /// Extensions for <see cref="IExecutionTask"/>.
-    /// </summary>
-    public static class ExecutionTaskExtensions
-    {
-        /// <summary>
-        /// Defines if this task is completed.
-        /// </summary>
-        public static bool IsCompleted(this IExecutionTask task)
-            => task.Status is ExecutionTaskStatus.Completed or ExecutionTaskStatus.Faulted;
-    }
-
-    public enum ExecutionTaskStatus
-    {
-        WaitingToRun,
-        Running,
-        Completed,
-        Faulted,
-    }
 }
