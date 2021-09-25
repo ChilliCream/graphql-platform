@@ -120,33 +120,32 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 The following methods can be overriden.
 
-| Method name                  | Description |
-| ---------------------------- | ----------- |
-| ValidateDocument             |             |
-| ValidationErrors             |             |
-| AddedDocumentToCache         |             |
-| AddedOperationToCache        |             |
-| DispatchBatch                |             |
-| ExecuteRequest               |             |
-| ExecuteSubscription          |             |
-| ExecutorEvicted              |             |
-| ExecutorCreated              |             |
-| OnSubscriptionEvent          |             |
-| ParseDocument                |             |
-| RequestError                 |             |
-| ResolveFieldValue            |             |
-| ResolverError                |             |
-| RetrievedDocumentFromCache   |             |
-| RetrievedDocumentFromStorage |             |
-| RetrievedOperationFromCache  |             |
-| RunTask                      |             |
-| StartProcessing              |             |
-| StopProcessing               |             |
-| SubscriptionEventResult      |             |
-| SubscriptionEventError       |             |
-| SubscriptionTransportError   |             |
-| SyntaxError                  |             |
-| TaskError                    |             |
+| Method name                  | Description                                                                                                                                   |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a GraphQL request.                    |
+| RequestError                 | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                         |
+| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Scope is created once a client subscribes and disposed once the subscription ends. |
+| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                |
+| SyntaxError                  | Called if a document could not be parsed due to a syntax error.                                                                               |
+| ValidateDocument             | Scope that encloses the validation of a document.                                                                                             |
+| ValidationErrors             | Called if errors occured during the validation of the document.                                                                               |
+| StartProcessing              | TODO scope                                                                                                                                    |
+| StopProcessing               | TODO                                                                                                                                          |
+| RunTask                      | TODO scope                                                                                                                                    |
+| TaskError                    | TODO                                                                                                                                          |
+| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver.                                                                               |
+| ResolverError                | Called if a specific field resolver produces an error.                                                                                        |
+| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result, once the event stream has yielded a new payload.                                |
+| SubscriptionEventResult      | Called once the subscription result has been successfully computed.                                                                           |
+| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                       |
+| SubscriptionTransportError   | Called if a subscription result could not be delivered to a client due to a transport issue.                                                  |
+| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                     |
+| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                           |
+| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                              |
+| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                        |
+| RetrievedDocumentFromStorage | Called once a document has been retrieved from a persisted query storage.                                                                     |
+| ExecutorEvicted              | TODO                                                                                                                                          |
+| ExecutorCreated              | TODO                                                                                                                                          |
 
 # DataLoader Events
 
@@ -165,13 +164,13 @@ public class MyDataLoaderEventListener : DataLoaderDiagnosticEventListener
 
 The following methods can be overriden.
 
-| Method name           | Description |
-| --------------------- | ----------- |
-| BatchError            |             |
-| BatchItemError        |             |
-| BatchResults          |             |
-| ExecuteBatch          |             |
-| ResolvedTaskFromCache |             |
+| Method name           | Description                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| ExecuteBatch          | Scope that encloses a batch operation, i.e. the resolution of a specific set of keys.                           |
+| BatchResults          | Called once a batch operation has been completed, i.e. all items for a specific set of keys have been resolved. |
+| BatchError            | Called if a batch operation has failed.                                                                         |
+| BatchItemError        | Called for a specific item that contained an error within a batch operation.                                    |
+| ResolvedTaskFromCache | TODO                                                                                                            |
 
 # Apollo Tracing
 
