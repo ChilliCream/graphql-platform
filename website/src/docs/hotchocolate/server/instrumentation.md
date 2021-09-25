@@ -2,11 +2,11 @@
 title: Instrumentation
 ---
 
-With Hot Chocolate we can create custom diagnostic event listeners, allowing us to hook into internal instrumentation events and further process them.
+Hot Chocolate allows us to create custom diagnostic event listeners, allowing us to hook into internal instrumentation events and further process them.
 
 We can subscribe to these events and delegate them either to our logging provider or to another tracing infrastructure. We are free to gather data only on one event or all of them, allowing us to craft tracing behavior that fits the need of our project.
 
-# Usage
+# Diagnostic events
 
 We can register diagnostic event listeners by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`.
 
@@ -104,7 +104,7 @@ public override IDisposable ExecuteRequest(IRequestContext context)
 }
 ```
 
-# Execution Events
+## Execution Events
 
 We can hook into execution events of the Hot Chocolate execution engine by creating a class inheriting from `ExecutionDiagnosticEventListener`.
 
@@ -147,7 +147,7 @@ The following methods can be overriden.
 | ExecutorCreated              | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
 | ExecutorEvicted              | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
 
-# DataLoader Events
+## DataLoader Events
 
 We can hook into DataLoader events by creating a class inheriting from `ExecutionDiagnosticEventListener`.
 
@@ -230,7 +230,7 @@ The above request would result in the below response, if _Apollo Tracing_ is ena
 }
 ```
 
-## Usage
+## Enabling Apollo Tracing
 
 _Apollo Tracing_ needs to be expicitly enabled by caling `AddApolloTracing` on the `IRequestExecutorBuilder`.
 
