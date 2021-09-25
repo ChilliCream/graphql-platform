@@ -1,4 +1,5 @@
-﻿using HotChocolate.Properties;
+﻿using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -30,10 +31,11 @@ namespace HotChocolate.Types.Introspection
 
             descriptor
                 .Description(TypeResources.SchemaField_Description)
-                .Type<NonNullType<__Schema>>()
-                .Resolve(Resolve);
+                .Type<NonNullType<__Schema>>();
 
-            static ISchema Resolve(IResolverContext ctx)
+            descriptor.Definition.PureResolver = Resolve;
+
+            static ISchema Resolve(IPureResolverContext ctx)
                 => ctx.Schema;
 
             return CreateDefinition(descriptor);
@@ -49,7 +51,9 @@ namespace HotChocolate.Types.Introspection
                 .Type<__Type>()
                 .Resolve(Resolve);
 
-            static INamedType? Resolve(IResolverContext ctx)
+            descriptor.Definition.PureResolver = Resolve;
+
+            static INamedType? Resolve(IPureResolverContext ctx)
             {
                 var name = ctx.ArgumentValue<string>("name");
                 return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
@@ -64,10 +68,11 @@ namespace HotChocolate.Types.Introspection
 
             descriptor
                 .Description(TypeResources.TypeNameField_Description)
-                .Type<NonNullType<StringType>>()
-                .Resolve(Resolve);
+                .Type<NonNullType<StringType>>();
 
-            static string Resolve(IResolverContext ctx)
+            descriptor.Extend().Definition.PureResolver = Resolve;
+
+            static string Resolve(IPureResolverContext ctx)
                 => ctx.ObjectType.Name.Value;
 
             return CreateDefinition(descriptor);

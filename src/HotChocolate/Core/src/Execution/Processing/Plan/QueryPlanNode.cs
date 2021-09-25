@@ -96,7 +96,7 @@ namespace HotChocolate.Execution.Processing.Plan
         /// <summary>
         /// Creates an executable query step that for the query plan.
         /// </summary>
-        public abstract QueryPlanStep CreateStep();
+        public abstract ExecutionStep CreateStep();
 
         /// <summary>
         /// Serializes the current node to JSON.
@@ -110,5 +110,17 @@ namespace HotChocolate.Execution.Processing.Plan
         /// Serializes the current node to a GraphQL extension response structure.
         /// </summary>
         public abstract object Serialize();
+
+        protected ExecutionStep[] CreateSteps(IReadOnlyList<QueryPlanNode> nodes)
+        {
+            var steps = new ExecutionStep[nodes.Count];
+
+            for (var i = 0; i < steps.Length; i++)
+            {
+                steps[i] = nodes[i].CreateStep();
+            }
+
+            return steps;
+        }
     }
 }

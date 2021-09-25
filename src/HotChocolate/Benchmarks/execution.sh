@@ -4,7 +4,7 @@ rm -rf BenchmarkDotNet.Artifacts
 rm -rf src/Benchmarks.Execution/bin
 rm -rf src/Benchmarks.Execution/obj
 
-dotnet run --project src/Benchmarks.Execution/ -c release --filter HotChocolate.Benchmarks.IntrospectionBenchmarks*
+dotnet run --project src/Benchmarks.Execution/ -c release --filter HotChocolate.Benchmarks.*
 
 rm -rf src/Benchmarks.Execution/bin
 rm -rf src/Benchmarks.Execution/obj

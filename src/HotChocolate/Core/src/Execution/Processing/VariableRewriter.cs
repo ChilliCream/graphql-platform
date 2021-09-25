@@ -131,6 +131,22 @@ namespace HotChocolate.Execution.Processing
             return false;
         }
 
+        private static ObjectValueNode Rewrite(
+            ObjectValueNode node,
+            ListType type,
+            IVariableValueCollection variableValues)
+        {
+            return TryRewriteValue(
+                node,
+                type.ElementType,
+                NullValueNode.Default,
+                variableValues,
+                out IValueNode? rewritten) &&
+                rewritten is ObjectValueNode rewrittenObj
+                    ? rewrittenObj
+                    : node;
+        }
+
         private static ListValueNode Rewrite(
             ListValueNode node,
             ListType type,
@@ -206,13 +222,7 @@ namespace HotChocolate.Execution.Processing
                     rewritten = Rewrite((VariableNode)original, defaultValue, variableValues);
                     return true;
 
-                case SyntaxKind.ObjectValue:
-                    if (type.Kind != TypeKind.InputObject)
-                    {
-                        rewritten = null;
-                        return false;
-                    }
-
+                case SyntaxKind.ObjectValue when type.Kind == TypeKind.InputObject:
                     rewritten = Rewrite(
                         (ObjectValueNode)original,
                         (InputObjectType)type,
@@ -225,13 +235,20 @@ namespace HotChocolate.Execution.Processing
                     }
                     return true;
 
-                case SyntaxKind.ListValue:
-                    if (type.Kind != TypeKind.List)
+                case SyntaxKind.ObjectValue when type.Kind == TypeKind.List:
+                    rewritten = Rewrite(
+                        (ObjectValueNode)original,
+                        (ListType)type,
+                        variableValues);
+
+                    if (ReferenceEquals(rewritten, original))
                     {
                         rewritten = null;
                         return false;
                     }
+                    return true;
 
+                case SyntaxKind.ListValue when type.Kind == TypeKind.List:
                     rewritten = Rewrite(
                         (ListValueNode)original,
                         (ListType)type,

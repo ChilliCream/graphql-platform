@@ -5,25 +5,32 @@ using static HotChocolate.Execution.Processing.Plan.QueryPlanSerializationProper
 
 namespace HotChocolate.Execution.Processing.Plan
 {
-    internal sealed class SequenceQueryPlanNode : QueryPlanNode
+    internal sealed class SequenceNode : QueryPlanNode
     {
         private const string _name = "Sequence";
 
-        public SequenceQueryPlanNode() : base(ExecutionStrategy.Serial)
+        public SequenceNode() : base(ExecutionStrategy.Serial)
         {
         }
 
-        public override QueryPlanStep CreateStep() =>
-            new SequenceQueryPlanStep(Nodes.Select(t => t.CreateStep()).ToArray());
+        public bool CancelOnError { get; set; }
+
+        public override ExecutionStep CreateStep()
+            => new SequenceStep(CreateSteps(Nodes), CancelOnError);
 
         public override void Serialize(Utf8JsonWriter writer)
         {
             writer.WriteStartObject();
-            writer.WriteString("type", "Sequence");
+            writer.WriteString(TypeProp, _name);
+
+            if (CancelOnError)
+            {
+                writer.WriteBoolean(CancelOnErrorProp, true);
+            }
 
             if (Nodes.Count > 0)
             {
-                writer.WritePropertyName("nodes");
+                writer.WritePropertyName(NodesProp);
                 writer.WriteStartArray();
                 foreach (var node in Nodes)
                 {
@@ -37,20 +44,29 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public override object Serialize()
         {
-            return new Dictionary<string, object?>
+            var props = new Dictionary<string, object?>
             {
                 { TypeProp, _name },
                 { NodesProp, Nodes.Select(t => t.Serialize()).ToArray() }
             };
+
+            if (CancelOnError)
+            {
+                props.Add(CancelOnErrorProp, true);
+            }
+
+            return props;
         }
 
-        public static SequenceQueryPlanNode Create(params QueryPlanNode[] nodes)
+        public static SequenceNode Create(params QueryPlanNode[] nodes)
         {
-            var sequence = new SequenceQueryPlanNode();
+            var sequence = new SequenceNode();
+
             foreach (QueryPlanNode node in nodes)
             {
                 sequence.AddNode(node);
             }
+
             return sequence;
         }
     }
