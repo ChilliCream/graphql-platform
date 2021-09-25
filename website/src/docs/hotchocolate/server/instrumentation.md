@@ -49,7 +49,9 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 ## Scopes
 
-Most diagnostic event handlers have a return type of `void`, but some return an `IDisposable`. These are event handlers that enclose a specific operation like a scope. The scope is instantiated at the start of the operation and disposed at the end of the operations.
+Most diagnostic event handlers have a return type of `void`, but some return an `IDisposable`. These are event handlers that enclose a specific operation, sort of like a scope. This scope is instantiated at the start of the operation and disposed at the end of the operation.
+
+To create a scope we can simply create a class implementing `IDisposable`.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -59,6 +61,7 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     public MyExecutionEventListener(ILogger<MyExecutionEventListener> logger)
         => _logger = logger;
 
+    // this is invoked at the start of the `ExecuteRequest` operation
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
         var start = DateTime.UtcNow;
@@ -78,6 +81,7 @@ public class RequestScope : IDisposable
         _logger = logger;
     }
 
+    // this is invoked at the end of the `ExecuteRequest` operation
     public void Dispose()
     {
         var end = DateTime.UtcNow;
@@ -171,33 +175,65 @@ The following methods can be overriden.
 
 # Apollo Tracing
 
-<!-- todo: rework -->
+_Apollo Tracing_ is a [performance tracing specification](https://github.com/apollographql/apollo-tracing) for GraphQL servers. It works by returning tracing information about the current request alongside the computed data. While it is not part of the GraphQL specification itself, there is a common agreement in the GraphQL community that it should be supported by all GraphQL servers.
 
-_Apollo Tracing_ is a [performance tracing specification] for _GraphQL_ servers.
-It's not part of the actual _GraphQL_ specification itself, but there is a
-common agreement in the _GraphQL_ community that this should be supported by
-all _GraphQL_ servers.
+**Example**
 
-> Tracing results are by default hidden in **Playground**. You have to either click on the _TRACING_ button in the bottom right corner or enable it with the `tracing.hideTracingResponse` flag in the settings.
+```graphql
+{
+  book(id: 1) {
+    name
+    author
+  }
+}
+```
 
-## Enabling Apollo Tracing
+The above request would result in the below response, if _Apollo Tracing_ is enabled.
 
-Due to built-in _Apollo Tracing_ support it's actually very simple to enable
-this feature. There is an option named `TracingPreference` which takes one of
-three states. In the following table we find all of these states explained.
+```json
+{
+  "data": {
+    "book": {
+      "name": "C# in Depth",
+      "author": "Jon Skeet"
+    }
+  },
+  "extensions": {
+    "tracing": {
+      "version": 1,
+      "startTime": "2021-09-25T15:31:41.6515774Z",
+      "endTime": "2021-09-25T15:31:43.1602255Z",
+      "duration": 1508648100,
+      "parsing": { "startOffset": 13335, "duration": 781 },
+      "validation": { "startOffset": 17012, "duration": 323681 },
+      "execution": {
+        "resolvers": [
+          {
+            "path": ["book"],
+            "parentType": "Query",
+            "fieldName": "book",
+            "returnType": "Book",
+            "startOffset": 587048,
+            "duration": 1004748344
+          },
+          {
+            "path": ["book", "author"],
+            "parentType": "Book",
+            "fieldName": "author",
+            "returnType": "String",
+            "startOffset": 1005854823,
+            "duration": 500265020
+          }
+        ]
+      }
+    }
+  }
+}
+```
 
-| Key        | Description                                                                                                                    |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `Never`    | _Apollo Tracing_ is disabled; this is the default value.                                                                       |
-| `OnDemand` | _Apollo Tracing_ is enabled partially which means that it traces only by passing a special header to a specific query request. |
-| `Always`   | _Apollo Tracing_ is enabled completely which means all query requests will be traced automatically.                            |
+## Usage
 
-When creating your GraphQL schema, we just need to add an additional option
-object to enable _Apollo Tracing_. By default, as explained in the above table
-_Apollo Tracing_ is disabled. Let's take a look at the first example which
-describes how _Apollo Tracing_ is enabled permanently.
-
-**Enable _Apollo Tracing_ permanently**
+_Apollo Tracing_ needs to be expicitly enabled by caling `AddApolloTracing` on the `IRequestExecutorBuilder`.
 
 ```csharp
 public class Startup
@@ -206,49 +242,38 @@ public class Startup
     {
         services
             .AddGraphQLServer()
-            .AddQueryType<Query>()
-
-            // this adds apollo tracing
-            .AddApolloTracing(TracingPreference.Always);
+            .AddApolloTracing();
     }
-
-    // Code omitted for brevity
 }
 ```
 
-By setting the `TracingPreference` to `TracingPreference.Always`, we enabled
-_Apollo Tracing_ permanently; nothing else to do here. Done.
-
-**Enable _Apollo Tracing_ per query request**
-
-First, we need to enable _Apollo Tracing_ on the server-side. It's almost
-identical to the above example.
+Further we can specify a `TracingPreference`. Per default it is `TracingPreference.OnDemand`.
 
 ```csharp
-public class Startup
-{
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services
-            .AddGraphQLServer()
-            .AddQueryType<Query>()
-
-            // this adds apollo tracing
-            .AddApolloTracing(TracingPreference.OnDemand);
-    }
-
-    // Code omitted for brevity
-}
+services
+    .AddGraphQLServer()
+    .AddApolloTracing(TracingPreference.Always);
 ```
 
-Second, we have to pass an HTTP header `GraphQL-Tracing=1` or `X-Apollo-Tracing=1` on the client-side
-with every query request we're interested in.
+There are three possible options for the `TracingPreference`.
 
-When not using the Hot Chocolate ASP.NET Core or Framework stack we have to
-implement the mapping from the HTTP header to the query request property by
-our self which isn't very difficult actually. See how it's solved in the
-Hot Chocolate [ASP.NET Core and Framework stack].
+| Option     | Description                                                                                   |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| `Never`    | _Apollo Tracing_ is disabled. Useful if we want to conditionally disable _Apollo Tracing_.    |
+| `OnDemand` | _Apollo Tracing_ only traces requests, if a specific header is passed with the query request. |
+| `Always`   | _Apollo Tracing_ is always enabled and all query requests are traced automatically.           |
 
-[asp.net core and framework stack]: https://github.com/ChilliCream/hotchocolate/blob/master/src/HotChocolate/AspNetCore/src/AspNetCore.Abstractions/QueryMiddlewareBase.cs#L146-L149
-[performance tracing specification]: https://github.com/apollographql/apollo-tracing
-[specification]: https://facebook.github.io/graphql
+## On Demand
+
+When _Apollo Tracing_ is added using the `TracingPreference.OnDemand`, we are required to pass one of the following HTTP headers with our query request in order to enable tracing for this specific request.
+
+- `GraphQL-Tracing=1`
+- `X-Apollo-Tracing=1`
+
+When using `curl` this could look like the following.
+
+```bash
+curl -X POST -H 'GraphQL-Tracing: 1' -H 'Content-Type: application/json' \
+    -d '{"query":"{\n  book(id: 1) {\n    name\n    author\n  }\n}\n"}' \
+    'http://localhost:5000/graphql'
+```
