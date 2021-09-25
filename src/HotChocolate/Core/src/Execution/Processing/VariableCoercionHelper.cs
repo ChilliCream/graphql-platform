@@ -142,10 +142,15 @@ namespace HotChocolate.Execution.Processing
                 case ListValueNode lv:
                     return Rewrite(inputType, lv);
 
-                case StringValueNode sv:
-                    return inputType.Kind is TypeKind.Enum
-                        ? new EnumValueNode(sv.Location, sv.Value)
-                        : node;
+                case StringValueNode sv when inputType.Kind is TypeKind.Enum:
+                    return new EnumValueNode(sv.Location, sv.Value);
+
+                case StringValueNode sv when inputType.Kind is TypeKind.NonNull &&
+                    inputType.InnerType().Kind is TypeKind.Enum:
+                    return new EnumValueNode(sv.Location, sv.Value);
+
+                case StringValueNode:
+                    return node;
 
                 default:
                     return node;
