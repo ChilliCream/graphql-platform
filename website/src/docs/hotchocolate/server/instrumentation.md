@@ -120,32 +120,32 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 
 The following methods can be overriden.
 
-| Method name                  | Description                                                                                                                                   |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a GraphQL request.                    |
-| RequestError                 | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                         |
-| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Scope is created once a client subscribes and disposed once the subscription ends. |
-| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                |
-| SyntaxError                  | Called if a document could not be parsed due to a syntax error.                                                                               |
-| ValidateDocument             | Scope that encloses the validation of a document.                                                                                             |
-| ValidationErrors             | Called if errors occured during the validation of the document.                                                                               |
-| StartProcessing              | TODO scope                                                                                                                                    |
-| StopProcessing               | TODO                                                                                                                                          |
-| RunTask                      | TODO scope                                                                                                                                    |
-| TaskError                    | TODO                                                                                                                                          |
-| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver.                                                                               |
-| ResolverError                | Called if a specific field resolver produces an error.                                                                                        |
-| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result, once the event stream has yielded a new payload.                                |
-| SubscriptionEventResult      | Called once the subscription result has been successfully computed.                                                                           |
-| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                       |
-| SubscriptionTransportError   | Called if a subscription result could not be delivered to a client due to a transport issue.                                                  |
-| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                     |
-| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                           |
-| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                              |
-| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                        |
-| RetrievedDocumentFromStorage | Called once a document has been retrieved from a persisted query storage.                                                                     |
-| ExecutorEvicted              | TODO                                                                                                                                          |
-| ExecutorCreated              | TODO                                                                                                                                          |
+| Method name                  | Description                                                                                                                                    |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| ExecuteRequest               | Scope that encloses the entire GraphQL request execution. Also the first diagnostic event raised during a GraphQL request.                     |
+| RequestError                 | Called if the GraphQL request produced an error. Called immediately before the scope of `ExecuteRequest` is disposed.                          |
+| ExecuteSubscription          | Scope that encloses the execution of a subscription query. Scope is created once a client subscribes and disposed once the subscription ends.  |
+| ParseDocument                | Scope that encloses the parsing of a document.                                                                                                 |
+| SyntaxError                  | Called if a document could not be parsed due to a syntax error.                                                                                |
+| ValidateDocument             | Scope that encloses the validation of a document.                                                                                              |
+| ValidationErrors             | Called if errors occured during the validation of the document.                                                                                |
+| StartProcessing              | TODO scope                                                                                                                                     |
+| StopProcessing               | TODO                                                                                                                                           |
+| RunTask                      | TODO scope                                                                                                                                     |
+| TaskError                    | TODO                                                                                                                                           |
+| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver.                                                                                |
+| ResolverError                | Called if a specific field resolver produces an error.                                                                                         |
+| OnSubscriptionEvent          | Scope that encloses the computation of a subscription result, once the event stream has yielded a new payload.                                 |
+| SubscriptionEventResult      | Called once the subscription result has been successfully computed.                                                                            |
+| SubscriptionEventError       | Called if the computation of the subscription result produced an error.                                                                        |
+| SubscriptionTransportError   | Called if a subscription result could not be delivered to a client due to a transport issue.                                                   |
+| AddedDocumentToCache         | Called once a document has been added to `DocumentCache`.                                                                                      |
+| RetrievedDocumentFromCache   | Called once a document has been retrieved from the `DocumentCache`.                                                                            |
+| AddedOperationToCache        | Called once an operation has been added to the `OperationCache`.                                                                               |
+| RetrievedOperationFromCache  | Called once an operation has been retrieved from the `OperationCache`.                                                                         |
+| RetrievedDocumentFromStorage | Called once a document has been retrieved from a persisted query storage.                                                                      |
+| ExecutorCreated              | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
+| ExecutorEvicted              | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
 
 # DataLoader Events
 
@@ -170,7 +170,7 @@ The following methods can be overriden.
 | BatchResults          | Called once a batch operation has been completed, i.e. all items for a specific set of keys have been resolved. |
 | BatchError            | Called if a batch operation has failed.                                                                         |
 | BatchItemError        | Called for a specific item that contained an error within a batch operation.                                    |
-| ResolvedTaskFromCache | TODO                                                                                                            |
+| ResolvedTaskFromCache | Called once a task to resolve an item by its key has been added or retrieved from the `TaskCache`.              |
 
 # Apollo Tracing
 
