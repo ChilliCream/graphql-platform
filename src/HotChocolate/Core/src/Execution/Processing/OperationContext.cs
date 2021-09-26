@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography;
 using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Execution.Properties;

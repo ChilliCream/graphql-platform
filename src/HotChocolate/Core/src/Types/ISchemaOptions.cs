@@ -42,7 +42,7 @@ namespace HotChocolate
          /// A delegate which resolves the name of the XML documentation file to be read.
          /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
          /// </summary>
-        new Func<Assembly, string>? ResolveXmlDocumentationFileName { get; }
+        new Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; }
 
         /// <summary>
         /// Defines if fields shall be sorted by name.

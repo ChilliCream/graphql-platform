@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
             var context = new QueryPlanContext(operation);
 
-            OperationQueryPlanNode operationNode = Prepare(context);
+            OperationNode operationNode = Prepare(context);
 
             QueryPlan[] deferredPlans =
                 operationNode.Deferred.Count > 0
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution.Processing.Plan
             return Prepare(new QueryPlanContext(operation));
         }
 
-        private static OperationQueryPlanNode Prepare(QueryPlanContext context)
+        private static OperationNode Prepare(QueryPlanContext context)
         {
             return context.Operation.Definition.Operation is OperationType.Mutation
                 ? MutationStrategy.Build(context)

@@ -604,7 +604,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         [Fact]
-        public void CoerceVariableValues_Should_CoerceEnumList_AsEnumValues()
+        public void StringValues_Representing_EnumValues_In_Lists_ShouldBe_Rewritten()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -665,7 +665,68 @@ namespace HotChocolate.Execution.Processing
         }
 
         [Fact]
-        public void CoerceVariableValues_Should_CoerceEnumObject_AsEnumValues()
+        public void StringValues_Representing_NonNullEnumValues_In_Lists_ShouldBe_Rewritten()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: [FooInput]): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum!
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(_ => _ => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new(null,
+                    new VariableNode("abc"),
+                    new ListTypeNode(new NamedTypeNode("FooInput")),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ListValueNode(
+                        new ObjectValueNode(
+                            new ObjectFieldNode("enum", "Foo")),
+                        new ObjectValueNode(
+                            new ObjectFieldNode("enum", "Bar")))
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+            var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal(
+                        "[ { enum: Foo }, { enum: Bar } ]",
+                        t.Value.ValueLiteral!.ToString());
+                });
+        }
+
+        [Fact]
+        public void StringValues_Representing_EnumValues_In_Objects_ShouldBe_Rewritten()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -719,6 +780,196 @@ namespace HotChocolate.Execution.Processing
                 {
                     Assert.Equal("abc", t.Key);
                     Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral!.ToString());
+                });
+        }
+
+        [Fact]
+        public void StringValues_Representing_NonNullEnumValues_In_Objects_ShouldBe_Rewritten()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: FooInput): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum!
+                        enum2: TestEnum!
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(_ => _ => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new(null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("FooInput"),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("enum", "Foo"),
+                        new ObjectFieldNode("enum2", "Bar"))
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+            var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral!.ToString());
+                });
+        }
+
+        [Fact]
+        public void If_Second_Item_In_Object_Is_Rewritten_The_Previous_Values_Are_Correctly_Copied()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: FooInput): String
+                    }
+
+                    input FooInput {
+                        value_a: String
+                        value_b: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(_ => _ => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new(null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("FooInput"),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var expectToBeUnchanged = new ObjectFieldNode("value_a", "Foo");
+            var expectToBeRewritten = new ObjectFieldNode("value_b", "Bar");
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ObjectValueNode(
+                        expectToBeUnchanged,
+                        expectToBeRewritten)
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+            var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal(
+                        @"{ value_a: ""Foo"", value_b: Bar }",
+                        t.Value.ValueLiteral.ToString());
+
+                    ObjectValueNode obj = Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
+                    Assert.Same(expectToBeUnchanged, obj.Fields[0]);
+                    Assert.NotSame(expectToBeRewritten, obj.Fields[1]);
+                });
+        }
+
+        [Fact]
+        public void If_Second_Item_In_List_Is_Rewritten_The_Previous_Values_Are_Correctly_Copied()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: [FooInput]): String
+                    }
+
+                    input FooInput {
+                        value_a: String
+                        value_b: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(_ => _ => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new(null,
+                    new VariableNode("abc"),
+                    new ListTypeNode(new NamedTypeNode("FooInput")),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var expectToBeUnchanged = new ObjectValueNode(new ObjectFieldNode("value_a", "Foo"));
+            var expectToBeRewritten = new ObjectValueNode(new ObjectFieldNode("value_b", "Bar"));
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ListValueNode(expectToBeUnchanged, expectToBeRewritten)
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+            var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal(
+                        @"[ { value_a: ""Foo"" }, { value_b: Bar } ]",
+                        t.Value.ValueLiteral.ToString());
+
+                    ListValueNode list = Assert.IsType<ListValueNode>(t.Value.ValueLiteral);
+                    Assert.Same(expectToBeUnchanged, list.Items[0]);
+                    Assert.NotSame(expectToBeRewritten, list.Items[1]);
                 });
         }
 
