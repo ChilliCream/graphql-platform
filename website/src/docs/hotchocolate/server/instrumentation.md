@@ -129,11 +129,11 @@ The following methods can be overriden.
 | SyntaxError                  | Called if a document could not be parsed due to a syntax error.                                                                                |
 | ValidateDocument             | Scope that encloses the validation of a document.                                                                                              |
 | ValidationErrors             | Called if errors occured during the validation of the document.                                                                                |
-| StartProcessing              | TODO scope                                                                                                                                     |
-| StopProcessing               | TODO                                                                                                                                           |
-| RunTask                      | TODO scope                                                                                                                                     |
-| TaskError                    | TODO                                                                                                                                           |
-| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver.                                                                                |
+| StartProcessing              | Scope that encloses the scheduling of some work, e.g. invoking a DataLoader or starting execution tasks.                                       |
+| StopProcessing               | Called if the execution engine has to wait for resolvers to complete or whenever the execution has completed.                                  |
+| RunTask                      | Scope that encloses the execution of an execution task. A `ResolverExecutionTask` uses the `ResolveFieldValue` event instead.                  |
+| TaskError                    | Called if an execution task produced an error.                                                                                                 |
+| ResolveFieldValue            | Scope that encloses the execution of a specific field resolver. (\*)                                                                           |
 | ResolverError                | Called if a specific field resolver produces an error.                                                                                         |
 | OnSubscriptionEvent          | Scope that encloses the computation of a subscription result, once the event stream has yielded a new payload.                                 |
 | SubscriptionEventResult      | Called once the subscription result has been successfully computed.                                                                            |
@@ -146,6 +146,40 @@ The following methods can be overriden.
 | RetrievedDocumentFromStorage | Called once a document has been retrieved from a persisted query storage.                                                                      |
 | ExecutorCreated              | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
 | ExecutorEvicted              | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
+
+(\*): The `ResolveFieldValue` event is not invoked per default, as it would be too much overhead to execute the event for each resolver used within a query. We have to override the `EnableResolveFieldValue` property in order for the execution engine to start invoking the event handler.
+
+```csharp
+public class MyExecutionEventListener : ExecutionDiagnosticEventListener
+{
+    public override bool EnableResolveFieldValue => true;
+
+    public override IDisposable ResolveFieldValue(IMiddlewareContext context)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+### Caching
+
+It's important to note that some diagnostic events are executed differently based on whether caching is involved or not.
+
+The `ParseDocument` event for example is only executed once for the same document. For subsequent requests using the same document the document is no longer parsed, i.e. the diagnostic event is not invoked.
+
+While the `ValidateDocument` event is raised for each request, it only makes sense to measure the first validation. For subsequent requests the validation result might have been cached, as indicated by the `IRequestContext.IsCachedDocument` property.
+
+```csharp
+public override IDisposable ValidateDocument(IRequestContext context)
+{
+    if (!context.IsCachedDocument)
+    {
+        // only profile the validation if the result has not been cached
+    }
+
+    return EmptyScope;
+}
+```
 
 ## DataLoader Events
 

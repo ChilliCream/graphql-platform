@@ -118,7 +118,9 @@ public record Foo([property: ID] string Id);
 
 # Instrumentation
 
-We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.  Most virtual methods previously returning IActivityScope now return IDisposable.
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
+
+[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
 
 # Relay
 
@@ -181,8 +183,6 @@ If you just want to enable the feature without further configuration, you can om
 > ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
 
 [Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay#query-field-in-mutation-payloads)
-
-[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
 
 # DataLoader
 
