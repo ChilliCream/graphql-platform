@@ -8,7 +8,7 @@ Global State allows us to define properties on a per-request basis to be made av
 
 # Initializing Global State
 
-We can add Global State using the `SetProperty` method on the `IQueryRequestBuilder`. This method takes a `key` and a `value` as an argument. WHile the `key` needs to be a `string` the value can be of any type.
+We can add Global State using the `SetProperty` method on the `IQueryRequestBuilder`. This method takes a `key` and a `value` as an argument. While the `key` needs to be a `string` the value can be of any type.
 
 Using an interceptor allows us to initialize the Global State before the request is being executed.
 
@@ -19,7 +19,8 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
         IRequestExecutor requestExecutor, IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
-        string userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string userId =
+            context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         requestBuilder.SetProperty("UserId", userId);
         // requestBuilder.SetProperty("IntegerValue", int.Parse(userId));
@@ -47,7 +48,7 @@ public class Query
     {
         // Omitted code for brevity
     }
-  
+
     public string Example2([GlobalState("ObjectValue")] User user)
     {
         // Omitted code for brevity
@@ -56,9 +57,9 @@ public class Query
 ```
 
 The `GlobalStateAttribute` accepts the `key` of the Global State `value` as an argument. An exception is thrown if no Global State value exists for the specified `key` or if the `value` can not be coerced to the type of the argument.
-  
+
 It's a good practice to create a new attribute inheriting from `GlobalStateAttribute`.
-  
+
 ```csharp
 public class UserIdAttribute : GlobalStateAttribute
 {
