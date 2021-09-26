@@ -676,7 +676,7 @@ namespace HotChocolate.Execution.Processing
                     }
 
                     input FooInput {
-                        enum: TestEnum
+                        enum: TestEnum!
                     }
 
                     enum TestEnum {
