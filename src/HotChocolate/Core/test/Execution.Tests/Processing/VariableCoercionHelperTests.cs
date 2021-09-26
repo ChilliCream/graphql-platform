@@ -873,13 +873,16 @@ namespace HotChocolate.Execution.Processing
                     Array.Empty<DirectiveNode>())
             };
 
+            var expectToBeUnchanged = new ObjectFieldNode("value_a", "Foo");
+            var expectToBeRewritten = new ObjectFieldNode("value_b", "Bar");
+
             var variableValues = new Dictionary<string, object>
             {
                 {
                     "abc",
                     new ObjectValueNode(
-                        new ObjectFieldNode("value_a", "Foo"),
-                        new ObjectFieldNode("value_b", "Bar"))
+                        expectToBeUnchanged,
+                        expectToBeRewritten)
                 }
             };
 
@@ -898,6 +901,10 @@ namespace HotChocolate.Execution.Processing
                     Assert.Equal(
                         @"{ value_a: ""Foo"", value_b: Bar }",
                         t.Value.ValueLiteral.ToString());
+
+                    ObjectValueNode obj = Assert.IsType<ObjectValueNode>(t.Value.ValueLiteral);
+                    Assert.Same(expectToBeUnchanged, obj.Fields[0]);
+                    Assert.NotSame(expectToBeRewritten, obj.Fields[1]);
                 });
         }
 
@@ -933,15 +940,14 @@ namespace HotChocolate.Execution.Processing
                     Array.Empty<DirectiveNode>())
             };
 
+            var expectToBeUnchanged = new ObjectValueNode(new ObjectFieldNode("value_a", "Foo"));
+            var expectToBeRewritten = new ObjectValueNode(new ObjectFieldNode("value_b", "Bar"));
+
             var variableValues = new Dictionary<string, object>
             {
                 {
                     "abc",
-                    new ListValueNode(
-                        new ObjectValueNode(
-                            new ObjectFieldNode("value_a", "Foo")),
-                        new ObjectValueNode(
-                            new ObjectFieldNode("value_b", "Bar")))
+                    new ListValueNode(expectToBeUnchanged, expectToBeRewritten)
                 }
             };
 
@@ -960,6 +966,10 @@ namespace HotChocolate.Execution.Processing
                     Assert.Equal(
                         @"[ { value_a: ""Foo"" }, { value_b: Bar } ]",
                         t.Value.ValueLiteral.ToString());
+
+                    ListValueNode list = Assert.IsType<ListValueNode>(t.Value.ValueLiteral);
+                    Assert.Same(expectToBeUnchanged, list.Items[0]);
+                    Assert.NotSame(expectToBeRewritten, list.Items[1]);
                 });
         }
 
