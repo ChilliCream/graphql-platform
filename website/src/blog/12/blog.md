@@ -189,7 +189,45 @@ Also we could go further and you could write a selector for your resolver compil
 
 Also, we are not done with this and are already thinking how to give you even more freedom by allowing to inject proper logic that can be run in the resolver pipeline. What we want to allow are kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not solved all the issues on this one and have moved this to Hot Chocolate 13.
 
-Dynamic Schemas
+# Dynamic Schemas
+
+While static schemas created through C# or through GraphQL SDL are very simple to build with Hot Chocolate it was quite challenging to build dynamic schemas that are based on Json files or database tables. It was achievable, like in the case of schema stitching but it was quite difficult and you needed to know quite a lot about the internals. With Hot Chocolate 12 we are opening up the type system quite a lot to allow you to create types in an unsafe way.
+
+With unsafe I mean that we allow you to create the types by bypassing validation logic for the default user and using the type system definition objects that we internally use to configure the types. I will do a followup post that goes deeper into the type system and how it works in Hot Chocolate.
+
+For this post let me show yo a simple example of how you now can create dynamic types. First let me introduce a new term here. With Hot Chocolate 12 we are introducing a new component call type module.
+
+```csharp
+/// <summary>
+/// A type module allows you to easily build a component that dynamically provides types to
+/// the schema building process.
+/// </summary>
+public interface ITypeModule
+{
+    /// <summary>
+    /// This event signals that types have changed and the current schema
+    /// version has to be phased out.
+    /// </summary>
+    event EventHandler<EventArgs> TypesChanged;
+
+    /// <summary>
+    /// Will be called by the schema building process to add the dynamically created types to
+    /// the schema building process.
+    /// </summary>
+    /// <param name="context">
+    /// The descriptor context provides access to schema building services and conventions.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns a collection of types that shall be added to the schema building process.
+    /// </returns>
+    ValueTask<IReadOnlyCollection<INamedType>> CreateTypesAsync(
+        IDescriptorContext context,
+        CancellationToken cancellationToken);
+}
+```
 
 -> Type Modules -> Added support for type modules.
 -> UnsafeCreate
