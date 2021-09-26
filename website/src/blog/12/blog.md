@@ -134,13 +134,60 @@ Essentially what we want is to just write the following:
 
 ```csharp
 [Serial]
-public async Task<Person> GetPersonByIdAsync([Service] MyDbContext context)
+public async Task<Person> GetPersonByIdAsync(MyDbContext context)
 {
     // omitted for brevity
 }
 ```
 
-Resolver Compiler
+In order to tell the resolver compiler that we have a common service that we use in many resolvers we just do the following:
+
+```csharp
+.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .ConfigureResolverCompiler(r =>
+    {
+        r.AddService<Service>();
+    });
+```
+
+Specifically for the service case we really simplified things with this nice `AddService` extension method. But what if we wanted to inject a specific thing form the request state. Essentially we want to grab something from the `ContextData` dictionary and make nicely accessible.
+
+```csharp
+[Serial]
+public async Task<Person> GetPersonByIdAsync(MyDbContext context, CustomState state)
+{
+    // omitted for brevity
+}
+```
+
+```csharp
+.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .ConfigureResolverCompiler(r =>
+    {
+        r.AddService<Service>();
+        r.AddParameter<CustomState>(resolverContext => (CustomState)resolverContext.ContextData["myCustomState"]!);
+    });
+```
+
+I know, the expression I wrote there is not safe, it is just an example. But it should give you an idea how easily you can now write compilable expression that we can integrate. All of these are compilable expressions, we will integrate the expression specified into the compiled resolver method.
+
+Also we could go further and you could write a selector for your resolver compiler extension that really inspects the parameter. These inspections are run at startup so there is no overhead on the runtime.
+
+```csharp
+.AddGraphQLServer()
+    .AddQueryType<Query>()
+    .ConfigureResolverCompiler(r =>
+    {
+        r.AddService<Service>();
+        r.AddParameter<CustomState>(
+            resolverContext => (CustomState)resolverContext.ContextData["myCustomState"]!,
+            p => p.Name == "state");
+    });
+```
+
+Also, we are not done with this and are already thinking how to give you even more freedom by allowing to inject proper logic that can be run in the resolver pipeline. What we want to allow are kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not solved all the issues on this one and have moved this to Hot Chocolate 13.
 
 Dynamic Schemas
 
