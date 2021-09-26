@@ -48,6 +48,7 @@ HotChocolate.Templates.StarWars
 HotChocolate.Types
 HotChocolate.Types.CursorPagination
 HotChocolate.Types.Filters
+HotChocolate.Types.NodaTime
 HotChocolate.Types.OffsetPagination
 HotChocolate.Types.Selections
 HotChocolate.Types.Sorting
