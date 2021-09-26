@@ -177,7 +177,7 @@ namespace HotChocolate.Execution.Processing
                     continue;
                 }
 
-                IValueNode value = Rewrite(field.Type, current.Value);
+                IValueNode rewritten = Rewrite(field.Type, current.Value);
 
                 // we try initially just to traverse the input graph, only if we detect a change
                 // will we create a new input object. In this case if the fields list is initialized
@@ -186,13 +186,13 @@ namespace HotChocolate.Execution.Processing
                 // a changed value since we need to produce a complete new input object value node.
                 if (fields is not null)
                 {
-                    fields.Add(current.WithValue(value));
+                    fields.Add(current.WithValue(rewritten));
                 }
 
                 // if we did not so far detect any rewritten field value we will compare if the
                 // field value node changed. Since, all syntax nodes are immutable we can just
                 // check if the reference is not the same.
-                else if (!ReferenceEquals(current.Value, value))
+                else if (!ReferenceEquals(current.Value, rewritten))
                 {
                     // if we detect a reference change we will create the fields list
                     // that contains all previous field values plus the changed field value.
@@ -203,7 +203,7 @@ namespace HotChocolate.Execution.Processing
                         fields.Add(node.Fields[j]);
                     }
 
-                    fields.Add(current.WithValue(value));
+                    fields.Add(current.WithValue(rewritten));
                 }
             }
 
@@ -238,7 +238,7 @@ namespace HotChocolate.Execution.Processing
                 // if we did not so far detect any rewritten value we will compare if the
                 // value node changed. Since, all syntax nodes are immutable we can just
                 // check if the reference is not the same.
-                else if (!ReferenceEquals(current.Value, value))
+                else if (!ReferenceEquals(current, value))
                 {
                     // if we detect a reference change we will create the values list
                     // that contains all previous list values plus the changed list value.
