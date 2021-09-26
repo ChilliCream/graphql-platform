@@ -157,8 +157,10 @@ namespace HotChocolate.Execution.Processing
             IType inputType,
             ObjectValueNode node)
         {
-            if (!(inputType.NamedType() is InputObjectType inputObjectType))
+            if (inputType.NamedType() is not InputObjectType inputObjectType)
             {
+                // if the node type is not an input object, we will just return the node
+                // as if and the deserialization will produce a proper error.
                 return node;
             }
 
@@ -170,17 +172,30 @@ namespace HotChocolate.Execution.Processing
 
                 if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
                 {
+                    // if we do not find a field on the type we also skip this error and let
+                    // the deserialization produce a proper error on this.
                     continue;
                 }
 
                 IValueNode value = Rewrite(field.Type, current.Value);
 
+                // we try initially just to traverse the input graph, only if we detect a change
+                // will we create a new input object. In this case if the fields list is initialized
+                // we know that we have already collected at least one change. In this case
+                // all further field nodes have to be added as well even if they do not have
+                // a changed value since we need to produce a complete new input object value node.
                 if (fields is not null)
                 {
                     fields.Add(current.WithValue(value));
                 }
+
+                // if we did not so far detect any rewritten field value we will compare if the
+                // field value node changed. Since, all syntax nodes are immutable we can just
+                // check if the reference is not the same.
                 else if (!ReferenceEquals(current.Value, value))
                 {
+                    // if we detect a reference change we will create the fields list
+                    // that contains all previous field values plus the changed field value.
                     fields = new List<ObjectFieldNode>();
 
                     for (var j = 0; j < i; j++)
@@ -210,12 +225,23 @@ namespace HotChocolate.Execution.Processing
                 IValueNode current = node.Items[i];
                 IValueNode value = Rewrite(elementType, current);
 
+                // we try initially just to traverse the list graph, only if we detect a change
+                // will we create a new list object. In this case if values list is initialized
+                // we know that we have already collected at least one change. In this case
+                // all further value nodes have to be added as well even if they do not have
+                // a changed value since we need to produce a complete new list value node.
                 if (values is not null)
                 {
                     values.Add(value);
                 }
+
+                // if we did not so far detect any rewritten value we will compare if the
+                // value node changed. Since, all syntax nodes are immutable we can just
+                // check if the reference is not the same.
                 else if (!ReferenceEquals(current.Value, value))
                 {
+                    // if we detect a reference change we will create the values list
+                    // that contains all previous list values plus the changed list value.
                     values = new List<IValueNode>();
 
                     for (var j = 0; j < i; j++)
