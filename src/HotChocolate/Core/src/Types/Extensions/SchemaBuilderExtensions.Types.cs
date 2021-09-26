@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
@@ -714,6 +717,46 @@ namespace HotChocolate
             typeName.Value.EnsureNotEmpty(nameof(typeName));
 
             return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
+        }
+        
+        public static void TryBindRuntimeType(
+            this IDescriptorContext context,
+            NameString typeName,
+            Type runtimeType)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
+                o is Dictionary<NameString, Type> runtimeTypes)
+            {
+                runtimeTypes[typeName] = runtimeType;
+            }
+        }
+
+        private static ISchemaBuilder BindRuntimeTypeInternal(
+            ISchemaBuilder builder,
+            NameString typeName,
+            Type runtimeType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
+                o is Dictionary<NameString, Type> runtimeTypes)
+            {
+                runtimeTypes[typeName] = runtimeType;
+            }
+
+            return builder;
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
@@ -72,7 +73,7 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (var parameter in parameters)
             {
-                if (fields.TryGetValue(parameter.Name!, out InputField? field) &&
+                if (fields.TryGetParameter(parameter, out InputField? field) &&
                     parameter.ParameterType == field.Property!.PropertyType)
                 {
                     required.Remove(field.Name);
@@ -100,5 +101,22 @@ namespace HotChocolate.Utilities.Serialization
                 }
             }
         }
+
+        public static bool TryGetParameter(
+            this IReadOnlyDictionary<string, InputField> fields,
+            ParameterInfo parameter,
+            [NotNullWhen(true)] out InputField? field)
+        {
+            string name = parameter.Name!;
+            string alternativeName = GetAlternativeParameterName(parameter.Name!);
+
+            return (fields.TryGetValue(alternativeName, out field) ||
+                fields.TryGetValue(name, out field));
+        }
+
+        private static string GetAlternativeParameterName(string name)
+            => name.Length > 1
+                ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
+                : name.ToUpperInvariant();
     }
 }

@@ -7,7 +7,7 @@ import { ExampleTabs } from "../../../components/mdx/example-tabs"
 The execution engine of Hot Chocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.
 So if you are seeing exceptions like `A second operation started on this context before a previous operation completed.`
-or `Cannot access a disposed object...` the `HotChocolate.Data.EnityFramework` package has you back.
+or `Cannot access a disposed object...` the `HotChocolate.Data.EntityFramework` package has your back.
 It provides helpers that make EF integration with Hot Chocolate a breeze.
 
 The package was build on the foundation of EntityFramework Core v5.0.0.
@@ -29,7 +29,7 @@ services.AddPooledDbContextFactory<SomeDbContext>(b => b /*your configuration */
 ```
 
 > ⚠️ **Note:** The configuration of `AddPooledDbContextFactory` replaces the `OnConfiguring` method of the `DBContext`.
-> You have to move the configuration to the factory method if you use `OnConfiguring`
+> You have to move the configuration to the factory method if you use `OnConfiguring`.
 
 # Using the DBContext
 
@@ -63,7 +63,7 @@ public class QueryType : ObjectType
             .UseDbContext<SomeDbContext>()
             .Resolver((ctx) =>
             {
-                return ctx.Service<SomeDbContext>().Users;
+                return ctx.DbContext<SomeDbContext>().Users;
             })
     }
 }

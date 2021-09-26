@@ -26,7 +26,7 @@ import AdditivLogoSvg from "../images/companies/additiv.svg";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
-import BdnaLogoSvg from "../images/companies/bdna.svg"
+import BdnaLogoSvg from "../images/companies/bdna.svg";
 import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
@@ -114,7 +114,7 @@ const IndexPage: FC = () => {
             <Link to="https://bananacakepop.com">
               <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Try Banana Cake Pop Preview 1</SlideTitle>
+                <SlideTitle>Try Banana Cake Pop Preview 12</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
@@ -216,7 +216,7 @@ const IndexPage: FC = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
-            <Logo width={140}>
+              <Logo width={140}>
                 <Link to="https://additiv.com">
                   <AdditivLogoSvg />
                 </Link>

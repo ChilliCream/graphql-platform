@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Internal;
@@ -14,6 +15,7 @@ namespace HotChocolate.Execution.Processing
         private readonly WorkQueue _serial = new();
         private readonly SuspendedWorkQueue _suspended = new();
         private readonly QueryPlanStateMachine _stateMachine = new();
+        private readonly HashSet<int> _selections = new();
 
         private readonly OperationContext _operationContext;
         private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
@@ -48,7 +50,7 @@ namespace HotChocolate.Execution.Processing
             _requestAborted = _operationContext.RequestAborted;
             _batchDispatcher = batchDispatcher;
 
-            _stateMachine.Initialize(_operationContext, _operationContext.QueryPlan);
+            _stateMachine.Initialize(this, _operationContext.QueryPlan);
             _requestContext.RequestAborted.Register(Cancel);
 
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
@@ -62,7 +64,7 @@ namespace HotChocolate.Execution.Processing
             {
                 _pause.TryContinueUnsafe();
 
-                if (_batchDispatcher is not null!)
+                if (_batchDispatcher is not null)
                 {
                     _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
                     _batchDispatcher = default!;
@@ -72,6 +74,7 @@ namespace HotChocolate.Execution.Processing
                 _suspended.Clear();
                 _stateMachine.Clear();
                 _deferredWorkBacklog.Clear();
+                _selections.Clear();
                 _processing = false;
                 _completed = false;
 
@@ -97,9 +100,11 @@ namespace HotChocolate.Execution.Processing
                 _pause.TryContinueUnsafe();
 
                 _work.Clear();
+                _serial.Clear();
                 _suspended.Clear();
                 _stateMachine.Clear();
-                _stateMachine.Initialize(_operationContext, _operationContext.QueryPlan);
+                _selections.Clear();
+                _stateMachine.Initialize(this, _operationContext.QueryPlan);
 
                 _processing = false;
                 _completed = false;

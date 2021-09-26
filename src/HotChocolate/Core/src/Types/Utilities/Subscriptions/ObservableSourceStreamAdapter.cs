@@ -10,7 +10,7 @@ namespace HotChocolate.Utilities.Subscriptions
         : IObserver<T>
         , IAsyncEnumerable<object>
     {
-        private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
+        private readonly ConcurrentQueue<T> _queue = new();
         private readonly IDisposable _subscription;
         private TaskCompletionSource<object> _wait;
         private Exception _exception;

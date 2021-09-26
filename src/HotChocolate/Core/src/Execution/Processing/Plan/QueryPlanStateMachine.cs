@@ -1,12 +1,13 @@
 using System;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing.Plan
 {
     internal sealed class QueryPlanStateMachine
     {
         // by default we will have 8 slots to store state on.
-        private State[] _state = { new(), new(), new(), new(), new(), new(), new(), new() };
+        private State[] _stepState = { new(), new(), new(), new(), new(), new(), new(), new() };
 
         // the count of active query plan steps.
         private int _running;
@@ -15,7 +16,7 @@ namespace HotChocolate.Execution.Processing.Plan
         private int _serial;
 
         // the current operation context
-        private IOperationContext _context = default!;
+        private IQueryPlanState _planState = default!;
 
         // the current query plan
         private QueryPlan _plan = default!;
@@ -38,60 +39,55 @@ namespace HotChocolate.Execution.Processing.Plan
         /// <summary>
         /// Initializes the state machine.
         /// </summary>
-        /// <param name="context">
+        /// <param name="state">
         /// The operation context.
         /// </param>
         /// <param name="plan">
         /// The query plan.
         /// </param>
-        public void Initialize(IOperationContext context, QueryPlan plan)
+        public void Initialize(IQueryPlanState state, QueryPlan plan)
         {
-            _context = context;
+            _planState = state;
             _plan = plan;
             Strategy = ExecutionStrategy.Parallel;
 
             // we first ensure that the state machine has enough state slots for the current
             // query plan.
-            if (_state.Length < plan.Count)
+            if (_stepState.Length < plan.Count)
             {
                 // if the query plan has more steps than we have state slots we will resize
                 // the state array.
-                Array.Resize(ref _state, plan.Count);
+                Array.Resize(ref _stepState, plan.Count);
 
                 // also we create new state objects for the empty slots.
-                for (var i = 0; i < _state.Length; i++)
+                for (var i = 0; i < plan.Count; i++)
                 {
-                    _state[i] ??= new();
+                    _stepState[i] ??= new();
                 }
             }
-
-            // last we activate the query plan by activating the first steps.
-            Activate(plan.Root);
         }
 
-        public object? TryGetStep(IExecutionTask task)
+        public void Start()
         {
-            return _plan.TryGetStep(task, out var step) ? step : null;
+            Activate(_plan.Root);
         }
 
-        public bool RegisterTask(IExecutionTask task, object? step)
+        public void TryInitializeTask(IExecutionTask task)
         {
-            if (step is QueryPlanStep s)
+            if (task.State is null && _plan.TryGetStep(task, out var step))
             {
-                State state = GetState(s);
-
-                state.Tasks++;
                 task.State = step;
-                task.IsSerial = state.IsSerial;
-                return state.IsActive;
-            }
 
-            return true;
+                if (task is ResolverTask resolverTask)
+                {
+                    _planState.Selections.Add(resolverTask.Selection.Id);
+                }
+            }
         }
 
         public bool RegisterTask(IExecutionTask task)
         {
-            if (task.State is QueryPlanStep step)
+            if (task.State is ExecutionStep step)
             {
                 State state = GetState(step);
 
@@ -106,28 +102,19 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public bool Complete(IExecutionTask task)
         {
-            if (task.State is QueryPlanStep step)
+            if (task.State is ExecutionStep step)
             {
                 State state = GetState(step);
+                step.CompleteTask(_planState, task);
 
-                if (--state.Tasks == 0)
+                if (task.Status is not ExecutionTaskStatus.Completed)
                 {
-                    return Complete(step);
+                    state.Failed = true;
                 }
-            }
-
-            return false;
-        }
-
-        public bool Complete(object taskState)
-        {
-            if (taskState is QueryPlanStep step)
-            {
-                State state = GetState(step);
 
                 if (--state.Tasks == 0)
                 {
-                    return Complete(step);
+                    return Complete(step, !state.Failed);
                 }
             }
 
@@ -136,7 +123,7 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public bool IsSuspended(IExecutionTask task)
         {
-            if (task.State is QueryPlanStep step)
+            if (task.State is ExecutionStep step)
             {
                 State state = GetState(step);
                 return !state.IsActive;
@@ -147,70 +134,84 @@ namespace HotChocolate.Execution.Processing.Plan
 
         public void Clear()
         {
-            for (var i = 0; i < _state.Length; i++)
+            foreach (var state in _stepState)
             {
-                _state[i].Clear();
+                state.Clear();
             }
 
             _plan = default!;
             _running = default;
             _serial = default;
-            _context = default!;
+            _planState = default!;
         }
 
-        private bool Activate(QueryPlanStep step)
+        private bool Activate(ExecutionStep step)
         {
-            while (true)
+            // first we try to activate the step, if that cannot be done we will mark the state
+            // for this step as not active which will cause this step to be skipped.
+            if (!step.TryActivate(_planState))
             {
-                if (!step.Initialize(_context))
-                {
-                    State state = _state[step.Id];
-                    state.Id = step.Id;
-                    state.IsActive = false;
-                    return false;
-                }
-
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
-                {
-                    _serial++;
-                    Strategy = ExecutionStrategy.Serial;
-                    SetActiveStatus(step.Id, true);
-                    break;
-                }
-
-                if (step is SequenceQueryPlanStep sequence)
-                {
-                    SetActiveStatus(sequence.Id, true);
-                    step = sequence.Steps[0];
-                    continue;
-                }
-
-                if (step is ParallelQueryPlanStep parallel)
-                {
-                    SetActiveStatus(parallel.Id, true);
-
-                    for (var i = 0; i < parallel.Steps.Count; i++)
-                    {
-                        Activate(parallel.Steps[i]);
-                    }
-
-                    break;
-                }
-
-                SetActiveStatus(step.Id, true);
-                break;
+                SetSkipped(step.Id);
+                return false;
             }
 
+            if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
+            {
+                _serial++;
+                Strategy = ExecutionStrategy.Serial;
+            }
+            else if (step is SequenceStep sequence)
+            {
+                ExecutionStep? current = sequence.Steps[0];
+                var success = false;
+
+                while (current is not null)
+                {
+                    if (Activate(current))
+                    {
+                        success = true;
+                        break;
+                    }
+
+                    current = current.Next;
+                }
+
+                if (!success)
+                {
+                    SetSkipped(step.Id);
+                    return false;
+                }
+            }
+            else if (step is ParallelStep parallel)
+            {
+                var allSkipped = true;
+
+                for (var i = 0; i < parallel.Steps.Count; i++)
+                {
+                    if (Activate(parallel.Steps[i]))
+                    {
+                        allSkipped = false;
+                    }
+                }
+
+                if (allSkipped)
+                {
+                    SetSkipped(step.Id);
+                    return false;
+                }
+            }
+
+            SetActiveStatus(step.Id, true);
             return true;
         }
 
-        private bool Complete(QueryPlanStep step)
+        private bool Complete(ExecutionStep step, bool success)
         {
             while (true)
             {
                 SetActiveStatus(step.Id, false);
 
-                if (step is ResolverQueryPlanStep { Strategy: ExecutionStrategy.Serial })
+                if (step is ResolverStep { Strategy: ExecutionStrategy.Serial })
                 {
                     if (--_serial == 0)
                     {
@@ -218,13 +219,19 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }
 
-                if (step.Parent is SequenceQueryPlanStep sequence)
+                if (step.Parent is SequenceStep sequence)
                 {
-                    QueryPlanStep current = step;
+                    if (!success && sequence.CancelOnError)
+                    {
+                        step = sequence;
+                        continue;
+                    }
+
+                    ExecutionStep current = step;
 
                     while (true)
                     {
-                        QueryPlanStep? next = sequence.GetNextStep(current);
+                        ExecutionStep? next = current.Next;
 
                         if (next is null)
                         {
@@ -243,11 +250,13 @@ namespace HotChocolate.Execution.Processing.Plan
                     continue;
                 }
 
-                if (step.Parent is ParallelQueryPlanStep parallel)
+                if (step.Parent is ParallelStep parallel)
                 {
+                    success = true;
+
                     for (var i = 0; i < parallel.Steps.Count; i++)
                     {
-                        if (_state[parallel.Steps[i].Id].IsActive)
+                        if (_stepState[parallel.Steps[i].Id].IsActive)
                         {
                             return false;
                         }
@@ -264,16 +273,16 @@ namespace HotChocolate.Execution.Processing.Plan
         public bool CompleteNext()
         {
 TryAgain:
-            for (var i = 0; i < _state.Length; i++)
+            for (var i = 0; i < _plan.Count; i++)
             {
-                State state = _state[i];
+                State state = _stepState[i];
 
                 if (state.IsActive && state.Tasks == 0)
                 {
-                    if (_plan.TryGetStep(state.Id, out QueryPlanStep? step) &&
-                        step is not SequenceQueryPlanStep and not ParallelQueryPlanStep)
+                    if (_plan.TryGetStep(state.Id, out ExecutionStep? step) &&
+                        step is not SequenceStep and not ParallelStep)
                     {
-                        if (Complete(step))
+                        if (Complete(step, !state.Failed))
                         {
                             return true;
                         }
@@ -289,7 +298,7 @@ TryAgain:
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetActiveStatus(int stepId, bool active)
         {
-            State state = _state[stepId];
+            State state = _stepState[stepId];
             state.Id = stepId;
             state.IsActive = active;
 
@@ -304,14 +313,22 @@ TryAgain:
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private State GetState(QueryPlanStep step)
+        private void SetSkipped(int stepId)
         {
-            State state = _state[step.Id];
+            State state = _stepState[stepId];
+            state.Id = stepId;
+            state.IsActive = false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private State GetState(ExecutionStep step)
+        {
+            State state = _stepState[step.Id];
 
             if (!state.IsInitialized)
             {
                 state.Id = step.Id;
-                state.IsSerial = step is ResolverQueryPlanStep
+                state.IsSerial = step is ResolverStep
                 { Strategy: ExecutionStrategy.Serial };
                 state.IsInitialized = true;
             }
@@ -326,6 +343,7 @@ TryAgain:
             public int Tasks;
             public bool IsSerial;
             public bool IsInitialized;
+            public bool Failed = false;
 
             public void Clear()
             {
@@ -334,6 +352,7 @@ TryAgain:
                 IsSerial = default;
                 IsInitialized = default;
                 Tasks = default;
+                Failed = default;
             }
 
             /// <summary>
