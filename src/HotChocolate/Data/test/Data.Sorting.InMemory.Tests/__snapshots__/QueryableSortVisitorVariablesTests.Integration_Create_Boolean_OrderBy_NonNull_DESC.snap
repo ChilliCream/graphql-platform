@@ -1,0 +1,16 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null
+}
