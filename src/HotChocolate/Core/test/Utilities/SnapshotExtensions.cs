@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
@@ -14,12 +15,19 @@ namespace HotChocolate.Tests
             return result;
         }
 
-        public static async Task<IExecutionResult> MatchSnapshotAsync(
+        public static Task<IExecutionResult> MatchSnapshotAsync(
             this Task<IExecutionResult> task)
+        {
+            return MatchSnapshotAsync(task, matchOptions: null);
+        }
+
+        public static async Task<IExecutionResult> MatchSnapshotAsync(
+            this Task<IExecutionResult> task,
+            Func<MatchOptions, MatchOptions>? matchOptions = null)
         {
             IExecutionResult result = await task;
             string json = await task.ToJsonAsync();
-            json.MatchSnapshot();
+            json.MatchSnapshot(matchOptions);
             return result;
         }
 
@@ -92,16 +100,6 @@ namespace HotChocolate.Tests
         public static async Task<IExecutionResult> MatchSnapshotAsync(
             this Task<IExecutionResult> task,
             params string[] snapshotNameExtensions)
-        {
-            IExecutionResult result = await task;
-            string json = await task.ToJsonAsync();
-            json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
-            return result;
-        }
-
-        public static async Task<IExecutionResult> MatchSnapshotAsync(
-            this Task<IExecutionResult> task,
-            params object[] snapshotNameExtensions)
         {
             IExecutionResult result = await task;
             string json = await task.ToJsonAsync();

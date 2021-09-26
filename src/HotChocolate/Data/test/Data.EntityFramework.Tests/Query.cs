@@ -161,4 +161,26 @@ namespace HotChocolate.Data
         public IQueryable<Author> GetAuthorsFromService([Service] BookContext context)
             => context.Authors;
     }
+
+    public class QueryDbContextResolveWithType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Field("authors")
+                .UseDbContext<BookContext>()
+                .ResolveWith<QueryDbContextInjection>(r =>
+                    r.GetAuthorsNoUseDbContext(default));
+
+            descriptor
+                .Field("authorsNoUseDbContext")
+                .ResolveWith<QueryDbContextInjection>(r =>
+                    r.GetAuthorsNoUseDbContext(default));
+
+            descriptor
+                .Field("authorsFromService")
+                .ResolveWith<QueryDbContextInjection>(r =>
+                    r.GetAuthorsFromService(default));
+        }
+    }
 }

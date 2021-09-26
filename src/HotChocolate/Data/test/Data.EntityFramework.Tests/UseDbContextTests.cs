@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Data.Extensions;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -531,116 +532,128 @@ namespace HotChocolate.Data
         [Fact]
         public async Task DbContext_ResolverExtension()
         {
-            // arrange
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase(CreateConnectionString()))
-                    .AddGraphQL()
-                    .AddQueryType<QueryType>()
-                    .BuildRequestExecutorAsync();
+            Snapshot.FullName();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"query Test {
-                    books {
-                        id
-                    }
-                }");
-
-            // assert
-            result.ToJson().MatchSnapshot();
+            await new ServiceCollection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ExecuteRequestAsync("{ books { id } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task DbContext_ResolverExtension_Missing_DbContext()
         {
-            // arrange
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase(CreateConnectionString()))
-                    .AddGraphQL()
-                    .AddQueryType<QueryType>()
-                    .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
-                    .BuildRequestExecutorAsync();
+            Snapshot.FullName();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"query Test {
-                    booksWithMissingContext {
-                        id
-                    }
-                }");
-
-            // assert
-            result.ToJson().MatchSnapshot();
+            await new ServiceCollection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true)
+                .ExecuteRequestAsync("{ booksWithMissingContext { id } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task DbContextParameterExpressionBuilder_Inject_DbContext()
         {
-            // arrange
-            var executor = await new ServiceCollection()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
                 .AddDbContextInjection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
                 .AddQueryType<QueryDbContextInjection>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = await executor.ExecuteAsync("{ authors { name } }");
-
-            // assert
-            result.ToJson().MatchSnapshot();
+                .ExecuteRequestAsync("{ authors { name } }")
+                .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task DbContextParameterExpressionBuilder_Inject_DbContext_Without_UseDbContext()
         {
-            // arrange
-            var executor = await new ServiceCollection()
+            Snapshot.FullName();
+
+            await new ServiceCollection()
                 .AddDbContextInjection()
                 .AddPooledDbContextFactory<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
                 .AddQueryType<QueryDbContextInjection>()
                 .ModifyRequestOptions(options => options.IncludeExceptionDetails = true)
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = await executor.ExecuteAsync("{ authorsNoUseDbContext { name } }");
-
-            // assert
-            result.ToJson().MatchSnapshot(matchOptions =>
-                matchOptions.IgnoreField("errors[0].extensions.stackTrace"));
+                .ExecuteRequestAsync("{ authorsNoUseDbContext { name } }")
+                .MatchSnapshotAsync(options =>
+                    options.IgnoreField("errors[0].extensions.stackTrace"));
         }
 
         [Fact]
-        public async Task DbContextParameterExpressionBuilder_ServiceAttribute()
+        public async Task DbContextParameterExpressionBuilder_Scoped_DbContext()
         {
-            var executor = await new ServiceCollection()
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
                 .AddDbContextInjection()
                 .AddDbContext<BookContext>(
                     b => b.UseInMemoryDatabase(CreateConnectionString()))
                 .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
                 .AddQueryType<QueryDbContextInjection>()
                 .BuildRequestExecutorAsync();
 
-            var result = await executor.ExecuteAsync("{ authorsFromService { name } }");
+            // act
+            IExecutionResult result = await executor.ExecuteAsync("{ authorsFromService { name } }");
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_ResolveWith_Inject_DbContext()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddQueryType<QueryDbContextResolveWithType>()
+                .ExecuteRequestAsync("{ authors { name } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_ResolveWith_Inject_DbContext_Without_UseDbContext()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddPooledDbContextFactory<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddQueryType<QueryDbContextResolveWithType>()
+                .ModifyRequestOptions(options => options.IncludeExceptionDetails = true)
+                .ExecuteRequestAsync("{ authorsNoUseDbContext { name } }")
+                .MatchSnapshotAsync(options =>
+                    options.IgnoreField("errors[0].extensions.stackTrace"));
+        }
+
+        [Fact]
+        public async Task DbContextParameterExpressionBuilder_ResolveWith_Scoped_DbContext()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddDbContextInjection()
+                .AddDbContext<BookContext>(
+                    b => b.UseInMemoryDatabase(CreateConnectionString()))
+                .AddGraphQL()
+                .AddQueryType<QueryDbContextResolveWithType>()
+                .ExecuteRequestAsync("{ authorsFromService { name } }")
+                .MatchSnapshotAsync();
         }
 
         private static string CreateConnectionString() =>
