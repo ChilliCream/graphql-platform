@@ -1,2 +1,0 @@
-HotChocolate.Data.EntityFrameworkResolverContextExtensions
-static HotChocolate.Data.EntityFrameworkResolverContextExtensions.DbContext<TDbContext>(this HotChocolate.Resolvers.IResolverContext! context) -> TDbContext!

@@ -1,5 +1,0 @@
-HotChocolate.Types.Sorting.QueryableSortVisitorContext.InputParser.get -> HotChocolate.Types.InputParser!
-HotChocolate.Types.Sorting.QueryableSortVisitorContext.QueryableSortVisitorContext(HotChocolate.Types.InputParser! inputParser, HotChocolate.Types.InputObjectType! initialType, System.Type! source, bool inMemory) -> void
-override HotChocolate.Types.Sorting.SortInputType<T>.OnCompleteFields(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> HotChocolate.Types.FieldCollection<HotChocolate.Types.InputField!>!
-*REMOVED*HotChocolate.Types.Sorting.QueryableSortVisitorContext.QueryableSortVisitorContext(HotChocolate.Types.InputObjectType! initialType, System.Type! source, bool inMemory) -> void
-*REMOVED*override HotChocolate.Types.Sorting.SortInputType<T>.OnCompleteFields(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition, System.Collections.Generic.ICollection<HotChocolate.Types.InputField!>! fields) -> void
