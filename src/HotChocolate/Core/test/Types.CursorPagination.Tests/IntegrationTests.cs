@@ -785,6 +785,27 @@ namespace HotChocolate.Types.Pagination
                 }")
                 .MatchSnapshotAsync();
         }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work_Execute()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .ExecuteRequestAsync("{ foos { nodes } }")
+                .MatchSnapshotAsync();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -1019,6 +1040,16 @@ namespace HotChocolate.Types.Pagination
                     new[] { new Edge<string>("d", "e") },
                     new ConnectionPageInfo(false, false, null, null),
                     _ => new(1)));
+        }
+
+        public class BackwardQuery
+        {
+            [UsePaging(AllowBackwardPagination = false)]
+            public Connection<string> GetFoos(int? first, string? after)
+                => new Connection<string>(
+                    new[] { new Edge<string>("abc", "def") },
+                    new ConnectionPageInfo(false, false, null, null, 1),
+                    _ => new(1));
         }
     }
 }
