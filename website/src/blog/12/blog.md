@@ -195,48 +195,367 @@ While static schemas created through C# or through GraphQL SDL are very simple t
 
 With unsafe I mean that we allow you to create the types by bypassing validation logic for the default user and using the type system definition objects that we internally use to configure the types. I will do a followup post that goes deeper into the type system and how it works in Hot Chocolate.
 
-For this post let me show yo a simple example of how you now can create dynamic types. First let me introduce a new term here. With Hot Chocolate 12 we are introducing a new component call type module.
+For this post let me show you a simple example of how you now can create dynamic types. First let me introduce a new component here called type module.
 
 ```csharp
-/// <summary>
-/// A type module allows you to easily build a component that dynamically provides types to
-/// the schema building process.
-/// </summary>
 public interface ITypeModule
 {
-    /// <summary>
-    /// This event signals that types have changed and the current schema
-    /// version has to be phased out.
-    /// </summary>
     event EventHandler<EventArgs> TypesChanged;
 
-    /// <summary>
-    /// Will be called by the schema building process to add the dynamically created types to
-    /// the schema building process.
-    /// </summary>
-    /// <param name="context">
-    /// The descriptor context provides access to schema building services and conventions.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token.
-    /// </param>
-    /// <returns>
-    /// Returns a collection of types that shall be added to the schema building process.
-    /// </returns>
-    ValueTask<IReadOnlyCollection<INamedType>> CreateTypesAsync(
+    ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
         IDescriptorContext context,
         CancellationToken cancellationToken);
 }
 ```
 
--> Type Modules -> Added support for type modules.
--> UnsafeCreate
--> TypeInterceptors
+The type modules provide types for a specific components or data sources, the new schema stitching engine for instance will use type modules to provide types to the schema.
 
-DataLoader
--> caching
--> update dl cache
--> Moved DataLoader code out of `HotChocolate.Types` into `GreenDonut`. (#4015)
+A type module consists o an event `TypesChanged` and a method `CreateTypesAsync`. `CreateTypesAsync` is called by the schema building process to provide the types for the module. Whenever the types change of a module the module can trigger `TypesChanged` which will phase out the current schema and create a new schema instance. The Hot Chocolate server will ensure that old request are still finished of against the old schema representation while new request are already routed to the new schema with the applied type changes.
+
+In essence `ITypeModule` will take away the complexity of providing a dynamic schema with Hot Chocolate.
+
+But we not only introduced this new interface to provide type we also opened up our lower-level configuration API which now lets you create types in a very easy way from a Json file or what have you.
+
+```csharp
+public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
+    IDescriptorContext context,
+    CancellationToken cancellationToken)
+{
+    var types = new List<ITypeSystemMember>();
+
+    await using var file = File.OpenRead(_file);
+    using var json = await JsonDocument.ParseAsync(file, cancellationToken: cancellationToken);
+
+    foreach (var type in json.RootElement.EnumerateArray())
+    {
+        var typeDefinition = new ObjectTypeDefinition(type.GetProperty("name").GetString()!);
+
+        foreach (var field in type.GetProperty("fields").EnumerateArray())
+        {
+            typeDefinition.Fields.Add(
+                new ObjectFieldDefinition(
+                    field.GetString()!,
+                    type: TypeReference.Parse("String!"),
+                    pureResolver: ctx => "foo"));
+        }
+
+        types.Add(
+            type.GetProperty("extension").GetBoolean()
+                ? ObjectTypeExtension.CreateUnsafe(typeDefinition)
+                : ObjectType.CreateUnsafe(typeDefinition));
+    }
+
+    return types;
+}
+```
+
+An example of this can be found [here]() and I will also follow up this post with a details blog post on dynamic schemas that goes more into the details.
+
+## Type Interceptors
+
+We also added further improvements to the type initialization to allow now type interceptors to register new types during the initialization. Also on this end you are now able to hook into the type initialization analyze the types that were registered by the user and then create further types based on the initial schema. Where type modules generate type based on an external component or data source, type interceptors allow you to generate types based on types. This can be useful if you for instance create a filter API that is based on the output types provided by a user.
+
+I will follow up this blog post also with another deep dive blog on the type system as well that goes into these topics.
+
+# Schema-First
+
+Another area where we have invested was schema-first. While Hot Chocolate at its very beginning was a schema-first library it developed more and more into a code-first / annotation-based library. If we look back at Hot Chocolate 11 then it almost looked like schema-first was an afterthought. With Hot Chocolate 12 we are bringing schema-first up to par with code-first and the annotation-based approach. This means that we also did some API refactoring and kicked out the old binding APIs. We did these breaking changes to align APIs.
+
+if we now create a schema-first server it from a configuration standpoint does look very similar to code-first or annotation based services.
+
+```csharp
+using Demo.Data;
+using Demo.Resolvers;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddSingleton<PersonRepository>()
+    .AddGraphQLServer()
+    .AddDocumentFromFile("./Schema.graphql")
+    .AddResolver<Query>();
+
+var app = builder.Build();
+
+app.MapGraphQL();
+
+app.Run();
+```
+
+There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET. Meaning if we for instance look at the person type we have a .NET representation for this.
+
+```graphql
+type Person {
+  name: String!
+}
+```
+
+```csharp
+public record Person(int Id, string Name);
+```
+
+The .NET representation in this case is a record, but it could also be a map or a Json structure. In most cases we infer the correct binding between runtime type and GraphQL type but if you need to explicitly bind we now use the same API as with the other approaches.
+
+```csharp
+builder.Services
+    .AddSingleton<PersonRepository>()
+    .AddGraphQLServer()
+    .AddDocumentFromFile("./Schema.graphql")
+    .AddResolver<Query>()
+    .BindRuntimeType<Person>();
+```
+
+Or if the name does not match the .NET type name.
+
+```csharp
+builder.Services
+    .AddSingleton<PersonRepository>()
+    .AddGraphQLServer()
+    .AddDocumentFromFile("./Schema.graphql")
+    .AddResolver<Query>()
+    .BindRuntimeType<Person>("Person");
+```
+
+Resolver types are .NET classes which provide resolvers, so essentially we provide a class that has a couple of methods handling data fetching. In this instance we have a type `Query` that provides a method to fetch persons.
+
+```csharp
+public class Query
+{
+    public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
+        => repository.GetPersons();
+}
+```
+
+In our example the resolver type name matches the GraphQL type name, so we can infer the binding between those. If you have multiple resolver classes per GraphQL type you also can use an overload that passes in the GraphQL type name.
+
+```csharp
+.AddResolver<QueryResolvers>("Query")
+```
+
+Naturally we still have the delegate variants of the `AddResolver` configuration methods.
+
+```csharp
+.AddResolver("Query", "sayHello", ctx => "hello")
+```
+
+## Middleware and Attributes
+
+One more thing we did is fully integrate our attributes like `UsePaging` with schema first resolvers.
+
+Meaning you can write the following schema now:
+
+```graphql
+type Query {
+  persons: [Person!]
+}
+
+type Person {
+  name: String!
+}
+```
+
+Then on your `Query` resolver for `persons` you can annotate it with the `UsePaging` attribute for instance. This will cause the schema initialization to rewrite the schema.
+
+```csharp
+public class Query
+{
+    [UsePaging]
+    public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
+        => repository.GetPersons();
+}
+```
+
+The output schema on your server would now look like:
+
+```graphql
+type Query {
+  persons(
+    """
+    Returns the first _n_ elements from the list.
+    """
+    first: Int
+
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
+    after: String
+
+    """
+    Returns the last _n_ elements from the list.
+    """
+    last: Int
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+  ): PersonsConnection
+}
+
+type Person {
+  name: String!
+}
+
+"""
+A connection to a list of items.
+"""
+type PersonsConnection {
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+
+  """
+  A list of edges.
+  """
+  edges: [PersonsEdge!]
+
+  """
+  A flattened list of the nodes.
+  """
+  nodes: [Person!]
+}
+
+"""
+Information about pagination in a connection.
+"""
+type PageInfo {
+  """
+  Indicates whether more edges exist following the set defined by the clients arguments.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Indicates whether more edges exist prior the set defined by the clients arguments.
+  """
+  hasPreviousPage: Boolean!
+
+  """
+  When paginating backwards, the cursor to continue.
+  """
+  startCursor: String
+
+  """
+  When paginating forwards, the cursor to continue.
+  """
+  endCursor: String
+}
+
+"""
+An edge in a connection.
+"""
+type PersonsEdge {
+  """
+  A cursor for use in pagination.
+  """
+  cursor: String!
+
+  """
+  The item at the end of the edge.
+  """
+  node: Person!
+}
+```
+
+So, the paging attribute rewrote the schema to now support pagination and also puts in the middleware to handle pagination. Rest assured you still can be full in control of your schema but and specify all of those types, but you also can let Hot Chocolate generate all those tedious types like paging types or filters types etc.
+
+Going forward we are also thinking on letting descriptor attributes become directives which would allow you to annotate directly in the schema file like the following:
+
+```graphql
+type Query {
+  persons: [Person!] @paging
+}
+
+type Person {
+  name: String!
+}
+```
+
+But for the time being schema-first really got a big update with this release and we will continue to make it better.
+
+The schema-first demos can be found [here]().
+
+# DataLoader
+
+Another component that go a huge update was DataLoader. It also was one of the reasons the release candidate phase stretched so far since we had lots of issues with the changes here in user projects. First, as we already said we would do we moved all the DataLoader into the `GreenDonut` library meaning that the various DataLoader no longer are residing in `HotChocolate.Types`. Apart form that we have refactored a lot to allow DataLoader to pool more objects and also to use a unified cache. This unified cache allows better to control how much memory can be allocated by a single request and also lets us do cross DataLoader updates. Essentially, one DataLoader can now fill the cache for another DataLoader. This ofter happens when you have entities that can be looked up by multiple keys like a user that could be fetched by the name or by its id.
+
+In order to take advantage of the new cache pass down the DataLoader options so that we can inject them from the DI.
+
+```csharp
+public class CustomBatchDataLoader : BatchDataLoader<string, string>
+{
+    public CustomBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : base(batchScheduler, options)
+    {
+    }
+
+    protected override Task<IReadOnlyDictionary<string, string>> LoadBatchAsync(
+        IReadOnlyList<string> keys,
+        CancellationToken cancellationToken)
+}
+```
+
+With DataLoader now always pass down the options and the batch scheduled and we will inject you the new unified cache. If you do not pass down the options object then we will just use a cache per DataLoader.
+
+The DataLoader caches with Hot Chocolate 12 are also now pooled meaning that the cache object is cleaned, preserved and reused which will safe you memory. Further we have now introduced `DataLoaderDiagnosticEventListener` which allows you to monitor DataLoader execution.
+
+All diagnostic listener can no be registered with the schema.
+
+```csharp
+services.AddGraphQLServer()
+    .AddDiagnosticEventListener<MyDataLoaderEventListener>()
+    ...
+```
+
+# Stream and Defer
+
+With Hot Chocolate 11 we introduced the `@defer` directive which allows you to defer parts of your query so that you get the most important data first and the execution of more expensive parts of your query is deprioritized.
+With Hot Chocolate 12 we now are introducing the `@stream` directive which allows you to take advantage of async enumerators and define how much data of a stream you want to get immediately and what shall be deferred to later point in time.
+
+```graphql
+{
+  persons @stream(initialCount: 2) {
+    name
+  }
+}
+```
+
+Stream works with any list in Hot Chocolate but it is only really efficient and gives you all the benefits of using stream if your resolver returns a `IAsyncEnumerable<T>`. Our internal paging middleware at the moment does not work with `IAsyncEnumerable<T>` which means you can stream the results but you still will have the fill execution impact on the initial piece of the query. We however will rework pagination to use `IAsyncEnumerable<T>`when slicing the data and executing the query.
+
+Stream and defer both work with Banana Cake Pop if your browser is chrome based. We already have an update in the works to make it work with Safari. We will issue the BCP update with version 12.1.
+
+# The little things that will make your live easier
+
+Apart from our big ticket items we have invested into smaller things that will help make Hot Chocolate easier to learn and make it better to use.
+
+## Cursor Paging
+
+For cursor paging we introduced more options that now allow you require paging boundaries like GitHub is doing with their public API. We also give you now the ability to control the connection name.
+The connection name now is by default inferred from the field, since this will break all existing schemas you can set a global paging option to keep the default behavior.
+
+```csharp
+services.AddGraphServerQL()
+    .AddQueryType<QueryType>()
+    .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false });
+```
+
+The connection name by default as I said is inferred from the field name now, this means if you have a field `friends` then the connection will be called `FriendsConnection` instead of the old behavior where we used the element type.
+
+You also can define the connection name explicitly now.
+
+```csharp
+public class Query
+{
+    [UsePaging(ConnectionName = "MyName")] // will create MyNameConnection
+    public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
+        => repository.GetPersons();
+}
+```
+
+Relay
+
+- nodes field
+- Split the` EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
 
 Cursor Paging
 -> Introduced option to require paging boundaries #4074
@@ -244,17 +563,15 @@ Cursor Paging
 
 Validation
 
+- Cost Complexity
+
 Middleware
 
 - Order Validation
 
-Relay
-
-- nodes field
-- Split the` EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
-
 AggregateError
-Enhanced error handling for variables to better pinpoint the actual error
+
+- Enhanced error handling for variables to better pinpoint the actual error
 
 ASP.NET Core improvements
 
@@ -263,3 +580,7 @@ Schema-First Support
 Banana Cake Pop
 
 Diagnostics
+
+```
+
+```
