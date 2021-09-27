@@ -224,6 +224,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             target.Expression = Expression;
             target.ResultType = ResultType;
             target.Resolver = Resolver;
+            target.PureResolver = PureResolver;
             target.SubscribeResolver = SubscribeResolver;
             target.IsIntrospectionField = IsIntrospectionField;
             target.IsParallelExecutable = IsParallelExecutable;
@@ -288,6 +289,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target.Resolver = Resolver;
             }
 
+            if (PureResolver is not null)
+            {
+                target.PureResolver = PureResolver;
+            }
+
             if (SubscribeResolver is not null)
             {
                 target.SubscribeResolver = SubscribeResolver;
@@ -330,7 +336,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 {
                     var nonRepeatable = 0;
 
-                    foreach (var def in definitions)
+                    foreach (T def in definitions)
                     {
                         if (!def.IsRepeatable && def.Key is not null)
                         {
