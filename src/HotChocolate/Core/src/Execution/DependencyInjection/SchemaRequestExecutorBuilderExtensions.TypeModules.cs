@@ -36,8 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return builder.Configure(
-                (sp, c) => c.TypeModules.Add(factory(sp.GetCombinedServices())));
+            return builder.Configure((sp, c) => c.TypeModules.Add(factory(sp)));
         }
     }
 }

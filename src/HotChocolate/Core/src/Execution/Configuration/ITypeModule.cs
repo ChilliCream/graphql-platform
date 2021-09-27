@@ -21,8 +21,8 @@ namespace HotChocolate.Execution.Configuration
         event EventHandler<EventArgs> TypesChanged;
 
         /// <summary>
-        /// Will be called by the schema building process to add the dynamically created types to
-        /// the schema building process.
+        /// Will be called by the schema building process to add the dynamically created
+        /// types and type extensions to the schema building process.
         /// </summary>
         /// <param name="context">
         /// The descriptor context provides access to schema building services and conventions.
@@ -31,9 +31,10 @@ namespace HotChocolate.Execution.Configuration
         /// The cancellation token.
         /// </param>
         /// <returns>
-        /// Returns a collection of types that shall be added to the schema building process.
+        /// Returns a collection of types and type extensions that shall be
+        /// added to the schema building process.
         /// </returns>
-        ValueTask<IReadOnlyCollection<INamedType>> CreateTypesAsync(
+        ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
             IDescriptorContext context,
             CancellationToken cancellationToken);
     }
