@@ -524,14 +524,26 @@ Stream works with any list in Hot Chocolate but it is only really efficient and 
 
 Stream and defer both work with Banana Cake Pop if your browser is chrome based. We already have an update in the works to make it work with Safari. We will issue the BCP update with version 12.1.
 
+# ASP.NET Core improvements
+
 # The little things that will make your live easier
 
 Apart from our big ticket items we have invested into smaller things that will help make Hot Chocolate easier to learn and make it better to use.
 
 ## Cursor Paging
 
-For cursor paging we introduced more options that now allow you require paging boundaries like GitHub is doing with their public API. We also give you now the ability to control the connection name.
-The connection name now is by default inferred from the field, since this will break all existing schemas you can set a global paging option to keep the default behavior.
+For cursor paging we introduced more options that now allow you require paging boundaries like GitHub is doing with their public API.
+
+```csharp
+public class Query
+{
+    [UsePaging(RequirePagingBoundaries = true)] // will create MyNameConnection
+    public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
+        => repository.GetPersons();
+}
+```
+
+Further, we give you now the ability to control the connection name. The connection name now is by default inferred from the field, since this will break all existing schemas you can set a global paging option to keep the default behavior.
 
 ```csharp
 services.AddGraphServerQL()
@@ -552,14 +564,94 @@ public class Query
 }
 ```
 
-Relay
+We also made it now easier to control which paging provider is used. For one you now can configure the default paging provided which if you do nothing still is the queryable paging provider.
 
-- nodes field
-- Split the` EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
+```csharp
+services.AddGraphServerQL()
+    .AddQueryType<QueryType>()
+    .AddCursorPagingProvider<MyCustomProvider>(defaultProvider = true);
+```
 
-Cursor Paging
--> Introduced option to require paging boundaries #4074
--> Add more capabilities to control how the connection name is created #4081
+Also, you now can name the provider which gives you an easy way to point to the correct paging provider for your specific case.
+
+```csharp
+services.AddGraphServerQL()
+    .AddQueryType<QueryType>()
+    .AddCursorPagingProvider<MyCustomProvider>("Custom");
+```
+
+```csharp
+public class Query
+{
+    [UsePaging(ProviderName = "Custom")]
+    public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
+        => repository.GetPersons();
+}
+```
+
+Sometimes, you want to have everything in your own hands and just use Hot Chocolate to take the tedious work of generating types of your hand. In this cases you can just return the connection and we will know what to do with it.
+
+```csharp
+public class Query
+{
+    [UsePaging]
+    public Task<Connection<Person>> GetPersons([Service] PersonRepository repository, int? first, string? after, int? last, string? before)
+        => repository.GetPersonsPagedAsync(first, after, last, before);
+}
+```
+
+If you are using the `HotChocolate.Data` package in combination with the connection type you even can use now our new data extensions.
+
+```csharp
+public class Query
+{
+    [UsePaging]
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public Task<Connection<Person>> GetPersonsAsync(
+        [Service] PersonRepository repository,
+        IResolverContext context,
+        CancellationToken cancellationToken)
+        => repository.GetPersons()
+              .Filter(Context)
+              .Sort(context)
+              .Project(context)
+              .ApplyCursorPaginationAsync(context, cancellationToken);
+}
+```
+
+## Relay
+
+As always we are investing a lot into removing complexity from creating relay schemas. Our new version now adds the new `nodes` field which allows clients to fetch multiple nodes in one go without the need of rewriting the query since the `ids` can be passed in as variable. While the `nodes` field is not part of the relay specification it is a recommended extension.
+
+```graphql
+{
+  nodes(ids: [ 1, 2 ]) {
+    __typename
+    ... Person {
+      name
+    }
+    ... Cat {
+      name
+    }
+  }
+}
+```
+
+Further, we have split our `EnableRelaySupport` configuration method to allow you to opt into partial concepts of the relay specification.
+
+```csharp
+services.AddGraphServerQL()
+    .AddGlobalObjectIdentification()
+    .AddQueryFieldToMutationPayloads();
+```
+
+The two new configuration methods are clearer and you can now opt into the concepts you really need.
+
+## Errors
+
+## Middleware Validation
 
 Validation
 
@@ -575,12 +667,6 @@ AggregateError
 
 ASP.NET Core improvements
 
-Schema-First Support
+# Banana Cake Pop
 
-Banana Cake Pop
-
-Diagnostics
-
-```
-
-```
+# Outlook
