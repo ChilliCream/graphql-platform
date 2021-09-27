@@ -51,11 +51,9 @@ export const Aside = styled.aside<{ height: string; show: boolean }>`
   display: flex;
   flex-direction: column;
 
-  ${(show) => show && `transform: none;`}
-
-  ${({ height }) =>
+  ${({ height, show }) =>
     IsSmallDesktop(`
-      transform: translateX(100%);
+      transform: ${show ? `none` : `translateX(100%)`};
       height: ${height};
       position: fixed;
       top: 60px;
