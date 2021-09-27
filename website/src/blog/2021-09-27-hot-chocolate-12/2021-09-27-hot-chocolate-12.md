@@ -71,7 +71,7 @@ Further, the execution engine now differentiates between pure and async resolver
 
 ## Performance
 
-We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19.983 requests a second on our test hardware. Now, with the new execution engine, we clock in 33.702 requests a second, which are an additional 13.719 requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
+We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19.983 requests a second on our test hardware. With the new execution engine, we clock in 33.702 requests a second, which are an additional 13.719 requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
 
 Hot Chocolate 12 executes much faster but also saves on the memory. In many cases, the execution now needs only 1/3 of the memory Hot Chocolate 11 needed.
 
@@ -107,11 +107,11 @@ But Hot Chocolate 12, at the same time, also gained a lot more performance.
 
 For the introspection, which produces a large result, GraphQL .NET needs 2.5 times more memory than Hot Chocolate 12. Even if we look at the small query benchmark with just three fields, GraphQL .NET needs 2.6 times more memory. The same goes for execution speed. The new execution engine is 2.2 times faster than GraphQL .NET in the test to query three fields while finishing 2.6 times faster when running an introspection query.
 
-But to be honest, we did not use all the nice new query plan features that we have built-in with Hot Chocolate 12 in these tests. That is why we have started on a more comprehensive set of tests that use a real database and allow Hot Chocolate to use projections or even query plan batching.
+But to be honest, we did not use all the nice new query plan features that we have built-in with Hot Chocolate 12 in these tests. That is why we have started on a more comprehensive set of tests that use an actual database and allow Hot Chocolate to use projections or even query plan batching.
 
 From Hot Chocolate 13 on, we will use our new performance test base we are working on. This new test base will show more aspects of usage. We also will start including even more GraphQL frameworks like juniper, async-graphql, or graphql-java.
 
-Let's have a look at the throughput tests which we run to see the GraphQL engine overhead. The benchmark executes a simple book/author GraphQL query against in-memory data. We fire those requests as HTTP Post requests against the GraphQL servers in our test suite. We start doing so with five users for 20 seconds, then ten users for 20 seconds, and up to 30 users for 20 seconds. We do this in a couple of rounds and let each of these benchmarks run on a freshly rebooted system. We are looking at automating this with k6s, and my colleague Jose will help us with that.
+Let's have a look at the throughput tests which we run to see the GraphQL engine overhead. The benchmark executes a simple book/author GraphQL query against in-memory data. We fire those requests as HTTP Post requests against the GraphQL servers in our test suite. We start with five users for 20 seconds, then ten users for 20 seconds, and up to 30 users for 20 seconds. We do this in a couple of rounds and let each of these benchmarks run on a freshly rebooted system. We are looking at automating this with k6s, and my colleague Jose will help us with that.
 
 | Method                                     | Requests per Sek. |
 | ------------------------------------------ | ----------------: |
@@ -130,7 +130,7 @@ With Hot Chocolate 13, our goal is to hit 40.000 requests per second on the thro
 
 I talked about many improvements in the execution engine that we will only unlock with Hot Chocolate 13. Still, we also have some practical use for the new execution engine features with Hot Chocolate 12. Specifically for APIs that use Entity Framework. In general, I always recommend letting the execution engine roam free and parallelize as needed. With Entity Framework, this can be achieved with DBContext pooling. But in some cases, this is not what people want or need for their specific use-case.
 
-With Hot Chocolate 12, you can now mark a resolver as serial and, by doing this, tell the execution engine that we need to synchronize this resolver. This is needed when using a single DBContext per request so that it is ensured that only one thread accesses a given DBContext at the same time.
+With Hot Chocolate 12, you can now mark a resolver as serial and, by doing this, tell the execution engine that it needs to synchronize a resolver. This is required when using a single DBContext instance per request so that it is ensured that only one thread accesses a given DBContext at the same time.
 
 You can mark a single resolver as serial or mark all async resolvers as serial by default.
 
@@ -205,7 +205,7 @@ We will get the following execution plan if we head over to https://workshop.chi
 
 Adding this header to your request will add a property to the response with the query plan and the internally compiled operation. We can see that the query plan only has two fields in it; these are the async fields that fetch data, all the other fields are folded into their parent threads. We also can see that these two resolvers can be executed in parallel. Depending on how many components are involved, these query plans can be much bigger end expose the dependencies between the data fetching components.
 
-If we did the same for serial resolvers, we would get a sequence shape as mentioned above that would execute resolver tasks one after the other.
+If we did the same for serial resolvers, we would get a sequence shape that would execute resolver tasks one after the other.
 
 BTW, allowing such serial execution flows in Hot Chocolate 12 was one of the most requested features, and the team is quite happy to provide this now to our community.
 
@@ -222,9 +222,9 @@ public async Task<Person> GetPersonByIdAsync([Service] MyDbContext context)
 
 For instance, let's take the above; we are injecting a service `MyDbContext` into our resolver. The resolver compiler knows what to do with this parameter because of the service attribute. These attributes can become quite tedious to annotate if you have a lot of resolvers. Further, people might want to extend the parameter injection or introduce their own parameter injection logic. With Hot Chocolate 12, we open up the resolver compiler and allow you to configure it straightforwardly.
 
-Let's start with a basic example of `MyDbContext` as a known service that no longer needs an attribute.
+Let's start with a basic example of `MyDbContext` as a well-known service that no longer needs an attribute.
 
-Essentially we want to be able to just write the following code without any attributes:
+Essentially we want to be able to write the following code without any attributes:
 
 ```csharp
 public async Task<Person> GetPersonByIdAsync(MyDbContext context)
@@ -233,7 +233,7 @@ public async Task<Person> GetPersonByIdAsync(MyDbContext context)
 }
 ```
 
-To tell the resolver compiler that we have a common service we just nee to do the following:
+To tell the resolver compiler that we have a well-known service, we need to do the following:
 
 ```csharp
 .AddGraphQLServer()
@@ -244,15 +244,18 @@ To tell the resolver compiler that we have a common service we just nee to do th
     });
 ```
 
-Specifically for the service case, we simplified things with this nice `AddService` extension method. But what if we wanted to inject a specific thing from the request state. Essentially we want to grab something from the `ContextData` map and make it nicely accessible.
+Specifically for the service case, we simplified things with the `AddService` extension method. With this simple configuration, we can make our resolver code cleaner and better to read.
+
+But what if we wanted to inject a specific thing from the request state. Essentially we want to grab something from the `ContextData` map and make it nicely accessible through parameter injection.
 
 ```csharp
-[Serial]
 public async Task<Person> GetPersonByIdAsync(MyDbContext context, CustomState state)
 {
     // omitted for brevity
 }
 ```
+
+For the above resolver, we want to pull `CustomState` from the request state.
 
 ```csharp
 .AddGraphQLServer()
@@ -264,9 +267,9 @@ public async Task<Person> GetPersonByIdAsync(MyDbContext context, CustomState st
     });
 ```
 
-I know, the expression I wrote there is not safe, it is just an example. But it should give you an idea of how easily you can now write compilable expression that we can integrate. All of these are compilable expressions, we will integrate the expression specified into the compiled resolver method.
+I know the expression I wrote up there is not safe; it is just an example of how you can access nearly anything from the resolver context and make it injectable into your resolver. The expression will be compiled into the resolver.
 
-Also we could go further and you could write a selector for your resolver compiler extension that really inspects the parameter. These inspections are run at startup so there is no overhead on the runtime.
+We could go further and write a selector for your resolver compiler extension that inspects the parameter. These inspections are only run at startup, which ensures that there is no reflection overhead at runtime.
 
 ```csharp
 .AddGraphQLServer()
@@ -280,7 +283,7 @@ Also we could go further and you could write a selector for your resolver compil
     });
 ```
 
-Also, we are not done with this and are already thinking about how to give you even more freedom by allowing you to inject proper logic that can be run in the resolver pipeline. What we want to allow are kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not solved all the issues on this one and have moved this to Hot Chocolate 13.
+However, we are not done with this yet. We are already thinking about giving you even more freedom to extend the resolver compiler by allowing you to inject proper logic that runs in the resolver pipeline. We essentially want to support a kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not fully solved all the issues around this yet and have moved this to Hot Chocolate 13.
 
 # Dynamic Schemas
 
