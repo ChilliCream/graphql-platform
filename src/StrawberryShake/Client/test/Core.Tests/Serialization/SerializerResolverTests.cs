@@ -84,7 +84,7 @@ namespace StrawberryShake.Serialization
                 .Callback((ISerializerResolver resolver) => callback = resolver);
 
             // act
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // assert
             serializerMock.VerifyAll();
@@ -100,7 +100,7 @@ namespace StrawberryShake.Serialization
                 new CustomIntSerializer(),
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             IInputValueFormatter resolvedFormatter = resolver.GetInputValueFormatter("Int");
@@ -117,10 +117,11 @@ namespace StrawberryShake.Serialization
             {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
-            ILeafValueParser<int, int>? resolvedParser = resolver.GetLeafValueParser<int, int>("Int");
+            ILeafValueParser<int, int>? resolvedParser =
+                resolver.GetLeafValueParser<int, int>("Int");
 
             // assert
             Assert.IsType<IntSerializer>(resolvedParser);
@@ -134,7 +135,7 @@ namespace StrawberryShake.Serialization
             {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, int>("Foo"));
@@ -151,7 +152,7 @@ namespace StrawberryShake.Serialization
             {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>("Int"));
@@ -168,7 +169,7 @@ namespace StrawberryShake.Serialization
             {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetLeafValueParser<int, double>(null!));
@@ -204,7 +205,7 @@ namespace StrawberryShake.Serialization
             {
                 new CustomInputValueFormatter()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter("Bar"));
@@ -224,7 +225,7 @@ namespace StrawberryShake.Serialization
                 serializerMock.Object
             };
 
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter("Int"));
@@ -241,13 +242,50 @@ namespace StrawberryShake.Serialization
             {
                 new IntSerializer()
             };
-            var resolver =new SerializerResolver(serializers);
+            var resolver = new SerializerResolver(serializers);
 
             // act
             Exception? ex = Record.Exception(() => resolver.GetInputValueFormatter(null!));
 
             // assert
             Assert.IsType<ArgumentNullException>(ex);
+        }
+
+        [Fact]
+        public void DependencyInjection_CustomIntSerializerRegistered_ReturnSerializer()
+        {
+            // arrange
+            IServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<SerializerResolver>();
+            serviceCollection.AddSerializer<CustomIntSerializer>();
+
+            SerializerResolver resolver =
+                serviceCollection.BuildServiceProvider().GetRequiredService<SerializerResolver>();
+
+            // act
+            IInputValueFormatter resolvedFormatter = resolver.GetInputValueFormatter("Int");
+
+            // assert
+            Assert.IsType<CustomIntSerializer>(resolvedFormatter);
+        }
+
+        [Fact]
+        public void DependencyInjection_CustomIntSerializerRegistered_ReturnInstanceOfSerializer()
+        {
+            // arrange
+            CustomIntSerializer serializer = new();
+            IServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<SerializerResolver>();
+            serviceCollection.AddSerializer(serializer);
+
+            SerializerResolver resolver =
+                serviceCollection.BuildServiceProvider().GetRequiredService<SerializerResolver>();
+
+            // act
+            IInputValueFormatter resolvedFormatter = resolver.GetInputValueFormatter("Int");
+
+            // assert
+            Assert.Same(serializer, resolvedFormatter);
         }
 
         private class CustomIntSerializer : ScalarSerializer<int>
