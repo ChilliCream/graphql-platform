@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace HotChocolate.Utilities.Subscriptions
 {
@@ -26,7 +27,7 @@ namespace HotChocolate.Utilities.Subscriptions
         {
             try
             {
-                _wait = new TaskCompletionSource<object>();
+                _wait = new TaskCompletionSource<object>(RunContinuationsAsynchronously);
                 cancellationToken.Register(() => _wait.TrySetCanceled());
 
                 while (!cancellationToken.IsCancellationRequested)

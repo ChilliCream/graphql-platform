@@ -72,7 +72,8 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
     }
 
     public override ValueTask OnRequestAsync(ISocketConnection connection,
-        IQueryRequestBuilder requestBuilder, CancellationToken cancellationToken)
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
     {
         return base.OnRequestAsync(connection, requestBuilder,
             cancellationToken);

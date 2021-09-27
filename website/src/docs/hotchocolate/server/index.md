@@ -35,3 +35,9 @@ Introspection allows us to query the type system of our GraphQL server using reg
 Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support.
 
 [Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
+
+# Instrumentation
+
+We can gather instrumentation data about our GraphQL server, by hooking into various events in the execution process of a GraphQL request. As part of instrumentation we are also covering the usage of _Apollo Tracing_.
+
+[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
