@@ -9,6 +9,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [12.0.0]
+
+### Hot Chocolate
+
+###### Fixes
+
+- Custom type inspectors can now again add custom ignores. #3399
+- Fixed issue where descriptor attributes on resolvers were ignored. (#3892)
+- Fixed that the socket interceptor `OnCloseAsync` method was not invoked. (#3951) 
+- Fixed MongoDB `totalCount` handling (#3880).
+- Fixed handling of enums that contain underscore. (#4056)
+- Fixed ignoring fields with `ObjectTypeExtensions.Ignore`. (#4034)
+- Fixed issue with socket session interceptor dependency injection. (#4055)
+- Fixed issue to allow ignoring enum values. (#4020)
+- Fixed override of resolver pipeline in operation optimizers. (#4128)
+- Fixed enum default values. (#4129)
+- Fixed initialization of default values. (#4156)
+- Fixed the variable coercion when variable values are omitted. #4103
+- Fixed spatial MultiLine, MultiPolygon, MultiPoint parsing
+- Added various catches to prevent unobserved task exceptions on Subscriptions. #4052
+- Allow upcast when extending types and injecting the parent (#4159)
+
+#### Enhancements
+
+- Allow Resolver Inlining (#3700)
+- Introduced Query Plans (#3674)
+- Introduced Serial Resolvers (#3674, #3837, #3882)
+- Neo4J Data Integration (#2849)
+- Allow control over type attribute inheritance (#3886).
+- Added support for abstract projections. (#3650)
+- Introduced non-cachable document validation rules. (#3884)
+- Added type converter for relay global ID to HotChocolate.Data. (#3917)
+- Introduced new low-level type configuration API for dynamic schemas.
+- Added better descriptions to cursor paging fields and arguments. (#4000)
+- Added better descriptions to node fields and arguments. (#4000)
+- Introduced nodes field. (#4000)
+- Introduced field middleware order validation for HotChocolate.Data and paging middleware (#4012).
+- Introduced `AggregateError` to allow rewriting a single error into multiple errors. (#4014)
+- Enhanced error handling for variables to better pinpoint the actual error. (#4037) 
+- Added `RequestContext` pooling. (#4141)
+- Reworked schema-first APIs to align with code-first APIs.
+- Added support for `HotChocolate.Data` and paging attributes to schema-first.
+- Added more `ResolveWith` overloads. (#4136).
+- Added queryable extension methods for `HotChocolate.Data`. (#4156)
+- Added the ability to compile resolver argument injections for the resolver compiler.
+- Added a new runtime-type validation to debug errors better when types are leaked by accident into the type initialization.
+- Opened up MongoDB API for external use. (#4119)
+- Added `ObjectID` scalar type for MongoDB.
+- Added more endpoint configuration methods to more fine-grained configure into what transport spec the server supports.
+- Added support for named type references.
+- Added support for type modules.
+- Added support for injecting types in type interceptor.
+- Added more options to build types that depend on not yet existing types for extensions like `HotChocolate.Data` and `HotChocolate.Stitching`.
+- Improved schema initialization.
+- Introduced option to require paging boundaries #4074
+- Add more capabilities to control how the connection name is created #4081
+- Added support for attributes to schema-first #4102
+- Added the ability to control the XML documentation file name when inferring documentation from the runtime types. (#4149)
+- Added a unified cache to DataLoader.
+
+####  Changed
+
+- Reworked scalar defaults for URL and UUID. (#3822)
+- Reworked dependency injection of Hot Chocolate extensions to automatically inject application dependencies. (#3833)
+- Deprecated `Schema.Create`. (#3885)
+- Deprecated ObjectFieldDescriptor.Resolver() overloads.
+- Split the` EnableRelaySupport` configuration method into two separate APIs that allow to opt-into specific relay schema features. (#3972)
+- Moved DataLoader code out of `HotChocolate.Types` into `GreenDonut`. (#4015) 
+- Optimized subscription message receive handler. (#4143)
+- Improved execution of batches during processing.
+- Improved async work processing (#4006)
+
+### Strawberry Shake
+
+#### Fixed
+
+- Made GUID serialization more robust. (#3843)
+- Fix UrlSerializer for absolute URLs #3875
+
+### Banana Cake Pop
+
+#### Enhancements
+
+- Added the capability to filter types in the schema reference.
+- Added IntelliSense for variables.
+- We now add `https` as a scheme when you type the url without schema in the endpoint field.
+- Optimized component code splitting for better load times
+- Fixed shortcut label texts for Windows and Linux
+
 ## [11.1.0]
 
 ### Added
