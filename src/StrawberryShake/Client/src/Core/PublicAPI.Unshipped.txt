@@ -1,8 +1,11 @@
 const StrawberryShake.Serialization.BuiltInScalarNames.UUID = "UUID" -> string!
+Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions
 override StrawberryShake.Serialization.JsonSerializer.Format(System.Text.Json.JsonDocument! runtimeValue) -> System.Text.Json.JsonElement
 override StrawberryShake.Serialization.JsonSerializer.Parse(System.Text.Json.JsonElement serializedValue) -> System.Text.Json.JsonDocument!
 override StrawberryShake.Serialization.UUIDSerializer.Format(System.Guid runtimeValue) -> string!
 override StrawberryShake.Serialization.UUIDSerializer.Parse(string! serializedValue) -> System.Guid
+static Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions.AddSerializer<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions.AddSerializer<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, T serializer) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 StrawberryShake.Serialization.JsonSerializer
 StrawberryShake.Serialization.JsonSerializer.JsonSerializer(string! typeName = "Any") -> void
 StrawberryShake.Serialization.UUIDSerializer
