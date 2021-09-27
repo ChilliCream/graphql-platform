@@ -24,8 +24,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutorResolver
         : IRequestExecutorResolver
-            , IInternalRequestExecutorResolver
-            , IDisposable
+        , IInternalRequestExecutorResolver
+        , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors = new();
@@ -41,9 +41,9 @@ namespace HotChocolate.Execution
             IServiceProvider serviceProvider)
         {
             _optionsMonitor = optionsMonitor ??
-                              throw new ArgumentNullException(nameof(optionsMonitor));
+                throw new ArgumentNullException(nameof(optionsMonitor));
             _applicationServices = serviceProvider ??
-                                   throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(serviceProvider));
             _optionsMonitor.OnChange(EvictRequestExecutor);
         }
 
@@ -314,10 +314,21 @@ namespace HotChocolate.Execution
 
             IDescriptorContext context = schemaBuilder.CreateContext();
 
-            await foreach (INamedType type in typeModuleChangeMonitor.CreateTypesAsync(context)
-                .WithCancellation(cancellationToken).ConfigureAwait(false))
+            await foreach (ITypeSystemMember member in
+                typeModuleChangeMonitor.CreateTypesAsync(context)
+                    .WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
             {
-                schemaBuilder.AddType(type);
+                switch (member)
+                {
+                    case INamedType namedType:
+                        schemaBuilder.AddType(namedType);
+                        break;
+
+                    case INamedTypeExtension typeExtension:
+                        schemaBuilder.AddType(typeExtension);
+                        break;
+                }
             }
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
@@ -355,8 +366,9 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
-            RequestExecutorOptions executorOptions = options.RequestExecutorOptions ??
-                                                     new RequestExecutorOptions();
+            RequestExecutorOptions executorOptions =
+                options.RequestExecutorOptions ??
+                    new RequestExecutorOptions();
 
             foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
             {
@@ -495,7 +507,7 @@ namespace HotChocolate.Execution
                 _typeModules.Add(typeModule);
             }
 
-            public IAsyncEnumerable<INamedType> CreateTypesAsync(IDescriptorContext context)
+            public IAsyncEnumerable<ITypeSystemMember> CreateTypesAsync(IDescriptorContext context)
                 => new TypeModuleEnumerable(_typeModules, context);
 
             private void EvictRequestExecutor(object? sender, EventArgs args)
@@ -515,7 +527,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            private sealed class TypeModuleEnumerable : IAsyncEnumerable<INamedType>
+            private sealed class TypeModuleEnumerable : IAsyncEnumerable<ITypeSystemMember>
             {
                 private readonly List<ITypeModule> _typeModules;
                 private readonly IDescriptorContext _context;
@@ -528,16 +540,16 @@ namespace HotChocolate.Execution
                     _context = context;
                 }
 
-                public async IAsyncEnumerator<INamedType> GetAsyncEnumerator(
+                public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
                     CancellationToken cancellationToken = default)
                 {
                     foreach (var typeModule in _typeModules)
                     {
-                        IReadOnlyCollection<INamedType> types =
+                        IReadOnlyCollection<ITypeSystemMember> types =
                             await typeModule.CreateTypesAsync(_context, cancellationToken)
                                 .ConfigureAwait(false);
 
-                        foreach (INamedType type in types)
+                        foreach (ITypeSystemMember type in types)
                         {
                             yield return type;
                         }

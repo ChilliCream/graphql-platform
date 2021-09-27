@@ -55,8 +55,8 @@ namespace HotChocolate.Data.Projections.Expressions
             Type expectedType)
         {
             if (context.LocalContextData.TryGetValue(
-                    QueryableProjectionProvider.ContextApplyProjectionKey,
-                    out object? applicatorObj) &&
+                QueryableProjectionProvider.ContextApplyProjectionKey,
+                out var applicatorObj) &&
                 applicatorObj is ApplyProjection applicator)
             {
                 var resultObj = applicator(context, input);

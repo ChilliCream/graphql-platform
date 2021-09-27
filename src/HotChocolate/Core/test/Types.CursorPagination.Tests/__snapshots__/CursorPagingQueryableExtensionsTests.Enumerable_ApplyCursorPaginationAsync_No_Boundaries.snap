@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "persons": {
+      "nodes": [
+        {
+          "name": "Foo"
+        },
+        {
+          "name": "Bar"
+        }
+      ]
+    }
+  }
+}
