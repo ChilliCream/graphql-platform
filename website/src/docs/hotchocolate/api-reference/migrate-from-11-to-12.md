@@ -93,6 +93,8 @@ public class Person
 }
 ```
 
+[Reference](/docs/hotchocolate/fetching-data/pagination#naming)
+
 ## MongoDB Paging
 
 In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
@@ -116,7 +118,9 @@ public record Foo([property: ID] string Id);
 
 # Instrumentation
 
-We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.  Most virtual methods previously returning IActivityScope now return IDisposable.
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
+
+[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
 
 # Relay
 
