@@ -1,9 +1,9 @@
 ---
-path: "/blog/2020/07/16/version-11"
-date: "2020-07-16"
+path: "/blog/2021/09/27/hot-chocolate-12"
+date: "2021-09-27"
 title: "Say hello to Hot Chocolate 12!"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hotchocolate-where-is-v11-banner.png"
+featuredImage: "hot-chocolate-12-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
@@ -15,7 +15,7 @@ Today we are releasing Hot Chocolate version 12, which brings many new features 
 
 The execution engine is changing with every release of Hot Chocolate. With version 11, we, for instance, introduced operation compilation, which takes the executed operation out of a document and pre-compiles it so that most of the GraphQL execution algorithm can be skipped in consecutive calls.
 
-```mermaid
+```
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -40,7 +40,7 @@ sequenceDiagram
 
 With Hot Chocolate 12, we now take this further by introducing a query plan; essentially, the execution engine traverses a compiled operation tree to create a query plan from it. The query plan can take into account how a resolver is executed. For instance, if a resolver uses services that can only be used by a single thread and thus need synchronization.
 
-```mermaid
+```
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
