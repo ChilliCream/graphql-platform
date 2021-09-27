@@ -27,11 +27,57 @@ Moreover, the execution engine now differentiates between pure and async resolve
 
 ## Performance
 
-We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19.983 requests a second on our test hardware. Now, with the new execution engine, we clock in 30.000 requests a second are an additional 10.000 more requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
+We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19.983 requests a second on our test hardware. Now, with the new execution engine, we clock in 33.702 requests a second are an additional 13.719 more requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
 
-Hot Chocolate 12 executes much faster but also saves on the memory used. The execution now needs x% less memory to execute, for instance, an introspection request.
+Hot Chocolate 12 executes much faster but also saves on the memory used. The execution now needs only 1/3 of the memory of Hot Chocolate 11 to execute, for instance, an introspection request.
 
-// we need some more perf statistics here
+| Method                                               |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
+| ---------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
+| SchemaIntrospection 11                               |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
+| SchemaIntrospection 12                               |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
+| Introspection five parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
+| Introspection five parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
+| Large query with data fetch 11                       | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
+| Large query with data fetch 12                       | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
+| Large query with data fetch five parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
+| Large query with data fetch five parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
+
+We are also as always comparing to GraphQL .NET and we have to say they gained a lot of performance. Well done! When we looked the last time at GraphQL .NET they were performing very poorly with for instance a very small requests of three fields taking 31 kb to process. We did the tests against GraphQL .NET again and they were now just a little bit slower than Hot Chocolate 11 with their newest version `GraphQL.Server.Core 5.0.2`.
+But Hot Chocolate 12 in the same time gained again a lot of performance.
+
+| Method                                        |     Median | Allocated |
+| --------------------------------------------- | ---------: | --------: |
+| Hot Chocolate 11 Three Fields                 |   11.94 μs |      7 KB |
+| Hot Chocolate 12 Three Fields                 |    9.94 μs |      3 KB |
+| GraphQL .NET 4.3.1 Three Fields               |   46.36 μs |     31 KB |
+| GraphQL .NET 5.0.2 Three Fields               |   22.28 μs |      8 KB |
+| Hot Chocolate 11 Small Query with Fragments   |   43.32 μs |     14 KB |
+| Hot Chocolate 12 Small Query with Fragments   |   21.68 μs |      7 KB |
+| GraphQL .NET 4.3.1 Small Query with Fragments |  138.56 μs |    135 KB |
+| GraphQL .NET 5.0.2 Small Query with Fragments |   65.83 μs |     19 KB |
+| Hot Chocolate 11 Introspection                |  750.51 μs |    392 KB |
+| Hot Chocolate 12 Introspection                |  262.51 μs |     67 KB |
+| GraphQL .NET 4.3.1 Introspection              | 2277.24 μs |   2267 KB |
+| GraphQL .NET 5.0.2 Introspection              |  676.72 μs |    169 KB |
+
+For the introspection which produces a large query GraphQL .NET needs 2.5 times the memory of Hot Chocolate. Even if we look at the small query with just three fields will GraphQL .NET use 2.6 times more memory. The same goes for execution speed. The new execution engine is 2.2 times faster than GraphQL .NET in the test to query three fields while finishing 2.6 times faster when running a introspection query.
+
+But to be honest we did not really use all the really nice new query plan features that we have built in with Hot Chocolate 12 in these tests, that is why we have started on a more comprehensive set of tests that use a real database and allow Hot Chocolate to use projections or even query plan batching. From Hot Chocolate 13 on we will use our new performance tests we are working on that shows more aspects of usage. We also will start including even more GraphQL frameworks like juniper, async-graphql or graphql-java.
+
+For this blog I will stick to the once we have in our setup, so lets look at a couple more. As mentioned before we have this throughput tests which we do to see just the GraphQL overhead. It executes a simple book/author GraphQL query against in memory data. We fire those requests over HTTP post against the GraphQL servers in our tests. We start doing so with 5 users for 20 seconds, then 10 users for 20 seconds up to 30 users per seconds. We do this in a couple of rounds an let each of these run on a freshly rebooted system. We are looking at automating this with k6s and my colleague Jose will help us on that.
+
+| Method                                     | Requests per Sek. |
+| ------------------------------------------ | ----------------: |
+| Hot Chocolate 12                           |            33.702 |
+| Hot Chocolate 11                           |            19.983 |
+| benzene-http (graphyne)                    |            17.691 |
+| mercurius+graphql-jit                      |            15.185 |
+| apollo-server-koa+graphql-jit+type-graphql |             4.197 |
+| express-graphql                            |             3.455 |
+| apollo-schema+async                        |             3.403 |
+| go-graphql                                 |             2.041 |
+
+With Hot Chocolate 13 our goal is to hit 40.000 request per seconds on the throughput tests and we are hopeful that we can achieve this with some refinements in the execution engine. Moreover, we will start investing into startup performance. We have seen in the last release notes of graphql-java that they have gained quite a lot in schema building performance and we will also start looking into this as we start our work to get Hot Chocolate into Azure Functions.
 
 # Entity Framework
 
