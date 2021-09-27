@@ -154,9 +154,9 @@ services
 
 In this case, we still can opt out of the serial execution strategy by using the `ParallelAttribute` on our resolvers.
 
-Serial executable resolvers will be put into a sequence shape of the query plan and guarantee that they are executed one after the other. You can inspect the query plan by providing the `graphql-query-plan` header with a value of `1`.
+Serial executable resolvers will be put into a sequence shape of the query plan, which guarantees that they are executed one after the other. You can inspect the query plan by providing the `graphql-query-plan` header with a value of `1`.
 
-If we head over to https://workshop.chillicream.com and run the following query with the query plan header we will get the following execution plan.
+We will get the following execution plan if we head over to https://workshop.chillicream.com and run the following query with the query plan header.
 
 ```graphql
 {
@@ -203,39 +203,37 @@ If we head over to https://workshop.chillicream.com and run the following query 
 }
 ```
 
-Providing this header will add an extension property to the response with the query plan and the internally compiled operation. We can see that the query plan only has two fields in it, these are the async fields that really fetch data, all the other fields are folded into their parent threads. We also can see that these two resolvers can be executed in parallel. Depending on how many components are involved these query plans can be much bigger end expose the dependencies between the data fetching.
+Adding this header to your request will add a property to the response with the query plan and the internally compiled operation. We can see that the query plan only has two fields in it; these are the async fields that fetch data, all the other fields are folded into their parent threads. We also can see that these two resolvers can be executed in parallel. Depending on how many components are involved, these query plans can be much bigger end expose the dependencies between the data fetching components.
 
-If we did the same for serial resolvers we would get a sequence shape as mentioned above that would execute resolver tasks one after the other.
+If we did the same for serial resolvers, we would get a sequence shape as mentioned above that would execute resolver tasks one after the other.
 
-BTW, allowing such serial execution flows in Hot Chocolate 12 was one of the most requested features, and the team is quite happy to provide these now to our community.
+BTW, allowing such serial execution flows in Hot Chocolate 12 was one of the most requested features, and the team is quite happy to provide this now to our community.
 
 # Resolver Compiler
 
 One of the things many people love about Hot Chocolate is how we infer the GraphQL schema from your C# types and how you can inject various things into your resolver.
 
 ```csharp
-[Serial]
 public async Task<Person> GetPersonByIdAsync([Service] MyDbContext context)
 {
     // omitted for brevity
 }
 ```
 
-Lets take the above for instance, we are injecting a service `MyDbContext` into our resolver. The resolver compiler knows what to do because of the service attribute. But this can become tedious to always annotate all those parameters in all those resolvers. Further, people want to extend introduce maybe their own attributes or their own functionality into the resolver compiler. With Hot Chocolate 12 we now open up the resolver compiler and allow you to configure it in a very simple way.
+For instance, let's take the above; we are injecting a service `MyDbContext` into our resolver. The resolver compiler knows what to do with this parameter because of the service attribute. These attributes can become quite tedious to annotate if you have a lot of resolvers. Further, people might want to extend the parameter injection or introduce their own parameter injection logic. With Hot Chocolate 12, we open up the resolver compiler and allow you to configure it straightforwardly.
 
-Let's start with the very basic example where we want to have `MyDbContext` as a known service that does no longer need an attribute.
+Let's start with a basic example of `MyDbContext` as a known service that no longer needs an attribute.
 
-Essentially what we want is to just write the following:
+Essentially we want to be able to just write the following code without any attributes:
 
 ```csharp
-[Serial]
 public async Task<Person> GetPersonByIdAsync(MyDbContext context)
 {
     // omitted for brevity
 }
 ```
 
-In order to tell the resolver compiler that we have a common service that we use in many resolvers we just do the following:
+To tell the resolver compiler that we have a common service we just nee to do the following:
 
 ```csharp
 .AddGraphQLServer()
@@ -246,7 +244,7 @@ In order to tell the resolver compiler that we have a common service that we use
     });
 ```
 
-Specifically for the service case we really simplified things with this nice `AddService` extension method. But what if we wanted to inject a specific thing from the request state. Essentially we want to grab something from the `ContextData` dictionary and make nicely accessible.
+Specifically for the service case, we simplified things with this nice `AddService` extension method. But what if we wanted to inject a specific thing from the request state. Essentially we want to grab something from the `ContextData` map and make it nicely accessible.
 
 ```csharp
 [Serial]
