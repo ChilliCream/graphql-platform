@@ -805,14 +805,18 @@ Speaking of errors, we have put a lot of effort into providing better errors. On
 
 # Outlook
 
-Hot Chocolate is a release where we put a lot of work into the core of the server. In most cases, an upgrade from Hot Chocolate 11 to Hot Chocolate 12 should be updating the package.
+Hot Chocolate 12 is a release where we put a lot of work into the core of the server. In most cases, an upgrade from Hot Chocolate 11 to Hot Chocolate 12 should be just updating the package.
 
-With Hot Chocolate 13, we will now focus on our stitching and schema federation engine as the main topic. Hot Chocolate 12 introduced many new concepts that allow us to completely rethink schema stitching, e.g., type modules and query plans.
+With Hot Chocolate 13, we will now focus on our stitching and schema federation engine as the main topic. Hot Chocolate 12 introduced many new concepts that allow us to completely rethink schema stitching, e.g., with type modules and query plans.
 
 Beginning this week, we will start working on the new version, which we hope to finish at the end of November.
 
-If you want to have a look at the high-level roadmap, check it out [here](https://github.com/ChilliCream/hotchocolate/projects/28).
+But there are also other topics Hot Chocolate 13 will tackle like support for AzureFunctions, more transport protocols like graphql-ws and Azure Web PubSub and many more things.
+
+If you want to have a look at the high-level roadmap, you can check it out [here](https://github.com/ChilliCream/hotchocolate/projects/28).
 
 There are also dot releases planned for Hot Chocolate 12, with 12.1 already scheduled for the end of October.
 
 We have tons of updates in the pipeline, with the new Banana Cake Pop release waiting already around the corner.
+
+So stay tuned :)
