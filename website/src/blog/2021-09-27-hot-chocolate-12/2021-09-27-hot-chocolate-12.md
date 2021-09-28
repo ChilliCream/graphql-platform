@@ -15,7 +15,7 @@ Today we are releasing Hot Chocolate 12, which brings many new features and refi
 
 The execution engine is changing with every release of Hot Chocolate. With version 11, we, for instance, introduced operation compilation, which takes the executed operation out of a document and pre-compiles it so that most of the GraphQL execution algorithm can be skipped in consecutive calls.
 
-```
+```mermaid
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -40,7 +40,7 @@ sequenceDiagram
 
 With Hot Chocolate 12, we now take this further by introducing a query plan; essentially, the execution engine traverses a compiled operation tree to create a query plan from it. The query plan can take into account how a resolver is executed. For instance, if a resolver uses services that can only be used by a single thread and thus need synchronization.
 
-```
+```mermaid
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -75,16 +75,16 @@ We had this simple throughput test for Hot Chocolate 11, which essentially execu
 
 Hot Chocolate 12 executes much faster but also saves on the memory. In many cases, the execution now needs only 1/3 of the memory Hot Chocolate 11 needed.
 
-| Method                                               |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
-| ---------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
-| SchemaIntrospection 11                               |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
-| SchemaIntrospection 12                               |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
-| Introspection five parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
-| Introspection five parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
-| Large query with data fetch 11                       | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
-| Large query with data fetch 12                       | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
-| Large query with data fetch five parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
-| Large query with data fetch five parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
+| Method                                            |      Median |     Gen 0 |    Gen 1 | Gen 2 | Allocated |
+| ------------------------------------------------- | ----------: | --------: | -------: | ----: | --------: |
+| Introspection 11                                  |    922.4 μs |   26.3672 |   0.9766 |     - |    275 KB |
+| Introspection 12                                  |    333.6 μs |    7.8125 |        - |     - |     85 KB |
+| Introspection 5 parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |   1377 KB |
+| Introspection 5 parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |    423 KB |
+| Large query with data fetch 11                    | 19,322.2 μs |  312.5000 | 156.2500 |     - |   3245 KB |
+| Large query with data fetch 12                    | 15,461.0 μs |  187.5000 |  93.7500 |     - |   1923 KB |
+| Large query with data fetch 5 parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - |  16395 KB |
+| Large query with data fetch 5 parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |   9613 KB |
 
 We are also, as always, comparing against GraphQL .NET, and we have to say they gained a lot of performance. Well done! When we looked the last time at GraphQL .NET, they were performing quite poorly. We, for instance, had this benchmark that executed a very small request of three fields which took GraphQL .NET 31 kb of memory to process. We did the same tests again and with GraphQL.Server.Core 5.0.2 they were now just a little bit slower than Hot Chocolate 11.
 
@@ -174,7 +174,7 @@ We will get the following execution plan if we head over to https://workshop.chi
 }
 ```
 
-```JSON
+```json
 {
   "extensions": {
     "queryPlan": {
@@ -293,7 +293,7 @@ With unsafe, I mean that we allow you to create the types by bypassing validatio
 
 I will do a follow-up post that goes deeper into the type system and explains the inner workings. For this post, let me show you a simple example of how you can now create dynamic types. First, let me introduce a new component here called type module.
 
-```CSharp
+```csharp
 public interface ITypeModule
 {
     event EventHandler<EventArgs> TypesChanged;
@@ -357,7 +357,7 @@ Another area where we have invested for Hot Chocolate 12 was schema-first. At it
 
 If we now create a schema-first server, it looks very similar to code-first or annotation-based servers from a configuration standpoint.
 
-```CSharp
+```csharp
 using Demo.Data;
 using Demo.Resolvers;
 
@@ -378,13 +378,13 @@ app.Run();
 
 There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET.
 
-```graphql
+```SDL
 type Person {
   name: String!
 }
 ```
 
-```CSharp
+```csharp
 public record Person(int Id, string Name);
 ```
 
@@ -412,7 +412,7 @@ builder.Services
 
 Resolver types are .NET classes that provide resolvers methods, so essentially we give a class that has a couple of methods handling data fetching for our GraphQL types. In this instance, we have a type `Query` that provides a method to fetch persons.
 
-```CSharp
+```csharp
 public class Query
 {
     public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
@@ -438,7 +438,7 @@ One more thing we did was fully integrate our attributes like `UsePaging` with s
 
 Meaning you can write the following schema now:
 
-```graphql
+```SDL
 type Query {
   persons: [Person!]
 }
@@ -450,7 +450,7 @@ type Person {
 
 Then on your `Query` resolver for `persons`, annotate it with the `UsePaging` attribute. This will cause the schema initialization to rewrite the schema.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
@@ -461,7 +461,7 @@ public class Query
 
 The output schema on the server would now look like the following:
 
-```graphql
+```SDL
 type Query {
   persons(
     """
@@ -555,7 +555,7 @@ The paging attribute rewrote the schema and wrapped a middleware around the fiel
 
 In the future, we are also thinking of letting descriptor attributes become directives that would allow you to annotate directly in the schema file like the following:
 
-```graphql
+```SDL
 type Query {
   persons: [Person!] @paging
 }
@@ -647,7 +647,7 @@ Apart from our big-ticket items, we also have invested in smaller things that wi
 
 We introduced more options for cursor paging that allow you to require paging boundaries like GitHub is doing with their public API.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(RequirePagingBoundaries = true)] // will create MyNameConnection
@@ -670,7 +670,7 @@ The connection name, by default, is inferred from the field name; this means if 
 
 You also can override the default connection name.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(ConnectionName = "MyName")] // will create MyNameConnection
@@ -701,7 +701,7 @@ services.AddGraphServerQL()
 
 **Use Provider:**
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(ProviderName = "Custom")]
@@ -716,7 +716,7 @@ public class Query
 
 Sometimes, you want to have everything in your own hands and just use Hot Chocolate to take the tedious work of generating types of your hands. In this case, you can implement the paging algorithm in your business logic or the resolver and return a connection instance, and we will know what to do with it.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
@@ -727,7 +727,7 @@ public class Query
 
 If you are using the `HotChocolate.Data` package in combination with the connection type, you can even use our new data extensions to allow for more complex resolvers.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
