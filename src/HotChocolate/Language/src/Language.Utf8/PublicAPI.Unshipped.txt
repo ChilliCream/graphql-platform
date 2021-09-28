@@ -1,4 +1,0 @@
-static HotChocolate.Language.NameUtils.IsValidGraphQLName(string? name) -> bool
-static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string? name) -> string?
-*REMOVED*static HotChocolate.Language.NameUtils.IsValidGraphQLName(string! name) -> bool
-*REMOVED*static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string! name) -> string?

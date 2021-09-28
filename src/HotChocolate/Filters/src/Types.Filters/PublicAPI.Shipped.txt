@@ -417,6 +417,7 @@ HotChocolate.Types.Filters.IQueryableFilterVisitorContext
 HotChocolate.Types.Filters.IQueryableFilterVisitorContext.Closures.get -> System.Collections.Generic.Stack<HotChocolate.Types.Filters.QueryableClosure!>!
 HotChocolate.Types.Filters.IQueryableFilterVisitorContext.FieldHandlers.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionFieldHandler!>!
 HotChocolate.Types.Filters.IQueryableFilterVisitorContext.InMemory.get -> bool
+HotChocolate.Types.Filters.IQueryableFilterVisitorContext.InputParser.get -> HotChocolate.Types.InputParser!
 HotChocolate.Types.Filters.IQueryableFilterVisitorContext.OperationHandlers.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionOperationHandler!>!
 HotChocolate.Types.Filters.IQueryableFilterVisitorContext.TypeConverter.get -> HotChocolate.Utilities.ITypeConverter!
 HotChocolate.Types.Filters.ISingleFilter
@@ -484,14 +485,17 @@ HotChocolate.Types.Filters.QueryableClosure.Parameter.get -> System.Linq.Express
 HotChocolate.Types.Filters.QueryableClosure.QueryableClosure(System.Type! type, string! parameterName, bool inMemory) -> void
 HotChocolate.Types.Filters.QueryableFilterMiddleware<T>
 HotChocolate.Types.Filters.QueryableFilterMiddleware<T>.InvokeAsync(HotChocolate.Resolvers.IMiddlewareContext! context) -> System.Threading.Tasks.Task!
+HotChocolate.Types.Filters.QueryableFilterMiddleware<T>.QueryableFilterMiddleware(HotChocolate.Resolvers.FieldDelegate! next, HotChocolate.Types.Filters.FilterMiddlewareContext! contextData, HotChocolate.Utilities.ITypeConverter? converter) -> void
 HotChocolate.Types.Filters.QueryableFilterVisitor
 HotChocolate.Types.Filters.QueryableFilterVisitor.QueryableFilterVisitor() -> void
 HotChocolate.Types.Filters.QueryableFilterVisitorContext
 HotChocolate.Types.Filters.QueryableFilterVisitorContext.Closures.get -> System.Collections.Generic.Stack<HotChocolate.Types.Filters.QueryableClosure!>!
 HotChocolate.Types.Filters.QueryableFilterVisitorContext.FieldHandlers.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionFieldHandler!>!
 HotChocolate.Types.Filters.QueryableFilterVisitorContext.InMemory.get -> bool
+HotChocolate.Types.Filters.QueryableFilterVisitorContext.InputParser.get -> HotChocolate.Types.InputParser!
 HotChocolate.Types.Filters.QueryableFilterVisitorContext.OperationHandlers.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionOperationHandler!>!
-
+HotChocolate.Types.Filters.QueryableFilterVisitorContext.QueryableFilterVisitorContext(HotChocolate.Types.InputObjectType! initialType, System.Type! source, HotChocolate.Utilities.ITypeConverter! converter, bool inMemory, HotChocolate.Types.InputParser! inputParser) -> void
+HotChocolate.Types.Filters.QueryableFilterVisitorContext.QueryableFilterVisitorContext(HotChocolate.Types.InputObjectType! initialType, System.Type! source, System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionOperationHandler!>! operationHandlers, System.Collections.Generic.IReadOnlyList<HotChocolate.Types.Filters.Expressions.IExpressionFieldHandler!>! fieldHandlers, HotChocolate.Utilities.ITypeConverter! typeConverter, bool inMemory, HotChocolate.Types.InputParser! inputParser) -> void
 HotChocolate.Types.Filters.QueryableFilterVisitorContext.TypeConverter.get -> HotChocolate.Utilities.ITypeConverter!
 HotChocolate.Types.Filters.QueryableFilterVisitorContextExtensions
 HotChocolate.Types.Filters.StringFilterFieldDescriptor
@@ -530,7 +534,7 @@ override HotChocolate.Types.Filters.ComparableFilterFieldDescriptor.AllowedOpera
 override HotChocolate.Types.Filters.ComparableFilterFieldDescriptor.CreateOperationDefinition(HotChocolate.Types.Filters.FilterOperationKind operationKind) -> HotChocolate.Types.Filters.FilterOperationDefintion!
 override HotChocolate.Types.Filters.FilterFieldDescriptorBase.OnCreateDefinition(HotChocolate.Types.Filters.FilterFieldDefintion! definition) -> void
 override HotChocolate.Types.Filters.FilterInputType<T>.CreateDefinition(HotChocolate.Configuration.ITypeDiscoveryContext! context) -> HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition!
-
+override HotChocolate.Types.Filters.FilterInputType<T>.OnCompleteFields(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> HotChocolate.Types.FieldCollection<HotChocolate.Types.InputField!>!
 override HotChocolate.Types.Filters.FilterInputType<T>.OnCompleteType(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Types.Filters.FilterInputType<T>.OnRegisterDependencies(HotChocolate.Configuration.ITypeDiscoveryContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> void
 override HotChocolate.Types.Filters.FilterInputTypeDescriptor<T>.OnCreateDefinition(HotChocolate.Types.Filters.FilterInputTypeDefinition! definition) -> void

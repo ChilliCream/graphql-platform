@@ -14,8 +14,20 @@ HotChocolate.AspNetCore.DefaultHttpRequestInterceptor
 HotChocolate.AspNetCore.DefaultHttpRequestInterceptor.DefaultHttpRequestInterceptor() -> void
 HotChocolate.AspNetCore.DefaultSocketSessionInterceptor
 HotChocolate.AspNetCore.DefaultSocketSessionInterceptor.DefaultSocketSessionInterceptor() -> void
+HotChocolate.AspNetCore.Extensions.BananaCakePopEndpointConventionBuilder
+HotChocolate.AspNetCore.Extensions.BananaCakePopEndpointConventionBuilder.Add(System.Action<Microsoft.AspNetCore.Builder.EndpointBuilder!>! convention) -> void
 HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder
 HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder.Add(System.Action<Microsoft.AspNetCore.Builder.EndpointBuilder!>! convention) -> void
+HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder
+HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder.Add(System.Action<Microsoft.AspNetCore.Builder.EndpointBuilder!>! convention) -> void
+HotChocolate.AspNetCore.GraphQLHttpOptions
+HotChocolate.AspNetCore.GraphQLHttpOptions.AllowedGetOperations.get -> HotChocolate.AspNetCore.AllowedGetOperations
+HotChocolate.AspNetCore.GraphQLHttpOptions.AllowedGetOperations.set -> void
+HotChocolate.AspNetCore.GraphQLHttpOptions.EnableGetRequests.get -> bool
+HotChocolate.AspNetCore.GraphQLHttpOptions.EnableGetRequests.set -> void
+HotChocolate.AspNetCore.GraphQLHttpOptions.EnableMultipartRequests.get -> bool
+HotChocolate.AspNetCore.GraphQLHttpOptions.EnableMultipartRequests.set -> void
+HotChocolate.AspNetCore.GraphQLHttpOptions.GraphQLHttpOptions() -> void
 HotChocolate.AspNetCore.GraphQLRequestException
 HotChocolate.AspNetCore.GraphQLRequestException.GraphQLRequestException(HotChocolate.IError! error) -> void
 HotChocolate.AspNetCore.GraphQLRequestException.GraphQLRequestException(params HotChocolate.IError![]! errors) -> void
@@ -34,19 +46,32 @@ HotChocolate.AspNetCore.GraphQLServerOptions.EnableSchemaRequests.set -> void
 HotChocolate.AspNetCore.GraphQLServerOptions.GraphQLServerOptions() -> void
 HotChocolate.AspNetCore.GraphQLServerOptions.Tool.get -> HotChocolate.AspNetCore.GraphQLToolOptions!
 HotChocolate.AspNetCore.GraphQLToolOptions
+HotChocolate.AspNetCore.GraphQLToolOptions.DisableTelemetry.get -> bool?
+HotChocolate.AspNetCore.GraphQLToolOptions.DisableTelemetry.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.Document.get -> string?
 HotChocolate.AspNetCore.GraphQLToolOptions.Document.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.Enable.get -> bool
 HotChocolate.AspNetCore.GraphQLToolOptions.Enable.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.GaTrackingId.get -> string?
+HotChocolate.AspNetCore.GraphQLToolOptions.GaTrackingId.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.GraphQLEndpoint.get -> string?
+HotChocolate.AspNetCore.GraphQLToolOptions.GraphQLEndpoint.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.GraphQLToolOptions() -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.HttpHeaders.get -> Microsoft.AspNetCore.Http.IHeaderDictionary?
 HotChocolate.AspNetCore.GraphQLToolOptions.HttpHeaders.set -> void
 HotChocolate.AspNetCore.GraphQLToolOptions.HttpMethod.get -> HotChocolate.AspNetCore.DefaultHttpMethod?
 HotChocolate.AspNetCore.GraphQLToolOptions.HttpMethod.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.IncludeCookies.get -> bool?
+HotChocolate.AspNetCore.GraphQLToolOptions.IncludeCookies.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.Title.get -> string?
+HotChocolate.AspNetCore.GraphQLToolOptions.Title.set -> void
+HotChocolate.AspNetCore.GraphQLToolOptions.UseBrowserUrlAsGraphQLEndpoint.get -> bool
+HotChocolate.AspNetCore.GraphQLToolOptions.UseBrowserUrlAsGraphQLEndpoint.set -> void
 HotChocolate.AspNetCore.HttpGetMiddleware
 HotChocolate.AspNetCore.HttpGetMiddleware.HttpGetMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, HotChocolate.Execution.IRequestExecutorResolver! executorResolver, HotChocolate.AspNetCore.Serialization.IHttpResultSerializer! resultSerializer, HotChocolate.AspNetCore.Serialization.IHttpRequestParser! requestParser, HotChocolate.NameString schemaName) -> void
 HotChocolate.AspNetCore.HttpGetMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.AspNetCore.HttpGetSchemaMiddleware
+HotChocolate.AspNetCore.HttpGetSchemaMiddleware.HttpGetSchemaMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, HotChocolate.Execution.IRequestExecutorResolver! executorResolver, HotChocolate.AspNetCore.Serialization.IHttpResultSerializer! resultSerializer, HotChocolate.NameString schemaName, HotChocolate.AspNetCore.MiddlewareRoutingType routing) -> void
 HotChocolate.AspNetCore.HttpGetSchemaMiddleware.InvokeAsync(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.AspNetCore.HttpMultipartMiddleware
 HotChocolate.AspNetCore.HttpMultipartMiddleware.HttpMultipartMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, HotChocolate.Execution.IRequestExecutorResolver! executorResolver, HotChocolate.AspNetCore.Serialization.IHttpResultSerializer! resultSerializer, HotChocolate.AspNetCore.Serialization.IHttpRequestParser! requestParser, HotChocolate.NameString schemaName, Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Http.Features.FormOptions!>! formOptions) -> void
@@ -72,6 +97,9 @@ HotChocolate.AspNetCore.MiddlewareBase.MiddlewareBase(Microsoft.AspNetCore.Http.
 HotChocolate.AspNetCore.MiddlewareBase.NextAsync(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.AspNetCore.MiddlewareBase.SchemaName.get -> HotChocolate.NameString
 HotChocolate.AspNetCore.MiddlewareBase.WriteResultAsync(Microsoft.AspNetCore.Http.HttpResponse! response, HotChocolate.Execution.IExecutionResult! result, System.Net.HttpStatusCode? statusCode, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+HotChocolate.AspNetCore.MiddlewareRoutingType
+HotChocolate.AspNetCore.MiddlewareRoutingType.Explicit = 1 -> HotChocolate.AspNetCore.MiddlewareRoutingType
+HotChocolate.AspNetCore.MiddlewareRoutingType.Integrated = 0 -> HotChocolate.AspNetCore.MiddlewareRoutingType
 HotChocolate.AspNetCore.Serialization.DefaultHttpResultSerializer
 HotChocolate.AspNetCore.Serialization.DefaultHttpResultSerializer.DefaultHttpResultSerializer(HotChocolate.AspNetCore.Serialization.HttpResultSerialization batchSerialization = HotChocolate.AspNetCore.Serialization.HttpResultSerialization.MultiPartChunked, HotChocolate.AspNetCore.Serialization.HttpResultSerialization deferSerialization = HotChocolate.AspNetCore.Serialization.HttpResultSerialization.MultiPartChunked, bool indented = false) -> void
 HotChocolate.AspNetCore.Serialization.HttpResultSerialization
@@ -119,6 +147,7 @@ HotChocolate.AspNetCore.Subscriptions.Messages.DataResultMessage.DataResultMessa
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessage
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessage.DataStartMessage(string! id, HotChocolate.Language.GraphQLRequest! request) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler
+HotChocolate.AspNetCore.Subscriptions.Messages.DataStartMessageHandler.DataStartMessageHandler(HotChocolate.Execution.IRequestExecutor! requestExecutor, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor, HotChocolate.IErrorHandler! errorHandler, HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents! diagnosticEvents) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessage
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessage.DataStopMessage(string! id) -> void
 HotChocolate.AspNetCore.Subscriptions.Messages.DataStopMessageHandler
@@ -185,6 +214,7 @@ HotChocolate.AspNetCore.ToolDefaultFileMiddleware.Invoke(Microsoft.AspNetCore.Ht
 HotChocolate.AspNetCore.ToolDefaultFileMiddleware.ToolDefaultFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
 HotChocolate.AspNetCore.ToolOptionsFileMiddleware
 HotChocolate.AspNetCore.ToolOptionsFileMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
+HotChocolate.AspNetCore.ToolOptionsFileMiddleware.ToolOptionsFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
 HotChocolate.AspNetCore.ToolStaticFileMiddleware
 HotChocolate.AspNetCore.ToolStaticFileMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext! context) -> System.Threading.Tasks.Task!
 HotChocolate.AspNetCore.ToolStaticFileMiddleware.ToolStaticFileMiddleware(Microsoft.AspNetCore.Http.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
@@ -208,10 +238,19 @@ static HotChocolate.AspNetCore.Subscriptions.Messages.AcceptConnectionMessage.De
 static HotChocolate.AspNetCore.Subscriptions.Messages.KeepConnectionAliveMessage.Default.get -> HotChocolate.AspNetCore.Subscriptions.Messages.KeepConnectionAliveMessage!
 static HotChocolate.AspNetCore.Subscriptions.Messages.TerminateConnectionMessage.Default.get -> HotChocolate.AspNetCore.Subscriptions.Messages.TerminateConnectionMessage!
 static HotChocolate.AspNetCore.Subscriptions.WebSocketConnection.New(Microsoft.AspNetCore.Http.HttpContext! httpContext) -> HotChocolate.AspNetCore.Subscriptions.WebSocketConnection!
-static HotChocolate.AspNetCore.Subscriptions.WebSocketSession.New(Microsoft.AspNetCore.Http.HttpContext! httpContext, HotChocolate.AspNetCore.Subscriptions.IMessagePipeline! messagePipeline) -> HotChocolate.AspNetCore.Subscriptions.WebSocketSession!
+static HotChocolate.AspNetCore.Subscriptions.WebSocketSession.New(Microsoft.AspNetCore.Http.HttpContext! httpContext, HotChocolate.AspNetCore.Subscriptions.IMessagePipeline! messagePipeline, HotChocolate.AspNetCore.ISocketSessionInterceptor! socketSessionInterceptor) -> HotChocolate.AspNetCore.Subscriptions.WebSocketSession!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapBananaCakePop(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, Microsoft.AspNetCore.Http.PathString? toolPath = null, string? relativeRequestPath = "..") -> HotChocolate.AspNetCore.Extensions.BananaCakePopEndpointConventionBuilder!
 static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQL(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, Microsoft.AspNetCore.Http.PathString path, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder!
 static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQL(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, string! path = "/graphql", HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLHttp(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, Microsoft.AspNetCore.Routing.Patterns.RoutePattern? pattern = null, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLHttp(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, string! pattern, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLSchema(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, Microsoft.AspNetCore.Routing.Patterns.RoutePattern? pattern = null, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLSchema(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, string! pattern, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLWebSocket(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, Microsoft.AspNetCore.Routing.Patterns.RoutePattern? pattern = null, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.MapGraphQLWebSocket(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpointRouteBuilder, string! pattern, HotChocolate.NameString schemaName = default(HotChocolate.NameString)) -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.WithOptions(this HotChocolate.AspNetCore.Extensions.BananaCakePopEndpointConventionBuilder! builder, HotChocolate.AspNetCore.GraphQLToolOptions! toolOptions) -> HotChocolate.AspNetCore.Extensions.BananaCakePopEndpointConventionBuilder!
 static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.WithOptions(this HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder! builder, HotChocolate.AspNetCore.GraphQLServerOptions! serverOptions) -> HotChocolate.AspNetCore.Extensions.GraphQLEndpointConventionBuilder!
+static Microsoft.AspNetCore.Builder.EndpointRouteBuilderExtensions.WithOptions(this HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder! builder, HotChocolate.AspNetCore.GraphQLHttpOptions! httpOptions) -> HotChocolate.AspNetCore.Extensions.GraphQLHttpEndpointConventionBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateAspNetCoreServiceCollectionExtensions.AddGraphQL(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, HotChocolate.ISchema! schema, int maxAllowedRequestSize = 20000000) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Microsoft.Extensions.DependencyInjection.HotChocolateAspNetCoreServiceCollectionExtensions.AddGraphQL(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, HotChocolate.ISchemaBuilder! schemaBuilder, int maxAllowedRequestSize = 20000000) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static Microsoft.Extensions.DependencyInjection.HotChocolateAspNetCoreServiceCollectionExtensions.AddGraphQL(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Func<System.IServiceProvider!, HotChocolate.ISchema!>! schemaFactory, int maxAllowedRequestSize = 20000000) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
