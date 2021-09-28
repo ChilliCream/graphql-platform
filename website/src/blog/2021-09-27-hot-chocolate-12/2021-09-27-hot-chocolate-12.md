@@ -15,7 +15,7 @@ Today we are releasing Hot Chocolate 12, which brings many new features and refi
 
 The execution engine is changing with every release of Hot Chocolate. With version 11, we, for instance, introduced operation compilation, which takes the executed operation out of a document and pre-compiles it so that most of the GraphQL execution algorithm can be skipped in consecutive calls.
 
-```mermaid
+```
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -40,7 +40,7 @@ sequenceDiagram
 
 With Hot Chocolate 12, we now take this further by introducing a query plan; essentially, the execution engine traverses a compiled operation tree to create a query plan from it. The query plan can take into account how a resolver is executed. For instance, if a resolver uses services that can only be used by a single thread and thus need synchronization.
 
-```mermaid
+```
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -75,16 +75,16 @@ We had this simple throughput test for Hot Chocolate 11, which essentially execu
 
 Hot Chocolate 12 executes much faster but also saves on the memory. In many cases, the execution now needs only 1/3 of the memory Hot Chocolate 11 needed.
 
-| Method                                            |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
-| ------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
-| SchemaIntrospection 11                            |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
-| SchemaIntrospection 12                            |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
-| Introspection 5 parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
-| Introspection 5 parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
-| Large query with data fetch 11                    | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
-| Large query with data fetch 12                    | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
-| Large query with data fetch 5 parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
-| Large query with data fetch 5 parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
+| Method                                               |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
+| ---------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
+| SchemaIntrospection 11                               |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
+| SchemaIntrospection 12                               |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
+| Introspection five parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
+| Introspection five parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
+| Large query with data fetch 11                       | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
+| Large query with data fetch 12                       | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
+| Large query with data fetch five parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
+| Large query with data fetch five parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
 
 We are also, as always, comparing against GraphQL .NET, and we have to say they gained a lot of performance. Well done! When we looked the last time at GraphQL .NET, they were performing quite poorly. We, for instance, had this benchmark that executed a very small request of three fields which took GraphQL .NET 31 kb of memory to process. We did the same tests again and with GraphQL.Server.Core 5.0.2 they were now just a little bit slower than Hot Chocolate 11.
 
@@ -174,7 +174,7 @@ We will get the following execution plan if we head over to https://workshop.chi
 }
 ```
 
-```json
+```JSON
 {
   "extensions": {
     "queryPlan": {
@@ -293,7 +293,7 @@ With unsafe, I mean that we allow you to create the types by bypassing validatio
 
 I will do a follow-up post that goes deeper into the type system and explains the inner workings. For this post, let me show you a simple example of how you can now create dynamic types. First, let me introduce a new component here called type module.
 
-```csharp
+```CSharp
 public interface ITypeModule
 {
     event EventHandler<EventArgs> TypesChanged;
@@ -357,7 +357,7 @@ Another area where we have invested for Hot Chocolate 12 was schema-first. At it
 
 If we now create a schema-first server, it looks very similar to code-first or annotation-based servers from a configuration standpoint.
 
-```csharp
+```CSharp
 using Demo.Data;
 using Demo.Resolvers;
 
@@ -378,13 +378,13 @@ app.Run();
 
 There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET.
 
-```sdl
+```graphql
 type Person {
   name: String!
 }
 ```
 
-```csharp
+```CSharp
 public record Person(int Id, string Name);
 ```
 
@@ -412,7 +412,7 @@ builder.Services
 
 Resolver types are .NET classes that provide resolvers methods, so essentially we give a class that has a couple of methods handling data fetching for our GraphQL types. In this instance, we have a type `Query` that provides a method to fetch persons.
 
-```csharp
+```CSharp
 public class Query
 {
     public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
@@ -438,7 +438,7 @@ One more thing we did was fully integrate our attributes like `UsePaging` with s
 
 Meaning you can write the following schema now:
 
-```sdl
+```graphql
 type Query {
   persons: [Person!]
 }
@@ -450,7 +450,7 @@ type Person {
 
 Then on your `Query` resolver for `persons`, annotate it with the `UsePaging` attribute. This will cause the schema initialization to rewrite the schema.
 
-```csharp
+```CSharp
 public class Query
 {
     [UsePaging]
@@ -461,7 +461,7 @@ public class Query
 
 The output schema on the server would now look like the following:
 
-```sdl
+```graphql
 type Query {
   persons(
     """
@@ -555,7 +555,7 @@ The paging attribute rewrote the schema and wrapped a middleware around the fiel
 
 In the future, we are also thinking of letting descriptor attributes become directives that would allow you to annotate directly in the schema file like the following:
 
-```sdl
+```graphql
 type Query {
   persons: [Person!] @paging
 }
@@ -603,7 +603,7 @@ services.AddGraphQLServer()
 
 # Stream and Defer
 
-With Hot Chocolate 11, we introduced the `@defer` directive, which allows you to defer parts of your query to get the most important data first, and the execution of more expensive parts of your query deprioritized.
+With Hot Chocolate 11, we introduced the `@defer` directive, which allows you to defer parts of your query to get the most important data first, and deprioritize the execution of more expensive parts of your query.
 
 With Hot Chocolate 12, we are now introducing the `@stream` directive, which allows you to take advantage of async enumerators and define how much data of a stream you want to get immediately and what shall be deferred to a later point in time.
 
@@ -621,15 +621,33 @@ Stream and defer both work with Banana Cake Pop if your browser is chrome based.
 
 # ASP.NET Core improvements
 
+Hot Chocolate neatly integrates with ASP.NET core, and with a simple `MapGraphQL`, you get a GraphQL over HTTP spec-compliant endpoint. This simple `MapGraphQL` is great when you get started with Hot Chocolate but limiting when you go to production and have different authorization requirements for various aspects of the GraphQL transport layer.
+
+Hot Chocolate 12 still keeps its `MapGraphQL` around but now also provides a specific transport method.
+
+TABELLE
+
+# Banana Cake Pop
+
+After Hot Chocolate 11, we started reworking Banana Cake Pop and rethinking what we wanted to enable with our GraphQL IDE. Hot Chocolate 12 now incorporates preview 14 of the new Banana Cake Pop, and we will deliver the final version of the new Banana Cake Pop IDE with Hot Chocolate 12.1 at the end of October.
+
+Banana Cake Pop is now again available as middleware and application for Windows, macOS, and Linux. The team is working hard to get major new features like authentication flows, document synchronization, and schema reference into BCP.
+
+SCREENSHOT
+
+[Download](https://bananacakepop.com) the new BCP preview today and help us make this the best GraphQL IDE out there. We still have lots to do to get to that point, but people following us on slack can see the progress. We will soon have the next preview available, which will make a significant jump in functionality.
+
 # The little things that will make your life easier
 
-Apart from our big-ticket items, we have invested into smaller things that will help make Hot Chocolate easier to learn and make it better to use.
+Apart from our big-ticket items, we also have invested in smaller things that will help make Hot Chocolate easier to learn and better to use.
 
 ## Cursor Paging
 
-For cursor paging we introduced more options that now allow you to require paging boundaries like GitHub is doing with their public API.
+### Boundaries
 
-```csharp
+We introduced more options for cursor paging that allow you to require paging boundaries like GitHub is doing with their public API.
+
+```CSharp
 public class Query
 {
     [UsePaging(RequirePagingBoundaries = true)] // will create MyNameConnection
@@ -638,7 +656,9 @@ public class Query
 }
 ```
 
-Further, we give you now the ability to control the connection name. The connection name now is by default inferred from the field, since this will break all existing schemas, you can set a global paging option to keep the default behavior.
+### Connections
+
+Further, we reworked how the connection name is inferred and allow you to override defaults locally. With Hot Chocolate 12, we infer the connection name from the field instead of the element type. Since this change will break all existing schemas built with Hot Chocolate so far, we allow you to switch to the old way of inferring the connection name with the paging options.
 
 ```csharp
 services.AddGraphServerQL()
@@ -646,11 +666,11 @@ services.AddGraphServerQL()
     .SetPagingOptions(new PagingOptions { InferConnectionNameFromField = false });
 ```
 
-The connection name by default as I said is inferred from the field name now; this means if you have a field `friends`, then the connection will be called `FriendsConnection` instead of the old behavior where we used the element type.
+The connection name, by default, is inferred from the field name; this means if you have a field `friends`, then the connection will be called `FriendsConnection` instead of the old behavior where we used the element type.
 
-You also can define the connection name explicitly now.
+You also can override the default connection name.
 
-```csharp
+```CSharp
 public class Query
 {
     [UsePaging(ConnectionName = "MyName")] // will create MyNameConnection
@@ -659,7 +679,9 @@ public class Query
 }
 ```
 
-We also made it now easier to control which paging provider is used. For one you now can configure the default paging provided which if you do nothing still is the queryable paging provider.
+### Paging Provider
+
+We also made it now easier to control which paging provider is used. For one, you can now configure the default paging provided. If you do not specify anything, we will set the queryable paging provider as the default provider.
 
 ```csharp
 services.AddGraphServerQL()
@@ -667,7 +689,9 @@ services.AddGraphServerQL()
     .AddCursorPagingProvider<MyCustomProvider>(defaultProvider = true);
 ```
 
-Also, you now can name the provider which gives you an easy way to point to the correct paging provider for your specific case.
+Also, you can now name a provider, which gives you an easy way to point to the specific paging provider.
+
+**Register Provider:**
 
 ```csharp
 services.AddGraphServerQL()
@@ -675,7 +699,9 @@ services.AddGraphServerQL()
     .AddCursorPagingProvider<MyCustomProvider>("Custom");
 ```
 
-```csharp
+**Use Provider:**
+
+```CSharp
 public class Query
 {
     [UsePaging(ProviderName = "Custom")]
@@ -684,9 +710,13 @@ public class Query
 }
 ```
 
-Sometimes, you want to have everything in your own hands and just use Hot Chocolate to take the tedious work of generating types of your hand. In this case, you can just return the connection and we will know what to do with it.
+> Note: Since we now can easily interact with multiple providers, we removed the `UseMongoPagingAttribute`. Please have a look at our documentation regarding MongoDB.
 
-```csharp
+### Control
+
+Sometimes, you want to have everything in your own hands and just use Hot Chocolate to take the tedious work of generating types of your hands. In this case, you can implement the paging algorithm in your business logic or the resolver and return a connection instance, and we will know what to do with it.
+
+```CSharp
 public class Query
 {
     [UsePaging]
@@ -695,9 +725,9 @@ public class Query
 }
 ```
 
-If you are using the `HotChocolate.Data` package in combination with the connection type you even can use now our new data extensions.
+If you are using the `HotChocolate.Data` package in combination with the connection type, you can even use our new data extensions to allow for more complex resolvers.
 
-```csharp
+```CSharp
 public class Query
 {
     [UsePaging]
@@ -718,7 +748,7 @@ public class Query
 
 ## Relay
 
-As always we are investing a lot into removing complexity from creating relay schemas. Our new version now adds the new `nodes` field, which allows clients to fetch multiple nodes in one go without the need of rewriting the query since the `ids` can be passed in as variable. While the `nodes` field is not part of the relay specification it is a recommended extension.
+As always, we are investing a lot into removing complexity from creating relay schemas. Our new version adds the `nodes` field (a plural version of the `node` field), allowing clients to fetch multiple nodes in one go without rewriting the query since the `ids` can be passed in as a variable. While the `nodes` field is not part of the relay specification, it is a recommended extension.
 
 ```graphql
 {
@@ -734,7 +764,7 @@ As always we are investing a lot into removing complexity from creating relay sc
 }
 ```
 
-Further, we have split our `EnableRelaySupport` configuration method to allow you to opt into partial concepts of the relay specification.
+Apart from that, we have split the `EnableRelaySupport` configuration method to allow you to opt into partial concepts of the relay specification.
 
 ```csharp
 services.AddGraphServerQL()
@@ -742,26 +772,30 @@ services.AddGraphServerQL()
     .AddQueryFieldToMutationPayloads();
 ```
 
-The two new configuration methods are clearer and you can now opt into the concepts you really need.
+The two new configuration methods are more precise, and you can now opt into the concepts you need and nothing more.
 
 ## Errors
 
-## Middleware Validation
+Another area where users asked us to improve was with errors. When you want to produce a GraphQL error, you can use a `GraphQLException` or any other exception in combination with error filters.
 
-Validation
+People often choose the latter since errors may come from the business layer that already has a set of well-defined domain exceptions. The issue that many users had was that one exception could always only spawn one GraphQL error.
 
-- Cost Complexity
+With HotChocolate 12, we have introduced the `AggregateError` class, which allows you to wrap multiple errors into one error object; this helps us to preserve the interface but at the same time enables you to transform a single exception or a single error into multiple errors.
 
-Middleware
+EXAMPLE
 
-- Order Validation
-
-AggregateError
-
-- Enhanced error handling for variables to better pinpoint the actual error
-
-ASP.NET Core improvements
-
-# Banana Cake Pop
+Speaking of errors, we have put a lot of effort into providing better errors. One of these efforts resulted in splitting the infamous error `HC0016` into multiple errors that now clearly outline the issue with invalid variable inputs. It's often these little things that save users from frustrations when searching for issues.
 
 # Outlook
+
+Hot Chocolate is a release where we put a lot of work into the core of the server. In most cases, an upgrade from Hot Chocolate 11 to Hot Chocolate 12 should be updating the package.
+
+With Hot Chocolate 13, we will now focus on our stitching and schema federation engine as the main topic. Hot Chocolate 12 introduced many new concepts that allow us to completely rethink schema stitching, e.g., type modules and query plans.
+
+Beginning this week, we will start working on the new version, which we hope to finish at the end of November.
+
+If you want to have a look at the high-level roadmap, check it out [here](https://github.com/ChilliCream/hotchocolate/projects/28).
+
+There are also dot releases planned for Hot Chocolate 12, with 12.1 already scheduled for the end of October.
+
+We have tons of updates in the pipeline, with the new Banana Cake Pop release waiting already around the corner.
