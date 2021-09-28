@@ -15,7 +15,7 @@ Today we are releasing Hot Chocolate 12, which brings many new features and refi
 
 The execution engine is changing with every release of Hot Chocolate. With version 11, we, for instance, introduced operation compilation, which takes the executed operation out of a document and pre-compiles it so that most of the GraphQL execution algorithm can be skipped in consecutive calls.
 
-```
+```mermaid
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -40,7 +40,7 @@ sequenceDiagram
 
 With Hot Chocolate 12, we now take this further by introducing a query plan; essentially, the execution engine traverses a compiled operation tree to create a query plan from it. The query plan can take into account how a resolver is executed. For instance, if a resolver uses services that can only be used by a single thread and thus need synchronization.
 
-```
+```mermaid
 sequenceDiagram
     Diagnostics->>Exceptions Handing: track { next(context) }
     Exceptions Handing->>Cache Document: try { next(context) }
@@ -75,16 +75,16 @@ We had this simple throughput test for Hot Chocolate 11, which essentially execu
 
 Hot Chocolate 12 executes much faster but also saves on the memory. In many cases, the execution now needs only 1/3 of the memory Hot Chocolate 11 needed.
 
-| Method                                               |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
-| ---------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
-| SchemaIntrospection 11                               |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
-| SchemaIntrospection 12                               |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
-| Introspection five parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
-| Introspection five parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
-| Large query with data fetch 11                       | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
-| Large query with data fetch 12                       | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
-| Large query with data fetch five parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
-| Large query with data fetch five parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
+| Method                                            |      Median |     Gen 0 |    Gen 1 | Gen 2 |   Allocated |
+| ------------------------------------------------- | ----------: | --------: | -------: | ----: | ----------: |
+| SchemaIntrospection 11                            |    922.4 μs |   26.3672 |   0.9766 |     - |   275.49 KB |
+| SchemaIntrospection 12                            |    333.6 μs |    7.8125 |        - |     - |     84.7 KB |
+| Introspection 5 parallel requests 11              |  4,839.8 μs |  132.8125 |   7.8125 |     - |  1377.43 KB |
+| Introspection 5 parallel requests 12              |  1,658.6 μs |   41.0156 |        - |     - |   423.48 KB |
+| Large query with data fetch 11                    | 19,322.2 μs |  312.5000 | 156.2500 |     - |  3244.58 KB |
+| Large query with data fetch 12                    | 15,461.0 μs |  187.5000 |  93.7500 |     - |  1923.06 KB |
+| Large query with data fetch 5 parallel request 11 | 38,035.6 μs | 1571.4286 | 785.7143 |     - | 16394.95 KB |
+| Large query with data fetch 5 parallel request 12 | 26,187.5 μs |  937.5000 | 468.7500 |     - |  9613.30 KB |
 
 We are also, as always, comparing against GraphQL .NET, and we have to say they gained a lot of performance. Well done! When we looked the last time at GraphQL .NET, they were performing quite poorly. We, for instance, had this benchmark that executed a very small request of three fields which took GraphQL .NET 31 kb of memory to process. We did the same tests again and with GraphQL.Server.Core 5.0.2 they were now just a little bit slower than Hot Chocolate 11.
 
@@ -113,7 +113,7 @@ From Hot Chocolate 13 on, we will use our new performance test base we are worki
 
 Let's have a look at the throughput tests which we run to see the GraphQL engine overhead. The benchmark executes a simple book/author GraphQL query against in-memory data. We fire those requests as HTTP Post requests against the GraphQL servers in our test suite. We start with five users for 20 seconds, then ten users for 20 seconds, and up to 30 users for 20 seconds. We do this in a couple of rounds and let each of these benchmarks run on a freshly rebooted system. We are looking at automating this with k6s, and my colleague Jose will help us with that.
 
-| Method                                     | Requests per Sek. |
+| Method                                     | Requests per Sec. |
 | ------------------------------------------ | ----------------: |
 | Hot Chocolate 12                           |            33.702 |
 | Hot Chocolate 11                           |            19.983 |
@@ -174,7 +174,7 @@ We will get the following execution plan if we head over to https://workshop.chi
 }
 ```
 
-```JSON
+```json
 {
   "extensions": {
     "queryPlan": {
@@ -283,17 +283,17 @@ We could go further and write a selector for your resolver compiler extension th
     });
 ```
 
-However, we are not done with this yet. We are already thinking about giving you even more freedom to extend the resolver compiler by allowing you to inject proper logic that runs in the resolver pipeline. We essentially want to support a kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not fully solved all the issues around this yet and have moved this to Hot Chocolate 13.
+However, we are not done with this yet. We are already thinking about giving you even more freedom to extend the resolver compiler by injecting proper logic that runs in the resolver pipeline. We essentially want to support a kind of conditional middleware, where we will append middleware depending on what you inject into your resolver. We have not fully solved all the issues around this yet and have moved this to Hot Chocolate 13.
 
 # Dynamic Schemas
 
-While static schemas created through C# or through GraphQL SDL are very simple to build with Hot Chocolate, it was quite challenging to build dynamic schemas that are based on JSON files or database tables. It was achievable, like in the case of schema stitching but it was quite difficult and you needed to know quite a lot about the internals. With Hot Chocolate 12 we are opening up the type system quite a lot to allow you to create types in an unsafe way.
+While static schemas created with C# or GraphQL SDL are very simple to build with Hot Chocolate, it was pretty challenging to build dynamic schemas based on JSON files or database tables. It was achievable, like in the case of schema stitching, but it was pretty tricky, and you needed to know quite a lot about the internals of the type system. With Hot Chocolate 12, we are opening up the type system quite a lot to allow you to create types in an unsafe way.
 
-With unsafe I mean that we allow you to create the types by bypassing validation logic for the default user and using the type system definition objects that we internally use to configure the types. I will do a followup post that goes deeper into the type system and how it works in Hot Chocolate.
+With unsafe, I mean that we allow you to create the types by bypassing validation logic intended for the standard users of Hot Chocolate and using the type system definition objects to create types and type extensions.
 
-For this post let me show you a simple example of how you now can create dynamic types. First let me introduce a new component here called type module.
+I will do a follow-up post that goes deeper into the type system and explains the inner workings. For this post, let me show you a simple example of how you can now create dynamic types. First, let me introduce a new component here called type module.
 
-```CSharp
+```csharp
 public interface ITypeModule
 {
     event EventHandler<EventArgs> TypesChanged;
@@ -304,13 +304,13 @@ public interface ITypeModule
 }
 ```
 
-The type modules provide types for a specific components or data sources, the new schema stitching engine, for instance, will use type modules to provide types to the schema.
+Type modules provide types for specific components or data sources; for instance, the new schema stitching engine will use type modules to provide types to the schema.
 
-A type module consists o an event `TypesChanged` and a method `CreateTypesAsync`. `CreateTypesAsync` is called by the schema building process to provide the types for the module. Whenever the types change of a module, the module can trigger `TypesChanged` which will phase out the current schema and create a new schema instance. The Hot Chocolate server will ensure that old request are still finished of against the old schema representation while new request are already routed to the new schema with the applied type changes.
+A type module consists of an event `TypesChanged` and a method `CreateTypesAsync`. `CreateTypesAsync` is called by the schema building process to create types for a new schema instance. Whenever something changes for a type module, like the underlying database structure, the `TypesChanged` event can be triggered to tell Hot Chocolate that it needs to phase out the old schema and phase in a new schema with the changed types of this module. The Hot Chocolate server will ensure that running requests are still completed against the old schema while new requests are routed to the new schema instance that contains the updated types.
 
-In essence `ITypeModule` will take away the complexity of providing a dynamic schema with Hot Chocolate.
+Essentially, `ITypeModule` will remove the complexity of providing a dynamic schema with hot-reload functionality.
 
-But we not only introduced this new interface to provide type we also opened up our lower-level configuration API which now lets you create types in a very easy way from a Json file or what have you.
+But we not only introduced this new interface to provide types, but we also opened up our lower-level configuration API, which now lets you create types straightforwardly from a Json file or what have you.
 
 ```csharp
 public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
@@ -345,21 +345,19 @@ public async ValueTask<IReadOnlyCollection<ITypeSystemMember>> CreateTypesAsync(
 }
 ```
 
-An example of this can be found [here]() and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
+A complete example of a dynamic schema with hot-reload can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/TypeModules), and I will also follow up this post with a detailed blog post on dynamic schemas that goes more into the details.
 
 ## Type Interceptors
 
-We also added further improvements to the type initialization to allow now type interceptors to register new types during the initialization. Also on this end, you are now able to hook into the type initialization analyze the types that were registered by the user and then create further types based on the initial schema. Where type modules generate type based on an external component or data source, type interceptors allow you to generate types based on types. This can be useful if you for instance create a filter API that is based on the output types provided by a user.
-
-I will follow up this blog post also with another deep dive blog on the type system as well that goes into these topics.
+We also added further improvements to the type initialization to allow type interceptors to register new types. Also, on this end, you can now hook into the type initialization to analyze the types registered by a user and then create further types based on the initial schema. Where type modules generate types based on an external component or data source, type interceptors allow you to generate types based on types. This can be useful if you, for instance, create a filter API that is based on the output types provided by a user.
 
 # Schema-First
 
-Another area where we have invested was schema-first. While Hot Chocolate at its very beginning was a schema-first library it developed more and more into a code-first / annotation-based library. If we look back at Hot Chocolate 11 then it almost looked like schema-first was an afterthought. With Hot Chocolate 12 we are bringing schema-first up to par with code-first and the annotation-based approach. This means that we also did some API refactoring and kicked out the old binding APIs. We did these breaking changes to align APIs.
+Another area where we have invested for Hot Chocolate 12 was schema-first. At its very beginning, Hot Chocolate was a schema-first library that developed more and more into a code-first / annotation-based library. If we look back at Hot Chocolate 11, then it almost looked like schema-first was an afterthought. With Hot Chocolate 12, we are bringing schema-first up to par with code-first and the annotation-based approach. This means that we also did some API refactoring and kicked out the old binding APIs. We did these breaking changes to align APIs of the various approaches.
 
-if we now create a schema-first server it from a configuration standpoint does look very similar to code-first or annotation based services.
+If we now create a schema-first server, it looks very similar to code-first or annotation-based servers from a configuration standpoint.
 
-```CSharp
+```csharp
 using Demo.Data;
 using Demo.Resolvers;
 
@@ -378,19 +376,19 @@ app.MapGraphQL();
 app.Run();
 ```
 
-There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET. Meaning if we for instance look at the person type we have a .NET representation for this.
+There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET.
 
-```graphql
+```sdl
 type Person {
   name: String!
 }
 ```
 
-```CSharp
+```csharp
 public record Person(int Id, string Name);
 ```
 
-The .NET representation in this case is a record, but it could also be a map or a JSON structure. In most cases, we infer the correct binding between runtime type and GraphQL type but if you need to explicitly bind we now use the same API as with the other approaches.
+The .NET representation, in this case, is a record, but it could also be a map, a JSON structure, or something else. In most cases, we automatically infer the correct binding between runtime type and GraphQL type, but we can now use the same API as with the other approaches if you need to bind the type explicitly.
 
 ```csharp
 builder.Services
@@ -401,7 +399,7 @@ builder.Services
     .BindRuntimeType<Person>();
 ```
 
-Or if the name does not match the .NET type name.
+Or, if the name does not match the .NET type name, you can pass that in as well.
 
 ```csharp
 builder.Services
@@ -412,9 +410,9 @@ builder.Services
     .BindRuntimeType<Person>("Person");
 ```
 
-Resolver types are .NET classes which provide resolvers, so essentially we provide a class that has a couple of methods handling data fetching. In this instance we have a type `Query` that provides a method to fetch persons.
+Resolver types are .NET classes that provide resolvers methods, so essentially we give a class that has a couple of methods handling data fetching for our GraphQL types. In this instance, we have a type `Query` that provides a method to fetch persons.
 
-```CSharp
+```csharp
 public class Query
 {
     public IEnumerable<Person> GetPersons([Service] PersonRepository repository)
@@ -422,13 +420,13 @@ public class Query
 }
 ```
 
-In our example the resolver type name matches the GraphQL type name, so we can infer the binding between those. If you have multiple resolver classes per GraphQL type you also can use an overload that passes in the GraphQL type name.
+In our example, the resolver type name matches the GraphQL type, so bindings are automatically inferred. If you have multiple resolver classes per GraphQL type, you can use an overload that passes in the GraphQL type name.
 
 ```csharp
 .AddResolver<QueryResolvers>("Query")
 ```
 
-Naturally we still have the delegate variants of the `AddResolver` configuration methods.
+Naturally, we still have the delegate variants of the `AddResolver` configuration methods to bind a delegate to a GraphQL field.
 
 ```csharp
 .AddResolver("Query", "sayHello", ctx => "hello")
@@ -436,11 +434,11 @@ Naturally we still have the delegate variants of the `AddResolver` configuration
 
 ## Middleware and Attributes
 
-One more thing we did is fully integrate our attributes like `UsePaging` with schema first resolvers.
+One more thing we did was fully integrate our attributes like `UsePaging` with schema first resolvers.
 
 Meaning you can write the following schema now:
 
-```graphql
+```sdl
 type Query {
   persons: [Person!]
 }
@@ -450,9 +448,9 @@ type Person {
 }
 ```
 
-Then on your `Query` resolver for `persons` you can annotate it with the `UsePaging` attribute for instance. This will cause the schema initialization to rewrite the schema.
+Then on your `Query` resolver for `persons`, annotate it with the `UsePaging` attribute. This will cause the schema initialization to rewrite the schema.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
@@ -461,9 +459,9 @@ public class Query
 }
 ```
 
-The output schema on your server would now look like:
+The output schema on the server would now look like the following:
 
-```graphql
+```sdl
 type Query {
   persons(
     """
@@ -553,11 +551,11 @@ type PersonsEdge {
 }
 ```
 
-So, the paging attribute rewrote the schema to now support pagination and also puts in the middleware to handle pagination. Rest assured you still can be fully in control of your schema but and specify all of those types, but you also can let Hot Chocolate generate all those tedious types like paging types or filters types etc.
+The paging attribute rewrote the schema and wrapped a middleware around the field resolver to support pagination. Rest assured, you can still fully control your schema and specify all of those types by yourself, but you also can let Hot Chocolate generate all those tedious types like connection types, edge types or filters types, etc.
 
-Going forward we are also thinking on letting descriptor attributes become directives which would allow you to annotate directly in the schema file like the following:
+In the future, we are also thinking of letting descriptor attributes become directives that would allow you to annotate directly in the schema file like the following:
 
-```graphql
+```sdl
 type Query {
   persons: [Person!] @paging
 }
@@ -567,15 +565,15 @@ type Person {
 }
 ```
 
-But for the time being schema-first really got a big update with this release and we will continue to make it better.
+But for the time being, schema-first got a big update with this release, and we will continue to make it better with every new release.
 
-The schema-first demos can be found [here]().
+The schema-first demo can be found [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/misc/SchemaFirst).
 
 # DataLoader
 
-Another component that got a huge update was DataLoader. It also was one of the reasons the release candidate phase stretched so far since we had lots of issues with the changes here in user projects. First, as we already said we would do, we moved all the DataLoader into the `GreenDonut` library meaning that the various DataLoader no longer are residing in `HotChocolate.Types`. Apart from that we have refactored a lot to allow DataLoader to pool more objects and also to use a unified cache. This unified cache allows better to control how much memory can be allocated by a single request and also lets us do cross DataLoader updates. Essentially, one DataLoader can now fill the cache for another DataLoader. This often happens when you have entities that can be looked up by multiple keys like a user that could be fetched by the name or by its id.
+Another component that got a massive overhaul is DataLoader. It was also one reason the release candidate phase stretched so far since we had lots of issues with the changes in user projects. First, as we already said we would do, we moved all the DataLoader classes into the `GreenDonut` library, meaning that the various DataLoader no longer reside in `HotChocolate.Types`. Apart from that, we have refactored a lot to allow DataLoader to pool more of its objects and use a unified cache for entities. This unified cache allows better control of how much memory can be allocated by a single request and lets us do cross DataLoader updates. Essentially, one DataLoader can now fill the cache for another DataLoader. Cross DataLoader updates often happen when you have entities that can be looked up by multiple keys, like a user that can be fetched by its name or by its id.
 
-In order to take advantage of the new cache pass down the DataLoader options so that we can inject them from the DI.
+To take advantage of the new cache, pass down the DataLoader options to inject them from the DI.
 
 ```csharp
 public class CustomBatchDataLoader : BatchDataLoader<string, string>
@@ -591,11 +589,11 @@ public class CustomBatchDataLoader : BatchDataLoader<string, string>
 }
 ```
 
-With DataLoader now always pass down the options and the batch scheduled and we will inject you the new unified cache. If you do not pass down the options object then we will just use a cache per DataLoader.
+With DataLoader now, always pass down the options and the batch scheduler so the DI can inject the new unified cache. If you do not pass down the options object, the DataLoader will use a cache per instance like before.
 
-The DataLoader caches with Hot Chocolate 12 are also now pooled meaning that the cache object is cleaned, preserved and reused which will safe you memory. Further we have now introduced `DataLoaderDiagnosticEventListener` which allows you to monitor DataLoader execution.
+The DataLoader caches with Hot Chocolate 12 are also pooled, meaning that the cache object is cleaned, preserved, and reused, which will save memory. Further, we have now introduced `DataLoaderDiagnosticEventListener`, which allows you to monitor DataLoader execution.
 
-All diagnostic listener cannot be registered with the schema.
+All diagnostic listeners cannot be registered with the schema.
 
 ```csharp
 services.AddGraphQLServer()
@@ -605,8 +603,9 @@ services.AddGraphQLServer()
 
 # Stream and Defer
 
-With Hot Chocolate 11 we introduced the `@defer` directive which allows you to defer parts of your query so that you get the most important data first and the execution of more expensive parts of your query is deprioritized.
-With Hot Chocolate 12 we now are introducing the `@stream` directive which allows you to take advantage of async enumerators and define how much data of a stream you want to get immediately and what shall be deferred to a later point in time.
+With Hot Chocolate 11, we introduced the `@defer` directive, which allows you to defer parts of your query to get the most important data first, and the execution of more expensive parts of your query deprioritized.
+
+With Hot Chocolate 12, we are now introducing the `@stream` directive, which allows you to take advantage of async enumerators and define how much data of a stream you want to get immediately and what shall be deferred to a later point in time.
 
 ```graphql
 {
@@ -616,13 +615,13 @@ With Hot Chocolate 12 we now are introducing the `@stream` directive which allow
 }
 ```
 
-Streamworks with any list in Hot Chocolate but it is only really efficient and gives you all the benefits of using stream if your resolver returns a `IAsyncEnumerable<T>`. Our internal paging middleware at the moment does not work with `IAsyncEnumerable<T>` which means you can stream the results, but you still will have the fill execution impact on the initial piece of the query. We however will rework pagination to use `IAsyncEnumerable<T>`when slicing the data and executing the query.
+`@stream` works with any list in Hot Chocolate, but it is only efficient and gives you all the benefits of using stream if your resolver returns an `IAsyncEnumerable<T>`. Our internal paging middleware at the moment does not work with `IAsyncEnumerable<T>`, which means you can stream the results. However, you still will have the full execution impact on the initial piece of the query. We will rework pagination to use `IAsyncEnumerable<T>` when slicing the data and executing the query with Hot Chocolate 13.
 
-Stream and defer both work with Banana Cake Pop if your browser is chrome based. We already have an update in the works to make it work with Safari. We will issue the BCP update with version 12.1.
+Stream and defer both work with Banana Cake Pop if your browser is chrome based. We already have an update in the works to make it work with Safari. We will issue this BCP update with Hot Chocolate 12.1.
 
 # ASP.NET Core improvements
 
-# The little things that will make your live easier
+# The little things that will make your life easier
 
 Apart from our big-ticket items, we have invested into smaller things that will help make Hot Chocolate easier to learn and make it better to use.
 
@@ -630,7 +629,7 @@ Apart from our big-ticket items, we have invested into smaller things that will 
 
 For cursor paging we introduced more options that now allow you to require paging boundaries like GitHub is doing with their public API.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(RequirePagingBoundaries = true)] // will create MyNameConnection
@@ -651,7 +650,7 @@ The connection name by default as I said is inferred from the field name now; th
 
 You also can define the connection name explicitly now.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(ConnectionName = "MyName")] // will create MyNameConnection
@@ -676,7 +675,7 @@ services.AddGraphServerQL()
     .AddCursorPagingProvider<MyCustomProvider>("Custom");
 ```
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging(ProviderName = "Custom")]
@@ -687,7 +686,7 @@ public class Query
 
 Sometimes, you want to have everything in your own hands and just use Hot Chocolate to take the tedious work of generating types of your hand. In this case, you can just return the connection and we will know what to do with it.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
@@ -698,7 +697,7 @@ public class Query
 
 If you are using the `HotChocolate.Data` package in combination with the connection type you even can use now our new data extensions.
 
-```CSharp
+```csharp
 public class Query
 {
     [UsePaging]
