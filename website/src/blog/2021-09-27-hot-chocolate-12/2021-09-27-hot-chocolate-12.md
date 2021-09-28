@@ -17,52 +17,30 @@ The execution engine is changing with every release of Hot Chocolate. With versi
 
 ```mermaid
 sequenceDiagram
-    Diagnostics->>Exceptions Handing: track { next(context) }
-    Exceptions Handing->>Cache Document: try { next(context) }
-    Cache Document->>Parse Document: Document?
-    Parse Document->>Validation: Document?
-    Validation->>Cache Operation: Document! and IsValid
-    Cache Operation->>Compile Operation: IPreparedOperation?
+    Validation->>Compile Operation: Document! and IsValid
     Compile Operation->>Coerce Variables: IPreparedOperation
     Coerce Variables->>Execute Operation: IVariableCollection
 
     Execute Operation-->>Coerce Variables: IExecutionResult
     Coerce Variables-->>Compile Operation: IExecutionResult
-    Compile Operation-->>Cache Operation: IExecutionResult
-    Cache Operation-->>Cache Operation: Cache Operation
-    Cache Operation-->>Validation: IExecutionResult
-    Validation-->>Parse Document: IExecutionResult
-    Parse Document-->>Cache Document: IExecutionResult
-    Cache Document-->>Cache Document: Cache Document
-    Cache Document-->>Exceptions Handing: IExecutionResult
-    Exceptions Handing-->>Diagnostics: IExecutionResult
+    Compile Operation-->>Validation: IExecutionResult
 ```
+
+> Note, that there are actually more components involved in the actual execution pipeline. For brevity I have shortened the pipeline to the significant parts for this post.
 
 With Hot Chocolate 12, we now take this further by introducing a query plan; essentially, the execution engine traverses a compiled operation tree to create a query plan from it. The query plan can take into account how a resolver is executed. For instance, if a resolver uses services that can only be used by a single thread and thus need synchronization.
 
 ```mermaid
 sequenceDiagram
-    Diagnostics->>Exceptions Handing: track { next(context) }
-    Exceptions Handing->>Cache Document: try { next(context) }
-    Cache Document->>Parse Document: Document?
-    Parse Document->>Validation: Document?
-    Validation->>Cache Operation: Document! and IsValid
-    Cache Operation->>Compile Operation: IPreparedOperation?
-    Compile Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Build Query Plan: IVariableCollection
-    Build Query Plan->>Execute Operation: QueryPlan
+    Validation->>Compile Operation: Document! and IsValid
+    Compile Operation->>Build Query Plan: IPreparedOperation
+    Build Query Plan->>Coerce Variables: QueryPlan
+    Coerce Variables->>Execute Operation: IVariableCollection
 
-    Execute Operation-->>Build Query Plan: IExecutionResult
-    Build Query Plan-->>Coerce Variables: IExecutionResult
-    Coerce Variables-->>Compile Operation: IExecutionResult
-    Compile Operation-->>Cache Operation: IExecutionResult
-    Cache Operation-->>Cache Operation: Cache Operation
-    Cache Operation-->>Validation: IExecutionResult
-    Validation-->>Parse Document: IExecutionResult
-    Parse Document-->>Cache Document: IExecutionResult
-    Cache Document-->>Cache Document: Cache Document
-    Cache Document-->>Exceptions Handing: IExecutionResult
-    Exceptions Handing-->>Diagnostics: IExecutionResult
+    Execute Operation-->>Coerce Variables: IExecutionResult
+    Coerce Variables-->>Build Query Plan: IExecutionResult
+    Build Query Plan-->>Compile Operation: IExecutionResult
+    Compile Operation-->>Validation: IExecutionResult
 ```
 
 Moreover, the execution engine can now inspect if it can pull up data fetching logic and inject a completed result into a resolver pipeline and, by doing this, optimize data fetching. Doing this sounds kind of like DataLoader since we are tackling batching with this in some way. But actually, it makes these implications visible to the executor. Query plans allow the executor to inspect these things before running a query, thus improving execution behavior.
@@ -625,13 +603,13 @@ Hot Chocolate neatly integrates with ASP.NET core, and with a simple `MapGraphQL
 
 Hot Chocolate 12 still keeps its `MapGraphQL` around but now also provides a specific transport method.
 
-| Method              |                                                                                                              Description. |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------: |
-| MapGraphQL          |                          MapGraphQL is our default way of adding GraphQL transport and adds just everything on one route. |
+| Method              | Description.                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| MapGraphQL          | MapGraphQL is our default way of adding GraphQL transport and adds just everything on one route.                          |
 | MapGraphQLHttp      | MapGraphQLHttp will add support for GraphQL HTTP Post, GraphQL HTTP GET, and support for MultiPart and batching requests. |
-| MapGraphQLWebSocket |                                                        MapGraphQLWebSocket will add support for GraphQL over web-sockets. |
-| MapGraphQLSchema    |                                                           MapGraphQLSchema will add an endpoint to fetch the GraphQL SDL. |
-| MapBananaCakePop    |                                                     MapBananaCakePop will add the Banana Cake Pop GraphQL IDE middleware. |
+| MapGraphQLWebSocket | MapGraphQLWebSocket will add support for GraphQL over web-sockets.                                                        |
+| MapGraphQLSchema    | MapGraphQLSchema will add an endpoint to fetch the GraphQL SDL.                                                           |
+| MapBananaCakePop    | MapBananaCakePop will add the Banana Cake Pop GraphQL IDE middleware.                                                     |
 
 These new map methods will allow you to pass in a configuration as you can with `MapGraphQL`.
 
