@@ -2,7 +2,7 @@
 title: Documentation
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 Documentation allows us to enrich our schema with additional information that is useful for a consumer of our API.
 

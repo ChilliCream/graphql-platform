@@ -2,7 +2,7 @@
 title: Entity Framework
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 The execution engine of Hot Chocolate executes resolvers in parallel. This can lead to exceptions because
 the database context of Entity Framework cannot handle more than one request in parallel.

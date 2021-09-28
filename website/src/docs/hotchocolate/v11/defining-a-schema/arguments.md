@@ -2,7 +2,7 @@
 title: "Arguments"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 GraphQL allows us to specify arguments on a field and access their values in the field's resolver.
 

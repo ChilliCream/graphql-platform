@@ -2,7 +2,7 @@
 title: "Lists"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 GraphQL allows us to return lists of elements from our fields.
 
