@@ -10,7 +10,7 @@ Besides its many benefits there is one shortcoming that makes Entity Framework h
 
 [**Entity Framework Core doesn't support multiple parallel operations being run on the same context instance.**](https://docs.microsoft.com/ef/core/miscellaneous/async)
 
-When using `services.AddDbContext<T>` to register our `DbContext`, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext` we might see one of the following exceptions being thrown:
+When using `services.AddDbContext<T>` to register our `DbContext` as a scoped service, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext`, we might see one of the following exceptions being thrown:
 
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
@@ -37,11 +37,18 @@ public class Startup
 
 ```
 
-> ⚠️ Note: All of the configuraion done in the `OnConfiguring` method on the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
+> ⚠️ Note: All of the configuraion done in the `OnConfiguring` method of the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
 
-The `IDbContextFactory` feature was first added to `Microsoft.EntityFrameworkCore` in v5.0.0.
+Using the `IDbContextFactory` changes how we access an instance of our `DbContext`. Previously we would directly inject the scoped `DbContext` instance into our constructors or methods. Now we need to inject the `IDbContextFactory` instead and create an instance of our `DbContext` ourselves.
 
-In the following we will look at how we can work with this `IDbContextFactory`.
+```csharp
+public ExampleConstructor(IDbContextFactory<SomeDbContext> dbContextFactory)
+{
+    SomeDbContext dbContext = dbContextFactory.CreateDbContext();
+}
+```
+
+In the following we will look at some usage examples of the `IDbContextFactory` as well as how we eased the integration with resolvers.
 
 ## Resolvers
 
@@ -53,10 +60,12 @@ The middleware is part of the `HotChocolate.Data.EntityFramework` package.
 dotnet add package HotChocolate.Data.EntityFramework
 ```
 
+Once installed we can start applying the `UseDbContext` middleware to our resolvers.
+
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
-In the annotation-based approach, we can annotate our resolver using the `UseDbContextAttribute`, specifying the type of our `DbContext` as an argument.
+In the Annotation-based approach, we can annotate our resolver using the `UseDbContextAttribute`, specifying the type of our `DbContext` as an argument.
 
 ```csharp
 public class Query
@@ -104,7 +113,7 @@ public class QueryType : ObjectType
 
 ## Services
 
-When creating services they can no longer be of a scoped lifetime, i.e. injecting a `DbContext` instance using the constructor. We can create transient services and inject the `IDbContextFactory` using the constructor.
+When creating services they can no longer be of a scoped lifetime, i.e. injecting a `DbContext` instance using the constructor. Instead we can create transient services and inject the `IDbContextFactory` using the constructor.
 
 ```csharp
 public class UserRepository : IAsyncDisposable
@@ -255,4 +264,4 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This incurs the biggest performance hit as now all non-pure resolvers are executed serially. If for example one of our queries performs three REST calls, these would also be needlessly executed serially.
+> ⚠️ Note: This incurs the biggest performance hit as it causes all non-pure resolvers to be executed serially.
