@@ -378,7 +378,7 @@ app.Run();
 
 There are now two things in schema first to distinguish, resolver types and runtime types. Runtime types are the representation of a GraphQL type in .NET.
 
-```SDL
+```sdl
 type Person {
   name: String!
 }
@@ -438,7 +438,7 @@ One more thing we did was fully integrate our attributes like `UsePaging` with s
 
 Meaning you can write the following schema now:
 
-```SDL
+```sdl
 type Query {
   persons: [Person!]
 }
@@ -461,7 +461,7 @@ public class Query
 
 The output schema on the server would now look like the following:
 
-```SDL
+```sdl
 type Query {
   persons(
     """
@@ -555,7 +555,7 @@ The paging attribute rewrote the schema and wrapped a middleware around the fiel
 
 In the future, we are also thinking of letting descriptor attributes become directives that would allow you to annotate directly in the schema file like the following:
 
-```SDL
+```sdl
 type Query {
   persons: [Person!] @paging
 }
@@ -625,7 +625,13 @@ Hot Chocolate neatly integrates with ASP.NET core, and with a simple `MapGraphQL
 
 Hot Chocolate 12 still keeps its `MapGraphQL` around but now also provides a specific transport method.
 
-TABELLE
+| Method              | Description. |
+| ------------------- | -----------: |
+| MapGraphQL          |       33.702 |
+| MapGraphQLHttp      |       19.983 |
+| MapGraphQLWebSocket |       17.691 |
+| MapGraphQLSchema    |       15.185 |
+| MapBananaCakePop    |        4.197 |
 
 # Banana Cake Pop
 
@@ -633,7 +639,7 @@ After Hot Chocolate 11, we started reworking Banana Cake Pop and rethinking what
 
 Banana Cake Pop is now again available as middleware and application for Windows, macOS, and Linux. The team is working hard to get major new features like authentication flows, document synchronization, and schema reference into BCP.
 
-SCREENSHOT
+![Banana Cake Pop](bcp.png)
 
 [Download](https://bananacakepop.com) the new BCP preview today and help us make this the best GraphQL IDE out there. We still have lots to do to get to that point, but people following us on slack can see the progress. We will soon have the next preview available, which will make a significant jump in functionality.
 
@@ -710,7 +716,7 @@ public class Query
 }
 ```
 
-> Note: Since we now can easily interact with multiple providers, we removed the `UseMongoPagingAttribute`. Please have a look at our documentation regarding MongoDB.
+> Since we now can easily interact with multiple providers, we removed the `UseMongoPagingAttribute`. Please have a look at our documentation regarding MongoDB.
 
 ### Control
 
