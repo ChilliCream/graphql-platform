@@ -790,7 +790,38 @@ People often choose the latter since errors may come from the business layer tha
 
 With HotChocolate 12, we have introduced the `AggregateError` class, which allows you to wrap multiple errors into one error object; this helps us to preserve the interface but at the same time enables you to transform a single exception or a single error into multiple errors.
 
-EXAMPLE
+**Error Filter**
+
+```csharp
+public class ErrorFilter : IErrorFilter
+{
+    public IError OnError(IError error)
+    {
+        if (error.Exception is AggregateException ex)
+        {
+            var errors = new List<IError>();
+
+            foreach (Exception innerException in ex.InnerExceptions)
+            {
+                errors.Add(error.WithMessage(innerException.Message).WithException(innerException));
+            }
+
+            return new AggregateError(errors);
+        }
+
+        return error;
+    }
+}
+```
+
+**Registration**
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddErrorFilter<ErrorFilter>()
+    ...
+```
 
 Speaking of errors, we have put a lot of effort into providing better errors. One of these efforts resulted in splitting the infamous error `HC0016` into multiple errors that now clearly outline the issue with invalid variable inputs. It's often these little things that save users from frustrations when searching for issues.
 
