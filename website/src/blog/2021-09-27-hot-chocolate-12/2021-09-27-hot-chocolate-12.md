@@ -625,13 +625,15 @@ Hot Chocolate neatly integrates with ASP.NET core, and with a simple `MapGraphQL
 
 Hot Chocolate 12 still keeps its `MapGraphQL` around but now also provides a specific transport method.
 
-| Method              | Description. |
-| ------------------- | -----------: |
-| MapGraphQL          |       33.702 |
-| MapGraphQLHttp      |       19.983 |
-| MapGraphQLWebSocket |       17.691 |
-| MapGraphQLSchema    |       15.185 |
-| MapBananaCakePop    |        4.197 |
+| Method              |                                                                                                              Description. |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------: |
+| MapGraphQL          |                          MapGraphQL is our default way of adding GraphQL transport and adds just everything on one route. |
+| MapGraphQLHttp      | MapGraphQLHttp will add support for GraphQL HTTP Post, GraphQL HTTP GET, and support for MultiPart and batching requests. |
+| MapGraphQLWebSocket |                                                        MapGraphQLWebSocket will add support for GraphQL over web-sockets. |
+| MapGraphQLSchema    |                                                           MapGraphQLSchema will add an endpoint to fetch the GraphQL SDL. |
+| MapBananaCakePop    |                                                     MapBananaCakePop will add the Banana Cake Pop GraphQL IDE middleware. |
+
+These new map methods will allow you to pass in a configuration as you can with `MapGraphQL`.
 
 # Banana Cake Pop
 
