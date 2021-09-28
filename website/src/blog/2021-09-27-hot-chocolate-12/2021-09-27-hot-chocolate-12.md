@@ -49,7 +49,7 @@ Further, the execution engine now differentiates between pure and async resolver
 
 ## Performance
 
-We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19.983 requests a second on our test hardware. With the new execution engine, we clock in 33.702 requests a second, which are an additional 13.719 requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
+We had this simple throughput test for Hot Chocolate 11, which essentially executes a simple query to fetch books and authors. Hot Chocolate 11 achieved 19983 requests a second on our test hardware. With the new execution engine, we clock in 33702 requests a second, which are an additional 13719 requests per second with the same hardware on a test that does not even really take advantage of all the new optimizations.
 
 Hot Chocolate 12 executes much faster but also saves on the memory. In many cases, the execution now needs only 1/3 of the memory Hot Chocolate 11 needed.
 
@@ -93,16 +93,16 @@ Let's have a look at the throughput tests which we run to see the GraphQL engine
 
 | Method                                     | Requests per Sec. |
 | ------------------------------------------ | ----------------: |
-| Hot Chocolate 12                           |            33.702 |
-| Hot Chocolate 11                           |            19.983 |
-| benzene-http (graphyne)                    |            17.691 |
-| mercurius+graphql-jit                      |            15.185 |
-| apollo-server-koa+graphql-jit+type-graphql |             4.197 |
-| express-graphql                            |             3.455 |
-| apollo-schema+async                        |             3.403 |
-| go-graphql                                 |             2.041 |
+| Hot Chocolate 12                           |             33702 |
+| Hot Chocolate 11                           |             19983 |
+| benzene-http (graphyne)                    |             17691 |
+| mercurius+graphql-jit                      |             15185 |
+| apollo-server-koa+graphql-jit+type-graphql |              4197 |
+| express-graphql                            |              3455 |
+| apollo-schema+async                        |              3403 |
+| go-graphql                                 |              2041 |
 
-With Hot Chocolate 13, our goal is to hit 40.000 requests per second on the throughput tests, and we are hopeful that we can achieve this with some refinements in the execution engine. As we advance, we will start investing in other areas like startup performance as well.
+With Hot Chocolate 13, our goal is to hit 40000 requests per second on the throughput tests, and we are hopeful that we can achieve this with some refinements in the execution engine. As we advance, we will start investing in other areas like startup performance as well.
 
 # Entity Framework
 
