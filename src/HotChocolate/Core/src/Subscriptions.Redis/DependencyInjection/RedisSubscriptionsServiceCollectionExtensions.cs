@@ -51,5 +51,15 @@ namespace Microsoft.Extensions.DependencyInjection
             AddRedisSubscriptions(builder.Services, connection);
             return builder;
         }
+
+        public static IRequestExecutorBuilder AddRedisSubscriptions(this IRequestExecutorBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddRedisSubscriptions((IServiceProvider sp) => sp.GetRequiredService<IConnectionMultiplexer>());
+        }
     }
 }
