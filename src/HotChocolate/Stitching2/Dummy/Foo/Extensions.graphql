@@ -1,0 +1,29 @@
+extend type Me {
+    person: Person @fetch(query: "personById(id: $personId)")
+}
+
+extend type User @remove(name: "name") {
+    username: String! @rename(to: "name")
+}
+
+extend type _SchemaDefinition @remove { }
+
+extend type Query {
+  me: User! @delegate(path: "user(id: 1)")
+}
+
+extend type Review {
+  author: User @delegate(path: "user(id: $fields:authorId)")
+}
+
+
+schema 
+    @remove(name: "@authorize")
+    @remove(name: "Query")
+    @remove(name: "Mutation")
+    @remove(name: "Subscription")
+    @rename(from: "User.birthdate" to: "User.birth")
+{ 
+    
+}
+

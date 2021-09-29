@@ -1,0 +1,21 @@
+{
+  "schema": "Schema.graphql",
+  "extensions": {
+    "federation": {
+      "name": "Accounts",
+      "files": ["Extensions.graphql"],
+      "http": {
+        "uri": "",
+        "batching": ""
+      },
+      "graphql-ws": {
+        "uri": ""
+      },
+      "features": {
+        "stream": true,
+        "defer": true,
+        "upload": true
+      }
+    }
+  }
+}

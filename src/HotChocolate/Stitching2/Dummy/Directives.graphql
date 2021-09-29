@@ -1,0 +1,2 @@
+directive @rename(to: String!, from: String)
+directive @remove(name: String)
