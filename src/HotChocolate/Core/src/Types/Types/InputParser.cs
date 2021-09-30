@@ -37,6 +37,15 @@ namespace HotChocolate.Types
 
             var runtimeValue = ParseLiteralInternal(value, field.Type, field.Name, 0, true, field);
             runtimeValue = FormatValue(field, runtimeValue);
+
+            // Caller doesn't care, but to ensure specificity, we set the field's runtime type
+            // to make sure it's at least converted to the right type.
+            // e.g. from a list to an array if it should be an array
+            if (targetType == typeof(object))
+            {
+                targetType = field.RuntimeType;
+            }
+
             return ConvertValue(targetType ?? field.RuntimeType, runtimeValue);
         }
 
