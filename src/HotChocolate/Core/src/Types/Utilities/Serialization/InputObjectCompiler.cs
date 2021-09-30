@@ -91,16 +91,23 @@ namespace HotChocolate.Utilities.Serialization
             for (var i = 0; i < parameters.Length; i++)
             {
                 ParameterInfo parameter = parameters[i];
-                InputField field = fields[parameter.Name!];
-                fields.Remove(parameter.Name!);
-                Expression value = GetFieldValue(field, fieldValues);
 
-                if (field.IsOptional)
+                if (fields.TryGetParameter(parameter, out InputField? field))
                 {
-                    value = CreateOptional(value, field.RuntimeType);
-                }
+                    fields.Remove(field.Property!.Name);
+                    Expression value = GetFieldValue(field, fieldValues);
 
-                expressions[i] = Expression.Convert(value, parameter.ParameterType);
+                    if (field.IsOptional)
+                    {
+                        value = CreateOptional(value, field.RuntimeType);
+                    }
+
+                    expressions[i] = Expression.Convert(value, parameter.ParameterType);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Could not resolver parameter.");
+                }
             }
 
             return expressions;
@@ -156,9 +163,8 @@ namespace HotChocolate.Utilities.Serialization
             return Expression.Assign(element, casted);
         }
 
-
         private static Dictionary<string, InputField> CreateFieldMap(InputObjectType type)
-            => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.OrdinalIgnoreCase);
+            => type.Fields.ToDictionary(t => t.Property!.Name, StringComparer.Ordinal);
 
         private static Expression CreateOptional(Expression fieldValue, Type runtimeType)
         {

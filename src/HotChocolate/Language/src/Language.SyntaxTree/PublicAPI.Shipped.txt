@@ -7,6 +7,7 @@ HotChocolate.Language.ArgumentNode
 HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, int value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, string! value) -> void
 HotChocolate.Language.ArgumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ArgumentNode.Kind.get -> HotChocolate.Language.SyntaxKind
@@ -836,6 +837,7 @@ static HotChocolate.Language.DirectiveLocation.Union.get -> HotChocolate.Languag
 static HotChocolate.Language.DirectiveLocation.VariableDefinition.get -> HotChocolate.Language.DirectiveLocation!
 static HotChocolate.Language.DocumentNode.Empty.get -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.NullValueNode.Default.get -> HotChocolate.Language.NullValueNode!
+static HotChocolate.Language.TypeNodeExtensions.ElementType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
 static HotChocolate.Language.TypeNodeExtensions.InnerType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
 static HotChocolate.Language.TypeNodeExtensions.IsEqualTo(this HotChocolate.Language.ITypeNode! x, HotChocolate.Language.ITypeNode! y) -> bool
 static HotChocolate.Language.TypeNodeExtensions.IsListType(this HotChocolate.Language.ITypeNode! type) -> bool

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Pagination;
@@ -15,6 +16,23 @@ namespace HotChocolate.Types
 {
     public static class PagingObjectFieldDescriptorExtensions
     {
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging<TNodeType, TEntity>(
             this IObjectFieldDescriptor descriptor,
             GetCursorPagingProvider? resolvePagingProvider = null,
@@ -28,6 +46,26 @@ namespace HotChocolate.Types
                 connectionName,
                 options);
 
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="entityType">
+        /// The entity type represents the runtime type of the node.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging<TNodeType>(
             this IObjectFieldDescriptor descriptor,
             Type? entityType = null,
@@ -43,6 +81,29 @@ namespace HotChocolate.Types
                 connectionName,
                 options);
 
+        /// <summary>
+        /// Applies a cursor paging middleware to the field and rewrites the 
+        /// field type to a connection.
+        /// </summary>
+        /// <param name="descriptor">The field descriptor.</param>
+        /// <param name="nodeType">
+        /// The schema type of the node.
+        /// </param>
+        /// <param name="entityType">
+        /// The entity type represents the runtime type of the node.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate that can resolve the correct paging provider for the field.
+        /// </param>
+        /// <param name="connectionName">
+        /// The name of the connection.
+        /// </param>
+        /// <param name="options">
+        /// The paging options.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor to allow configuration chaining.
+        /// </returns>
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
             Type? nodeType = null,
@@ -85,6 +146,13 @@ namespace HotChocolate.Types
                     ITypeReference? typeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
+
+                    if (typeRef is null &&
+                        d.Type is SyntaxTypeReference syntaxTypeRef &&
+                        syntaxTypeRef.Type.IsListType())
+                    {
+                        typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                    }
 
                     MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
                     d.Type = CreateConnectionTypeRef(c, resolverMember, connectionName, typeRef, options);
@@ -133,6 +201,13 @@ namespace HotChocolate.Types
                     ITypeReference? typeRef = nodeType is not null
                         ? c.TypeInspector.GetTypeRef(nodeType)
                         : null;
+
+                    if (typeRef is null &&
+                        d.Type is SyntaxTypeReference syntaxTypeRef &&
+                        syntaxTypeRef.Type.IsListType())
+                    {
+                        typeRef = syntaxTypeRef.WithType(syntaxTypeRef.Type.ElementType());
+                    }
 
                     d.Type = CreateConnectionTypeRef(c, d.Member, connectionName, typeRef, options);
                 });
@@ -223,16 +298,25 @@ namespace HotChocolate.Types
             ITypeReference? nodeType,
             PagingOptions options)
         {
+            ITypeInspector typeInspector = context.TypeInspector;
+
             if (nodeType is null)
             {
                 // if there is no explicit node type provided we will try and
                 // infer the schema type from the resolver member.
                 nodeType = TypeReference.Create(
-                    PagingHelper.GetSchemaType(
-                        context.TypeInspector,
-                        resolverMember,
-                        null),
+                    PagingHelper.GetSchemaType(typeInspector, resolverMember),
                     TypeContext.Output);
+            }
+
+            // if the node type is a syntax type reference we will try to preserve the actual
+            // runtime type for later usage.
+            if (nodeType.Kind == TypeReferenceKind.Syntax &&
+                PagingHelper.TryGetNamedType(typeInspector, resolverMember, out Type? namedType))
+            {
+                context.TryBindRuntimeType(
+                    ((SyntaxTypeReference)nodeType).Type.NamedType().Name.Value,
+                    namedType);
             }
 
             options = context.GetSettings(options);

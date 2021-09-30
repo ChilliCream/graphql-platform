@@ -231,6 +231,21 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
+                    Func<object, IAsyncEnumerable<object?>>? createStream = null;
+                    bool isStreamable = selection.IsStreamable();
+
+                    if (field.MaybeStream || field.Type.IsListType() && isStreamable)
+                    {
+                        IType elementType = field.Type.ElementType();
+
+                        if (elementType.IsCompositeType())
+                        {
+                            Type runtimeType = elementType.ToRuntimeType();
+                            CreateStreamDelegate streamDelegate = CreateStream(runtimeType);
+                            createStream = o => streamDelegate(o);
+                        }
+                    }
+
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(
@@ -250,7 +265,9 @@ namespace HotChocolate.Execution.Processing
                             : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
-                        internalSelection: context.IsInternalSelection);
+                        internalSelection: context.IsInternalSelection,
+                        createStream: createStream,
+                        isStreamable: isStreamable);
 
                     context.Fields.Add(responseName, preparedSelection);
                 }

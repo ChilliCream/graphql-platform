@@ -35,7 +35,6 @@ namespace GreenDonut
         private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
         private Batch<TKey>? _currentBatch;
-        private Result<TValue>[]? _buffer;
         private bool _disposed;
 
         /// <summary>
@@ -156,7 +155,6 @@ namespace GreenDonut
                     cached = true;
                     currentKey = key;
                     TaskCacheKey cacheKey = new(_cacheKeyType, key);
-
                     Task<TValue> cachedTask = _cache.GetOrAddTask(cacheKey, CreatePromise);
 
                     if (cached)
@@ -231,15 +229,15 @@ namespace GreenDonut
         {
             _diagnosticEvents.BatchError(keys, error);
 
-            for (var i = 0; i < keys.Count; i++)
+            foreach (TKey key in keys)
             {
                 if (_cache is not null)
                 {
-                    TaskCacheKey cacheKey = new(_cacheKeyType, keys[i]);
+                    TaskCacheKey cacheKey = new(_cacheKeyType, key);
                     _cache.TryRemove(cacheKey);
                 }
 
-                batch.GetPromise<TValue>(keys[i]).TrySetException(error);
+                batch.GetPromise<TValue>(key).TrySetException(error);
             }
         }
 
@@ -250,6 +248,7 @@ namespace GreenDonut
         {
             for (var i = 0; i < keys.Count; i++)
             {
+                TKey key = keys[i];
                 Result<TValue> value = results[i];
 
                 if (value.Kind is ResultKind.Undefined)
@@ -261,7 +260,7 @@ namespace GreenDonut
                     return;
                 }
 
-                SetSingleResult(batch.GetPromise<TValue>(keys[i]), keys[i], results[i]);
+                SetSingleResult(batch.GetPromise<TValue>(key), key, value);
             }
         }
 
@@ -271,41 +270,36 @@ namespace GreenDonut
         {
             lock (_sync)
             {
-                _currentBatch = null;
+                if (ReferenceEquals(_currentBatch, batch))
+                {
+                    _currentBatch = null;
+                }
             }
 
             return StartDispatchingAsync();
 
             async ValueTask StartDispatchingAsync()
             {
-                using IDisposable scope = _diagnosticEvents.ExecuteBatch(this, batch.Keys);
-
-                Result<TValue>[]? buffer = Interlocked.Exchange(ref _buffer, null);
-                buffer ??= new Result<TValue>[batch.Keys.Count];
-
-                if (buffer.Length < batch.Size)
+                using(_diagnosticEvents.ExecuteBatch(this, batch.Keys))
                 {
-                    Array.Resize(ref buffer, batch.Size);
-                }
+                    var buffer = new Result<TValue>[batch.Keys.Count];
 
-                Memory<Result<TValue>> results = batch.Keys.Count == buffer.Length
-                    ? buffer.AsMemory()
-                    : buffer.AsMemory().Slice(0, batch.Keys.Count);
+                    try
+                    {
+                        await FetchAsync(batch.Keys, buffer, cancellationToken)
+                            .ConfigureAwait(false);
+                        BatchOperationSucceeded(batch, batch.Keys, buffer);
+                        _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, buffer);
 
-                try
-                {
-                    await FetchAsync(batch.Keys, results, cancellationToken).ConfigureAwait(false);
-                    BatchOperationSucceeded(batch, batch.Keys, buffer);
-                    _diagnosticEvents.BatchResults<TKey, TValue>(batch.Keys, results.Span);
+                        // we deliberately return the batch here... in case of an error we are
+                        // not reusing this batch.
+                        BatchPool<TKey>.Shared.Return(batch);
+                    }
+                    catch (Exception ex)
+                    {
+                        BatchOperationFailed(batch, batch.Keys, ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    BatchOperationFailed(batch, batch.Keys, ex);
-                }
-
-                results.Span.Clear();
-                Interlocked.Exchange(ref _buffer, buffer);
-                BatchPool<TKey>.Shared.Return(batch);
             }
         }
 
@@ -440,12 +434,6 @@ namespace GreenDonut
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
                     _cacheOwner?.Dispose();
-
-                    if (_currentBatch is not null)
-                    {
-                        BatchPool<TKey>.Shared.Return(_currentBatch);
-                        _currentBatch = null;
-                    }
                 }
 
                 _disposed = true;

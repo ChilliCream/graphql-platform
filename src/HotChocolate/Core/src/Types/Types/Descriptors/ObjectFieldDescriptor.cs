@@ -310,25 +310,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = propertyOrMethod.ExtractMember();
-            if (member is PropertyInfo or MethodInfo)
-            {
-                Type resultType = member.GetReturnType();
-
-                Definition.SetMoreSpecificType(
-                    Context.TypeInspector.GetType(resultType),
-                    TypeContext.Output);
-
-                Definition.ResolverType = typeof(TResolver);
-                Definition.ResolverMember = member;
-                Definition.Resolver = null;
-                Definition.ResultType = resultType;
-                return this;
-            }
-
-            throw new ArgumentException(
-                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
-                nameof(propertyOrMethod));
+            return ResolveWith(propertyOrMethod.ExtractMember());
         }
 
         public IObjectFieldDescriptor ResolveWith(
@@ -339,8 +321,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+            if (propertyOrMethod is PropertyInfo or MethodInfo)
             {
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetReturnType(propertyOrMethod),
+                    TypeContext.Output);
+
                 Definition.ResolverType = propertyOrMethod.DeclaringType;
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;

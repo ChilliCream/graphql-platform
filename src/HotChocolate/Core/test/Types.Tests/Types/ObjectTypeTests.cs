@@ -1792,6 +1792,16 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_Types_Correctly_When_Using_ResolveWith()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<InferNonNullTypesWithResolveWith>()
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -2031,6 +2041,31 @@ namespace HotChocolate.Types
             }
 
             public string GetFoo() => throw new NotImplementedException();
+        }
+
+        #nullable enable
+
+        public class InferNonNullTypesWithResolveWith : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+
+                descriptor
+                    .Field("foo")
+                    .ResolveWith<InferNonNullTypesWithResolveWithResolvers>(t => t.Foo);
+
+                descriptor
+                    .Field("bar")
+                    .ResolveWith<InferNonNullTypesWithResolveWithResolvers>(t => t.Bar);
+            }
+        }
+
+        public class InferNonNullTypesWithResolveWithResolvers
+        {
+            public string? Foo => "Foo";
+
+            public string Bar => "Bar";
         }
     }
 }

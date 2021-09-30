@@ -44,6 +44,13 @@ namespace HotChocolate.Execution
             return context;
         }
 
+        public static IOperationContext ClearResult(
+            this IOperationContext context)
+        {
+            context.Result.Clear();
+            return context;
+        }
+
         public static IQueryResult BuildResult(
             this IOperationContext context) =>
             context.Result.BuildResult();

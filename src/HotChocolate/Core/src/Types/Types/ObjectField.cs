@@ -108,6 +108,11 @@ namespace HotChocolate.Types
         /// </summary>
         public override bool IsIntrospectionField { get; }
 
+        /// <summary>
+        /// Defines that the result of this field might be a stream.
+        /// </summary>
+        public bool MaybeStream { get; private set; }
+
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             ITypeSystemMember declaringMember,
@@ -117,6 +122,15 @@ namespace HotChocolate.Types
 
             CompleteExecutableDirectives(context);
             CompleteResolver(context, definition);
+
+            // going forward we should rework the list detection in the ExtendedType to already
+            // provide us with the info if a type is an async enumerable.
+            if (Type.IsListType() &&
+                definition.ResultType is { IsGenericType: true } resultType &&
+                context.TypeInspector.GetType(resultType).Definition == typeof(IAsyncEnumerable<>))
+            {
+                MaybeStream = true;
+            }
         }
 
         private void CompleteExecutableDirectives(
@@ -192,7 +206,7 @@ namespace HotChocolate.Types
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver is null! && Middleware is null)
+            if (Resolver is null && Middleware is null)
             {
                 if (_executableDirectives.Length > 0)
                 {

@@ -4,8 +4,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Utilities.Subscriptions
 {
-    internal sealed class SourceStreamWrapper
-        : ISourceStream
+    internal sealed class SourceStreamWrapper : ISourceStream
     {
         private readonly IAsyncEnumerable<object> _stream;
 
@@ -14,14 +13,8 @@ namespace HotChocolate.Utilities.Subscriptions
             _stream = stream;
         }
 
-        public IAsyncEnumerable<object> ReadEventsAsync()
-        {
-            return _stream;
-        }
+        public IAsyncEnumerable<object> ReadEventsAsync() => _stream;
 
-        public ValueTask DisposeAsync()
-        {
-            return default;
-        }
+        public ValueTask DisposeAsync() => default;
     }
 }

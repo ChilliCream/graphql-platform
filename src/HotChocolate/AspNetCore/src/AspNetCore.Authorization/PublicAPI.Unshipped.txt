@@ -1,2 +1,0 @@
-*REMOVED*HotChocolate.AuthorizeSchemaConfigurationExtensions
-*REMOVED*static HotChocolate.AuthorizeSchemaConfigurationExtensions.RegisterAuthorizeDirectiveType(this HotChocolate.Configuration.ISchemaConfiguration! configuration) -> void

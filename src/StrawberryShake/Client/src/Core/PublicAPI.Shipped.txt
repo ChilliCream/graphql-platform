@@ -18,7 +18,8 @@ const StrawberryShake.Serialization.BuiltInScalarNames.Short = "Short" -> string
 const StrawberryShake.Serialization.BuiltInScalarNames.String = "String" -> string!
 const StrawberryShake.Serialization.BuiltInScalarNames.TimeSpan = "TimeSpan" -> string!
 const StrawberryShake.Serialization.BuiltInScalarNames.Url = "Url" -> string!
-const StrawberryShake.Serialization.BuiltInScalarNames.Uuid = "Uuid" -> string!
+const StrawberryShake.Serialization.BuiltInScalarNames.UUID = "UUID" -> string!
+Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions
 override sealed StrawberryShake.GraphQLClientException.Message.get -> string!
 override StrawberryShake.EntityId.Equals(object? obj) -> bool
 override StrawberryShake.EntityId.GetHashCode() -> int
@@ -28,14 +29,18 @@ override StrawberryShake.Serialization.DateSerializer.Format(System.DateTime run
 override StrawberryShake.Serialization.DateSerializer.Parse(string! serializedValue) -> System.DateTime
 override StrawberryShake.Serialization.DateTimeSerializer.Format(System.DateTimeOffset runtimeValue) -> string!
 override StrawberryShake.Serialization.DateTimeSerializer.Parse(string! serializedValue) -> System.DateTimeOffset
+override StrawberryShake.Serialization.JsonSerializer.Format(System.Text.Json.JsonDocument! runtimeValue) -> System.Text.Json.JsonElement
+override StrawberryShake.Serialization.JsonSerializer.Parse(System.Text.Json.JsonElement serializedValue) -> System.Text.Json.JsonDocument!
 override StrawberryShake.Serialization.ScalarSerializer<T>.Format(T runtimeValue) -> T
 override StrawberryShake.Serialization.ScalarSerializer<T>.Parse(T serializedValue) -> T
 override StrawberryShake.Serialization.TimeSpanSerializer.Format(System.TimeSpan runtimeValue) -> string!
 override StrawberryShake.Serialization.TimeSpanSerializer.Parse(string! serializedValue) -> System.TimeSpan
 override StrawberryShake.Serialization.UrlSerializer.Format(System.Uri! runtimeValue) -> string!
 override StrawberryShake.Serialization.UrlSerializer.Parse(string! serializedValue) -> System.Uri!
-override StrawberryShake.Serialization.UuidSerializer.Format(System.Guid runtimeValue) -> string!
-override StrawberryShake.Serialization.UuidSerializer.Parse(string! serializedValue) -> System.Guid
+override StrawberryShake.Serialization.UUIDSerializer.Format(System.Guid runtimeValue) -> string!
+override StrawberryShake.Serialization.UUIDSerializer.Parse(string! serializedValue) -> System.Guid
+static Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions.AddSerializer<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, T serializer) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
+static Microsoft.Extensions.DependencyInjection.SerializerServiceCollectionExtensions.AddSerializer<T>(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 static readonly StrawberryShake.Json.JsonOperationRequestSerializer.Default -> StrawberryShake.Json.JsonOperationRequestSerializer!
 static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor, System.TimeSpan timeToLive) -> StrawberryShake.CachePolicy!
 static StrawberryShake.CachePolicy.Default(StrawberryShake.IStoreAccessor! storeAccessor) -> StrawberryShake.CachePolicy!
@@ -333,6 +338,8 @@ StrawberryShake.Serialization.ISerializer.TypeName.get -> string!
 StrawberryShake.Serialization.ISerializerResolver
 StrawberryShake.Serialization.ISerializerResolver.GetInputValueFormatter(string! typeName) -> StrawberryShake.Serialization.IInputValueFormatter!
 StrawberryShake.Serialization.ISerializerResolver.GetLeafValueParser<TSerialized, TRuntime>(string! typeName) -> StrawberryShake.Serialization.ILeafValueParser<TSerialized, TRuntime>!
+StrawberryShake.Serialization.JsonSerializer
+StrawberryShake.Serialization.JsonSerializer.JsonSerializer(string! typeName = "Any") -> void
 StrawberryShake.Serialization.LongSerializer
 StrawberryShake.Serialization.LongSerializer.LongSerializer(string! typeName = "Long") -> void
 StrawberryShake.Serialization.ScalarSerializer<T>
@@ -356,8 +363,8 @@ StrawberryShake.Serialization.TimeSpanSerializer
 StrawberryShake.Serialization.TimeSpanSerializer.TimeSpanSerializer(string! typeName = "TimeSpan", StrawberryShake.Serialization.TimeSpanFormat format = StrawberryShake.Serialization.TimeSpanFormat.Iso8601) -> void
 StrawberryShake.Serialization.UrlSerializer
 StrawberryShake.Serialization.UrlSerializer.UrlSerializer(string! typeName = "Url") -> void
-StrawberryShake.Serialization.UuidSerializer
-StrawberryShake.Serialization.UuidSerializer.UuidSerializer(string! typeName = "Uuid", string! format = "D") -> void
+StrawberryShake.Serialization.UUIDSerializer
+StrawberryShake.Serialization.UUIDSerializer.UUIDSerializer(string! typeName = "UUID", string! format = "D") -> void
 StrawberryShake.StoreAccessor
 StrawberryShake.StoreAccessor.EntityIdSerializer.get -> StrawberryShake.IEntityIdSerializer!
 StrawberryShake.StoreAccessor.EntityStore.get -> StrawberryShake.IEntityStore!

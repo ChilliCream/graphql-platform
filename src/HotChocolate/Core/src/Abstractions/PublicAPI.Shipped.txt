@@ -15,6 +15,8 @@
 ~const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string
 ~const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string
 ~const HotChocolate.ErrorCodes.Execution.CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE" -> string
+~const HotChocolate.ErrorCodes.Execution.ComplexityExceeded = "HC0047" -> string
+~const HotChocolate.ErrorCodes.Execution.ComplexityStateInvalid = "HC0048" -> string
 ~const HotChocolate.ErrorCodes.Execution.InvalidType = "HC0016" -> string
 ~const HotChocolate.ErrorCodes.Execution.ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED" -> string
 ~const HotChocolate.ErrorCodes.Execution.MustBeInputType = "HC0017" -> string
@@ -70,9 +72,13 @@
 ~const HotChocolate.WellKnownContextData.DocumentSaved = "HotChocolate.Execution.DocumentSaved" -> string
 ~const HotChocolate.WellKnownContextData.EnableTracing = "HotChocolate.Execution.EnableTracing" -> string
 ~const HotChocolate.WellKnownContextData.EventMessage = "HotChocolate.Execution.EventMessage" -> string
+~const HotChocolate.WellKnownContextData.IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan" -> string
 ~const HotChocolate.WellKnownContextData.IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed" -> string
 ~const HotChocolate.WellKnownContextData.IntrospectionMessage = "HotChocolate.Execution.Introspection.Message" -> string
+~const HotChocolate.WellKnownContextData.MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity" -> string
+~const HotChocolate.WellKnownContextData.OperationComplexity = "HotChocolate.Execution.OperationComplexity" -> string
 ~const HotChocolate.WellKnownContextData.OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed" -> string
+~const HotChocolate.WellKnownContextData.SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis" -> string
 ~const HotChocolate.WellKnownContextData.Subscription = "HotChocolate.Execution.Subscription" -> string
 ~const HotChocolate.WellKnownContextData.ValidationErrors = "HotChocolate.Execution.ValidationErrors" -> string
 ~const HotChocolate.WellKnownDirectives.Defer = "defer" -> string
@@ -166,6 +172,11 @@
 ~override HotChocolate.RootPathSegment.Append(int index) -> HotChocolate.IndexerPathSegment
 ~override HotChocolate.RootPathSegment.Print() -> string
 ~static HotChocolate.ErrorHandlerExtensions.Handle(this HotChocolate.IErrorHandler errorHandler, System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, string message) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, System.Func<string> messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetMaximumAllowedComplexity(this HotChocolate.Execution.IQueryRequestBuilder builder, int maximumAllowedComplexity) -> HotChocolate.Execution.IQueryRequestBuilder
+~static HotChocolate.Execution.QueryRequestBuilderExtensions.SkipComplexityAnalysis(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
 ~static HotChocolate.NameString.implicit operator HotChocolate.NameString(string s) -> HotChocolate.NameString
 ~static HotChocolate.NameString.implicit operator string(HotChocolate.NameString name) -> string
 ~static HotChocolate.NameString.operator +(HotChocolate.NameString left, string right) -> string
@@ -174,6 +185,12 @@
 ~static HotChocolate.RootPathSegment.Instance.get -> HotChocolate.RootPathSegment
 ~static HotChocolate.Types.LiteralExtensions.GetValueKind(this HotChocolate.Language.IValueNode literal) -> HotChocolate.Types.ValueKind
 ~static HotChocolate.Types.LiteralExtensions.TryGetValueKind(this HotChocolate.Language.IValueNode literal, out HotChocolate.Types.ValueKind kind) -> bool
+abstract HotChocolate.Execution.ParallelExecutionTask.Context.get -> HotChocolate.Execution.IExecutionTaskContext!
+abstract HotChocolate.Execution.ParallelExecutionTask.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
+abstract HotChocolate.Execution.PureExecutionTask.Context.get -> HotChocolate.Execution.IExecutionTaskContext!
+abstract HotChocolate.Execution.PureExecutionTask.Execute(System.Threading.CancellationToken cancellationToken) -> void
+abstract HotChocolate.Execution.SerialExecutionTask.Context.get -> HotChocolate.Execution.IExecutionTaskContext!
+abstract HotChocolate.Execution.SerialExecutionTask.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
 abstract HotChocolate.Path.Depth.get -> int
 abstract HotChocolate.Path.Equals(HotChocolate.Path? other) -> bool
 abstract HotChocolate.Path.Parent.get -> HotChocolate.Path?
@@ -257,6 +274,13 @@ HotChocolate.Execution.DeferredQueryResult.Errors.get -> System.Collections.Gene
 HotChocolate.Execution.DeferredQueryResult.Extensions.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.DeferredQueryResult.ReadResultsAsync() -> System.Collections.Generic.IAsyncEnumerable<HotChocolate.Execution.IQueryResult!>!
 HotChocolate.Execution.DeferredQueryResult.RegisterDisposable(System.IDisposable! disposable) -> void
+HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Execution.ExecutionStrategy.Parallel = 1 -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Execution.ExecutionStrategy.Serial = 0 -> HotChocolate.Execution.ExecutionStrategy
+HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.ExecutionTaskKind.Parallel = 0 -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.ExecutionTaskKind.Pure = 2 -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.ExecutionTaskKind.Serial = 1 -> HotChocolate.Execution.ExecutionTaskKind
 HotChocolate.Execution.IBatchQueryResult
 HotChocolate.Execution.IExecutionResult
 HotChocolate.Execution.IExecutionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
@@ -266,8 +290,21 @@ HotChocolate.Execution.IExecutionTask
 HotChocolate.Execution.IExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
 HotChocolate.Execution.IExecutionTask.IsCanceled.get -> bool
 HotChocolate.Execution.IExecutionTask.IsCompleted.get -> bool
+HotChocolate.Execution.IExecutionTask.IsSerial.get -> bool
+HotChocolate.Execution.IExecutionTask.IsSerial.set -> void
+HotChocolate.Execution.IExecutionTask.Kind.get -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.IExecutionTask.Next.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.IExecutionTask.Next.set -> void
+HotChocolate.Execution.IExecutionTask.Parent.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.IExecutionTask.Parent.set -> void
+HotChocolate.Execution.IExecutionTask.Previous.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.IExecutionTask.Previous.set -> void
+HotChocolate.Execution.IExecutionTask.State.get -> object?
+HotChocolate.Execution.IExecutionTask.State.set -> void
+HotChocolate.Execution.IExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.IExecutionTaskContext
 HotChocolate.Execution.IExecutionTaskContext.Completed() -> void
+HotChocolate.Execution.IExecutionTaskContext.Completed(HotChocolate.Execution.IExecutionTask! task) -> void
 HotChocolate.Execution.IExecutionTaskContext.Started() -> void
 HotChocolate.Execution.IExecutionTaskDefinition
 HotChocolate.Execution.IQuery
@@ -376,6 +413,38 @@ HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Remove(TKey key) -> bool
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.this[TKey key].get -> TValue
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.this[TKey key].set -> void
 HotChocolate.Execution.OrderedDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value) -> bool
+HotChocolate.Execution.ParallelExecutionTask
+HotChocolate.Execution.ParallelExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
+HotChocolate.Execution.ParallelExecutionTask.IsCompleted.get -> bool
+HotChocolate.Execution.ParallelExecutionTask.IsSerial.get -> bool
+HotChocolate.Execution.ParallelExecutionTask.IsSerial.set -> void
+HotChocolate.Execution.ParallelExecutionTask.Kind.get -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.ParallelExecutionTask.Next.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.ParallelExecutionTask.Next.set -> void
+HotChocolate.Execution.ParallelExecutionTask.ParallelExecutionTask() -> void
+HotChocolate.Execution.ParallelExecutionTask.Parent.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.ParallelExecutionTask.Parent.set -> void
+HotChocolate.Execution.ParallelExecutionTask.Previous.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.ParallelExecutionTask.Previous.set -> void
+HotChocolate.Execution.ParallelExecutionTask.State.get -> object?
+HotChocolate.Execution.ParallelExecutionTask.State.set -> void
+HotChocolate.Execution.ParallelExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.PureExecutionTask
+HotChocolate.Execution.PureExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
+HotChocolate.Execution.PureExecutionTask.IsCompleted.get -> bool
+HotChocolate.Execution.PureExecutionTask.IsSerial.get -> bool
+HotChocolate.Execution.PureExecutionTask.IsSerial.set -> void
+HotChocolate.Execution.PureExecutionTask.Kind.get -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.PureExecutionTask.Next.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.PureExecutionTask.Next.set -> void
+HotChocolate.Execution.PureExecutionTask.Parent.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.PureExecutionTask.Parent.set -> void
+HotChocolate.Execution.PureExecutionTask.Previous.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.PureExecutionTask.Previous.set -> void
+HotChocolate.Execution.PureExecutionTask.PureExecutionTask() -> void
+HotChocolate.Execution.PureExecutionTask.State.get -> object?
+HotChocolate.Execution.PureExecutionTask.State.set -> void
+HotChocolate.Execution.PureExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.QueryBuilderExtensions
 HotChocolate.Execution.QueryDocument
 HotChocolate.Execution.QueryDocument.AsSpan() -> System.ReadOnlySpan<byte>
@@ -424,6 +493,7 @@ HotChocolate.Execution.QueryRequestBuilder.TryAddVariableValue(string! name, obj
 HotChocolate.Execution.QueryRequestBuilder.TrySetServices(System.IServiceProvider? services) -> HotChocolate.Execution.IQueryRequestBuilder!
 HotChocolate.Execution.QueryRequestBuilderException
 HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException() -> void
+HotChocolate.Execution.QueryRequestBuilderExtensions
 HotChocolate.Execution.QueryResult
 HotChocolate.Execution.QueryResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.QueryResult.Data.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
@@ -462,6 +532,22 @@ HotChocolate.Execution.ResultValue.Name.get -> string!
 HotChocolate.Execution.ResultValue.ResultValue() -> void
 HotChocolate.Execution.ResultValue.ResultValue(string! name, object? value, bool isNullable) -> void
 HotChocolate.Execution.ResultValue.Value.get -> object?
+HotChocolate.Execution.SerialExecutionTask
+HotChocolate.Execution.SerialExecutionTask.BeginExecute(System.Threading.CancellationToken cancellationToken) -> void
+HotChocolate.Execution.SerialExecutionTask.IsCompleted.get -> bool
+HotChocolate.Execution.SerialExecutionTask.IsSerial.get -> bool
+HotChocolate.Execution.SerialExecutionTask.IsSerial.set -> void
+HotChocolate.Execution.SerialExecutionTask.Kind.get -> HotChocolate.Execution.ExecutionTaskKind
+HotChocolate.Execution.SerialExecutionTask.Next.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.SerialExecutionTask.Next.set -> void
+HotChocolate.Execution.SerialExecutionTask.Parent.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.SerialExecutionTask.Parent.set -> void
+HotChocolate.Execution.SerialExecutionTask.Previous.get -> HotChocolate.Execution.IExecutionTask?
+HotChocolate.Execution.SerialExecutionTask.Previous.set -> void
+HotChocolate.Execution.SerialExecutionTask.SerialExecutionTask() -> void
+HotChocolate.Execution.SerialExecutionTask.State.get -> object?
+HotChocolate.Execution.SerialExecutionTask.State.set -> void
+HotChocolate.Execution.SerialExecutionTask.WaitForCompletionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.SubscriptionResult
 HotChocolate.Execution.SubscriptionResult.ContextData.get -> System.Collections.Generic.IReadOnlyDictionary<string!, object?>?
 HotChocolate.Execution.SubscriptionResult.DisposeAsync() -> System.Threading.Tasks.ValueTask
