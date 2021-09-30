@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{35B6FBFB-F8EC-4E03-925F-795A3EBDF7DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching", "src\Stitching\Stitching.csproj", "{75C014F0-BB91-437D-8EBA-41123C959A4B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|x64.Build.0 = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Debug|x86.Build.0 = Debug|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|x64.ActiveCfg = Release|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|x64.Build.0 = Release|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|x86.ActiveCfg = Release|Any CPU
+		{75C014F0-BB91-437D-8EBA-41123C959A4B}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{75C014F0-BB91-437D-8EBA-41123C959A4B} = {35B6FBFB-F8EC-4E03-925F-795A3EBDF7DC}
+	EndGlobalSection
+EndGlobal

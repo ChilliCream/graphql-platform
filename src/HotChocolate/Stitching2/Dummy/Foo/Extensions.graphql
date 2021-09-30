@@ -8,7 +8,7 @@ extend type User @remove(name: "name") {
 
 extend type _SchemaDefinition @remove { }
 
-extend type Query {
+extend type Query @replace {
   me: User! @delegate(path: "user(id: 1)")
 }
 
@@ -16,14 +16,12 @@ extend type Review {
   author: User @delegate(path: "user(id: $fields:authorId)")
 }
 
-
 schema 
     @remove(name: "@authorize")
-    @remove(name: "Query")
     @remove(name: "Mutation")
     @remove(name: "Subscription")
     @rename(from: "User.birthdate" to: "User.birth")
 { 
-    
+
 }
 

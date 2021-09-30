@@ -1,2 +1,3 @@
-directive @rename(to: String!, from: String)
-directive @remove(name: String)
+directive @rename(to: String!, from: String) on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE | SCHEMA
+directive @remove(name: String) on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE | SCHEMA
+directive @replace on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT
