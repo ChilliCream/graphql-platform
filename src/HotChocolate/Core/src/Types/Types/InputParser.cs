@@ -46,7 +46,7 @@ namespace HotChocolate.Types
                 targetType = field.RuntimeType;
             }
 
-            return ConvertValue(targetType ?? field.RuntimeType, runtimeValue);
+            return ConvertValue(targetType, runtimeValue);
         }
 
         public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
