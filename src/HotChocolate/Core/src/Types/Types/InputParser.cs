@@ -41,7 +41,7 @@ namespace HotChocolate.Types
             // Caller doesn't care, but to ensure specificity, we set the field's runtime type
             // to make sure it's at least converted to the right type.
             // e.g. from a list to an array if it should be an array
-            if (targetType == typeof(object))
+            if (targetType == null || targetType == typeof(object))
             {
                 targetType = field.RuntimeType;
             }
