@@ -10,7 +10,6 @@ namespace HotChocolate.Language.Visitors
         : SyntaxVisitor<ISyntaxVisitorContext>
         , ISyntaxVisitor
     {
-
         public SyntaxVisitor(SyntaxVisitorOptions options = default)
             : base(options)
         {

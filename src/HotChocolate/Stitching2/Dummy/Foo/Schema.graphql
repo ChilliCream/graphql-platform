@@ -13,6 +13,7 @@ type User {
   name: String!
   birthdate: DateTime!
   username: String!
+  foo: String!
 }
 
 type _SchemaDefinition {

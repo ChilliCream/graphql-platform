@@ -4,11 +4,12 @@ extend type Me {
 
 extend type User @remove(name: "name") {
     username: String! @rename(to: "name")
+    foo: String @deprecated
 }
 
 extend type _SchemaDefinition @remove { }
 
-extend type Query @replace {
+extend type Query {
   me: User! @delegate(path: "user(id: 1)")
 }
 
@@ -18,8 +19,11 @@ extend type Review {
 
 schema 
     @remove(name: "@authorize")
+    @remove(name: "Query")
     @remove(name: "Mutation")
     @remove(name: "Subscription")
+    @remove(name: "defer")
+    @remove(name: "deprecated")
     @rename(from: "User.birthdate" to: "User.birth")
 { 
 

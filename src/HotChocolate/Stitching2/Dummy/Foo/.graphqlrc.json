@@ -15,17 +15,6 @@
         "stream": true,
         "defer": true,
         "upload": true
-      },
-      "schema": {
-        "includeRootTypes": ["Query", "Mutation", "Subscription"],
-        "ignoreDirectiveDeclarations": [
-          "defer",
-          "deprecated",
-          "include",
-          "skip",
-          "specifiedBy",
-          "stream"
-        ]
       }
     }
   }
