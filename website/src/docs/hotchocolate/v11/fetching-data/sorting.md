@@ -2,7 +2,7 @@
 title: Sorting
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 # What is sorting
 

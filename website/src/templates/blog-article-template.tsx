@@ -16,7 +16,7 @@ const BlogArticleTemplate: FC<BlogArticleTemplateProps> = ({ data }) => {
         description={data.mdx!.excerpt || undefined}
         imageUrl={
           data.mdx!.frontmatter!.featuredImage?.childImageSharp!
-            .gatsbyImageData!.src
+            .gatsbyImageData!.images.fallback.src
         }
         isArticle
         title={data.mdx!.frontmatter!.title!}

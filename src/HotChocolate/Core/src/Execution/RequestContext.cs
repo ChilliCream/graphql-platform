@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
                 Exception = Exception
             };
 
-            if (_contextData is not null!)
+            if (_contextData is not null)
             {
                 foreach (KeyValuePair<string, object?> item in ContextData)
                 {

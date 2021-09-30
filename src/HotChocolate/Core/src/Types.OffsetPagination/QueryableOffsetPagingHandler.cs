@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -27,10 +28,11 @@ namespace HotChocolate.Types.Pagination
             object source,
             OffsetPagingArguments arguments)
         {
+            CancellationToken ct = context.RequestAborted;
             return source switch
             {
-                IQueryable<TEntity> q => ResolveAsync(context, q, arguments),
-                IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments),
+                IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
+                IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments, ct),
                 IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
@@ -38,12 +40,13 @@ namespace HotChocolate.Types.Pagination
 
         private async ValueTask<CollectionSegment> ResolveAsync(
             IResolverContext context,
-            IQueryable<TEntity> queryable,
-            OffsetPagingArguments arguments = default)
+            IQueryable<TEntity> source,
+            OffsetPagingArguments arguments = default,
+            CancellationToken cancellationToken = default)
         {
             // When totalCount is included in the selection set we prefetch it, then capture the
             // count in a variable, to pass it into the handler
-            int totalCount = 0;
+            int? totalCount = null;
 
             // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
@@ -58,16 +61,14 @@ namespace HotChocolate.Types.Pagination
                 {
                     if (selections[i].Field.Name.Value is "totalCount")
                     {
-                        totalCount = queryable.Count();
+                        totalCount = source.Count();
                     }
                 }
             }
 
-            return await _pagination.ApplyPaginationAsync(
-                queryable,
-                arguments,
-                totalCount,
-                context.RequestAborted);
+            return await _pagination
+                .ApplyPaginationAsync(source, arguments, totalCount, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

@@ -8,10 +8,10 @@ namespace HotChocolate.Execution.Processing.Plan
     {
         private static class QueryStrategy
         {
-            public static OperationQueryPlanNode Build(QueryPlanContext context)
+            public static OperationNode Build(QueryPlanContext context)
             {
                 QueryPlanNode root = Build(context, context.Operation.GetRootSelectionSet());
-                var operationNode = new OperationQueryPlanNode(root);
+                var operationNode = new OperationNode(root);
 
                 if (context.Deferred.Count > 0)
                 {
@@ -19,6 +19,11 @@ namespace HotChocolate.Execution.Processing.Plan
                     {
                         operationNode.Deferred.Add(deferred);
                     }
+                }
+
+                if (context.Streams.Count > 0)
+                {
+                    operationNode.Streams.AddRange(context.Streams.Values);
                 }
 
                 return operationNode;
@@ -49,9 +54,33 @@ namespace HotChocolate.Execution.Processing.Plan
 
             private static void Visit(ISelection selection, QueryPlanContext context)
             {
+                if (selection.IsStreamable && selection.SelectionSet is not null)
+                {
+                    QueryPlanContext streamContext = context.Branch();
+
+                    VisitChildren(selection, streamContext);
+
+                    if (streamContext.Root is not null &&
+                        !context.Streams.ContainsKey(selection.Id))
+                    {
+                        context.Streams.Add(selection.Id, new(selection.Id, streamContext.Root));
+                    }
+
+                    if (streamContext.Streams.Count > 0)
+                    {
+                        foreach (StreamPlanNode streamPlan in streamContext.Streams.Values)
+                        {
+                            if (!context.Streams.ContainsKey(selection.Id))
+                            {
+                                context.Streams.Add(selection.Id, streamPlan);
+                            }
+                        }
+                    }
+                }
+
                 if (context.NodePath.Count == 0)
                 {
-                    context.Root = new ResolverQueryPlanNode(selection);
+                    context.Root = new ResolverNode(selection);
                     context.NodePath.Push(context.Root);
                 }
                 else
@@ -60,22 +89,20 @@ namespace HotChocolate.Execution.Processing.Plan
 
                     if (selection.Strategy == SelectionExecutionStrategy.Serial)
                     {
-                        if (parent is ResolverQueryPlanNode p &&
-                            p.Strategy == ExecutionStrategy.Serial)
+                        if (parent is ResolverNode { Strategy: ExecutionStrategy.Serial } p)
                         {
                             p.Selections.Add(selection);
                         }
                         else if (context.SelectionPath.Count > 0 &&
                             context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
-                            grandParent is ResolverQueryPlanNode gp &&
-                            gp.Strategy == ExecutionStrategy.Serial &&
+                            grandParent is ResolverNode { Strategy: ExecutionStrategy.Serial } gp &&
                             gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                         {
                             gp.Selections.Add(selection);
                         }
                         else
                         {
-                            var resolverPlanStep = new ResolverQueryPlanNode(
+                            var resolverPlanStep = new ResolverNode(
                                 selection,
                                 context.SelectionPath.PeekOrDefault());
                             parent.AddNode(resolverPlanStep);
@@ -85,22 +112,20 @@ namespace HotChocolate.Execution.Processing.Plan
                     else if (selection.Strategy == SelectionExecutionStrategy.Default ||
                         context.SelectionPath.Count == 0)
                     {
-                        if (parent is ResolverQueryPlanNode p &&
-                            p.Strategy == ExecutionStrategy.Parallel)
+                        if (parent is ResolverNode { Strategy: ExecutionStrategy.Parallel } p)
                         {
                             p.Selections.Add(selection);
                         }
                         else if (context.SelectionPath.Count > 0 &&
                             context.NodePath.TryPeek(2, out QueryPlanNode? grandParent) &&
-                            grandParent is ResolverQueryPlanNode gp &&
-                            gp.Strategy == ExecutionStrategy.Parallel &&
+                            grandParent is ResolverNode { Strategy: ExecutionStrategy.Parallel } gp &&
                             gp.Selections.Contains(context.SelectionPath.PeekOrDefault()!))
                         {
                             gp.Selections.Add(selection);
                         }
                         else
                         {
-                            var resolverPlanStep = new ResolverQueryPlanNode(
+                            var resolverPlanStep = new ResolverNode(
                                 selection,
                                 context.SelectionPath.PeekOrDefault());
                             parent.AddNode(resolverPlanStep);
@@ -176,24 +201,24 @@ namespace HotChocolate.Execution.Processing.Plan
                     node.RemoveNode(child);
                     child = Optimize(child);
 
-                    if (node is SequenceQueryPlanNode or ParallelQueryPlanNode)
+                    if (node is SequenceNode or ParallelNode)
                     {
                         return child;
                     }
 
-                    return SequenceQueryPlanNode.Create(node, child);
+                    return SequenceNode.Create(node, child);
                 }
 
                 var children = new List<QueryPlanNode>();
 
-                SequenceQueryPlanNode? seq = null;
-                ParallelQueryPlanNode? par = null;
+                SequenceNode? seq = null;
+                ParallelNode? par = null;
 
                 while (node.TryTakeNode(out var child))
                 {
                     child = Optimize(child);
 
-                    if (child is SequenceQueryPlanNode s)
+                    if (child is SequenceNode s)
                     {
                         if (par is not null)
                         {
@@ -214,7 +239,7 @@ namespace HotChocolate.Execution.Processing.Plan
                             children.Add(seq);
                         }
                     }
-                    else if (child is ParallelQueryPlanNode p)
+                    else if (child is ParallelNode p)
                     {
                         if (seq is not null)
                         {

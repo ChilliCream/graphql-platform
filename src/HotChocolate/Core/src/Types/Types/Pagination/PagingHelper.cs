@@ -10,6 +10,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.WellKnownMiddleware;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -102,7 +103,7 @@ namespace HotChocolate.Types.Pagination
         public static IExtendedType GetSchemaType(
             ITypeInspector typeInspector,
             MemberInfo? member,
-            Type? type)
+            Type? type = null)
         {
             if (type is null &&
                 member is not null &&
@@ -157,6 +158,23 @@ namespace HotChocolate.Types.Pagination
             }
 
             return typeInspector.GetType(type);
+        }
+
+        public static bool TryGetNamedType(
+            ITypeInspector typeInspector, 
+            MemberInfo? member, 
+            [NotNullWhen(true)] out Type? namedType)
+        {
+            if (member is not null &&
+                typeInspector.GetReturnType(member) is IExtendedType returnType &&
+                typeInspector.TryCreateTypeInfo(returnType, out ITypeInfo? typeInfo))
+            {
+                namedType = typeInfo.NamedType;
+                return true;
+            }
+
+            namedType = null;
+            return false;
         }
 
         public static PagingOptions GetSettings(

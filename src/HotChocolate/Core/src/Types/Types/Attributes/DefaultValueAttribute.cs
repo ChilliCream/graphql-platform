@@ -10,8 +10,7 @@ namespace HotChocolate.Types
         AttributeTargets.Parameter | AttributeTargets.Property,
         Inherited = true,
         AllowMultiple = false)]
-    public sealed class DefaultValueAttribute
-        : DescriptorAttribute
+    public sealed class DefaultValueAttribute : DescriptorAttribute
     {
         public DefaultValueAttribute(object value)
         {

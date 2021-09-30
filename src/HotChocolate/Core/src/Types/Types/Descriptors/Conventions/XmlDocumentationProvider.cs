@@ -219,7 +219,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (_fileResolver.TryGetXmlDocument(
                     member.Module.Assembly,
-                    out XDocument document))
+                    out XDocument? document))
                 {
                     MemberName name = GetMemberElementName(member);
                     XElement? element = document.XPathSelectElements(name.Path)
@@ -244,7 +244,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (_fileResolver.TryGetXmlDocument(
                     parameter.Member.Module.Assembly,
-                    out XDocument document))
+                    out XDocument? document))
                 {
                     MemberName name = GetMemberElementName(parameter.Member);
                     IEnumerable<XElement> result = document.XPathSelectElements(name.Path);
