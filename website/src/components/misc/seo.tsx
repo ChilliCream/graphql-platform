@@ -42,10 +42,7 @@ export const SEO: FC<SEOProps> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            gatsbyImageData(
-              layout: FIXED
-              width: 1200
-            )
+            gatsbyImageData(layout: FIXED, width: 1200)
           }
         }
       }
@@ -55,7 +52,7 @@ export const SEO: FC<SEOProps> = ({
   const metaAuthor = `@${site.siteMetadata.author}`;
   const metaDescription = description || site.siteMetadata.description;
   const metaImageUrl = `${site.siteMetadata.siteUrl}${
-    imageUrl || image?.childImageSharp!.gatsbyImageData!.src
+    imageUrl ?? image?.childImageSharp!.gatsbyImageData!.images.fallback.src
   }`;
 
   return (
