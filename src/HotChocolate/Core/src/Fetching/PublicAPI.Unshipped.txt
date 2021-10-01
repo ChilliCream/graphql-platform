@@ -1,9 +1,0 @@
-HotChocolate.Fetching.BatchDispatcherResult
-HotChocolate.Fetching.BatchDispatcherResult.BatchDispatcherResult(System.Collections.Generic.IReadOnlyList<System.Exception!>! exceptions) -> void
-HotChocolate.Fetching.BatchDispatcherResult.Exceptions.get -> System.Collections.Generic.IReadOnlyList<System.Exception!>!
-HotChocolate.Fetching.BatchDispatcherResult.IsSuccessful.get -> bool
-HotChocolate.Fetching.BatchScheduler.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
-HotChocolate.Fetching.IBatchDispatcher.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
-static HotChocolate.Fetching.BatchDispatcherResult.Success.get -> HotChocolate.Fetching.BatchDispatcherResult!
-static HotChocolate.Types.DataLoaderResolverContextExtensions.CacheDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, HotChocolate.Fetching.FetchCacheCt<TKey, TValue>! fetch, string? key = null) -> GreenDonut.IDataLoader<TKey, TValue>!
-static HotChocolate.Types.DataLoaderResolverContextExtensions.CacheDataLoader<TKey, TValue>(this HotChocolate.Resolvers.IResolverContext! context, string! key, HotChocolate.Fetching.FetchCacheCt<TKey, TValue>! fetch) -> GreenDonut.IDataLoader<TKey, TValue>!

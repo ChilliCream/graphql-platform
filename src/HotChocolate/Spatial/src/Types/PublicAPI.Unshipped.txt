@@ -1,1 +1,0 @@
-override HotChocolate.Types.Spatial.GeoJsonPositionType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
