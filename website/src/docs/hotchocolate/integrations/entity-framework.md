@@ -10,7 +10,7 @@ Besides its many benefits there is one shortcoming that makes Entity Framework h
 
 [**Entity Framework Core doesn't support multiple parallel operations being run on the same context instance.**](https://docs.microsoft.com/ef/core/miscellaneous/async)
 
-When using `services.AddDbContext<T>` to register our `DbContext` as a scoped service, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext`, we might see one of the following exceptions being thrown:
+When using `services.AddDbContext<T>` to register a `DbContext` as a scoped service, one instance of this `DbContext` is created and used for the entirety of a GraphQL request. This is an issue, since Hot Chocolate executes resolvers in parallel for performance reasons. If two resolvers are executed in parallel and both try to perform an operation using the `DbContext`, we might see one of the following exceptions being thrown:
 
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
@@ -19,7 +19,7 @@ Fortunatly there are a couple of solutions that can be used to avoid the describ
 
 # DbContextFactory
 
-The recommended approach to solving the issue described above is creating a `DbContext` instance on a per-operation basis using an `IDbContextFactory`.
+The recommended approach to solving the `DbContext` concurreny issues is creating a `DbContext` instance on a per-operation basis using an `IDbContextFactory`.
 
 We can register a [pooled](https://docs.microsoft.com/en-us/ef/core/performance/advanced-performance-topics?tabs=with-constant#dbcontext-pooling) `IDbContextFactory` like the following.
 
@@ -39,7 +39,7 @@ public class Startup
 
 > ⚠️ Note: All of the configuraion done in the `OnConfiguring` method of the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
 
-Using the `IDbContextFactory` changes how we access an instance of our `DbContext`. Previously we would directly inject the scoped `DbContext` instance into our constructors or methods. Now we need to inject the `IDbContextFactory` instead and create an instance of our `DbContext` ourselves.
+Using the `IDbContextFactory` changes how we access an instance of our `DbContext`. Previously we would directly inject the scoped `DbContext` instance into our constructors or methods. Now we need to inject the `IDbContextFactory` instead and create an instance of the `DbContext` ourselves.
 
 ```csharp
 public ExampleConstructor(IDbContextFactory<SomeDbContext> dbContextFactory)
@@ -77,6 +77,24 @@ public class Query
 ```
 
 Please note that the `ScopedServiceAttribute` has nothing to do with service lifetime. It is used to inject the `DbContext` instance the `UseDbContext` middleware retrieved from the pool.
+
+We can make this even simpler, by creating an attribute inheriting from the `UseDbContextAttribute`:
+
+```csharp
+public class UseSomeDbContext : UseDbContextAttribute
+{
+    public UseSomeDbContext() : base(typeof(SomeDbContext))
+    {
+    }
+}
+
+public class Query
+{
+    [UseSomeDbContext]
+    public IQueryable<User> GetUsers([ScopedService] SomeDbContext dbContext)
+        => dbContext.Users;
+}
+```
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
