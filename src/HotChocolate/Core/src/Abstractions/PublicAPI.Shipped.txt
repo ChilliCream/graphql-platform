@@ -1,146 +1,146 @@
 #nullable enable
-~const HotChocolate.ErrorCodes.Authentication.NoDefaultPolicy = "AUTH_NO_DEFAULT_POLICY" -> string
-~const HotChocolate.ErrorCodes.Authentication.NotAuthenticated = "AUTH_NOT_AUTHENTICATED" -> string
-~const HotChocolate.ErrorCodes.Authentication.NotAuthorized = "AUTH_NOT_AUTHORIZED" -> string
-~const HotChocolate.ErrorCodes.Authentication.PolicyNotFound = "AUTH_POLICY_NOT_FOUND" -> string
-~const HotChocolate.ErrorCodes.Data.FilteringProjectionFailed = "HC0023" -> string
-~const HotChocolate.ErrorCodes.Data.ListNotSupported = "HC0021" -> string
-~const HotChocolate.ErrorCodes.Data.MoreThanOneElement = "HC0022" -> string
-~const HotChocolate.ErrorCodes.Data.NodeFieldWasNotFound = "HC0028" -> string
-~const HotChocolate.ErrorCodes.Data.NonNullError = "HC0026" -> string
-~const HotChocolate.ErrorCodes.Data.NoPagingationProviderFound = "HC0025" -> string
-~const HotChocolate.ErrorCodes.Data.SortingProjectionFailed = "HC0024" -> string
-~const HotChocolate.ErrorCodes.Execution.AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE" -> string
-~const HotChocolate.ErrorCodes.Execution.CannotCreateRootValue = "HC0019" -> string
-~const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string
-~const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string
-~const HotChocolate.ErrorCodes.Execution.CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE" -> string
-~const HotChocolate.ErrorCodes.Execution.ComplexityExceeded = "HC0047" -> string
-~const HotChocolate.ErrorCodes.Execution.ComplexityStateInvalid = "HC0048" -> string
-~const HotChocolate.ErrorCodes.Execution.InvalidType = "HC0016" -> string
-~const HotChocolate.ErrorCodes.Execution.ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED" -> string
-~const HotChocolate.ErrorCodes.Execution.MustBeInputType = "HC0017" -> string
-~const HotChocolate.ErrorCodes.Execution.NonNullViolation = "HC0018" -> string
-~const HotChocolate.ErrorCodes.Execution.PersistedQueryNotFound = "HC0020" -> string
-~const HotChocolate.ErrorCodes.Execution.QueryNotFound = "HC0015" -> string
-~const HotChocolate.ErrorCodes.Execution.SyntaxError = "HC0014" -> string
-~const HotChocolate.ErrorCodes.Execution.TaskProcessingError = "HC0008" -> string
-~const HotChocolate.ErrorCodes.Execution.Timeout = "HC0045" -> string
-~const HotChocolate.ErrorCodes.Filtering.FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE" -> string
-~const HotChocolate.ErrorCodes.Filtering.FilterObjectType = "FILTER_OBJECT_TYPE" -> string
-~const HotChocolate.ErrorCodes.Scalars.InvalidRuntimeType = "HC0001" -> string
-~const HotChocolate.ErrorCodes.Scalars.InvalidSyntaxFormat = "HC0002" -> string
-~const HotChocolate.ErrorCodes.Schema.ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG" -> string
-~const HotChocolate.ErrorCodes.Schema.InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL" -> string
-~const HotChocolate.ErrorCodes.Schema.InvalidArgument = "TS_INVALID_ARG" -> string
-~const HotChocolate.ErrorCodes.Schema.MissingType = "TS_MISSING_TYPE" -> string
-~const HotChocolate.ErrorCodes.Schema.NoEnumValues = "TS_NO_ENUM_VALUES" -> string
-~const HotChocolate.ErrorCodes.Schema.NoFieldType = "TS_NO_FIELD_TYPE" -> string
-~const HotChocolate.ErrorCodes.Schema.NoName = "TS_NO_NAME_DEFINED" -> string
-~const HotChocolate.ErrorCodes.Schema.NonNullArgument = "TS_ARG_NON_NULL" -> string
-~const HotChocolate.ErrorCodes.Schema.NoResolver = "TS_NO_FIELD_RESOLVER" -> string
-~const HotChocolate.ErrorCodes.Schema.UnresolvedTypes = "TS_UNRESOLVED_TYPES" -> string
-~const HotChocolate.ErrorCodes.Server.MaxRequestSize = "HC0010" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartFieldsMisordered = "HC0035" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartFileMissing = "HC00038" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartInvalidForm = "HC0033" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartInvalidMapJson = "HC0043" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartInvalidPath = "HC0041" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartMapNotSpecified = "HC0044" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartNoObjectPath = "HC0037" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartNoOperationsSpecified = "HC0034" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartPathMustStartWithVariable = "HC0042" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartVariableNotFound = "HC0039" -> string
-~const HotChocolate.ErrorCodes.Server.MultiPartVariableStructureInvalid = "HC0040" -> string
-~const HotChocolate.ErrorCodes.Server.QueryAndIdMissing = "HC0013" -> string
-~const HotChocolate.ErrorCodes.Server.RequestInvalid = "HC0009" -> string
-~const HotChocolate.ErrorCodes.Server.SyntaxError = "HC0011" -> string
-~const HotChocolate.ErrorCodes.Server.UnexpectedRequestParserError = "HC0012" -> string
-~const HotChocolate.ErrorCodes.Spatial.CoordinateMNotSupported = "HC0030" -> string
-~const HotChocolate.ErrorCodes.Spatial.UnknowCrs = "HC0029" -> string
-~const HotChocolate.ErrorCodes.Stitching.ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED" -> string
-~const HotChocolate.ErrorCodes.Stitching.ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND" -> string
-~const HotChocolate.ErrorCodes.Stitching.FieldNotDefined = "STITCHING_FLD_NOT_DEFINED" -> string
-~const HotChocolate.ErrorCodes.Stitching.HttpRequestException = "HC0006" -> string
-~const HotChocolate.ErrorCodes.Stitching.ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED" -> string
-~const HotChocolate.ErrorCodes.Stitching.TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED" -> string
-~const HotChocolate.ErrorCodes.Stitching.UnknownRequestException = "HC0007" -> string
-~const HotChocolate.ErrorCodes.Stitching.VariableNotDefined = "STITCHING_VAR_NOT_DEFINED" -> string
+const HotChocolate.ErrorCodes.Authentication.NoDefaultPolicy = "AUTH_NO_DEFAULT_POLICY" -> string!
+const HotChocolate.ErrorCodes.Authentication.NotAuthenticated = "AUTH_NOT_AUTHENTICATED" -> string!
+const HotChocolate.ErrorCodes.Authentication.NotAuthorized = "AUTH_NOT_AUTHORIZED" -> string!
+const HotChocolate.ErrorCodes.Authentication.PolicyNotFound = "AUTH_POLICY_NOT_FOUND" -> string!
+const HotChocolate.ErrorCodes.Data.FilteringProjectionFailed = "HC0023" -> string!
+const HotChocolate.ErrorCodes.Data.ListNotSupported = "HC0021" -> string!
+const HotChocolate.ErrorCodes.Data.MoreThanOneElement = "HC0022" -> string!
+const HotChocolate.ErrorCodes.Data.NodeFieldWasNotFound = "HC0028" -> string!
+const HotChocolate.ErrorCodes.Data.NonNullError = "HC0026" -> string!
+const HotChocolate.ErrorCodes.Data.NoPagingationProviderFound = "HC0025" -> string!
+const HotChocolate.ErrorCodes.Data.SortingProjectionFailed = "HC0024" -> string!
+const HotChocolate.ErrorCodes.Execution.AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotCreateRootValue = "HC0019" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE" -> string!
+const HotChocolate.ErrorCodes.Execution.ComplexityExceeded = "HC0047" -> string!
+const HotChocolate.ErrorCodes.Execution.ComplexityStateInvalid = "HC0048" -> string!
+const HotChocolate.ErrorCodes.Execution.InvalidType = "HC0016" -> string!
+const HotChocolate.ErrorCodes.Execution.ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED" -> string!
+const HotChocolate.ErrorCodes.Execution.MustBeInputType = "HC0017" -> string!
+const HotChocolate.ErrorCodes.Execution.NonNullViolation = "HC0018" -> string!
+const HotChocolate.ErrorCodes.Execution.PersistedQueryNotFound = "HC0020" -> string!
+const HotChocolate.ErrorCodes.Execution.QueryNotFound = "HC0015" -> string!
+const HotChocolate.ErrorCodes.Execution.SyntaxError = "HC0014" -> string!
+const HotChocolate.ErrorCodes.Execution.TaskProcessingError = "HC0008" -> string!
+const HotChocolate.ErrorCodes.Execution.Timeout = "HC0045" -> string!
+const HotChocolate.ErrorCodes.Filtering.FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE" -> string!
+const HotChocolate.ErrorCodes.Filtering.FilterObjectType = "FILTER_OBJECT_TYPE" -> string!
+const HotChocolate.ErrorCodes.Scalars.InvalidRuntimeType = "HC0001" -> string!
+const HotChocolate.ErrorCodes.Scalars.InvalidSyntaxFormat = "HC0002" -> string!
+const HotChocolate.ErrorCodes.Schema.ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG" -> string!
+const HotChocolate.ErrorCodes.Schema.InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL" -> string!
+const HotChocolate.ErrorCodes.Schema.InvalidArgument = "TS_INVALID_ARG" -> string!
+const HotChocolate.ErrorCodes.Schema.MissingType = "TS_MISSING_TYPE" -> string!
+const HotChocolate.ErrorCodes.Schema.NoEnumValues = "TS_NO_ENUM_VALUES" -> string!
+const HotChocolate.ErrorCodes.Schema.NoFieldType = "TS_NO_FIELD_TYPE" -> string!
+const HotChocolate.ErrorCodes.Schema.NoName = "TS_NO_NAME_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Schema.NonNullArgument = "TS_ARG_NON_NULL" -> string!
+const HotChocolate.ErrorCodes.Schema.NoResolver = "TS_NO_FIELD_RESOLVER" -> string!
+const HotChocolate.ErrorCodes.Schema.UnresolvedTypes = "TS_UNRESOLVED_TYPES" -> string!
+const HotChocolate.ErrorCodes.Server.MaxRequestSize = "HC0010" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartFieldsMisordered = "HC0035" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartFileMissing = "HC00038" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidForm = "HC0033" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidMapJson = "HC0043" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartInvalidPath = "HC0041" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartMapNotSpecified = "HC0044" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartNoObjectPath = "HC0037" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartNoOperationsSpecified = "HC0034" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartPathMustStartWithVariable = "HC0042" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartVariableNotFound = "HC0039" -> string!
+const HotChocolate.ErrorCodes.Server.MultiPartVariableStructureInvalid = "HC0040" -> string!
+const HotChocolate.ErrorCodes.Server.QueryAndIdMissing = "HC0013" -> string!
+const HotChocolate.ErrorCodes.Server.RequestInvalid = "HC0009" -> string!
+const HotChocolate.ErrorCodes.Server.SyntaxError = "HC0011" -> string!
+const HotChocolate.ErrorCodes.Server.UnexpectedRequestParserError = "HC0012" -> string!
+const HotChocolate.ErrorCodes.Spatial.CoordinateMNotSupported = "HC0030" -> string!
+const HotChocolate.ErrorCodes.Spatial.UnknowCrs = "HC0029" -> string!
+const HotChocolate.ErrorCodes.Stitching.ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND" -> string!
+const HotChocolate.ErrorCodes.Stitching.FieldNotDefined = "STITCHING_FLD_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.HttpRequestException = "HC0006" -> string!
+const HotChocolate.ErrorCodes.Stitching.ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED" -> string!
+const HotChocolate.ErrorCodes.Stitching.UnknownRequestException = "HC0007" -> string!
+const HotChocolate.ErrorCodes.Stitching.VariableNotDefined = "STITCHING_VAR_NOT_DEFINED" -> string!
 ~const HotChocolate.ErrorCodes.Types.NodeTypeUnkown = "HC0031" -> string
 ~const HotChocolate.ErrorCodes.Types.SchemaTypeInvalid = "HC0032" -> string
-~const HotChocolate.ErrorCodes.Validation.IntrospectionNotAllowed = "HC0046" -> string
-~const HotChocolate.WellKnownContextData.DocumentSaved = "HotChocolate.Execution.DocumentSaved" -> string
-~const HotChocolate.WellKnownContextData.EnableTracing = "HotChocolate.Execution.EnableTracing" -> string
-~const HotChocolate.WellKnownContextData.EventMessage = "HotChocolate.Execution.EventMessage" -> string
-~const HotChocolate.WellKnownContextData.IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan" -> string
-~const HotChocolate.WellKnownContextData.IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed" -> string
-~const HotChocolate.WellKnownContextData.IntrospectionMessage = "HotChocolate.Execution.Introspection.Message" -> string
-~const HotChocolate.WellKnownContextData.MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity" -> string
-~const HotChocolate.WellKnownContextData.OperationComplexity = "HotChocolate.Execution.OperationComplexity" -> string
-~const HotChocolate.WellKnownContextData.OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed" -> string
-~const HotChocolate.WellKnownContextData.SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis" -> string
-~const HotChocolate.WellKnownContextData.Subscription = "HotChocolate.Execution.Subscription" -> string
-~const HotChocolate.WellKnownContextData.ValidationErrors = "HotChocolate.Execution.ValidationErrors" -> string
-~const HotChocolate.WellKnownDirectives.Defer = "defer" -> string
-~const HotChocolate.WellKnownDirectives.Deprecated = "deprecated" -> string
+const HotChocolate.ErrorCodes.Validation.IntrospectionNotAllowed = "HC0046" -> string!
+const HotChocolate.WellKnownContextData.DocumentSaved = "HotChocolate.Execution.DocumentSaved" -> string!
+const HotChocolate.WellKnownContextData.EnableTracing = "HotChocolate.Execution.EnableTracing" -> string!
+const HotChocolate.WellKnownContextData.EventMessage = "HotChocolate.Execution.EventMessage" -> string!
+const HotChocolate.WellKnownContextData.IncludeQueryPlan = "HotChocolate.Execution.EmitQueryPlan" -> string!
+const HotChocolate.WellKnownContextData.IntrospectionAllowed = "HotChocolate.Execution.Introspection.Allowed" -> string!
+const HotChocolate.WellKnownContextData.IntrospectionMessage = "HotChocolate.Execution.Introspection.Message" -> string!
+const HotChocolate.WellKnownContextData.MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity" -> string!
+const HotChocolate.WellKnownContextData.OperationComplexity = "HotChocolate.Execution.OperationComplexity" -> string!
+const HotChocolate.WellKnownContextData.OperationNotAllowed = "HotChocolate.Execution.OperationNotAllowed" -> string!
+const HotChocolate.WellKnownContextData.SkipComplexityAnalysis = "HotChocolate.Execution.NoComplexityAnalysis" -> string!
+const HotChocolate.WellKnownContextData.Subscription = "HotChocolate.Execution.Subscription" -> string!
+const HotChocolate.WellKnownContextData.ValidationErrors = "HotChocolate.Execution.ValidationErrors" -> string!
+const HotChocolate.WellKnownDirectives.Defer = "defer" -> string!
+const HotChocolate.WellKnownDirectives.Deprecated = "deprecated" -> string!
 ~const HotChocolate.WellKnownDirectives.DeprecationDefaultReason = "No longer supported" -> string
-~const HotChocolate.WellKnownDirectives.DeprecationReasonArgument = "reason" -> string
-~const HotChocolate.WellKnownDirectives.IfArgument = "if" -> string
-~const HotChocolate.WellKnownDirectives.Include = "include" -> string
-~const HotChocolate.WellKnownDirectives.LabelArgument = "label" -> string
-~const HotChocolate.WellKnownDirectives.Skip = "skip" -> string
-~const HotChocolate.WellKnownDirectives.Stream = "stream" -> string
-~HotChocolate.DataLoaderAttribute.DataLoaderAttribute(string key) -> void
-~HotChocolate.DataLoaderAttribute.Key.get -> string
-~HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, HotChocolate.IError error) -> void
-~HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask task, System.Exception exception) -> void
-~HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask task) -> System.IDisposable
-~HotChocolate.Execution.IExecutionTaskDefinition.Create(HotChocolate.Execution.IExecutionTaskContext context) -> HotChocolate.Execution.IExecutionTask
-~HotChocolate.Execution.IQuery.ToString() -> string
-~HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream output) -> void
-~HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clone() -> HotChocolate.Execution.OrderedDictionary<TKey, TValue>
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[] array, int arrayIndex) -> void
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>>
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Keys.get -> System.Collections.Generic.ICollection<TKey>
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.OrderedDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>> values) -> void
-~HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Values.get -> System.Collections.Generic.ICollection<TValue>
-~HotChocolate.Execution.QueryDocument.Document.get -> HotChocolate.Language.DocumentNode
-~HotChocolate.Execution.QueryDocument.QueryDocument(HotChocolate.Language.DocumentNode document) -> void
-~HotChocolate.Execution.QueryDocument.WriteTo(System.IO.Stream output) -> void
-~HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.QueryException.QueryException(HotChocolate.IError error) -> void
-~HotChocolate.Execution.QueryException.QueryException(params HotChocolate.IError[] errors) -> void
-~HotChocolate.Execution.QueryException.QueryException(string message) -> void
-~HotChocolate.Execution.QueryException.QueryException(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> void
-~HotChocolate.Execution.QueryException.QueryException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
-~HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string message, System.Exception inner) -> void
-~HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string message) -> void
-~HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
-~HotChocolate.Execution.QuerySourceText.QuerySourceText(string sourceText) -> void
-~HotChocolate.Execution.QuerySourceText.Text.get -> string
-~HotChocolate.Execution.QuerySourceText.WriteTo(System.IO.Stream output) -> void
-~HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream output) -> System.Threading.Tasks.Task
-~HotChocolate.Execution.VariableValue.Type.get -> HotChocolate.Types.IInputType
-~HotChocolate.Execution.VariableValue.Value.get -> HotChocolate.Language.IValueNode
-~HotChocolate.Execution.VariableValue.VariableValue(HotChocolate.NameString name, HotChocolate.Types.IInputType type, HotChocolate.Language.IValueNode value) -> void
-~HotChocolate.GlobalStateAttribute.GlobalStateAttribute(string key) -> void
-~HotChocolate.GlobalStateAttribute.Key.get -> string
-~HotChocolate.GraphQLDeprecatedAttribute.DeprecationReason.get -> string
-~HotChocolate.GraphQLDeprecatedAttribute.GraphQLDeprecatedAttribute(string deprecationReason) -> void
-~HotChocolate.GraphQLDescriptionAttribute.Description.get -> string
-~HotChocolate.GraphQLDescriptionAttribute.GraphQLDescriptionAttribute(string description) -> void
-~HotChocolate.GraphQLException.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-~HotChocolate.GraphQLException.GraphQLException(HotChocolate.IError error) -> void
-~HotChocolate.GraphQLException.GraphQLException(params HotChocolate.IError[] errors) -> void
-~HotChocolate.GraphQLException.GraphQLException(string message) -> void
-~HotChocolate.GraphQLException.GraphQLException(System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> void
-~HotChocolate.GraphQLException.GraphQLException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) -> void
-~HotChocolate.GraphQLNameAttribute.GraphQLNameAttribute(string name) -> void
-~HotChocolate.GraphQLNameAttribute.Name.get -> string
+const HotChocolate.WellKnownDirectives.DeprecationReasonArgument = "reason" -> string!
+const HotChocolate.WellKnownDirectives.IfArgument = "if" -> string!
+const HotChocolate.WellKnownDirectives.Include = "include" -> string!
+const HotChocolate.WellKnownDirectives.LabelArgument = "label" -> string!
+const HotChocolate.WellKnownDirectives.Skip = "skip" -> string!
+const HotChocolate.WellKnownDirectives.Stream = "stream" -> string!
+HotChocolate.DataLoaderAttribute.DataLoaderAttribute(string! key) -> void
+HotChocolate.DataLoaderAttribute.Key.get -> string?
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, HotChocolate.IError! error) -> void
+HotChocolate.Execution.IExecutionTaskContext.ReportError(HotChocolate.Execution.IExecutionTask! task, System.Exception! exception) -> void
+HotChocolate.Execution.IExecutionTaskContext.Track(HotChocolate.Execution.IExecutionTask! task) -> System.IDisposable!
+HotChocolate.Execution.IExecutionTaskDefinition.Create(HotChocolate.Execution.IExecutionTaskContext! context) -> HotChocolate.Execution.IExecutionTask!
+HotChocolate.Execution.IQuery.ToString() -> string!
+HotChocolate.Execution.IQuery.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.IQuery.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Clone() -> HotChocolate.Execution.OrderedDictionary<TKey, TValue>!
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.CopyTo(System.Collections.Generic.KeyValuePair<TKey, TValue>[]! array, int arrayIndex) -> void
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.GetEnumerator() -> System.Collections.Generic.IEnumerator<System.Collections.Generic.KeyValuePair<TKey, TValue>>!
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Keys.get -> System.Collections.Generic.ICollection<TKey>!
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.OrderedDictionary(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<TKey, TValue>>! values) -> void
+HotChocolate.Execution.OrderedDictionary<TKey, TValue>.Values.get -> System.Collections.Generic.ICollection<TValue>!
+HotChocolate.Execution.QueryDocument.Document.get -> HotChocolate.Language.DocumentNode!
+HotChocolate.Execution.QueryDocument.QueryDocument(HotChocolate.Language.DocumentNode! document) -> void
+HotChocolate.Execution.QueryDocument.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QueryDocument.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QueryException.QueryException(HotChocolate.IError! error) -> void
+HotChocolate.Execution.QueryException.QueryException(params HotChocolate.IError![]! errors) -> void
+HotChocolate.Execution.QueryException.QueryException(string! message) -> void
+HotChocolate.Execution.QueryException.QueryException(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> void
+HotChocolate.Execution.QueryException.QueryException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message, System.Exception! inner) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(string! message) -> void
+HotChocolate.Execution.QueryRequestBuilderException.QueryRequestBuilderException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.Execution.QuerySourceText.QuerySourceText(string! sourceText) -> void
+HotChocolate.Execution.QuerySourceText.Text.get -> string!
+HotChocolate.Execution.QuerySourceText.WriteTo(System.IO.Stream! output) -> void
+HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.QuerySourceText.WriteToAsync(System.IO.Stream! output) -> System.Threading.Tasks.Task!
+HotChocolate.Execution.VariableValue.Type.get -> HotChocolate.Types.IInputType!
+HotChocolate.Execution.VariableValue.Value.get -> HotChocolate.Language.IValueNode!
+HotChocolate.Execution.VariableValue.VariableValue(HotChocolate.NameString name, HotChocolate.Types.IInputType! type, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.GlobalStateAttribute.GlobalStateAttribute(string! key) -> void
+HotChocolate.GlobalStateAttribute.Key.get -> string?
+HotChocolate.GraphQLDeprecatedAttribute.DeprecationReason.get -> string!
+HotChocolate.GraphQLDeprecatedAttribute.GraphQLDeprecatedAttribute(string! deprecationReason) -> void
+HotChocolate.GraphQLDescriptionAttribute.Description.get -> string!
+HotChocolate.GraphQLDescriptionAttribute.GraphQLDescriptionAttribute(string! description) -> void
+HotChocolate.GraphQLException.Errors.get -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
+HotChocolate.GraphQLException.GraphQLException(HotChocolate.IError! error) -> void
+HotChocolate.GraphQLException.GraphQLException(params HotChocolate.IError![]! errors) -> void
+HotChocolate.GraphQLException.GraphQLException(string! message) -> void
+HotChocolate.GraphQLException.GraphQLException(System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> void
+HotChocolate.GraphQLException.GraphQLException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+HotChocolate.GraphQLNameAttribute.GraphQLNameAttribute(string! name) -> void
+HotChocolate.GraphQLNameAttribute.Name.get -> string!
 ~HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(params System.Type[] resolverTypes) -> void
 ~HotChocolate.GraphQLResolverAttribute.GraphQLResolverAttribute(System.Type resolverType) -> void
 ~HotChocolate.GraphQLResolverAttribute.ResolverTypes.get -> System.Collections.Generic.IReadOnlyCollection<System.Type>
@@ -150,41 +150,41 @@
 ~HotChocolate.GraphQLResolverOfAttribute.GraphQLResolverOfAttribute(System.Type type) -> void
 ~HotChocolate.GraphQLResolverOfAttribute.TypeNames.get -> System.Collections.Generic.IReadOnlyCollection<string>
 ~HotChocolate.GraphQLResolverOfAttribute.Types.get -> System.Collections.Generic.IReadOnlyCollection<System.Type>
-~HotChocolate.GraphQLTypeAttribute.GraphQLTypeAttribute(System.Type type) -> void
-~HotChocolate.GraphQLTypeAttribute.Type.get -> System.Type
-~HotChocolate.IErrorFilter.OnError(HotChocolate.IError error) -> HotChocolate.IError
-~HotChocolate.IErrorHandler.CreateUnexpectedError(System.Exception exception) -> HotChocolate.IErrorBuilder
-~HotChocolate.IErrorHandler.Handle(HotChocolate.IError error) -> HotChocolate.IError
-~HotChocolate.LocalStateAttribute.Key.get -> string
-~HotChocolate.LocalStateAttribute.LocalStateAttribute(string key) -> void
-~HotChocolate.NameString.NameString(string value) -> void
-~HotChocolate.NameString.Value.get -> string
+HotChocolate.GraphQLTypeAttribute.GraphQLTypeAttribute(System.Type! type) -> void
+HotChocolate.GraphQLTypeAttribute.Type.get -> System.Type?
+HotChocolate.IErrorFilter.OnError(HotChocolate.IError! error) -> HotChocolate.IError!
+HotChocolate.IErrorHandler.CreateUnexpectedError(System.Exception! exception) -> HotChocolate.IErrorBuilder!
+HotChocolate.IErrorHandler.Handle(HotChocolate.IError! error) -> HotChocolate.IError!
+HotChocolate.LocalStateAttribute.Key.get -> string?
+HotChocolate.LocalStateAttribute.LocalStateAttribute(string! key) -> void
+HotChocolate.NameString.NameString(string! value) -> void
+HotChocolate.NameString.Value.get -> string!
 ~HotChocolate.StateAttribute.Key.get -> string
 ~HotChocolate.StateAttribute.StateAttribute(string key) -> void
-~HotChocolate.Types.IHasRuntimeType.RuntimeType.get -> System.Type
-~override HotChocolate.Execution.QueryDocument.ToString() -> string
-~override HotChocolate.Execution.QuerySourceText.ToString() -> string
-~override HotChocolate.FieldCoordinate.Equals(object obj) -> bool
-~override HotChocolate.FieldCoordinate.ToString() -> string
-~override HotChocolate.NameString.Equals(object obj) -> bool
-~override HotChocolate.NameString.ToString() -> string
-~override HotChocolate.RootPathSegment.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment
-~override HotChocolate.RootPathSegment.Append(int index) -> HotChocolate.IndexerPathSegment
-~override HotChocolate.RootPathSegment.Print() -> string
-~static HotChocolate.ErrorHandlerExtensions.Handle(this HotChocolate.IErrorHandler errorHandler, System.Collections.Generic.IEnumerable<HotChocolate.IError> errors) -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError>
-~static HotChocolate.Execution.QueryRequestBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
-~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, string message) -> HotChocolate.Execution.IQueryRequestBuilder
-~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder builder, System.Func<string> messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder
-~static HotChocolate.Execution.QueryRequestBuilderExtensions.SetMaximumAllowedComplexity(this HotChocolate.Execution.IQueryRequestBuilder builder, int maximumAllowedComplexity) -> HotChocolate.Execution.IQueryRequestBuilder
-~static HotChocolate.Execution.QueryRequestBuilderExtensions.SkipComplexityAnalysis(this HotChocolate.Execution.IQueryRequestBuilder builder) -> HotChocolate.Execution.IQueryRequestBuilder
-~static HotChocolate.NameString.implicit operator HotChocolate.NameString(string s) -> HotChocolate.NameString
-~static HotChocolate.NameString.implicit operator string(HotChocolate.NameString name) -> string
-~static HotChocolate.NameString.operator +(HotChocolate.NameString left, string right) -> string
-~static HotChocolate.NameString.operator +(string left, HotChocolate.NameString right) -> string
-~static HotChocolate.NameStringExtensions.EnsureNotEmpty(this in HotChocolate.NameString name, string argumentName) -> HotChocolate.NameString
-~static HotChocolate.RootPathSegment.Instance.get -> HotChocolate.RootPathSegment
-~static HotChocolate.Types.LiteralExtensions.GetValueKind(this HotChocolate.Language.IValueNode literal) -> HotChocolate.Types.ValueKind
-~static HotChocolate.Types.LiteralExtensions.TryGetValueKind(this HotChocolate.Language.IValueNode literal, out HotChocolate.Types.ValueKind kind) -> bool
+HotChocolate.Types.IHasRuntimeType.RuntimeType.get -> System.Type!
+override HotChocolate.Execution.QueryDocument.ToString() -> string!
+override HotChocolate.Execution.QuerySourceText.ToString() -> string!
+override HotChocolate.FieldCoordinate.Equals(object? obj) -> bool
+override HotChocolate.FieldCoordinate.ToString() -> string!
+override HotChocolate.NameString.Equals(object? obj) -> bool
+override HotChocolate.NameString.ToString() -> string!
+override HotChocolate.RootPathSegment.Append(HotChocolate.NameString name) -> HotChocolate.NamePathSegment!
+override HotChocolate.RootPathSegment.Append(int index) -> HotChocolate.IndexerPathSegment!
+override HotChocolate.RootPathSegment.Print() -> string!
+static HotChocolate.ErrorHandlerExtensions.Handle(this HotChocolate.IErrorHandler! errorHandler, System.Collections.Generic.IEnumerable<HotChocolate.IError!>! errors) -> System.Collections.Generic.IReadOnlyList<HotChocolate.IError!>!
+static HotChocolate.Execution.QueryRequestBuilderExtensions.AllowIntrospection(this HotChocolate.Execution.IQueryRequestBuilder! builder) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder! builder, string! message) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilderExtensions.SetIntrospectionNotAllowedMessage(this HotChocolate.Execution.IQueryRequestBuilder! builder, System.Func<string!>! messageFactory) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilderExtensions.SetMaximumAllowedComplexity(this HotChocolate.Execution.IQueryRequestBuilder! builder, int maximumAllowedComplexity) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.Execution.QueryRequestBuilderExtensions.SkipComplexityAnalysis(this HotChocolate.Execution.IQueryRequestBuilder! builder) -> HotChocolate.Execution.IQueryRequestBuilder!
+static HotChocolate.NameString.implicit operator HotChocolate.NameString(string! s) -> HotChocolate.NameString
+static HotChocolate.NameString.implicit operator string!(HotChocolate.NameString name) -> string!
+static HotChocolate.NameString.operator +(HotChocolate.NameString left, string! right) -> string!
+static HotChocolate.NameString.operator +(string! left, HotChocolate.NameString right) -> string!
+static HotChocolate.NameStringExtensions.EnsureNotEmpty(this in HotChocolate.NameString name, string! argumentName) -> HotChocolate.NameString
+static HotChocolate.RootPathSegment.Instance.get -> HotChocolate.RootPathSegment!
+static HotChocolate.Types.LiteralExtensions.GetValueKind(this HotChocolate.Language.IValueNode! literal) -> HotChocolate.Types.ValueKind
+static HotChocolate.Types.LiteralExtensions.TryGetValueKind(this HotChocolate.Language.IValueNode! literal, out HotChocolate.Types.ValueKind kind) -> bool
 abstract HotChocolate.Execution.ParallelExecutionTask.Context.get -> HotChocolate.Execution.IExecutionTaskContext!
 abstract HotChocolate.Execution.ParallelExecutionTask.ExecuteAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
 abstract HotChocolate.Execution.PureExecutionTask.Context.get -> HotChocolate.Execution.IExecutionTaskContext!
@@ -393,8 +393,8 @@ HotChocolate.Execution.ISourceStream<TMessage>
 HotChocolate.Execution.ISourceStream<TMessage>.ReadEventsAsync() -> System.Collections.Generic.IAsyncEnumerable<TMessage>!
 HotChocolate.Execution.ISubscriptionResult
 HotChocolate.Execution.IVariableValueCollection
-HotChocolate.Execution.IVariableValueCollection.GetVariable<T>(HotChocolate.NameString name) -> T
-HotChocolate.Execution.IVariableValueCollection.TryGetVariable<T>(HotChocolate.NameString name, out T value) -> bool
+HotChocolate.Execution.IVariableValueCollection.GetVariable<T>(HotChocolate.NameString name) -> T?
+HotChocolate.Execution.IVariableValueCollection.TryGetVariable<T>(HotChocolate.NameString name, out T? value) -> bool
 HotChocolate.Execution.IWriteStoredQueries
 HotChocolate.Execution.IWriteStoredQueries.WriteQueryAsync(string! queryId, HotChocolate.Execution.IQuery! query, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
 HotChocolate.Execution.OrderedDictionary
@@ -686,8 +686,8 @@ HotChocolate.Optional<T>.Equals(HotChocolate.Optional<T> other) -> bool
 HotChocolate.Optional<T>.HasValue.get -> bool
 HotChocolate.Optional<T>.IsEmpty.get -> bool
 HotChocolate.Optional<T>.Optional() -> void
-HotChocolate.Optional<T>.Optional(T value) -> void
-HotChocolate.Optional<T>.Value.get -> T
+HotChocolate.Optional<T>.Optional(T? value) -> void
+HotChocolate.Optional<T>.Value.get -> T?
 HotChocolate.ParentAttribute
 HotChocolate.ParentAttribute.ParentAttribute() -> void
 HotChocolate.Path
@@ -805,7 +805,7 @@ static HotChocolate.FieldCoordinate.CreateWithoutType(HotChocolate.NameString fi
 static HotChocolate.NameString.operator !=(HotChocolate.NameString left, HotChocolate.NameString right) -> bool
 static HotChocolate.NameString.operator +(HotChocolate.NameString left, HotChocolate.NameString right) -> HotChocolate.NameString
 static HotChocolate.NameString.operator ==(HotChocolate.NameString left, HotChocolate.NameString right) -> bool
-static HotChocolate.Optional<T>.Empty(T defaultValue = default(T)) -> HotChocolate.Optional<T>
+static HotChocolate.Optional<T>.Empty(T? defaultValue = default(T?)) -> HotChocolate.Optional<T>
 static HotChocolate.Optional<T>.implicit operator HotChocolate.Optional<T>(T value) -> HotChocolate.Optional<T>
 static HotChocolate.Optional<T>.implicit operator T(HotChocolate.Optional<T> optional) -> T
 static HotChocolate.Optional<T>.operator !=(HotChocolate.Optional<T> left, HotChocolate.Optional<T> right) -> bool
