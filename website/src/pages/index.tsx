@@ -5,9 +5,8 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
+import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -123,13 +122,8 @@ const IndexPage: FC = () => {
             </Link>
           </Slide>
           <Slide>
-            <Link to="/blog/2021/03/31/chillicream-platform-11-1">
-              <BlogPostChilliCreamPlatform />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2020/11/23/hot-chocolate-11">
-              <BlogPostVersion11 />
+            <Link to="/blog/2021/09/27/hot-chocolate-12">
+              <BlogPostHotChocolate12 />
             </Link>
           </Slide>
           <Slide>
