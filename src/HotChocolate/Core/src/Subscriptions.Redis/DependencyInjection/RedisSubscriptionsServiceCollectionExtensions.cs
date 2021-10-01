@@ -54,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IRequestExecutorBuilder AddRedisSubscriptions(this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
