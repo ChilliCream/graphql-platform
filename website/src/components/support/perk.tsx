@@ -20,13 +20,6 @@ const PerkLayout = styled.li`
   grid-template-columns: 20px 1fr;
 `;
 
-const PerkIcon = styled.svg`
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: rgb(16, 185, 129);
-`;
-
 const PerkContainer = styled.div`
   margin-left: 12px;
   font-size: 0.875rem;
