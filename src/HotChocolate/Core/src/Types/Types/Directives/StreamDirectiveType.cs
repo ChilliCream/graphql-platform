@@ -12,10 +12,9 @@ namespace HotChocolate.Types
     ///
     /// directive @stream(label: String, initialCount: Int!, if: Boolean) on FIELD
     /// </summary>
-    public class StreamDirectiveType
-        : DirectiveType
+    public class StreamDirectiveType : DirectiveType<StreamDirective>
     {
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor<StreamDirective> descriptor)
         {
             descriptor
                 .Name(Names.Stream)
@@ -23,19 +22,22 @@ namespace HotChocolate.Types
                 .Location(DirectiveLocation.Field);
 
             descriptor
-                .Argument(Names.Label)
+                .Argument(t => t.Label)
+                .Name(Names.Label)
                 .Description(TypeResources.StreamDirectiveType_Label_Description)
                 .Type<StringType>();
 
             descriptor
-                .Argument(Names.InitialCount)
+                .Argument(t => t.InitialCount)
+                .Name(Names.InitialCount)
                 .Description(TypeResources.StreamDirectiveType_InitialCount_Description)
                 .Type<NonNullType<IntType>>();
 
             descriptor
-                .Argument(Names.If)
+                .Argument(t => t.If)
+                .Name(Names.If)
                 .Description(TypeResources.StreamDirectiveType_If_Description)
-                .Type<NonNullType<BooleanType>>();
+                .Type<BooleanType>();
         }
 
         public static class Names

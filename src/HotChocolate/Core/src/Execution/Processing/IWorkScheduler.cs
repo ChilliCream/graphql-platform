@@ -16,6 +16,11 @@ namespace HotChocolate.Execution.Processing
         IDeferredWorkBacklog DeferredWork { get; }
 
         /// <summary>
+        /// <c>true</c> if there is no work to process; otherwise, <c>false</c>.
+        /// </summary>
+        bool IsEmpty { get;}
+
+        /// <summary>
         /// Defines if the execution is completed.
         /// </summary>
         bool IsCompleted { get; }
@@ -28,7 +33,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Registers work with the task backlog.
         /// </summary>
-        void Register(List<IExecutionTask> tasks);
+        void Register(IReadOnlyList<IExecutionTask> tasks);
 
         /// <summary>
         /// Complete a task

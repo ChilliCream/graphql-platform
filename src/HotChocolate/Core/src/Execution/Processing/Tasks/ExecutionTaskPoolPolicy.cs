@@ -6,6 +6,6 @@ namespace HotChocolate.Execution.Processing.Tasks
     {
         public abstract T Create(ObjectPool<T> executionTaskPool);
 
-        public virtual bool Reset(T executionTask) => true;
+        public abstract bool Reset(T executionTask);
     }
 }

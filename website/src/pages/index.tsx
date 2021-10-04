@@ -5,9 +5,8 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { BlogPostChilliCreamPlatform } from "../components/images/blog-post-chillicream-platform-11-1";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
-import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
+import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -22,9 +21,11 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 // Logos
+import AdditivLogoSvg from "../images/companies/additiv.svg";
 import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import BdnaLogoSvg from "../images/companies/bdna.svg";
 import BeyableLogoSvg from "../images/companies/beyable.svg";
 import BiqhLogoSvg from "../images/companies/biqh.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
@@ -34,14 +35,18 @@ import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
+import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import OrderinLogoSvg from "../images/companies/orderin.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
+import SpeedwayMotorsLogoSvg from "../images/companies/speedway-motors.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
+import TravelSoftLogoSvg from "../images/companies/travel-soft.svg";
 import XMLogoSvg from "../images/companies/xm.svg";
 import ZioskLogoSvg from "../images/companies/ziosk.svg";
 // Images
@@ -108,7 +113,7 @@ const IndexPage: FC = () => {
             <Link to="https://bananacakepop.com">
               <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Try Banana Cake Pop Preview 1</SlideTitle>
+                <SlideTitle>Try Banana Cake Pop Preview 14</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
@@ -117,13 +122,8 @@ const IndexPage: FC = () => {
             </Link>
           </Slide>
           <Slide>
-            <Link to="/blog/2021/03/31/chillicream-platform-11-1">
-              <BlogPostChilliCreamPlatform />
-            </Link>
-          </Slide>
-          <Slide>
-            <Link to="/blog/2020/11/23/hot-chocolate-11">
-              <BlogPostVersion11 />
+            <Link to="/blog/2021/09/27/hot-chocolate-12">
+              <BlogPostHotChocolate12 />
             </Link>
           </Slide>
           <Slide>
@@ -210,6 +210,11 @@ const IndexPage: FC = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
+              <Logo width={140}>
+                <Link to="https://additiv.com">
+                  <AdditivLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={160}>
                 <Link to="https://aeieng.com">
                   <AeiLogoSvg />
@@ -223,6 +228,11 @@ const IndexPage: FC = () => {
               <Logo width={180}>
                 <Link to="https://www.autoguru.com.au">
                   <AutoguruLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={150}>
+                <Link to="https://bdna.com.au">
+                  <BdnaLogoSvg />
                 </Link>
               </Logo>
               <Logo width={150}>
@@ -270,9 +280,19 @@ const IndexPage: FC = () => {
                   <IncloudLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={200}>
+                <Link to="https://www.infoslips.com">
+                  <InfoslipsLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={160}>
                 <Link to="https://motitech.co.uk">
                   <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://orderin.co.za">
+                  <OrderinLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>
@@ -296,6 +316,11 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={120}>
+                <Link to="https://www.speedwaymotors.com/">
+                  <SpeedwayMotorsLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
                 <Link to="https://sweetgeeks.dk">
                   <SweetGeeksLogoSvg />
                 </Link>
@@ -308,6 +333,11 @@ const IndexPage: FC = () => {
               <Logo width={160}>
                 <Link to="https://www.sytadelle.fr">
                   <SytadelleLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://travel-soft.com/">
+                  <TravelSoftLogoSvg />
                 </Link>
               </Logo>
               <Logo width={160}>

@@ -13,8 +13,8 @@ namespace HotChocolate.Data.Filters
 
         public string? Scope { get; set; }
 
-        public bool UseOr { get; set; } = true;
+        public bool UseOr { get; set; }
 
-        public bool UseAnd { get; set; } = true;
+        public bool UseAnd { get; set; }
     }
 }

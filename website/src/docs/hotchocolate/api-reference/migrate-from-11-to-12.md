@@ -93,6 +93,8 @@ public class Person
 }
 ```
 
+[Reference](/docs/hotchocolate/fetching-data/pagination#naming)
+
 ## MongoDB Paging
 
 In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
@@ -116,4 +118,118 @@ public record Foo([property: ID] string Id);
 
 # Instrumentation
 
-We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
+
+[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
+
+# Relay
+
+Previously the configuration of the Relay integration was focused around the `EnableRelaySupport()` method. It allowed you to enable Global Object Identification and automatically adding a query field to mutation payloads.
+
+The problem is that `EnableRelaySupport()` always enabled the Global Object Identification feature. This is not obviously implied by the name and also prevents you from using the other feature in isolation.
+
+Therefore we introduced two separate APIs to give you more explicit control over which parts of the Relay integration you want to enable.
+
+## Global Object Identification
+
+**OLD**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .EnableRelaySupport();
+```
+
+**NEW**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
+```
+
+[Learn more about Global Object Identification](/docs/hotchocolate/defining-a-schema/relay#global-object-identification)
+
+## Query field in Mutation payloads
+
+**OLD**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .EnableRelaySupport(new RelayOptions
+    {
+        AddQueryFieldToMutationPayloads = true,
+        QueryFieldName = "rootQuery",
+        MutationPayloadPredicate = type => type.Name.Value.EndsWith("Result")
+    });
+```
+
+**NEW**
+
+```csharp
+sevices
+    .AddGraphQL()
+    .AddQueryFieldToMutationPayloads(options =>
+    {
+        options.QueryFieldName = "rootQuery";
+        options.MutationPayloadPredicate =
+            type => type.Name.Value.EndsWith("Result");
+    });
+```
+
+If you just want to enable the feature without further configuration, you can omit the `options =>` action.
+
+> ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
+
+[Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay#query-field-in-mutation-payloads)
+
+# DataLoader
+
+We have consolidated the DataLoader base classes into the GreenDonut package which has no dependency on any HotChocolate packages. This allows for people using DataLoader in their business layer without having to reference GraphQL related packages. In your DataLoader classes the namespace `HotChocolate.Fetching` and `HotChocolate.DataLOader` are no longer needed.
+
+Second, we optimized memory usage of DataLoader and it is now best practice to let the DI inject the DataLoaderOptions into the DataLoader.
+
+**Hot Chocolate 11**
+
+```csharp
+public class CustomBatchDataLoader : BatchDataLoader<string, string?>
+{
+    public CustomBatchDataLoader(IBatchScheduler batchScheduler)
+        : base(batchScheduler)
+    {
+
+    }
+
+    // code omitted for brevity.
+}
+```
+
+**Hot Chocolate 12**
+
+```csharp
+public class CustomBatchDataLoader : BatchDataLoader<string, string?>
+{
+    public CustomBatchDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : base(batchScheduler, options)
+    {
+
+    }
+
+    // code omitted for brevity.
+}
+```
+
+Allowing the DI to inject the options will allow the DataLoader to use the new shared pooled cache objects.
+
+# Resolvers
+
+We have reworked the resolver compiler and are now demanding that the `ParentAttribute` is used when an argument is referring to the parent object.
+This is done since in some cases people want to get the parent object which is the same runtime type as an argument value.
+
+```csharp
+public async Task<string> MyResolver([Parent] Person parent, Person input)
+{
+    // code omitted for brevity.
+}
+```

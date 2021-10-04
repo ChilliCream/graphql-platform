@@ -118,9 +118,9 @@ override HotChocolate.Language.Sha1DocumentHashProvider.ComputeHash(byte[]! docu
 override HotChocolate.Language.Sha1DocumentHashProvider.Name.get -> string!
 override HotChocolate.Language.Sha256DocumentHashProvider.ComputeHash(byte[]! document, int length) -> byte[]!
 override HotChocolate.Language.Sha256DocumentHashProvider.Name.get -> string!
-static HotChocolate.Language.NameUtils.IsValidGraphQLName(string! name) -> bool
+static HotChocolate.Language.NameUtils.IsValidGraphQLName(string? name) -> bool
 static HotChocolate.Language.NameUtils.IsValidGraphQLName(System.ReadOnlySpan<byte> name) -> bool
-static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string! name) -> string?
+static HotChocolate.Language.NameUtils.MakeValidGraphQLName(string? name) -> string?
 static HotChocolate.Language.ParserOptions.Default.get -> HotChocolate.Language.ParserOptions!
 static HotChocolate.Language.ParserOptions.NoLocation.get -> HotChocolate.Language.ParserOptions!
 static HotChocolate.Language.Utf8GraphQLParser.Parse(string! sourceText, HotChocolate.Language.ParserOptions! options) -> HotChocolate.Language.DocumentNode!

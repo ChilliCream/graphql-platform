@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Threading.Tasks.TaskCreationOptions;
 
 namespace HotChocolate.Utilities.Subscriptions
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Utilities.Subscriptions
         : IObserver<T>
         , IAsyncEnumerable<object>
     {
-        private readonly ConcurrentQueue<T> _queue = new ConcurrentQueue<T>();
+        private readonly ConcurrentQueue<T> _queue = new();
         private readonly IDisposable _subscription;
         private TaskCompletionSource<object> _wait;
         private Exception _exception;
@@ -26,7 +27,7 @@ namespace HotChocolate.Utilities.Subscriptions
         {
             try
             {
-                _wait = new TaskCompletionSource<object>();
+                _wait = new TaskCompletionSource<object>(RunContinuationsAsynchronously);
                 cancellationToken.Register(() => _wait.TrySetCanceled());
 
                 while (!cancellationToken.IsCancellationRequested)

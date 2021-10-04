@@ -28,5 +28,9 @@ namespace HotChocolate.Data.Filters
         public List<IFilterProviderExtension> ProviderExtensions { get; } = new();
 
         public List<Type> ProviderExtensionsTypes { get; } = new();
+
+        public bool UseOr { get; set; } = true;
+
+        public bool UseAnd { get; set; } = true;
     }
 }

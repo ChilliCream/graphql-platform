@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Processing
         /// <returns>
         /// The query result that the deferred execution task produced.
         /// </returns>
-        Task<IQueryResult> ExecuteAsync(IOperationContext operationContext);
+        Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext);
 
         /// <summary>
         /// Next and previous are properties that are used by the execution engine to

@@ -24,6 +24,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
@@ -40,6 +41,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.CacheDataLoader<string, string>(
@@ -58,6 +60,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.BatchDataLoader<string, string>(
@@ -77,6 +80,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
@@ -98,6 +102,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddGraphQL()
                     .AddDiagnosticEventListener(_ => listener)
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
@@ -123,6 +128,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                     .AddDiagnosticEventListener(_ => listener1)
                     .AddDiagnosticEventListener(_ => listener2)
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
@@ -144,6 +150,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);
@@ -201,6 +208,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);
@@ -254,7 +262,8 @@ namespace HotChocolate.Execution.Integration.DataLoader
             // arrange
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
-                .AddDataLoader<ITestDataLoader, TestDataLoader>());
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
 
             // act
             var results = new List<IExecutionResult>();
@@ -298,6 +307,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);

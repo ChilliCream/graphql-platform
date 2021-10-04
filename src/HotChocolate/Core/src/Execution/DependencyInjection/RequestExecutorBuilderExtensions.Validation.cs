@@ -150,6 +150,26 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             ConfigureValidation(builder, b => b.AddIntrospectionAllowedRule());
 
+        /// <summary>
+        /// Toggle whether introspection is allow or not.
+        /// </summary>
+        /// <param name="allow">
+        /// If `true` introspection is allowed.
+        /// If `false` introspection is disallowed, except for requests
+        /// that carry an introspection allowed flag.
+        /// </param>
+        public static IRequestExecutorBuilder AllowIntrospection(
+            this IRequestExecutorBuilder builder,
+            bool allow)
+        {
+            if (!allow)
+            {
+                builder.AddIntrospectionAllowedRule();
+            }
+
+            return builder;
+        }
+
         private static IRequestExecutorBuilder ConfigureValidation(
             IRequestExecutorBuilder builder,
             Action<IValidationBuilder> configure)

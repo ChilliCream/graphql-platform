@@ -30,9 +30,9 @@ namespace HotChocolate.AspNetCore
         public string? GraphQLEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the default method.
+        /// Defines if cookies shall be included into the HTTP call to the GraphQL backend.
         /// </summary>
-        public DefaultCredentials? Credentials { get; set; }
+        public bool? IncludeCookies { get; set; }
 
         /// <summary>
         /// Gets or sets the default http headers for Banana Cake Pop.
@@ -53,5 +53,10 @@ namespace HotChocolate.AspNetCore
         /// Specifies the Google analytics tracking ID for Banana Cake Pop.
         /// </summary>
         public string? GaTrackingId { get; set; }
+
+        /// <summary>
+        /// Specifies if the application telemetry events are disabled.
+        /// </summary>
+        public bool? DisableTelemetry { get; set; }
     }
 }

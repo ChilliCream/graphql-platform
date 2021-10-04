@@ -711,22 +711,6 @@ namespace HotChocolate
             return builder;
         }
 
-        private static ISchemaBuilder BindRuntimeTypeInternal(
-            ISchemaBuilder builder,
-            NameString typeName,
-            Type runtimeType)
-        {
-            InitializeResolverTypeInterceptor(builder);
-
-            if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
-                o is Dictionary<NameString, Type> runtimeTypes)
-            {
-                runtimeTypes[typeName] = runtimeType;
-            }
-
-            return builder;
-        }
-
         private static void InitializeResolverTypeInterceptor(ISchemaBuilder builder)
         {
             if (!builder.ContextData.ContainsKey(WellKnownContextData.ResolverConfigs))

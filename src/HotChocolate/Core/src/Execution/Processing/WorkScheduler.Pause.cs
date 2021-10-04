@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -32,11 +33,7 @@ namespace HotChocolate.Execution.Processing
                         return;
                     }
 
-                    if (_continuation is not null)
-                    {
-                        Debug.Assert(false, "We should not have to awaiter,");
-                    }
-
+                    Debug.Assert(_continuation is null, "There should only be one awaiter.");
                     _continuation = continuation;
                 }
             }
