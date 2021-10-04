@@ -80,6 +80,7 @@ override HotChocolate.Types.Spatial.Configuration.SpatialConvention.Complete(Hot
 override HotChocolate.Types.Spatial.Configuration.SpatialConvention.CreateDefinition(HotChocolate.Types.Descriptors.IConventionContext! context) -> HotChocolate.Types.Spatial.Configuration.SpatialConventionDefinition!
 override HotChocolate.Types.Spatial.GeoJsonInputType<T>.OnCompleteCreateInstance(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> System.Func<object?[]!, object!>!
 override HotChocolate.Types.Spatial.GeoJsonInputType<T>.OnCompleteGetFieldValues(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> System.Action<object!, object?[]!>!
+override HotChocolate.Types.Spatial.GeoJsonPositionType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
 override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax) -> object?
 override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
 override HotChocolate.Types.Spatial.GeoJsonPositionType.ParseValue(object? value) -> HotChocolate.Language.IValueNode!

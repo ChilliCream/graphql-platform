@@ -60,6 +60,47 @@ namespace HotChocolate.Subscriptions.Redis
             await result.DisposeAsync();
         }
 
+        [Fact]
+        public async Task SubscribeAndComplete_GetMultiPlexerFromId()
+        {
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IConnectionMultiplexer>(_connection)
+                .AddGraphQL()
+                .AddRedisSubscriptions()
+                .AddQueryType(d => d
+                    .Name("foo")
+                    .Field("a")
+                    .Resolve("b"))
+                .AddSubscriptionType<Subscription>()
+                .Services
+                .BuildServiceProvider();
+
+            var sender = services.GetRequiredService<ITopicEventSender>();
+            var executorResolver = services.GetRequiredService<IRequestExecutorResolver>();
+            IRequestExecutor executor = await executorResolver.GetRequestExecutorAsync();
+
+            var cts = new CancellationTokenSource(10000);
+
+            // act
+            var result = (ISubscriptionResult)await executor.ExecuteAsync(
+                "subscription { onMessage }",
+                cts.Token);
+
+            // assert
+            await sender.SendAsync("OnMessage", "bar", cts.Token);
+            await sender.CompleteAsync("OnMessage");
+
+            await foreach (IQueryResult response in result.ReadResultsAsync()
+                .WithCancellation(cts.Token))
+            {
+                Assert.Null(response.Errors);
+                Assert.Equal("bar", response.Data!["onMessage"]);
+            }
+
+            await result.DisposeAsync();
+        }
+
         public class FooType : InputObjectType
         {
             protected override void Configure(
