@@ -33,71 +33,97 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
         public ISyntaxNode Rewrite(ISyntaxNode node, ISchemaRewriterContext context)
         {
-            string? name = null;
-            IReadOnlyList<DirectiveNode> directives = Array.Empty<DirectiveNode>();
+            ISyntaxNode? parent = null;
 
             switch (node)
             {
                 case EnumTypeDefinitionNode type:
-                    if (_renames.TryGetValue(type.Name.Value, out name))
-                    {
-                        return type.WithName(new NameNode(name));
-                    }
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case EnumTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case ObjectTypeDefinitionNode type:
-                    if (_renames.TryGetValue(type.Name.Value, out name))
-                    {
-                        return type.WithName(new NameNode(name));
-                    }
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case ObjectTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case InterfaceTypeDefinitionNode type:
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case InterfaceTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case UnionTypeDefinitionNode type:
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case UnionTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case InputObjectTypeDefinitionNode type:
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case InputObjectTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case ScalarTypeDefinitionNode type:
-                    return node;
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
+
+                case ScalarTypeExtensionNode type:
+                    type = ApplyRenameDirective(type, type.WithName);
+                    return RemoveRenameDirectives(type, type.WithDirectives);
 
                 case EnumValueDefinitionNode value:
-                    return node;
+                    parent = context.Path.Peek();
+
+                    if (parent is EnumTypeDefinitionNodeBase enumType)
+                    {
+                        value = ApplyRenameDirective(value, enumType, value.WithName);
+                    }
+
+                    return RemoveRenameDirectives(value, value.WithDirectives);
 
                 case FieldDefinitionNode field:
-                    directives = RemoveRenameDirectives(field.Directives);
-                    if (directives.Count != field.Directives.Count)
+                    parent = context.Path.Peek();
+
+                    if (parent.Kind is SyntaxKind.ObjectTypeDefinition ||
+                        parent.Kind is SyntaxKind.ObjectTypeExtension ||
+                        parent.Kind is SyntaxKind.InterfaceTypeDefinition ||
+                        parent.Kind is SyntaxKind.InterfaceTypeExtension)
                     {
-                        field = field.WithDirectives(directives);
+                        field = ApplyRenameDirective(field, (IHasName)parent, field.WithName);
                     }
-                    return node;
+
+                    return RemoveRenameDirectives(field, field.WithDirectives);
 
                 case InputValueDefinitionNode input:
-                    directives = RemoveRenameDirectives(input.Directives);
-                    if (directives.Count != input.Directives.Count)
+                    parent = context.Path.Peek();
+
+                    if (parent.Kind is SyntaxKind.InputObjectTypeDefinition ||
+                        parent.Kind is SyntaxKind.InputObjectTypeExtension)
                     {
-                        input = input.WithDirectives(directives);
+                        input = ApplyRenameDirective(input, (IHasName)parent, input.WithName);
                     }
-                    return node;
+
+                    return RemoveRenameDirectives(input, input.WithDirectives);
 
                 case SchemaDefinitionNode schema:
-                    directives = RemoveRenameDirectives(schema.Directives);
-                    if (directives.Count != schema.Directives.Count)
-                    {
-                        schema = schema.WithDirectives(directives);
-                    }
-                    return schema;
+                    return RemoveRenameDirectives(schema, schema.WithDirectives);
 
                 case SchemaExtensionNode schema:
-                    directives = RemoveRenameDirectives(schema.Directives);
-                    if (directives.Count != schema.Directives.Count)
-                    {
-                        schema = schema.WithDirectives(directives);
-                    }
-                    return schema;
+                    return RemoveRenameDirectives(schema, schema.WithDirectives);
 
                 default:
                     return node;
@@ -107,7 +133,19 @@ namespace HotChocolate.Stitching.SchemaBuilding
         private void RegisterRename(Rename rename)
             => _renames.Add(rename.From.ToString(), rename.To.FieldName ?? rename.To.TypeName);
 
-        private T RemoveRenameDirectives<T>(T node, Func<T, T> rewrite)
+        private T ApplyRenameDirective<T>(T node, Func<NameNode, T> rewrite)
+            where T : ISyntaxNode, IHasName
+            => _renames.TryGetValue(node.Name.Value, out string? name)
+                ? rewrite(new NameNode(name))
+                : node;
+
+        private T ApplyRenameDirective<T>(T node, IHasName parent, Func<NameNode, T> rewrite)
+            where T : ISyntaxNode, IHasName
+            => _renames.TryGetValue($"{parent.Name.Value}.{node.Name.Value}", out string? name)
+                ? rewrite(new NameNode(name))
+                : node;
+
+        private T RemoveRenameDirectives<T>(T node, Func<IReadOnlyList<DirectiveNode>, T> rewrite)
             where T : ISyntaxNode, IHasDirectives
         {
             if (node.Directives.Count == 0)
@@ -122,9 +160,9 @@ namespace HotChocolate.Stitching.SchemaBuilding
                 DirectiveNode directive = node.Directives[i];
                 bool remove = directive.Name.Value.Equals(_rename, StringComparison.Ordinal);
 
-                if (rewritten is not null)
+                if (!remove && rewritten is not null)
                 {
-
+                    rewritten.Add(directive);
                 }
                 else if (remove)
                 {
@@ -134,11 +172,13 @@ namespace HotChocolate.Stitching.SchemaBuilding
                     {
                         for (int j = 0; j < i; j++)
                         {
-                            rewritten.Add(dire)
+                            rewritten.Add(node.Directives[j]);
                         }
                     }
                 }
             }
+
+            return rewritten is null ? node : rewrite(rewritten);
         }
 
         private struct Rename

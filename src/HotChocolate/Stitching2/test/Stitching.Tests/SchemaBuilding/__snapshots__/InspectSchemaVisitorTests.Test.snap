@@ -1,7 +1,0 @@
-﻿schema @rename(from: "Foo", to: "Bar") {
-
-}
-
-type Bar {
-  field: String
-}

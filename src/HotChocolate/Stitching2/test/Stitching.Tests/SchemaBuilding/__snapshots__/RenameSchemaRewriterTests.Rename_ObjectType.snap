@@ -1,0 +1,7 @@
+﻿extend schema {
+
+}
+
+type Bar {
+  field: String
+}

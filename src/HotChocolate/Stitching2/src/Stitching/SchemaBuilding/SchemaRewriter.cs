@@ -83,6 +83,66 @@ namespace HotChocolate.Stitching.SchemaBuilding
             return current;
         }
 
+        protected override InterfaceTypeDefinitionNode RewriteInterfaceTypeDefinition(
+            InterfaceTypeDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteInterfaceTypeDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override InterfaceTypeExtensionNode RewriteInterfaceTypeExtension(
+            InterfaceTypeExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteInterfaceTypeExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override SchemaDefinitionNode RewriteSchemaDefinition(
+            SchemaDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteSchemaDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override SchemaExtensionNode RewriteSchemaExtension(
+            SchemaExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteSchemaExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
         private TSyntaxNode ApplyRewriter<TSyntaxNode>(
             TSyntaxNode node,
             ISchemaRewriterContext context)
