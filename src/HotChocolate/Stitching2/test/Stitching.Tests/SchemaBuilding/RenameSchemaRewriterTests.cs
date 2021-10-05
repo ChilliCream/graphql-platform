@@ -94,6 +94,14 @@ namespace HotChocolate.Stitching.SchemaBuilding
                 
                 extend scalar Foo @baz");
 
+        [Fact]
+        public void Build_Context()
+            => Rewrite(
+                @"type Foo { 
+                    field: String 
+                }",
+                @"extend schema @rename(from: ""Foo"", to: ""Bar"")");
+
         private void Rewrite(string schema, params string[] extensions)
         {
             // arrange
