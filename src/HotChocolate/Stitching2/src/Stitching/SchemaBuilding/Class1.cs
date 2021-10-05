@@ -20,9 +20,10 @@ namespace HotChocolate.Stitching.SchemaBuilding
         ISyntaxNode Rewrite(ISyntaxNode node, ISchemaRewriterContext context);
     }
 
-
     public interface ISchemaRewriterContext : ISyntaxVisitorContext
     {
+        ISyntaxNode? Node { get; set; }
+
         SchemaConfiguration Configuration { get; }
 
         List<ISyntaxNode> Path { get; }
@@ -32,6 +33,8 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
     public class SchemaRewriterContext : ISchemaRewriterContext
     {
+        public ISyntaxNode? Node { get; set; }
+
         public SchemaConfiguration Configuration { get; }
 
         public List<ISyntaxNode> Path { get; } = new();

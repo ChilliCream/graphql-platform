@@ -7,6 +7,10 @@ namespace HotChocolate.Stitching.SchemaBuilding
 {
     public class RenameSchemaRewriter : ISchemaRewriter
     {
+        private const string _rename = "rename";
+        private const string _to = "to";
+        private const string _from = "from";
+
         private readonly Dictionary<string, string> _renames = new();
 
         public void Inspect(DirectiveNode directive, ISchemaRewriterContext context)
@@ -21,7 +25,7 @@ namespace HotChocolate.Stitching.SchemaBuilding
                     case SyntaxKind.SchemaExtension:
                     case SyntaxKind.SchemaDefinition:
                         rename.EnsureFromHasValue();
-                        _renames.Add(rename);
+                        RegisterRename(rename);
                         break;
                 }
             }
@@ -29,27 +33,111 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
         public ISyntaxNode Rewrite(ISyntaxNode node, ISchemaRewriterContext context)
         {
+            string? name = null;
+            IReadOnlyList<DirectiveNode> directives = Array.Empty<DirectiveNode>();
+
             switch (node)
             {
                 case EnumTypeDefinitionNode type:
-                    if (_renames.TryGetValue(type.Name.Value, out var name))
-                    { 
+                    if (_renames.TryGetValue(type.Name.Value, out name))
+                    {
                         return type.WithName(new NameNode(name));
                     }
                     return node;
 
-                case SyntaxKind.ObjectTypeDefinition:
-                case SyntaxKind.InterfaceTypeDefinition:
-                case SyntaxKind.UnionTypeDefinition:
-                case SyntaxKind.InputObjectTypeDefinition:
-                case SyntaxKind.ScalarTypeDefinition:
-                case SyntaxKind.EnumValueDefinition:
-                case SyntaxKind.InputValueDefinition:
-                case SyntaxKind.FieldDefinition:
-                    break;
+                case ObjectTypeDefinitionNode type:
+                    if (_renames.TryGetValue(type.Name.Value, out name))
+                    {
+                        return type.WithName(new NameNode(name));
+                    }
+                    return node;
+
+                case InterfaceTypeDefinitionNode type:
+                    return node;
+
+                case UnionTypeDefinitionNode type:
+                    return node;
+
+                case InputObjectTypeDefinitionNode type:
+                    return node;
+
+                case ScalarTypeDefinitionNode type:
+                    return node;
+
+                case EnumValueDefinitionNode value:
+                    return node;
+
+                case FieldDefinitionNode field:
+                    directives = RemoveRenameDirectives(field.Directives);
+                    if (directives.Count != field.Directives.Count)
+                    {
+                        field = field.WithDirectives(directives);
+                    }
+                    return node;
+
+                case InputValueDefinitionNode input:
+                    directives = RemoveRenameDirectives(input.Directives);
+                    if (directives.Count != input.Directives.Count)
+                    {
+                        input = input.WithDirectives(directives);
+                    }
+                    return node;
+
+                case SchemaDefinitionNode schema:
+                    directives = RemoveRenameDirectives(schema.Directives);
+                    if (directives.Count != schema.Directives.Count)
+                    {
+                        schema = schema.WithDirectives(directives);
+                    }
+                    return schema;
+
+                case SchemaExtensionNode schema:
+                    directives = RemoveRenameDirectives(schema.Directives);
+                    if (directives.Count != schema.Directives.Count)
+                    {
+                        schema = schema.WithDirectives(directives);
+                    }
+                    return schema;
 
                 default:
                     return node;
+            }
+        }
+
+        private void RegisterRename(Rename rename)
+            => _renames.Add(rename.From.ToString(), rename.To.FieldName ?? rename.To.TypeName);
+
+        private T RemoveRenameDirectives<T>(T node, Func<T, T> rewrite)
+            where T : ISyntaxNode, IHasDirectives
+        {
+            if (node.Directives.Count == 0)
+            {
+                return node;
+            }
+
+            List<DirectiveNode>? rewritten = null;
+
+            for (int i = 0; i < node.Directives.Count; i++)
+            {
+                DirectiveNode directive = node.Directives[i];
+                bool remove = directive.Name.Value.Equals(_rename, StringComparison.Ordinal);
+
+                if (rewritten is not null)
+                {
+
+                }
+                else if (remove)
+                {
+                    rewritten = new();
+
+                    if (i > 0)
+                    {
+                        for (int j = 0; j < i; j++)
+                        {
+                            rewritten.Add(dire)
+                        }
+                    }
+                }
             }
         }
 
@@ -77,7 +165,7 @@ namespace HotChocolate.Stitching.SchemaBuilding
                 {
                     ArgumentNode argument = directive.Arguments[0];
 
-                    if (!argument.Name.Value.Equals("to", StringComparison.Ordinal))
+                    if (!argument.Name.Value.Equals(_to, StringComparison.Ordinal))
                     {
                         throw new Exception("");
                     }
@@ -95,11 +183,11 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
                 foreach (ArgumentNode arg in directive.Arguments)
                 {
-                    if (arg.Name.Value.Equals("to", StringComparison.Ordinal))
+                    if (arg.Name.Value.Equals(_to, StringComparison.Ordinal))
                     {
                         to = arg;
                     }
-                    else if (arg.Name.Value.Equals("from", StringComparison.Ordinal))
+                    else if (arg.Name.Value.Equals(_from, StringComparison.Ordinal))
                     {
                         from = arg;
                     }

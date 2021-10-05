@@ -4,7 +4,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Stitching.SchemaBuilding
 {
-    public class InspectSchemaVisitor : SyntaxVisitor<ISchemaRewriterContext>
+    public class SchemaInspector : SyntaxVisitor<ISchemaRewriterContext>
     {
         private readonly static HashSet<SyntaxKind> _types = new()
         {
@@ -49,8 +49,7 @@ namespace HotChocolate.Stitching.SchemaBuilding
         {
             context.Path.Push(node);
 
-            if (_types.Contains(node.Kind) &&
-                node is IHasDirectives type)
+            if (_types.Contains(node.Kind) && node is IHasDirectives type)
             {
                 foreach (ISchemaRewriter rewriter in context.Rewriters)
                 {
