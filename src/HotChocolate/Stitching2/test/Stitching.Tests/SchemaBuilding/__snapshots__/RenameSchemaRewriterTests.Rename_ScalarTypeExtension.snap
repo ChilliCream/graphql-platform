@@ -1,0 +1,5 @@
+﻿extend schema {
+
+}
+
+extend scalar Bar @baz

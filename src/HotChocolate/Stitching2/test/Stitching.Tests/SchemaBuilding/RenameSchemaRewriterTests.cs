@@ -47,6 +47,20 @@ namespace HotChocolate.Stitching.SchemaBuilding
                 }");
 
         [Fact]
+        public void Rename_UnionType()
+            => Rewrite(@"
+                extend schema @rename(from: ""Foo"", to: ""Bar"")
+                
+                union Foo = Abc | Def");
+
+        [Fact]
+        public void Rename_UnionTypeExtension()
+            => Rewrite(@"
+                extend schema @rename(from: ""Foo"", to: ""Bar"")
+                
+                extend union Foo = Abc | Def");
+
+        [Fact]
         public void Rename_EnumType()
             => Rewrite(@"
                 extend schema @rename(from: ""Foo"", to: ""Bar"")
@@ -65,6 +79,20 @@ namespace HotChocolate.Stitching.SchemaBuilding
                     ABC
                     DEF
                 }");
+
+        [Fact]
+        public void Rename_ScalarType()
+            => Rewrite(@"
+                extend schema @rename(from: ""Foo"", to: ""Bar"")
+                
+                scalar Foo");
+
+        [Fact]
+        public void Rename_ScalarTypeExtension()
+            => Rewrite(@"
+                extend schema @rename(from: ""Foo"", to: ""Bar"")
+                
+                extend scalar Foo @baz");
 
         private void Rewrite(string schema, params string[] extensions)
         {

@@ -23,36 +23,6 @@ namespace HotChocolate.Stitching.SchemaBuilding
             SyntaxKind.SchemaExtension
         };
 
-        protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
-            EnumTypeDefinitionNode node,
-            ISchemaRewriterContext context)
-        {
-            var current = node;
-
-            current = ApplyRewriter(current, context);
-
-            context.Path.Push(current);
-            current = base.RewriteEnumTypeDefinition(current, context);
-            context.Path.Pop();
-
-            return current;
-        }
-
-        protected override EnumTypeExtensionNode RewriteEnumTypeExtension(
-            EnumTypeExtensionNode node,
-            ISchemaRewriterContext context)
-        {
-            var current = node;
-
-            current = ApplyRewriter(current, context);
-
-            context.Path.Push(current);
-            current = base.RewriteEnumTypeExtension(current, context);
-            context.Path.Pop();
-
-            return current;
-        }
-
         protected override ObjectTypeDefinitionNode RewriteObjectTypeDefinition(
             ObjectTypeDefinitionNode node,
             ISchemaRewriterContext context)
@@ -108,6 +78,96 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
             context.Path.Push(current);
             current = base.RewriteInterfaceTypeExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override UnionTypeDefinitionNode RewriteUnionTypeDefinition(
+            UnionTypeDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteUnionTypeDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override UnionTypeExtensionNode RewriteUnionTypeExtension(
+            UnionTypeExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteUnionTypeExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
+            EnumTypeDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteEnumTypeDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override EnumTypeExtensionNode RewriteEnumTypeExtension(
+            EnumTypeExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteEnumTypeExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override ScalarTypeDefinitionNode RewriteScalarTypeDefinition(
+            ScalarTypeDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteScalarTypeDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override ScalarTypeExtensionNode RewriteScalarTypeExtension(
+            ScalarTypeExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteScalarTypeExtension(current, context);
             context.Path.Pop();
 
             return current;
