@@ -3,8 +3,7 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public static partial class StarWarsClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.StarWarsClientStoreAccessor> AddStarWarsClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.StarWarsClientProfileKind.Default)
@@ -55,6 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp));
@@ -94,6 +94,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetPeopleResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>>(sp));
@@ -134,8 +135,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleResult : global::System.IEquatable<GetPeopleResult>, IGetPeopleResult
     {
         public GetPeopleResult(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? people)
@@ -203,11 +203,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeople_People_PersonConnection : global::System.IEquatable<GetPeople_People_PersonConnection>, IGetPeople_People_PersonConnection
     {
         public GetPeople_People_PersonConnection(global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? nodes)
@@ -281,8 +280,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeople_People_Nodes_Person : global::System.IEquatable<GetPeople_People_Nodes_Person>, IGetPeople_People_Nodes_Person
     {
         public GetPeople_People_Nodes_Person(global::System.String name, global::System.String email, global::System.Boolean isOnline, global::System.DateTimeOffset lastSeen)
@@ -355,8 +353,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeopleResult
     {
         /// <summary>
@@ -365,11 +362,10 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People? People { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeople_People
     {
         /// <summary>
@@ -378,17 +374,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeople_People_Nodes?>? Nodes { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     /// <summary>
     /// A connection to a list of items.
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeople_People_PersonConnection : IGetPeople_People
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeople_People_Nodes
     {
         public global::System.String Name { get; }
@@ -400,13 +394,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         public global::System.DateTimeOffset LastSeen { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeople_People_Nodes_Person : IGetPeople_People_Nodes
     {
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -427,7 +419,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleQueryDocument : global::StrawberryShake.IDocument
     {
         private GetPeopleQueryDocument()
@@ -448,7 +440,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -469,7 +460,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleQuery : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetPeopleResult> _operationExecutor;
@@ -507,7 +498,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetPeople GraphQL operation
     /// <code>
@@ -528,18 +518,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetPeopleQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPeopleResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPeopleResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the StarWarsClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class StarWarsClient : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IStarWarsClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery _getPeople;
@@ -552,18 +541,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople => _getPeople;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the StarWarsClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IStarWarsClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleQuery GetPeople { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public enum StarWarsClientProfileKind
     {
         Default,
@@ -573,7 +560,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityTypeGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class PersonEntity
     {
@@ -594,8 +580,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         public global::System.DateTimeOffset LastSeen { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -679,8 +664,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -705,8 +689,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultFromEntityTypeMapperGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeople_People_Nodes_PersonFromPersonEntityMapper : global::StrawberryShake.IEntityMapper<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.PersonEntity, GetPeople_People_Nodes_Person>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -726,8 +709,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetPeopleBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetPeopleResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -883,7 +865,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DataTypeGenerator
     ///<summary>A connection to a list of items.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class PersonConnectionData
@@ -900,8 +881,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.EntityId?>? Nodes { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class StarWarsClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -943,8 +923,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class StarWarsClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public StarWarsClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)

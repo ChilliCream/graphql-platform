@@ -1,0 +1,13 @@
+﻿{
+  "errors": [
+    {
+      "message": "Sequence contains more than one element.",
+      "extensions": {
+        "code": "HC0022"
+      }
+    }
+  ],
+  "data": {
+    "executable": null
+  }
+}

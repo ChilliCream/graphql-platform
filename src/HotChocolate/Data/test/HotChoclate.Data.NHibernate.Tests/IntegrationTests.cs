@@ -10,7 +10,8 @@ namespace HotChocolate.Data
 {
     using System.Linq;
 
-    public class IntegrationTests : IClassFixture<AuthorFixture>
+    [Collection("nhibernate-integration")]
+    public class IntegrationTests 
     {
         private readonly IQueryable<Author> _authors;
         private readonly IQueryable<SingleOrDefaultAuthor> _singleOrDefaultAuthors;

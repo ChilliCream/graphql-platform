@@ -2,8 +2,8 @@
 namespace HotChoclate.Data
 {
     using System;
-    using global::NHibernate;
-    using global::NHibernate.SqlCommand;
+    using NHibernate;
+    using NHibernate.SqlCommand;
 
     public class AuditTrailInterceptor : EmptyInterceptor
     {

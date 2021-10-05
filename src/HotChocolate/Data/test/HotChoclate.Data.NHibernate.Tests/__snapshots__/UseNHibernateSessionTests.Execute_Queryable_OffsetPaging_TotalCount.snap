@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 21
+        }
+      ],
+      "path": [
+        "authorOffsetPaging"
+      ]
+    }
+  ],
+  "data": {
+    "authorOffsetPaging": null
+  }
+}

@@ -7,7 +7,7 @@ namespace HotChocolate.Data
     using System.Threading.Tasks;
     using Execution;
     using FluentNHibernate.Cfg.Db;
-    using HotChoclate.Data.NHibernate.Extensions;
+    using HotChoclate.Data;
     using Microsoft.Extensions.DependencyInjection;
     using NHibernate;
     using NHibernate.Cfg;

@@ -6,6 +6,7 @@ namespace HotChocolate.Data
     using System.Linq;
     using Microsoft.Extensions.DependencyInjection;
     using NHibernate;
+    using Xunit;
 
     public class AuthorFixture : InMemoryDatabaseTest
     {
@@ -51,5 +52,12 @@ namespace HotChocolate.Data
         {
             File.Delete(_fileName);
         }
+    }
+
+
+    [CollectionDefinition("nhibernate-integration")]
+    public class IntegrationCollection : ICollectionFixture<AuthorFixture>
+    {
+
     }
 }

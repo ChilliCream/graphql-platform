@@ -5,7 +5,8 @@ namespace HotChocolate.Data
     using Snapshooter.Xunit;
     using Xunit;
 
-    public class NHibernateExecutableTests : IClassFixture<AuthorFixture>
+    [Collection("nhibernate-integration")]
+    public class NHibernateExecutableTests
     {
         private readonly IQueryable<Author> _authors;
 

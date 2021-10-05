@@ -13,15 +13,15 @@
 // <lastchangedby>Viswanathan, Satish</lastchangedby>
 // <lastchangeddate>2021-09-02</lastchangeddate>
 
-namespace HotChoclate.Data.NHibernate.Extensions
+namespace HotChoclate.Data
 {
     using System;
     using System.Reflection;
     using FluentNHibernate.Cfg;
     using FluentNHibernate.Cfg.Db;
-    using global::NHibernate;
-    using global::NHibernate.Cfg;
-    using global::NHibernate.Tool.hbm2ddl;
+    using NHibernate;
+    using NHibernate.Cfg;
+    using NHibernate.Tool.hbm2ddl;
     using Microsoft.Extensions.DependencyInjection;
 
     public static class NHibernateFactory

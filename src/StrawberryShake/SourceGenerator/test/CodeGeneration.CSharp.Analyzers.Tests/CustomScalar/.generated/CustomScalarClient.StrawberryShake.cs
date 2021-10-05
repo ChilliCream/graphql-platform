@@ -3,8 +3,7 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.DependencyInjectionGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public static partial class CustomScalarClientServiceCollectionExtensions
     {
         public static global::StrawberryShake.IClientBuilder<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.CustomScalarClientStoreAccessor> AddCustomScalarClient(this global::Microsoft.Extensions.DependencyInjection.IServiceCollection services, global::StrawberryShake.ExecutionStrategy strategy = global::StrawberryShake.ExecutionStrategy.NetworkOnly, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.CustomScalarClientProfileKind profile = global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.CustomScalarClientProfileKind.Default)
@@ -54,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetCustomValueResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueResult>>(sp));
@@ -92,6 +92,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueResult>, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State.GetCustomValueResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueResult>>(sp));
@@ -132,8 +133,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultTypeGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueResult : global::System.IEquatable<GetCustomValueResult>, IGetCustomValueResult
     {
         public GetCustomValueResult(global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.Custom? customScalar)
@@ -198,14 +198,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetCustomValueResult
     {
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.Custom? CustomScalar { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationDocumentGenerator
     /// <summary>
     /// Represents the operation service of the GetCustomValue GraphQL operation
     /// <code>
@@ -214,7 +212,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueQueryDocument : global::StrawberryShake.IDocument
     {
         private GetCustomValueQueryDocument()
@@ -235,7 +233,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceGenerator
     /// <summary>
     /// Represents the operation service of the GetCustomValue GraphQL operation
     /// <code>
@@ -244,7 +241,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueQuery : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueQuery
     {
         private readonly global::StrawberryShake.IOperationExecutor<IGetCustomValueResult> _operationExecutor;
@@ -282,7 +279,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.OperationServiceInterfaceGenerator
     /// <summary>
     /// Represents the operation service of the GetCustomValue GraphQL operation
     /// <code>
@@ -291,18 +287,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
     /// }
     /// </code>
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface IGetCustomValueQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetCustomValueResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetCustomValueResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
     /// <summary>
     /// Represents the CustomScalarClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class CustomScalarClient : global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.ICustomScalarClient
     {
         private readonly global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueQuery _getCustomValue;
@@ -315,18 +310,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
         public global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueQuery GetCustomValue => _getCustomValue;
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ClientInterfaceGenerator
     /// <summary>
     /// Represents the CustomScalarClient GraphQL client
     /// </summary>
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public interface ICustomScalarClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueQuery GetCustomValue { get; }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.TransportProfileEnumGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public enum CustomScalarClientProfileKind
     {
         Default,
@@ -336,8 +329,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
 {
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultDataFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueResultFactory : global::StrawberryShake.IOperationResultDataFactory<global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.GetCustomValueResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -368,8 +360,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInfoGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueResultInfo : global::StrawberryShake.IOperationResultDataInfo
     {
         private readonly global::System.Collections.Generic.IReadOnlyCollection<global::StrawberryShake.EntityId> _entityIds;
@@ -391,8 +382,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.JsonResultBuilderGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class GetCustomValueBuilder : global::StrawberryShake.IOperationResultBuilder<global::System.Text.Json.JsonDocument, global::StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.IGetCustomValueResult>
     {
         private readonly global::StrawberryShake.IEntityStore _entityStore;
@@ -464,8 +454,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.EntityIdFactoryGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class CustomScalarClientEntityIdFactory : global::StrawberryShake.IEntityIdSerializer
     {
         private static readonly global::System.Text.Json.JsonWriterOptions _options = new global::System.Text.Json.JsonWriterOptions()
@@ -490,8 +479,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers.Tests.State
         }
     }
 
-    // StrawberryShake.CodeGeneration.CSharp.Generators.StoreAccessorGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "12.0.0.0")]
     public partial class CustomScalarClientStoreAccessor : global::StrawberryShake.StoreAccessor
     {
         public CustomScalarClientStoreAccessor(global::StrawberryShake.IOperationStore operationStore, global::StrawberryShake.IEntityStore entityStore, global::StrawberryShake.IEntityIdSerializer entityIdSerializer, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationRequestFactory> requestFactories, global::System.Collections.Generic.IEnumerable<global::StrawberryShake.IOperationResultDataFactory> resultDataFactories): base(operationStore, entityStore, entityIdSerializer, requestFactories, resultDataFactories)

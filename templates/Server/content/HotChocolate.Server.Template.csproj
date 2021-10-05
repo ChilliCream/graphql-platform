@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate.AspNetCore" Version="11.1.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="11.1.0" />
-    <PackageReference Include="HotChocolate.Data" Version="11.1.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.3.7" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="11.3.7" />
+    <PackageReference Include="HotChocolate.Data" Version="11.3.7" />
   </ItemGroup>
 
 </Project>
