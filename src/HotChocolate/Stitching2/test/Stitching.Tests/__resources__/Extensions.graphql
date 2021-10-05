@@ -25,7 +25,6 @@ schema
     @remove(name: "defer")
     @remove(name: "deprecated")
     @rename(from: "User.birthdate" to: "User.birth")
-    @source(schema: "Foo" name: "Bar.baz")
 { 
 
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -12,44 +11,6 @@ namespace HotChocolate.Stitching.SchemaBuilding
     public class NodeIdentifier
     {
 
-    }
-
-    public class S : SyntaxVisitor<ISchemaRewriterContext>
-    {
-        private static HashSet<SyntaxKind> _types = new()
-        {
-            SyntaxKind.EnumTypeDefinition,
-            SyntaxKind.EnumTypeExtension,
-            SyntaxKind.ObjectTypeDefinition,
-            SyntaxKind.ObjectTypeExtension,
-            SyntaxKind.InterfaceTypeDefinition,
-            SyntaxKind.InterfaceTypeExtension,
-            SyntaxKind.UnionTypeDefinition,
-            SyntaxKind.UnionTypeExtension,
-            SyntaxKind.EnumTypeDefinition,
-            SyntaxKind.EnumTypeExtension,
-            SyntaxKind.EnumTypeDefinition,
-            SyntaxKind.EnumTypeExtension,
-        }
-
-
-        protected override ISyntaxVisitorAction Enter(
-            ISyntaxNode node,
-            ISchemaRewriterContext context)
-        {
-
-
-            return base.Enter(node, context);
-        }
-
-        protected override ISyntaxVisitorAction Leave(
-            ISyntaxNode node,
-            ISchemaRewriterContext context)
-        {
-
-
-            return base.Leave(node, context);
-        }
     }
 
     public interface ISchemaRewriter
@@ -66,7 +27,16 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
         List<ISyntaxNode> Path { get; }
 
+        List<ISchemaRewriter> Rewriters { get; }
+    }
 
+    public class SchemaRewriterContext : ISchemaRewriterContext
+    {
+        public SchemaConfiguration Configuration { get; }
+
+        public List<ISyntaxNode> Path { get; } = new();
+
+        public List<ISchemaRewriter> Rewriters { get; } = new();
     }
 
     public class SchemaConfiguration
