@@ -202,7 +202,37 @@ namespace HotChocolate.Stitching.SchemaBuilding
 
             return current;
         }
+        
+        protected override FieldDefinitionNode RewriteFieldDefinition(
+            FieldDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
 
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteFieldDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override InputValueDefinitionNode RewriteInputValueDefinition(
+            InputValueDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteInputValueDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+        
         private TSyntaxNode ApplyRewriter<TSyntaxNode>(
             TSyntaxNode node,
             ISchemaRewriterContext context)

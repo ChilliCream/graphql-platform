@@ -27,6 +27,31 @@ namespace HotChocolate.Stitching.SchemaBuilding
                         rename.EnsureFromHasValue();
                         RegisterRename(rename);
                         break;
+
+                    case SyntaxKind.ObjectTypeDefinition:
+                    case SyntaxKind.ObjectTypeExtension:
+                    case SyntaxKind.InterfaceTypeDefinition:
+                    case SyntaxKind.InterfaceTypeExtension:
+                    case SyntaxKind.UnionTypeDefinition:
+                    case SyntaxKind.UnionTypeExtension:
+                    case SyntaxKind.InputObjectTypeDefinition:
+                    case SyntaxKind.InputObjectTypeExtension:
+                    case SyntaxKind.EnumTypeDefinition:
+                    case SyntaxKind.EnumTypeExtension:
+                    case SyntaxKind.ScalarTypeDefinition:
+                    case SyntaxKind.ScalarTypeExtension:
+                        rename.EnsureFromHasNoValue();
+                        rename.From = ((IHasName)parent).Name.Value;
+                        RegisterRename(rename);
+                        break;
+
+                    case SyntaxKind.FieldDefinition:
+                        rename.EnsureFromHasNoValue();
+                        rename.From = new SchemaCoordinate(
+                            ((IHasName)context.Path.Peek(2)).Name.Value, 
+                            ((IHasName)parent).Name.Value);
+                        RegisterRename(rename);
+                        break;
                 }
             }
         }
@@ -189,6 +214,14 @@ namespace HotChocolate.Stitching.SchemaBuilding
             public void EnsureFromHasValue()
             {
                 if (!From.HasValue)
+                {
+                    throw new Exception("");
+                }
+            }
+
+            public void EnsureFromHasNoValue()
+            {
+                if (From.HasValue)
                 {
                     throw new Exception("");
                 }
