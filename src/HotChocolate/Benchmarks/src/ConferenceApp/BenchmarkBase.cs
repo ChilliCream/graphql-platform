@@ -185,7 +185,9 @@ namespace HotChocolate.ConferencePlanner
                     // Now we add some the DataLoader to our system.
                     .AddDataLoader<AttendeeByIdDataLoader>()
                     .AddDataLoader<SessionByIdDataLoader>()
+                    .AddDataLoader<SessionBySpeakerIdDataLoader>()
                     .AddDataLoader<SpeakerByIdDataLoader>()
+                    .AddDataLoader<SpeakerBySessionIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
                     // .AddDiagnosticEventListener<BatchDiagnostics>()
@@ -221,7 +223,7 @@ namespace HotChocolate.ConferencePlanner
 
     public class BatchDiagnostics : DiagnosticEventListener
     {
-        public override IActivityScope ExecuteRequest(IRequestContext context)
+        public override IDisposable ExecuteRequest(IRequestContext context)
         {
             var scope = new RequestScope();
             context.ContextData[nameof(RequestScope)] = scope;
@@ -229,7 +231,7 @@ namespace HotChocolate.ConferencePlanner
             return scope;
         }
 
-        public override IActivityScope DispatchBatch(
+        public override IDisposable DispatchBatch(
             IRequestContext context)
         {
             return new BatchScope(((RequestScope)context.ContextData[nameof(RequestScope)]!));
@@ -247,12 +249,12 @@ namespace HotChocolate.ConferencePlanner
             Console.WriteLine($"{timeSpan} Stop processing.");
         }
 
-        public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+        public override IDisposable ResolveFieldValue(IMiddlewareContext context)
         {
             return new ResolverScope(((RequestScope)context.ContextData[nameof(RequestScope)]!), (ISelection)context.Selection);
         }
 
-        private class RequestScope : IActivityScope
+        private class RequestScope : IDisposable
         {
             private readonly Stopwatch _stopwatch;
             private readonly System.Collections.Concurrent.ConcurrentDictionary<FieldCoordinate, int> _ = new();
@@ -294,7 +296,7 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
-        private class BatchScope : IActivityScope
+        private class BatchScope : IDisposable
         {
             private RequestScope _requestScope;
 
@@ -310,7 +312,7 @@ namespace HotChocolate.ConferencePlanner
             }
         }
 
-        private class ResolverScope : IActivityScope
+        private class ResolverScope : IDisposable
         {
             private RequestScope _requestScope;
             private ISelection _selection;

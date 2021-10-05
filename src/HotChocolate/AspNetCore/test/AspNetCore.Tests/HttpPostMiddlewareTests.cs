@@ -226,6 +226,61 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"")
+                            {
+                                id
+                            }
+                        }
+                    }"
+                });
+
+            // assert
+            result.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            friends {
+                                nodes @stream(initialCount: 1 label: ""foo"") {
+                                    name
+                                }
+                            }
+                        }
+                    }"
+                });
+
+            // assert
+            result.Content.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange

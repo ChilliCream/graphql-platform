@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the diagnostic events.
         /// </summary>
-        IDiagnosticEvents DiagnosticEvents { get; }
+        IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
         /// <summary>
         /// Gets the operation that is being executed.
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Processing
 
         /// <summary>
         /// Gets the value representing the instance of the
-        /// <see cref="Operation.RootType" />
+        /// <see cref="IPreparedOperation.RootType" />
         /// </summary>
         object? RootValue { get; }
 

@@ -87,6 +87,10 @@
               {
                 "path": "versioning",
                 "title": "Versioning"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
               }
             ]
           },
@@ -133,28 +137,6 @@
             ]
           },
           {
-            "path": "distributed-schema",
-            "title": "Distributed Schemas",
-            "items": [
-              {
-                "path": "index",
-                "title": "Overview"
-              },
-              {
-                "path": "schema-stitching",
-                "title": "Schema Stitching"
-              },
-              {
-                "path": "schema-federations",
-                "title": "Schema Federations"
-              },
-              {
-                "path": "schema-configuration",
-                "title": "Schema Configuration"
-              }
-            ]
-          },
-          {
             "path": "integrations",
             "title": "Integrations",
             "items": [
@@ -177,6 +159,62 @@
               {
                 "path": "spatial-data",
                 "title": "Spatial Data"
+              }
+            ]
+          },
+          {
+            "path": "server",
+            "title": "Server",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "middleware",
+                "title": "Middleware"
+              },
+              {
+                "path": "interceptors",
+                "title": "Interceptors"
+              },
+              {
+                "path": "global-state",
+                "title": "Global State"
+              },
+              {
+                "path": "introspection",
+                "title": "Introspection"
+              },
+              {
+                "path": "uploading-files",
+                "title": "Uploading files"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
+              }
+            ]
+          },
+          {
+            "path": "distributed-schema",
+            "title": "Distributed Schemas",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "schema-stitching",
+                "title": "Schema Stitching"
+              },
+              {
+                "path": "schema-federations",
+                "title": "Schema Federations"
+              },
+              {
+                "path": "schema-configuration",
+                "title": "Schema Configuration"
               }
             ]
           },
@@ -255,10 +293,6 @@
               {
                 "path": "executable",
                 "title": "Executable"
-              },
-              {
-                "path": "apollo-tracing",
-                "title": "Apollo Tracing"
               },
               {
                 "path": "migrate-from-10-to-11",

@@ -13,14 +13,15 @@ namespace HotChocolate.Data.MongoDb.Paging
         {
         }
 
-        protected override ValueTask<Connection> SliceAsync(
+        protected override async ValueTask<Connection> SliceAsync(
             IResolverContext context,
             object source,
             CursorPagingArguments arguments)
-            => _pagination.ApplyPagination(
+            => await _pagination.ApplyPaginationAsync(
                 CreatePagingContainer(source),
                 arguments,
-                context.RequestAborted);
+                context.RequestAborted)
+                .ConfigureAwait(false);
 
         private IMongoPagingContainer<TEntity> CreatePagingContainer(object source)
         {

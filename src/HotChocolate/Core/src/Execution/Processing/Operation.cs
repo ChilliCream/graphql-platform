@@ -15,15 +15,39 @@ namespace HotChocolate.Execution.Processing
             DocumentNode document,
             OperationDefinitionNode definition,
             ObjectType rootType,
-            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets)
+            Dictionary<SelectionSetNode, SelectionVariants> selectionSets)
         {
             Id = id;
-            Name = definition.Name?.Value;
             Document = document;
             Definition = definition;
-            RootSelectionVariants = selectionSets[definition.SelectionSet];
+
             RootType = rootType;
             Type = definition.Operation;
+
+            if (definition.Name?.Value is { } name)
+            {
+                Name = name;
+            }
+
+            // we ensure that there is at least one selection set to be executed even if
+            // all roots were deferred.
+            SelectionVariants rootSelectionVariants = selectionSets[definition.SelectionSet];
+            ISelectionSet selectionSet = rootSelectionVariants.GetSelectionSet(rootType);
+
+            if (selectionSet.Selections.Count == 0 && selectionSet.Fragments.Count > 0)
+            {
+                var fragments = selectionSet.Fragments.ToList();
+                selectionSet = fragments[0].SelectionSet;
+                fragments.RemoveAt(0);
+                fragments.AddRange(selectionSet.Fragments);
+                selectionSet = new SelectionSet(
+                    selectionSet.Selections,
+                    fragments,
+                    selectionSet.IsConditional);
+                rootSelectionVariants.ReplaceSelectionSet(rootType, selectionSet);
+            }
+
+            RootSelectionVariants = rootSelectionVariants;
             _selectionSets = selectionSets;
         }
 
@@ -79,7 +103,7 @@ namespace HotChocolate.Execution.Processing
 
             foreach (IObjectType objectType in selectionVariants.GetPossibleTypes())
             {
-                var typeContext = (ObjectType) objectType;
+                var typeContext = (ObjectType)objectType;
                 var selections = new List<ISelectionNode>();
 
                 foreach (Selection selection in selectionVariants.GetSelectionSet(typeContext)

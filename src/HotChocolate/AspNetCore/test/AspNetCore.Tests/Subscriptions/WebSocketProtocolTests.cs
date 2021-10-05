@@ -9,6 +9,7 @@ using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -33,6 +34,68 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 WebSocketClient client = CreateWebSocketClient(testServer);
                 WebSocket webSocket =
                     await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+
+                // act
+                await webSocket.SendConnectionInitializeAsync();
+
+                // assert
+                IReadOnlyDictionary<string, object> message =
+                    await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.Accept,
+                    message["type"]);
+
+                message = await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.KeepAlive,
+                    message["type"]);
+            });
+        }
+
+        [Fact]
+        public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route()
+        {
+            return TryTest(async () =>
+            {
+                // arrange
+                using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket());
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await client.ConnectAsync(
+                    new("ws://localhost:5000/graphql/ws"),
+                    CancellationToken.None);
+
+                // act
+                await webSocket.SendConnectionInitializeAsync();
+
+                // assert
+                IReadOnlyDictionary<string, object> message =
+                    await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.Accept,
+                    message["type"]);
+
+                message = await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.KeepAlive,
+                    message["type"]);
+            });
+        }
+
+        [Fact]
+        public Task Send_Connect_AcceptAndKeepAlive_Explicit_Route_Explicit_Path()
+        {
+            return TryTest(async () =>
+            {
+                // arrange
+                using TestServer testServer = CreateServer(b => b.MapGraphQLWebSocket("/foo/bar"));
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await client.ConnectAsync(
+                    new("ws://localhost:5000/foo/bar"),
+                    CancellationToken.None);
 
                 // act
                 await webSocket.SendConnectionInitializeAsync();

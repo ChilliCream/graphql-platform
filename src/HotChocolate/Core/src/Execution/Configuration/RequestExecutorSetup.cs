@@ -53,6 +53,7 @@ namespace HotChocolate.Execution.Configuration
             options._schemaServices.AddRange(_schemaServices);
             options._onRequestExecutorCreated.AddRange(_onRequestExecutorCreated);
             options._onRequestExecutorEvicted.AddRange(_onRequestExecutorEvicted);
+            options._typeModules.AddRange(_typeModules);
         }
     }
 }

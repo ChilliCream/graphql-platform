@@ -16,9 +16,10 @@ namespace HotChocolate.Fetching
         private readonly FetchGroup<TKey, TValue> _fetch;
 
         public FetchGroupedDataLoader(
+            FetchGroup<TKey, TValue> fetch,
             IBatchScheduler batchScheduler,
-            FetchGroup<TKey, TValue> fetch)
-            : base(batchScheduler)
+            DataLoaderOptions options)
+            : base(batchScheduler, options)
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }

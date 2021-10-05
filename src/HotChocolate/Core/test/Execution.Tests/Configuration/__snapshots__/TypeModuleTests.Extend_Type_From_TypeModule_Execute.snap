@@ -1,0 +1,9 @@
+﻿{
+  "data": {
+    "hello": "world",
+    "person": {
+      "name": "Doe",
+      "dynamic": "value"
+    }
+  }
+}

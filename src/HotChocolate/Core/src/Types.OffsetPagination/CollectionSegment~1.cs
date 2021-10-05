@@ -1,13 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// The collection segment represents one page of a pageable dataset / collection.
+    /// </summary>
     public class CollectionSegment<T> : CollectionSegment
-        where T : class
     {
         /// <summary>
         /// Initializes <see cref="CollectionSegment" />.
@@ -25,7 +27,7 @@ namespace HotChocolate.Types.Pagination
             IReadOnlyCollection<T> items,
             CollectionSegmentInfo info,
             Func<CancellationToken, ValueTask<int>> getTotalCount)
-            : base(items, info, getTotalCount)
+            : base(new CollectionWrapper(items), info, getTotalCount)
         {
             Items = items;
         }
@@ -34,5 +36,31 @@ namespace HotChocolate.Types.Pagination
         /// The items that belong to this page.
         /// </summary>
         public new IReadOnlyCollection<T> Items { get; }
+
+        /// <summary>
+        /// This wrapper is used to be able to pass along the items collection to the base class
+        /// which demands <see cref="IReadOnlyCollection{Object}"/>.
+        /// </summary>
+        private sealed class CollectionWrapper : IReadOnlyCollection<object>
+        {
+            private readonly IReadOnlyCollection<T> _collection;
+
+            public CollectionWrapper(IReadOnlyCollection<T> collection)
+            {
+                _collection = collection ?? throw new ArgumentNullException(nameof(collection));
+            }
+
+            public int Count => _collection.Count;
+
+            public IEnumerator<object> GetEnumerator()
+            {
+                foreach (T element in _collection)
+                {
+                    yield return element!;
+                }
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
     }
 }

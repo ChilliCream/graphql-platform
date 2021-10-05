@@ -9,13 +9,13 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class DocumentCacheMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
 
         public DocumentCacheMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider)
         {

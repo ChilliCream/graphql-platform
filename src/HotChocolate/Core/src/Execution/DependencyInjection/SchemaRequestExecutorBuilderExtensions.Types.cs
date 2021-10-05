@@ -317,6 +317,25 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             AddMutationType(builder, d => d.Name(OperationTypeNames.Mutation));
 
+        /// <summary>
+        /// Add a GraphQL mutation type with the name `Mutation` and applies the
+        /// <see cref="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// - A mutation type was already added.
+        /// </exception>
         public static IRequestExecutorBuilder AddMutationType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -505,6 +524,25 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             AddSubscriptionType(builder, d => d.Name(OperationTypeNames.Subscription));
 
+        /// <summary>
+        /// Add a GraphQL subscription type with the name `Subscription` and applies the
+        /// <see cref="configure"/> delegate.
+        /// </summary>
+        /// <param name="builder">
+        /// The GraphQL configuration builder.
+        /// </param>
+        /// <param name="configure">
+        /// A delegate to configure the type.
+        /// </param>
+        /// <returns>
+        /// Returns the GraphQL configuration builder.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> or <paramref name="configure"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// - A subscription type was already added.
+        /// </exception>
         public static IRequestExecutorBuilder AddSubscriptionType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -865,7 +903,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return builder.ConfigureSchema(b => b.AddUnionType(configure));
+            return builder.ConfigureSchema(b => b.AddUnionType<T>(configure));
         }
 
         /// <summary>

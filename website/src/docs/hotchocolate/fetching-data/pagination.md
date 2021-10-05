@@ -564,7 +564,7 @@ var collectionSegment = new CollectionSegment<User>(
 
 # Providers
 
-The `UsePaging` and `UseOffsetPaging` middlewares provide a unified way of applying pagination to our resolvers. Depending on the data source used within the resolver the pagination mechanism needs to be different though. Hot Chocolate includes so called paging providers that allow us to use the same API, e.g. `UsePaging`, but for different data sources, e.g. MongoDB and SQL.
+The `UsePaging` and `UseOffsetPaging` middleware provide a unified way of applying pagination to our resolvers. Depending on the data source used within the resolver the pagination mechanism needs to be different though. Hot Chocolate includes so called paging providers that allow us to use the same API, e.g. `UsePaging`, but for different data sources, e.g. MongoDB and SQL.
 
 Paging providers can be registered using various methods on the `IRequestExecutorBuilder`. For example the MongoDB paging provider can be registered like the following.
 

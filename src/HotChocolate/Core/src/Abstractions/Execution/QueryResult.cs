@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -28,10 +29,10 @@ namespace HotChocolate.Execution
             bool? hasNext = null,
             IDisposable? resultMemoryOwner = null)
         {
-            if (data is null && errors is null)
+            if (data is null && errors is null && hasNext is not false)
             {
                 throw new ArgumentException(
-                    "data and errors cannot be null at the same time.",
+                    AbstractionResources.QueryResult_DataAndResultAreNull,
                     nameof(data));
             }
 

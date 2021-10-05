@@ -90,22 +90,20 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 ValueWebSocketReceiveResult socketResult;
                 do
                 {
-                    try
-                    {
-                        Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                        socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
-
-                        if (socketResult.Count == 0)
-                        {
-                            break;
-                        }
-
-                        writer.Advance(socketResult.Count);
-                    }
-                    catch
+                    if (webSocket.State != WebSocketState.Open)
                     {
                         break;
                     }
+
+                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                    socketResult = await webSocket.ReceiveAsync(memory, cancellationToken);
+
+                    if (socketResult.Count == 0)
+                    {
+                        break;
+                    }
+
+                    writer.Advance(socketResult.Count);
 
                     FlushResult result = await writer.FlushAsync(cancellationToken);
 
@@ -115,13 +113,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                 } while (!socketResult.EndOfMessage);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // we will just stop receiving
-            }
-            catch (WebSocketException)
-            {
-	            // we will just stop receiving
+                // swallow exception, there's nothing we can reasonably do
             }
         }
 

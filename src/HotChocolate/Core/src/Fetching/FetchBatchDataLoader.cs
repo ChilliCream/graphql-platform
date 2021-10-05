@@ -15,16 +15,17 @@ namespace HotChocolate.Fetching
         private readonly FetchBatch<TKey, TValue> _fetch;
 
         public FetchBatchDataLoader(
-            IBatchScheduler batchScheduler, 
-            FetchBatch<TKey, TValue> fetch) 
-            : base(batchScheduler)
+            FetchBatch<TKey, TValue> fetch,
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions options)
+            : base(batchScheduler, options)
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
         protected override Task<IReadOnlyDictionary<TKey, TValue>> LoadBatchAsync(
             IReadOnlyList<TKey> keys,
-            CancellationToken cancellationToken) => 
+            CancellationToken cancellationToken) =>
             _fetch(keys, cancellationToken);
     }
 }

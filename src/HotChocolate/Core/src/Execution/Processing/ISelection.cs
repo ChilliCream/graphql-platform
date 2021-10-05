@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -45,10 +46,31 @@ namespace HotChocolate.Execution.Processing
         /// The compiled pure resolver.
         /// </summary>
         PureFieldDelegate? PureResolver { get; }
-        
+
         /// <summary>
         /// The arguments that have been pre-coerced for this field selection.
         /// </summary>
         IArgumentMap Arguments { get; }
+
+        /// <summary>
+        /// Indicates that this field can be streamed.
+        /// </summary>
+        bool IsStreamable { get; }
+
+        /// <summary>
+        /// Indicates that the result of this resolver might be a stream.
+        /// </summary>
+        bool MaybeStream { get; }
+
+        /// <summary>
+        /// Indicates if the selection return type is a list type.
+        /// </summary>
+        bool IsList { get; }
+
+        /// <summary>
+        /// Creates a enumerable from a streamable selection to allow the execution engine to
+        /// stream the field result.
+        /// </summary>
+        IAsyncEnumerable<object?> CreateStream(object resolverResult);
     }
 }

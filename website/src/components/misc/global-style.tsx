@@ -208,7 +208,6 @@ export const GlobalStyle = createGlobalStyle`
     font-feature-settings: "tnum";
     font-size: var(--font-size);
     line-height: 1.667em;
-    text-align: left;
   }
 
   th {
@@ -231,7 +230,6 @@ export const GlobalStyle = createGlobalStyle`
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
-
   }
 
   /* Inline code style */

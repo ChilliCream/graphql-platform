@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
             IErrorHandler errorHandler,
             ITypeConverter converter,
             IActivator activator,
-            IDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             Schema = schema;
             ExecutorVersion = executorVersion;
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
 
         public IActivator Activator { get; }
 
-        public IDiagnosticEvents DiagnosticEvents { get; }
+        public IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
         public IQueryRequest Request { get; private set; } = default!;
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Execution
                 Exception = Exception
             };
 
-            if (_contextData is not null!)
+            if (_contextData is not null)
             {
                 foreach (KeyValuePair<string, object?> item in ContextData)
                 {

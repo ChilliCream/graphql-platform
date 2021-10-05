@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Pipeline
                 new Mock<IErrorHandler>().Object,
                 new Mock<ITypeConverter>().Object,
                 new Mock<IActivator>().Object,
-                new Mock<IDiagnosticEvents>().Object);
+                new Mock<IExecutionDiagnosticEvents>().Object);
 
             context.Initialize(
                 new Mock<IQueryRequest>().Object,

@@ -102,15 +102,6 @@ namespace HotChocolate.Execution
                     variableName)
                 .Build());
 
-        public static GraphQLException VariableNotFound(
-            VariableNode variable) =>
-            new(ErrorBuilder.New()
-                .SetMessage(
-                    ThrowHelper_VariableNotFound_Message,
-                    variable.Name.Value)
-                .AddLocation(variable)
-                .Build());
-
         public static GraphQLException VariableNotOfType(
             NameString variableName,
             Type type) =>

@@ -103,12 +103,7 @@ namespace HotChocolate.Execution.Processing
 
             public void RegisterFragment(IFragment fragment)
             {
-                if (_fragments is null)
-                {
-                    _fragments = new List<IFragment>();
-                }
-
-                _fragments.Add(fragment);
+                (_fragments ??= new List<IFragment>()).Add(fragment);
             }
 
             public void Complete()

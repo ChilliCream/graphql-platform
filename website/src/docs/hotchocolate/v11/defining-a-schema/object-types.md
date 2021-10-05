@@ -2,7 +2,7 @@
 title: "Object Types"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 The most important type in a GraphQL schema is the object type. It contains fields that can return simple scalars like `String`, `Int`, or again object types.
 

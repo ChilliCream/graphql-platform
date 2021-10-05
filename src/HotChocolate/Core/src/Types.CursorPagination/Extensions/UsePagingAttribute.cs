@@ -30,7 +30,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// The schema type representation of the item type.
+        /// The schema type representation of the node type.
         /// </summary>
 
         public Type? SchemaType
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// The schema type representation of the item type.
+        /// The schema type representation of the node type.
         /// </summary>
         public Type? Type { get; private set; }
 

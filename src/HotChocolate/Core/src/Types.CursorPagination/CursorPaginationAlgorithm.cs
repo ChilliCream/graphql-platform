@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,22 +18,48 @@ namespace HotChocolate.Types.Pagination
     /// <typeparam name="TEntity">
     /// The entity type.
     /// </typeparam>
-    public abstract class CursorPaginationAlgorithm<TQuery, TEntity>
+    public abstract class CursorPaginationAlgorithm<TQuery, TEntity> where TQuery : notnull
     {
         /// <summary>
-        /// Applies the pagination algorithm to the provided data.
+        /// Applies the pagination algorithm to the provided query.
         /// </summary>
         /// <param name="query">The query builder.</param>
         /// <param name="arguments">The paging arguments.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns></returns>
-        public async ValueTask<Connection> ApplyPagination(
+        /// <returns>
+        /// Returns the connection.
+        /// </returns>
+        public ValueTask<Connection<TEntity>> ApplyPaginationAsync(
             TQuery query,
             CursorPagingArguments arguments,
+            CancellationToken cancellationToken) =>
+            ApplyPaginationAsync(query, arguments, null, cancellationToken);
+
+        /// <summary>
+        /// Applies the pagination algorithm to the provided query.
+        /// </summary>
+        /// <param name="query">The query builder.</param>
+        /// <param name="arguments">The paging arguments.</param>
+        /// <param name="totalCount">Specify the total amount of elements</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// Returns the connection.
+        /// </returns>
+        public async ValueTask<Connection<TEntity>> ApplyPaginationAsync(
+            TQuery query,
+            CursorPagingArguments arguments,
+            int? totalCount,
             CancellationToken cancellationToken)
         {
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
             var maxElementCount = int.MaxValue;
-            Func<CancellationToken, ValueTask<int>> executeCount = ct => CountAsync(query, ct);
+            Func<CancellationToken, ValueTask<int>> executeCount = totalCount is null ?
+                ct => CountAsync(query, ct)
+                : _ => new ValueTask<int>(totalCount.Value);
 
             // We only need the maximal element count if no `before` counter is set and no `first`
             // argument is provided.
