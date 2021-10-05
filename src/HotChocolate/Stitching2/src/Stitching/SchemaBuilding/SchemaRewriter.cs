@@ -113,6 +113,36 @@ namespace HotChocolate.Stitching.SchemaBuilding
             return current;
         }
 
+        protected override InputObjectTypeDefinitionNode RewriteInputObjectTypeDefinition(
+            InputObjectTypeDefinitionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteInputObjectTypeDefinition(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
+        protected override InputObjectTypeExtensionNode RewriteInputObjectTypeExtension(
+            InputObjectTypeExtensionNode node,
+            ISchemaRewriterContext context)
+        {
+            var current = node;
+
+            current = ApplyRewriter(current, context);
+
+            context.Path.Push(current);
+            current = base.RewriteInputObjectTypeExtension(current, context);
+            context.Path.Pop();
+
+            return current;
+        }
+
         protected override EnumTypeDefinitionNode RewriteEnumTypeDefinition(
             EnumTypeDefinitionNode node,
             ISchemaRewriterContext context)

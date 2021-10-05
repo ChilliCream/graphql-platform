@@ -52,6 +52,14 @@ namespace HotChocolate.Stitching.SchemaBuilding
                             ((IHasName)parent).Name.Value);
                         RegisterRename(rename);
                         break;
+
+                    case SyntaxKind.InputValueDefinition:
+                        rename.EnsureFromHasNoValue();
+                        rename.From = new SchemaCoordinate(
+                            ((IHasName)context.Path.Peek(2)).Name.Value, 
+                            ((IHasName)parent).Name.Value);
+                        RegisterRename(rename);
+                        break;
                 }
             }
         }
