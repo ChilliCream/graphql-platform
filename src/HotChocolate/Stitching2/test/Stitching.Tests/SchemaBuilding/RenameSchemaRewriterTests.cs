@@ -98,7 +98,11 @@ namespace HotChocolate.Stitching.SchemaBuilding
         public void Build_Context()
             => Rewrite(
                 @"type Foo { 
-                    field: String 
+                    field1: String
+                }
+                
+                extend type Foo { 
+                    field2: String
                 }",
                 @"extend schema @rename(from: ""Foo"", to: ""Bar"")");
 
