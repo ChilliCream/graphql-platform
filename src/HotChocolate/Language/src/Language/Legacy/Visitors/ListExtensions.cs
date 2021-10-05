@@ -40,6 +40,12 @@ namespace HotChocolate.Language
             return list[lastIndex];
         }
 
+        public static T Peek<T>(this IList<T> list, int items)
+        {
+            var lastIndex = list.Count - items;
+            return list[lastIndex];
+        }
+
         public static bool TryPeek<T>(this IList<T> list, [MaybeNullWhen(false)] out T item)
         {
             if (list.Count > 0)
