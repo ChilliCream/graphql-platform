@@ -1,6 +1,5 @@
 using System.Linq;
 
-
 namespace HotChocolate.Data
 {
     public static class NHibernateEnumerableExtensions
