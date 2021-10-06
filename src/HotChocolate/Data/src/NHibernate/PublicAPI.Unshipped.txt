@@ -1,0 +1,18 @@
+#nullable enable
+HotChocolate.Data.NHibernateEnumerableExtensions
+HotChocolate.Data.AuditTrailInterceptor
+HotChocolate.Data.NHibernateFactory
+HotChocolate.Data.AddNHibernateFactory(this IServiceCollection serviceCollection,
+            Assembly assemblyContainingMapping, Func<IPersistenceConfigurer> config, bool createSchema= false) -> IServiceCollection
+HotChocolate.Data.NHibernateExecutable<T>
+HotChocolate.Data.NHibernateExecutable<T>.NHibernateExecutable(System.Linq.IQueryable<T>! queryable) -> void
+HotChocolate.Data.UseNHibernateSessionAttribute
+HotChocolate.Types.NHibernateObjectFieldDescriptorExtensions
+HotChocolate.Data.AuditTrailInterceptor
+HotChocolate.Data.AuditTrailInterceptor.OnPrepareStatementt(SqlString sql) -> SqlString
+override HotChocolate.Data.NHibernateExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.NHibernateExecutable<T>.SingleOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
+override HotChocolate.Data.NHibernateExecutable<T>.ToListAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.Collections.IList!>
+override HotChocolate.Data.UseNHibernateSessionAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
+static HotChocolate.Data.NHibernateEnumerableExtensions.AsNhibernateExecutable<T>(this System.Linq.IQueryable<T>! source) -> HotChocolate.IExecutable<T>!
+static HotChocolate.Types.NHibernateObjectFieldDescriptorExtensions.UseNHibernateSession(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!

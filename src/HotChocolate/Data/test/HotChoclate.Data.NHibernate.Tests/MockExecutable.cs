@@ -2,7 +2,6 @@ using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 namespace HotChocolate.Data
 {
     using System.Linq;

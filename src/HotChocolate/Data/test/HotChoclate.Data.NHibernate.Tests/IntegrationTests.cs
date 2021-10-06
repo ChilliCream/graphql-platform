@@ -1,15 +1,14 @@
-
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using System.Linq;
 
 namespace HotChocolate.Data
 {
-    using System.Linq;
-
+ 
     [Collection("nhibernate-integration")]
     public class IntegrationTests 
     {
@@ -222,7 +221,6 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
-
 
 
         [Fact]

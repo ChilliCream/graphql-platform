@@ -1,19 +1,18 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
+  "data": {
+    "authorOffsetPaging": {
+      "items": [
         {
-          "line": 2,
-          "column": 21
+          "name": "foo"
+        },
+        {
+          "name": "bar"
         }
       ],
-      "path": [
-        "authorOffsetPaging"
-      ]
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
     }
-  ],
-  "data": {
-    "authorOffsetPaging": null
   }
 }

@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-
 namespace HotChocolate.Data
 {
     public class Author
     {
-
         public virtual  int Id { get; set; }
 
         [Required]

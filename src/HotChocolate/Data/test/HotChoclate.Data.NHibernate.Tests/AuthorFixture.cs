@@ -1,13 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using NHibernate;
+
 namespace HotChocolate.Data
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using Microsoft.Extensions.DependencyInjection;
-    using NHibernate;
-    using Xunit;
-
     public class AuthorFixture : InMemoryDatabaseTest
     {
         private static readonly Author[] _authors =
@@ -26,8 +25,6 @@ namespace HotChocolate.Data
         public AuthorFixture() : base(typeof(Author).Assembly)
         {
             _fileName = Guid.NewGuid().ToString("N") + ".db";
-
-
             _session = new ServiceCollection()
                 .AddScoped(s => Session)
                 .AddGraphQL()
@@ -52,12 +49,5 @@ namespace HotChocolate.Data
         {
             File.Delete(_fileName);
         }
-    }
-
-
-    [CollectionDefinition("nhibernate-integration")]
-    public class IntegrationCollection : ICollectionFixture<AuthorFixture>
-    {
-
     }
 }

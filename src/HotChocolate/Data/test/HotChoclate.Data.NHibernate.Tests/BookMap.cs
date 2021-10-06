@@ -1,13 +1,9 @@
-
+using FluentNHibernate.Mapping;
 
 namespace HotChocolate.Data
 {
-    using FluentNHibernate.Mapping;
-
     public class BookMap : ClassMap<Book>
     {
-
-
         public BookMap()
         {
             Id(x => x.Id).Column("Id");
@@ -16,8 +12,5 @@ namespace HotChocolate.Data
             Map(x => x.Title);
             Table("Book");
         }
-
-      
-     
     }
 }

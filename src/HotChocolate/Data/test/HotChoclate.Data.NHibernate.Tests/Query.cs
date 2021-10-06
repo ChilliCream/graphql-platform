@@ -1,13 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-
+using NHibernate;
+using NHibernate.Linq;
 
 namespace HotChocolate.Data
 {
-    using NHibernate;
-    using NHibernate.Linq;
-
     public class Query
     {
         [UseNHibernateSession]

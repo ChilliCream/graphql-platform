@@ -1,9 +1,9 @@
+using System.Reflection;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+
 namespace HotChocolate.Data
 {
-    using System.Reflection;
-    using Types;
-    using Types.Descriptors;
-
     public class UseNHibernateSessionAttribute : ObjectFieldDescriptorAttribute
     {
         private static readonly MethodInfo _nHibernateContext =

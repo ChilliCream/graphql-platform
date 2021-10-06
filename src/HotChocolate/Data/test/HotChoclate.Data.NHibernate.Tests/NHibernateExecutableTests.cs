@@ -1,9 +1,10 @@
+using System.Linq;
+using System.Threading.Tasks;
+using Snapshooter.Xunit;
+using Xunit;
+
 namespace HotChocolate.Data
 {
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Snapshooter.Xunit;
-    using Xunit;
 
     [Collection("nhibernate-integration")]
     public class NHibernateExecutableTests
@@ -24,8 +25,6 @@ namespace HotChocolate.Data
             IExecutable<Author> executable = _authors
                 .AsQueryable()
                 .AsNhibernateExecutable();
-
-
             // assert
             Assert.IsType<NHibernateExecutable<Author>>(executable);
             executable.Print().MatchSnapshot();
