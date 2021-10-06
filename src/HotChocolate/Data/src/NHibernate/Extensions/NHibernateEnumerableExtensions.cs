@@ -5,8 +5,6 @@ namespace HotChocolate.Data
 {
     public static class NHibernateEnumerableExtensions
     {
-       
-
         /// <summary>
         /// Creates an entity framework executable for a <see cref="IQueryable{T}"/>
         /// </summary>
