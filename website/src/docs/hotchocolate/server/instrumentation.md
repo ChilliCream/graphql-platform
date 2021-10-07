@@ -2,13 +2,20 @@
 title: Instrumentation
 ---
 
-Hot Chocolate allows us to create custom diagnostic event listeners, allowing us to hook into internal instrumentation events and further process them.
+Hot Chocolate allows us to create custom diagnostic event listeners, giving us the ability to hook into internal instrumentation events and further process them.
 
-We can subscribe to these events and delegate them either to our logging provider or to another tracing infrastructure. We are free to gather data only on one event or all of them, allowing us to craft tracing behavior that fits the need of our project.
+We can subscribe to these events and delegate them either to our logging provider or another tracing infrastructure. We are free to gather data only on one event or all of them, allowing us to craft tracing behavior that fits the need of our project.
 
 # Diagnostic events
 
-We can register diagnostic event listeners by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`.
+Currently we can implement diagnostic event listeners for the following event types:
+
+- [Execution events](#execution-events)
+- [DataLoader events](#dataloader-events)
+
+We will learn more about how we can create diagnostic event listeners for these event types in their respective sections.
+
+After we have created a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly created diagnostic event listener as the generic type parameter.
 
 ```csharp
 public class Startup
@@ -22,12 +29,7 @@ public class Startup
 }
 ```
 
-Currently there are diagnostic event listeners for the following event types:
-
-- [Execution events](#execution-events)
-- [DataLoader events](#dataloader-events)
-
-We can inject services into the diagnostic event listeners to access them in the specific event handlers. Please note that injected services are effectively singleton, since the diagnostic event listener is only instantiated once.
+If we need to access services from within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton, since the diagnostic event listener is only instantiated once.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener

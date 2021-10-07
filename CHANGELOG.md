@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [12.0.1]
+
+### Hot Chocolate
+
+#### Fixes
+
+Return argument value as field definition runtimeType if requested as object type by @benmccallum (#4291)
+
 ## [12.0.0]
 
 ### Hot Chocolate
