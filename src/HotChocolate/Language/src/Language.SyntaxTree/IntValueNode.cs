@@ -15,6 +15,7 @@ namespace HotChocolate.Language
         private ReadOnlyMemory<byte> _memory;
         private string? _stringValue;
         private byte? _byteValue;
+        private sbyte? _sbyteValue;
         private short? _shortValue;
         private int? _intValue;
         private long? _longValue;
@@ -304,6 +305,22 @@ namespace HotChocolate.Language
             if (Utf8Parser.TryParse(AsSpan(), out byte value, out _))
             {
                 _byteValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public sbyte ToSByte()
+        {
+            if (_sbyteValue.HasValue)
+            {
+                return _sbyteValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out sbyte value, out _))
+            {
+                _sbyteValue = value;
                 return value;
             }
 
