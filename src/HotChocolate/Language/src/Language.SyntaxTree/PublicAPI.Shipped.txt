@@ -202,7 +202,6 @@ HotChocolate.Language.IIntValueLiteral.ToByte() -> byte
 HotChocolate.Language.IIntValueLiteral.ToInt16() -> short
 HotChocolate.Language.IIntValueLiteral.ToInt32() -> int
 HotChocolate.Language.IIntValueLiteral.ToInt64() -> long
-HotChocolate.Language.IIntValueLiteral.ToSByte() -> sbyte
 HotChocolate.Language.IIntValueLiteral.ToUInt16() -> ushort
 HotChocolate.Language.IIntValueLiteral.ToUInt32() -> uint
 HotChocolate.Language.IIntValueLiteral.ToUInt64() -> ulong
@@ -296,7 +295,6 @@ HotChocolate.Language.IntValueNode.ToInt16() -> short
 HotChocolate.Language.IntValueNode.ToInt32() -> int
 HotChocolate.Language.IntValueNode.ToInt64() -> long
 HotChocolate.Language.IntValueNode.ToSingle() -> float
-HotChocolate.Language.IntValueNode.ToSByte() -> sbyte
 HotChocolate.Language.IntValueNode.ToString(bool indented) -> string!
 HotChocolate.Language.IntValueNode.ToUInt16() -> ushort
 HotChocolate.Language.IntValueNode.ToUInt32() -> uint
