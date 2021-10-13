@@ -307,7 +307,7 @@ public class FooTypeExtensions : ObjectTypeExtension
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-⚠️ Schema-first does currently not support extending types by their name
+⚠️ Schema-first does not currently support extending types by their name
 
 </ExampleTabs.Schema>
 </ExampleTabs>
