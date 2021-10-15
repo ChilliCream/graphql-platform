@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         public void Schema_WithScalar_IsMatch()
         {
             // arrange
-            ISchema schema = BuildSchema<UnsignedIntType>();
+            ISchema schema = BuildSchema<IntType>();
 
             // act
             // assert
@@ -26,8 +26,8 @@ namespace HotChocolate.Types
         [InlineData(typeof(StringValueNode), "foo", false)]
         [InlineData(typeof(IntValueNode), 0, true)]
         [InlineData(typeof(IntValueNode), 1, true)]
-        [InlineData(typeof(IntValueNode), uint.MaxValue, true)]
-        [InlineData(typeof(IntValueNode), uint.MinValue, true)]
+        [InlineData(typeof(IntValueNode), sbyte.MaxValue, true)]
+        [InlineData(typeof(IntValueNode), sbyte.MinValue, true)]
         [InlineData(typeof(NullValueNode), null, true)]
         public void IsInstanceOfType_GivenValueNode_MatchExpected(
             Type type,
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<UnsignedIntType>(valueNode, expected);
+            ExpectIsInstanceOfTypeToMatch<SignedByteType>(valueNode, expected);
         }
 
         [Theory]
@@ -51,22 +51,22 @@ namespace HotChocolate.Types
         [InlineData(-1, false)]
         [InlineData(0, false)]
         [InlineData(null, true)]
-        [InlineData((uint)1, true)]
-        [InlineData(uint.MaxValue, true)]
-        [InlineData(uint.MinValue, true)]
+        [InlineData((sbyte)1, true)]
+        [InlineData(sbyte.MaxValue, true)]
+        [InlineData(sbyte.MinValue, true)]
         public void IsInstanceOfType_GivenObject_MatchExpected(object value, bool expected)
         {
             // arrange
             // act
             // assert
-            ExpectIsInstanceOfTypeToMatch<UnsignedIntType>(value, expected);
+            ExpectIsInstanceOfTypeToMatch<SignedByteType>(value, expected);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), 0, (uint)0)]
-        [InlineData(typeof(IntValueNode), 1, (uint)1)]
-        [InlineData(typeof(IntValueNode), uint.MaxValue, uint.MaxValue)]
-        [InlineData(typeof(IntValueNode), uint.MinValue, uint.MinValue)]
+        [InlineData(typeof(IntValueNode), 0, (sbyte)0)]
+        [InlineData(typeof(IntValueNode), 1, (sbyte)1)]
+        [InlineData(typeof(IntValueNode), sbyte.MaxValue, sbyte.MaxValue)]
+        [InlineData(typeof(IntValueNode), sbyte.MinValue, sbyte.MinValue)]
         [InlineData(typeof(NullValueNode), null, null)]
         public void ParseLiteral_GivenValueNode_MatchExpected(
             Type type,
@@ -78,7 +78,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToMatch<UnsignedIntType>(valueNode, expected);
+            ExpectParseLiteralToMatch<SignedByteType>(valueNode, expected);
         }
 
         [Theory]
@@ -93,20 +93,20 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            ExpectParseLiteralToThrowSerializationException<UnsignedIntType>(valueNode);
+            ExpectParseLiteralToThrowSerializationException<SignedByteType>(valueNode);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), (uint)1)]
-        [InlineData(typeof(IntValueNode), uint.MaxValue)]
-        [InlineData(typeof(IntValueNode), uint.MinValue)]
+        [InlineData(typeof(IntValueNode), (sbyte)1)]
+        [InlineData(typeof(IntValueNode), sbyte.MaxValue)]
+        [InlineData(typeof(IntValueNode), sbyte.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseValue_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseValueToMatchType<UnsignedIntType>(value, type);
+            ExpectParseValueToMatchType<SignedByteType>(value, type);
         }
 
         [Theory]
@@ -119,14 +119,14 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectParseValueToThrowSerializationException<UnsignedIntType>(value);
+            ExpectParseValueToThrowSerializationException<SignedByteType>(value);
         }
 
         [Theory]
         [InlineData(0, 0)]
         [InlineData(1, 1)]
-        [InlineData(uint.MaxValue, uint.MaxValue)]
-        [InlineData(uint.MinValue, uint.MinValue)]
+        [InlineData(sbyte.MaxValue, sbyte.MaxValue)]
+        [InlineData(sbyte.MinValue, sbyte.MinValue)]
         [InlineData(null, null)]
         public void Deserialize_GivenValue_MatchExpected(
             object resultValue,
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectDeserializeToMatch<UnsignedIntType>(resultValue, runtimeValue);
+            ExpectDeserializeToMatch<SignedByteType>(resultValue, runtimeValue);
         }
 
         [Theory]
@@ -144,19 +144,19 @@ namespace HotChocolate.Types
         [InlineData(true)]
         [InlineData("foo")]
         [InlineData(int.MinValue)]
-        [InlineData(-1)]
+        [InlineData(int.MaxValue)]
         public void Deserialize_GivenValue_ThrowSerializationException(object value)
         {
             // arrange
             // act
             // assert
-            ExpectDeserializeToThrowSerializationException<UnsignedIntType>(value);
+            ExpectDeserializeToThrowSerializationException<SignedByteType>(value);
         }
 
         [Theory]
-        [InlineData((uint)0, (uint)0)]
-        [InlineData((uint)1, (uint)1)]
-        [InlineData(uint.MaxValue, uint.MaxValue)]
+        [InlineData((sbyte)0, (sbyte)0)]
+        [InlineData((sbyte)1, (sbyte)1)]
+        [InlineData(sbyte.MaxValue, sbyte.MaxValue)]
         [InlineData(null, null)]
         public void Serialize_GivenObject_MatchExpectedType(
             object runtimeValue,
@@ -165,7 +165,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectSerializeToMatch<UnsignedIntType>(runtimeValue, resultValue);
+            ExpectSerializeToMatch<SignedByteType>(runtimeValue, resultValue);
         }
 
         [Theory]
@@ -178,20 +178,20 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectSerializeToThrowSerializationException<UnsignedIntType>(value);
+            ExpectSerializeToThrowSerializationException<SignedByteType>(value);
         }
 
         [Theory]
-        [InlineData(typeof(IntValueNode), (uint)1)]
-        [InlineData(typeof(IntValueNode), uint.MaxValue)]
-        [InlineData(typeof(IntValueNode), uint.MinValue)]
+        [InlineData(typeof(IntValueNode), (sbyte)1)]
+        [InlineData(typeof(IntValueNode), sbyte.MaxValue)]
+        [InlineData(typeof(IntValueNode), sbyte.MinValue)]
         [InlineData(typeof(NullValueNode), null)]
         public void ParseResult_GivenObject_MatchExpectedType(Type type, object value)
         {
             // arrange
             // act
             // assert
-            ExpectParseResultToMatchType<UnsignedIntType>(value, type);
+            ExpectParseResultToMatchType<SignedByteType>(value, type);
         }
 
         [Theory]
@@ -204,7 +204,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             // assert
-            ExpectParseResultToThrowSerializationException<UnsignedIntType>(value);
+            ExpectParseResultToThrowSerializationException<SignedByteType>(value);
         }
     }
 }

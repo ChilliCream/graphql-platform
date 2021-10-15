@@ -40,6 +40,10 @@ namespace HotChocolate.Types
                     return new IntValueNode(i);
                 case nameof(IntValueNode) when value is ulong i:
                     return new IntValueNode(i);
+                case nameof(IntValueNode) when value is ushort i:
+                    return new IntValueNode(i);
+                case nameof(IntValueNode) when value is sbyte i:
+                    return new IntValueNode(i);
                 case nameof(NullValueNode):
                     return NullValueNode.Default;
                 case nameof(StringValueNode) when value is string s:
