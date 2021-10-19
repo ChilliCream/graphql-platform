@@ -781,7 +781,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UnsignedInt scalar type represents a numeric non-fractional value greater than or equal to -128..
+        ///   Looks up a localized string similar to The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127..
         /// </summary>
         internal static string SignedByteType_Description {
             get {
@@ -790,7 +790,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UnsignedIntType cannot parse the provided literal. The provided value is not greater than or equal to -128..
+        ///   Looks up a localized string similar to SignedByteType cannot parse the provided literal. The provided value is not greater than or equal to -127..
         /// </summary>
         internal static string SignedByteType_IsNotSigned_ParseLiteral {
             get {
@@ -799,7 +799,7 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to -128..
+        ///   Looks up a localized string similar to SignedByteType cannot parse the provided value. The provided value is not greater than or equal to -127..
         /// </summary>
         internal static string SignedByteType_IsNotSigned_ParseValue {
             get {

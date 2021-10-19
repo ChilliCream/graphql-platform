@@ -385,13 +385,13 @@
     <value>UtcOffsetType cannot parse the provided value. The provided value is not a valid UTC offset.</value>
   </data>
   <data name="SignedByteType_Description" xml:space="preserve">
-    <value>The UnsignedInt scalar type represents a numeric non-fractional value greater than or equal to -128.</value>
+    <value>The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127.</value>
   </data>
   <data name="SignedByteType_IsNotSigned_ParseLiteral" xml:space="preserve">
-    <value>UnsignedIntType cannot parse the provided literal. The provided value is not greater than or equal to -128.</value>
+    <value>SignedByteType cannot parse the provided literal. The provided value is not greater than or equal to -127.</value>
   </data>
   <data name="SignedByteType_IsNotSigned_ParseValue" xml:space="preserve">
-    <value>UnsignedIntType cannot parse the provided value. The provided value is not greater than or equal to -128.</value>
+    <value>SignedByteType cannot parse the provided value. The provided value is not greater than or equal to -127.</value>
   </data>
   <data name="UnsignedShortType_Description" xml:space="preserve">
     <value>The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0.</value>
