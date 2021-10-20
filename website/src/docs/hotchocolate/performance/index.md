@@ -33,7 +33,7 @@ Hot Chocolate supports two flavors of persisted queries.
 ## Regular persisted queries
 
 The first approach is to store queries ahead of time (ahead of deployment).
-This can be done by extracting the queries from our client applications at build time. This will reduce the size of the requests and the bundle size of our application ssince queries can be removed from the client code at build time and are replaced with query hashes.
+This can be done by extracting the queries from our client applications at build time. This will reduce the size of the requests and the bundle size of our application since queries can be removed from the client code at build time and are replaced with query hashes.
 
 Strawberry Shake, [Relay](https://relay.dev/docs/guides/persisted-queries/), and [Apollo](https://www.apollographql.com/docs/react/api/link/persisted-queries/) client all support this approach.
 

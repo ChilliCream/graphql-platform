@@ -187,8 +187,8 @@
                 "title": "Introspection"
               },
               {
-                "path": "uploading-files",
-                "title": "Uploading files"
+                "path": "files",
+                "title": "Files"
               },
               {
                 "path": "instrumentation",
