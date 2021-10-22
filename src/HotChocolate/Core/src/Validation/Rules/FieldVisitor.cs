@@ -130,6 +130,7 @@ namespace HotChocolate.Validation.Rules
                 type.NamedType().Kind == TypeKind.Union &&
                 HasFields(node))
             {
+                type = type.NamedType();
                 context.Errors.Add(context.UnionFieldError(node, (UnionType)type));
                 return Skip;
             }
