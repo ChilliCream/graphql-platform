@@ -119,6 +119,10 @@ public class Startup
 
 For the `UsePaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
 
+> Note: Some of our Database integrations require us to return a different type. Refer to the documentation of the integration being used.
+>
+> [Learn more about our integrations](/docs/hotchocolate/integrations)
+
 ## Naming
 
 The name of the _Connection_ and Edge type is automatically inferred from the field name. If our field is called `users`, a `UsersConnection` and `UsersEdge` type is automatically generated.
@@ -205,7 +209,33 @@ Take a look at the Annotation-based or Code-first example.
 
 ## Customization
 
-If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
+The default behavior of the `UsePaging` middleware
+
+### Changing the node type
+
+TODO
+
+### Custom pagination logic
+
+TODO
+
+<!-- note about how to change cursors -->
+
+### Adding fields to an Edge
+
+TODO
+
+### Adding fields to Connections
+
+TODO
+
+#### Aggregations
+
+If we want one of the fields we added to our _Connection_ type to aggregate the pagination data, we need to make the pagination result available to the aggregation field's resolver. For this we can utilize scoped state.
+
+TODO
+
+<!-- If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -273,7 +303,7 @@ If we need to work on an even lower level, we could also use `descriptor.AddPagi
 Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
-</ExampleTabs>
+</ExampleTabs> -->
 
 ## Total count
 
