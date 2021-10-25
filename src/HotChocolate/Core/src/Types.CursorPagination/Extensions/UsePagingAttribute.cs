@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 
@@ -24,9 +25,13 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// The schema type representing the item type.
         /// </param>
-        public UsePagingAttribute(Type? type = null)
+        /// <param name="order">
+        /// The explicit order priority for this attribute.
+        /// </param>
+        public UsePagingAttribute(Type? type = null, [CallerLineNumber] int order = 0)
         {
             Type = type;
+            Order = order;
         }
 
         /// <summary>

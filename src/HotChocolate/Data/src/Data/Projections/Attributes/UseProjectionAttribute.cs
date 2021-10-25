@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Data.Projections;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -12,6 +13,11 @@ namespace HotChocolate.Data
     public sealed class UseProjectionAttribute
         : ObjectFieldDescriptorAttribute
     {
+        public UseProjectionAttribute([CallerLineNumber] int order = 0)
+        {
+            Order = order;
+        }
+
         /// <summary>
         /// Sets the scope for the convention
         /// </summary>
