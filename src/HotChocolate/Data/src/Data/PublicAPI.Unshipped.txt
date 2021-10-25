@@ -1,0 +1,6 @@
+HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null, int order = 0) -> void
+HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute(int order = 0) -> void
+HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null, int order = 0) -> void
+*REMOVED*HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null) -> void
+*REMOVED*HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute() -> void
+*REMOVED*HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null) -> void
