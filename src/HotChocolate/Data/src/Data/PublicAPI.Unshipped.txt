@@ -6,3 +6,5 @@ HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingTy
 *REMOVED*HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null) -> void
 *REMOVED*HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute() -> void
 *REMOVED*HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null) -> void
+*REMOVED*HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute() -> void
+*REMOVED*HotChocolate.Data.UseSingleOrDefaultAttribute.UseSingleOrDefaultAttribute() -> void
