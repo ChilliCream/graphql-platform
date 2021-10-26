@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         static ParentParameterExpressionBuilder()
         {
             _getParentMethod = PureContextType.GetMethods().First(IsParentMethod);
-            Debug.Assert(_getParentMethod is not null!, "Parent method is missing." );
+            Debug.Assert(_getParentMethod is not null, "Parent method is missing." );
 
             static bool IsParentMethod(MethodInfo method)
                 => method.Name.Equals(_parent, StringComparison.Ordinal) &&
