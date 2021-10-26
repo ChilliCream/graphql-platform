@@ -5,7 +5,8 @@ namespace HotChocolate.Types.Payload
 {
     internal class PayloadMiddleware
     {
-        public static string MiddlewareIdentifier = "HotChocolate.Types.Payload.PayloadMiddleware";
+        public static readonly string MiddlewareIdentifier =
+            "HotChocolate.Types.Payload.PayloadMiddleware";
 
         private readonly FieldDelegate _next;
 

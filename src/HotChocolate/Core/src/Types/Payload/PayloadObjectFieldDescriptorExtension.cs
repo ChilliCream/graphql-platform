@@ -1,7 +1,8 @@
-using HotChocolate.Types;
-
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Common extensions for <c>Payload()</c>
+    /// </summary>
     public static class PayloadObjectFieldDescriptorExtension
     {
         /// <summary>

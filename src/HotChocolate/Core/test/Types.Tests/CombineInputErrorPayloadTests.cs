@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Tests
 {
-    public class CombinedTests
+    public class CombineInputErrorPayloadTests
     {
         [Fact]
         public async Task InputArgumentMiddleware_Should_WorkInCombination()
