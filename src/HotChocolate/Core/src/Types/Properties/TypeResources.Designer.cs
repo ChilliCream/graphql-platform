@@ -1418,5 +1418,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ConnectionType_Nodes_Description", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError", resourceCulture);
+            }
+        }
     }
 }

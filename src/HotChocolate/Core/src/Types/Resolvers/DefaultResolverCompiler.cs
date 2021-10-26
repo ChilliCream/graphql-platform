@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Types.Input;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Properties.TypeResources;
@@ -73,6 +74,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         list.Add(new FieldParameterExpressionBuilder());
         list.Add(new ClaimsPrincipalParameterExpressionBuilder());
         list.Add(new PathParameterExpressionBuilder());
+        list.Add(new InputParameterExpressionBuilder());
 
         _parameterExpressionBuilders = list;
     }

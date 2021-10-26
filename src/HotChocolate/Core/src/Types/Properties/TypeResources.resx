@@ -815,4 +815,10 @@ Type: `{0}`</value>
   <data name="ConnectionType_Nodes_Description" xml:space="preserve">
     <value>A flattened list of the nodes.</value>
   </data>
+  <data name="ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded" xml:space="preserve">
+    <value>Could not load the type inspector while building type {0}</value>
+  </data>
+  <data name="ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError" xml:space="preserve">
+    <value>Error while building type {0}. The runtime type {1} does not defined a property `Message`</value>
+  </data>
 </root>
