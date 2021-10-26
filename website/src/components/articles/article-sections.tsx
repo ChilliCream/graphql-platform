@@ -89,9 +89,7 @@ export const ArticleSectionsGraphQLFragment = graphql`
   }
 `;
 
-const Container = styled.section`
-  margin-bottom: 20px;
-`;
+const Container = styled.section``;
 
 const Title = styled.h6`
   padding: 0 25px;
@@ -131,6 +129,9 @@ const TocListItem = styled.li<TocListItemProps>`
   margin: 5px 0;
   padding: 0;
   line-height: initial;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
 
   > ${TocItemContainer} {
     padding-right: 0;

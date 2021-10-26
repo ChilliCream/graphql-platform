@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 
@@ -10,6 +11,8 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     internal sealed class DeferredStream : IDeferredExecutionTask
     {
+        private StreamExecutionTask? _task;
+
         /// <summary>
         /// Initializes a new instance of <see cref="DeferredFragment"/>.
         /// </summary>
@@ -78,42 +81,69 @@ namespace HotChocolate.Execution.Processing
         /// <inheritdoc/>
         public async Task<IQueryResult?> ExecuteAsync(IOperationContext operationContext)
         {
+            _task ??= new StreamExecutionTask(operationContext, this);
+            _task.Reset();
+
             operationContext.QueryPlan = operationContext.QueryPlan.GetStreamPlan(Selection.Id);
+            operationContext.Scheduler.Register(_task);
+            await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-            Index++;
-            var hasNext = await Enumerator.MoveNextAsync();
-
-            if (hasNext)
+            if (_task.ChildTask is null)
             {
-                ResolverTask resolverTask = ResolverTaskFactory.EnqueueElementTasks(
-                    operationContext,
-                    Selection,
-                    Parent,
-                    Path,
-                    Index,
-                    Enumerator,
-                    ScopedContextData);
-
-                if (!operationContext.Scheduler.IsEmpty)
-                {
-                    await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
-                }
-
-                operationContext.Scheduler.DeferredWork.Register(this);
-
-                IQueryResult result = operationContext
-                    .TrySetNext(true)
-                    .SetLabel(Label)
-                    .SetPath(Path.Append(Index))
-                    .SetData((ResultMap)resolverTask.ResultMap[0].Value!)
-                    .BuildResult();
-
-                resolverTask.CompleteUnsafe();
-
-                return result;
+                return null;
             }
 
-            return null;
+            operationContext.Scheduler.DeferredWork.Register(this);
+
+            IQueryResult result = operationContext
+                .TrySetNext(true)
+                .SetLabel(Label)
+                .SetPath(Path.Append(Index))
+                .SetData((ResultMap)_task.ChildTask.ResultMap[0].Value!)
+                .BuildResult();
+
+            _task.ChildTask.CompleteUnsafe();
+
+            return result;
+        }
+
+
+        private class StreamExecutionTask : ExecutionTask
+        {
+            private readonly IOperationContext _operationContext;
+            private readonly DeferredStream _deferredStream;
+
+            public StreamExecutionTask(IOperationContext operationContext, DeferredStream deferredStream)
+            {
+                _operationContext = operationContext;
+                _deferredStream = deferredStream;
+                Context = (IExecutionTaskContext)operationContext;
+            }
+
+            protected override IExecutionTaskContext Context { get; }
+
+            public ResolverTask? ChildTask { get; private set; }
+
+            protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
+            {
+                ChildTask = null;
+                _deferredStream.Index++;
+                var hasNext = await _deferredStream.Enumerator.MoveNextAsync();
+
+                if (hasNext)
+                {
+                    ChildTask = ResolverTaskFactory.EnqueueElementTasks(
+                        _operationContext,
+                        _deferredStream.Selection,
+                        _deferredStream.Parent,
+                        _deferredStream.Path,
+                        _deferredStream.Index,
+                        _deferredStream.Enumerator,
+                        _deferredStream.ScopedContextData);
+                }
+            }
+
+            public new void Reset() => base.Reset();
         }
     }
 }

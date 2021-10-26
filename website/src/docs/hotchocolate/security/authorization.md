@@ -333,9 +333,11 @@ public class Startup
 }
 ```
 
-> ⚠️ Note: This will also block unauthenticated access to GraphQL IDEs hosted on that endpoint, like Banana Cake Pop.
-
 This method also accepts [roles](#roles) and [policies](#policies) as arguments, similiar to the `Authorize` attribute / methods.
+
+Please note that this will prevent unauthorized access to all middleware included in `MapGraphQL`. This includes our GraphQL IDE Banana Cake Pop. If we do not want to block unauthorized access to Banana Cake Pop, we can split up the `MapGraphQL` middleware and for example only apply the `RequireAuthorization` to the `MapGraphQLHttp` middleware.
+
+[Learn more about available middleware](/docs/hotchocolate/server/middleware)
 
 # Modifying the ClaimsPrincipal
 
@@ -373,4 +375,4 @@ public class Startup
 }
 ```
 
-The `IHttpRequestInterceptor` can be used for many other things as well, not just for modifying the `ClaimsPrincipal`.
+[Learn more about interceptors](/docs/hotchocolate/server/interceptors)

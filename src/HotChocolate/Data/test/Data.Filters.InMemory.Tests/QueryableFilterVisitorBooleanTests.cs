@@ -5,23 +5,25 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-
     public class QueryableFilterVisitorBooleanTests
         : IClassFixture<SchemaCache>
     {
-        private static readonly Foo[] _fooEntities = new[]{
+        private static readonly Foo[] _fooEntities = new[]
+        {
             new Foo { Bar = true },
-            new Foo { Bar = false }};
+            new Foo { Bar = false }
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
+        private static readonly FooNullable[] _fooNullableEntities = new[]
+        {
             new FooNullable { Bar = true },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = false }};
+            new FooNullable { Bar = false }
+        };
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorBooleanTests(
-            SchemaCache cache)
+        public QueryableFilterVisitorBooleanTests(SchemaCache cache)
         {
             _cache = cache;
         }
@@ -36,15 +38,15 @@ namespace HotChocolate.Data.Filters
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
+                    .Create());
 
             res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
+                    .Create());
 
             res2.MatchSnapshot("false");
         }
@@ -59,15 +61,15 @@ namespace HotChocolate.Data.Filters
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
+                    .Create());
 
             res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
+                    .Create());
 
             res2.MatchSnapshot("false");
         }
@@ -83,22 +85,22 @@ namespace HotChocolate.Data.Filters
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
+                    .Create());
 
             res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
+                    .Create());
 
             res2.MatchSnapshot("false");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
+                    .Create());
 
             res3.MatchSnapshot("null");
         }
@@ -114,22 +116,22 @@ namespace HotChocolate.Data.Filters
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
+                    .Create());
 
             res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
+                    .Create());
 
             res2.MatchSnapshot("false");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                .Create());
+                    .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
+                    .Create());
 
             res3.MatchSnapshot("null");
         }

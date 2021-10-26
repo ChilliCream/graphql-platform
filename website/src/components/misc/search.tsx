@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import { SearchBoxProvided } from "react-instantsearch-core";
+import { Configure, SearchBoxProvided } from "react-instantsearch-core";
 import {
   connectSearchBox,
   connectStateResults,
@@ -53,6 +53,22 @@ export const Search: FC<SearchProps> = ({ siteUrl }) => {
         indexName="chillicream"
         onSearchStateChange={({ query }) => handleChangeQuery(query)}
       >
+        <Configure
+          attributesToRetrieve={["url", "anchor"]}
+          attributesToHighlight={[]}
+          attributesToSnippet={[
+            "content:10",
+            "hierarchy.lvl0:10",
+            "hierarchy.lvl1:10",
+            "hierarchy.lvl2:10",
+            "hierarchy.lvl3:10",
+            "hierarchy.lvl4:10",
+            "hierarchy.lvl5:10",
+          ]}
+          snippetEllipsisText="..."
+          distinct
+          analytics={false}
+        />
         <SearchBox onFocus={() => setFocus(true)} />
         <HitsWrapper show={query.length > 0 && focus}>
           <Index indexName="chillicream">
@@ -136,10 +152,25 @@ const DocHit =
   (siteUrl: string, clickHandler: () => void) =>
   ({ hit }: HitComponentProps) => {
     const slug = (hit.url as string).replace(siteUrl, "");
+    const snippetResult = hit?._snippetResult ?? {};
+
+    let attribute = "content";
+
+    if (!snippetResult.content && !!snippetResult.hierarchy) {
+      const hierarchyKeys = Object.keys(snippetResult.hierarchy);
+
+      for (const key of hierarchyKeys) {
+        if (!snippetResult.hierarchy[key]) {
+          break;
+        }
+
+        attribute = "hierarchy." + key;
+      }
+    }
 
     return (
       <Link to={slug} onClick={clickHandler}>
-        <Snippet attribute="content" hit={hit} tagName="mark" />
+        <Snippet attribute={attribute} hit={hit} tagName="mark" />
       </Link>
     );
   };
