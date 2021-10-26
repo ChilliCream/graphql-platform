@@ -544,26 +544,25 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             ICustomAttributeProvider attributeProvider)
         {
+            IExtendedType resultType = type;
             if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
                 typeAttribute.Type is not null)
             {
-                return GetType(typeAttribute.Type);
+                resultType = GetType(typeAttribute.Type);
             }
 
             if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
             {
-                return ChangeNullabilityInternal(
-                    type,
-                    nullAttribute.Nullable);
+                resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
             }
 
             if (!IgnoreRequiredAttribute &&
                 TryGetAttribute(attributeProvider, out RequiredAttribute? _))
             {
-                return ChangeNullability(type, false);
+                resultType = ChangeNullability(resultType, false);
             }
 
-            return type;
+            return resultType;
         }
 
         private bool TryGetAttribute<T>(
