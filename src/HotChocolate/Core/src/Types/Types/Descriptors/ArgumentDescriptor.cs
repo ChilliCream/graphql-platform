@@ -147,6 +147,14 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        /// <inheritdoc />
+        public new IArgumentDescriptor ConfigureContextData(
+            Action<ExtensionData> configure)
+        {
+            base.ConfigureContextData(configure);
+            return this;
+        }
+
         public static ArgumentDescriptor New(
             IDescriptorContext context,
             NameString argumentName) =>

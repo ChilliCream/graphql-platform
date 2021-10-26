@@ -8,8 +8,11 @@ using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Errors;
+using HotChocolate.Types.Input;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Payload;
 
 #nullable enable
 
@@ -35,7 +38,10 @@ namespace HotChocolate
             typeof(IntrospectionTypeInterceptor),
             typeof(InterfaceCompletionTypeInterceptor),
             typeof(CostTypeInterceptor),
-            typeof(MiddlewareValidationTypeInterceptor)
+            typeof(MiddlewareValidationTypeInterceptor),
+            typeof(InputArgumentInterceptor),
+            typeof(PayloadInterceptor),
+            typeof(ErrorTypeInterceptor)
         };
         private SchemaOptions _options = new();
         private IsOfTypeFallback? _isOfType;

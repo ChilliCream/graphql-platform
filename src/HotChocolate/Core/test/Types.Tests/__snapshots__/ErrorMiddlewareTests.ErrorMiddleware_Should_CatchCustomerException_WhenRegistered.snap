@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomException",
+          "message": "Customer Exception"
+        }
+      ]
+    }
+  }
+}

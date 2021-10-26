@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomErrorWithFactory",
+          "message": "Foo"
+        }
+      ]
+    }
+  }
+}

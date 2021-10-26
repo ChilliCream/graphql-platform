@@ -47,6 +47,21 @@ namespace HotChocolate.Utilities
             return ExtractMember(typeof(T), expression);
         }
 
+        public static MethodInfo ExtractMethod<T>(this Expression<Action<T>> memberExpression) =>
+            ExtractMember(memberExpression) as MethodInfo ??
+            throw new ArgumentException("Member is not a method!", nameof(memberExpression));
+
+        public static MemberInfo ExtractMember<T>(
+            this Expression<Action<T>> memberExpression)
+        {
+            if (memberExpression is null)
+            {
+                throw new ArgumentNullException(nameof(memberExpression));
+            }
+
+            return ExtractMemberInternal<T>(UnwrapAction(memberExpression));
+        }
+
         public static MemberInfo ExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
         {
@@ -106,6 +121,16 @@ namespace HotChocolate.Utilities
 
         private static Expression UnwrapFunc<T, TPropertyType>(
             Expression<Func<T, TPropertyType>> memberExpression)
+        {
+            if (memberExpression.Body is UnaryExpression u)
+            {
+                return u.Operand;
+            }
+            return memberExpression.Body;
+        }
+
+        private static Expression UnwrapAction<T>(
+            Expression<Action<T>> memberExpression)
         {
             if (memberExpression.Body is UnaryExpression u)
             {
