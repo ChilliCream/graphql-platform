@@ -84,7 +84,7 @@ namespace HotChocolate.Types.Interceptors
             }
 
             Type? runtimeType = typeInfo.Definition.RuntimeType;
-            return runtimeType is not null!  && runtimeType != typeof(object);
+            return runtimeType is not null && runtimeType != typeof(object);
         }
 
         private Type GetRuntimeType(TypeInfo typeInfo)

@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         static SchemaParameterExpressionBuilder()
         {
             _schema = PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
-            Debug.Assert(_schema is not null!, "Schema property is missing." );
+            Debug.Assert(_schema is not null, "Schema property is missing." );
         }
 
         public ArgumentKind Kind => ArgumentKind.Schema;
