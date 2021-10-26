@@ -18,7 +18,6 @@ namespace HotChocolate.Types.Errors
         private readonly HashSet<ObjectType> _objectTypes = new();
         private readonly List<(ITypeCompletionContext, ObjectTypeDefinition)> _contexts = new();
 
-
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
