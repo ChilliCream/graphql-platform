@@ -54,7 +54,7 @@ namespace HotChocolate.Utilities.Serialization
             throw new InvalidOperationException(
                 $"No compatible constructor found for input type `{type.FullName}`.\r\n" +
                 "All fields of the input type must be settable, either via a public setter " +
-                "or via a matching argument in a public, non-default constructor. "
+                "or via a matching argument in a public, non-default constructor. " +
                 $"There was no way to set the following properties: {string.Join(", ", required)}.");
         }
 

@@ -1,0 +1,2 @@
+﻿No compatible constructor found for input type `HotChocolate.Utilities.InputObjectConstructorTests+CreateFoo5Input`.
+All fields of the input type must be settable, either via a public setter or via a matching argument in a public, non-default constructor. There was no way to set the following properties: .
