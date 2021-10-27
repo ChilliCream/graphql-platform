@@ -32,8 +32,14 @@ namespace HotChocolate.Data.Projections.Spatial
             await _resource.RunSqlScriptAsync(
                 "CREATE EXTENSION postgis;\n" + sql,
                 databaseName);
-            dbContext.AddRange(results);
-            dbContext.SaveChanges();
+
+            DbSet<T> set = dbContext.Set<T>();
+
+            foreach (T result in results)
+            {
+                set.Add(result);
+                await dbContext.SaveChangesAsync();
+            }
 
             return ctx => dbContext.Data.AsQueryable();
         }

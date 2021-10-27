@@ -1,9 +1,19 @@
 ﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 2,
+          "column": 29
+        }
+      ],
+      "path": [
+        "root"
+      ]
+    }
+  ],
   "data": {
-    "root": [
-      {
-        "id": 2
-      }
-    ]
+    "root": null
   }
 }

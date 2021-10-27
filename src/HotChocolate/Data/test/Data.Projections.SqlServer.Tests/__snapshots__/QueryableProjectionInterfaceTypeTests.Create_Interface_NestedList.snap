@@ -16,12 +16,12 @@
       {
         "list": [
           {
-            "name": "Bar",
-            "barProp": "BarProp"
-          },
-          {
             "name": "Foo",
             "fooProp": "FooProp"
+          },
+          {
+            "name": "Bar",
+            "barProp": "BarProp"
           }
         ]
       }

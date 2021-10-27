@@ -29,9 +29,11 @@ namespace HotChocolate.Data.Projections
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
 
+            DbSet<TResult> set = dbContext.Set<TResult>();
+
             foreach (TResult result in results)
             {
-                dbContext.Add(result);
+                set.Add(result);
                 dbContext.SaveChanges();
             }
 
