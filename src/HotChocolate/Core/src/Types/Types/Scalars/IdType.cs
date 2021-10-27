@@ -50,7 +50,7 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode literal)
         {
             if (literal is null)
             {

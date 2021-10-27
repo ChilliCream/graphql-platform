@@ -22,9 +22,8 @@ namespace HotChocolate.Execution.Processing
             try
             {
                 IOperationContext context = _operationContextOwner.OperationContext;
-                QueryPlan rootQueryPlan = context.QueryPlan;
 
-                while (context.Execution.DeferredWork.TryTake(
+                while (context.Scheduler.DeferredWork.TryTake(
                     out IDeferredExecutionTask? deferredTask))
                 {
                     if (cancellationToken.IsCancellationRequested)
@@ -32,11 +31,25 @@ namespace HotChocolate.Execution.Processing
                         break;
                     }
 
-                    context.Result.Clear();
-                    context.Execution.Reset();
-                    context.QueryPlan = rootQueryPlan;
+                    // we ensure that the previous results are cleared.
+                    context.ClearResult();
 
-                    yield return await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
+                    // next we execute the deferred task.
+                    var result = await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
+
+                    // if we get a result we will yield it to the consumer of the result stream.
+                    if (result is not null)
+                    {
+                        yield return result;
+                    }
+
+                    // if null is returned and there are no more deferred tasks we will
+                    // yield a termination result which signals to the consumer that
+                    // no more results will follow.
+                    else if (!context.Scheduler.DeferredWork.HasWork)
+                    {
+                        yield return context.ClearResult().TrySetNext(true).BuildResult();
+                    }
                 }
             }
             finally

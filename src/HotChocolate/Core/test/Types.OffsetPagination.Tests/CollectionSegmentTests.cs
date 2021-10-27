@@ -45,11 +45,13 @@ namespace HotChocolate.Types.Pagination
             var pageInfo = new CollectionSegmentInfo(true, true);
 
             // act
-            Action a = () => new CollectionSegment<string>(
-                null, pageInfo, ct => throw new NotSupportedException());
+            void Verify() => new CollectionSegment<string>(
+                null!,
+                pageInfo,
+                _ => throw new NotSupportedException());
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Throws<ArgumentNullException>(Verify);
         }
     }
 }

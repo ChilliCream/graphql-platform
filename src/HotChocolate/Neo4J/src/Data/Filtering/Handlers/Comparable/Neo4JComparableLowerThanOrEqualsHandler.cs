@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Neo4J.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -12,7 +13,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public class Neo4JComparableLowerThanOrEqualsHandler
         : Neo4JComparableOperationHandler
     {
-        public Neo4JComparableLowerThanOrEqualsHandler()
+        public Neo4JComparableLowerThanOrEqualsHandler(InputParser inputParser)
+            : base(inputParser)
         {
             CanBeNull = false;
         }

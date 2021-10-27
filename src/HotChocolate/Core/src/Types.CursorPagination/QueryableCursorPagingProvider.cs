@@ -1,17 +1,21 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class QueryableCursorPagingProvider
-        : CursorPagingProvider
+    /// <summary>
+    /// The cursor pagination provider for <see cref="IQueryable{T}"/>.
+    /// </summary>
+    public class QueryableCursorPagingProvider : CursorPagingProvider
     {
         private static readonly MethodInfo _createHandler =
             typeof(QueryableCursorPagingProvider).GetMethod(
                 nameof(CreateHandlerInternal),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
+        /// <inheritdoc />
         public override bool CanHandle(IExtendedType source)
         {
             if (source is null)
@@ -22,6 +26,7 @@ namespace HotChocolate.Types.Pagination
             return source.IsArrayOrList;
         }
 
+        /// <inheritdoc />
         protected override CursorPagingHandler CreateHandler(
             IExtendedType source,
             PagingOptions options)

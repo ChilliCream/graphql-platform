@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.DataLoader;
-using HotChocolate.Resolvers;
+using HotChocolate.Fetching;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -24,9 +24,10 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
-                        async ctx => await ctx.FetchOnceAsync(ct => Task.FromResult("fooBar")))
+                        async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
             )
             .MatchSnapshotAsync();
         }
@@ -40,10 +41,11 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.CacheDataLoader<string, string>(
-                            (key, ct) => Task.FromResult(key))
+                            (key, _) => Task.FromResult(key))
                             .LoadAsync("fooBar"))
             )
             .MatchSnapshotAsync();
@@ -58,10 +60,11 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.BatchDataLoader<string, string>(
-                            (keys, ct) => Task.FromResult<IReadOnlyDictionary<string, string>>(
+                            (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
                                 keys.ToDictionary(t => t)))
                             .LoadAsync("fooBar"))
             )
@@ -77,14 +80,67 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 configure: b => b
                     .AddGraphQL()
                     .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .AddResolver(
                         "Query", "fetchItem",
                         async ctx => await ctx.GroupDataLoader<string, string>(
-                            (keys, ct) => Task.FromResult(
+                            (keys, _) => Task.FromResult(
                                 keys.ToLookup(t => t)))
                             .LoadAsync("fooBar"))
             )
             .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task AddSingleDiagnosticEventListener()
+        {
+            var listener = new DataLoaderListener();
+
+            await ExpectValid(
+                "{ fetchItem }",
+                b => b
+                    .AddGraphQL()
+                    .AddDiagnosticEventListener(_ => listener)
+                    .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .AddResolver(
+                        "Query", "fetchItem",
+                        async ctx => await ctx.GroupDataLoader<string, string>(
+                                (keys, _) => Task.FromResult(
+                                    keys.ToLookup(t => t)))
+                            .LoadAsync("fooBar"))
+            );
+
+            Assert.True(listener.ExecuteBatchTouched);
+            Assert.True(listener.BatchResultsTouched);
+        }
+
+        [Fact]
+        public async Task AddMultipleDiagnosticEventListener()
+        {
+            var listener1 = new DataLoaderListener();
+            var listener2 = new DataLoaderListener();
+
+            await ExpectValid(
+                "{ fetchItem }",
+                b => b
+                    .AddGraphQL()
+                    .AddDiagnosticEventListener(_ => listener1)
+                    .AddDiagnosticEventListener(_ => listener2)
+                    .AddDocumentFromString("type Query { fetchItem: String }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .AddResolver(
+                        "Query", "fetchItem",
+                        async ctx => await ctx.GroupDataLoader<string, string>(
+                                (keys, _) => Task.FromResult(
+                                    keys.ToLookup(t => t)))
+                            .LoadAsync("fooBar"))
+            );
+
+            Assert.True(listener1.ExecuteBatchTouched);
+            Assert.True(listener1.BatchResultsTouched);
+            Assert.True(listener2.ExecuteBatchTouched);
+            Assert.True(listener2.BatchResultsTouched);
         }
 
         [Fact]
@@ -94,52 +150,52 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);
 
-                    var dataLoader =
+                    TestDataLoader dataLoader =
                         context.Services
                             .GetRequiredService<IDataLoaderRegistry>()
                             .GetOrRegister<TestDataLoader>(() => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader(key: ""a"")
                             b: withDataLoader(key: ""b"")
                             bar {
                                 c: withDataLoader(key: ""c"")
                             }
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader(key: ""a"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
@@ -152,49 +208,49 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);
 
-                    var dataLoader =
+                    TestDataLoader dataLoader =
                         context.Services
                             .GetRequiredService<IDataLoaderRegistry>()
                             .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader2(key: ""a"")
                             b: withDataLoader2(key: ""b"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withDataLoader2(key: ""a"")
                         }")
-                    .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                        .Create()),
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withDataLoader2(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
@@ -206,35 +262,39 @@ namespace HotChocolate.Execution.Integration.DataLoader
             // arrange
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
-                .AddDataLoader<ITestDataLoader, TestDataLoader>());
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
 
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            results.Add(
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withStackedDataLoader(key: ""a"")
                             b: withStackedDataLoader(key: ""b"")
                         }")
-                    .Create()));
+                        .Create()));
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            results.Add(
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: withStackedDataLoader(key: ""a"")
                         }")
-                    .Create()));
+                        .Create()));
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            results.Add(
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: withStackedDataLoader(key: ""c"")
                         }")
-                    .Create()));
+                        .Create()));
 
             // assert
             results.MatchSnapshot();
@@ -247,6 +307,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
             IRequestExecutor executor = await CreateExecutorAsync(c => c
                 .AddQueryType<Query>()
                 .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .UseRequest(next => async context =>
                 {
                     await next(context);
@@ -255,42 +316,78 @@ namespace HotChocolate.Execution.Integration.DataLoader
                         (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
                     context.Result = QueryResultBuilder
-                        .FromResult((IQueryResult)context.Result)
+                        .FromResult(((IQueryResult)context.Result)!)
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
                 .UseDefaultPipeline());
 
             // act
-            var results = new List<IExecutionResult>();
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+            var results = new List<IExecutionResult>
+            {
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: dataLoaderWithInterface(key: ""a"")
                             b: dataLoaderWithInterface(key: ""b"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             a: dataLoaderWithInterface(key: ""a"")
                         }")
-                    .Create()));
+                        .Create()),
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            @"{
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
-                    .Create()));
+                        .Create())
+            };
 
             // assert
             results.MatchSnapshot();
+        }
+
+        public class DataLoaderListener : DataLoaderDiagnosticEventListener
+        {
+            public bool ResolvedTaskFromCacheTouched;
+            public bool ExecuteBatchTouched;
+            public bool BatchResultsTouched;
+            public bool BatchErrorTouched;
+            public bool BatchItemErrorTouched;
+
+            public override void ResolvedTaskFromCache(IDataLoader dataLoader, TaskCacheKey cacheKey, Task task)
+            {
+                ResolvedTaskFromCacheTouched = true;
+            }
+
+            public override IDisposable ExecuteBatch<TKey>(IDataLoader dataLoader, IReadOnlyList<TKey> keys)
+            {
+                ExecuteBatchTouched = true;
+                return base.ExecuteBatch(dataLoader, keys);
+            }
+
+            public override void BatchResults<TKey, TValue>(IReadOnlyList<TKey> keys, ReadOnlySpan<Result<TValue>> values)
+            {
+                BatchResultsTouched = true;
+            }
+
+            public override void BatchError<TKey>(IReadOnlyList<TKey> keys, Exception error)
+            {
+                BatchErrorTouched = true;
+            }
+
+            public override void BatchItemError<TKey>(TKey key, Exception error)
+            {
+                BatchItemErrorTouched = true;
+            }
         }
     }
 }

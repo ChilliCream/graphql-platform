@@ -1,4 +1,5 @@
-using HotChocolate.Language;
+using System.Collections.Generic;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
 
@@ -15,6 +16,7 @@ namespace HotChocolate.Execution.Processing
             string responseName,
             int responseIndex,
             object? result,
+            List<ResolverTask> bufferedTasks,
             out object? completedResult)
         {
             TypeKind typeKind = fieldType.Kind;
@@ -30,6 +32,7 @@ namespace HotChocolate.Execution.Processing
                     responseName,
                     responseIndex,
                     result,
+                    bufferedTasks,
                     out completedResult) &&
                     completedResult is not null;
             }
@@ -51,6 +54,7 @@ namespace HotChocolate.Execution.Processing
                     responseName,
                     responseIndex,
                     result,
+                    bufferedTasks,
                     out completedResult);
             }
 
@@ -75,6 +79,7 @@ namespace HotChocolate.Execution.Processing
                     path,
                     fieldType,
                     result,
+                    bufferedTasks,
                     out completedResult);
             }
 

@@ -24,15 +24,15 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// If this argument label has a value other than null, it will be passed
-        /// on to the result of this defer directive. This label is intended to
-        /// give client applications a way to identify to which fragment a deferred
-        /// result belongs to.
+        /// Deferred when true.
         /// </summary>
         public bool If { get; }
 
         /// <summary>
-        /// Deferred when true.
+        /// If this argument label has a value other than null, it will be passed
+        /// on to the result of this defer directive. This label is intended to
+        /// give client applications a way to identify to which fragment a deferred
+        /// result belongs to.
         /// </summary>
         public string? Label { get; }
     }

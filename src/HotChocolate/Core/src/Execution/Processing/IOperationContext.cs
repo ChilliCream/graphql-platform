@@ -2,9 +2,11 @@ using System;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -32,7 +34,7 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Gets the diagnostic events.
         /// </summary>
-        IDiagnosticEvents DiagnosticEvents { get; }
+        IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
         /// <summary>
         /// Gets the operation that is being executed.
@@ -46,7 +48,7 @@ namespace HotChocolate.Execution.Processing
 
         /// <summary>
         /// Gets the value representing the instance of the
-        /// <see cref="Operation.RootType" />
+        /// <see cref="IPreparedOperation.RootType" />
         /// </summary>
         object? RootValue { get; }
 
@@ -78,9 +80,14 @@ namespace HotChocolate.Execution.Processing
         IResultHelper Result { get; }
 
         /// <summary>
-        /// The execution context proved the processing state.
+        /// The work scheduler organizes the processing of request tasks.
         /// </summary>
-        IExecutionContext Execution { get; }
+        IWorkScheduler Scheduler { get; }
+
+        /// <summary>
+        /// Gets the resolver task pool.
+        /// </summary>
+        ObjectPool<ResolverTask> ResolverTasks { get; }
 
         /// <summary>
         /// Get the fields for the specified selection set according to the execution plan.

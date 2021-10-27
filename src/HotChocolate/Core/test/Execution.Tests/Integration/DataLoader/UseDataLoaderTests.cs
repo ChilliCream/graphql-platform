@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.DataLoader;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -17,7 +16,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             // arrange
             // act
-            SchemaException exception = 
+            SchemaException exception =
                 Assert.Throws<SchemaException>(
                     () => SchemaBuilder.New()
                         .AddQueryType<Query>(x => x
@@ -263,7 +262,8 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             public TestGroupedLoader(
                 IBatchScheduler batchScheduler,
-                DataLoaderOptions<int> options = null) : base(batchScheduler, options)
+                DataLoaderOptions options = null)
+                : base(batchScheduler, options)
             {
             }
 
@@ -279,7 +279,8 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             public TestBatchLoader(
                 IBatchScheduler batchScheduler,
-                DataLoaderOptions<int>? options = null) : base(batchScheduler, options)
+                DataLoaderOptions options = null)
+                : base(batchScheduler, options)
             {
             }
 

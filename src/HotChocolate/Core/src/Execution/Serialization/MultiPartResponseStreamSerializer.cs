@@ -47,11 +47,13 @@ namespace HotChocolate.Execution.Serialization
             return WriteResponseStreamAsync(responseStream, outputStream, cancellationToken);
         }
 
-        public async Task WriteResponseStreamAsync(
+        private async Task WriteResponseStreamAsync(
             IResponseStream responseStream,
             Stream outputStream,
             CancellationToken cancellationToken = default)
         {
+            await WriteNextAsync(outputStream, cancellationToken).ConfigureAwait(false);
+
             await foreach (IQueryResult result in responseStream.ReadResultsAsync()
                 .WithCancellation(cancellationToken)
                 .ConfigureAwait(false))
@@ -59,13 +61,23 @@ namespace HotChocolate.Execution.Serialization
                 await WriteResultAsync(result, outputStream, cancellationToken)
                     .ConfigureAwait(false);
                 result.Dispose();
+
+                if (result.HasNext ?? false)
+                {
+                    await WriteNextAsync(outputStream, cancellationToken).ConfigureAwait(false);
+                    await outputStream.FlushAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // we will exit the foreach even if there are more items left
+                    // since we were signaled that there are no more items
+                    break;
+                }
             }
 
-            // After the last part of the multipart response is sent, the terminating
-            // boundary ----- is sent, followed by a CRLF
-            await outputStream.WriteAsync(End, 0, End.Length, cancellationToken)
-                .ConfigureAwait(false);
-            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+            await WriteEndAsync(outputStream, cancellationToken).ConfigureAwait(false);
+            await outputStream.FlushAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -77,68 +89,57 @@ namespace HotChocolate.Execution.Serialization
             using var writer = new ArrayWriter();
             _payloadSerializer.Serialize(result, writer);
 
-            await WriteResultHeaderAsync(outputStream, writer.Length, cancellationToken)
+            await WriteResultHeaderAsync(outputStream, cancellationToken)
                 .ConfigureAwait(false);
 
-            // The payload is sent, followed by two CRLFs.
+            // The payload is sent, followed by a CRLF.
             await outputStream.WriteAsync(
                 writer.GetInternalBuffer(), 0, writer.Length, cancellationToken)
                 .ConfigureAwait(false);
             await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
                 .ConfigureAwait(false);
-            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                .ConfigureAwait(false);
-            await outputStream.FlushAsync(cancellationToken)
-                .ConfigureAwait(false);
         }
 
         private async Task WriteResultHeaderAsync(
             Stream outputStream,
-            int contentLength,
             CancellationToken cancellationToken)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(128);
-
-            try
-            {
-                Utf8Formatter.TryFormat(contentLength, buffer, out var w);
-
-                // Each part of the multipart response must start with --- and a CRLF
-                await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
-
-                // Each part of the multipart response must contain a Content-Type header.
-                // Similar to the GraphQL specification this specification does not require
-                // a specific serialization format. For consistency and ease of notation,
-                // examples of the response are given in JSON throughout the spec.
-                await outputStream.WriteAsync(
+            // Each part of the multipart response must contain a Content-Type header.
+            // Similar to the GraphQL specification this specification does not require
+            // a specific serialization format. For consistency and ease of notation,
+            // examples of the response are given in JSON throughout the spec.
+            await outputStream.WriteAsync(
                     ContentType, 0, ContentType.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
 
-                // Each part of the multipart response must contain a Content-Length header.
-                // This should be the number of bytes of the payload of the response.
-                // It does not include the size of the headers, boundaries,
-                // or CRLFs used to separate the content.
-                await outputStream.WriteAsync(
-                        ContentLength, 0, ContentLength.Length, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(buffer, 0, w, cancellationToken)
-                    .ConfigureAwait(false);
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
+            // After all headers, an additional CRLF is sent.
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
+        }
 
-                // After all headers, an additional CRLF is sent.
-                await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+        private async Task WriteNextAsync(
+            Stream outputStream,
+            CancellationToken cancellationToken)
+        {
+            // Each part of the multipart response must start with --- and a CRLF
+            await outputStream.WriteAsync(Start, 0, Start.Length, cancellationToken)
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private async Task WriteEndAsync(
+            Stream outputStream,
+            CancellationToken cancellationToken)
+        {
+            // After the last part of the multipart response is sent, the terminating
+            // boundary ----- is sent, followed by a CRLF
+            await outputStream.WriteAsync(End, 0, End.Length, cancellationToken)
+                .ConfigureAwait(false);
+            await outputStream.WriteAsync(CrLf, 0, CrLf.Length, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

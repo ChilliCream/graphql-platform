@@ -153,7 +153,7 @@ services
 
 # XML Documentation
 
-Hot Chocolate provides the ability to automatically generate API documentation from our existing [XML documentation](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc).
+Hot Chocolate provides the ability to automatically generate API documentation from our existing [XML documentation](https://docs.microsoft.com/dotnet/csharp/codedoc).
 
 The following will produce the same schema descriptions we declared above.
 

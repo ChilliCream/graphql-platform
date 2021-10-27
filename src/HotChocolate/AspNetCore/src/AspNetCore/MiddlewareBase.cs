@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
             _resultSerializer = resultSerializer ??
-                throw new ArgumentNullException(nameof(executorResolver));
+                throw new ArgumentNullException(nameof(resultSerializer));
             SchemaName = schemaName;
             ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
         }

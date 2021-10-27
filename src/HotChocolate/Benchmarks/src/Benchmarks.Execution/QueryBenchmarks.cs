@@ -9,10 +9,10 @@ namespace HotChocolate.Benchmarks
     public class QueryBenchmarks : BenchmarkBase
     {
         [Benchmark]
-        public async Task Sessions_TitleAndAbstract() =>
+        public async Task Sessions_TitleAndAbstract_10_Items() =>
             await BenchmarkAsync(@"
                 {
-                    sessions(first: 50) {
+                    sessions(first: 10) {
                         nodes {
                             title
                             abstract
@@ -21,10 +21,10 @@ namespace HotChocolate.Benchmarks
                 }
             ");
 
-        public async Task Print_Sessions_TitleAndAbstract() =>
+        public async Task Print_Sessions_TitleAndAbstract_10_Items() =>
             await PrintQueryPlanAsync(@"
                 {
-                    sessions(first: 50) {
+                    sessions(first: 10) {
                         nodes {
                             title
                             abstract
@@ -34,10 +34,10 @@ namespace HotChocolate.Benchmarks
             ");
 
         [Benchmark]
-        public async Task Sessions_TitleAndAbstractAndTrackName() =>
+        public async Task Sessions_TitleAndAbstractAndTrackName_10_Items() =>
             await BenchmarkAsync(@"
                 {
-                    sessions {
+                    sessions(first: 10) {
                         nodes {
                             title
                             abstract
@@ -49,10 +49,10 @@ namespace HotChocolate.Benchmarks
                 }
             ");
 
-        public async Task Print_Sessions_TitleAndAbstractAndTrackName() =>
+        public async Task Print_Sessions_TitleAndAbstractAndTrackName_10_Items() =>
             await PrintQueryPlanAsync(@"
                 {
-                    sessions {
+                    sessions(first: 10) {
                         nodes {
                             title
                             abstract
@@ -63,5 +63,23 @@ namespace HotChocolate.Benchmarks
                     }
                 }
             ");
+
+        [Benchmark]
+        public async Task Sessions_Medium() =>
+            await BenchmarkAsync(SessionMediumQuery);
+
+        public async Task Print_Sessions_Medium() =>
+            await PrintQueryPlanAsync(SessionMediumQuery);
+
+        public string SessionMediumQuery { get; } = Resources.SessionMediumQuery;
+
+        [Benchmark]
+        public async Task Sessions_Large() =>
+            await BenchmarkAsync(SessionLargeQuery);
+
+        public async Task Print_Sessions_Large() =>
+            await PrintQueryPlanAsync(SessionLargeQuery);
+
+        public string SessionLargeQuery { get; } = Resources.SessionLargeQuery;
     }
 }

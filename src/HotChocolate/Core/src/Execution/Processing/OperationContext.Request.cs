@@ -7,7 +7,17 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {
-        internal IRequestContext RequestContext => _requestContext;
+        internal IRequestContext RequestContext
+        {
+            get
+            {
+                 return _requestContext;
+            }
+            set
+            {
+                _requestContext = value;
+            }
+        }
 
         public ISchema Schema
         {
@@ -45,7 +55,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public IDiagnosticEvents DiagnosticEvents
+        public IExecutionDiagnosticEvents DiagnosticEvents
         {
             get
             {

@@ -7,6 +7,9 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// Defines the properties of a GraphQL directive.
+    /// </summary>
     public class DirectiveTypeDefinition
         : DefinitionBase<DirectiveDefinitionNode>
         , IHasRuntimeType
@@ -15,6 +18,26 @@ namespace HotChocolate.Types.Descriptors.Definitions
         private List<DirectiveMiddleware>? _middlewareComponents;
         private HashSet<DirectiveLocation>? _locations;
         private BindableList<DirectiveArgumentDefinition>? _arguments;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
+        /// </summary>
+        public DirectiveTypeDefinition() { }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="DirectiveTypeDefinition"/>.
+        /// </summary>
+        public DirectiveTypeDefinition(
+            NameString name,
+            string? description = null,
+            Type? runtimeType = null,
+            bool isRepeatable = false)
+        {
+            Name = name;
+            Description = description;
+            RuntimeType = runtimeType ?? typeof(object);
+            IsRepeatable = isRepeatable;
+        }
 
         /// <summary>
         /// Defines if this directive can be specified multiple
@@ -56,9 +79,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<DirectiveArgumentDefinition> Arguments =>
             _arguments ??= new BindableList<DirectiveArgumentDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        public bool HasArguments => _arguments is { Count: > 0 };
+
+        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
         {
-            var configs = new List<ILazyTypeConfiguration>();
+            var configs = new List<ITypeSystemMemberConfiguration>();
 
             configs.AddRange(Configurations);
 

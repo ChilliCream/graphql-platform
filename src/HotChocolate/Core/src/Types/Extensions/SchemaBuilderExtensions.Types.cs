@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
@@ -677,7 +680,83 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
+            return builder.BindRuntimeType(typeof(TClrType), typeof(TSchemaType));
+        }
+
+        public static ISchemaBuilder BindRuntimeType<TRuntimeType>(
+            this ISchemaBuilder builder,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            typeName ??= typeof(TRuntimeType).Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName.Value, typeof(TRuntimeType));
+        }
+
+        public static ISchemaBuilder BindRuntimeType(
+            this ISchemaBuilder builder,
+            Type runtimeType,
+            NameString? typeName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName ??= runtimeType.Name;
+            typeName.Value.EnsureNotEmpty(nameof(typeName));
+
+            return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
+        }
+        
+        public static void TryBindRuntimeType(
+            this IDescriptorContext context,
+            NameString typeName,
+            Type runtimeType)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            if (context.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
+                o is Dictionary<NameString, Type> runtimeTypes)
+            {
+                runtimeTypes[typeName] = runtimeType;
+            }
+        }
+
+        private static ISchemaBuilder BindRuntimeTypeInternal(
+            ISchemaBuilder builder,
+            NameString typeName,
+            Type runtimeType)
+        {
+            InitializeResolverTypeInterceptor(builder);
+
+            if (builder.ContextData.TryGetValue(WellKnownContextData.RuntimeTypes, out var o) &&
+                o is Dictionary<NameString, Type> runtimeTypes)
+            {
+                runtimeTypes[typeName] = runtimeType;
+            }
+
+            return builder;
         }
     }
 }

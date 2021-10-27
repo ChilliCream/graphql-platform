@@ -4,27 +4,13 @@ title: "Extending Types"
 
 import { ExampleTabs } from "../../../components/mdx/example-tabs"
 
-GraphQL allows us to extend existing types with new functionality.
+Type extensions allow us to add, remove or replace fields on existing types, without necessarily needing access to these types.
 
-```sdl
-type Query {
-  foo: String
-}
+Because of these capabilities, they also allow for better organization of our types. We could for example have classes that encapsulate part of our domain and extend our `Query` type with these functionalities.
 
-extend type Query {
-  bar: String
-}
-```
+Type extensions are especially useful if we want to modify third-party types, such as types that live in a separate assembly and are therefore not directly modifiable by us.
 
-In Hot Chocolate type extensions work a little different. Instead of generating the `extend` syntax in the schema, the original type definition and its type extensions are merged at runtime into a combined type.
-
-Type extensions make most sense, if
-
-- we want to split up types into separate classes.
-
-- we can not modify the original type.
-
-> Note: If we just want to organize the fields of one of our types in different files, we can use [partial classes](https://docs.microsoft.com/dotnet/csharp/programming-guide/classes-and-structs/partial-classes-and-methods) in the Annotation-based approach.
+> ⚠️ Note: Type extensions do not produce the [extend type syntax that GraphQL offers](http://spec.graphql.org/draft/#sec-Object-Extensions), since it would unnecessarily complicate the resulting schema. Instead, Hot Chocolate's type extensions are directly merged with the original type definition to create a single type at runtime.
 
 # Object Types
 
@@ -100,9 +86,6 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor
             .Field("genres")
             .Type<ListType<StringType>>()
@@ -129,12 +112,10 @@ public class Startup
 One of the most common use-cases for this would be adding new resolvers to one of our root types.
 
 ```csharp
-public class QueryTypeBookResolvers : ObjectTypeExtension
+public class QueryTypeBookResolvers : ObjectTypeExtension<Query>
 {
-    protected override void Configure(IObjectTypeDescriptor descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
     {
-        descriptor.Name(OperationTypeNames.Query);
-
         descriptor
             .Field("books")
             .Type<ListType<BookType>>()
@@ -155,8 +136,6 @@ public class Startup
     }
 }
 ```
-
-> Note: We can use `OperationTypeNames.Query` instead of `"Query"`. `OperationTypeNames` contain the names of the three root types.
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -194,16 +173,11 @@ public class Startup
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
-**This is currently not working ([#3776](https://github.com/ChilliCream/hotchocolate/issues/3776))**
-
 ```csharp
 public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor.Ignore(f => f.AuthorId);
     }
 }
@@ -268,9 +242,6 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 {
     protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
     {
-        // this needs to match the name of the actual object type
-        descriptor.Name("Book");
-
         descriptor
             .Field(f => f.AuthorId)
             .Type<AuthorType>()
@@ -302,6 +273,46 @@ Simply replace the field on the existing type.
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+## Extending by name
+
+If we can not reference a type, we can still extend it by specifying its name.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+[ExtendObjectType("Foo")]
+public class FooExtensions
+{
+    // Omitted code for brevity
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class FooTypeExtensions : ObjectTypeExtension
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Name("Foo");
+
+        // Omitted code for brevity
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+⚠️ Schema-first does not currently support extending types by their name
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+When extending root types, we can make use of the constants in `OperationTypeNames`. We can for example use `OperationTypeNames.Query` instead of writing `"Query"` everywhere.
 
 ## Extending base types
 
@@ -341,8 +352,8 @@ public interface IPost
     string Title { get; set; }
 }
 
-// this extends every type that implements the IPost interface
-// note: the interface itself is not extended in the schema
+// this extends every type that implements the IPost interface,
+// not the interface type itself
 [ExtendObjectType(typeof(IPost))]
 public class PostExtensions
 {

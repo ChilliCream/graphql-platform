@@ -174,7 +174,15 @@ _Mongo Query_
 
 # Paging
 
-The integration comes with providers for offset and cursor-based pagination
+In order to use pagination with MongoDB, we have to register the MongoDB specific pagination providers.
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddMongoDbPagingProviders();
+```
+
+[Learn more about pagination providers](/docs/hotchocolate/fetching-data/pagination#providers)
 
 ## Cursor Pagination
 

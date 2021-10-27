@@ -1,7 +1,7 @@
+import React, { FC } from "react";
 import styled from "styled-components";
-import React, { FunctionComponent } from "react";
 
-export const Article: FunctionComponent = ({ children }) => {
+export const Article: FC = ({ children }) => {
   return <ArticleElement>{children}</ArticleElement>;
 };
 
@@ -15,7 +15,7 @@ const ArticleElement = styled.article`
   max-width: 820px;
 
   @media only screen and (min-width: 820px) {
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
   }
 `;

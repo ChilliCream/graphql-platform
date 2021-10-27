@@ -20,6 +20,10 @@ namespace HotChocolate.Execution.Processing.Plan
             public List<ISelection> SelectionPath { get; } = new();
 
             public List<IFragment> Deferred { get; } = new();
+
+            public Dictionary<int, StreamPlanNode> Streams { get; } = new();
+
+            public QueryPlanContext Branch() => new(Operation);
         }
     }
 }

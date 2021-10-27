@@ -1,36 +1,24 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.ConferencePlanner.Data;
 using HotChocolate.ConferencePlanner.DataLoader;
-using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Relay;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.ConferencePlanner.Speakers
 {
     [Node]
-    [ExtendObjectType(typeof(Speaker))]   
+    [ExtendObjectType(typeof(Speaker))]
     public class SpeakerExtensions
     {
         [UseApplicationDbContext]
         public async Task<IEnumerable<Session>> GetSessionsAsync(
             [Parent] Speaker speaker,
-            [ScopedService] ApplicationDbContext dbContext,
-            SessionByIdDataLoader sessionById,
+            SessionBySpeakerIdDataLoader sessionBySpeakerId,
             CancellationToken cancellationToken)
-        {
-            int[] speakerIds = await dbContext.Speakers
-                .Where(s => s.Id == speaker.Id)
-                .Include(s => s.SessionSpeakers)
-                .SelectMany(s => s.SessionSpeakers.Select(t => t.SessionId))
-                .ToArrayAsync(cancellationToken);
+            => await sessionBySpeakerId.LoadAsync(speaker.Id, cancellationToken);
 
-            return await sessionById.LoadAsync(speakerIds, cancellationToken);
-        }
-    
         [NodeResolver]
         public Task<Speaker> GetSpeakerAsync(
             SpeakerByIdDataLoader speakerById,

@@ -2,24 +2,23 @@
 
 namespace HotChocolate.Validation.Types
 {
-    public class QueryType
-        : ObjectType<Query>
+    public class QueryType : ObjectType<Query>
     {
         protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor.Field("arguments")
                 .Type<ArgumentsType>()
-                .Resolver(() => null);
+                .Resolve(() => null);
 
             descriptor.Field("invalidArg")
                 .Type<StringType>()
                 .Argument("arg", a => a.Type<InvalidScalar>())
-                .Resolver(() => null);
+                .Resolve(() => null);
 
             descriptor.Field("anyArg")
                 .Type<StringType>()
                 .Argument("arg", a => a.Type<AnyType>())
-                .Resolver(() => null);
+                .Resolve(() => null);
 
             descriptor.Field("field")
                 .Type<StringType>()
@@ -28,7 +27,7 @@ namespace HotChocolate.Validation.Types
                 .Argument("c", a => a.Type<StringType>())
                 .Argument("d", a => a.Type<StringType>())
                 .Type<QueryType>()
-                .Resolver(() => null);
+                .Resolve(() => null);
 
             descriptor.Field(t => t.GetCatOrDog())
                 .Type<CatOrDogType>();

@@ -1,32 +1,41 @@
-﻿using System.Collections.Concurrent;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Utilities
 {
-    public class Cache<TValue>
+    public sealed class Cache<TValue>
     {
         private const int _minimumSize = 10;
         private readonly object _sync = new();
-        private readonly LinkedList<string> _ranking = new();
-        private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
-        private LinkedListNode<string>? _first;
+        private readonly ConcurrentDictionary<string, Entry> _map = new(StringComparer.Ordinal);
+        private readonly int _size;
+        private readonly int _order;
+        private int _usage;
+        private Entry? _head;
 
         public Cache(int size)
         {
-            Size = size < _minimumSize ? _minimumSize : size;
+            _size = size < _minimumSize ? _minimumSize : size;
+            _order = Convert.ToInt32(size * 0.7);
         }
 
-        public int Size { get; }
+        /// <summary>
+        /// Gets the maximum allowed item count that can be stored in this cache.
+        /// </summary>
+        public int Size => _size;
 
-        public int Usage => _cache.Count;
+        /// <summary>
+        /// Gets the current item count that is currently stored in this cache.
+        /// </summary>
+        public int Usage => _usage;
 
         public bool TryGet(string key, [MaybeNull] out TValue value)
         {
-            if (_cache.TryGetValue(key, out CacheEntry? entry))
+            if (_map.TryGetValue(key, out Entry? entry))
             {
-                TouchEntry(entry.Rank);
+                TouchEntryUnsafe(entry);
                 value = entry.Value;
                 return true;
             }
@@ -47,14 +56,17 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(create));
             }
 
-            if (_cache.TryGetValue(key, out CacheEntry? entry))
+            var read = true;
+
+            Entry entry = _map.GetOrAdd(key, k =>
             {
-                TouchEntry(entry.Rank);
-            }
-            else
+                read = false;
+                return AddNewEntry(k, create());
+            });
+
+            if (read)
             {
-                entry = new CacheEntry(key, create());
-                AddNewEntry(entry);
+                TouchEntryUnsafe(entry);
             }
 
             return entry.Value;
@@ -64,67 +76,130 @@ namespace HotChocolate.Utilities
         {
             lock (_sync)
             {
-                _cache.Clear();
-                _ranking.Clear();
-                _first = null;
+                _map.Clear();
+                _head = null;
+                _usage = 0;
             }
         }
 
-        private void TouchEntry(LinkedListNode<string> rank)
+        internal string[] GetKeys()
         {
-            if (_first != rank)
+            lock (_sync)
             {
-                lock (_sync)
+                if (_head is null)
                 {
-                    if (_ranking.First != rank)
-                    {
-                        _ranking.Remove(rank);
-                        _ranking.AddFirst(rank);
-                        _first = rank;
-                    }
+                    return Array.Empty<string>();
+                }
+
+                var index = 0;
+                var keys = new string[_usage];
+                Entry current = _head!;
+
+                do
+                {
+                    keys[index++] = current!.Key;
+                    current = current.Next!;
+
+                } while (current != _head);
+
+                return keys;
+            }
+        }
+
+        private Entry AddNewEntry(string key, TValue value)
+        {
+            lock (_sync)
+            {
+                var entry = new Entry { Key = key, Value = value };
+                AppendEntryUnsafe(entry);
+                ClearSpaceForNewEntryUnsafe();
+                return entry;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ClearSpaceForNewEntryUnsafe()
+        {
+            while (_head is not null && _usage > _size)
+            {
+                Entry last = _head.Previous!;
+                RemoveEntryUnsafe(last);
+                _map.TryRemove(last.Key, out _);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void TouchEntryUnsafe(Entry touched)
+        {
+            if (_order > _usage || _head == touched)
+            {
+                return;
+            }
+
+            lock (_sync)
+            {
+                if (RemoveEntryUnsafe(touched))
+                {
+                    AppendEntryUnsafe(touched);
                 }
             }
         }
 
-        private void AddNewEntry(CacheEntry entry)
+        private void AppendEntryUnsafe(Entry newEntry)
         {
-            if (_cache.TryAdd(entry.Key, entry))
+            if (_head is not null)
             {
-                lock (_sync)
-                {
-                    ClearSpaceForNewEntry();
-                    _ranking.AddFirst(entry.Rank);
-                    _first = entry.Rank;
-                }
+                newEntry.Next = _head;
+                newEntry.Previous = _head.Previous;
+                _head.Previous!.Next = newEntry;
+                _head.Previous = newEntry;
+                _head = newEntry;
             }
+            else
+            {
+                newEntry.Next = newEntry;
+                newEntry.Previous = newEntry;
+                _head = newEntry;
+            }
+
+            _usage++;
         }
 
-        private void ClearSpaceForNewEntry()
+        private bool RemoveEntryUnsafe(Entry entry)
         {
-            if (_cache.Count > Size)
+            if (entry.Next == null)
             {
-                LinkedListNode<string>? rank = _ranking.Last;
-                if (rank is { } && _cache.TryRemove(rank.Value, out CacheEntry? entry))
-                {
-                    _ranking.Remove(rank);
-                }
+                return false;
             }
+
+            if (entry.Next == entry)
+            {
+                _head = null;
+            }
+            else
+            {
+                entry.Next!.Previous = entry.Previous;
+                entry.Previous!.Next = entry.Next;
+
+                if (_head == entry)
+                {
+                    _head = entry.Next;
+                }
+
+                entry.Next = null;
+                entry.Previous = null;
+            }
+
+            _usage--;
+            return true;
         }
 
-        private class CacheEntry
+        private class Entry
         {
-            public CacheEntry(string key, TValue value)
-            {
-                Key = key ?? throw new ArgumentNullException(nameof(key));
-                Rank = new LinkedListNode<string>(key);
-                Value = value;
-            }
-
-            public string Key { get; }
-
-            public LinkedListNode<string> Rank { get; }
-
-            public TValue Value { get; }
+            public string Key = default!;
+            public TValue Value = default!;
+            public Entry? Next;
+            public Entry? Previous;
         }
     }
 }

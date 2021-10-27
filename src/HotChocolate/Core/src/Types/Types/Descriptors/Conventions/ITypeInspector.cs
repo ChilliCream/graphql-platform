@@ -15,17 +15,6 @@ namespace HotChocolate.Types.Descriptors
     public interface ITypeInspector : IConvention
     {
         /// <summary>
-        /// Gets the resolver types from a possible object type.
-        /// </summary>
-        /// <param name="type">
-        /// The possible object type.
-        /// </param>
-        /// <returns>
-        /// Returns the associated resolver types.
-        /// </returns>
-        IEnumerable<Type> GetResolverTypes(Type type);
-
-        /// <summary>
         /// Gets the relevant members of a object or input object.
         /// </summary>
         /// <param name="type">
@@ -79,7 +68,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ExtendedTypeReference GetReturnTypeRef(
+        ITypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null,
@@ -114,7 +103,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ExtendedTypeReference GetArgumentTypeRef(
+        ITypeReference GetArgumentTypeRef(
             ParameterInfo parameter,
             string? scope = null,
             bool ignoreAttributes = false);

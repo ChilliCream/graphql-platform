@@ -11,6 +11,7 @@ partial class Build : NukeBuild
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
+    AbsolutePath PublicApiSolutionFile => SourceDirectory / "Build.CheckApi.sln";
     AbsolutePath SonarSolutionFile => SourceDirectory / "Build.Sonar.sln";
     AbsolutePath TestSolutionFile => TemporaryDirectory / "Build.Test.sln";
     AbsolutePath PackSolutionFile => SourceDirectory / "Build.Pack.sln";

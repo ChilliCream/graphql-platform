@@ -140,4 +140,8 @@ public class Startup
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+> ⚠️ Note: Only **one** query type can be registered using `AddQueryType()`. If we want to split up our query type into multiple classes, we can do so using type extensions.
+>
+> [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
 A query type is just a regular [object type](/docs/hotchocolate/defining-a-schema/object-types), so we can do everything we could do with an object type with the query type (this applies to all root types).

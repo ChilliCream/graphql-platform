@@ -8,17 +8,16 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal abstract class DependencyDescriptorBase<T>
-        where T : DefinitionBase
+    internal abstract class DependencyDescriptorBase
     {
-        private readonly TypeConfiguration<T> _configuration;
+        private readonly ITypeSystemMemberConfiguration _configuration;
 
         protected DependencyDescriptorBase(
             ITypeInspector typeInspector,
-            TypeConfiguration<T> configuration)
+            ITypeSystemMemberConfiguration configuration)
         {
             TypeInspector = typeInspector ??
-                throw new ArgumentNullException(nameof(configuration));
+                throw new ArgumentNullException(nameof(typeInspector));
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
         }
@@ -52,7 +51,7 @@ namespace HotChocolate.Types.Descriptors
                 ? DependencyKind
                 : TypeDependencyKind.Default;
 
-            _configuration.Dependencies.Add(
+            _configuration.AddDependency(
                 TypeDependency.FromSchemaType(schemaType, kind));
         }
 
@@ -66,7 +65,7 @@ namespace HotChocolate.Types.Descriptors
                 ? DependencyKind
                 : TypeDependencyKind.Default;
 
-            _configuration.Dependencies.Add(
+            _configuration.AddDependency(
                 new TypeDependency(
                     TypeReference.Create(new NamedTypeNode(typeName), TypeContext.None),
                     kind));

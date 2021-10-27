@@ -7,8 +7,13 @@ namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
     {
-        public override bool IsInstanceOfType(IValueNode valueSyntax)
+        public override bool IsInstanceOfType(IType type, IValueNode valueSyntax)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (valueSyntax is NullValueNode)
             {
                 return true;
@@ -31,19 +36,21 @@ namespace HotChocolate.Types.Spatial.Serialization
                         return true;
                     }
 
-                   if (listValueNode.Items[2] is IFloatValueLiteral)
-                   {
-                       return true;
-                   }
+                    return listValueNode.Items[2] is IFloatValueLiteral;
                 }
             }
 
             return false;
         }
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        public override object? ParseLiteral(IType type, IValueNode valueSyntax)
         {
-            if (valueSyntax == null)
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (valueSyntax is null)
             {
                 throw ThrowHelper.PositionScalar_CoordinatesCannotBeNull(null!);
             }
@@ -81,8 +88,13 @@ namespace HotChocolate.Types.Spatial.Serialization
             throw ThrowHelper.PositionScalar_InvalidPositionObject(null!);
         }
 
-        public override IValueNode ParseValue(object? value)
+        public override IValueNode ParseValue(IType type, object? value)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (value is null)
             {
                 return NullValueNode.Default;
@@ -105,8 +117,23 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new ListValueNode(xNode, yNode);
         }
 
-        public override IValueNode ParseResult(object? resultValue)
+        public override object CreateInstance(IType type, object?[] fieldValues)
         {
+            throw new NotImplementedException();
+        }
+
+        public override void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IValueNode ParseResult(IType type, object? resultValue)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+
+            }
             if (resultValue is null)
             {
                 return NullValueNode.Default;
@@ -127,7 +154,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                     new FloatValueNode(coords.Z));
             }
 
-            if (!(resultValue is double[] coordinate))
+            if (resultValue is not double[] coordinate)
             {
                 throw ThrowHelper.PositionScalar_CoordinatesCannotBeNull(null!);
             }
@@ -149,8 +176,13 @@ namespace HotChocolate.Types.Spatial.Serialization
             return new ListValueNode(xNode, yNode);
         }
 
-        public override bool TryDeserialize(object? serialized, out object? value)
+        public override bool TryDeserialize(IType type, object? serialized, out object? value)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (serialized is null)
             {
                 value = null;
@@ -217,8 +249,13 @@ namespace HotChocolate.Types.Spatial.Serialization
             }
         }
 
-        public override bool TrySerialize(object? value, out object? serialized)
+        public override bool TrySerialize(IType type, object? value, out object? serialized)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (value is null)
             {
                 serialized = null;
@@ -241,6 +278,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             return true;
         }
 
-        public static readonly GeoJsonPositionSerializer Default = new GeoJsonPositionSerializer();
+        public static readonly GeoJsonPositionSerializer Default = new();
     }
 }

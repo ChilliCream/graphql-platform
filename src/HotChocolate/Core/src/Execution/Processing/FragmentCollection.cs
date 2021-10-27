@@ -73,7 +73,7 @@ namespace HotChocolate.Execution.Processing
             {
                 if (_document.Definitions[i] is FragmentDefinitionNode fragment &&
                     string.Equals(fragment.Name.Value, fragmentName, StringComparison.Ordinal) &&
-                    _schema.TryGetType(fragment.TypeCondition.Name.Value, out INamedType type))
+                    _schema.TryGetType<INamedType>(fragment.TypeCondition.Name.Value, out var type))
                 {
                     return new FragmentInfo(
                         type,

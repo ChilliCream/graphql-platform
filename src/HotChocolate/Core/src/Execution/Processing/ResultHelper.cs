@@ -165,12 +165,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (!_fieldErrors.Contains(violation.Selection))
                 {
-                    _errors.Add(ErrorBuilder.New()
-                        .SetMessage("Cannot return null for non-nullable field.")
-                        .SetCode("EXEC_NON_NULL_VIOLATION")
-                        .SetPath(path)
-                        .AddLocation(violation.Selection)
-                        .Build());
+                    _errors.Add(ErrorHelper.NonNullOutputFieldViolation(path, violation.Selection));
                 }
 
                 while (parent != null)
@@ -231,7 +226,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (_data is null && _errors.Count == 0)
+            if (_data is null && _errors.Count == 0 && _hasNext is not false)
             {
                 throw new InvalidOperationException(
                     Resources.ResultHelper_BuildResult_InvalidResult);

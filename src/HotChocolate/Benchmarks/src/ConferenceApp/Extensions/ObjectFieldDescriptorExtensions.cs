@@ -18,15 +18,9 @@ namespace HotChocolate.ConferencePlanner
         public static IObjectFieldDescriptor UseUpperCase(
             this IObjectFieldDescriptor descriptor)
         {
-            return descriptor.Use(next => async context =>
-            {
-                await next(context);
-
-                if (context.Result is string s)
-                {
-                    context.Result = s.ToUpperInvariant();
-                }
-            });
+            descriptor.Extend().Definition.ResultConverters.Add(
+                new((c, r) => r is string s ? s.ToUpperInvariant() : r));
+            return descriptor;
         }
     }
 }

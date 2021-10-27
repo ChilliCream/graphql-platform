@@ -6,8 +6,7 @@ namespace HotChocolate.AspNetCore.Extensions
     /// <summary>
     /// Represents the endpoint convention builder for GraphQL.
     /// </summary>
-    public sealed class GraphQLEndpointConventionBuilder
-        : IEndpointConventionBuilder
+    public sealed class GraphQLEndpointConventionBuilder : IEndpointConventionBuilder
     {
         private readonly IEndpointConventionBuilder _builder;
 

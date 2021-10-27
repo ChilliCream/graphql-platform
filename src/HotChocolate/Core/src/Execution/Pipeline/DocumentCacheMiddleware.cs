@@ -9,13 +9,13 @@ namespace HotChocolate.Execution.Pipeline
     internal sealed class DocumentCacheMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
 
         public DocumentCacheMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents,
+            IExecutionDiagnosticEvents diagnosticEvents,
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider)
         {
@@ -36,30 +36,31 @@ namespace HotChocolate.Execution.Pipeline
 
             if (context.Document is null)
             {
-                if (request.QueryId is { } queryId &&
-                    _documentCache.TryGetDocument(queryId, out DocumentNode document))
+                if (request.QueryId != null &&
+                    _documentCache.TryGetDocument(request.QueryId, out DocumentNode document))
                 {
-                    context.DocumentId = queryId;
+                    context.DocumentId = request.QueryId;
                     context.Document = document;
                     context.ValidationResult = DocumentValidatorResult.Ok;
                     context.IsCachedDocument = true;
                     addToCache = false;
                     _diagnosticEvents.RetrievedDocumentFromCache(context);
                 }
-                else if (request.QueryHash is { } queryHash &&
-                    _documentCache.TryGetDocument(queryHash, out document))
+                else if (request.QueryHash != null &&
+                    _documentCache.TryGetDocument(request.QueryHash, out document))
                 {
-                    context.DocumentId = queryHash;
+                    context.DocumentId = request.QueryHash;
                     context.Document = document;
                     context.ValidationResult = DocumentValidatorResult.Ok;
                     context.IsCachedDocument = true;
                     addToCache = false;
                     _diagnosticEvents.RetrievedDocumentFromCache(context);
                 }
-                else if (request.QueryHash is null &&
-                    request.Query is { } query)
+                else if (request.QueryHash is null && request.Query != null)
                 {
-                    context.DocumentHash = _documentHashProvider.ComputeHash(query.AsSpan());
+                    context.DocumentHash =
+                        _documentHashProvider.ComputeHash(request.Query.AsSpan());
+
                     if (_documentCache.TryGetDocument(context.DocumentHash, out document))
                     {
                         context.DocumentId = context.DocumentHash;
@@ -75,9 +76,9 @@ namespace HotChocolate.Execution.Pipeline
             await _next(context).ConfigureAwait(false);
 
             if (addToCache &&
-                context.DocumentId is { } &&
-                context.Document is { } &&
-                context.ValidationResult is { HasErrors: false })
+                context.DocumentId != null &&
+                context.Document != null &&
+                context.IsValidDocument)
             {
                 _documentCache.TryAddDocument(context.DocumentId, context.Document);
                 _diagnosticEvents.AddedDocumentToCache(context);

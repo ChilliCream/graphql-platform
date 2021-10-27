@@ -542,6 +542,11 @@ namespace HotChocolate.Types.Pagination
                 throw new NotSupportedException();
             }
 
+            public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
+            {
+                throw new NotImplementedException();
+            }
+
             public IReadOnlyList<IFieldSelection> GetSelections(
                 ObjectType typeContext,
                 SelectionSetNode? selectionSet = null,

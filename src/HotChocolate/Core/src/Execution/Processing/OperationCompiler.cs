@@ -14,15 +14,15 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private readonly InputParser _parser;
         private int _nextSelectionId;
         private int _nextFragmentId;
 
-        private OperationCompiler(
-            ISchema schema,
-            FragmentCollection fragments)
+        private OperationCompiler(ISchema schema, FragmentCollection fragments, InputParser parser)
         {
-            _schema = schema;
-            _fragments = fragments;
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
+            _parser = parser ?? throw new ArgumentNullException(nameof(parser));
         }
 
         internal ISchema Schema => _schema;
@@ -37,6 +37,7 @@ namespace HotChocolate.Execution.Processing
             OperationDefinitionNode operation,
             ISchema schema,
             ObjectType rootType,
+            InputParser inputParser,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
             if (operationId == null)
@@ -70,7 +71,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             var fragments = new FragmentCollection(schema, document);
-            var compiler = new OperationCompiler(schema, fragments);
+            var compiler = new OperationCompiler(schema, fragments, inputParser);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
             var backlog = new Stack<CompilerContext>();
 
@@ -230,6 +231,21 @@ namespace HotChocolate.Execution.Processing
                 }
                 else
                 {
+                    Func<object, IAsyncEnumerable<object?>>? createStream = null;
+                    bool isStreamable = selection.IsStreamable();
+
+                    if (field.MaybeStream || field.Type.IsListType() && isStreamable)
+                    {
+                        IType elementType = field.Type.ElementType();
+
+                        if (elementType.IsCompositeType())
+                        {
+                            Type runtimeType = elementType.ToRuntimeType();
+                            CreateStreamDelegate streamDelegate = CreateStream(runtimeType);
+                            createStream = o => streamDelegate(o);
+                        }
+                    }
+
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
                     preparedSelection = new Selection(
@@ -244,13 +260,14 @@ namespace HotChocolate.Execution.Processing
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
                         pureResolver: TryCreatePureField(field, selection),
-                        inlineResolver: TryCreateInlineField(field, selection),
                         strategy: field.IsParallelExecutable
                             ? null // use default strategy
                             : SelectionExecutionStrategy.Serial,
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
-                        internalSelection: context.IsInternalSelection);
+                        internalSelection: context.IsInternalSelection,
+                        createStream: createStream,
+                        isStreamable: isStreamable);
 
                     context.Fields.Add(responseName, preparedSelection);
                 }
@@ -488,7 +505,7 @@ namespace HotChocolate.Execution.Processing
                         value.GetValueKind(),
                         true,
                         isDefaultValue,
-                        ParseLiteral(argument, value),
+                        _parser.ParseLiteral(value, argument),
                         value);
                 }
                 catch (SerializationException ex)
@@ -538,19 +555,6 @@ namespace HotChocolate.Execution.Processing
             return true;
         }
 
-        private static object? ParseLiteral(IInputField argument, IValueNode value)
-        {
-            IInputType type = argument.Type is NonNullType
-                ? (IInputType)argument.Type.InnerType()
-                : argument.Type;
-
-            var runtimeValue = type.ParseLiteral(value);
-
-            return argument.Formatter is not null
-                ? argument.Formatter.OnAfterDeserialize(runtimeValue)
-                : runtimeValue;
-        }
-
         internal FieldDelegate CreateFieldMiddleware(
             IObjectField field,
             FieldNode selection)
@@ -577,18 +581,6 @@ namespace HotChocolate.Execution.Processing
             if (field.PureResolver is not null && selection.Directives.Count == 0)
             {
                 return field.PureResolver;
-            }
-
-            return null;
-        }
-
-        private InlineFieldDelegate? TryCreateInlineField(
-            IObjectField field,
-            FieldNode selection)
-        {
-            if (field.InlineResolver is not null && selection.Directives.Count == 0)
-            {
-                return field.InlineResolver;
             }
 
             return null;
@@ -769,22 +761,15 @@ namespace HotChocolate.Execution.Processing
             for (var i = components.Count - 1; i >= 0; i--)
             {
                 DirectiveDelegate component = components[i].Invoke(next);
-
-                next = context =>
-                {
-                    if (HasErrors(context.Result))
-                    {
-                        return default;
-                    }
-
-                    return component.Invoke(new DirectiveContext(context, directive));
-                };
+                next = context => HasNoErrors(context.Result)
+                    ? component.Invoke(new DirectiveContext(context, directive))
+                    : default;
             }
 
             return next;
         }
 
-        private static bool HasErrors(object? result) =>
-            result is IError or IEnumerable<IError>;
+        private static bool HasNoErrors(object? result) =>
+            result is not IError or not IEnumerable<IError>;
     }
 }

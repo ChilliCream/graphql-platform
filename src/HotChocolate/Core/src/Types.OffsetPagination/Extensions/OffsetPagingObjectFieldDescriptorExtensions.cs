@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
@@ -56,11 +54,11 @@ namespace HotChocolate.Types
         /// <param name="descriptor">
         /// The object field descriptor.
         /// </param>
-        /// <param name="type">
-        /// The schema type representation of the item type.
-        /// </param>
         /// <param name="itemType">
-        /// The item type.
+        /// The schema type representation of the item.
+        /// </param>
+        /// <param name="entityType">
+        /// The entity type represents the runtime type of the item.
         /// </param>
         /// <param name="resolvePagingProvider">
         /// A delegate allowing to dynamically define a paging resolver for a field.
@@ -73,8 +71,8 @@ namespace HotChocolate.Types
         /// </returns>
         public static IObjectFieldDescriptor UseOffsetPaging(
             this IObjectFieldDescriptor descriptor,
-            Type? type = null,
             Type? itemType = null,
+            Type? entityType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
             PagingOptions options = default)
         {
@@ -89,17 +87,16 @@ namespace HotChocolate.Types
 
             PagingHelper.UsePaging(
                 descriptor,
-                type,
-                itemType,
-                (services, source) => resolvePagingProvider(services, source),
+                entityType,
+                (services, source, name) => resolvePagingProvider(services, source, name),
                 options);
 
             descriptor
                 .Extend()
                 .OnBeforeCreate((c, d) =>
                 {
-                    MemberInfo resolverMember = d.ResolverMember ?? d.Member;
-                    d.Type = CreateTypeRef(c, resolverMember, type, options);
+                    MemberInfo? resolverMember = d.ResolverMember ?? d.Member;
+                    d.Type = CreateTypeRef(c, resolverMember, itemType, options);
                     d.CustomSettings.Add(typeof(CollectionSegment));
                 });
 
@@ -229,14 +226,32 @@ namespace HotChocolate.Types
 
         private static OffsetPagingProvider ResolvePagingProvider(
             IServiceProvider services,
-            IExtendedType source)
+            IExtendedType source,
+            string? providerName)
         {
             try
             {
-                if (services.GetService<IEnumerable<OffsetPagingProvider>>() is { } providers &&
-                    providers.FirstOrDefault(p => p.CanHandle(source)) is { } provider)
+                Func<PagingProviderEntry, bool> predicate =
+                    providerName is null
+                        ? entry => entry.Provider.CanHandle(source)
+                        : entry => providerName.Equals(entry.Name, StringComparison.Ordinal);
+                PagingProviderEntry? defaultEntry = null;
+
+
+                foreach (var entry in services.GetServices<PagingProviderEntry>())
                 {
-                    return provider;
+                    // the first provider is expected to be the default provider.
+                    defaultEntry ??= entry;
+
+                    if (predicate(entry))
+                    {
+                        return entry.Provider;
+                    }
+                }
+
+                if (defaultEntry is not null)
+                {
+                    return defaultEntry.Provider;
                 }
             }
             catch (InvalidOperationException)
@@ -245,6 +260,7 @@ namespace HotChocolate.Types
                 // in this case we will ignore the exception and return the default provider.
             }
 
+            // if no provider was added we will fallback to the queryable paging provider.
             return new QueryableOffsetPagingProvider();
         }
     }

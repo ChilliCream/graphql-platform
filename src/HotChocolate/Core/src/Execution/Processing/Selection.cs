@@ -14,6 +14,8 @@ namespace HotChocolate.Execution.Processing
     /// </summary>
     public class Selection : ISelection
     {
+        private readonly Func<object, IAsyncEnumerable<object?>>? _createStream;
+
         private static readonly ArgumentMap _emptyArguments =
             new(new Dictionary<NameString, ArgumentValue>());
 
@@ -22,49 +24,27 @@ namespace HotChocolate.Execution.Processing
         private IReadOnlyList<FieldNode>? _syntaxNodes;
         private bool _isReadOnly;
 
-#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
-        public Selection(
-            int id,
-            IObjectType declaringType,
-            IObjectField field,
-            FieldNode selection,
-            FieldDelegate resolverPipeline,
-            NameString? responseName = null,
-            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-            SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false)
-            : this(
-                id,
-                declaringType,
-                field,
-                selection,
-                resolverPipeline,
-                pureResolver: null,
-                inlineResolver: null,
-                responseName,
-                arguments,
-                includeCondition,
-                internalSelection)
-        { }
-
         public Selection(
             int id,
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
             FieldDelegate? resolverPipeline,
-            PureFieldDelegate? pureResolver,
-            InlineFieldDelegate? inlineResolver,
+            PureFieldDelegate? pureResolver = null,
             NameString? responseName = null,
             IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false,
-            SelectionExecutionStrategy? strategy = null)
+            SelectionExecutionStrategy? strategy = null,
+            Func<object, IAsyncEnumerable<object?>>? createStream = null,
+            bool isStreamable = false)
         {
             if (resolverPipeline is null && pureResolver is null)
             {
                 throw new ArgumentNullException(nameof(resolverPipeline));
             }
+
+            _createStream = createStream;
 
             Id = id;
             DeclaringType = declaringType
@@ -78,7 +58,6 @@ namespace HotChocolate.Execution.Processing
                 selection.Name.Value;
             ResolverPipeline = resolverPipeline;
             PureResolver = pureResolver;
-            InlineResolver = inlineResolver;
             Arguments = arguments is null
                 ? _emptyArguments
                 : new ArgumentMap(arguments);
@@ -90,10 +69,6 @@ namespace HotChocolate.Execution.Processing
             {
                 Strategy = strategy.Value;
             }
-            else if (InlineResolver is not null)
-            {
-                Strategy = SelectionExecutionStrategy.Inline;
-            }
             else if (PureResolver is not null)
             {
                 Strategy = SelectionExecutionStrategy.Pure;
@@ -103,16 +78,24 @@ namespace HotChocolate.Execution.Processing
                 Strategy = SelectionExecutionStrategy.Default;
             }
 
+            IsStreamable = isStreamable && createStream is not null;
+            MaybeStream = Field.MaybeStream && createStream is not null;
+            IsList = Field.Type.IsListType();
+
             if (includeCondition is not null)
             {
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
                 ModifyCondition(true);
             }
         }
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         public Selection(Selection selection)
         {
+            if (selection is null)
+            {
+                throw new ArgumentNullException(nameof(selection));
+            }
+
             Id = selection.Id;
             Strategy = selection.Strategy;
             _includeConditions = selection._includeConditions;
@@ -126,9 +109,12 @@ namespace HotChocolate.Execution.Processing
             ResponseName = selection.ResponseName;
             ResolverPipeline = selection.ResolverPipeline;
             PureResolver = selection.PureResolver;
-            InlineResolver = selection.InlineResolver;
             Arguments = selection.Arguments;
             InclusionKind = selection.InclusionKind;
+            _createStream = selection._createStream;
+            IsStreamable = selection.IsStreamable;
+            MaybeStream = selection.MaybeStream;
+            IsList = selection.IsList;
         }
 
         /// <inheritdoc />
@@ -142,6 +128,14 @@ namespace HotChocolate.Execution.Processing
 
         /// <inheritdoc />
         public IObjectField Field { get; }
+
+        // Note: this field was introduced to allow rewriting the type of a selection
+        // in the operation compiler.
+        /// <inheritdoc />
+        public IType Type => Field.Type;
+
+        /// <inheritdoc />
+        public TypeKind TypeKind => Field.Type.Kind;
 
         /// <inheritdoc />
         public FieldNode SyntaxNode { get; private set; }
@@ -161,8 +155,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
-
         /// <inheritdoc />
         public NameString ResponseName { get; }
 
@@ -173,10 +165,16 @@ namespace HotChocolate.Execution.Processing
         public PureFieldDelegate? PureResolver { get; }
 
         /// <inheritdoc />
-        public InlineFieldDelegate? InlineResolver { get; }
+        public IArgumentMap Arguments { get; }
 
         /// <inheritdoc />
-        public IArgumentMap Arguments { get; }
+        public bool IsStreamable { get; }
+
+        /// <inheritdoc />
+        public bool MaybeStream { get; }
+
+        /// <inheritdoc />
+        public bool IsList { get; }
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }
@@ -203,6 +201,17 @@ namespace HotChocolate.Execution.Processing
                     allowInternals && EvaluateConditions(variableValues),
                 _ => throw new NotSupportedException()
             };
+        }
+
+        /// <inheritdoc />
+        public IAsyncEnumerable<object?> CreateStream(object resolverResult)
+        {
+            if (_createStream is null)
+            {
+                throw new NotSupportedException("This selection is not streamable.");
+            }
+
+            return _createStream(resolverResult);
         }
 
         private bool EvaluateConditions(IVariableValueCollection variableValues)

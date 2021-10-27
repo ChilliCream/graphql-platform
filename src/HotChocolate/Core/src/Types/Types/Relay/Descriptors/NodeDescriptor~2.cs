@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Relay.NodeResolverCompilerHelper;
 
 #nullable enable
 
@@ -46,9 +46,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             return ResolveNode(async ctx =>
             {
-                if (ctx.LocalContextData.TryGetValue(
-                    WellKnownContextData.InternalId,
-                    out object? id))
+                if (ctx.LocalContextData.TryGetValue(WellKnownContextData.InternalId, out var id))
                 {
                     if (id is TId c)
                     {
@@ -73,17 +71,17 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            MemberInfo member = method.TryExtractMember();
+            MemberInfo? member = method.TryExtractMember();
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(object),
-                            new FieldMember("_", "_", m),
-                            resolverType: typeof(TResolver)));
-                return ResolveNode(resolver.Resolver);
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        typeof(object),
+                        typeof(TResolver),
+                        ParameterExpressionBuilders);
+                return ResolveNode(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -98,13 +96,13 @@ namespace HotChocolate.Types.Relay.Descriptors
                 throw new ArgumentNullException(nameof(method));
             }
 
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        typeof(object),
-                        new FieldMember("_", "_", method),
-                        resolverType: method.DeclaringType ?? typeof(object)));
-            return ResolveNode(resolver.Resolver);
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    method,
+                    typeof(object),
+                    method.DeclaringType ?? typeof(object),
+                    ParameterExpressionBuilders);
+            return ResolveNode(resolver.Resolver!);
         }
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>

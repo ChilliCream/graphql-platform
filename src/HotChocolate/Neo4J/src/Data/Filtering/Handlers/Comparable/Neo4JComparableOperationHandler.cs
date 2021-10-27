@@ -1,5 +1,6 @@
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Neo4J.Filtering
 {
@@ -14,6 +15,11 @@ namespace HotChocolate.Data.Neo4J.Filtering
     public abstract class Neo4JComparableOperationHandler
         : Neo4JFilterOperationHandlerBase
     {
+        public Neo4JComparableOperationHandler(InputParser inputParser)
+            : base(inputParser)
+        {
+        }
+
         /// <summary>
         /// Specifies the identifier of the operations that should be handled by this handler
         /// </summary>
@@ -34,8 +40,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
             IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is IComparableOperationFilterInputType &&
-                   fieldDefinition is FilterOperationFieldDefinition operationField &&
-                   operationField.Id == Operation;
+                fieldDefinition is FilterOperationFieldDefinition operationField &&
+                operationField.Id == Operation;
         }
     }
 }

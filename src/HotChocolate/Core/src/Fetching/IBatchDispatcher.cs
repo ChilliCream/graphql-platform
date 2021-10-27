@@ -1,5 +1,6 @@
 using System;
-using HotChocolate.Execution;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Fetching
 {
@@ -26,9 +27,6 @@ namespace HotChocolate.Fetching
         /// <summary>
         /// Dispatches execution tasks to the execution engine work backlog.
         /// </summary>
-        /// <param name="enqueue">
-        /// The task enqueue delegate.
-        /// </param>
-        void Dispatch(Action<IExecutionTaskDefinition> enqueue);
+        Task<BatchDispatcherResult> DispatchAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
-using HotChocolate.Language;
+using System.Collections.Generic;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
 
@@ -17,6 +18,7 @@ namespace HotChocolate.Execution.Processing
             string responseName,
             int responseIndex,
             object? result,
+            List<ResolverTask> bufferedTasks,
             out object? completedValue)
         {
             IType elementType = fieldType.InnerType();
@@ -37,6 +39,7 @@ namespace HotChocolate.Execution.Processing
                     responseName,
                     responseIndex,
                     result,
+                    bufferedTasks,
                     out completedValue);
             }
 
@@ -49,6 +52,7 @@ namespace HotChocolate.Execution.Processing
                 responseName,
                 responseIndex,
                 result,
+                bufferedTasks,
                 out completedValue);
         }
 
@@ -61,6 +65,7 @@ namespace HotChocolate.Execution.Processing
             string responseName,
             int responseIndex,
             object? result,
+            List<ResolverTask> bufferedTasks,
             out object? completedResult)
         {
             ResultMapList resultList = operationContext.Result.RentResultMapList();
@@ -134,6 +139,7 @@ namespace HotChocolate.Execution.Processing
                     responseName,
                     responseIndex,
                     elementResult,
+                    bufferedTasks,
                     out var completedElement) &&
                     completedElement is ResultMap resultMap)
                 {
@@ -162,6 +168,7 @@ namespace HotChocolate.Execution.Processing
             string responseName,
             int responseIndex,
             object? result,
+            List<ResolverTask> bufferedTasks,
             out object? completedResult)
         {
             ResultList resultList = operationContext.Result.RentResultList();
@@ -228,15 +235,16 @@ namespace HotChocolate.Execution.Processing
             bool TryCompleteElement(Path elementPath, object? elementResult)
             {
                 if (TryComplete(
-                        operationContext,
-                        resolverContext,
-                        selection,
-                        elementPath,
-                        elementType,
-                        responseName,
-                        responseIndex,
-                        elementResult,
-                        out var completedElement) &&
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    elementPath,
+                    elementType,
+                    responseName,
+                    responseIndex,
+                    elementResult,
+                    bufferedTasks,
+                    out var completedElement) &&
                     completedElement is not null)
                 {
                     resultList.Add(completedElement);

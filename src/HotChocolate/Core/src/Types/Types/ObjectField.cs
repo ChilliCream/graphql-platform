@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Helpers;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
@@ -22,11 +23,8 @@ namespace HotChocolate.Types
         private static readonly FieldDelegate _empty = _ => throw new InvalidOperationException();
         private IDirective[] _executableDirectives = Array.Empty<IDirective>();
 
-        internal ObjectField(
-            ObjectFieldDefinition definition,
-            FieldCoordinate fieldCoordinate,
-            bool sortArgumentsByName = false)
-            : base(definition, fieldCoordinate, sortArgumentsByName)
+        internal ObjectField(ObjectFieldDefinition definition, int index)
+            : base(definition, index)
         {
             Member = definition.Member;
             ResolverMember = definition.ResolverMember ?? definition.Member;
@@ -67,13 +65,6 @@ namespace HotChocolate.Types
         /// to this field.
         /// </summary>
         public PureFieldDelegate? PureResolver { get; private set; }
-
-        /// <summary>
-        /// Gets a field resolver that can be used to inline the resolver execution into the parent
-        /// resolver. Resolvers can only be inlined if they abide to the rules of the pure-resolver.
-        /// Further inline resolvers cannot have arguments and do not have access to context data.
-        /// </summary>
-        public InlineFieldDelegate? InlineResolver { get; private set; }
 
         /// <summary>
         /// Gets the subscription resolver.
@@ -117,14 +108,29 @@ namespace HotChocolate.Types
         /// </summary>
         public override bool IsIntrospectionField { get; }
 
+        /// <summary>
+        /// Defines that the result of this field might be a stream.
+        /// </summary>
+        public bool MaybeStream { get; private set; }
+
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             ObjectFieldDefinition definition)
         {
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
 
             CompleteExecutableDirectives(context);
             CompleteResolver(context, definition);
+
+            // going forward we should rework the list detection in the ExtendedType to already
+            // provide us with the info if a type is an async enumerable.
+            if (Type.IsListType() &&
+                definition.ResultType is { IsGenericType: true } resultType &&
+                context.TypeInspector.GetType(resultType).Definition == typeof(IAsyncEnumerable<>))
+            {
+                MaybeStream = true;
+            }
         }
 
         private void CompleteExecutableDirectives(
@@ -167,65 +173,24 @@ namespace HotChocolate.Types
             ObjectFieldDefinition definition)
         {
             var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
-            IReadOnlyList<FieldMiddleware> fieldComponents = definition.GetMiddlewareComponents();
+            IReadOnlyList<FieldMiddlewareDefinition> fieldMiddlewareDefinitions =
+                definition.GetMiddlewareDefinitions();
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
-            NameString typeName = context.Type.Name;
 
             var skipMiddleware =
                 options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
                 isIntrospectionField;
 
-            Resolver = definition.Resolver!;
+            FieldResolverDelegates resolvers = CompileResolver(context, definition);
 
-            if (definition.PureResolver is not null && IsPureContext())
+            Resolver = resolvers.Resolver;
+
+            if (resolvers.PureResolver is not null && IsPureContext())
             {
-                PureFieldResolverDelegate pure = definition.PureResolver;
-                PureResolver = c => c.Result = pure(c);
-            }
-
-            if (definition.InlineResolver is not null && IsPureContext())
-            {
-                InlineResolver = definition.InlineResolver;
-            }
-
-            if (!isIntrospectionField || Resolver is null!)
-            {
-                // gets resolvers that were provided via type extensions,
-                // explicit resolver results or are provided through the
-                // resolver compiler.
-                FieldResolver? resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(typeName, Resolver, resolver, out var external)!;
-
-                // if a pure resolver variant is available and there are no global or field
-                // middleware components than we will make the pure resolver variant
-                // available on this field.
-                PureFieldResolverDelegate? pureResolver =
-                    definition.PureResolver is null &&
-                    external &&
-                    IsPureContext()
-                        ? resolver?.PureResolver
-                        : null;
-
-                if (pureResolver is not null)
-                {
-                    PureResolver = c => c.Result = pureResolver(c);
-
-                    if (context.DescriptorContext.Options.AllowInlining &&
-                        InlineResolver is null &&
-                        (definition.ResolverMember is null ||
-                         ReferenceEquals(definition.Member, definition.ResolverMember)) &&
-                        definition.Member is PropertyInfo property)
-                    {
-                        InlineResolver = CompileInlineResolver(property);
-                    }
-                }
-            }
-
-            // if we have an inline resolver we can always create from that
-            // a pure resolver that can be used by the execution engine.
-            if (InlineResolver is not null && PureResolver is null)
-            {
-                PureResolver = ctx => ctx.Result = InlineResolver(ctx.Parent<object>());
+                PureResolver = FieldMiddlewareCompiler.Compile(
+                    definition.GetResultConverters(),
+                    resolvers.PureResolver,
+                    skipMiddleware);
             }
 
             // by definition fields with pure resolvers are parallel executable.
@@ -236,11 +201,12 @@ namespace HotChocolate.Types
 
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
-                fieldComponents,
+                fieldMiddlewareDefinitions,
+                definition.GetResultConverters(),
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver is null! && Middleware is null)
+            if (Resolver is null && Middleware is null)
             {
                 if (_executableDirectives.Length > 0)
                 {
@@ -259,57 +225,53 @@ namespace HotChocolate.Types
 
             bool IsPureContext()
             {
-                return (skipMiddleware ||
-                    (context.GlobalComponents.Count == 0 &&
-                    fieldComponents.Count == 0 &&
-                    _executableDirectives.Length == 0));
+                return skipMiddleware ||
+                   context.GlobalComponents.Count == 0 &&
+                   fieldMiddlewareDefinitions.Count == 0 &&
+                   _executableDirectives.Length == 0;
             }
         }
 
-        /// <summary>
-        /// Gets the most relevant overwrite of a resolver.
-        /// </summary>
-        private static FieldResolverDelegate? GetMostSpecificResolver(
-            NameString typeName,
-            FieldResolverDelegate? currentResolver,
-            FieldResolver? externalCompiledResolver,
-            out bool externalResolver)
+        private static FieldResolverDelegates CompileResolver(
+            ITypeCompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            // if there is no external compiled resolver then we will pick
-            // the internal resolver delegate.
-            if (externalCompiledResolver is null)
+            FieldResolverDelegates resolvers = definition.Resolvers;
+
+            if (!resolvers.HasResolvers)
             {
-                externalResolver = false;
-                return currentResolver;
+                if (definition.Expression is LambdaExpression lambdaExpression)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        lambdaExpression,
+                        definition.SourceType ??
+                        definition.Member?.ReflectedType ??
+                        definition.Member?.DeclaringType ??
+                        typeof(object),
+                        definition.ResolverType);
+                }
+                else if (definition.ResolverMember is not null)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        definition.ResolverMember,
+                        definition.SourceType ??
+                        definition.Member?.ReflectedType ??
+                        definition.Member?.DeclaringType ??
+                        typeof(object),
+                        definition.ResolverType);
+                }
+                else if (definition.Member is not null)
+                {
+                    resolvers = context.DescriptorContext.ResolverCompiler.CompileResolve(
+                        definition.Member,
+                        definition.SourceType ??
+                        definition.Member.ReflectedType ??
+                        definition.Member.DeclaringType,
+                        definition.ResolverType);
+                }
             }
 
-            // if the internal resolver is null or if the external compiled
-            // resolver represents an explicit overwrite of the type resolver
-            // then we will pick the external compiled resolver.
-            if (currentResolver is null || externalCompiledResolver.TypeName.Equals(typeName))
-            {
-                externalResolver = true;
-                return externalCompiledResolver.Resolver;
-            }
-
-            // in all other cases we will pick the internal resolver delegate.
-            externalResolver = false;
-            return currentResolver;
+            return resolvers;
         }
-
-        /// <summary>
-        /// This helper method can compile a inline resolver from a property.
-        /// </summary>
-        private static InlineFieldDelegate CompileInlineResolver(PropertyInfo property)
-        {
-            const string parent = nameof(parent);
-            ParameterExpression parentParam = Expression.Parameter(typeof(object), parent);
-            Expression castParent = Expression.Convert(parentParam, property.DeclaringType!);
-            MemberExpression propertyAccessor = Expression.Property(castParent, property);
-            Expression result = Expression.Convert(propertyAccessor, typeof(object));
-            return Expression.Lambda<InlineFieldDelegate>(result, parentParam).Compile();
-        }
-
-        public override string ToString() => $"{Name}:{Type.Visualize()}";
     }
 }

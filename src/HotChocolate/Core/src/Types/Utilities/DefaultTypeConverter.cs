@@ -15,7 +15,7 @@ namespace HotChocolate.Utilities
 
         public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
         {
-            if (providers is { })
+            if (providers is not null)
             {
                 _changeTypeProvider.AddRange(providers);
             }
@@ -144,7 +144,7 @@ namespace HotChocolate.Utilities
             Type target,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            if (source == target || target == typeof(object))
+            if (target == typeof(object) || target.IsAssignableFrom(source))
             {
                 converter = s => s;
                 return true;

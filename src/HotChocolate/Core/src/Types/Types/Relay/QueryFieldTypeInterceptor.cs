@@ -33,13 +33,13 @@ namespace HotChocolate.Types.Relay
 
             if (query is { Context: not null } && mutation is { Context: not null })
             {
-                RelayOptions options = query.Context.DescriptorContext.GetRelayOptions();
+                MutationPayloadOptions options = query.Context.DescriptorContext.GetMutationPayloadOptions();
                 options.QueryFieldName ??= _defaultFieldName;
 
                 foreach (ObjectFieldDefinition field in mutation.Definition.Fields)
                 {
                     if (field.Type is not null &&
-                        mutation.Context.TryGetType(field.Type, out IType type) &&
+                        mutation.Context.TryGetType(field.Type, out IType? type) &&
                         type.NamedType() is ObjectType objectType &&
                         options.MutationPayloadPredicate.Invoke(objectType) &&
                         _types.TryGetValue(objectType, out TypeInfo payload))
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Relay
 
             descriptor
                 .Type(new NonNullType(query.Type))
-                .Resolver(ctx => ctx.GetQueryRoot<object>());
+                .Resolve(ctx => ctx.GetQueryRoot<object>());
 
             payload.Definition.Fields.Add(descriptor.CreateDefinition());
         }

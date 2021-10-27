@@ -37,6 +37,35 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task MapGraphQLHttp_Simple_IsAlive_Test()
+        {
+            // arrange
+            TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
+
+            // act
+            ClientQueryResult result = await server.GetAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task MapGraphQLHttp_Simple_IsAlive_Test_Explicit_Path()
+        {
+            // arrange
+            TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp("/foo/bar"));
+
+            // act
+            ClientQueryResult result = await server.GetAsync(
+                new ClientQueryRequest { Query = "{ __typename }" },
+                "/foo/bar");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Simple_IsAlive_Test_On_Non_GraphQL_Path()
         {
             // arrange

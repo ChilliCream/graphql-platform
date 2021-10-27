@@ -1,40 +1,53 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Helpers
 {
     internal static class CompleteInterfacesHelper
     {
-        public static void CompleteInterfaces(
+        public static InterfaceType[] CompleteInterfaces<TInterfaceOrObject>(
             ITypeCompletionContext context,
             IReadOnlyList<ITypeReference> interfaceReferences,
-            Type runtimeType,
-            ICollection<InterfaceType> interfaces,
-            ITypeSystemObject interfaceOrObject,
-            ISyntaxNode? node)
+            TInterfaceOrObject interfaceOrObject)
+            where TInterfaceOrObject : ITypeSystemObject, IHasSyntaxNode
+
         {
+            if (interfaceReferences.Count == 0)
+            {
+                return Array.Empty<InterfaceType>();
+            }
+
+            var implements = new InterfaceType[interfaceReferences.Count];
+            var index = 0;
+
             foreach (ITypeReference interfaceRef in interfaceReferences)
             {
-                if (!context.TryGetType(interfaceRef, out InterfaceType type))
+                if (!context.TryGetType(interfaceRef, out InterfaceType? type))
                 {
                     context.ReportError(
                         CompleteInterfacesHelper_UnableToResolveInterface(
-                            interfaceOrObject, node));
+                            interfaceOrObject,
+                            interfaceOrObject.SyntaxNode));
                 }
 
-                if (!interfaces.Contains(type))
+                if (index == 0 || Array.IndexOf(implements, type, 0, index) == -1)
                 {
-                    interfaces.Add(type);
+                    implements[index++] = type!;
                 }
             }
+
+            if (index < implements.Length)
+            {
+                Array.Resize(ref implements, index);
+            }
+
+            return implements;
         }
     }
 }

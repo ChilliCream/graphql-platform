@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.SqlServer.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <RootNamespace>HotChocolate.Data.Projections</RootNamespace>
     <TargetFrameworks>net5.0</TargetFrameworks>
   </PropertyGroup>
   

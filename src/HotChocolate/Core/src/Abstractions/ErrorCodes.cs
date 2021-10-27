@@ -26,6 +26,11 @@ namespace HotChocolate
             public const string Timeout = "HC0045";
 
             /// <summary>
+            /// The request was canceled
+            /// </summary>
+            public const string Canceled = "HC0049";
+
+            /// <summary>
             /// The operation complexity was exceeded.
             /// </summary>
             public const string ComplexityExceeded = "HC0047";
@@ -129,6 +134,16 @@ namespace HotChocolate
             public const string InvalidArgument = "TS_INVALID_ARG";
             public const string NonNullArgument = "TS_ARG_NON_NULL";
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
+
+            /// <summary>
+            /// The middleware order of a field pipeline is incorrect.
+            /// </summary>
+            public const string MiddlewareOrderInvalid = "HC0050";
+
+            /// <summary>
+            /// Type system members are not supported as runtime types
+            /// </summary>
+            public const string NoSchemaTypesAllowedAsRuntimeType = "HC0051";
         }
 
         public static class Scalars
@@ -193,24 +208,6 @@ namespace HotChocolate
             public const string NodeFieldWasNotFound = "HC0028";
         }
 
-        public static class Types
-        {
-            /// <summary>
-            /// Unable to infer the element type from the current resolver.
-            /// This often happens if the resolver is not an iterable type like
-            /// IEnumerable, IQueryable, IList etc. Ensure that you either
-            /// explicitly specify the element type or that the return type of your resolver
-            /// is an iterable type.
-            /// </summary>
-            public const string NodeTypeUnkown = "HC0031";
-
-            /// <summary>
-            /// The element schema type for pagination must be a valid GraphQL output type
-            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
-            /// </summary>
-            public const string SchemaTypeInvalid = "HC0032";
-        }
-
         /// <summary>
         /// Error codes relating to the document validation.
         /// </summary>
@@ -220,6 +217,37 @@ namespace HotChocolate
             /// The introspection is not allowed for the current request
             /// </summary>
             public const string IntrospectionNotAllowed = "HC0046";
+        }
+
+        /// <summary>
+        /// Error codes related to paging compinents
+        /// </summary>
+        public static class Paging
+        {
+            /// <summary>
+            /// Unable to infer the element type from the current resolver.
+            /// This often happens if the resolver is not an iterable type like
+            /// IEnumerable, IQueryable, IList etc. Ensure that you either
+            /// explicitly specify the element type or that the return type of your resolver
+            /// is an iterable type.
+            /// </summary>
+            public const string NodeTypeUnknown = "HC0031";
+
+            /// <summary>
+            /// The element schema type for pagination must be a valid GraphQL output type
+            /// (ObjectType, InterfaceType, UnionType, EnumType, ScalarType).
+            /// </summary>
+            public const string SchemaTypeInvalid = "HC0032";
+
+            /// <summary>
+            /// The maximum allowed items per page were exceeded.
+            /// </summary>
+            public const string MaxPaginationItems = "HC0051";
+
+            /// <summary>
+            /// You must provide a `first` or `last` value to properly paginate the connection.
+            /// </summary>
+            public const string NoPagingBoundaries = "HC0052";
         }
     }
 }

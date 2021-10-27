@@ -40,13 +40,6 @@ namespace HotChocolate.Types
         PureFieldDelegate? PureResolver { get; }
 
         /// <summary>
-        /// Gets a field resolver that can be used to inline the resolver execution into the parent
-        /// resolver. Resolvers can only be inlined if they abide to the rules of the pure-resolver.
-        /// Further inline resolvers cannot have arguments and do not have access to context data.
-        /// </summary>
-        InlineFieldDelegate? InlineResolver { get; }
-
-        /// <summary>
         /// Gets the subscription resolver.
         /// </summary>
         SubscribeResolverDelegate? SubscribeResolver { get; }
@@ -69,5 +62,10 @@ namespace HotChocolate.Types
         /// this property will return <see cref="Member"/>.
         /// </summary>
         MemberInfo? ResolverMember { get; }
+
+        /// <summary>
+        /// Defines that the result of this field might be a stream.
+        /// </summary>
+        bool MaybeStream { get; }
     }
 }

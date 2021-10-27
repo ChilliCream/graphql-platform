@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
             this IOperationContext context,
             bool alwaysSet = false)
         {
-            if (context.Execution.DeferredWork.HasWork)
+            if (context.Scheduler.DeferredWork.HasWork)
             {
                 context.Result.SetHasNext(true);
             }
@@ -41,6 +41,13 @@ namespace HotChocolate.Execution
             ResultMap resultMap)
         {
             context.Result.SetData(resultMap);
+            return context;
+        }
+
+        public static IOperationContext ClearResult(
+            this IOperationContext context)
+        {
+            context.Result.Clear();
             return context;
         }
 

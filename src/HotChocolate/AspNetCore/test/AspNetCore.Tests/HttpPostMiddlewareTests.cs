@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
@@ -24,6 +25,20 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task MapGraphQLHttp_Simple_IsAlive_Test()
+        {
+            // arrange
+            TestServer server = CreateServer(endpoint => endpoint.MapGraphQLHttp());
 
             // act
             ClientQueryResult result = await server.PostAsync(
@@ -208,6 +223,61 @@ namespace HotChocolate.AspNetCore
 
             // assert
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ensure_Multipart_Format_Is_Correct_With_Defer()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"")
+                            {
+                                id
+                            }
+                        }
+                    }"
+                });
+
+            // assert
+            result.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ensure_Multipart_Format_Is_Correct_With_Stream()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            friends {
+                                nodes @stream(initialCount: 1 label: ""foo"") {
+                                    name
+                                }
+                            }
+                        }
+                    }"
+                });
+
+            // assert
+            result.Content.MatchSnapshot();
         }
 
         [Fact]

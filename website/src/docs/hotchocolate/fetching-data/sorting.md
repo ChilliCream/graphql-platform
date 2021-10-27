@@ -66,7 +66,7 @@ To use sorting you need to register it on the schema:
 
 ```csharp
 services.AddGraphQLServer()
-  // Your schmea configuration
+  // Your schema configuration
   .AddSorting();
 ```
 

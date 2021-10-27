@@ -8,8 +8,9 @@ namespace HotChocolate
         public const string Stream = "stream";
         public const string IfArgument = "if";
         public const string LabelArgument = "label";
+        public const string InitialCount = "initialCount";
         public const string Deprecated = "deprecated";
         public const string DeprecationReasonArgument = "reason";
-        public const string DeprecationDefaultReason = "No longer supported";
+        public const string DeprecationDefaultReason = "No longer supported.";
     }
 }

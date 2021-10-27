@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using static HotChocolate.Subscriptions.Properties.Resources;
+using static HotChocolate.Subscriptions.InMemory.Properties.Resources;
 
 namespace HotChocolate.Subscriptions.InMemory
 {
@@ -75,8 +75,10 @@ namespace HotChocolate.Subscriptions.InMemory
                         yield break;
                     }
 
-                    yield return await _channel.Reader.ReadAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    while (_channel.Reader.TryRead(out T? value))
+                    {
+                        yield return value;
+                    }
                 }
             }
 

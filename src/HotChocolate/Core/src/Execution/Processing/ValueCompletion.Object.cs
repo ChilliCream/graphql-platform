@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -17,6 +19,7 @@ namespace HotChocolate.Execution.Processing
             Path path,
             IType fieldType,
             object result,
+            List<ResolverTask> bufferedTasks,
             [NotNullWhen(true)] out object? completedResult)
         {
             if (TryResolveObjectType(
@@ -42,8 +45,10 @@ namespace HotChocolate.Execution.Processing
                     operationContext,
                     resolverContext,
                     path,
+                    objectType,
                     result,
-                    selections);
+                    selections,
+                    bufferedTasks);
                 return true;
             }
 
@@ -75,18 +80,20 @@ namespace HotChocolate.Execution.Processing
                     return true;
                 }
 
-                switch (fieldType)
+                switch (fieldType.Kind)
                 {
-                    case ObjectType ot:
-                        objectType = ot;
+                    case TypeKind.Object:
+                        objectType = (ObjectType)fieldType;
                         return true;
 
-                    case InterfaceType it:
-                        objectType = it.ResolveConcreteType(resolverContext, result);
+                    case TypeKind.Interface:
+                        objectType = ((InterfaceType)fieldType)
+                            .ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
 
-                    case UnionType ut:
-                        objectType = ut.ResolveConcreteType(resolverContext, result);
+                    case TypeKind.Union:
+                        objectType = ((UnionType)fieldType)
+                            .ResolveConcreteType(resolverContext, result);
                         return objectType is not null;
                 }
 

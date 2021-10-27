@@ -11,13 +11,11 @@ namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame
         public void CheckIfTypesAreRegisteredCorrectly()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
-            bool containsPersonInputType = schema
-                .TryGetType("PersonInput", out INamedInputType _);
-            bool containsPersonOutputType = schema
-                .TryGetType("Person", out INamedOutputType _);
+            var containsPersonInputType = schema.TryGetType("PersonInput", out INamedInputType _);
+            var containsPersonOutputType = schema.TryGetType("Person", out INamedOutputType _);
 
             // assert
             Assert.True(containsPersonInputType);
@@ -28,7 +26,7 @@ namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame
         public async Task ExecuteQueryThatReturnsPerson()
         {
             // arrange
-            Schema schema = CreateSchema();
+            ISchema schema = CreateSchema();
 
             // act
             IExecutionResult result =
@@ -43,15 +41,12 @@ namespace HotChocolate.Execution.Integration.InputOutputObjectAreTheSame
             result.ToJson().MatchSnapshot();
         }
 
-        private static Schema CreateSchema()
-        {
-            return Schema.Create(c =>
-            {
-                c.RegisterQueryType<Query>();
-                c.RegisterType<ObjectType<Person>>();
-                c.RegisterType(new InputObjectType<Person>(
-                    d => d.Name("PersonInput")));
-            });
-        }
+        private static ISchema CreateSchema()
+            => SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .AddType<ObjectType<Person>>()
+                .AddType(new InputObjectType<Person>(
+                    d => d.Name("PersonInput")))
+                .Create();
     }
 }

@@ -5,14 +5,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution
@@ -28,7 +33,6 @@ namespace HotChocolate.Execution
         private readonly IServiceProvider _applicationServices;
         private ulong _version;
         private bool _disposed;
-
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
@@ -86,9 +90,9 @@ namespace HotChocolate.Execution
                 re = new RegisteredExecutor(
                     schemaServices.GetRequiredService<IRequestExecutor>(),
                     schemaServices,
-                    schemaServices.GetRequiredService<IDiagnosticEvents>(),
-                    options
-                );
+                    schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
+                    options,
+                    schemaServices.GetRequiredService<TypeModuleChangeMonitor>());
 
                 foreach (OnRequestExecutorCreatedAction action in options.OnRequestExecutorCreated)
                 {
@@ -143,8 +147,8 @@ namespace HotChocolate.Execution
                         if (action.AsyncAction is { } task)
                         {
                             await task.Invoke(
-                                registeredExecutor.Executor,
-                                CancellationToken.None)
+                                    registeredExecutor.Executor,
+                                    CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -171,19 +175,28 @@ namespace HotChocolate.Execution
                 version = ++_version;
             }
 
+            var serviceCollection = new ServiceCollection();
+            var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, schemaName);
             var lazy = new SchemaBuilder.LazySchema();
 
             RequestExecutorOptions executorOptions =
                 await CreateExecutorOptionsAsync(options, cancellationToken)
                     .ConfigureAwait(false);
 
-            var serviceCollection = new ServiceCollection();
+            // if there are any type modules we will register them with the
+            // type module change monitor.
+            // The module will track if type modules signal changes to the schema and
+            // start a schema eviction.
+            foreach (var typeModule in options.TypeModules)
+            {
+                typeModuleChangeMonitor.Register(typeModule);
+            }
 
             serviceCollection.AddSingleton<IApplicationServiceProvider>(
                 _ => new DefaultApplicationServiceProvider(_applicationServices));
 
             serviceCollection.AddSingleton(_ => lazy.Schema);
-
+            serviceCollection.AddSingleton(typeModuleChangeMonitor);
             serviceCollection.AddSingleton(executorOptions);
             serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
                 s => s.GetRequiredService<RequestExecutorOptions>());
@@ -209,20 +222,41 @@ namespace HotChocolate.Execution
             }
 
             // register global diagnostic listener
-            foreach (IDiagnosticEventListener diagnosticEventListener in
-                _applicationServices.GetServices<IDiagnosticEventListener>())
+            foreach (IExecutionDiagnosticEventListener diagnosticEventListener in
+                _applicationServices.GetServices<IExecutionDiagnosticEventListener>())
             {
                 serviceCollection.AddSingleton(diagnosticEventListener);
             }
 
             serviceCollection.AddSingleton<IActivator, DefaultActivator>();
 
-                serviceCollection.AddSingleton(
+            serviceCollection.AddSingleton(
                 sp => CreatePipeline(
                     schemaName,
                     options.Pipeline,
                     sp,
                     sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+
+            serviceCollection.AddSingleton(
+                sp => new BatchExecutor(
+                    sp.GetRequiredService<IErrorHandler>(),
+                    _applicationServices.GetRequiredService<ITypeConverter>(),
+                    _applicationServices.GetRequiredService<InputFormatter>()));
+
+            serviceCollection.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+            serviceCollection.TryAddSingleton<ObjectPool<RequestContext>>(sp =>
+            {
+                ObjectPoolProvider provider = sp.GetRequiredService<ObjectPoolProvider>();
+                var policy = new RequestContextPooledObjectPolicy(
+                    sp.GetRequiredService<ISchema>(),
+                    sp.GetRequiredService<IErrorHandler>(),
+                    _applicationServices.GetRequiredService<ITypeConverter>(),
+                    sp.GetRequiredService<IActivator>(),
+                    sp.GetRequiredService<IExecutionDiagnosticEvents>(),
+                    version);
+                return provider.Create(policy);
+            });
 
             serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
@@ -230,13 +264,10 @@ namespace HotChocolate.Execution
                     _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                     _applicationServices,
                     sp,
-                    sp.GetRequiredService<IErrorHandler>(),
-                    _applicationServices.GetRequiredService<ITypeConverter>(),
-                    sp.GetRequiredService<IActivator>(),
-                    sp.GetRequiredService<IDiagnosticEvents>(),
                     sp.GetRequiredService<RequestDelegate>(),
-                    version)
-            );
+                    sp.GetRequiredService<BatchExecutor>(),
+                    sp.GetRequiredService<ObjectPool<RequestContext>>(),
+                    version));
 
             foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
             {
@@ -248,11 +279,12 @@ namespace HotChocolate.Execution
 
             lazy.Schema =
                 await CreateSchemaAsync(
-                    schemaName,
-                    options,
-                    executorOptions,
-                    combinedServices,
-                    cancellationToken)
+                        schemaName,
+                        options,
+                        executorOptions,
+                        combinedServices,
+                        typeModuleChangeMonitor,
+                        cancellationToken)
                     .ConfigureAwait(false);
 
             return schemaServices;
@@ -263,6 +295,7 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             RequestExecutorOptions executorOptions,
             IServiceProvider serviceProvider,
+            TypeModuleChangeMonitor typeModuleChangeMonitor,
             CancellationToken cancellationToken)
         {
             if (options.Schema is not null)
@@ -278,6 +311,25 @@ namespace HotChocolate.Execution
                 .AddServices(serviceProvider)
                 .SetContextData(typeof(RequestExecutorOptions).FullName!, executorOptions)
                 .SetContextData(typeof(ComplexityAnalyzerSettings).FullName!, complexitySettings);
+
+            IDescriptorContext context = schemaBuilder.CreateContext();
+
+            await foreach (ITypeSystemMember member in
+                typeModuleChangeMonitor.CreateTypesAsync(context)
+                    .WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
+            {
+                switch (member)
+                {
+                    case INamedType namedType:
+                        schemaBuilder.AddType(namedType);
+                        break;
+
+                    case INamedTypeExtension typeExtension:
+                        schemaBuilder.AddType(typeExtension);
+                        break;
+                }
+            }
 
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
             {
@@ -295,7 +347,7 @@ namespace HotChocolate.Execution
 
             schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
 
-            ISchema schema = schemaBuilder.Create();
+            ISchema schema = schemaBuilder.Create(context);
             AssertSchemaNameValid(schema, schemaName);
             return schema;
         }
@@ -314,8 +366,9 @@ namespace HotChocolate.Execution
             RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
-            RequestExecutorOptions executorOptions = options.RequestExecutorOptions ??
-                new RequestExecutorOptions();
+            RequestExecutorOptions executorOptions =
+                options.RequestExecutorOptions ??
+                    new RequestExecutorOptions();
 
             foreach (RequestExecutorOptionsAction action in options.RequestExecutorOptionsActions)
             {
@@ -372,31 +425,43 @@ namespace HotChocolate.Execution
 
         private class RegisteredExecutor : IDisposable
         {
+            private bool _disposed;
+
             public RegisteredExecutor(
                 IRequestExecutor executor,
                 IServiceProvider services,
-                IDiagnosticEvents diagnosticEvents,
-                RequestExecutorSetup setup)
+                IExecutionDiagnosticEvents diagnosticEvents,
+                RequestExecutorSetup setup,
+                TypeModuleChangeMonitor typeModuleChangeMonitor)
             {
                 Executor = executor;
                 Services = services;
                 DiagnosticEvents = diagnosticEvents;
                 Setup = setup;
+                TypeModuleChangeMonitor = typeModuleChangeMonitor;
             }
 
             public IRequestExecutor Executor { get; }
 
             public IServiceProvider Services { get; }
 
-            public IDiagnosticEvents DiagnosticEvents { get; }
+            public IExecutionDiagnosticEvents DiagnosticEvents { get; }
 
             public RequestExecutorSetup Setup { get; }
 
+            public TypeModuleChangeMonitor TypeModuleChangeMonitor { get; }
+
             public void Dispose()
             {
-                if (Services is IDisposable d)
+                if (_disposed)
                 {
-                    d.Dispose();
+                    if (Services is IDisposable d)
+                    {
+                        d.Dispose();
+                    }
+
+                    TypeModuleChangeMonitor.Dispose();
+                    _disposed = true;
                 }
             }
         }
@@ -419,6 +484,123 @@ namespace HotChocolate.Execution
                 IDictionary<string, object?> contextData)
             {
                 definition!.Name = _schemaName;
+            }
+        }
+
+        private sealed class TypeModuleChangeMonitor : IDisposable
+        {
+            private readonly List<ITypeModule> _typeModules = new();
+            private readonly RequestExecutorResolver _resolver;
+            private bool _disposed;
+
+            public TypeModuleChangeMonitor(RequestExecutorResolver resolver, NameString schemaName)
+            {
+                _resolver = resolver;
+                SchemaName = schemaName;
+            }
+
+            public NameString SchemaName { get; }
+
+            public void Register(ITypeModule typeModule)
+            {
+                typeModule.TypesChanged += EvictRequestExecutor;
+                _typeModules.Add(typeModule);
+            }
+
+            public IAsyncEnumerable<ITypeSystemMember> CreateTypesAsync(IDescriptorContext context)
+                => new TypeModuleEnumerable(_typeModules, context);
+
+            private void EvictRequestExecutor(object? sender, EventArgs args)
+                => _resolver.EvictRequestExecutor(SchemaName);
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    foreach (var typeModule in _typeModules)
+                    {
+                        typeModule.TypesChanged -= EvictRequestExecutor;
+                    }
+
+                    _typeModules.Clear();
+                    _disposed = true;
+                }
+            }
+
+            private sealed class TypeModuleEnumerable : IAsyncEnumerable<ITypeSystemMember>
+            {
+                private readonly List<ITypeModule> _typeModules;
+                private readonly IDescriptorContext _context;
+
+                public TypeModuleEnumerable(
+                    List<ITypeModule> typeModules,
+                    IDescriptorContext context)
+                {
+                    _typeModules = typeModules;
+                    _context = context;
+                }
+
+                public async IAsyncEnumerator<ITypeSystemMember> GetAsyncEnumerator(
+                    CancellationToken cancellationToken = default)
+                {
+                    foreach (var typeModule in _typeModules)
+                    {
+                        IReadOnlyCollection<ITypeSystemMember> types =
+                            await typeModule.CreateTypesAsync(_context, cancellationToken)
+                                .ConfigureAwait(false);
+
+                        foreach (ITypeSystemMember type in types)
+                        {
+                            yield return type;
+                        }
+                    }
+                }
+            }
+        }
+
+        private class RequestContextPooledObjectPolicy : PooledObjectPolicy<RequestContext>
+        {
+            private readonly ISchema _schema;
+            private readonly ulong _executorVersion;
+            private readonly IErrorHandler _errorHandler;
+            private readonly ITypeConverter _converter;
+            private readonly IActivator _activator;
+            private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+
+            public RequestContextPooledObjectPolicy(
+                ISchema schema,
+                IErrorHandler errorHandler,
+                ITypeConverter converter,
+                IActivator activator,
+                IExecutionDiagnosticEvents diagnosticEvents,
+                ulong executorVersion)
+            {
+                _schema = schema ??
+                    throw new ArgumentNullException(nameof(schema));
+                _errorHandler = errorHandler ??
+                    throw new ArgumentNullException(nameof(errorHandler));
+                _converter = converter ??
+                    throw new ArgumentNullException(nameof(converter));
+                _activator = activator ??
+                    throw new ArgumentNullException(nameof(activator));
+                _diagnosticEvents = diagnosticEvents ??
+                    throw new ArgumentNullException(nameof(diagnosticEvents));
+                _executorVersion = executorVersion;
+            }
+
+
+            public override RequestContext Create()
+                => new(_schema,
+                    _executorVersion,
+                    _errorHandler,
+                    _converter,
+                    _activator,
+                    _diagnosticEvents);
+
+            public override bool Return(RequestContext obj)
+            {
+                obj.Reset();
+                return true;
             }
         }
     }

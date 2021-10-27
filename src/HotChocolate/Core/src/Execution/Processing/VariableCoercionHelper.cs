@@ -8,6 +8,17 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class VariableCoercionHelper
     {
+        private readonly InputFormatter _inputFormatter;
+        private readonly InputParser _inputParser;
+
+        public VariableCoercionHelper(InputFormatter inputFormatter, InputParser inputParser)
+        {
+            _inputFormatter = inputFormatter ??
+                throw new ArgumentNullException(nameof(inputFormatter));
+            _inputParser = inputParser ??
+                throw new ArgumentNullException(nameof(inputParser));
+        }
+
         public void CoerceVariableValues(
             ISchema schema,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
@@ -39,35 +50,47 @@ namespace HotChocolate.Execution.Processing
                 VariableDefinitionNode variableDefinition = variableDefinitions[i];
                 var variableName = variableDefinition.Variable.Name.Value;
                 IInputType variableType = AssertInputType(schema, variableDefinition);
+                VariableValueOrLiteral coercedVariable;
 
-                if (!values.TryGetValue(variableName, out var value) &&
-                    variableDefinition.DefaultValue is { } defaultValue)
+                var hasValue = values.TryGetValue(variableName, out var value);
+
+                if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
                 {
                     value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
                 }
 
-                if (value is null || value is NullValueNode)
+                if (!hasValue || value is null || value is NullValueNode)
                 {
                     if (variableType.IsNonNullType())
                     {
                         throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                     }
-                    coercedValues[variableName] =
-                        new VariableValueOrLiteral(variableType, null, NullValueNode.Default);
+
+                    // if we do not have any value we will not create an entry to the
+                    // coerced variables.
+                    if (!hasValue)
+                    {
+                        continue;
+                    }
+
+                    coercedVariable = new(variableType, null, NullValueNode.Default);
                 }
                 else
                 {
-                    coercedValues[variableName] =
-                        CoerceVariableValue(variableDefinition, variableType, value);
+                    coercedVariable = CoerceVariableValue(variableDefinition, variableType, value);
                 }
+
+                coercedValues[variableName] = coercedVariable;
             }
         }
 
-        private static VariableValueOrLiteral CoerceVariableValue(
+        private VariableValueOrLiteral CoerceVariableValue(
             VariableDefinitionNode variableDefinition,
             IInputType variableType,
             object value)
         {
+            Path root = Path.New(variableDefinition.Variable.Name.Value);
+
             if (value is IValueNode valueLiteral)
             {
                 try
@@ -77,8 +100,12 @@ namespace HotChocolate.Execution.Processing
 
                     return new VariableValueOrLiteral(
                         variableType,
-                        variableType.ParseLiteral(valueLiteral),
+                        _inputParser.ParseLiteral(valueLiteral, variableType, root),
                         valueLiteral);
+                }
+                catch (GraphQLException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
@@ -86,15 +113,9 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (variableType.TryDeserialize(value, out var deserialized))
-            {
-                return new VariableValueOrLiteral(
-                    variableType,
-                    deserialized,
-                    variableType.ParseResult(value));
-            }
-
-            throw ThrowHelper.VariableValueInvalidType(variableDefinition);
+            var runtimeValue = _inputParser.ParseResult(value, variableType, root);
+            IValueNode literal = _inputFormatter.FormatResult(value, variableType, root);
+            return new VariableValueOrLiteral(variableType, runtimeValue, literal);
         }
 
         private static IInputType AssertInputType(
@@ -121,10 +142,11 @@ namespace HotChocolate.Execution.Processing
                 case ListValueNode lv:
                     return Rewrite(inputType, lv);
 
-                case StringValueNode sv:
-                    return inputType.Kind == TypeKind.Enum
-                        ? new EnumValueNode(sv.Location, sv.Value)
-                        : node;
+                case StringValueNode sv when inputType.IsEnumType():
+                    return new EnumValueNode(sv.Location, sv.Value);
+
+                case StringValueNode:
+                    return node;
 
                 default:
                     return node;
@@ -135,8 +157,10 @@ namespace HotChocolate.Execution.Processing
             IType inputType,
             ObjectValueNode node)
         {
-            if (!(inputType.NamedType() is InputObjectType inputObjectType))
+            if (inputType.NamedType() is not InputObjectType inputObjectType)
             {
+                // if the node type is not an input object, we will just return the node
+                // as if and the deserialization will produce a proper error.
                 return node;
             }
 
@@ -146,19 +170,32 @@ namespace HotChocolate.Execution.Processing
             {
                 ObjectFieldNode current = node.Fields[i];
 
-                if(!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
+                if (!inputObjectType.Fields.TryGetField(current.Name.Value, out IInputField? field))
                 {
+                    // if we do not find a field on the type we also skip this error and let
+                    // the deserialization produce a proper error on this.
                     continue;
                 }
 
-                IValueNode value = Rewrite(field.Type, current.Value);
+                IValueNode rewritten = Rewrite(field.Type, current.Value);
 
+                // we try initially just to traverse the input graph, only if we detect a change
+                // will we create a new input object. In this case if the fields list is initialized
+                // we know that we have already collected at least one change. In this case
+                // all further field nodes have to be added as well even if they do not have
+                // a changed value since we need to produce a complete new input object value node.
                 if (fields is not null)
                 {
-                    fields.Add(current.WithValue(value));
+                    fields.Add(current.WithValue(rewritten));
                 }
-                else if (!ReferenceEquals(current.Value, value))
+
+                // if we did not so far detect any rewritten field value we will compare if the
+                // field value node changed. Since, all syntax nodes are immutable we can just
+                // check if the reference is not the same.
+                else if (!ReferenceEquals(current.Value, rewritten))
                 {
+                    // if we detect a reference change we will create the fields list
+                    // that contains all previous field values plus the changed field value.
                     fields = new List<ObjectFieldNode>();
 
                     for (var j = 0; j < i; j++)
@@ -166,7 +203,7 @@ namespace HotChocolate.Execution.Processing
                         fields.Add(node.Fields[j]);
                     }
 
-                    fields.Add(current.WithValue(value));
+                    fields.Add(current.WithValue(rewritten));
                 }
             }
 
@@ -188,12 +225,23 @@ namespace HotChocolate.Execution.Processing
                 IValueNode current = node.Items[i];
                 IValueNode value = Rewrite(elementType, current);
 
+                // we try initially just to traverse the list graph, only if we detect a change
+                // will we create a new list object. In this case if values list is initialized
+                // we know that we have already collected at least one change. In this case
+                // all further value nodes have to be added as well even if they do not have
+                // a changed value since we need to produce a complete new list value node.
                 if (values is not null)
                 {
                     values.Add(value);
                 }
-                else if (!ReferenceEquals(current.Value, value))
+
+                // if we did not so far detect any rewritten value we will compare if the
+                // value node changed. Since, all syntax nodes are immutable we can just
+                // check if the reference is not the same.
+                else if (!ReferenceEquals(current, value))
                 {
+                    // if we detect a reference change we will create the values list
+                    // that contains all previous list values plus the changed list value.
                     values = new List<IValueNode>();
 
                     for (var j = 0; j < i; j++)

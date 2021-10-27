@@ -387,6 +387,56 @@ namespace HotChocolate.Data.Filters
             exception.Message.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task FilterConvention_Should_NotAddAnd()
+        {
+            // arrange
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.AddDefaults();
+                    descriptor.AllowAnd(false);
+                });
+
+            IRequestExecutorBuilder builder = new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+            //act
+            ISchema schema = await builder.BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task FilterConvention_Should_NotAddOr()
+        {
+            // arrange
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.AddDefaults();
+                    descriptor.AllowOr(false);
+                });
+
+            IRequestExecutorBuilder builder = new ServiceCollection()
+                .AddGraphQL()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
+
+            //act
+            ISchema schema = await builder.BuildSchemaAsync();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         protected ISchema CreateSchemaWithTypes(
             IFilterInputType type,
             FilterConvention convention,
@@ -400,7 +450,7 @@ namespace HotChocolate.Data.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)
@@ -424,7 +474,7 @@ namespace HotChocolate.Data.Filters
                         c.Name("Query")
                             .Field("foo")
                             .Type<StringType>()
-                            .Resolver("bar"))
+                            .Resolve("bar"))
                 .AddType(type);
 
             foreach (var extension in extensions)

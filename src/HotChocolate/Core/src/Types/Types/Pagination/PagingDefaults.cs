@@ -7,5 +7,11 @@ namespace HotChocolate.Types.Pagination
         public const int MaxPageSize = 50;
 
         public const bool IncludeTotalCount = false;
+
+        public const bool AllowBackwardPagination = true;
+
+        public const bool InferConnectionNameFromField = true;
+
+        public const bool RequirePagingBoundaries = false;
     }
 }

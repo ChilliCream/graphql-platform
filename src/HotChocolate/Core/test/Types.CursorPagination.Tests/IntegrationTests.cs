@@ -1,11 +1,14 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Pagination.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -52,6 +55,40 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task No_Boundaries_Set()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { RequirePagingBoundaries = true })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -611,6 +648,164 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Deactivate_BackwardPagination()
+        {
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            executor.Schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Deactivate_BackwardPagination_Interface()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryAttr>()
+                    .SetPagingOptions(new PagingOptions { AllowBackwardPagination = false })
+                    .AddInterfaceType<ISome>(d => d.Field(t => t.ExplicitType()).UsePaging())
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Infer_ConnectionName_From_Field()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<InferConnectionNameFromFieldType>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Explicit_ConnectionName()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ExplicitConnectionName>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SelectProviderByName()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ProviderByName>()
+                    .AddCursorPagingProvider<DummyProvider>(providerName: "Abc")
+                    .SetPagingOptions(new PagingOptions{ InferConnectionNameFromField = false })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    abc {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task FluentPagingTests()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<FluentPaging>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    items {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SelectDefaultProvider()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<ProviderByName>()
+                    .AddCursorPagingProvider<DummyProvider>()
+                    .AddCursorPagingProvider<Dummy2Provider>(defaultProvider: true)
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    abc {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work_Execute()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .ExecuteRequestAsync("{ foos { nodes } }")
+                .MatchSnapshotAsync();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -745,37 +940,116 @@ namespace HotChocolate.Types.Pagination
             [UsePaging(typeof(NonNullType<StringType>))]
             public string[] ExplicitType();
         }
-    }
 
-    public class MockExecutable<T> : IExecutable<T>
-    {
-        private readonly IQueryable<T> _source;
-
-        public MockExecutable(IQueryable<T> source)
+        public class InferConnectionNameFromFieldType : ObjectType<InferConnectionNameFromField>
         {
-            _source = source;
+            protected override void Configure(
+                IObjectTypeDescriptor<InferConnectionNameFromField> descriptor)
+            {
+                descriptor
+                    .Field(t => t.Names())
+                    .UsePaging(options: new() { InferConnectionNameFromField = true });
+
+            }
         }
 
-        public object Source =>_source;
-
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        public class InferConnectionNameFromField
         {
-            return new(_source.ToList());
+            public string[] Names() => new[] { "a", "b" };
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        public class ExplicitConnectionName
         {
-            return new(_source.FirstOrDefault());
+            [UsePaging(ConnectionName = "Connection1")]
+            public string[] Abc => throw new NotImplementedException();
+
+            [UsePaging(ConnectionName = "Connection2")]
+            public string[] Def => throw new NotImplementedException();
+
+            [UsePaging]
+            public string[] Ghi => throw new NotImplementedException();
         }
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        public class ProviderByName
         {
-            return new(_source.SingleOrDefault());
+            [UsePaging(ProviderName = "Abc")]
+            public string[] Abc => Array.Empty<string>();
         }
 
-        public string Print()
+        public class FluentPaging
         {
-            return _source.ToString()!;
+            [UsePaging(ProviderName = "Items")]
+            public async Task<Connection<string>> GetItems(
+                int? first,
+                int? last,
+                string? before,
+                string? after,
+                CancellationToken cancellationToken)
+                => await new[] { "a", "b", "c", "d" }
+                    .AsQueryable()
+                    .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
+        }
+
+        public class DummyProvider : CursorPagingProvider
+        {
+            public override bool CanHandle(IExtendedType source) => false;
+
+            protected override CursorPagingHandler CreateHandler(
+                IExtendedType source,
+                PagingOptions options)
+                => new DummyHandler(options);
+        }
+
+        public class DummyHandler : CursorPagingHandler
+        {
+            public DummyHandler(PagingOptions options) : base(options)
+            {
+            }
+
+            protected override ValueTask<Connection> SliceAsync(
+                IResolverContext context,
+                object source,
+                CursorPagingArguments arguments)
+                => new(new Connection(
+                    new[] { new Edge<string>("a", "b") },
+                    new ConnectionPageInfo(false, false, null, null),
+                    _ => new(1)));
+        }
+
+        public class Dummy2Provider : CursorPagingProvider
+        {
+            public override bool CanHandle(IExtendedType source) => false;
+
+            protected override CursorPagingHandler CreateHandler(
+                IExtendedType source,
+                PagingOptions options)
+                => new Dummy2Handler(options);
+        }
+
+        public class Dummy2Handler : CursorPagingHandler
+        {
+            public Dummy2Handler(PagingOptions options) : base(options)
+            {
+            }
+
+            protected override ValueTask<Connection> SliceAsync(
+                IResolverContext context,
+                object source,
+                CursorPagingArguments arguments)
+                => new(new Connection(
+                    new[] { new Edge<string>("d", "e") },
+                    new ConnectionPageInfo(false, false, null, null),
+                    _ => new(1)));
+        }
+
+        public class BackwardQuery
+        {
+            [UsePaging(AllowBackwardPagination = false)]
+            public Connection<string> GetFoos(int? first, string? after)
+                => new Connection<string>(
+                    new[] { new Edge<string>("abc", "def") },
+                    new ConnectionPageInfo(false, false, null, null, 1),
+                    _ => new(1));
         }
     }
 }

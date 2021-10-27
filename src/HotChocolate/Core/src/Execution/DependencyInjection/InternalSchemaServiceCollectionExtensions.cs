@@ -16,27 +16,26 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<QueryExecutor>();
-            services.TryAddSingleton<MutationExecutor>();
             services.TryAddSingleton(
                 sp => new SubscriptionExecutor(
                     sp.GetApplicationService<ObjectPool<OperationContext>>(),
                     sp.GetRequiredService<QueryExecutor>(),
-                    sp.GetRequiredService<IDiagnosticEvents>()));
+                    sp.GetRequiredService<IExecutionDiagnosticEvents>()));
             return services;
         }
 
         internal static IServiceCollection TryAddDiagnosticEvents(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<IDiagnosticEvents>(sp =>
+            services.TryAddSingleton<IExecutionDiagnosticEvents>(sp =>
             {
-                IDiagnosticEventListener[] listeners =
-                    sp.GetServices<IDiagnosticEventListener>().ToArray();
+                IExecutionDiagnosticEventListener[] listeners =
+                    sp.GetServices<IExecutionDiagnosticEventListener>().ToArray();
                 return listeners.Length switch
                 {
-                    0 => new NoopDiagnosticEvents(),
+                    0 => new NoopExecutionDiagnosticEvents(),
                     1 => listeners[0],
-                    _ => new AggregateDiagnosticEvents(listeners)
+                    _ => new AggregateExecutionDiagnosticEvents(listeners)
                 };
             });
             return services;

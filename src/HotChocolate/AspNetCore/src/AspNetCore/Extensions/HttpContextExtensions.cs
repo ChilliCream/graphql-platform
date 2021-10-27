@@ -12,6 +12,9 @@ namespace HotChocolate.AspNetCore
         public static GraphQLToolOptions? GetGraphQLToolOptions(this HttpContext context) =>
             GetGraphQLServerOptions(context)?.Tool;
 
+        public static GraphQLEndpointOptions? GetGraphQLEndpointOptions(this HttpContext context) =>
+            context.GetEndpoint()?.Metadata.GetMetadata<GraphQLEndpointOptions>();
+
         public static bool IsTracingEnabled(this HttpContext context)
         {
             IHeaderDictionary headers = context.Request.Headers;

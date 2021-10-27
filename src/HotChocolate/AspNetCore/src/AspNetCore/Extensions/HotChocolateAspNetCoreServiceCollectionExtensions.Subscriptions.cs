@@ -4,6 +4,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Utilities;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -26,7 +27,8 @@ namespace Microsoft.Extensions.DependencyInjection
             where T : class, ISocketSessionInterceptor =>
             builder.ConfigureSchemaServices(s => s
                 .RemoveAll<ISocketSessionInterceptor>()
-                .AddSingleton<ISocketSessionInterceptor, T>());
+                .AddSingleton<ISocketSessionInterceptor, T>(
+                    sp => sp.GetCombinedServices().GetOrCreateService<T>(typeof(T))!));
 
         /// <summary>
         /// Adds an interceptor for GraphQL socket sessions to the GraphQL configuration.

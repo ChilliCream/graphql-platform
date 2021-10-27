@@ -61,12 +61,14 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 (IResponseStream)await executor.ExecuteAsync(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
+            var interceptor = new SocketSessionInterceptorMock();
             var subscriptionSession = new SubscriptionSession(
                 new CancellationTokenSource(),
+                interceptor,
                 connection,
                 stream,
                 subscription.Object,
-                new NoopDiagnosticEvents(),
+                new NoopExecutionDiagnosticEvents(),
                 "123");
             connection.Subscriptions.Register(subscriptionSession);
 

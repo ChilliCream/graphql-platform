@@ -1,6 +1,7 @@
-using System;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Fetching;
+using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -9,20 +10,24 @@ namespace HotChocolate
     public class BatchSchedulerTests
     {
         [Fact]
-        public void Dispatch_OneAction_ShouldDispatchOneAction()
+        public async Task Dispatch_OneAction_ShouldDispatchOneAction()
         {
             // arrange
+            var context = new Mock<IExecutionTaskContext>();
+            context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
+
             var scheduler = new BatchScheduler();
+
             ValueTask Dispatch() => default;
 
             scheduler.Schedule(Dispatch);
             Assert.True(scheduler.HasTasks);
 
             // act
-            scheduler.Dispatch(_ => { });
+            await scheduler.DispatchAsync();
 
             // assert
-            Assert.True(scheduler.HasTasks);
+            Assert.False(scheduler.HasTasks);
         }
 
         [Fact]

@@ -10,12 +10,14 @@ namespace HotChocolate.Types.Pagination
     /// <summary>
     /// Represents the default paging handler for in-memory collections and queryables.
     /// </summary>
-    /// <typeparam name="TItemType">
+    /// <typeparam name="TEntity">
     /// The entity type.
     /// </typeparam>
-    public class QueryableOffsetPagingHandler<TItemType>
+    public class QueryableOffsetPagingHandler<TEntity>
         : OffsetPagingHandler
     {
+        private readonly QueryableOffsetPagination<TEntity> _pagination = new();
+
         public QueryableOffsetPagingHandler(PagingOptions options)
             : base(options)
         {
@@ -26,109 +28,47 @@ namespace HotChocolate.Types.Pagination
             object source,
             OffsetPagingArguments arguments)
         {
+            CancellationToken ct = context.RequestAborted;
             return source switch
             {
-                IQueryable<TItemType> q => ResolveAsync(context, q, arguments),
-                IEnumerable<TItemType> e => ResolveAsync(context,e.AsQueryable(),arguments),
-                IExecutable<TItemType> ex => SliceAsync(context, ex.Source, arguments),
+                IQueryable<TEntity> q => ResolveAsync(context, q, arguments, ct),
+                IEnumerable<TEntity> e => ResolveAsync(context, e.AsQueryable(), arguments, ct),
+                IExecutable<TEntity> ex => SliceAsync(context, ex.Source, arguments),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
         }
 
         private async ValueTask<CollectionSegment> ResolveAsync(
             IResolverContext context,
-            IQueryable<TItemType> queryable,
-            OffsetPagingArguments arguments = default)
+            IQueryable<TEntity> source,
+            OffsetPagingArguments arguments = default,
+            CancellationToken cancellationToken = default)
         {
-            IQueryable<TItemType> original = queryable;
-
-            if (arguments.Skip.HasValue)
-            {
-                queryable = queryable.Skip(arguments.Skip.Value);
-            }
-
-            queryable = queryable.Take(arguments.Take + 1);
-            List<TItemType> items =
-                await ExecuteQueryableAsync(queryable, context.RequestAborted)
-                    .ConfigureAwait(false);
-            var pageInfo = new CollectionSegmentInfo(
-                items.Count == arguments.Take + 1,
-                (arguments.Skip ?? 0) > 0);
-
-            if (items.Count > arguments.Take)
-            {
-                items.RemoveAt(arguments.Take);
-            }
-
-            Func<CancellationToken, ValueTask<int>> getTotalCount =
-                ct => throw new InvalidOperationException();
+            // When totalCount is included in the selection set we prefetch it, then capture the
+            // count in a variable, to pass it into the handler
+            int? totalCount = null;
 
             // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
             if (IncludeTotalCount &&
-                context.Field.Type is ObjectType objectType &&
-                context.Selection.SyntaxNode.SelectionSet is {} selectionSet)
+                context.Selection.Type is ObjectType objectType &&
+                context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
             {
-                IReadOnlyList<IFieldSelection> selections = context
-                    .GetSelections(objectType, selectionSet, true);
+                IReadOnlyList<IFieldSelection> selections =
+                    context.GetSelections(objectType, selectionSet, true);
 
-                var includeTotalCount = false;
                 for (var i = 0; i < selections.Count; i++)
                 {
                     if (selections[i].Field.Name.Value is "totalCount")
                     {
-                        includeTotalCount = true;
-                        break;
+                        totalCount = source.Count();
                     }
                 }
-
-                // When totalCount is included in the selection set we prefetch it, then capture the
-                // count in a variable, to pass it into the clojure
-                if (includeTotalCount)
-                {
-                    var captureCount = original.Count();
-                    getTotalCount = ct => new ValueTask<int>(captureCount);
-                }
             }
 
-            return new CollectionSegment(
-                (IReadOnlyCollection<object>)items,
-                pageInfo,
-                getTotalCount);
-        }
-
-        protected virtual async ValueTask<List<TItemType>> ExecuteQueryableAsync(
-            IQueryable<TItemType> queryable,
-            CancellationToken cancellationToken)
-        {
-            var list = new List<TItemType>();
-
-            if (queryable is IAsyncEnumerable<TItemType> enumerable)
-            {
-                await foreach (TItemType item in enumerable.WithCancellation(cancellationToken)
-                    .ConfigureAwait(false))
-                {
-                    list.Add(item);
-                }
-            }
-            else
-            {
-                await Task.Run(() =>
-                {
-                    foreach (TItemType item in queryable)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        list.Add(item);
-                    }
-
-                }).ConfigureAwait(false);
-            }
-
-            return list;
+            return await _pagination
+                .ApplyPaginationAsync(source, arguments, totalCount, cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

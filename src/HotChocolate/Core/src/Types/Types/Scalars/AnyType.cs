@@ -70,7 +70,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode literal)
         {
             switch (literal)
             {

@@ -11,8 +11,7 @@ namespace HotChocolate.Types
         {
             return SchemaBuilder
                 .New()
-                .AddQueryType(x =>
-                    x.Name("Query").Field("scalar").Type<TType>().Resolver(""))
+                .AddQueryType(x => x.Name("Query").Field("scalar").Type<TType>().Resolve(""))
                 .Create();
         }
 

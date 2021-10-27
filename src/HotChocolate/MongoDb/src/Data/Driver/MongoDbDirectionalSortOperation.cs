@@ -9,7 +9,7 @@ namespace HotChocolate.Data.MongoDb
     /// <summary>
     /// This class was ported over from the official mongo db driver
     /// </summary>
-    internal sealed class MongoDbDirectionalSortOperation : MongoDbSortDefinition
+    public sealed class MongoDbDirectionalSortOperation : MongoDbSortDefinition
     {
         private readonly string _path;
         private readonly SortDirection _direction;

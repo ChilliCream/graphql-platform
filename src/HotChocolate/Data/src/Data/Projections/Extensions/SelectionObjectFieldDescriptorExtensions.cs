@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
 using static HotChocolate.Data.Projections.ProjectionProvider;
@@ -124,10 +122,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => default;
+            FieldMiddlewareDefinition placeholder =
+                new(_ => _ => default, key: WellKnownMiddleware.Projection);
+
+            descriptor.Extend().Definition.MiddlewareDefinitions.Add(placeholder);
 
             descriptor
-                .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(
                     (context, definition) =>
@@ -142,28 +142,24 @@ namespace HotChocolate.Types
                                     out ITypeInfo? typeInfo))
                             {
                                 throw new ArgumentException(
-                                    "Cannot handle the specified type.",
+                                    DataResources.UseProjection_CannotHandleType_,
                                     nameof(descriptor));
                             }
 
                             selectionType = typeInfo.NamedType;
                         }
 
-                        ILazyTypeConfiguration lazyConfiguration =
-                            LazyTypeConfigurationBuilder
-                                .New<ObjectFieldDefinition>()
-                                .Definition(definition)
-                                .Configure(
-                                    (context, definition) =>
-                                        CompileMiddleware(
-                                            selectionType,
-                                            definition,
-                                            placeholder,
-                                            context,
-                                            scope))
-                                .On(ApplyConfigurationOn.Completion)
-                                .Build();
-                        definition.Configurations.Add(lazyConfiguration);
+                        definition.Configurations.Add(
+                            new CompleteConfiguration<ObjectFieldDefinition>(
+                                (c, d) =>
+                                    CompileMiddleware(
+                                        selectionType,
+                                        d,
+                                        placeholder,
+                                        c,
+                                        scope),
+                                definition,
+                                ApplyConfigurationOn.Completion));
                     });
 
             return descriptor;
@@ -172,7 +168,7 @@ namespace HotChocolate.Types
         private static void CompileMiddleware(
             Type type,
             ObjectFieldDefinition definition,
-            FieldMiddleware placeholder,
+            FieldMiddlewareDefinition placeholder,
             ITypeCompletionContext context,
             string? scope)
         {
@@ -184,8 +180,9 @@ namespace HotChocolate.Types
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = middleware;
+            var index = definition.MiddlewareDefinitions.IndexOf(placeholder);
+            definition.MiddlewareDefinitions[index] =
+                new(middleware, key: WellKnownMiddleware.Projection);
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(

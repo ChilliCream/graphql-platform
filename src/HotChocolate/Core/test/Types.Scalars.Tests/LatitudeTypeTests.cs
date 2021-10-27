@@ -480,7 +480,7 @@ namespace HotChocolate.Types
         }
 
         private static double ToPrecision(
-            IParsableType scalar,
+            ILeafType scalar,
             IValueNode valueSyntax,
             int precision = 8)
         {

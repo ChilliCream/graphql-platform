@@ -15,13 +15,13 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         private readonly IRequestExecutor _requestExecutor;
         private readonly ISocketSessionInterceptor _socketSessionInterceptor;
         private readonly IErrorHandler _errorHandler;
-        private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
         public DataStartMessageHandler(
             IRequestExecutor requestExecutor,
             ISocketSessionInterceptor socketSessionInterceptor,
             IErrorHandler errorHandler,
-            IDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             _requestExecutor = requestExecutor ??
                 throw new ArgumentNullException(nameof(requestExecutor));
@@ -60,6 +60,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
 
                         var subscriptionSession = new SubscriptionSession(
                             session,
+                            _socketSessionInterceptor,
                             connection,
                             subscriptionResult,
                             subscription,
