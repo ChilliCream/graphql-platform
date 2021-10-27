@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         static DocumentParameterExpressionBuilder()
         {
             _document = ContextType.GetProperty(nameof(IResolverContext.Document))!;
-            Debug.Assert(_document is not null!, "Document property is missing." );
+            Debug.Assert(_document is not null, "Document property is missing." );
         }
 
         public ArgumentKind Kind => ArgumentKind.DocumentSyntax;
