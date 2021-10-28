@@ -3,21 +3,21 @@
     "root": [
       {
         "id": 1,
-        "foo": null
+        "foo": {
+          "id": 1,
+          "barEnum": "BAR"
+        }
       },
       {
         "id": 2,
         "foo": {
-          "id": 1,
+          "id": 2,
           "barEnum": "FOO"
         }
       },
       {
         "id": 3,
-        "foo": {
-          "id": 2,
-          "barEnum": "BAR"
-        }
+        "foo": null
       }
     ]
   }

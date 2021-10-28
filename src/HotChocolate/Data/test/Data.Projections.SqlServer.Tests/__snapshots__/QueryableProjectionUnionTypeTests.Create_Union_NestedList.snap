@@ -4,10 +4,10 @@
       {
         "list": [
           {
-            "fooProp": "FooProp"
+            "barProp": "BarProp"
           },
           {
-            "barProp": "BarProp"
+            "fooProp": "FooProp"
           }
         ]
       },
