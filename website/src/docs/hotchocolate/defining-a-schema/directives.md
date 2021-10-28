@@ -381,7 +381,7 @@ The resolver pipeline consists of a sequence of directive delegates, called one 
 Each delegate can perform operations before and after the next delegate. A delegate can also decide to not pass a resolver request to the next delegate, which is called short-circuiting the resolver pipeline.
 Short-circuiting is often desirable because it avoids unnecessary work.
 
-The order of the middleware pipeline is defined by the order of the directives. Since, executable directives will flow from the object type to its field definitions the directives of the type would be called first in the order that they were annotated.
+The order of the middleware pipeline is defined by the order of the directives. Since executable directives will flow from the object type to its field definitions, the directives of the type would be called first in the order that they were annotated.
 
 ```sdl
 type Query {

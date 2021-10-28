@@ -18,7 +18,7 @@ namespace HotChocolate.AspNetCore.Warmup
             IRequestExecutorResolver executorResolver,
             IEnumerable<WarmupSchema> schemas)
         {
-            if (executorResolver is null!)
+            if (executorResolver is null)
             {
                 throw new ArgumentNullException(nameof(executorResolver));
             }

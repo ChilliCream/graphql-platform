@@ -28,14 +28,13 @@ namespace HotChocolate.Data.Projections
             var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
 
-            try
+            DbSet<TResult> set = dbContext.Set<TResult>();
+
+            foreach (TResult result in results)
             {
+                set.Add(result);
                 dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
             }
 
             return ctx => dbContext.Data.AsQueryable();

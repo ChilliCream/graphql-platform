@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.MongoDb.Projections.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data.MongoDb</RootNamespace>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
