@@ -1,0 +1,3 @@
+﻿SELECT d."Id", d."Bar"
+FROM "Data" AS d
+WHERE ST_Contains(d."Bar", @__p_0)

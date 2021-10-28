@@ -85,7 +85,6 @@ HotChocolate.Types.UsePagingAttribute.RequirePagingBoundaries.set -> void
 HotChocolate.Types.UsePagingAttribute.SchemaType.get -> System.Type?
 HotChocolate.Types.UsePagingAttribute.SchemaType.set -> void
 HotChocolate.Types.UsePagingAttribute.Type.get -> System.Type?
-HotChocolate.Types.UsePagingAttribute.UsePagingAttribute(System.Type? type = null) -> void
 Microsoft.Extensions.DependencyInjection.CursorPagingRequestExecutorBuilderExtension
 override HotChocolate.Types.Pagination.PageInfoType.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.ConnectionPageInfo!>! descriptor) -> void
 override HotChocolate.Types.Pagination.QueryableCursorPagingProvider.CanHandle(HotChocolate.Internal.IExtendedType! source) -> bool

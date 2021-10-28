@@ -24,13 +24,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         static ArgumentParameterExpressionBuilder()
         {
             _getArgumentValue = PureContextType.GetMethods().First(IsArgumentValueMethod)!;
-            Debug.Assert(_getArgumentValue is not null!, "ArgumentValue method is missing." );
+            Debug.Assert(_getArgumentValue is not null, "ArgumentValue method is missing." );
 
             _getArgumentLiteral = PureContextType.GetMethods().First(IsArgumentLiteralMethod);
-            Debug.Assert(_getArgumentValue is not null!, "ArgumentLiteral method is missing." );
+            Debug.Assert(_getArgumentValue is not null, "ArgumentLiteral method is missing." );
 
             _getArgumentOptional = PureContextType.GetMethods().First(IsArgumentOptionalMethod);
-            Debug.Assert(_getArgumentValue is not null!, "ArgumentOptional method is missing." );
+            Debug.Assert(_getArgumentValue is not null, "ArgumentOptional method is missing." );
 
             static bool IsArgumentValueMethod(MethodInfo method)
                 => method.Name.Equals(_argumentValue, StringComparison.Ordinal) &&

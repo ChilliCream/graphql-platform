@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -11,6 +12,11 @@ namespace HotChocolate.Data
     public sealed class UseFirstOrDefaultAttribute
         : ObjectFieldDescriptorAttribute
     {
+        public UseFirstOrDefaultAttribute([CallerLineNumber] int order = 0)
+        {
+            Order = order;
+        }
+
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,

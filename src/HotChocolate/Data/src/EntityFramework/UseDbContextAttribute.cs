@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.EntityFrameworkCore;
@@ -17,9 +18,10 @@ namespace HotChocolate.Data
 
         private readonly Type _dbContext;
 
-        public UseDbContextAttribute(Type dbContext)
+        public UseDbContextAttribute(Type dbContext, [CallerLineNumber] int order = 0)
         {
             _dbContext = dbContext;
+            Order = order;
         }
 
         public override void OnConfigure(

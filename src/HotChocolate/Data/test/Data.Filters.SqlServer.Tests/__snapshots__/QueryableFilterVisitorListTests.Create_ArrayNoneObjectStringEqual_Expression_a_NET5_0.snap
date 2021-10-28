@@ -1,0 +1,32 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": null
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}

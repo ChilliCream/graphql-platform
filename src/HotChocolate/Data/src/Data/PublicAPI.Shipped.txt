@@ -1235,21 +1235,16 @@ HotChocolate.Data.UseFilteringAttribute.Scope.get -> string?
 HotChocolate.Data.UseFilteringAttribute.Scope.set -> void
 HotChocolate.Data.UseFilteringAttribute.Type.get -> System.Type?
 HotChocolate.Data.UseFilteringAttribute.Type.set -> void
-HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null) -> void
 HotChocolate.Data.UseFirstOrDefaultAttribute
-HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute() -> void
 HotChocolate.Data.UseProjectionAttribute
 HotChocolate.Data.UseProjectionAttribute.Scope.get -> string?
 HotChocolate.Data.UseProjectionAttribute.Scope.set -> void
-HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute() -> void
 HotChocolate.Data.UseSingleOrDefaultAttribute
-HotChocolate.Data.UseSingleOrDefaultAttribute.UseSingleOrDefaultAttribute() -> void
 HotChocolate.Data.UseSortingAttribute
 HotChocolate.Data.UseSortingAttribute.Scope.get -> string?
 HotChocolate.Data.UseSortingAttribute.Scope.set -> void
 HotChocolate.Data.UseSortingAttribute.Type.get -> System.Type?
 HotChocolate.Data.UseSortingAttribute.Type.set -> void
-HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null) -> void
 HotChocolate.FilterSchemaBuilderExtensions
 HotChocolate.ProjectionsSchemaBuilderExtensions
 HotChocolate.SortingSchemaBuilderExtensions
