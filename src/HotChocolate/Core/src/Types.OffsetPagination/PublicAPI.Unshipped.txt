@@ -1,0 +1,2 @@
+HotChocolate.Types.UseOffsetPagingAttribute.UseOffsetPagingAttribute(System.Type? type = null, int order = 0) -> void
+*REMOVED*HotChocolate.Types.UseOffsetPagingAttribute.UseOffsetPagingAttribute(System.Type? type = null) -> void

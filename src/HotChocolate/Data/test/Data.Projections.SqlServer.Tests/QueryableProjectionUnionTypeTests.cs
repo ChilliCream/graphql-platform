@@ -209,10 +209,6 @@ namespace HotChocolate.Data.Projections
 
         public class Foo : AbstractType
         {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
-
             public string FooProp { get; set; }
         }
 
@@ -226,10 +222,6 @@ namespace HotChocolate.Data.Projections
 
         public class Bar : AbstractType
         {
-            public int Id { get; set; }
-
-            public string Name { get; set; }
-
             public string BarProp { get; set; }
         }
     }

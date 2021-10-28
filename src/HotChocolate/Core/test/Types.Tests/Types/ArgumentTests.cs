@@ -79,7 +79,20 @@ namespace HotChocolate.Types
 
                     if (argument.RuntimeType != actualType)
                     {
-                        throw new Exception();
+                        context.ReportError($"RuntimeType ({argument.RuntimeType}) not equal to actual type ({actualType})");
+                    }
+
+                    if (context.Selection.Field.Name.Value.StartsWith("array"))
+                    {
+                        if (!argument.RuntimeType.IsArray)
+                        {
+                            context.ReportError($"Field defined with array but ArgDeg saying it's a {argument.RuntimeType}");
+                        }
+
+                        if (!actualType.IsArray)
+                        {
+                            context.ReportError($"Field defined with array but actual type is a {actualType}");
+                        }
                     }
                 }
 

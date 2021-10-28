@@ -1,0 +1,2 @@
+﻿SELECT "d"."IsProjectedTrue"
+FROM "Data" AS "d"
