@@ -17,14 +17,13 @@ namespace HotChocolate.Data
         {
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
 
-            try
+            var set = dbContext.Set<TResult>();
+
+            foreach (TResult result in results)
             {
+                set.Add(result);
                 dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
             }
 
             return dbContext;
