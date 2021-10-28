@@ -16,7 +16,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         static CancellationTokenParameterExpressionBuilder()
         {
-            Debug.Assert(_cancellationToken is not null!, "RequestAborted property is missing." );
+            Debug.Assert(_cancellationToken is not null, "RequestAborted property is missing." );
         }
 
         public ArgumentKind Kind => ArgumentKind.CancellationToken;
