@@ -1,0 +1,3 @@
+﻿SELECT "f"."Id" IS NOT NULL, "f"."Id"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"

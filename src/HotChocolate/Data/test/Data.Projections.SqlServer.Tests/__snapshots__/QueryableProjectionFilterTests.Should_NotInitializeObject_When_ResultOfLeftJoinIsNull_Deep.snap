@@ -3,20 +3,8 @@
     "root": [
       {
         "id": 1,
-        "foo": null
-      },
-      {
-        "id": 2,
         "foo": {
           "id": 1,
-          "barEnum": "FOO",
-          "nestedObject": null
-        }
-      },
-      {
-        "id": 3,
-        "foo": {
-          "id": 2,
           "barEnum": "BAR",
           "nestedObject": {
             "foo": {
@@ -24,6 +12,18 @@
             }
           }
         }
+      },
+      {
+        "id": 2,
+        "foo": {
+          "id": 2,
+          "barEnum": "FOO",
+          "nestedObject": null
+        }
+      },
+      {
+        "id": 3,
+        "foo": null
       }
     ]
   }
