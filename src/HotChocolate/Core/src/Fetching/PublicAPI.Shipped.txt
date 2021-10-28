@@ -35,7 +35,6 @@ HotChocolate.Fetching.RegisterDataLoaderException.RegisterDataLoaderException(st
 HotChocolate.Types.DataLoaderObjectFieldExtensions
 HotChocolate.Types.DataLoaderResolverContextExtensions
 HotChocolate.Types.UseDataLoaderAttribute
-HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType) -> void
 override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.Build(System.Reflection.ParameterInfo! parameter, System.Linq.Expressions.Expression! context) -> System.Linq.Expressions.Expression!
 override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
 override HotChocolate.Types.UseDataLoaderAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void

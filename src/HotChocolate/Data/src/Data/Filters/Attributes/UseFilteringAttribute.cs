@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -21,9 +22,10 @@ namespace HotChocolate.Data
                     m.GetParameters().Length == 2 &&
                     m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
-        public UseFilteringAttribute(Type? filterType = null)
+        public UseFilteringAttribute(Type? filterType = null, [CallerLineNumber] int order = 0)
         {
             Type = filterType;
+            Order = order;
         }
 
         /// <summary>
