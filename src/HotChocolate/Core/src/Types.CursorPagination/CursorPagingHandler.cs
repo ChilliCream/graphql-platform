@@ -70,10 +70,19 @@ namespace HotChocolate.Types.Pagination
                     context.Path);
             }
 
-            if (first > MaxPageSize || last > MaxPageSize)
+            if (first > MaxPageSize)
             {
                 throw ThrowHelper.PagingHandler_MaxPageSize(
-                    (first > last ? first : last) ?? MaxPageSize,
+                    (int)first,
+                    MaxPageSize,
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            if (last > MaxPageSize)
+            {
+                throw ThrowHelper.PagingHandler_MaxPageSize(
+                    (int)last,
                     MaxPageSize,
                     context.Selection.Field,
                     context.Path);
