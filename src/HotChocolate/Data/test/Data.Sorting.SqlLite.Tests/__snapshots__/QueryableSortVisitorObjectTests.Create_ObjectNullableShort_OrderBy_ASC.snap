@@ -2,17 +2,17 @@
   "data": {
     "root": [
       {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
         "foo": null
-      },
-      {
-        "foo": {
-          "barShort": null
-        }
-      },
-      {
-        "foo": {
-          "barShort": null
-        }
       },
       {
         "foo": {
