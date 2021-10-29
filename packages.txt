@@ -76,3 +76,4 @@ HotChocolate.Language
 StrawberryShake.Razor
 HotChocolate.Language.Visitors.Benchmarks
 HotChocolate.Types.NodaTime
+HotChocolate.Types.Scalars.Upload

@@ -50,6 +50,7 @@ HotChocolate.Types.CursorPagination
 HotChocolate.Types.Filters
 HotChocolate.Types.NodaTime
 HotChocolate.Types.OffsetPagination
+HotChocolate.Types.Scalars.Upload
 HotChocolate.Types.Selections
 HotChocolate.Types.Sorting
 HotChocolate.Types.Spatial

@@ -22,8 +22,15 @@ partial class Build : NukeBuild
 {
     HashSet<string> ProtectedVersions = new HashSet<string>
     {
-        "12.0.0-rc.12",
-        "12.0.0-rc.13"
+        "13.0.0-preview.0",
+        "13.0.0-preview.1",
+        "13.0.0-preview.2",
+        "13.0.0-preview.3",
+        "13.0.0-preview.4",
+        "13.0.0-preview.5",
+        "13.0.0-preview.6",
+        "13.0.0-preview.7",
+        "13.0.0-preview.8",
     };
 
     HashSet<(string, string)> ErrorVersions = new HashSet<(string, string)>
