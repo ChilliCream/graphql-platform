@@ -56,7 +56,8 @@ namespace HotChocolate.Execution.Processing
 
                 if (!hasValue && variableDefinition.DefaultValue is { } defaultValue)
                 {
-                    value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
+                    value = defaultValue.Kind is SyntaxKind.NullValue ? null : defaultValue;
+                    hasValue = true;
                 }
 
                 if (!hasValue || value is null || value is NullValueNode)

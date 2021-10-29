@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Processing
                             context.Services);
                         cachedValue = rootValue;
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         throw new GraphQLException(
                             ErrorBuilder.New()
@@ -62,6 +62,7 @@ namespace HotChocolate.Execution.Processing
                                 .SetCode(ErrorCodes.Execution.CannotCreateRootValue)
                                 .SetExtension("operationType", rootType.Name)
                                 .SetExtension("runtimeType", rootType.RuntimeType.FullName)
+                                .SetException(ex)
                                 .Build());
                     }
                 }

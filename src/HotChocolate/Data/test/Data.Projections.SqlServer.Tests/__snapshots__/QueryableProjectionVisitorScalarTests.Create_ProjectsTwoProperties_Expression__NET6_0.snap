@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "bar": true,
+        "baz": "a"
+      },
+      {
+        "bar": false,
+        "baz": "b"
+      }
+    ]
+  }
+}

@@ -26,7 +26,9 @@ partial class Build : NukeBuild
     {
         "HotChocolate.Types.Selections.PostgreSql.Tests",
         "HotChocolate.Configuration.Analyzers.Tests",
-        "HotChocolate.Data.Neo4J.Integration.Tests"
+        "HotChocolate.Data.Neo4J.Integration.Tests",
+        "HotChocolate.CodeGeneration.Neo4J.Tests",
+        "HotChocolate.Analyzers.Tests"
     };
 
     [Partition(3)] readonly Partition TestPartition;
