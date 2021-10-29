@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Projections.Extensions
 #endif
             if (result is not null)
             {
-                result.MatchSnapshot(snapshotName);
+                result.MatchSnapshot(snapshotName + postfix);
                 if (result.ContextData is not null &&
                     result.ContextData.TryGetValue("sql", out var queryResult))
                 {
