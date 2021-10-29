@@ -848,6 +848,21 @@ namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public async Task SkipAll_Default()
+        {
+            Snapshot.FullName();
+
+            await ExpectValid(@"
+                query ($if: Boolean! = true) {
+                    human(id: ""1000"") @skip(if: $if) {
+                        name
+                        height
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task SkipAllSecondLevelFields()
         {
             Snapshot.FullName();
