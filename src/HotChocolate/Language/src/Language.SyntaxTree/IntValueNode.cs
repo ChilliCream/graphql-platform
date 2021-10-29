@@ -491,7 +491,9 @@ namespace HotChocolate.Language
         public ReadOnlySpan<byte> AsSpan()
         {
             if (!_memory.IsEmpty)
+            {
                 return _memory.Span;
+            }
 
             Span<byte> buffer = stackalloc byte[32];
             var written = 0;
