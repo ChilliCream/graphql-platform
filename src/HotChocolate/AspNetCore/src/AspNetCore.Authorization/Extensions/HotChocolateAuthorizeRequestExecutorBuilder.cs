@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Provides extension methods for the GraphQL builder.
+    /// </summary>
     public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
         /// <summary>
@@ -41,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             => AddAuthorization(builder);
 
         /// <summary>
-        /// Addds
+        /// Adds
         /// </summary>
         /// <param name="builder"></param>
         /// <typeparam name="T"></typeparam>
@@ -50,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where T : class, IAuthorizationHandler
         {
+            builder.AddAuthorization();
             builder.Services.RemoveAll<IAuthorizationHandler>();
             builder.Services.AddSingleton<IAuthorizationHandler, T>();
             return builder;
