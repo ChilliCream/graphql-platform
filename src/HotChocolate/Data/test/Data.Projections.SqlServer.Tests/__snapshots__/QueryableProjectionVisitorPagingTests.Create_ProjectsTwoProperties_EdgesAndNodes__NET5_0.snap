@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "baz": "a"
+        },
+        {
+          "baz": "b"
+        }
+      ],
+      "edges": [
+        {
+          "node": {
+            "bar": true
+          }
+        },
+        {
+          "node": {
+            "bar": false
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+﻿{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "bar": false,
+          "baz": "b"
+        }
+      ]
+    }
+  }
+}
