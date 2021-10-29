@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -20,9 +21,10 @@ namespace HotChocolate.Data
                 && m.GetParameters().Length == 2
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
-        public UseSortingAttribute(Type? sortingType = null)
+        public UseSortingAttribute(Type? sortingType = null, [CallerLineNumber] int order = 0)
         {
             Type = sortingType;
+            Order = order;
         }
 
         /// <summary>

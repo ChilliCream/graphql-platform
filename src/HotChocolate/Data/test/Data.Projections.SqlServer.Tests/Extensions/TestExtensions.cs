@@ -11,13 +11,21 @@ namespace HotChocolate.Data.Projections.Extensions
             this IExecutionResult? result,
             string snapshotName = "")
         {
-            if (result is { })
+#if NET5_0
+            const string postfix = "_NET5_0";
+#elif NET6_0
+            const string postfix = "_NET6_0";
+#else
+            const string postfix = "";
+#endif
+            if (result is not null)
             {
-                result.MatchSnapshot(snapshotName);
-                if (result.ContextData is { } &&
-                    result.ContextData.TryGetValue("sql", out object? queryResult))
+                result.MatchSnapshot(snapshotName + postfix);
+                if (result.ContextData is not null &&
+                    result.ContextData.TryGetValue("sql", out var queryResult))
                 {
-                    queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_sql"));
+                    queryResult.MatchSnapshot(
+                        new SnapshotNameExtension(snapshotName + "_sql" + postfix));
                 }
             }
         }

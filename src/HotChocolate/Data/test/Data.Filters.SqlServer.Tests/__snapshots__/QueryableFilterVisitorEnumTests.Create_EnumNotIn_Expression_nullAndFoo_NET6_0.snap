@@ -1,0 +1,22 @@
+﻿{
+  "errors": [
+    {
+      "message": "The specified value type of field \u0060nin\u0060 does not match the field type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "fieldName": "nin",
+        "fieldType": "[FooEnum!]",
+        "locationType": "[FooEnum!]",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
+}

@@ -117,7 +117,7 @@ endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions
 
 This setting controls whether the GraphQL server is able to handle HTTP Multipart forms, i.e. file uploads.
 
-[Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
+[Learn more about uploading files](/docs/hotchocolate/server/files#upload-scalar)
 
 ### Tool
 

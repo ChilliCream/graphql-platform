@@ -64,7 +64,7 @@ namespace HotChocolate.Types
 
         public DirectiveNode ToNode(bool removeNullArguments)
         {
-            if (_parsedDirective is null!)
+            if (_parsedDirective is null)
             {
                 _parsedDirective = ParseValue(Type, _customDirective!);
             }

@@ -137,8 +137,43 @@ namespace HotChocolate.Execution.Processing
             helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Empty(coercedValues);
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
+                    Assert.Equal("def", t.Value.Value);
+                    Assert.Equal("def", Assert.IsType<StringValueNode>(t.Value.ValueLiteral).Value);
+                });
         }
+
+         [Fact]
+                public void Coerce_Nullable_String_Variable_Where_Value_Is_Not_Provided()
+                {
+                    // arrange
+                    ISchema schema = SchemaBuilder.New().AddStarWarsTypes().Create();
+
+                    var variableDefinitions = new List<VariableDefinitionNode>
+                    {
+                        new VariableDefinitionNode(
+                            null,
+                            new VariableNode("abc"),
+                            new NamedTypeNode("String"),
+                            null,
+                            Array.Empty<DirectiveNode>())
+                    };
+
+                    var variableValues = new Dictionary<string, object>();
+                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+
+                    var helper = new VariableCoercionHelper(new(), new(new DefaultTypeConverter()));
+
+                    // act
+                    helper.CoerceVariableValues(schema, variableDefinitions, variableValues, coercedValues);
+
+                    // assert
+                    Assert.Empty(coercedValues);
+                }
 
         [Fact]
         public void Coerce_Nullable_String_Variable_With_Default_Where_Value_Is_Provided()
