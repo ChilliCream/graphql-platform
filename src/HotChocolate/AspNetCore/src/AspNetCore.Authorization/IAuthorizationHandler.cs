@@ -1,22 +1,25 @@
-using System.Security.Claims;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 
-namespace HotChocolate.Authorization
+namespace HotChocolate.AspNetCore.Authorization
 {
+    /// <summary>
+    /// Represents the authorization process.
+    /// Implement this to handle the authorization of resolver data.
+    /// </summary>
     public interface IAuthorizationHandler
     {
-        Task<AuthorizeResult> AuthorizeAsync(
+        /// <summary>
+        /// Executes the authorization for the specified authorization <paramref name="directive"/>.
+        /// </summary>
+        /// <param name="context">The current middleware context.</param>
+        /// <param name="directive">The authorization directive.</param>
+        /// <returns>
+        /// Returns a value indicating if the current session is authorized to
+        /// access the resolver data.
+        /// </returns>
+        ValueTask<AuthorizeResult> AuthorizeAsync(
             IMiddlewareContext context,
-            ClaimsPrincipal principal,
             AuthorizeDirective directive);
-    }
-
-    public enum AuthorizeResult
-    {
-        Allowed,
-        NotAllowed,
-        NotAuthenticated,
-        NoDefaultPolicy,
-        PolicyNotFound
     }
 }
