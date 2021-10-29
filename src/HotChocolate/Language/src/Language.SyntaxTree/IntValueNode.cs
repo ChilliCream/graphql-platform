@@ -328,8 +328,6 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-
-
         public short ToInt16()
         {
             if (_shortValue.HasValue)
