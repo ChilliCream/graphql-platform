@@ -44,11 +44,17 @@ namespace Microsoft.Extensions.DependencyInjection
             => AddAuthorization(builder);
 
         /// <summary>
-        /// Adds
+        /// Adds a custom authorization handler.
         /// </summary>
-        /// <param name="builder"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <typeparam name="T">
+        /// The custom authorization handler.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+        /// </returns>
         public static IRequestExecutorBuilder AddAuthorizationHandler<T>(
             this IRequestExecutorBuilder builder)
             where T : class, IAuthorizationHandler
