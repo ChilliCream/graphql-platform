@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "list": [
+          {
+            "barProp": "BarProp"
+          },
+          {
+            "fooProp": "FooProp"
+          }
+        ]
+      },
+      {
+        "list": [
+          {
+            "barProp": "BarProp"
+          },
+          {
+            "fooProp": "FooProp"
+          }
+        ]
+      }
+    ]
+  }
+}
