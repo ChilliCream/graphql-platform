@@ -3,8 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The UnsignedShortType scalar type represents a unsigned 16‐bit numeric non‐fractional
-    /// value greater than or equal to 0.
+    /// The UnsignedShortType scalar type represents a unsigned numeric non‐fractional
+    /// value greater than or equal to 0 and smaller or equal to 65535.
     /// </summary>
     public class UnsignedShortType : IntegerTypeBase<ushort>
     {

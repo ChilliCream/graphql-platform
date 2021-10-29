@@ -3,8 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// The UnsignedInt scalar type represents a signed byte numeric non‐fractional
-    /// value greater than or equal to -127.
+    /// The UnsignedInt scalar type represents a unsigned numeric non‐fractional
+    /// value greater than or equal to -127 and smaller than or equal to 128.
     /// </summary>
     public class SignedByteType : IntegerTypeBase<sbyte>
     {
