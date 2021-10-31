@@ -58,8 +58,6 @@ public class Query
 }
 ```
 
-If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UsePaging(typeof(User))]`.
-
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
@@ -80,8 +78,6 @@ public class QueryType : ObjectType
     }
 }
 ```
-
-If we need to specify the concrete node type of our pagination, we can do so via the generic argument: `UsePaging<UserType>()`.
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
@@ -119,9 +115,9 @@ public class Startup
 
 For the `UsePaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
 
-> Note: Some of our Database integrations require us to return a different type. Refer to the documentation of the integration being used.
->
-> [Learn more about our integrations](/docs/hotchocolate/integrations)
+We also offer pagination integrations for some database technologies that do not use `IQueryable`.
+
+[Learn more about pagination providers](#providers)
 
 ## Naming
 
@@ -207,35 +203,58 @@ Take a look at the Annotation-based or Code-first example.
 
 [Learn more about the possible PagingOptions](#pagingoptions)
 
-## Customization
+## Changing the node type
 
-The default behavior of the `UsePaging` middleware
+Lets say we are returning a collection of `string` from our pagination resolver, but we want these `string` to be represented in the schema using the `ID` scalar.
 
-### Changing the node type
+For this we can specifically tell the `UsePaging` middleware, which type to use in the schema for representation of the returned CLR type.
 
-TODO
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
-### Custom pagination logic
+```csharp
+public class Query
+{
+    [UsePaging(typeof(IdType))]
+    public IEnumerable<string> GetIds()
+    {
+        // Omitted code for brevity
+    }
+}
+```
 
-TODO
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
 
-<!-- note about how to change cursors -->
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("ids")
+            .UsePaging<IdType>()
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
 
-### Adding fields to an Edge
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
 
-TODO
+Take a look at the Annotation-based or Code-first example..
 
-### Adding fields to Connections
+</ExampleTabs.Schema>
+</ExampleTabs>
 
-TODO
+The same applies of course, if we are returning a collection of `User` from our pagination resolver, but we want to use the `UserType` for representation in the schema.
 
-#### Aggregations
+## Custom pagination logic
 
-If we want one of the fields we added to our _Connection_ type to aggregate the pagination data, we need to make the pagination result available to the aggregation field's resolver. For this we can utilize scoped state.
-
-TODO
-
-<!-- If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
+If we need more control over the pagination process we can do so, by returning a `Connection<T>`.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -295,15 +314,54 @@ public class QueryType : ObjectType
 }
 ```
 
-If we need to work on an even lower level, we could also use `descriptor.AddPagingArguments()` and `descriptor.Type<ConnectionType<UserType>>()` to get rid of the `UsePaging` middleware.
-
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
 Take a look at the Annotation-based or Code-first example.
 
 </ExampleTabs.Schema>
-</ExampleTabs> -->
+</ExampleTabs>
+
+## Adding fields to an Edge
+
+We can add new fields to an Edge type, by creating a type extension that targets the Edge type by its name.
+
+If our Edge is named `UsersEdge`, we can add a new field to it like the following.
+
+```csharp
+[ExtendObjectType("UsersEdge")]
+public class UsersEdge
+{
+    public string NewField([Parent] Edge<User> edge)
+    {
+        var cursor = edge.Cursor;
+        var user = edge.Node;
+
+        // Omitted code for brevity
+    }
+}
+```
+
+[Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
+
+## Adding fields to a Connection
+
+We can add new fields to a _Connection_ type, by creating a type extension that targets the _Connection_ type by its name.
+
+If our _Connection_ is named `UsersConnection`, we can add a new field to it like the following.
+
+```csharp
+[ExtendObjectType("UsersConnection")]
+public class UsersConnectionExtension
+{
+    public string NewField()
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+[Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
 ## Total count
 
@@ -396,8 +454,6 @@ public class Query
 }
 ```
 
-If we need to specify the concrete node type of our pagination, we can do so by passing a Type as the constructor argument `[UseOffsetPaging(typeof(User))]`.
-
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
@@ -419,10 +475,6 @@ public class QueryType : ObjectType
 }
 ```
 
-If we need to specify the concrete node type of our pagination, we can do so via the generic argument: `UseOffsetPaging<UserType>()`.
-
-We can also configure the `UseOffsetPaging` middleware further, by specifying `PagingOptions`.
-
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -432,6 +484,14 @@ Take a look at the Annotation-based or Code-first example.
 </ExampleTabs>
 
 For the `UseOffsetPaging` middleware to work, our resolver needs to return an `IEnumerable<T>` or an `IQueryable<T>`. The middleware will then apply the pagination arguments to what we have returned. In the case of an `IQueryable<T>` this means that the pagination operations can be directly translated to native database queries.
+
+We also offer pagination integrations for some database technologies that do not use `IQueryable`.
+
+[Learn more about pagination providers](#providers)
+
+## Naming
+
+The name of the CollectionSegment type is inferred from the item type name. If our field returns a collection of `UserType` and the name of this type is `User`, the CollectionSegment will be called `UserCollectionSegment`.
 
 ## Options
 
@@ -468,7 +528,56 @@ Take a look at the Annotation-based or Code-first example.
 
 [Learn more about the possible PagingOptions](#pagingoptions)
 
-## Customization
+## Changing the item type
+
+Lets say we are returning a collection of `string` from our pagination resolver, but we want these `string` to be represented in the schema using the `ID` scalar.
+
+For this we can specifically tell the `UseOffsetPaging` middleware, which type to use in the schema for representation of the returned CLR type.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Query
+{
+    [UseOffsetPaging(typeof(IdType))]
+    public IEnumerable<string> GetIds()
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class QueryType : ObjectType
+{
+    protected override void Configure(IObjectTypeDescriptor descriptor)
+    {
+        descriptor
+            .Field("ids")
+            .UseOffsetPaging<IdType>()
+            .Resolve(context =>
+            {
+                // Omitted code for brevity
+            });
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+Take a look at the Annotation-based or Code-first example..
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+The same applies of course, if we are returning a collection of `User` from our pagination resolver, but we want to use the `UserType` for representation in the schema.
+
+## Custom pagination logic
 
 If we need more control over the pagination process we can do so, by returning a `CollectionSegment<T>`.
 
@@ -530,8 +639,6 @@ public class QueryType : ObjectType
 }
 ```
 
-If we need to work on an even lower level, we could also use `descriptor.AddOffsetPagingArguments()` and `descriptor.Type<CollectionSegmentType<UserType>>()` to get rid of the `UseOffsetPaging` middleware.
-
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -539,6 +646,25 @@ Take a look at the Annotation-based or Code-first example..
 
 </ExampleTabs.Schema>
 </ExampleTabs>
+
+## Addings fields to a CollectionSegment
+
+We can add new fields to a CollectionSegment type, by creating a type extension that targets the CollectionSegment by its name.
+
+If our CollectionSegment is named `UserCollectionSegment`, we can add a new field to it like the following.
+
+```csharp
+[ExtendObjectType("UserCollectionSegment")]
+public class UserCollectionSegmentExtension
+{
+    public string NewField()
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
+[Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
 ## Total count
 
@@ -690,6 +816,10 @@ public class Startup
 ```
 
 [Learn more about possible PagingOptions](#pagingoptions)
+
+# Aggregations
+
+TODO
 
 # Types of pagination
 
