@@ -128,27 +128,27 @@ namespace HotChocolate
         {
             [Required]
             [GraphQLType(typeof(IdType))]
-            public string? Scalar { get; }
+            public string Scalar { get; }
 
             [Required]
             [GraphQLType(typeof(ListType<IdType>))]
-            public string?[]? ScalarArray { get; }
+            public string[] ScalarArray { get; }
 
             [Required]
             [GraphQLType(typeof(ListType<ListType<IdType>>))]
-            public string?[]?[]? ScalarNestedArray { get; }
+            public string[][] ScalarNestedArray { get; }
 
             [Required]
             [GraphQLType(typeof(FooType))]
-            public Foo? Object { get; }
+            public Foo Object { get; }
 
             [Required]
             [GraphQLType(typeof(ListType<FooType>))]
-            public Foo?[]? ObjectArray { get; }
+            public Foo[] ObjectArray { get; }
 
             [Required]
             [GraphQLType(typeof(ListType<ListType<FooType>>))]
-            public Foo?[]?[]? ObjectNestedArray { get; }
+            public Foo[][] ObjectNestedArray { get; }
         }
 
         public class QueryDeepWithType
