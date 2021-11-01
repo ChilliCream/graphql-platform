@@ -36,7 +36,7 @@ subscription OnSessionUpdated {
 builder.Services
   .AddConferenceClient()
   .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://localhost:5050/graphql"))
-  .ConfigureWebSocketClient(client => client.Uri = new Uri("ws://localhost:5050/graphql"));
+  .ConfigureWebSocketClient(client => client.Uri = new Uri("wss://localhost:5050/graphql"));
 ```
 
 5. A subscription can now be used like any other query by subscribing to it.
