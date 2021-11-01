@@ -31,7 +31,8 @@ namespace HotChocolate.Types
                 .Argument(t => t.InitialCount)
                 .Name(Names.InitialCount)
                 .Description(TypeResources.StreamDirectiveType_InitialCount_Description)
-                .Type<NonNullType<IntType>>();
+                .Type<NonNullType<IntType>>()
+                .DefaultValue(0);
 
             descriptor
                 .Argument(t => t.If)
