@@ -74,7 +74,7 @@ Operation {"data":{"onTest":"6num5"}}
 Operation {"data":{"onTest":"6num6"}}
 Operation {"data":{"onTest":"6num7"}}
 Operation {"data":{"onTest":"6num8"}}
-Operation {"data":{"onTest":"6num9"}}
+Operation {"data":{}}
 Operation 7
 Operation {"data":{"onTest":"7num0"}}
 Operation {"data":{"onTest":"7num1"}}
@@ -139,7 +139,7 @@ Operation {"data":{"onTest":"12num4"}}
 Operation {"data":{"onTest":"12num5"}}
 Operation {"data":{"onTest":"12num6"}}
 Operation {"data":{"onTest":"12num7"}}
-Operation {"data":{"onTest":"12num8"}}
+Operation {"data":{}}
 Operation {"data":{"onTest":"12num9"}}
 Operation 13
 Operation {"data":{"onTest":"13num0"}}
