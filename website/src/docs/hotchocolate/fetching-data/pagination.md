@@ -363,6 +363,25 @@ public class UsersConnectionExtension
 
 [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
+These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
+
+We can access the pagination result like the following:
+
+```csharp
+[ExtendObjectType("UsersConnection")]
+public class UsersConnectionExtension
+{
+    public string NewField([Parent] Connection<User> connection)
+    {
+        var result = connection.Edges.Sum(e => e.Node.SomeField);
+
+        // Omitted code for brevity
+    }
+}
+```
+
+> Note: If you are using [Projections](/docs/hotchocolate/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
+
 ## Total count
 
 Sometimes we might want to return the total number of pageable entries.
@@ -666,6 +685,25 @@ public class UserCollectionSegmentExtension
 
 [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
+These additional fields are great to perform aggregations either on the entire dataset, by for example issuing a second database call, or on top of the paginated result.
+
+We can access the pagination result like the following:
+
+```csharp
+[ExtendObjectType("UserCollectionSegment")]
+public class UserCollectionSegmentExtension
+{
+    public string NewField([Parent] CollectionSegment<User> collectionSegment)
+    {
+        var result = collectionSegment.Items.Sum(i => i.SomeField);
+
+        // Omitted code for brevity
+    }
+}
+```
+
+> Note: If you are using [Projections](/docs/hotchocolate/fetching-data/projections), be aware that some properties on your model might not be set, depending on what the user queried for.
+
 ## Total count
 
 Sometimes we might want to return the total number of pageable entries.
@@ -816,10 +854,6 @@ public class Startup
 ```
 
 [Learn more about possible PagingOptions](#pagingoptions)
-
-# Aggregations
-
-TODO
 
 # Types of pagination
 
