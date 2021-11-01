@@ -28,7 +28,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             Helpers.TryDelete(PublicApiSolutionFile);
-            
+
             DotNetBuildSonarSolution(
                 PublicApiSolutionFile,
                 include: file =>
@@ -43,7 +43,7 @@ partial class Build : NukeBuild
         });
 
     Target AddUnshippedApi => _ => _
-        .DependsOn(Restore) 
+        .DependsOn(Restore)
         .Executes(() =>
         {
             TryDelete(PublicApiSolutionFile);
@@ -54,11 +54,8 @@ partial class Build : NukeBuild
                     !Path.GetFileNameWithoutExtension(file)
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
-            // new we restore our local dotnet tools including dotnet-format
-            DotNetToolRestore(c => c.SetProcessWorkingDirectory(RootDirectory));
-
             // last we run the actual dotnet format command.
-            DotNet($@"format ""{PublicApiSolutionFile}"" --fix-analyzers warn --diagnostics RS0016", workingDirectory: RootDirectory);
+            DotNet($@"format ""{PublicApiSolutionFile}"" analyzers", workingDirectory: RootDirectory);
         });
 
     Target DiffShippedApi => _ => _
