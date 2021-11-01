@@ -73,6 +73,35 @@ services
 
 ## ConnectionType
 
+In v12 we have removed the `ConnectionType<T>` and `ConnectionType`.
+
+**v11**
+
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging()
+    .Type<ConnectionType<UserType>>()
+    .Resolver(context =>
+    {
+        // Omitted code for brevity
+    });
+```
+
+**v12**
+
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging<UserType>()
+    .Resolver(context =>
+    {
+        // Omitted code for brevity
+    });
+```
+
+## Connection naming
+
 We have changed the way we infer the name for the connection type when using cursor-based pagination. By default, the connection name is now inferred from the field name instead of the type name.
 
 ```sdl
@@ -130,6 +159,8 @@ services
     .AddMongoDbPagingProviders()
     ...
 ```
+
+[Reference](/docs/hotchocolate/fetching-data/pagination#providers)
 
 # Records
 
