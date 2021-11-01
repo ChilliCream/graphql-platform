@@ -1244,7 +1244,7 @@
                   "ofType": null
                 }
               },
-              "defaultValue": null
+              "defaultValue": "0"
             },
             {
               "name": "label",
