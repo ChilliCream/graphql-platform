@@ -58,7 +58,8 @@ namespace StrawberryShake.Transport.WebSockets
         /// <inheritdoc />
         public bool IsClosed =>
             _disposed
-            || _socket.CloseStatus.HasValue;
+            || _socket.CloseStatus.HasValue 
+            || _socket.State == WebSocketState.Aborted;
 
         /// <inheritdoc />
         public ClientWebSocket Socket => _socket;

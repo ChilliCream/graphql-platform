@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Test
+namespace HotChocolate.Data
 {
     public class TypeValidationTests
     {
