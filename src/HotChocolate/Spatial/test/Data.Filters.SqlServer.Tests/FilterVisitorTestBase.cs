@@ -34,10 +34,16 @@ namespace HotChocolate.Data.Filters.Spatial
             await _resource.RunSqlScriptAsync(
                 "CREATE EXTENSION postgis;\n" + sql,
                 databaseName);
-            dbContext.AddRange(results);
-            dbContext.SaveChanges();
 
-            return ctx => dbContext.Data.AsQueryable();
+            DbSet<T> set = dbContext.Set<T>();
+
+            foreach (T result in results)
+            {
+                set.Add(result);
+                await dbContext.SaveChangesAsync();
+            }
+
+            return _ => dbContext.Data.AsQueryable();
         }
 
         protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(

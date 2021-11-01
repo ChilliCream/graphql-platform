@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -9,9 +10,10 @@ namespace HotChocolate.Data.Neo4J
     {
         private readonly string _databaseName;
 
-        public UseNeo4JDatabaseAttribute(string databaseName)
+        public UseNeo4JDatabaseAttribute(string databaseName, [CallerLineNumber] int order = 0)
         {
             _databaseName = databaseName;
+            Order = order;
         }
 
         public override void OnConfigure(
