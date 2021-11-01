@@ -236,4 +236,7 @@
   <data name="UseProjection_CannotHandleType_" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
+  <data name="PagingProjectionOptimizer_NotAPagingField" xml:space="preserve">
+    <value>The paging projection optimizer was applied to a field that is not of IPageType. The problem encounter on {0}.{1} : {2}</value>
+  </data>
 </root>

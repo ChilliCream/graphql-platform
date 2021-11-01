@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Reflection;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections;
@@ -364,5 +365,15 @@ namespace HotChocolate.Data
                     .SetExtension("fieldName", context.Field.Name)
                     .SetExtension("typeName", context.Field.Type.NamedType().Name)
                     .Build());
+
+        public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
+            IType actualType,
+            IObjectField fieldName) =>
+            new(string.Format(
+                CultureInfo.InvariantCulture,
+                DataResources.PagingProjectionOptimizer_NotAPagingField,
+                actualType.Print(),
+                fieldName.Name,
+                fieldName.Type.Print()));
     }
 }
