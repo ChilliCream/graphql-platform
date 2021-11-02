@@ -3,6 +3,9 @@ using Transport.Sockets;
 
 namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
 
+/// <summary>
+/// 
+/// </summary>
 public sealed class NextMessage : IMessage
 {
     public NextMessage(string id, IQueryResult payload)

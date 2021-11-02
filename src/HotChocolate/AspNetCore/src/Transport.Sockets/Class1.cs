@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,6 +49,10 @@ public interface IMessageSender
 public interface ISocketSession
 {
     IMessageProtocol Protocol { get; }
+
+    IDictionary<string, object?> ContextData { get; }
+
+    bool IsInitialized { get; set; }
 }
 
 public interface IMessage

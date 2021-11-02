@@ -1,0 +1,119 @@
+using System;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Language;
+using Transport.Sockets;
+
+namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
+
+public class Utf8MessageParser
+{
+    private Utf8GraphQLReader _reader;
+
+    public IMessage Parse(ReadOnlySpan<byte> message)
+    {
+        Expect(TokenKind.LeftBrace);
+
+        while (_reader.Kind != TokenKind.RightBrace)
+        {
+            
+        }
+
+        if (!request.HasQuery && request.QueryId is null)
+        {
+            if (_useCache && TryExtractHash(request.Extensions, _hashProvider, out var hash))
+            {
+                request.QueryId = hash;
+            }
+            else
+            {
+                throw ThrowHelper.NoIdAndNoQuery(_reader);
+            }
+        }
+
+        if (request.HasQuery)
+        {
+            ParseQuery(ref request);
+        }
+
+        if (request.Document is null && request.QueryId is null)
+        {
+            throw ThrowHelper.NoIdAndNoQuery(_reader);
+        }
+    }
+
+    private static IMessage ParseMessage(JsonElement element)
+    {
+        if (element.TryGetProperty("type", out var value))
+        {
+            switch (value.GetString())
+            {
+                case "connection_init":
+                    break;
+            }
+        }
+
+        throw new Exception("");
+    }
+
+    private static ConnectionInitMessage ParseConnectionInit(JsonElement element)
+    {
+        if (element.TryGetProperty("payload", out var payloadValue))
+        {
+            return new ConnectionInitMessage(ParseDictionary(payloadValue));
+        }
+        else
+        {
+            return ConnectionInitMessage.Default;
+        }
+    }
+
+    private static ConnectionAckMessage ParseConnectionAck(JsonElement element)
+    {
+        if (element.TryGetProperty("payload", out var payloadValue))
+        {
+            return new ConnectionAckMessage(ParseDictionary(payloadValue));
+        }
+        else
+        {
+            return ConnectionAckMessage.Default;
+        }
+    }
+
+    private static Dictionary<string, object?>? ParseDictionary(JsonElement element)
+        => throw new Exception();
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private ReadOnlySpan<byte> Expect(TokenKind kind)
+    {
+        ReadOnlySpan<byte> value = _reader.Value;
+
+        if (!Skip(kind))
+        {
+            throw new SyntaxException(this, Parser_InvalidToken, kind, Kind);
+        }
+
+        return value;
+    }
+
+    private bool Skip(TokenKind kind)
+    {
+        if (_reader.Kind == kind)
+        {
+            MoveNext();
+            return true;
+        }
+        return false;
+    }
+
+    private bool MoveNext()
+    {
+        while (_reader.Read() && _reader.Kind == TokenKind.Comment) { }
+        return !_reader.IsEndOfStream();
+    }
+}

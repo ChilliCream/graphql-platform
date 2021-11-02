@@ -6,9 +6,9 @@ namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
 public class SubscribePayload
 {
     public SubscribePayload(
-        string? operationName, 
-        DocumentNode? query, 
-        IDictionary<string, object?>? extensions, 
+        string? operationName,
+        DocumentNode? query,
+        IDictionary<string, object?>? extensions,
         IDictionary<string, object?>? variables)
     {
         OperationName = operationName;
