@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
@@ -71,7 +72,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     new QueryableProjectionContext(
                         context,
                         context.ObjectType,
-                        context.Field.Type.UnwrapRuntimeType());
+                        context.Field.Type.ToRuntimeType());
                 var visitor = new QueryableProjectionVisitor();
                 visitor.Visit(visitorContext);
 

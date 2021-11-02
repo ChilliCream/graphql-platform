@@ -1,6 +1,9 @@
 using System;
+using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
@@ -364,5 +367,129 @@ namespace HotChocolate.Data
                     .SetExtension("fieldName", context.Field.Name)
                     .SetExtension("typeName", context.Field.Type.NamedType().Name)
                     .Build());
+
+        public static InvalidOperationException Filtering_CouldNotParseValue(
+            IFilterFieldHandler handler,
+            IValueNode valueNode,
+            IType expectedType,
+            IFilterField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.Filtering_CouldNotParseValue,
+                handler.GetType().Name,
+                expectedType.Print(),
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException QueryableFiltering_MemberInvalid(
+            MemberInfo memberInfo,
+            IFilterField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.QueryableFiltering_MemberInvalid,
+                memberInfo.GetType(),
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException QueryableFiltering_NoMemberDeclared(
+            IFilterField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.QueryableFiltering_NoMemberDeclared,
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException Filtering_QueryableCombinator_QueueEmpty(
+            QueryableCombinator combinator) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.Filtering_QueryableCombinator_QueueEmpty,
+                combinator.GetType()
+            ));
+
+        public static InvalidOperationException Filtering_QueryableCombinator_InvalidCombinator(
+            QueryableCombinator combinator,
+            FilterCombinator operation) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.Filtering_QueryableCombinator_InvalidCombinator,
+                combinator.GetType(),
+                operation.ToString()
+            ));
+
+        public static InvalidOperationException ProjectionVisitor_MemberInvalid(
+            MemberInfo memberInfo) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_MemberInvalid,
+                memberInfo.GetType()
+            ));
+
+        public static InvalidOperationException ProjectionVisitor_NoMemberFound() =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_NoMemberFound
+            ));
+
+        public static InvalidOperationException ProjectionVisitor_InvalidState_NoParentScope() =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_InvalidState_NoParentScope
+            ));
+
+        public static InvalidOperationException ProjectionVisitor_NoConstructorFoundForSet(
+            Expression expression,
+            Type setType) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_NoConstructorFoundForSet,
+                expression.ToString(),
+                setType.FullName
+            ));
+
+        public static InvalidOperationException Sorting_InvalidState_ParentIsNoFieldSelector(
+            ISortField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.Sorting_InvalidState_ParentIsNoFieldSelector,
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException QueryableSorting_MemberInvalid(
+            MemberInfo memberInfo,
+            ISortField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.QueryableSorting_MemberInvalid,
+                memberInfo.GetType(),
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException QueryableSorting_NoMemberDeclared(
+            ISortField field) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.QueryableSorting_NoMemberDeclared,
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()
+            ));
+
+        public static InvalidOperationException SortField_ArgumentInvalid_NoHandlerWasFound(
+            string argumentName) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.SortField_ArgumentInvalid_NoHandlerWasFound
+            ));
     }
 }
