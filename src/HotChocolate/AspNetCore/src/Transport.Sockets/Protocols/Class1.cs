@@ -4,78 +4,9 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Transport.Sockets;
 
-namespace Transport.Sockets.GraphQLWS;
-
-public sealed class ConnectionInitMessage : IMessage
-{
-    public ConnectionInitMessage(IDictionary<string, object?>? payload)
-    {
-        Payload = payload;
-    }
-
-    public string Type => "connection_init";
-
-    public IDictionary<string, object?>? Payload { get; }
-
-    public static ConnectionInitMessage Default { get; } = new ConnectionInitMessage(null);
-}
-
-public sealed class ConnectionAckMessage : IMessage
-{
-    public ConnectionAckMessage(IDictionary<string, object?>? payload)
-    {
-        Payload = payload;
-    }
-
-    public string Type => "connection_ack";
-
-    public IDictionary<string, object?>? Payload { get; }
-
-    public static ConnectionAckMessage Default { get; } = new ConnectionAckMessage(null);
-}
-
-public sealed class PingMessage : IMessage
-{
-    public PingMessage(IDictionary<string, object?>? payload)
-    {
-        Payload = payload;
-    }
-
-    public string Type => "ping";
-
-    public IDictionary<string, object?>? Payload { get; }
-
-    public static PingMessage Default { get; } = new PingMessage(null);
-}
-
-public sealed class PongMessage : IMessage
-{
-    public PongMessage(IDictionary<string, object?>? payload)
-    {
-        Payload = payload;
-    }
-
-    public string Type => "pong";
-
-    public IDictionary<string, object?>? Payload { get; }
-
-    public static PongMessage Default { get; } = new PongMessage(null);
-}
-
-public sealed class Sub : IMessage
-{
-    public Pong(IDictionary<string, object?>? payload)
-    {
-        Payload = payload;
-    }
-
-    public string Type => "pong";
-
-    public IDictionary<string, object?>? Payload { get; }
-
-    public static Pong Default { get; } = new Pong(null);
-}
+namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
 
 public class MessageParser
 {
@@ -101,27 +32,27 @@ public class MessageParser
         throw new Exception("");
     }
 
-    private static ConnectionInit ParseConnectionInit(JsonElement element)
+    private static ConnectionInitMessage ParseConnectionInit(JsonElement element)
     {
         if (element.TryGetProperty("payload", out var payloadValue))
         {
-            return new ConnectionInit(ParseDictionary(payloadValue));
+            return new ConnectionInitMessage(ParseDictionary(payloadValue));
         }
         else
         {
-            return ConnectionInit.Default;
+            return ConnectionInitMessage.Default;
         }
     }
 
-    private static ConnectionAck ParseConnectionAck(JsonElement element)
+    private static ConnectionAckMessage ParseConnectionAck(JsonElement element)
     {
         if (element.TryGetProperty("payload", out var payloadValue))
         {
-            return new ConnectionAck(ParseDictionary(payloadValue));
+            return new ConnectionAckMessage(ParseDictionary(payloadValue));
         }
         else
         {
-            return ConnectionAck.Default;
+            return ConnectionAckMessage.Default;
         }
     }
 
