@@ -548,5 +548,11 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("SortField_ArgumentInvalid_NoHandlerWasFound", resourceCulture);
             }
         }
+        
+        internal static string ProjectionVisitor_CouldNotUnwrapType {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_CouldNotUnwrapType", resourceCulture);
+            }
+        }
     }
 }

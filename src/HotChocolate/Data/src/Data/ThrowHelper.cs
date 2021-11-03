@@ -491,5 +491,13 @@ namespace HotChocolate.Data
                 CultureInfo.CurrentCulture,
                 DataResources.SortField_ArgumentInvalid_NoHandlerWasFound
             ));
+
+        public static InvalidOperationException ProjectionVisitor_CouldNotUnwrapType(
+            IType argumentName) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_CouldNotUnwrapType,
+                argumentName.Print()
+            ));
     }
 }

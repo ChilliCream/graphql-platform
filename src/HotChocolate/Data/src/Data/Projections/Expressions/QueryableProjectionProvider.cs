@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     new QueryableProjectionContext(
                         context,
                         context.ObjectType,
-                        context.Field.Type.ToRuntimeType());
+                        context.Field.Type.UnwrapRuntimeType());
                 var visitor = new QueryableProjectionVisitor();
                 visitor.Visit(visitorContext);
 

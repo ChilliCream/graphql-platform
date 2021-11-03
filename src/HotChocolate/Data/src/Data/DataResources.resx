@@ -277,4 +277,7 @@
   <data name="SortField_ArgumentInvalid_NoHandlerWasFound" xml:space="preserve">
     <value>Sort field could not be created. No handler was found!.</value>
   </data>
+  <data name="ProjectionVisitor_CouldNotUnwrapType" xml:space="preserve">
+    <value>Could not unwrap runtime type of type {0}.</value>
+  </data>
 </root>
