@@ -1,15 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
-using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Server;
 using HotChocolate.Server.Serialization;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.AzureFunctions;
 
 public class RequestHandler : IDisposable
 {
@@ -18,37 +15,22 @@ public class RequestHandler : IDisposable
 
     protected RequestHandler(
         IRequestExecutorResolver executorResolver,
-        IHttpResultSerializer resultSerializer,
-        NameString schemaName)
+        IHttpResultSerializer resultSerializer)
     {
         if (executorResolver == null)
         {
             throw new ArgumentNullException(nameof(executorResolver));
         }
 
-        _resultSerializer = resultSerializer ?? 
+        _resultSerializer = resultSerializer ??
             throw new ArgumentNullException(nameof(resultSerializer));
-        SchemaName = schemaName;
-        ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
+        ExecutorProxy = new RequestExecutorProxy(executorResolver, Schema.DefaultName);
     }
-
-    /// <summary>
-    /// Gets the name of the schema that this middleware serves up.
-    /// </summary>
-    protected NameString SchemaName { get; }
 
     /// <summary>
     /// Gets the request executor proxy.
     /// </summary>
     protected RequestExecutorProxy ExecutorProxy { get; }
-
-    /// <summary>
-    /// Invokes the next middleware in line.
-    /// </summary>
-    /// <param name="context">
-    /// The <see cref="HttpContext"/>.
-    /// </param>
-    protected Task NextAsync(HttpContext context) => _next(context);
 
     public ValueTask<IRequestExecutor> GetExecutorAsync(
         CancellationToken cancellationToken) =>
@@ -73,7 +55,7 @@ public class RequestHandler : IDisposable
         GraphQLRequest request,
         OperationType[]? allowedOperations = null)
     {
-        QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+        var requestBuilder = QueryRequestBuilder.From(request);
         requestBuilder.SetAllowedOperations(allowedOperations);
 
         await requestInterceptor.OnCreateAsync(
@@ -94,7 +76,7 @@ public class RequestHandler : IDisposable
 
         for (var i = 0; i < operationNames.Count; i++)
         {
-            QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+            var requestBuilder = QueryRequestBuilder.From(request);
             requestBuilder.SetOperation(operationNames[i]);
 
             await requestInterceptor.OnCreateAsync(
@@ -117,7 +99,7 @@ public class RequestHandler : IDisposable
 
         for (var i = 0; i < requests.Count; i++)
         {
-            QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[i]);
+            var requestBuilder = QueryRequestBuilder.From(requests[i]);
 
             await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);

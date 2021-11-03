@@ -6,45 +6,35 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.AzureFunctions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Server.Serialization;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.Server
 {
-    public class HttpPostMiddleware : MiddlewareBase
+    public class HttpPostRequestHandler : RequestHandler
     {
         private const string _batchOperations = "batchOperations";
-        protected IHttpRequestParser RequestParser { get; }
 
-        public HttpPostMiddleware(
-            HttpRequestDelegate next,
+        public HttpPostRequestHandler(
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            IHttpRequestParser requestParser,
-            NameString schemaName)
-            : base(next, executorResolver, resultSerializer, schemaName)
+            IHttpRequestParser requestParser)
+            : base(executorResolver, resultSerializer)
         {
             RequestParser = requestParser ??
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
-        public virtual async Task InvokeAsync(HttpContext context)
-        {
-            if (HttpMethods.IsPost(context.Request.Method) &&
-                ParseContentType(context) == AllowedContentType.Json)
-            {
-                await HandleRequestAsync(context, AllowedContentType.Json);
-            }
-            else
-            {
-                // if the request is not a post request we will just invoke the next
-                // middleware and do nothing:
-                await NextAsync(context);
-            }
-        }
+        protected IHttpRequestParser RequestParser { get; }
+
+        public virtual Task InvokeAsync(HttpContext context)
+            => HandleRequestAsync(context, AllowedContentType.Json);
 
         protected virtual ValueTask<IReadOnlyList<GraphQLRequest>> GetRequestsFromBody(
             HttpRequest request,
