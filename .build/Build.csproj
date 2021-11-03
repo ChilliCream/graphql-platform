@@ -13,7 +13,7 @@
     <PackageReference Include="Nuke.Common" Version="5.1.2" />
     <PackageDownload Include="GitVersion.Tool" Version="[5.6.3]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[5.5.1]" />
-    <PackageDownload Include="dotnet-sonarscanner" Version="[5.0.4]" />
+    <PackageDownload Include="dotnet-sonarscanner" Version="[5.3.2]" />
     <PackageDownload Include="OpenCover" Version="[4.7.922]" />
     <PackageDownload Include="ReportGenerator" Version="[4.8.5]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
