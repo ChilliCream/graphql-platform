@@ -130,12 +130,12 @@ namespace HotChocolate.Data.Projections
         {
             if (usePaging)
             {
-                descriptor.UsePaging(nodeType: type);
+                descriptor.UsePaging(nodeType: type ?? typeof(ObjectType<TEntity>));
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseOffsetPaging(type);
+                descriptor.UseOffsetPaging(type ?? typeof(ObjectType<TEntity>));
             }
 
             descriptor
