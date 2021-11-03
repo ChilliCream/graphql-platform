@@ -316,8 +316,10 @@ dotnet add package HotChocolate.Types.Scalars
 | Port             | TCP port within the range of 0 to 65535                                                                                                                  |
 | Rgb              | CSS RGB color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                       |
 | Rgba             | CSS RGBA color as defined [here](https://developer.mozilla.org/docs/Web/CSS/color_value#rgb_colors)                                                      |
+| SignedByte       | Signed 8-bit numeric non‐fractional value greater than or equal to -127 and smaller than or equal to 128.                                                |
 | UnsignedInt      | Unsigned 32‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
 | UnsignedLong     | Unsigned 64‐bit numeric non‐fractional value greater than or equal to 0                                                                                  |
+| UnsignedShort    | Unsigned 16‐bit numeric non‐fractional value greater than or equal to 0 and smaller or equal to 65535.                                                   |
 | UtcOffset        | A value of format `±hh:mm`                                                                                                                               |
 
 [1]: https://developer.mozilla.org/docs/Web/CSS/color_value#hsl_colors
