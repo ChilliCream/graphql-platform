@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 
 namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
@@ -7,7 +8,7 @@ public class SubscribePayload
 {
     public SubscribePayload(
         string? operationName,
-        DocumentNode? query,
+        string? query,
         IDictionary<string, object?>? extensions,
         IDictionary<string, object?>? variables)
     {
@@ -19,7 +20,7 @@ public class SubscribePayload
 
     public string? OperationName { get; }
 
-    public DocumentNode? Query { get; }
+    public string? Query { get; }
 
     public IDictionary<string, object?>? Extensions { get; }
 

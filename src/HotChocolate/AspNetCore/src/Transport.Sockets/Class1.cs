@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 
 namespace Transport.Sockets;
 
@@ -9,7 +10,7 @@ public interface ISocketConnection
 {
     ValueTask SendAsync(ReadOnlySpan<byte> message, CancellationToken cancellationToken);
 
-    ValueTask OnReceiveAsync(ReadOnlySpan<byte> message, CancellationToken cancellationToken);
+    // ValueTask OnReceiveAsync(ReadOnlySpan<byte> message, CancellationToken cancellationToken);
 
     Task CloseAsync(
         string message,
@@ -46,13 +47,32 @@ public interface IMessageSender
         CancellationToken cancellationToken);
 }
 
-public interface ISocketSession
+public interface ISocketSession : IAsyncDisposable
 {
+    ISocketConnection Connection { get; }
+
     IMessageProtocol Protocol { get; }
 
-    IDictionary<string, object?> ContextData { get; }
+    IRequestExecutor Executor { get; }
 
     bool IsInitialized { get; set; }
+
+    IStreamOperation RegisterOperation(IResponseStream stream);
+
+    void TryCompleteOperation(string id);
+
+    ValueTask SendAsync(IMessage message, CancellationToken cancellationToken);
+}
+
+public interface IStreamOperation : IDisposable
+{
+    string Id { get; }
+
+    public ISocketSession Session { get; }
+
+    public IResponseStream Stream { get; }
+
+    public CancellationToken RequestAborted { get; }
 }
 
 public interface IMessage

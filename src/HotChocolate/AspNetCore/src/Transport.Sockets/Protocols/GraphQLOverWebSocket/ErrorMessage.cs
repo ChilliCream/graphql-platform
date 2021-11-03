@@ -5,6 +5,13 @@ namespace HotChocolate.Transport.Sockets.Protocols.GraphQLOverWebSocket;
 
 public sealed class ErrorMessage : IMessage
 {
+
+    public ErrorMessage(string id, IError payload)
+    {
+        Id = id;
+        Payload = new[] { payload };
+    }
+
     public ErrorMessage(string id, IReadOnlyList<IError> payload)
     {
         Id = id;
