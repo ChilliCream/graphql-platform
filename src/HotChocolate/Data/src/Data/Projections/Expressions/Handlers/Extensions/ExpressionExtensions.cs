@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             {
                 PropertyInfo propertyInfo => Expression.Property(expression, propertyInfo),
                 MethodInfo methodInfo => Expression.Call(expression, methodInfo),
-                {} info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
+                { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
                 null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
             };
 
