@@ -480,8 +480,7 @@ namespace HotChocolate.Data
                 DataResources.QueryableSorting_NoMemberDeclared,
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException SortField_ArgumentInvalid_NoHandlerWasFound(
             string argumentName) =>
