@@ -17,6 +17,9 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="apiRoute">
+    /// The API route that was used in the GraphQL Azure Function.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -25,13 +28,14 @@ public static class HotChocolateFunctionsHostBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IFunctionsHostBuilder builder,
-        int maxAllowedRequestSize = 20 * 1000 * 1000)
+        int maxAllowedRequestSize = 20 * 1000 * 1000,
+        string apiRoute = "/api/graphql")
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return builder.Services.AddGraphQLFunction(maxAllowedRequestSize);
+        return builder.Services.AddGraphQLFunction(maxAllowedRequestSize, apiRoute);
     }
 }
