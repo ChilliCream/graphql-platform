@@ -494,7 +494,6 @@ namespace HotChocolate.Data
             new(string.Format(
                 CultureInfo.CurrentCulture,
                 DataResources.ProjectionVisitor_CouldNotUnwrapType,
-                type.Print()
-            ));
+                type.Print()));
     }
 }
