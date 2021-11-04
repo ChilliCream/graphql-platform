@@ -442,8 +442,7 @@ namespace HotChocolate.Data
                 CultureInfo.CurrentCulture,
                 DataResources.ProjectionVisitor_NoConstructorFoundForSet,
                 expression.ToString(),
-                setType.FullName
-            ));
+                setType.FullName));
 
         public static InvalidOperationException Sorting_InvalidState_ParentIsNoFieldSelector(
             ISortField field) =>
