@@ -8,10 +8,10 @@ namespace HotChocolate.Data.Neo4J.Filtering
         {
             builder
                 .Name("neo4j")
-                .Image("neo4j:4.2.0")
+                .Image("neo4j:4.3.4")
                 .InternalPort(7687)
                 .AddEnvironmentVariable("NEO4J_AUTH=none")
-                .WaitTimeout(120);
+                .WaitTimeout(180);
         }
     }
 }

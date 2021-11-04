@@ -40,25 +40,19 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             if (!(context.GetInstance() is QueryableFieldSelector lastFieldSelector))
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.Sorting_InvalidState_ParentIsNoFieldSelector(field);
             }
 
             Expression lastSelector = lastFieldSelector.Selector;
 
 
-            Expression nextSelector;
-            if (field.Member is PropertyInfo propertyInfo)
+            Expression nextSelector = field.Member switch
             {
-                nextSelector = Expression.Property(lastSelector, propertyInfo);
-            }
-            else if (field.Member is MethodInfo methodInfo)
-            {
-                nextSelector = Expression.Call(lastSelector, methodInfo);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+                PropertyInfo i =>Expression.Property(lastSelector, i),
+                MethodInfo i =>Expression.Call(lastSelector, i),
+                { } i =>throw ThrowHelper.QueryableSorting_MemberInvalid(i, field),
+                null =>throw ThrowHelper.QueryableSorting_NoMemberDeclared(field),
+            };
 
             if (context.InMemory)
             {

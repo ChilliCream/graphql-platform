@@ -13,7 +13,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             {
                 PropertyInfo propertyInfo => Expression.Property(expression, propertyInfo),
                 MethodInfo methodInfo => Expression.Call(expression, methodInfo),
-                _ => throw new InvalidOperationException()
+                { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
+                null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
             };
 
         public static Type GetReturnType(
@@ -22,7 +23,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             {
                 PropertyInfo propertyInfo => propertyInfo.PropertyType,
                 MethodInfo methodInfo => methodInfo.ReturnType,
-                _ => throw new InvalidOperationException()
+                { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
+                null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
             };
     }
 }

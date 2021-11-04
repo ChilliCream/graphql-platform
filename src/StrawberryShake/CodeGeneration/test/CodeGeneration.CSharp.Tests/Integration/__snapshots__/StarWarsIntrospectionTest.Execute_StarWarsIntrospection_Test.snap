@@ -2184,7 +2184,7 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "Name": "if",
@@ -6052,7 +6052,7 @@
                   "OfType": null
                 }
               },
-              "DefaultValue": null
+              "DefaultValue": "0"
             },
             {
               "__typename": "__InputValue",

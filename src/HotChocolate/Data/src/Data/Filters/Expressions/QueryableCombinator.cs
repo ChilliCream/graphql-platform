@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             if (operations.Count < 1)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.Filtering_QueryableCombinator_QueueEmpty(this);
             }
 
             combined = operations.Dequeue();
@@ -27,7 +27,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 {
                     FilterCombinator.And => Expression.AndAlso(combined, operations.Dequeue()),
                     FilterCombinator.Or => Expression.OrElse(combined, operations.Dequeue()),
-                    _ => throw new InvalidOperationException(),
+                    _ => throw ThrowHelper
+                        .Filtering_QueryableCombinator_InvalidCombinator(this, combinator)
                 };
             }
 
