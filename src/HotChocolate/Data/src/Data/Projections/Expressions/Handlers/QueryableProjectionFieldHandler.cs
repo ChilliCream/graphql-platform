@@ -80,7 +80,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
 
             if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.ProjectionVisitor_InvalidState_NoParentScope();
             }
 
             Expression nestedProperty;
@@ -90,7 +90,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             }
             else
             {
-                throw new InvalidOperationException();
+                action = SelectionVisitor.Skip;
+                return true;
             }
 
             parentScope.Level
