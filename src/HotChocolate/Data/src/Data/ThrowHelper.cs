@@ -407,8 +407,7 @@ namespace HotChocolate.Data
             new(string.Format(
                 CultureInfo.CurrentCulture,
                 DataResources.Filtering_QueryableCombinator_QueueEmpty,
-                combinator.GetType()
-            ));
+                combinator.GetType()));
 
         public static InvalidOperationException Filtering_QueryableCombinator_InvalidCombinator(
             QueryableCombinator combinator,
