@@ -50,7 +50,7 @@ namespace HotChocolate.Data.Sorting.Expressions
             {
                 PropertyInfo i =>Expression.Property(lastSelector, i),
                 MethodInfo i =>Expression.Call(lastSelector, i),
-                {} i =>throw ThrowHelper.QueryableSorting_MemberInvalid(i, field),
+                { } i =>throw ThrowHelper.QueryableSorting_MemberInvalid(i, field),
                 null =>throw ThrowHelper.QueryableSorting_NoMemberDeclared(field),
             };
 
