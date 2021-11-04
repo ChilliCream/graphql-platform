@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -7,7 +8,7 @@ namespace StrawberryShake.Tools
     public class DefaultHttpClientFactory
         : IHttpClientFactory
     {
-        public HttpClient Create(Uri uri, string? token, string? scheme)
+        public HttpClient Create(Uri uri, string? token, string? scheme, Dictionary<string, IEnumerable<string>> customHeaders)
         {
             var httpClient = new HttpClient();
 
@@ -29,6 +30,14 @@ namespace StrawberryShake.Tools
                 {
                     httpClient.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue(scheme, token);
+                }
+            }
+
+            if (customHeaders is not null)
+            {
+                foreach (var headerKey in customHeaders.Keys)
+                {
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headerKey, customHeaders[headerKey]);
                 }
             }
 

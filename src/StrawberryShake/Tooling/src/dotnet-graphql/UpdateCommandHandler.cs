@@ -128,7 +128,8 @@ namespace StrawberryShake.Tools
             HttpClient client = HttpClientFactory.Create(
                 context.Uri ?? serviceUri,
                 context.Token,
-                context.Scheme);
+                context.Scheme,
+                null);
 
             return await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,
