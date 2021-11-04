@@ -433,8 +433,7 @@ namespace HotChocolate.Data
         public static InvalidOperationException ProjectionVisitor_InvalidState_NoParentScope() =>
             new(string.Format(
                 CultureInfo.CurrentCulture,
-                DataResources.ProjectionVisitor_InvalidState_NoParentScope
-            ));
+                DataResources.ProjectionVisitor_InvalidState_NoParentScope));
 
         public static InvalidOperationException ProjectionVisitor_NoConstructorFoundForSet(
             Expression expression,
