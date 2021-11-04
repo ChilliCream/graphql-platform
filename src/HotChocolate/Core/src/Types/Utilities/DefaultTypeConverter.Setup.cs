@@ -21,6 +21,7 @@ namespace HotChocolate.Utilities
             RegisterNameStringConversions(registry);
 
             RegisterByteConversions(registry);
+            RegisterSByteConversions(registry);
 
             RegisterUInt16Conversions(registry);
             RegisterUInt32Conversions(registry);
@@ -168,7 +169,24 @@ namespace HotChocolate.Utilities
             registry.Register<byte, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<byte, float>(from => SysConv.ToSingle(from));
             registry.Register<byte, double>(from => SysConv.ToDouble(from));
+            registry.Register<byte, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<byte, string>(from =>
+                from.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private static void RegisterSByteConversions(
+            DefaultTypeConverter registry)
+        {
+            registry.Register<sbyte, short>(from => SysConv.ToInt16(from));
+            registry.Register<sbyte, int>(from => SysConv.ToInt32(from));
+            registry.Register<sbyte, long>(from => SysConv.ToInt64(from));
+            registry.Register<sbyte, ushort>(from => SysConv.ToUInt16(from));
+            registry.Register<sbyte, uint>(from => SysConv.ToUInt32(from));
+            registry.Register<sbyte, ulong>(from => SysConv.ToUInt64(from));
+            registry.Register<sbyte, decimal>(from => SysConv.ToDecimal(from));
+            registry.Register<sbyte, float>(from => SysConv.ToSingle(from));
+            registry.Register<sbyte, double>(from => SysConv.ToDouble(from));
+            registry.Register<sbyte, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
 
@@ -184,6 +202,7 @@ namespace HotChocolate.Utilities
             registry.Register<ushort, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<ushort, float>(from => SysConv.ToSingle(from));
             registry.Register<ushort, double>(from => SysConv.ToDouble(from));
+            registry.Register<ushort, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<ushort, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -200,6 +219,7 @@ namespace HotChocolate.Utilities
             registry.Register<uint, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<uint, float>(from => SysConv.ToSingle(from));
             registry.Register<uint, double>(from => SysConv.ToDouble(from));
+            registry.Register<uint, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<uint, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -216,6 +236,7 @@ namespace HotChocolate.Utilities
             registry.Register<ulong, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<ulong, float>(from => SysConv.ToSingle(from));
             registry.Register<ulong, double>(from => SysConv.ToDouble(from));
+            registry.Register<ulong, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<ulong, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -232,6 +253,7 @@ namespace HotChocolate.Utilities
             registry.Register<short, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<short, float>(from => SysConv.ToSingle(from));
             registry.Register<short, double>(from => SysConv.ToDouble(from));
+            registry.Register<short, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<short, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -248,6 +270,7 @@ namespace HotChocolate.Utilities
             registry.Register<int, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<int, float>(from => SysConv.ToSingle(from));
             registry.Register<int, double>(from => SysConv.ToDouble(from));
+            registry.Register<int, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<int, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -264,6 +287,7 @@ namespace HotChocolate.Utilities
             registry.Register<long, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<long, float>(from => SysConv.ToSingle(from));
             registry.Register<long, double>(from => SysConv.ToDouble(from));
+            registry.Register<long, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<long, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -280,6 +304,7 @@ namespace HotChocolate.Utilities
             registry.Register<float, ulong>(from => SysConv.ToUInt64(from));
             registry.Register<float, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<float, double>(from => SysConv.ToDouble(from));
+            registry.Register<float, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<float, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -296,6 +321,7 @@ namespace HotChocolate.Utilities
             registry.Register<double, ulong>(from => SysConv.ToUInt64(from));
             registry.Register<double, decimal>(from => SysConv.ToDecimal(from));
             registry.Register<double, float>(from => SysConv.ToSingle(from));
+            registry.Register<double, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<double, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
         }
@@ -311,6 +337,7 @@ namespace HotChocolate.Utilities
             registry.Register<decimal, ulong>(from => SysConv.ToUInt64(from));
             registry.Register<decimal, float>(from => SysConv.ToSingle(from));
             registry.Register<decimal, double>(from => SysConv.ToDouble(from));
+            registry.Register<decimal, sbyte>(from => SysConv.ToSByte(from));
             registry.Register<decimal, string>(from =>
                 from.ToString("E", CultureInfo.InvariantCulture));
         }

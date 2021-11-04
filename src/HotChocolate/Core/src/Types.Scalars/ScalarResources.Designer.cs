@@ -250,6 +250,33 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Latitude scalar type represents represents a valid decimal degrees latitude number..
+        /// </summary>
+        internal static string LatitudeType_Description {
+            get {
+                return ResourceManager.GetString("LatitudeType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatitudeType cannot parse the provided literal. The provided value was not a valid decimal degrees latitude number..
+        /// </summary>
+        internal static string LatitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LatitudeType cannot parse the provided value. The provided value was not a valid decimal degrees latitude number..
+        /// </summary>
+        internal static string LatitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The LocalCurrency scalar type is a currency string..
         /// </summary>
         internal static string LocalCurrencyType_Description {
@@ -302,28 +329,10 @@ namespace HotChocolate.Types {
                 return ResourceManager.GetString("LocalDateType_IsInvalid_ParseValue", resourceCulture);
             }
         }
-         
+        
         /// <summary>
         ///   Looks up a localized string similar to The LocalTime scalar type is a local time string (i.e., with no associated timezone) in 24-hr HH:mm:ss..
-        /// </summary> 
-        internal static string LatitudeType_Description {
-            get {
-                return ResourceManager.GetString("LatitudeType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string LatitudeType_IsInvalid_ParseLiteral {
-            get {
-                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        internal static string LatitudeType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LatitudeType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-         
+        /// </summary>
         internal static string LocalTimeType_Description {
             get {
                 return ResourceManager.GetString("LocalTimeType_Description", resourceCulture);
@@ -345,6 +354,33 @@ namespace HotChocolate.Types {
         internal static string LocalTimeType_IsInvalid_ParseValue {
             get {
                 return ResourceManager.GetString("LocalTimeType_IsInvalid_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Longitude scalar type is a valid decimal degrees longitude number..
+        /// </summary>
+        internal static string LongitudeType_Description {
+            get {
+                return ResourceManager.GetString("LongitudeType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LongitudeType cannot parse the provided literal. The provided value is not a valid longitude number..
+        /// </summary>
+        internal static string LongitudeType_IsInvalid_ParseLiteral {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LongitudeType cannot parse the provided value. The provided value is not a valid longitude number..
+        /// </summary>
+        internal static string LongitudeType_IsInvalid_ParseValue {
+            get {
+                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseValue", resourceCulture);
             }
         }
         
@@ -374,28 +410,10 @@ namespace HotChocolate.Types {
                 return ResourceManager.GetString("MacAddressType_IsInvalid_ParseValue", resourceCulture);
             }
         }
-         
+        
         /// <summary>
         ///   Looks up a localized string similar to The NegativeFloat scalar type represents a double‐precision fractional value less than 0..
-        /// </summary> 
-        internal static string LongitudeType_Description {
-            get {
-                return ResourceManager.GetString("LongitudeType_Description", resourceCulture);
-            }
-        }
-        
-        internal static string LongitudeType_IsInvalid_ParseLiteral {
-            get {
-                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseLiteral", resourceCulture);
-            }
-        }
-        
-        internal static string LongitudeType_IsInvalid_ParseValue {
-            get {
-                return ResourceManager.GetString("LongitudeType_IsInvalid_ParseValue", resourceCulture);
-            }
-        }
-         
+        /// </summary>
         internal static string NegativeFloatType_Description {
             get {
                 return ResourceManager.GetString("NegativeFloatType_Description", resourceCulture);
@@ -763,6 +781,33 @@ namespace HotChocolate.Types {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The SignedByte scalar type represents a numeric non-fractional value greater than or equal to -127..
+        /// </summary>
+        internal static string SignedByteType_Description {
+            get {
+                return ResourceManager.GetString("SignedByteType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SignedByteType cannot parse the provided literal. The provided value is not greater than or equal to -127..
+        /// </summary>
+        internal static string SignedByteType_IsNotSigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("SignedByteType_IsNotSigned_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SignedByteType cannot parse the provided value. The provided value is not greater than or equal to -127..
+        /// </summary>
+        internal static string SignedByteType_IsNotSigned_ParseValue {
+            get {
+                return ResourceManager.GetString("SignedByteType_IsNotSigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The UnsignedInt scalar type represents a unsigned 32-bit numeric non-fractional value greater than or equal to 0..
         /// </summary>
         internal static string UnsignedIntType_Description {
@@ -813,6 +858,33 @@ namespace HotChocolate.Types {
         internal static string UnsignedLongType_IsNotUnsigned_ParseValue {
             get {
                 return ResourceManager.GetString("UnsignedLongType_IsNotUnsigned_ParseValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The UnsignedShort scalar type represents a unsigned 16-bit numeric non-fractional value greater than or equal to 0..
+        /// </summary>
+        internal static string UnsignedShortType_Description {
+            get {
+                return ResourceManager.GetString("UnsignedShortType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UnsignedShortType cannot parse the provided literal. The provided value is not greater than or equal to 0..
+        /// </summary>
+        internal static string UnsignedShortType_IsNotUnsigned_ParseLiteral {
+            get {
+                return ResourceManager.GetString("UnsignedShortType_IsNotUnsigned_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UnsignedShortType cannot parse the provided value. The provided value is not greater than or equal to 0..
+        /// </summary>
+        internal static string UnsignedShortType_IsNotUnsigned_ParseValue {
+            get {
+                return ResourceManager.GetString("UnsignedShortType_IsNotUnsigned_ParseValue", resourceCulture);
             }
         }
         
