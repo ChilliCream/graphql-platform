@@ -391,8 +391,7 @@ namespace HotChocolate.Data
                 memberInfo.GetType(),
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException QueryableFiltering_NoMemberDeclared(
             IFilterField field) =>
