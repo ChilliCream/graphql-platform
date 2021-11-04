@@ -380,8 +380,7 @@ namespace HotChocolate.Data
                 expectedType.Print(),
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException QueryableFiltering_MemberInvalid(
             MemberInfo memberInfo,
