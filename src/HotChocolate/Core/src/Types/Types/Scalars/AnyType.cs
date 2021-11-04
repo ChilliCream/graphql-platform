@@ -134,6 +134,10 @@ namespace HotChocolate.Types
                     return new FloatValueNode(d);
                 case bool b:
                     return new BooleanValueNode(b);
+                case sbyte s:
+                    return new IntValueNode(s);
+                case byte b:
+                    return new IntValueNode(b);
             }
 
             Type type = value.GetType();
@@ -198,6 +202,8 @@ namespace HotChocolate.Types
                 case double:
                 case decimal:
                 case bool:
+                case sbyte:
+                case byte:
                     resultValue = runtimeValue;
                     return true;
 
