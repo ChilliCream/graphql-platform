@@ -51,24 +51,60 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         {
             PathString path = apiRoute.TrimEnd('/');
             IFileProvider fileProvider = CreateFileProvider();
+            var options = new GraphQLServerOptions();
 
-            var pipelineBuilder = new PipelineBuilder();
+            foreach (Action<GraphQLServerOptions> configure in
+                sp.GetServices<Action<GraphQLServerOptions>>())
+            {
+                configure(options);
+            }
 
-            pipelineBuilder
-                .UseMiddleware<WebSocketSubscriptionMiddleware>()
-                .UseMiddleware<HttpPostMiddleware>()
-                .UseMiddleware<HttpMultipartMiddleware>()
-                .UseMiddleware<HttpGetSchemaMiddleware>()
-                .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                .UseMiddleware<ToolOptionsFileMiddleware>(path)
-                .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                .UseMiddleware<HttpGetMiddleware>();
+            RequestDelegate pipeline =
+                new PipelineBuilder()
+                    .UseMiddleware<WebSocketSubscriptionMiddleware>()
+                    .UseMiddleware<HttpPostMiddleware>()
+                    .UseMiddleware<HttpMultipartMiddleware>()
+                    .UseMiddleware<HttpGetSchemaMiddleware>()
+                    .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
+                    .UseMiddleware<ToolOptionsFileMiddleware>(path)
+                    .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
+                    .UseMiddleware<HttpGetMiddleware>()
+                    .Compile(sp);
 
-            RequestDelegate pipeline = pipelineBuilder.Compile(sp);
-            return new DefaultGraphQLRequestExecutor(pipeline);
+            return new DefaultGraphQLRequestExecutor(pipeline, options);
         });
 
         return executorBuilder;
+    }
+
+    /// <summary>
+    /// Modifies the GraphQL functions options.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="configure">
+    /// A delegate to modify the options.
+    /// </param>
+    /// <returns>
+    /// Returns <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
+    /// </returns>
+    public static IRequestExecutorBuilder ModifyFunctionOptions(
+        IRequestExecutorBuilder builder,
+        Action<GraphQLServerOptions> configure)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (configure is null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
+        builder.Services.AddSingleton(configure);
+        return builder;
     }
 
     private static IFileProvider CreateFileProvider()

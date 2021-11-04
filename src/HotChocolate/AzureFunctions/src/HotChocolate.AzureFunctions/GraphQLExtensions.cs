@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.AzureFunctions;
 
 [Extension("GraphQLExtensions")]
-public class GraphQLExtensions : IExtensionConfigProvider
+internal class GraphQLExtensions : IExtensionConfigProvider
 {
     private readonly IServiceProvider _services;
 
@@ -17,10 +17,10 @@ public class GraphQLExtensions : IExtensionConfigProvider
 
     public void Initialize(ExtensionConfigContext context)
     {
-        context.AddBindingRule<GraphQLAttribute>().BindToInput(BindToInput);
+        context.AddBindingRule<GraphQLAttribute>().BindToInput(BindExecutor);
     }
 
-    private Task<IGraphQLRequestExecutor> BindToInput(
+    private Task<IGraphQLRequestExecutor> BindExecutor(
         GraphQLAttribute attr,
         ValueBindingContext context)
         => Task.FromResult(_services.GetRequiredService<IGraphQLRequestExecutor>());
