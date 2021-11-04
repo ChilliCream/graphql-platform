@@ -400,8 +400,7 @@ namespace HotChocolate.Data
                 DataResources.QueryableFiltering_NoMemberDeclared,
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException Filtering_QueryableCombinator_QueueEmpty(
             QueryableCombinator combinator) =>
