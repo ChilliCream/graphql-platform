@@ -1,4 +1,3 @@
-using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Description;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using Microsoft.Azure.WebJobs.Host.Config;
@@ -25,10 +24,4 @@ public class GraphQLExtensions : IExtensionConfigProvider
         GraphQLAttribute attr,
         ValueBindingContext context)
         => Task.FromResult(_services.GetRequiredService<IGraphQLRequestExecutor>());
-}
-
-[Binding]
-[AttributeUsage(AttributeTargets.Parameter)]
-public class GraphQLAttribute : Attribute
-{
 }

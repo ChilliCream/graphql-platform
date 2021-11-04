@@ -2,6 +2,8 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AzureFunctions;
 using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.WebJobs.Host.Config;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,9 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="apiRoute">
+    /// The API route that was used in the GraphQL Azure Function.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -28,7 +33,8 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddGraphQLFunction(
         this IServiceCollection services,
-        int maxAllowedRequestSize = 20 * 1000 * 1000)
+        int maxAllowedRequestSize = 20 * 1000 * 1000,
+        string apiRoute = "/api/graphql")
     {
         if (services is null)
         {
@@ -38,9 +44,12 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
         IRequestExecutorBuilder executorBuilder =
             services.AddGraphQLServer(maxAllowedRequestSize: maxAllowedRequestSize);
 
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IExtensionConfigProvider, GraphQLExtensions>());
+
         services.AddSingleton<IGraphQLRequestExecutor>(sp =>
         {
-            PathString path = "/graphql";
+            PathString path = apiRoute.TrimEnd('/');
             IFileProvider fileProvider = CreateFileProvider();
 
             var pipelineBuilder = new PipelineBuilder();
