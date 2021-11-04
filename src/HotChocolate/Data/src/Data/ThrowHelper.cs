@@ -470,8 +470,7 @@ namespace HotChocolate.Data
                 memberInfo.GetType(),
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException QueryableSorting_NoMemberDeclared(
             ISortField field) =>
