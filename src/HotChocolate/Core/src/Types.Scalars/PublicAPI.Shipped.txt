@@ -80,9 +80,15 @@ HotChocolate.Types.RgbaType.RgbaType(HotChocolate.NameString name, string? descr
 HotChocolate.Types.RgbType
 HotChocolate.Types.RgbType.RgbType() -> void
 HotChocolate.Types.RgbType.RgbType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.SignedByteType
+HotChocolate.Types.SignedByteType.SignedByteType() -> void
+HotChocolate.Types.SignedByteType.SignedByteType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UnsignedIntType
 HotChocolate.Types.UnsignedIntType.UnsignedIntType() -> void
 HotChocolate.Types.UnsignedIntType.UnsignedIntType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
+HotChocolate.Types.UnsignedShortType
+HotChocolate.Types.UnsignedShortType.UnsignedShortType() -> void
+HotChocolate.Types.UnsignedShortType.UnsignedShortType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UnsignedLongType
 HotChocolate.Types.UnsignedLongType.UnsignedLongType() -> void
 HotChocolate.Types.UnsignedLongType.UnsignedLongType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void

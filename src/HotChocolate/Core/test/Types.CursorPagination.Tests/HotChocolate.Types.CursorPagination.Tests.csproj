@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>
+    <NoWarn>$(NoWarn);CS8632</NoWarn>
   </PropertyGroup>
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->

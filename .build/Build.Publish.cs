@@ -39,6 +39,12 @@ partial class Build : NukeBuild
 
             projFile = File.ReadAllText(EmptyServerProj);
             File.WriteAllText(EmptyServerProj, projFile.Replace("11.1.0", GitVersion.SemVer));
+
+            projFile = File.ReadAllText(EmptyServer12Proj);
+            File.WriteAllText(EmptyServer12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
+
+            projFile = File.ReadAllText(EmptyAzf12Proj);
+            File.WriteAllText(EmptyAzf12Proj, projFile.Replace("11.1.0", GitVersion.SemVer));
         })
         .Executes(() =>
         {
@@ -70,7 +76,8 @@ partial class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .CombineWith(
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
-                    t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
+                    t => t.SetTargetPath(EmptyServerTemplateNuSpec),
+                    t => t.SetTargetPath(TemplatesNuSpec)));
 
             var analyzerProject = ProjectModelTasks
                 .ParseSolution(SgSolutionFile)
