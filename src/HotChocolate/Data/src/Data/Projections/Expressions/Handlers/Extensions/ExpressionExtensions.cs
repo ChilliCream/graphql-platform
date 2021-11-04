@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             {
                 PropertyInfo propertyInfo => propertyInfo.PropertyType,
                 MethodInfo methodInfo => methodInfo.ReturnType,
-                {} info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
+                { } info => throw ThrowHelper.ProjectionVisitor_MemberInvalid(info),
                 null => throw ThrowHelper.ProjectionVisitor_NoMemberFound()
             };
     }
