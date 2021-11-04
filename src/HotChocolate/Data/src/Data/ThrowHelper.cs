@@ -423,8 +423,7 @@ namespace HotChocolate.Data
             new(string.Format(
                 CultureInfo.CurrentCulture,
                 DataResources.ProjectionVisitor_MemberInvalid,
-                memberInfo.GetType()
-            ));
+                memberInfo.GetType()));
 
         public static InvalidOperationException ProjectionVisitor_NoMemberFound() =>
             new(string.Format(
