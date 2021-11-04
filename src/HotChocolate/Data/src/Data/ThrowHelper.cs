@@ -458,8 +458,7 @@ namespace HotChocolate.Data
                 DataResources.Sorting_InvalidState_ParentIsNoFieldSelector,
                 field.DeclaringType.Print(),
                 field.Name,
-                field.Type.Print()
-            ));
+                field.Type.Print()));
 
         public static InvalidOperationException QueryableSorting_MemberInvalid(
             MemberInfo memberInfo,
