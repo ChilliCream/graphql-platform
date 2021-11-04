@@ -487,8 +487,7 @@ namespace HotChocolate.Data
             string argumentName) =>
             new(string.Format(
                 CultureInfo.CurrentCulture,
-                DataResources.SortField_ArgumentInvalid_NoHandlerWasFound
-            ));
+                DataResources.SortField_ArgumentInvalid_NoHandlerWasFound));
 
         public static InvalidOperationException ProjectionVisitor_CouldNotUnwrapType(IType type) =>
             new(string.Format(
