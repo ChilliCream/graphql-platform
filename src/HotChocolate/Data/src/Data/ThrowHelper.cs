@@ -416,8 +416,7 @@ namespace HotChocolate.Data
                 CultureInfo.CurrentCulture,
                 DataResources.Filtering_QueryableCombinator_InvalidCombinator,
                 combinator.GetType(),
-                operation.ToString()
-            ));
+                operation.ToString()));
 
         public static InvalidOperationException ProjectionVisitor_MemberInvalid(
             MemberInfo memberInfo) =>
