@@ -35,6 +35,7 @@ import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import HiloLogoSvg from "../images/companies/hilo.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
 import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
@@ -281,6 +282,11 @@ const IndexPage: FC = () => {
               <Logo width={120}>
                 <Link to="https://gia.ch">
                   <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://www.hiloenergie.com/en-ca">
+                  <HiloLogoSvg />
                 </Link>
               </Logo>
               <Logo width={200}>
