@@ -1,14 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
-using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.Tools.Configuration;
 using StrawberryShake.Tools.OAuth;
 using static StrawberryShake.Tools.Configuration.FileContents;

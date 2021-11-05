@@ -26,7 +26,8 @@ namespace StrawberryShake.Tools
 
             CommandOption headersArg = update.Option(
                 "-x|--headers",
-                "Custom headers used in request to Graph QL server. Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
+                "Custom headers used in request to Graph QL server." +
+                "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
                 CommandOptionType.MultipleValue);
 
             AuthArguments authArguments = update.AddAuthArguments();

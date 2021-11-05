@@ -8,7 +8,11 @@ namespace StrawberryShake.Tools
     public class DefaultHttpClientFactory
         : IHttpClientFactory
     {
-        public HttpClient Create(Uri uri, string? token, string? scheme, Dictionary<string, IEnumerable<string>> customHeaders)
+        public HttpClient Create(
+            Uri uri,
+            string? token,
+            string? scheme,
+            Dictionary<string, IEnumerable<string>> customHeaders)
         {
             var httpClient = new HttpClient();
 
@@ -37,7 +41,9 @@ namespace StrawberryShake.Tools
             {
                 foreach (var headerKey in customHeaders.Keys)
                 {
-                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(headerKey, customHeaders[headerKey]);
+                    httpClient.DefaultRequestHeaders.TryAddWithoutValidation(
+                        headerKey,
+                        customHeaders[headerKey]);
                 }
             }
 
