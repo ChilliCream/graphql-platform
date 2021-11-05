@@ -61,7 +61,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 return expression;
             }
-            throw new InvalidOperationException();
+
+            throw ThrowHelper.Filtering_CouldNotParseValue(this, value, field.Type, field);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Projections.Expressions
                 IEdgeType t => t.EntityType.UnwrapRuntimeType(),
                 NonNullType t => t.InnerType().UnwrapRuntimeType(),
                 INamedType t => t.ToRuntimeType(),
-                _ => throw new InvalidOperationException()
+                _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type)
             };
     }
 }

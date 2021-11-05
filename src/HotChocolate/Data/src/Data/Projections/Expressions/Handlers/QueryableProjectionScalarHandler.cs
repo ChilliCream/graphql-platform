@@ -52,7 +52,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 return true;
             }
 
-            throw new InvalidOperationException();
+            action = SelectionVisitor.Skip;
+            return true;
         }
     }
 }

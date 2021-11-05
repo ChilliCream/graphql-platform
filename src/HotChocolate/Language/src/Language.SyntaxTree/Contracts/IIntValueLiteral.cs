@@ -11,6 +11,8 @@ namespace HotChocolate.Language
 
         long ToInt64();
 
+        sbyte ToSByte();
+
         ushort ToUInt16();
 
         uint ToUInt32();
