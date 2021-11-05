@@ -43,7 +43,8 @@ namespace StrawberryShake.Tools
                 arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()!.Trim()) : null,
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 accessToken?.Token,
-                accessToken?.Scheme);
+                accessToken?.Scheme,
+                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             return context.Path is null
                 ? await FindAndUpdateSchemasAsync(context, cancellationToken)
@@ -129,7 +130,7 @@ namespace StrawberryShake.Tools
                 context.Uri ?? serviceUri,
                 context.Token,
                 context.Scheme,
-                null);
+                context.CustomHeaders);
 
             return await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,

@@ -45,15 +45,13 @@ namespace StrawberryShake.Tools
                     .RequestTokenAsync(Output, cancellationToken)
                     .ConfigureAwait(false);
 
-            Dictionary<string, IEnumerable<string>> headers = ParseHeadersArgument(arguments.CustomHeaders.Values);
-
             var context = new InitCommandContext(
                 arguments.Name.Value()?.Trim() ?? Path.GetFileName(Environment.CurrentDirectory),
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 new Uri(arguments.Uri.Value!),
                 accessToken?.Token,
                 accessToken?.Scheme,
-                headers);
+                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             if(await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
             {
@@ -140,27 +138,6 @@ namespace StrawberryShake.Tools
                 configFilePath,
                 configuration.ToString())
                 .ConfigureAwait(false);
-        }
-
-        private static Dictionary<string, IEnumerable<string>> ParseHeadersArgument(List<string?> arguments)
-        {
-            var headers = new Dictionary<string, IEnumerable<string>>();
-
-            foreach (var argument in arguments)
-            {
-                var argumentParts = argument?.Trim().Split("=");
-                if (argumentParts?.Length != 2) {
-                    continue;
-                }
-
-                var argumentKey = argumentParts[0];
-
-                var argumentValueParts = argumentParts[1].Trim().Split(",");
-
-                _ = headers.TryAdd(argumentKey, argumentValueParts);
-            }
-
-            return headers;
         }
     }
 }
