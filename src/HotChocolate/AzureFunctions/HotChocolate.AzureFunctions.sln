@@ -1,18 +1,36 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
-MinimumVisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3009F234-FFD9-4BDE-959F-4E5FC2AE666F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AzureFunctions", "src\HotChocolate.AzureFunctions\HotChocolate.AzureFunctions.csproj", "{2ECD0EDF-F73A-42A6-992B-BE4085DF7355}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2CCF1948-9BB3-47F8-8A11-52B837E213B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.AzureFunctions.Tests", "test\HotChocolate.AzureFunctions.Tests\HotChocolate.AzureFunctions.Tests.csproj", "{8C79D7F0-1FD3-4852-B377-CEF12E03067B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2ECD0EDF-F73A-42A6-992B-BE4085DF7355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ECD0EDF-F73A-42A6-992B-BE4085DF7355}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ECD0EDF-F73A-42A6-992B-BE4085DF7355}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ECD0EDF-F73A-42A6-992B-BE4085DF7355}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C79D7F0-1FD3-4852-B377-CEF12E03067B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C79D7F0-1FD3-4852-B377-CEF12E03067B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C79D7F0-1FD3-4852-B377-CEF12E03067B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C79D7F0-1FD3-4852-B377-CEF12E03067B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2ECD0EDF-F73A-42A6-992B-BE4085DF7355} = {3009F234-FFD9-4BDE-959F-4E5FC2AE666F}
+		{8C79D7F0-1FD3-4852-B377-CEF12E03067B} = {2CCF1948-9BB3-47F8-8A11-52B837E213B7}
 	EndGlobalSection
 EndGlobal

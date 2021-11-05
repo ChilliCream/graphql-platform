@@ -51,19 +51,20 @@ namespace HotChocolate.Data.Filters.Expressions
                 return false;
             }
 
-            Expression nestedProperty;
-            if (field.Member is PropertyInfo propertyInfo)
+            Expression nestedProperty = field.Member switch
             {
-                nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-            }
-            else if (field.Member is MethodInfo methodInfo)
-            {
-                nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+                PropertyInfo propertyInfo =>
+                    Expression.Property(context.GetInstance(), propertyInfo),
+
+                MethodInfo methodInfo =>
+                    Expression.Call(context.GetInstance(), methodInfo),
+
+                null =>
+                    throw ThrowHelper.QueryableFiltering_NoMemberDeclared(field),
+
+                _ =>
+                    throw ThrowHelper.QueryableFiltering_MemberInvalid(field.Member, field)
+            };
 
             context.PushInstance(nestedProperty);
             context.RuntimeTypes.Push(field.RuntimeType);

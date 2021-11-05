@@ -55,6 +55,7 @@ namespace HotChocolate.Utilities
                 case double _:
                 case decimal _:
                 case bool _:
+                case sbyte _:
                     setValue(obj);
                     return;
             }
