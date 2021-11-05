@@ -114,7 +114,7 @@ namespace HotChocolate.Data.Projections.Expressions
 
             if (ctor is null)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.ProjectionVisitor_NoConstructorFoundForSet(source, setType);
             }
 
             return Expression.New(ctor, source);
