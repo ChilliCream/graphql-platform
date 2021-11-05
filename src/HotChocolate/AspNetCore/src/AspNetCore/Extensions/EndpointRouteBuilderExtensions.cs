@@ -434,7 +434,6 @@ namespace Microsoft.AspNetCore.Builder
         {
             var type = typeof(EndpointRouteBuilderExtensions);
             var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
-
             return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
         }
     }

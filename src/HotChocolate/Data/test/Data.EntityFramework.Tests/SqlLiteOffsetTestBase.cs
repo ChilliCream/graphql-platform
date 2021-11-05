@@ -17,14 +17,13 @@ namespace HotChocolate.Data
         {
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
 
-            try
+            var set = dbContext.Set<TResult>();
+
+            foreach (TResult result in results)
             {
+                set.Add(result);
                 dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
             }
 
             return dbContext;
@@ -32,7 +31,7 @@ namespace HotChocolate.Data
 
         protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-        protected IRequestExecutor CreateSchema<TEntity>( TEntity[] entities)
+        protected IRequestExecutor CreateSchema<TEntity>(TEntity[] entities)
             where TEntity : class
         {
             ISchemaBuilder builder = SchemaBuilder.New()
@@ -42,10 +41,8 @@ namespace HotChocolate.Data
                         .UseDbContext<DatabaseContext<TEntity>>()
                         .Resolve(ctx =>
                         {
-                            string scopedServiceName = typeof(DatabaseContext<TEntity>).FullName ??
-                                typeof(DatabaseContext<TEntity>).Name;
-                            var context =
-                                (DatabaseContext<TEntity>)ctx.LocalContextData[scopedServiceName]!;
+                            DatabaseContext<TEntity> context =
+                                ctx.DbContext<DatabaseContext<TEntity>>();
                             BuildContext(context, entities);
                             return context.Data;
                         })

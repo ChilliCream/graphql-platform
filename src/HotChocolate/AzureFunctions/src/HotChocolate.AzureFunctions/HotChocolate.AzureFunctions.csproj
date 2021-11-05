@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.AzureFunctions</PackageId>
+    <AssemblyName>HotChocolate.AzureFunctions</AssemblyName>
+    <RootNamespace>HotChocolate.AzureFunctions</RootNamespace>
+    <Description>This package contains the GraphQL AzureFunctions integration for Hot Chocolate.</Description>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+  </ItemGroup>
+
+</Project>

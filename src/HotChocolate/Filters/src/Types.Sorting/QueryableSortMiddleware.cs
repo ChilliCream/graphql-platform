@@ -46,7 +46,7 @@ namespace HotChocolate.Types.Sorting
 
             if (source is not null &&
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
-                iot is ISortInputType { EntityType: not null! } fit)
+                iot is ISortInputType { EntityType: not null } fit)
             {
                 var visitorCtx = new QueryableSortVisitorContext(
                     context.Service<InputParser>(),

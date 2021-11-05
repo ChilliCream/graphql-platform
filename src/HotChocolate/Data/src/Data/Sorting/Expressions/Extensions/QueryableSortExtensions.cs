@@ -1,14 +1,28 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Sorting.Expressions
 {
     /// <summary>
-    /// Extensions for sorting for <see cref="IEnumerable{T}"/>
+    /// Extensions for sorting for <see cref="IEnumerable{T}"/> and <see cref="IQueryable{T}"/>
     /// </summary>
     public static class QueryableSortExtensions
     {
+        /// <summary>
+        /// Sorts the selection set of the request onto the queryable.
+        /// </summary>
+        /// <param name="queryable">The queryable</param>
+        /// <param name="context">
+        /// The resolver context of the resolver that is annotated with UseSorting
+        /// </param>
+        /// <returns>The sorted queryable</returns>
+        public static IQueryable<T> Sort<T>(
+            this IQueryable<T> queryable,
+            IResolverContext context) =>
+            ExecuteSort(queryable, context, typeof(IQueryable<T>));
+
         /// <summary>
         /// Sorts the selection set of the request onto the enumerable.
         /// </summary>

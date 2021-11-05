@@ -98,7 +98,7 @@
     },
     {
       "type": "HotChocolate.Types.StreamDirectiveType",
-      "runtimeType": "System.Object",
+      "runtimeType": "HotChocolate.Types.StreamDirective",
       "references": [
         "None: HotChocolate.Types.StreamDirectiveType",
         "None: StreamDirectiveType"
@@ -165,6 +165,7 @@
     "Output: IType": "Output: HotChocolate.Types.Introspection.__Type",
     "None: TypeKind!": "None: HotChocolate.Types.Introspection.__TypeKind",
     "None: DeferDirective": "None: HotChocolate.Types.DeferDirectiveType",
+    "None: StreamDirective": "None: HotChocolate.Types.StreamDirectiveType",
     "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
     "Output: Foo": "Output: ObjectType<Foo>",
     "None: String": "None: HotChocolate.Types.StringType",

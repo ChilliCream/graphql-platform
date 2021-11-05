@@ -24,11 +24,11 @@ Depending on our setup and requirements, the simplest way to make our server sec
 
 [Learn more about persisted queries](/docs/hotchocolate/performance/persisted-queries)
 
-<!-- # Introspection
+# Introspection
 
-The introspection is one of the GraphQL core features and powers many of the GraphQL IDEs and tools. But introspection also can produce large results, which can degrade the server performance. Apart from the performance aspect, you are also exposing the exact structure of your graph to anyone. In some cases, we might want to limit the access to introspection. Hot Chocolate allows you to control who can access introspection fields by using query validation rules.
+Introspection is one of the GraphQL's core features and powers many GraphQL IDEs and developer tools. But introspection can also produce large results, which can degrade the performance of our server. Apart from the performance aspect, we might want to limit who can introspect our GraphQL server. Hot Chocolate allows us to control who can access introspection fields by using query validation rules.
 
-[Learn more about restricting introspection](/docs/hotchocolate/security/introspection). -->
+[Learn more about restricting introspection](/docs/hotchocolate/server/introspection#disabling-introspection).
 
 # Pagination
 

@@ -2,7 +2,7 @@
 title: "Interfaces"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 An interface is an abstract type that defines a certain set of fields that an object type or another interface must include to implement the interface.
 

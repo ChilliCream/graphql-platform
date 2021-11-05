@@ -1,0 +1,44 @@
+﻿{
+  "data": {
+    "arrayOfScalarsA": [
+      1
+    ],
+    "arrayOfScalarsB": [
+      1,
+      2
+    ],
+    "arrayOfObjectsA": [
+      {
+        "bar": 1
+      }
+    ],
+    "arrayOfObjectsB": [
+      {
+        "bar": 1
+      },
+      {
+        "bar": 2
+      }
+    ],
+    "listOfScalarsA": [
+      1
+    ],
+    "listOfScalarsB": [
+      1,
+      2
+    ],
+    "listOfObjectsA": [
+      {
+        "bar": 1
+      }
+    ],
+    "listOfObjectsB": [
+      {
+        "bar": 1
+      },
+      {
+        "bar": 2
+      }
+    ]
+  }
+}

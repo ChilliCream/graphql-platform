@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
@@ -10,7 +11,7 @@ namespace HotChocolate.Execution.Processing.Tasks
 {
     internal static class ResolverTaskFactory
     {
-        private static List<IExecutionTask>? _pooled = new();
+        private static List<ResolverTask>? _pooled = new();
 
         public static ResultMap EnqueueResolverTasks(
             IOperationContext operationContext,
@@ -23,8 +24,10 @@ namespace HotChocolate.Execution.Processing.Tasks
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
             IWorkScheduler scheduler = operationContext.Scheduler;
-            List<IExecutionTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
             var final = !selectionSet.IsConditional;
+
+            List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
 
             try
             {
@@ -71,6 +74,51 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
+        public static ResolverTask EnqueueElementTasks(
+            IOperationContext operationContext,
+            ISelection selection,
+            object? parent,
+            Path path,
+            int index,
+            IAsyncEnumerator<object?> value,
+            IImmutableDictionary<string, object?> scopedContext)
+        {
+            ResultMap resultMap = operationContext.Result.RentResultMap(1);
+
+            List<ResolverTask> bufferedTasks = Interlocked.Exchange(ref _pooled, null) ?? new();
+            Debug.Assert(bufferedTasks.Count == 0, "The buffer must be clean.");
+
+            ResolverTask resolverTask = CreateResolverTask(
+                operationContext,
+                selection,
+                parent,
+                0,
+                path,
+                resultMap,
+                scopedContext);
+
+            try
+            {
+                CompleteInline(
+                    operationContext,
+                    resolverTask.ResolverContext,
+                    selection,
+                    selection.Type.ElementType(),
+                    path.Append(index),
+                    0,
+                    resultMap,
+                    value.Current,
+                    bufferedTasks);
+            }
+            finally
+            {
+                bufferedTasks.Clear();
+                Interlocked.Exchange(ref _pooled, bufferedTasks);
+            }
+
+            return resolverTask;
+        }
+
         public static ResultMap EnqueueOrInlineResolverTasks(
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
@@ -78,7 +126,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             ObjectType resultType,
             object result,
             ISelectionSet selectionSet,
-            List<IExecutionTask> bufferedTasks)
+            List<ResolverTask> bufferedTasks)
         {
             var responseIndex = 0;
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
@@ -138,35 +186,33 @@ namespace HotChocolate.Execution.Processing.Tasks
             ObjectType parentType,
             object parent,
             ResultMap resultMap,
-            List<IExecutionTask> bufferedTasks)
+            List<ResolverTask> bufferedTasks)
         {
-            object? completedValue = null;
+            var committed = false;
+            object? resolverResult = null;
 
             try
             {
-                if (TryExecute(out var resolverResult) &&
-                    ValueCompletion.TryComplete(
+                if (TryExecute(out resolverResult))
+                {
+                    committed = true;
+
+                    CompleteInline(
                         operationContext,
                         resolverContext,
                         selection,
-                        path,
                         selection.Type,
-                        selection.ResponseName,
+                        path,
                         responseIndex,
+                        resultMap,
                         resolverResult,
-                        bufferedTasks,
-                        out completedValue) &&
-                    selection.TypeKind is not TypeKind.Scalar and not TypeKind.Enum &&
-                    completedValue is IHasResultDataParent result)
-                {
-                    result.Parent = resultMap;
+                        bufferedTasks);
                 }
             }
             catch (OperationCanceledException)
             {
                 // If we run into this exception the request was aborted.
                 // In this case we do nothing and just return.
-                return;
             }
             catch (Exception ex)
             {
@@ -185,24 +231,15 @@ namespace HotChocolate.Execution.Processing.Tasks
                     ex);
             }
 
-            var isNullable = selection.Type.IsNonNullType();
-
-            if (completedValue is null && isNullable)
+            if (!committed)
             {
-                // if we detect a non-null violation we will stash it for later.
-                // the non-null propagation is delayed so that we can parallelize better.
-                operationContext.Result.AddNonNullViolation(
-                    selection.SyntaxNode,
+                CommitValue(
+                    operationContext,
+                    selection,
                     path,
-                    resultMap);
-            }
-            else
-            {
-                resultMap.SetValue(
                     responseIndex,
-                    selection.ResponseName,
-                    completedValue,
-                    isNullable);
+                    resultMap,
+                    resolverResult);
             }
 
             bool TryExecute(out object? result)
@@ -232,7 +269,100 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private static IExecutionTask CreateResolverTask(
+        private static void CompleteInline(
+            IOperationContext operationContext,
+            MiddlewareContext resolverContext,
+            ISelection selection,
+            IType elementType,
+            Path path,
+            int responseIndex,
+            ResultMap resultMap,
+            object? value,
+            List<ResolverTask> bufferedTasks)
+        {
+            object? completedValue = null;
+
+            try
+            {
+                if (ValueCompletion.TryComplete(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    elementType,
+                    selection.ResponseName,
+                    responseIndex,
+                    value,
+                    bufferedTasks,
+                    out completedValue) &&
+                    elementType.Kind is not TypeKind.Scalar and not TypeKind.Enum &&
+                    completedValue is IHasResultDataParent result)
+                {
+                    result.Parent = resultMap;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // If we run into this exception the request was aborted.
+                // In this case we do nothing and just return.
+                return;
+            }
+            catch (Exception ex)
+            {
+                if (operationContext.RequestAborted.IsCancellationRequested)
+                {
+                    // if cancellation is request we do no longer report errors to the
+                    // operation context.
+                    return;
+                }
+
+                ValueCompletion.ReportError(
+                    operationContext,
+                    resolverContext,
+                    selection,
+                    path,
+                    ex);
+            }
+
+            CommitValue(
+                operationContext,
+                selection,
+                path,
+                responseIndex,
+                resultMap,
+                completedValue);
+        }
+
+        private static void CommitValue(
+            IOperationContext operationContext,
+            ISelection selection,
+            Path path,
+            int responseIndex,
+            ResultMap resultMap,
+            object? completedValue)
+        {
+            var isNullable = selection.Type.IsNonNullType();
+
+            if (completedValue is null && isNullable)
+            {
+                // if we detect a non-null violation we will stash it for later.
+                // the non-null propagation is delayed so that we can parallelize better.
+                operationContext.Result.AddNonNullViolation(
+                    selection.SyntaxNode,
+                    path,
+                    resultMap);
+            }
+            else
+            {
+                resultMap.SetValue(
+                    responseIndex,
+                    selection.ResponseName,
+                    completedValue,
+                    isNullable);
+            }
+        }
+
+        private static ResolverTask CreateResolverTask(
             IOperationContext operationContext,
             MiddlewareContext resolverContext,
             ISelection selection,
@@ -255,7 +385,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             return task;
         }
 
-        private static IExecutionTask CreateResolverTask(
+        private static ResolverTask CreateResolverTask(
             IOperationContext operationContext,
             ISelection selection,
             object? parent,
@@ -291,7 +421,7 @@ namespace HotChocolate.Execution.Processing.Tasks
                 for (var i = 0; i < fragments.Count; i++)
                 {
                     IFragment fragment = fragments[i];
-                    if (!fragment.IsConditional)
+                    if (!fragment.IsConditional || fragment.IsIncluded(operationContext.Variables))
                     {
                         operationContext.Scheduler.DeferredWork.Register(
                             new DeferredFragment(
@@ -305,7 +435,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             }
         }
 
-        private sealed class NoOpExecutionTask : ParallelExecutionTask
+        private sealed class NoOpExecutionTask : ExecutionTask
         {
             public NoOpExecutionTask(IOperationContext context)
             {

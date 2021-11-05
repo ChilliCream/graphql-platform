@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using HotChocolate.Execution.Options;
 using HotChocolate.Utilities;
 using HotChocolate.Resolvers;
 
@@ -9,10 +8,21 @@ namespace HotChocolate.Types.Pagination
     {
         protected CursorPagingHandler(PagingOptions options)
         {
-            DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-            MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
-            IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
-            RequirePagingBoundaries = options.RequirePagingBoundaries ?? false;
+            DefaultPageSize =
+                options.DefaultPageSize ??
+                    PagingDefaults.DefaultPageSize;
+            MaxPageSize =
+                options.MaxPageSize ??
+                    PagingDefaults.MaxPageSize;
+            IncludeTotalCount =
+                options.IncludeTotalCount ??
+                    PagingDefaults.IncludeTotalCount;
+            RequirePagingBoundaries =
+                options.RequirePagingBoundaries ??
+                    PagingDefaults.RequirePagingBoundaries;
+            AllowBackwardPagination =
+                options.AllowBackwardPagination ??
+                    PagingDefaults.AllowBackwardPagination;
 
             if (MaxPageSize < DefaultPageSize)
             {
@@ -41,10 +51,17 @@ namespace HotChocolate.Types.Pagination
         /// </summary>
         protected bool IncludeTotalCount { get; }
 
+        /// <summary>
+        /// Defines if backward pagination is allowed or deactivated.
+        /// </summary>
+        protected bool AllowBackwardPagination { get; }
+
         public void ValidateContext(IResolverContext context)
         {
             var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+            var last = AllowBackwardPagination
+                ? context.ArgumentValue<int?>(CursorPagingArgumentNames.Last)
+                : null;
 
             if (RequirePagingBoundaries && first is null && last is null)
             {
@@ -53,10 +70,19 @@ namespace HotChocolate.Types.Pagination
                     context.Path);
             }
 
-            if (first > MaxPageSize || last > MaxPageSize)
+            if (first > MaxPageSize)
             {
                 throw ThrowHelper.PagingHandler_MaxPageSize(
-                    (first > last ? first : last) ?? MaxPageSize,
+                    (int)first,
+                    MaxPageSize,
+                    context.Selection.Field,
+                    context.Path);
+            }
+
+            if (last > MaxPageSize)
+            {
+                throw ThrowHelper.PagingHandler_MaxPageSize(
+                    (int)last,
                     MaxPageSize,
                     context.Selection.Field,
                     context.Path);
@@ -68,7 +94,9 @@ namespace HotChocolate.Types.Pagination
             object source)
         {
             var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
-            var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+            var last = AllowBackwardPagination
+                ? context.ArgumentValue<int?>(CursorPagingArgumentNames.Last)
+                : null;
 
             if (first is null && last is null)
             {
@@ -79,7 +107,9 @@ namespace HotChocolate.Types.Pagination
                 first,
                 last,
                 context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
-                context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
+                AllowBackwardPagination
+                    ? context.ArgumentValue<string?>(CursorPagingArgumentNames.Before)
+                    : null);
 
             return await SliceAsync(context, source, arguments).ConfigureAwait(false);
         }

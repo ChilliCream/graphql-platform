@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
@@ -11,6 +12,11 @@ namespace HotChocolate.Types
     /// </summary>
     public sealed class UseServiceScopeAttribute : ObjectFieldDescriptorAttribute
     {
+        public UseServiceScopeAttribute([CallerLineNumber] int order = 0)
+        {
+            Order = order;
+        }
+
         public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,

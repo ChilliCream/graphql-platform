@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (parsedValue is null)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.Filtering_CouldNotParseValue(this, value, field.Type, field);
             }
 
             return FilterExpressionBuilder.In(

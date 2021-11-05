@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -11,9 +12,10 @@ namespace HotChocolate.Types
     {
         private readonly Type _dataLoaderType;
 
-        public UseDataLoaderAttribute(Type dataLoaderType)
+        public UseDataLoaderAttribute(Type dataLoaderType, [CallerLineNumber] int order = 0)
         {
             _dataLoaderType = dataLoaderType;
+            Order = order;
         }
 
         public override void OnConfigure(

@@ -48,7 +48,7 @@ namespace HotChocolate.Execution.Processing
 
         /// <summary>
         /// Gets the value representing the instance of the
-        /// <see cref="Operation.RootType" />
+        /// <see cref="IPreparedOperation.RootType" />
         /// </summary>
         object? RootValue { get; }
 

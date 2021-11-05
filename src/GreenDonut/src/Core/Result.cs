@@ -15,6 +15,7 @@ namespace GreenDonut
         /// <param name="value">The value.</param>
         public Result(TValue value) : this()
         {
+            Error = default;
             Value = value;
             Kind = ResultKind.Value;
         }
@@ -25,9 +26,10 @@ namespace GreenDonut
         /// <param name="error">
         /// The error.
         /// </param>
-        public Result(Exception error) : this()
+        public Result(Exception error)
         {
             Error = error ?? throw new ArgumentNullException(nameof(error));
+            Value = default!;
             Kind = ResultKind.Error;
         }
 

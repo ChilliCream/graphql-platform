@@ -83,7 +83,7 @@ namespace HotChocolate.Data
             IExecutable executable = _context.Authors.AsExecutable();
 
             // act
-            object? result = await executable.FirstOrDefaultAsync(default);
+            var result = await executable.FirstOrDefaultAsync(default);
 
             // assert
             new { result, executable = executable.Print() }.MatchSnapshot();

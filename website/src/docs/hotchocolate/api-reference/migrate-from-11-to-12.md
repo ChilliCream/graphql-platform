@@ -4,6 +4,29 @@ title: Migrate from Hot Chocolate GraphQL server 11 to 12
 
 This guide will walk you through the manual migration steps to get your Hot Chocolate GraphQL server to version 12.
 
+# Resolvers
+
+We have reworked the resolver compiler and are now demanding that the `ParentAttribute` is used when an argument is referring to the parent object.
+This is done since in some cases people want to get the parent object which is the same runtime type as an argument value.
+
+**v11**
+
+```csharp
+public string MyResolver(Person parent, string additionalInput)
+{
+    // Code omitted for brevity
+}
+```
+
+**v12**
+
+```csharp
+public string MyResolver([Parent] Person parent, string additionalInput)
+{
+    // Code omitted for brevity
+}
+```
+
 # Scalars
 
 We changed some defaults around scalars. These new defaults can break your existing schema but are, in general, better for newcomers and align better with the overall GraphQL ecosystem. Of course, you can naturally opt out of these new defaults to preserve your current schema's integrity.
@@ -50,9 +73,38 @@ services
 
 ## ConnectionType
 
+In v12 we have removed the `ConnectionType<T>` and `ConnectionType`.
+
+**v11**
+
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging()
+    .Type<ConnectionType<UserType>>()
+    .Resolver(context =>
+    {
+        // Omitted code for brevity
+    });
+```
+
+**v12**
+
+```csharp
+descriptor
+    .Field("users")
+    .UsePaging<UserType>()
+    .Resolver(context =>
+    {
+        // Omitted code for brevity
+    });
+```
+
+## Connection naming
+
 We have changed the way we infer the name for the connection type when using cursor-based pagination. By default, the connection name is now inferred from the field name instead of the type name.
 
-```SDL
+```sdl
 type Person {
   friends: [Person]
 }
@@ -60,7 +112,7 @@ type Person {
 
 In version 11, we would have created a connection named `PersonConnection`.
 
-```SDL
+```sdl
 type Person {
   friends(first: Int, last: Int, after: String, before: String): PersonConnection
 }
@@ -68,7 +120,7 @@ type Person {
 
 In version 12, we now will infer the connection name as `FriendsConnection`.
 
-```SDL
+```sdl
 type Person {
   friends(first: Int, last: Int, after: String, before: String): FriendsConnection
 }
@@ -93,6 +145,8 @@ public class Person
 }
 ```
 
+[Reference](/docs/hotchocolate/fetching-data/pagination#naming)
+
 ## MongoDB Paging
 
 In version 11 we had the `UseMongoDbPagingAttribute` and the `UseMongoDbOffsetPagingAttribute`, which we removed with version 11. In version 12 you now can use the standard attributes `UsePagingAttribute` and `UseOffsetPagingAttribute`.
@@ -106,6 +160,8 @@ services
     ...
 ```
 
+[Reference](/docs/hotchocolate/fetching-data/pagination#providers)
+
 # Records
 
 With version 11, we added support for records and added the ability to infer attributes from parameters. This, in the end, leads to more errors than benefits. With version 12, we removed this feature. Use the official' property' keyword to write records in C# short-hand syntax when annotating properties.
@@ -116,7 +172,71 @@ public record Foo([property: ID] string Id);
 
 # Instrumentation
 
-We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`.
+We added more instrumentation events and generalized more how one can tap into our internal events. The class `DiagnosticEventListener` is now obsolete and replaced with `ExecutionDiagnosticEventListener`. This is due to new event listener classes like `DataLoaderDiagnosticEventListener`. Most virtual methods previously returning IActivityScope now return IDisposable.
+
+[Learn more about instrumentation](/docs/hotchocolate/server/instrumentation)
+
+# Relay
+
+Previously the configuration of the Relay integration was focused around the `EnableRelaySupport()` method. It allowed you to enable Global Object Identification and automatically adding a query field to mutation payloads.
+
+The problem is that `EnableRelaySupport()` always enabled the Global Object Identification feature. This is not obviously implied by the name and also prevents you from using the other feature in isolation.
+
+Therefore we introduced two separate APIs to give you more explicit control over which parts of the Relay integration you want to enable.
+
+## Global Object Identification
+
+**v11**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .EnableRelaySupport();
+```
+
+**v12**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .AddGlobalObjectIdentification();
+```
+
+[Learn more about Global Object Identification](/docs/hotchocolate/defining-a-schema/relay#global-object-identification)
+
+## Query field in Mutation payloads
+
+**v11**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .EnableRelaySupport(new RelayOptions
+    {
+        AddQueryFieldToMutationPayloads = true,
+        QueryFieldName = "rootQuery",
+        MutationPayloadPredicate = type => type.Name.Value.EndsWith("Result")
+    });
+```
+
+**v12**
+
+```csharp
+sevices
+    .AddGraphQL()
+    .AddQueryFieldToMutationPayloads(options =>
+    {
+        options.QueryFieldName = "rootQuery";
+        options.MutationPayloadPredicate =
+            type => type.Name.Value.EndsWith("Result");
+    });
+```
+
+If you just want to enable the feature without further configuration, you can omit the `options =>` action.
+
+> ⚠️ Note: Since `EnableRelaySupport()` previously always implied the usage of Global Object Identification, you might have to enable Global Object Identification separately as well.
+
+[Learn more about Query field in Mutation payloads](/docs/hotchocolate/defining-a-schema/relay#query-field-in-mutation-payloads)
 
 # DataLoader
 
@@ -124,7 +244,7 @@ We have consolidated the DataLoader base classes into the GreenDonut package whi
 
 Second, we optimized memory usage of DataLoader and it is now best practice to let the DI inject the DataLoaderOptions into the DataLoader.
 
-**Hot Chocolate 11**
+**v11**
 
 ```csharp
 public class CustomBatchDataLoader : BatchDataLoader<string, string?>
@@ -139,7 +259,7 @@ public class CustomBatchDataLoader : BatchDataLoader<string, string?>
 }
 ```
 
-**Hot Chocolate 12**
+**v12**
 
 ```csharp
 public class CustomBatchDataLoader : BatchDataLoader<string, string?>
@@ -155,15 +275,3 @@ public class CustomBatchDataLoader : BatchDataLoader<string, string?>
 ```
 
 Allowing the DI to inject the options will allow the DataLoader to use the new shared pooled cache objects.
-
-# Resolvers
-
-We have reworked the resolver compiler and are now demanding that the `ParentAttribute` is used when an argument is referring to the parent object.
-This is done since in some cases people want to get the parent object which is the same runtime type as an argument value.
-
-```csharp
-public async Task<string> MyResolver([Parent] Person parent, Person input)
-{
-    // code omitted for brevity.
-}
-```
