@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>HotChocolate.CodeGeneration.EntityFramework.Tests</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration.EntityFramework</RootNamespace>
+    <WarningsAsErrors>$(WarningsAsError);Nullable</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,10 +29,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Snapshooter.Xunit" Version="0.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Key\__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.CodeGeneration.DependencyInjection;
@@ -70,6 +71,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             string @namespace,
             SchemaConventionsDirective schemaConventions)
         {
+            var modelBuilderContext = new ModelBuilderContext(
+                schemaConventions,
+                @namespace);
+
             var dbContextClassName = schemaConventions.DbContextName;
 
             ClassDeclarationSyntax dbContextClass = GenerateDbContext(
@@ -89,8 +94,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework
             foreach (ObjectType objectType in objectTypes)
             {
                 var entityBuilderContext = new EntityBuilderContext(
-                    schemaConventions,
-                    @namespace,
+                    modelBuilderContext,
                     objectType);
 
                 EntityBuilder.Process(entityBuilderContext);
@@ -99,19 +103,9 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                 if (entityBuilderContext.EntityClass is not null)
                 {
                     result.AddClass(
-                        entityBuilderContext.Namespace,
+                        @namespace,
                         entityBuilderContext.RequiredEntityName,
                         entityBuilderContext.EntityClass);
-                }
-
-                // Configurer
-                if (entityBuilderContext.EntityConfigurerClass is not null)
-                {
-                    result.AddClass(
-                        entityBuilderContext.Namespace,
-                        entityBuilderContext.RequiredEntityConfigurerName,
-                        entityBuilderContext.EntityConfigurerClass,
-                        entityBuilderContext.EntityConfigurerUsings);
                 }
 
                 // DbSet
@@ -128,6 +122,28 @@ namespace HotChocolate.CodeGeneration.EntityFramework
                         setable: true);
 
                     entities.Add(entityBuilderContext);
+                }
+            }
+
+            // Execute delayed processing, which can add more configuration statements per entity configurer class
+            foreach ((ObjectType objectType, Action<EntityBuilderContext> processor) in modelBuilderContext.PostProcessors)
+            {
+                EntityBuilderContext entityBuilderContext = modelBuilderContext.EntityBuilderContexts[objectType];
+                processor.Invoke(entityBuilderContext);
+            }
+
+            // Configurers
+            foreach (ObjectType objectType in objectTypes)
+            {
+                EntityBuilderContext entityBuilderContext = modelBuilderContext.EntityBuilderContexts[objectType];
+                if (entityBuilderContext.EntityConfigurerClass is not null)
+                {
+                    EntityBuilder.CompleteConfigurerClass(entityBuilderContext);
+                    result.AddClass(
+                        @namespace,
+                        entityBuilderContext.RequiredEntityConfigurerName,
+                        entityBuilderContext.EntityConfigurerClass,
+                        entityBuilderContext.EntityConfigurerUsings);
                 }
             }
 

@@ -8,6 +8,7 @@ namespace CompanyName.EFCore
     {
         public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Customer> builder)
         {
+            builder.HasKey(x => x.Id).HasName("PK_CustomerId");
         }
     }
 }

@@ -1,0 +1,19 @@
+When dealing with relationships...
+
+* if we need to be fully explicit from a --> b, then we need b to be "complete", e.g. what's its PK?
+
+* if we want to validate that any duplication of configuration from a --> b and b --> a are compatible,
+  we'd need the other side's configuration to have completed first.
+
+* in most cases we can just rely on EF defaultness, but if we needed nullability of one side of the relationship
+  to inform a configuration, we'd also need a complete picture.
+
+
+As such, it makes sense for a directive to be able to "queue up" its processing (to generate a configuration statement)
+until after all the types has had their initial processing sweep and their EntityBuilderContext are "complete".
+
+Once this is ready, we can then loop over the queued up tasks, passing them their relevant EntityBuilderContext
+and the ModelBuilderContext, from which they can get a full picture from.
+
+Only then, once that's happened, can we fully "complete" the configuration class now that we've got all the configuration
+statements.

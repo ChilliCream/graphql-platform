@@ -40,12 +40,12 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             }
 
             // Model
-            SetModelClass(context);
+            SetEntityClass(context);
 
             if (context.IsBackedByTable)
             {
                 // Configurer
-                SetModelConfigurerClass(context);
+                SetEntityConfigurerClass(context);
             }
         }
 
@@ -120,13 +120,13 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                 {
                     context.PrimaryKeyColumns = new[]
                     {
-                        new PrimaryKeyColumn(context.Conventions.GeneratedIdRuntimeType)
+                        new PrimaryKeyColumn(context.ModelBuilderContext.Conventions.GeneratedIdRuntimeType)
                     };
                 }
             }
         }
 
-        private static void SetModelClass(EntityBuilderContext context)
+        private static void SetEntityClass(EntityBuilderContext context)
         {
             context.EntityClass =
                 ClassDeclaration(context.RequiredEntityName)
@@ -142,7 +142,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                 {
                     context.EntityClass =
                        context.EntityClass.AddProperty(
-                           context.Conventions.GeneratedIdPropertyName,
+                           context.ModelBuilderContext.Conventions.GeneratedIdPropertyName,
                            IdentifierName(pk.RuntimeType.ToGlobalTypeName()),
                            description: null,
                            setable: true);
@@ -154,22 +154,20 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                 context.EntityClass =
                     context.EntityClass.AddProperty(
                         field.GetPropertyName(),
-                        IdentifierName(field.GetTypeName(context.Namespace)),
+                        IdentifierName(field.GetTypeName(context.ModelBuilderContext.Namespace)),
                         field.Description,
                         setable: true);
             }
         }
 
-        private static void SetModelConfigurerClass(EntityBuilderContext context)
+        private static void SetEntityConfigurerClass(EntityBuilderContext context)
         {
             context.EntityConfigurerClass =
                 ClassDeclaration(context.RequiredEntityConfigurerName)
                     .AddGeneratedAttribute()
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword))
-                    .WithBaseList(GetModelConfigurerBaseList(context.RequiredEntityName));
-
-            var configurationStatements = new List<StatementSyntax>();
+                    .WithBaseList(GetEntityConfigurerBaseList(context.RequiredEntityName));
 
             context.TableDirective =
                 context.ObjectType.GetFirstDirective<TableDirective>(TableDirectiveType.NameConst);
@@ -177,34 +175,64 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             // Configure the table name explicitly if needed
             // (EF uses the DbSet property's name by default, which we always set as modelNamePluralized)
             var tableName = context.TableDirective?.Name
-                ?? (context.Conventions.UsePluralizedTableNames
+                ?? (context.ModelBuilderContext.Conventions.UsePluralizedTableNames
                     ? context.RequiredEntityNamePluralized
                     : context.RequiredEntityName);
             if (tableName != context.RequiredEntityNamePluralized)
             {
-                configurationStatements.Add(GetTableNameConfigurationExpression(tableName));
+                context.EntityConfigurerStatements.Add(
+                    GetTableNameConfigurationExpression(tableName));
             }
 
             // Configure the PK
-            configurationStatements.Add(GetPrimaryKeyConfigurationExpression(context));
+            context.EntityConfigurerStatements.Add(
+                GetPrimaryKeyConfigurationExpression(context));
 
-            // Run through other model configuring directives and build up statements 
-            foreach (IModelConfiguringDirective directive in context.ObjectType.Directives
-                .OfType<IModelConfiguringDirective>())
+            // Run through type-level entity configuring directives and build up statements 
+            foreach (IEntityConfiguringDirective directive in context.ObjectType.Directives
+                .OfType<IEntityConfiguringDirective>())
             {
-                configurationStatements.Add(directive.AsConfigurationStatement());
+                StatementSyntax? statementToAdd = directive.Process(context);
+                if (statementToAdd is not null)
+                {
+                    context.EntityConfigurerStatements.Add(statementToAdd);
+                }
+            }
+
+            // Run through field-level entity configuring directives and build up statements
+            foreach (ObjectField? field in context.ObjectType.Fields)
+            {
+                foreach (IEntityConfiguringFieldDirective directive in field.Directives
+                    .OfType<IEntityConfiguringFieldDirective>())
+                {
+                    StatementSyntax? statementToAdd = directive.Process(context, field);
+                    if (statementToAdd is not null)
+                    {
+                        context.EntityConfigurerStatements.Add(statementToAdd);
+                    }
+                }
+            }
+        }
+
+        public static ClassDeclarationSyntax CompleteConfigurerClass(EntityBuilderContext context)
+        {
+            if (context.EntityConfigurerClass is null)
+            {
+                throw new ArgumentException("No entity configurer class to complete.");
             }
 
             // Build and add the Configure method
-            MemberDeclarationSyntax configureMethod = GetModelConfigurerConfigureMethod(
+            MemberDeclarationSyntax configureMethod = GetEntityConfigurerConfigureMethod(
                 context.RequiredEntityName,
-                configurationStatements.ToArray());
+                context.EntityConfigurerStatements.ToArray());
 
             context.EntityConfigurerClass = context.EntityConfigurerClass
                 .WithMembers(SingletonList(configureMethod));
+
+            return context.EntityConfigurerClass;
         }
 
-        private static BaseListSyntax GetModelConfigurerBaseList(string modelTypeName) =>
+        private static BaseListSyntax GetEntityConfigurerBaseList(string modelTypeName) =>
             BaseList(
                 SingletonSeparatedList<BaseTypeSyntax>(
                     SimpleBaseType(
@@ -218,7 +246,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 
         private const string BuilderArgumentName = "builder";
 
-        private static MemberDeclarationSyntax GetModelConfigurerConfigureMethod(
+        private static MemberDeclarationSyntax GetEntityConfigurerConfigureMethod(
             string modelTypeName,
             StatementSyntax[] statements) =>
             MethodDeclaration(
@@ -277,7 +305,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                         IdentifierName(x),
                         IdentifierName(
                             pkCol.Field?.GetPropertyName()
-                                ?? context.Conventions.GeneratedIdPropertyName));
+                                ?? context.ModelBuilderContext.Conventions.GeneratedIdPropertyName));
             }
             else
             {
@@ -295,7 +323,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                                 IdentifierName(x),
                                 IdentifierName(
                                     pkCol.Field?.GetPropertyName()
-                                        ?? context.Conventions.GeneratedIdPropertyName))));
+                                        ?? context.ModelBuilderContext.Conventions.GeneratedIdPropertyName))));
 
                     // ,
                     if (pkCol != lastPkCol)

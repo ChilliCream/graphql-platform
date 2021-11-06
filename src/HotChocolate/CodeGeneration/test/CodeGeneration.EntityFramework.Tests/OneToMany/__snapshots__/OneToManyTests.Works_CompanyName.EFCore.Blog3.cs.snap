@@ -1,0 +1,21 @@
+﻿[global::System.CodeDom.Compiler.GeneratedCode("HotChocolate", "1.0.0.0")]
+public partial class Blog3
+{
+    public global::System.Int32 Id
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Post3> Posts
+    {
+        get;
+        set;
+    }
+
+    public global::System.Collections.Generic.List<global::CompanyName.EFCore.Post3> FormerPosts
+    {
+        get;
+        set;
+    }
+}

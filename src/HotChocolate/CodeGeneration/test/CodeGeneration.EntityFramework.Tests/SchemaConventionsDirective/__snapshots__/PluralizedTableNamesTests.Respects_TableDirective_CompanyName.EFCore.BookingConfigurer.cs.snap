@@ -9,6 +9,7 @@ namespace CompanyName.EFCore
         public void Configure(global::Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Booking> builder)
         {
             builder.ToTable("BookingCustom");
+            builder.HasKey(x => x.Id);
         }
     }
 }

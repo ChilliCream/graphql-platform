@@ -4,7 +4,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 {
     public class OneToOneDirective
     {
-        public string ForeignKey { get; set; } = default!;
+        public string? ForeignKey { get; set; }
 
         public string? InverseField { get; set; }
     }
@@ -19,8 +19,10 @@ namespace HotChocolate.CodeGeneration.EntityFramework.Types
 
             descriptor
                 .Argument(t => t.ForeignKey)
-                .Description("The name of the field to use for the foreign key in this relationship.")
-                .Type<NonNullType<StringType>>();
+                .Description(
+                    "The name of the field to use for the foreign key in this relationship. " +
+                    "If none is provided, one will be derived.")
+                .Type<StringType>();
 
             descriptor
                 .Argument(t => t.InverseField)

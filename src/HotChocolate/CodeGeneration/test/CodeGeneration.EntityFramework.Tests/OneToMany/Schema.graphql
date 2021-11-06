@@ -1,0 +1,51 @@
+# Fully implicit
+# (no PKs, no FKs, nothing custom)
+
+type Blog1 {
+  posts: [Post1!]!
+}
+
+type Post1 {
+  blog: Blog1!
+}
+
+
+# Fully implicit, but annotated
+# (no PKs, no FKs, nothing custom, just annotated with directives)
+
+type Blog2 {
+  posts: [Post2!]! @oneToMany
+}
+
+type Post2 {
+  blog: Blog2! @oneToOne
+}
+
+
+# Fully implicit, annotated, with conflicts
+
+type Blog3 {
+  posts: [Post3!]! @oneToMany
+  formerPosts: [Post3!]! @oneToMany
+}
+
+type Post3 {
+  blog: Blog3! @oneToOne
+  formerBlog: Blog3! @oneToOne
+}
+
+
+# Fully implicit, annotated, with onDelete explicit configured
+
+type Blog4 {
+  posts: [Post4!]! @oneToMany(onDelete: "CASCADE")
+}
+
+type Post4 {
+  blog: Blog4! @oneToOne
+}
+
+
+
+
+# TODO: Many more scenarios, to support db-first

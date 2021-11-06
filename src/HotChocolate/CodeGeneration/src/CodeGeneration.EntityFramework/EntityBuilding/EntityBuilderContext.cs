@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.CodeGeneration.EntityFramework.Types;
 using HotChocolate.Types;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,9 +8,7 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
 {
     public class EntityBuilderContext
     {
-        public SchemaConventionsDirective Conventions { get; }
-
-        public string Namespace { get; }
+        public ModelBuilderContext ModelBuilderContext { get; }
 
         public ObjectType ObjectType { get; }
 
@@ -46,12 +45,16 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
         public ClassDeclarationSyntax? EntityConfigurerClass { get; set; }
 
         public UsingDirectiveSyntax[] EntityConfigurerUsings { get; } = SyntaxConstants.ModelConfigurerUsings;
+        public List<StatementSyntax> EntityConfigurerStatements { get; } = new();
 
-        public EntityBuilderContext(SchemaConventionsDirective conventions, string @namespace, ObjectType objectType)
+        public EntityBuilderContext(
+            ModelBuilderContext modelBuilderContext,
+            ObjectType objectType)
         {
-            Conventions = conventions;
-            Namespace = @namespace ?? throw new ArgumentNullException(nameof(@namespace));
+            ModelBuilderContext = modelBuilderContext ?? throw new ArgumentNullException(nameof(modelBuilderContext));
             ObjectType = objectType ?? throw new ArgumentNullException(nameof(objectType));
+
+            modelBuilderContext.EntityBuilderContexts[ObjectType] = this;
         }
     }
 }
