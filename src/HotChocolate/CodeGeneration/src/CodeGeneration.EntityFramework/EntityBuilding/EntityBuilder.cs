@@ -189,8 +189,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
                 GetPrimaryKeyConfigurationExpression(context));
 
             // Run through type-level entity configuring directives and build up statements 
-            foreach (IEntityConfiguringDirective directive in context.ObjectType.Directives
-                .OfType<IEntityConfiguringDirective>())
+            foreach (IEntityConfiguringDirective directive in context.ObjectType
+                .GetDirectivesWhereRuntimeTypeImplements<IEntityConfiguringDirective>())
             {
                 StatementSyntax? statementToAdd = directive.Process(context);
                 if (statementToAdd is not null)
@@ -202,8 +202,8 @@ namespace HotChocolate.CodeGeneration.EntityFramework.ModelBuilding
             // Run through field-level entity configuring directives and build up statements
             foreach (ObjectField? field in context.ObjectType.Fields)
             {
-                foreach (IEntityConfiguringFieldDirective directive in field.Directives
-                    .OfType<IEntityConfiguringFieldDirective>())
+                foreach (IEntityConfiguringFieldDirective directive in field
+                    .GetDirectivesWhereRuntimeTypeImplements<IEntityConfiguringFieldDirective>())
                 {
                     StatementSyntax? statementToAdd = directive.Process(context, field);
                     if (statementToAdd is not null)

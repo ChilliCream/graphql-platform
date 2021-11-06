@@ -24,6 +24,16 @@ namespace HotChocolate.CodeGeneration
             return directive.ToObject<T>();
         }
 
+        public static T[] GetDirectivesWhereRuntimeTypeImplements<T>(
+            this IHasDirectives hasDirectives)
+        {
+            Type t = typeof(T);
+            return hasDirectives.Directives
+                .Where(d => t.IsAssignableFrom(d.Type.RuntimeType))
+                .Select(d => d.ToObject<T>())
+                .ToArray();
+        }
+
         public static string GetPropertyName(this IObjectField field)
         {
             if (field.Name.Value.Length == 1)
