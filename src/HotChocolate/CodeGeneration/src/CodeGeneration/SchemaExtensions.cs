@@ -30,7 +30,7 @@ namespace HotChocolate.CodeGeneration
             Type t = typeof(T);
             return hasDirectives.Directives
                 .Where(d => t.IsAssignableFrom(d.Type.RuntimeType))
-                .Select(d => d.ToObject<T>())
+                .Select(d => d.ToObject<T>(d.Type.RuntimeType))
                 .ToArray();
         }
 

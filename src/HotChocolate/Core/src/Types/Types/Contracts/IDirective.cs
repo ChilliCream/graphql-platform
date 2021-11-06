@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -16,6 +17,8 @@ namespace HotChocolate.Types
         IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; }
 
         T ToObject<T>();
+
+        T ToObject<T>(Type type);
 
         DirectiveNode ToNode();
 

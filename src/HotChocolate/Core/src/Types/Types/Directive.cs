@@ -60,6 +60,23 @@ namespace HotChocolate.Types
             return CreateCustomDirective<T>();
         }
 
+        public T ToObject<T>(Type type)
+        {
+            if (_customDirective is T d)
+            {
+                return d;
+            }
+
+            if (_customDirective is null)
+            {
+                d = CreateCustomDirective<T>(type);
+                _customDirective = d;
+                return d;
+            }
+
+            return CreateCustomDirective<T>(type);
+        }
+
         public DirectiveNode ToNode() => ToNode(false);
 
         public DirectiveNode ToNode(bool removeNullArguments)
@@ -108,7 +125,6 @@ namespace HotChocolate.Types
                 nameof(argumentName));
         }
 
-
         private T CreateCustomDirective<T>()
         {
             if (TryDeserialize(_parsedDirective, out T directive))
@@ -120,6 +136,32 @@ namespace HotChocolate.Types
 
             ILookup<string, PropertyInfo> properties =
                 typeof(T).GetProperties()
+                    .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (Argument argument in Type.Arguments)
+            {
+                PropertyInfo? property = properties[argument.Name].FirstOrDefault();
+
+                if (property != null)
+                {
+                    SetProperty(argument, directive, property);
+                }
+            }
+
+            return directive;
+        }
+
+        private T CreateCustomDirective<T>(Type type)
+        {
+            if (TryDeserialize(_parsedDirective, out T directive))
+            {
+                return directive;
+            }
+
+            directive = (T)Activator.CreateInstance(type)!;
+
+            ILookup<string, PropertyInfo> properties =
+                type.GetProperties()
                     .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
             foreach (Argument argument in Type.Arguments)
