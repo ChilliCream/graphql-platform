@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Processing.Plan;
 
@@ -46,6 +47,21 @@ namespace HotChocolate.Execution.Processing.Internal
 
             AppendTask(ref _head, executionTask);
             IsEmpty = false;
+        }
+
+        public bool TryDequeue([NotNullWhen(true)] out IExecutionTask? executionTask)
+        {
+            executionTask = _head;
+            
+            if (executionTask is null)
+            {
+                return false;
+            }
+
+            _head = _head?.Next;
+            executionTask.Next = null;
+            IsEmpty = _head is null;
+            return true;
         }
 
         private static void AppendTask(ref IExecutionTask? head, IExecutionTask executionTask)
