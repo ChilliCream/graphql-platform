@@ -9,6 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     internal static class RelayIdFieldHelpers
