@@ -4,10 +4,11 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal partial class WorkScheduler : IWorkScheduler, IQueryPlanState
+    internal partial class WorkScheduler : IWorkScheduler
     {
         /// <inheritdoc/>
         public bool IsCompleted => _completed;
@@ -35,10 +36,6 @@ namespace HotChocolate.Execution.Processing
                _work.IsEmpty &&
                _work.HasRunningTasks &&
                !_stateMachine.IsSerial;
-
-        IOperationContext IQueryPlanState.Context => _operationContext;
-
-        ISet<int> IQueryPlanState.Selections => _selections;
 
         /// <inheritdoc/>
         public void Register(IExecutionTask task)
@@ -138,26 +135,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        void IQueryPlanState.RegisterUnsafe(IReadOnlyList<IExecutionTask> tasks)
-        {
-            for (var i = 0; i < tasks.Count; i++)
-            {
-                IExecutionTask task = tasks[i];
-                _stateMachine.TryInitializeTask(task);
-                task.IsRegistered = true;
-
-                if (_stateMachine.RegisterTask(task))
-                {
-                    WorkQueue work = task.IsSerial ? _serial : _work;
-                    work.Push(task);
-                }
-                else
-                {
-                    _suspended.Enqueue(task);
-                }
-            }
-        }
-
         /// <inheritdoc/>
         public void Complete(IExecutionTask task)
         {
@@ -170,11 +147,6 @@ namespace HotChocolate.Execution.Processing
 
             lock (_sync)
             {
-                if (IsCompleted)
-                {
-                    return;
-                }
-
                 var registered = _serial.Count + _work.Count;
 
                 // we first complete the task on the state machine so that if we are completing
@@ -200,7 +172,7 @@ namespace HotChocolate.Execution.Processing
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks
                 // are not enqueued.
-                while (NeedsStateMachineCompletion() && !_requestAborted.IsCancellationRequested)
+                while (NeedsStateMachineCompletion())
                 {
                     if (_stateMachine.CompleteNext() && _suspended.HasWork)
                     {
@@ -237,7 +209,7 @@ namespace HotChocolate.Execution.Processing
         {
             var size = 0;
 
-            if (_completed)
+            if (_completed || _requestAborted.IsCancellationRequested)
             {
                 return default;
             }
@@ -278,21 +250,21 @@ namespace HotChocolate.Execution.Processing
         {
             // if the execution is already completed or if the completion task is
             // null we stop processing
-            if (_completed || _requestAborted.IsCancellationRequested)
+            if (_completed)
             {
                 return new(true);
             }
 
             // if there is still work we keep on processing. We check this here to
             // try to avoid the lock.
-            if (!_work.IsEmpty)
+            if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
                 return new(false);
             }
 
             lock (_sync)
             {
-                if (!_work.IsEmpty)
+                if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
                 {
                     return new(false);
                 }
@@ -341,15 +313,6 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private void Cancel()
-        {
-            lock (_sync)
-            {
-                _completed = true;
-                _pause.TryContinueUnsafe();
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryCompleteProcessingUnsafe()
         {
@@ -364,21 +327,51 @@ namespace HotChocolate.Execution.Processing
             {
                 _completed = true;
                 _pause.TryContinueUnsafe();
+
+                // if there are still tasks enqueues when we cancel the execution
+                // we will try to reclaim the resolver tasks by properly cancelling
+                // them.
+                CancelTasks(_work);
+                CancelTasks(_serial);
+                CancelSuspendedTasks(_suspended);
+
                 return true;
             }
 
             return false;
 
             bool HasCompleted()
-                => !_completed &&
-                   !_processing &&
-                   IsEmpty &&
-                   !HasRunningTasks;
+                => !_processing &&
+                    IsEmpty &&
+                    !HasRunningTasks;
 
             bool IsCanceled()
-                => !_completed &&
-                   !_processing &&
+                => !_processing &&
+                    !_work.HasRunningTasks &&
+                    !_serial.HasRunningTasks &&
                    _requestAborted.IsCancellationRequested;
+
+            void CancelTasks(WorkQueue queue)
+            {
+                while (queue.TryTake(out IExecutionTask? task))
+                {
+                    if (task is ResolverTask resolverTask)
+                    {
+                        resolverTask.Return();
+                    }
+                }
+            }
+
+            void CancelSuspendedTasks(SuspendedWorkQueue queue)
+            {
+                while (queue.TryDequeue(out IExecutionTask? task))
+                {
+                    if (task is ResolverTask resolverTask)
+                    {
+                        resolverTask.Return();
+                    }
+                }
+            }
         }
     }
 }
