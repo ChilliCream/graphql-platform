@@ -51,7 +51,6 @@ namespace HotChocolate.Execution.Processing
             _batchDispatcher = batchDispatcher;
 
             _stateMachine.Initialize(this, _operationContext.QueryPlan);
-            _requestContext.RequestAborted.Register(Cancel);
 
             _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 

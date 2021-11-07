@@ -47,18 +47,9 @@ RESTART:
                                 for (var i = 0; i < work; i++)
                                 {
                                     IExecutionTask task = buffer[i]!;
-
-                                    if (!_requestAborted.IsCancellationRequested)
-                                    {
-                                        task.BeginExecute(_requestAborted);
-                                        await task.WaitForCompletionAsync(_requestAborted)
-                                            .ConfigureAwait(false);
-                                    }
-                                    else if (task is ResolverTask resolverTask)
-                                    {
-                                        resolverTask.TryCancel();
-                                    }
-
+                                    task.BeginExecute(_requestAborted);
+                                    await task.WaitForCompletionAsync(_requestAborted)
+                                        .ConfigureAwait(false);
                                     buffer[i] = null;
                                 }
                             }

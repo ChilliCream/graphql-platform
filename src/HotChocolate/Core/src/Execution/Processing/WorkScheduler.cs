@@ -257,14 +257,14 @@ namespace HotChocolate.Execution.Processing
 
             // if there is still work we keep on processing. We check this here to
             // try to avoid the lock.
-            if (!_work.IsEmpty)
+            if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
                 return new(false);
             }
 
             lock (_sync)
             {
-                if (!_work.IsEmpty)
+                if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
                 {
                     return new(false);
                 }
@@ -357,7 +357,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (task is ResolverTask resolverTask)
                     {
-                        resolverTask.TryCancel();
+                        resolverTask.Return();
                     }
                 }
             }
@@ -368,7 +368,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     if (task is ResolverTask resolverTask)
                     {
-                        resolverTask.TryCancel();
+                        resolverTask.Return();
                     }
                 }
             }

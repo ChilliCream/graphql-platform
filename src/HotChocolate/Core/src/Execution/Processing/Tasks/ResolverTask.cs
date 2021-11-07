@@ -91,14 +91,6 @@ namespace HotChocolate.Execution.Processing.Tasks
         public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
             _task ?? Task.CompletedTask;
 
-        internal void TryCancel()
-        {
-            if (_task is null)
-            {
-                _objectPool.Return(this);
-            }
-        }
-
         /// <summary>
         /// Completes the resolver result.
         /// </summary>
@@ -204,7 +196,7 @@ namespace HotChocolate.Execution.Processing.Tasks
         /// Resets the resolver task before returning it to the pool.
         /// </summary>
         /// <returns></returns>
-        public bool Reset()
+        internal bool Reset()
         {
             _completionStatus = ExecutionTaskStatus.Completed;
             _operationContext = default!;
@@ -221,5 +213,11 @@ namespace HotChocolate.Execution.Processing.Tasks
             _taskBuffer.Clear();
             return true;
         }
+
+        /// <summary>
+        /// Returns the task back to the pool.
+        /// </summary>
+        internal void Return()
+            => _objectPool.Return(this);
     }
 }
