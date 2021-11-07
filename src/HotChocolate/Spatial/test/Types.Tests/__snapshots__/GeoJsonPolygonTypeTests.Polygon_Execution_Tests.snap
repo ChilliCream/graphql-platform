@@ -13,7 +13,7 @@ interface GeoJSONInterface {
 
 type GeoJSONPolygonType implements GeoJSONInterface {
   "The \"coordinates\" field MUST be an array of linear ring coordinate arrays. For Polygons with more than one of these rings, the first MUST be the exterior ring, and any others MUST be interior rings. The exterior ring bounds the surface, and the interior rings (if present) bound holes within the surface."
-  coordinates: [Position]
+  coordinates: [[Position]]
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"

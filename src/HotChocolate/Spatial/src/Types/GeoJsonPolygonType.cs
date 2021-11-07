@@ -16,8 +16,10 @@ namespace HotChocolate.Types.Spatial
                 .BindFieldsExplicitly();
 
             descriptor
-                .Field(x => x.Coordinates)
-                .Description(GeoJson_Field_Coordinates_Description_Polygon);
+                .Field<Resolvers>(x => x.GetCoordinates(default!))
+                .Name(WellKnownFields.CoordinatesFieldName)
+                .Description(GeoJson_Field_Coordinates_Description_Polygon)
+                .Type<ListType<ListType<GeoJsonPositionType>>>();
 
             descriptor
                 .Field<GeoJsonResolvers>(x => x.GetType(default!))
@@ -30,6 +32,22 @@ namespace HotChocolate.Types.Spatial
             descriptor
                 .Field<GeoJsonResolvers>(x => x.GetCrs(default!))
                 .Description(GeoJson_Field_Crs_Description);
+        }
+
+        public class Resolvers
+        {
+            public Coordinate[][] GetCoordinates([Parent] Polygon polygon)
+            {
+                Coordinate[][] coordinates = new Coordinate[polygon.NumInteriorRings + 1][];
+                coordinates[0] = polygon.ExteriorRing.Coordinates;
+
+                for (var i = 0; i < polygon.InteriorRings.Length; i++)
+                {
+                    coordinates[i] = polygon.InteriorRings[i].Coordinates;
+                }
+
+                return coordinates;
+            }
         }
     }
 }

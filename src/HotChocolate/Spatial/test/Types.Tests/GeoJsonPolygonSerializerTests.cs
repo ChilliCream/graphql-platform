@@ -13,20 +13,21 @@ namespace HotChocolate.Types.Spatial
     {
         private readonly IValueNode _coordinatesSyntaxNode = new ListValueNode(
             new ListValueNode(
-                new IntValueNode(30),
-                new IntValueNode(10)),
-            new ListValueNode(
-                new IntValueNode(40),
-                new IntValueNode(40)),
-            new ListValueNode(
-                new IntValueNode(20),
-                new IntValueNode(40)),
-            new ListValueNode(
-                new IntValueNode(10),
-                new IntValueNode(20)),
-            new ListValueNode(
-                new IntValueNode(30),
-                new IntValueNode(10)));
+                new ListValueNode(
+                    new IntValueNode(30),
+                    new IntValueNode(10)),
+                new ListValueNode(
+                    new IntValueNode(40),
+                    new IntValueNode(40)),
+                new ListValueNode(
+                    new IntValueNode(20),
+                    new IntValueNode(40)),
+                new ListValueNode(
+                    new IntValueNode(10),
+                    new IntValueNode(20)),
+                new ListValueNode(
+                    new IntValueNode(30),
+                    new IntValueNode(10))));
 
         private readonly Geometry _geometry = new Polygon(
             new LinearRing(new[]
@@ -42,11 +43,34 @@ namespace HotChocolate.Types.Spatial
 
         private readonly object _geometryParsed = new[]
         {
-            new[] { 30.0, 10.0 },
-            new[] { 40.0, 40.0 },
-            new[] { 20.0, 40.0 },
-            new[] { 10.0, 20.0 },
-            new[] { 30.0, 10.0 }
+            new[]
+            {
+                new[]
+                {
+                    30.0,
+                    10.0
+                },
+                new[]
+                {
+                    40.0,
+                    40.0
+                },
+                new[]
+                {
+                    20.0,
+                    40.0
+                },
+                new[]
+                {
+                    10.0,
+                    20.0
+                },
+                new[]
+                {
+                    30.0,
+                    10.0
+                }
+            }
         };
 
         [Theory]
@@ -152,7 +176,10 @@ namespace HotChocolate.Types.Spatial
             Assert.False(
                 type.IsInstanceOfType(
                     GeometryFactory.Default.CreateGeometryCollection(
-                        new Geometry[] { new Point(1, 2) })));
+                        new Geometry[]
+                        {
+                            new Point(1, 2)
+                        })));
         }
 
         [Theory]
