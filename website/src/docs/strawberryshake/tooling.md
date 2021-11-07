@@ -12,7 +12,7 @@ StrawberryShake comes with some tools that integrate into the dotnet CLI and hel
 
 The `init` command allows you to initialize a C# project for use with Strawberry Shake. It essentially creates the initial configuration file `.graphqlrc.json` and downloads the GraphQL schema.
 
-`dotnet graphql init {url} [-p|--Path] [-n|--clientName] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope]`
+`dotnet graphql init {url} [-p|--Path] [-n|--clientName] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope] [-x|--headers]`
 
 | Argument           | Description                                                                                          |
 | ------------------ | ---------------------------------------------------------------------------------------------------- |
@@ -24,6 +24,7 @@ The `init` command allows you to initialize a C# project for use with Strawberry
 | --clientId         | The client ID that shall be used when interacting with the `tokenEndpoint`.                          |
 | --clientSecret     | The client secret that shall be used when interacting with the `tokenEndpoint`.                      |
 | --scope            | The scope (can be used multiple times) that shall be used when interacting with the `tokenEndpoint`. |
+| -x or --headers    | The headers adds additional custom headers. Example: --headers key1=value1 --headers key2=value2     |
 
 # Update Project
 
@@ -31,7 +32,7 @@ The `init` command allows you to initialize a C# project for use with Strawberry
 
 The update command allows you to update the local GraphQL schema with the newest version of the GraphQL server.
 
-`dotnet graphql update [-p|--Path] [-u|--uri] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope]`
+`dotnet graphql update [-p|--Path] [-u|--uri] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope] [-x|--headers]`
 
 | Argument        | Description                                                                                          |
 | --------------- | ---------------------------------------------------------------------------------------------------- |
@@ -43,6 +44,7 @@ The update command allows you to update the local GraphQL schema with the newest
 | --clientId      | The client ID that shall be used when interacting with the `tokenEndpoint`.                          |
 | --clientSecret  | The client secret that shall be used when interacting with the `tokenEndpoint`.                      |
 | --scope         | The scope (can be used multiple times) that shall be used when interacting with the `tokenEndpoint`. |
+| -x or --headers | The headers adds additional custom headers. Example: --headers key1=value1 --headers key2=value2     |
 
 # Download Schema
 
@@ -50,7 +52,7 @@ The update command allows you to update the local GraphQL schema with the newest
 
 The download command allows downloading a GraphQL schema from any GraphQL server.
 
-`dotnet graphql download {url} [-f|--fileName] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope]`
+`dotnet graphql download {url} [-f|--fileName] [--token] [--scheme] [--tokenEndpoint] [--clientId] [--clientSecret] [--scope] [-x|--headers]`
 
 | Argument         | Description                                                                                          |
 | ---------------- | ---------------------------------------------------------------------------------------------------- |
@@ -61,3 +63,4 @@ The download command allows downloading a GraphQL schema from any GraphQL server
 | --clientId       | The client ID that shall be used when interacting with the `tokenEndpoint`.                          |
 | --clientSecret   | The client secret that shall be used when interacting with the `tokenEndpoint`.                      |
 | --scope          | The scope (can be used multiple times) that shall be used when interacting with the `tokenEndpoint`. |
+| -x or --headers  | The headers adds additional custom headers. Example: --headers key1=value1 --headers key2=value2     |
