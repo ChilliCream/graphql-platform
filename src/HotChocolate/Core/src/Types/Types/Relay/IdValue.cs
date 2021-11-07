@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Relay
         public IdValue(NameString schemaName, NameString typeName, object value)
         {
             SchemaName = schemaName;
-            TypeName = typeName.EnsureNotEmpty(typeName); ;
+            TypeName = typeName.EnsureNotEmpty(typeName);
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
