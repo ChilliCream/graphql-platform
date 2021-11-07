@@ -200,7 +200,7 @@ namespace HotChocolate.Execution.Processing
                 // if there is now more work and the state machine is not completed yet we will
                 // close open steps and reevaluate. This can happen if optional resolver tasks
                 // are not enqueued.
-                while (NeedsStateMachineCompletion() && !_requestAborted.IsCancellationRequested)
+                while (NeedsStateMachineCompletion())
                 {
                     if (_stateMachine.CompleteNext() && _suspended.HasWork)
                     {
@@ -278,7 +278,7 @@ namespace HotChocolate.Execution.Processing
         {
             // if the execution is already completed or if the completion task is
             // null we stop processing
-            if (_completed || _requestAborted.IsCancellationRequested)
+            if (_completed)
             {
                 return new(true);
             }
@@ -360,6 +360,7 @@ namespace HotChocolate.Execution.Processing
                 return true;
             }
 
+            // TODO : this is wrong!
             if (IsCanceled())
             {
                 _completed = true;

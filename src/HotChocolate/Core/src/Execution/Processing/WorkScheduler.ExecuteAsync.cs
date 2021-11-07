@@ -46,14 +46,19 @@ RESTART:
                                 for (var i = 0; i < work; i++)
                                 {
                                     IExecutionTask task = buffer[i]!;
-                                    task.BeginExecute(_requestAborted);
-                                    await task.WaitForCompletionAsync(_requestAborted)
-                                        .ConfigureAwait(false);
-                                    buffer[i] = null;
 
-                                    if (_requestAborted.IsCancellationRequested)
+                                    if (!_requestAborted.IsCancellationRequested)
                                     {
-                                        break;
+                                        task.BeginExecute(_requestAborted);
+                                        await task.WaitForCompletionAsync(_requestAborted)
+                                            .ConfigureAwait(false);
+                                        buffer[i] = null;
+                                    }
+                                    else
+                                    {
+                                        // if cancellation is requested, 
+                                        // we will make sure that all tasks are properly reset.
+                                        
                                     }
                                 }
                             }
