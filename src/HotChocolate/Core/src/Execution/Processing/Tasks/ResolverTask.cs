@@ -91,6 +91,14 @@ namespace HotChocolate.Execution.Processing.Tasks
         public Task WaitForCompletionAsync(CancellationToken cancellationToken) =>
             _task ?? Task.CompletedTask;
 
+        internal void TryCancel()
+        {
+            if (_task is null)
+            {
+                _objectPool.Return(this);
+            }
+        }
+
         /// <summary>
         /// Completes the resolver result.
         /// </summary>

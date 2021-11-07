@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -52,14 +53,13 @@ RESTART:
                                         task.BeginExecute(_requestAborted);
                                         await task.WaitForCompletionAsync(_requestAborted)
                                             .ConfigureAwait(false);
-                                        buffer[i] = null;
                                     }
-                                    else
+                                    else if (task is ResolverTask resolverTask)
                                     {
-                                        // if cancellation is requested, 
-                                        // we will make sure that all tasks are properly reset.
-                                        
+                                        resolverTask.TryCancel();
                                     }
+
+                                    buffer[i] = null;
                                 }
                             }
                             finally
