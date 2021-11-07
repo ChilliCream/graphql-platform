@@ -1,9 +1,6 @@
 using System;
 using System.Globalization;
-<<<<<<< HEAD
-=======
 using System.Linq.Expressions;
->>>>>>> main
 using System.Reflection;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
