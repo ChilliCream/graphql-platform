@@ -55,7 +55,7 @@ partial class Build : NukeBuild
                         .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
 
             // last we run the actual dotnet format command.
-            DotNet($@"format ""{PublicApiSolutionFile}"" analyzers", workingDirectory: RootDirectory);
+            DotNet($@"format ""{PublicApiSolutionFile}"" analyzers --diagnostics=RS0016", workingDirectory: RootDirectory);
         });
 
     Target DiffShippedApi => _ => _
