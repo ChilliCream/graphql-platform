@@ -14,7 +14,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '6.0.100-rc.2.21505.57'
-          include-prerelease: true
+          dotnet-version: '6.0.0'
       - run:  ./build.sh CheckPublicApi
         name: "Check for undocumented public API changes"
