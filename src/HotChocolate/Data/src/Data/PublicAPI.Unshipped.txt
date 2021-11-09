@@ -1,3 +1,6 @@
+HotChocolate.Data.Filters.IdOperationFilterInputType
+HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType() -> void
+HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType(System.Action<HotChocolate.Data.Filters.IFilterInputTypeDescriptor!>! configure) -> void
 HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null, int order = 0) -> void
 HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute(int order = 0) -> void
 HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute(int order = 0) -> void
@@ -8,3 +11,4 @@ HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingTy
 *REMOVED*HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null) -> void
 *REMOVED*HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute() -> void
 *REMOVED*HotChocolate.Data.UseSingleOrDefaultAttribute.UseSingleOrDefaultAttribute() -> void
+override HotChocolate.Data.Filters.IdOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void

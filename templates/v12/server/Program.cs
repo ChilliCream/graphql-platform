@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddGraphQL()
+    .AddGraphQLServer()
     .AddQueryType<Query>();
 
 var app = builder.Build();
