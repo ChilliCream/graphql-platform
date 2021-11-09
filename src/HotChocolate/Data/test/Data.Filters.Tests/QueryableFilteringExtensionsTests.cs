@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Filtering
                         .Type(new ObjectType(x => x.Name("A").Field("bar").Resolve("a")))
                         .Resolve(new object());
                     x.Field("bar")
-                        .Type(new ObjectType(x => x.Name("A").Field("bar").Resolve("a")))
+                        .Type(new ObjectType(x => x.Name("B").Field("bar").Resolve("a")))
                         .Resolve(new object());
                 })
                 .BuildRequestExecutorAsync();

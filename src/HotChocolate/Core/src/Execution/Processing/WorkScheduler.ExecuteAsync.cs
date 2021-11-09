@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -50,11 +51,6 @@ RESTART:
                                     await task.WaitForCompletionAsync(_requestAborted)
                                         .ConfigureAwait(false);
                                     buffer[i] = null;
-
-                                    if (_requestAborted.IsCancellationRequested)
-                                    {
-                                        break;
-                                    }
                                 }
                             }
                             finally

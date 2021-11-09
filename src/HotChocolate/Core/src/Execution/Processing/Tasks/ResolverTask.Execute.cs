@@ -15,7 +15,8 @@ namespace HotChocolate.Execution.Processing.Tasks
             {
                 using (DiagnosticEvents.ResolveFieldValue(ResolverContext))
                 {
-                    var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
+                    var success =
+                        await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
                     CompleteValue(success, cancellationToken);
                 }
 
@@ -44,6 +45,7 @@ namespace HotChocolate.Execution.Processing.Tasks
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    _completionStatus = ExecutionTaskStatus.Faulted;
                     return false;
                 }
 

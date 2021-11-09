@@ -51,7 +51,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" $(AddPublicApiAnalyzers) ">
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3">
       <ExcludeAssets>compile</ExcludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
