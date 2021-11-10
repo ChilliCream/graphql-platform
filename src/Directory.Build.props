@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIcon>../website/resources/hotchocolate-signet.png</PackageIcon>
+    <PackageIcon>$(MSBuildThisFileDirectory)/../website/resources/hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
