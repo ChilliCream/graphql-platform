@@ -22,4 +22,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>

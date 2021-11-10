@@ -18,4 +18,8 @@
     <ProjectReference Include="..\CodeGeneration\HotChocolate.CodeGeneration.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>
