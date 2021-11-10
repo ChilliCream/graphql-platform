@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIcon>$(MSBuildThisFileDirectory)..\..\website\resources\strawberryshake-signet.png</PackageIcon>
+    <PackageIcon>$(MSBuildThisFileDirectory)..\..\website\static\resources\strawberryshake-signet.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
