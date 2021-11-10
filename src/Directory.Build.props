@@ -6,7 +6,7 @@
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
