@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="3.1.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\GreenDonut.props" Pack="true" PackagePath="build/GreenDonut.props" Visible="false" />
+  </ItemGroup>
+
 </Project>

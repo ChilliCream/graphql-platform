@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.targets" Pack="true" PackagePath="build/HotChocolate.targets" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.props" Pack="true" PackagePath="build/HotChocolate.props" Visible="false" />
   </ItemGroup>
 
 </Project>
