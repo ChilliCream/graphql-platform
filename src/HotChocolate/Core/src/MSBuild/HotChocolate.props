@@ -1,6 +1,0 @@
-<Project>
-    <ItemGroup>
-        <Using Include="HotChocolate" />
-        <Using Include="HotChocolate.Types" />
-    </ItemGroup>
-</Project>

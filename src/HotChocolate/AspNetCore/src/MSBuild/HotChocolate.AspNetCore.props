@@ -1,0 +1,7 @@
+<Project>
+  <ItemGroup>
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Relay" />
+  </ItemGroup>
+</Project>

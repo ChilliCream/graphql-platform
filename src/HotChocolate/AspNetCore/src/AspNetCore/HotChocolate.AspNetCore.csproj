@@ -33,4 +33,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AspNetCore.props" Pack="true" PackagePath="build/HotChocolate.AspNetCore.props" Visible="false" />
+  </ItemGroup>
+
 </Project>

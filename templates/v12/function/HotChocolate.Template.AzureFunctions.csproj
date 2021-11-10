@@ -10,9 +10,6 @@
   <ItemGroup>
     <Using Include="Microsoft.Azure.Functions.Extensions.DependencyInjection" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
-    <Using Include="HotChocolate" />
-    <Using Include="HotChocolate.Types" />
-    <Using Include="HotChocolate.AzureFunctions" />
     <Using Include="HotChocolate.Template.AzureFunctions" />
   </ItemGroup>
 

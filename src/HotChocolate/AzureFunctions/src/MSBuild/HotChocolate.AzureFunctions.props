@@ -1,0 +1,8 @@
+<Project>
+  <ItemGroup>
+    <Using Include="HotChocolate" />
+    <Using Include="HotChocolate.AzureFunctions" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Relay" />
+  </ItemGroup>
+</Project>
