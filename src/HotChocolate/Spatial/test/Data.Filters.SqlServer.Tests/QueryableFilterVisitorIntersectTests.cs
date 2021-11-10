@@ -58,7 +58,15 @@ namespace HotChocolate.Data.Filters.Spatial
                                     intersects: {
                                         geometry: {
                                             type: Polygon,
-                                            coordinates: [[10 10], [10 90], [90 90], [90 10], [10 10]]
+                                            coordinates: [
+                                                [
+                                                    [10 10],
+                                                    [10 90],
+                                                    [90 90],
+                                                    [90 10],
+                                                    [10 10]
+                                                ]
+                                            ]
                                         }
                                     }
                                 }
@@ -79,7 +87,15 @@ namespace HotChocolate.Data.Filters.Spatial
                                     nintersects: {
                                         geometry: {
                                             type: Polygon,
-                                            coordinates: [[10 10], [10 90], [90 90], [90 10], [10 10]]
+                                            coordinates: [
+                                                [
+                                                    [10 10],
+                                                    [10 90],
+                                                    [90 90],
+                                                    [90 10],
+                                                    [10 10]
+                                                ]
+                                            ]
                                         }
                                     }
                                 }
