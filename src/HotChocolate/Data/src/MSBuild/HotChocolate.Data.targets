@@ -4,7 +4,6 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(HotChocolateIncludes)' == 'true'">
-        <Using Include="HotChocolate" />
-        <Using Include="HotChocolate.Types" />
+        <Using Include="HotChocolate.Data" />
     </ItemGroup>
 </Project>
