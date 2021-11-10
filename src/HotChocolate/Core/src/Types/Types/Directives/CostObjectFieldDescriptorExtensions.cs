@@ -1,47 +1,46 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public static class CostObjectFieldDescriptorExtensions
 {
-    public static class CostObjectFieldDescriptorExtensions
+    public static IObjectFieldDescriptor Cost(
+        this IObjectFieldDescriptor descriptor,
+        int complexity)
     {
-        public static IObjectFieldDescriptor Cost(
-            this IObjectFieldDescriptor descriptor,
-            int complexity)
+        if (descriptor is null)
         {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            return descriptor.Directive(new CostDirective(complexity));
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IObjectFieldDescriptor Cost(
-            this IObjectFieldDescriptor descriptor,
-            int complexity,
-            MultiplierPathString multiplier)
-        {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+        return descriptor.Directive(new CostDirective(complexity));
+    }
 
-            return descriptor.Directive(
-                new CostDirective(complexity, multiplier));
+    public static IObjectFieldDescriptor Cost(
+        this IObjectFieldDescriptor descriptor,
+        int complexity,
+        MultiplierPathString multiplier)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
         }
 
-        public static IObjectFieldDescriptor Cost(
-            this IObjectFieldDescriptor descriptor,
-            int complexity,
-            params MultiplierPathString[] multipliers)
-        {
-            if (descriptor is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+        return descriptor.Directive(
+            new CostDirective(complexity, multiplier));
+    }
 
-            return descriptor.Directive(
-                new CostDirective(complexity, multipliers));
+    public static IObjectFieldDescriptor Cost(
+        this IObjectFieldDescriptor descriptor,
+        int complexity,
+        params MultiplierPathString[] multipliers)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
         }
+
+        return descriptor.Directive(
+            new CostDirective(complexity, multipliers));
     }
 }

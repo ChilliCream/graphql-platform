@@ -11,28 +11,15 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-# CSharp code style settings:
-[*.cs]
-root = true
-
-[*]
-charset = utf-8
-end_of_line = lf
-indent_size = 2
-indent_style = space
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.md]
-trim_trailing_whitespace = false
-
-# Cake build code style settings:
-[*.cake]
-indent_size = 4
+[*.{razor,cshtml}]
+charset = utf-8-bom
 
 # CSharp code style settings:
 [*.cs]
 indent_size = 4
+
+# Namespace settings
+csharp_style_namespace_declarations = file_scoped:warning
 
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:suggestion
@@ -58,8 +45,8 @@ dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 
 # Prefer "var" everywhere
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_for_built_in_types = true:warning
+csharp_style_var_when_type_is_apparent = true:warning
 csharp_style_var_elsewhere = false:suggestion
 
 # Prefer method-like constructs to have a block body
@@ -111,8 +98,6 @@ csharp_space_between_parentheses = false
 # Wrapping options
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
-
-indent_size = 4
 
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true

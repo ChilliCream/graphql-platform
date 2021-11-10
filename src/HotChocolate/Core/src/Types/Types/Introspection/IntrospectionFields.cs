@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -6,83 +6,82 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Introspection
+namespace HotChocolate.Types.Introspection;
+
+public static class IntrospectionFields
 {
-    public static class IntrospectionFields
+    /// <summary>
+    /// Gets the field name of the __typename introspection field.
+    /// </summary>
+    public static NameString TypeName => "__typename";
+
+    /// <summary>
+    /// Gets the field name of the __schema introspection field.
+    /// </summary>
+    public static NameString Schema => "__schema";
+
+    /// <summary>
+    /// Gets the field name of the __type introspection field.
+    /// </summary>
+    public static NameString Type => "__type";
+
+    internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
     {
-        /// <summary>
-        /// Gets the field name of the __typename introspection field.
-        /// </summary>
-        public static NameString TypeName => "__typename";
+        var descriptor = ObjectFieldDescriptor.New(context, Schema);
 
-        /// <summary>
-        /// Gets the field name of the __schema introspection field.
-        /// </summary>
-        public static NameString Schema => "__schema";
+        descriptor
+            .Description(TypeResources.SchemaField_Description)
+            .Type<NonNullType<__Schema>>();
 
-        /// <summary>
-        /// Gets the field name of the __type introspection field.
-        /// </summary>
-        public static NameString Type => "__type";
+        descriptor.Definition.PureResolver = Resolve;
 
-        internal static ObjectFieldDefinition CreateSchemaField(IDescriptorContext context)
+        static ISchema Resolve(IPureResolverContext ctx)
+            => ctx.Schema;
+
+        return CreateDefinition(descriptor);
+    }
+
+    internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, Type);
+
+        descriptor
+            .Description(TypeResources.TypeField_Description)
+            .Argument("name", a => a.Type<NonNullType<StringType>>())
+            .Type<__Type>()
+            .Resolve(Resolve);
+
+        descriptor.Definition.PureResolver = Resolve;
+
+        static INamedType? Resolve(IPureResolverContext ctx)
         {
-            var descriptor = ObjectFieldDescriptor.New(context, Schema);
-
-            descriptor
-                .Description(TypeResources.SchemaField_Description)
-                .Type<NonNullType<__Schema>>();
-
-            descriptor.Definition.PureResolver = Resolve;
-
-            static ISchema Resolve(IPureResolverContext ctx)
-                => ctx.Schema;
-
-            return CreateDefinition(descriptor);
+            var name = ctx.ArgumentValue<string>("name");
+            return ctx.Schema.TryGetType<INamedType>(name, out INamedType? type) ? type : null;
         }
 
-        internal static ObjectFieldDefinition CreateTypeField(IDescriptorContext context)
-        {
-            var descriptor = ObjectFieldDescriptor.New(context, Type);
+        return CreateDefinition(descriptor);
+    }
 
-            descriptor
-                .Description(TypeResources.TypeField_Description)
-                .Argument("name", a => a.Type<NonNullType<StringType>>())
-                .Type<__Type>()
-                .Resolve(Resolve);
+    internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, TypeName);
 
-            descriptor.Definition.PureResolver = Resolve;
+        descriptor
+            .Description(TypeResources.TypeNameField_Description)
+            .Type<NonNullType<StringType>>();
 
-            static INamedType? Resolve(IPureResolverContext ctx)
-            {
-                var name = ctx.ArgumentValue<string>("name");
-                return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
-            }
+        descriptor.Extend().Definition.PureResolver = Resolve;
 
-            return CreateDefinition(descriptor);
-        }
+        static string Resolve(IPureResolverContext ctx)
+            => ctx.ObjectType.Name.Value;
 
-        internal static ObjectFieldDefinition CreateTypeNameField(IDescriptorContext context)
-        {
-            var descriptor = ObjectFieldDescriptor.New(context, TypeName);
+        return CreateDefinition(descriptor);
+    }
 
-            descriptor
-                .Description(TypeResources.TypeNameField_Description)
-                .Type<NonNullType<StringType>>();
-
-            descriptor.Extend().Definition.PureResolver = Resolve;
-
-            static string Resolve(IPureResolverContext ctx)
-                => ctx.ObjectType.Name.Value;
-
-            return CreateDefinition(descriptor);
-        }
-
-        private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
-        {
-            ObjectFieldDefinition definition = descriptor.CreateDefinition();
-            definition.IsIntrospectionField = true;
-            return definition;
-        }
+    private static ObjectFieldDefinition CreateDefinition(ObjectFieldDescriptor descriptor)
+    {
+        ObjectFieldDefinition definition = descriptor.CreateDefinition();
+        definition.IsIntrospectionField = true;
+        return definition;
     }
 }

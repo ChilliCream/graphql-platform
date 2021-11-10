@@ -1,6 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
-namespace HotChocolate.Utilities
-{
-    public delegate TTo ChangeType<TFrom, TTo>([MaybeNull]TFrom source);
-}
+namespace HotChocolate.Utilities;
+
+public delegate TTo ChangeType<TFrom, TTo>([MaybeNull] TFrom source);

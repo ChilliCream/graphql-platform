@@ -2,11 +2,10 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IResultList
+    : IReadOnlyList<object?>
+    , IResultData
 {
-    public interface IResultList
-        : IReadOnlyList<object?>
-        , IResultData
-    {
-    }
 }

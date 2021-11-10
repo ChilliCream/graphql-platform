@@ -9,24 +9,24 @@ using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
-namespace HotChocolate.Types.Introspection
-{
-    [Introspection]
-    internal sealed class __EnumValue : ObjectType<IEnumValue>
-    {
-        protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-        {
-            SyntaxTypeReference stringType = Create(ScalarNames.String);
-            SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
-            SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
-            SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+namespace HotChocolate.Types.Introspection;
 
-            var def = new ObjectTypeDefinition(
-                Names.__EnumValue,
-                EnumValue_Description,
-                typeof(IEnumValue))
-            {
-                Fields =
+[Introspection]
+internal sealed class __EnumValue : ObjectType<IEnumValue>
+{
+    protected override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+    {
+        SyntaxTypeReference stringType = Create(ScalarNames.String);
+        SyntaxTypeReference nonNullStringType = Parse($"{ScalarNames.String}!");
+        SyntaxTypeReference nonNullBooleanType = Parse($"{ScalarNames.Boolean}!");
+        SyntaxTypeReference appDirectiveListType = Parse($"[{nameof(__AppliedDirective)}!]!");
+
+        var def = new ObjectTypeDefinition(
+            Names.__EnumValue,
+            EnumValue_Description,
+            typeof(IEnumValue))
+        {
+            Fields =
                 {
                     new(Names.Name, type: nonNullStringType, pureResolver: Resolvers.Name),
                     new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
@@ -35,48 +35,47 @@ namespace HotChocolate.Types.Introspection
                     new(Names.DeprecationReason, type: stringType,
                         pureResolver: Resolvers.DeprecationReason),
                 }
-            };
+        };
 
-            if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
-            {
-                def.Fields.Add(new(
-                    Names.AppliedDirectives,
-                    type: appDirectiveListType,
-                    pureResolver: Resolvers.AppliedDirectives));
-            }
-
-            return def;
-        }
-
-        private static class Resolvers
+        if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
         {
-            public static object Name(IPureResolverContext context)
-                => context.Parent<IEnumValue>().Name.Value;
-
-            public static object? Description(IPureResolverContext context)
-                => context.Parent<IEnumValue>().Description;
-
-            public static object IsDeprecated(IPureResolverContext context)
-                => context.Parent<IEnumValue>().IsDeprecated;
-
-            public static string? DeprecationReason(IPureResolverContext context)
-                => context.Parent<IEnumValue>().DeprecationReason;
-
-            public static object AppliedDirectives(IPureResolverContext context)
-                => context.Parent<IEnumValue>().Directives
-                    .Where(t => t.Type.IsPublic)
-                    .Select(d => d.ToNode());
+            def.Fields.Add(new(
+                Names.AppliedDirectives,
+                type: appDirectiveListType,
+                pureResolver: Resolvers.AppliedDirectives));
         }
 
-        public static class Names
-        {
-            public const string __EnumValue = "__EnumValue";
-            public const string Name = "name";
-            public const string Description = "description";
-            public const string IsDeprecated = "isDeprecated";
-            public const string DeprecationReason = "deprecationReason";
-            public const string AppliedDirectives = "appliedDirectives";
-        }
+        return def;
+    }
+
+    private static class Resolvers
+    {
+        public static object Name(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Name.Value;
+
+        public static object? Description(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Description;
+
+        public static object IsDeprecated(IPureResolverContext context)
+            => context.Parent<IEnumValue>().IsDeprecated;
+
+        public static string? DeprecationReason(IPureResolverContext context)
+            => context.Parent<IEnumValue>().DeprecationReason;
+
+        public static object AppliedDirectives(IPureResolverContext context)
+            => context.Parent<IEnumValue>().Directives
+                .Where(t => t.Type.IsPublic)
+                .Select(d => d.ToNode());
+    }
+
+    public static class Names
+    {
+        public const string __EnumValue = "__EnumValue";
+        public const string Name = "name";
+        public const string Description = "description";
+        public const string IsDeprecated = "isDeprecated";
+        public const string DeprecationReason = "deprecationReason";
+        public const string AppliedDirectives = "appliedDirectives";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

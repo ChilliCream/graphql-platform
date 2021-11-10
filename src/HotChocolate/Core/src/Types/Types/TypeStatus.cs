@@ -1,11 +1,10 @@
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+internal enum TypeStatus
 {
-    internal enum TypeStatus
-    {
-        Uninitialized,
-        Initialized,
-        Named,
-        Completed,
-        Finalized
-    }
+    Uninitialized,
+    Initialized,
+    Named,
+    Completed,
+    Finalized
 }

@@ -4,144 +4,143 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed partial class RegisteredType : ITypeCompletionContext
 {
-    internal sealed partial class RegisteredType : ITypeCompletionContext
+    private TypeReferenceResolver? _typeReferenceResolver;
+    private Func<ISchema>? _schemaResolver;
+
+    public TypeStatus Status { get; set; } = TypeStatus.Initialized;
+
+    /// <inheritdoc />
+    public bool? IsQueryType { get; set; }
+
+    /// <inheritdoc />
+    public bool? IsMutationType { get; set; }
+
+    /// <inheritdoc />
+    public bool? IsSubscriptionType { get; set; }
+
+    /// <summary>
+    /// Global middleware components.
+    /// </summary>
+    public List<FieldMiddleware>? GlobalComponents { get; private set; }
+
+    /// <inheritdoc />
+    IReadOnlyList<FieldMiddleware> ITypeCompletionContext.GlobalComponents
+        => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)Array.Empty<FieldMiddleware>();
+
+    /// <inheritdoc />
+    public IsOfTypeFallback? IsOfType { get; private set; }
+
+    public void PrepareForCompletion(
+        TypeReferenceResolver typeReferenceResolver,
+        Func<ISchema> schemaResolver,
+        List<FieldMiddleware> globalComponents,
+        IsOfTypeFallback? isOfType)
     {
-        private TypeReferenceResolver? _typeReferenceResolver;
-        private Func<ISchema>? _schemaResolver;
+        _typeReferenceResolver = typeReferenceResolver;
+        _schemaResolver = schemaResolver;
+        GlobalComponents = globalComponents;
+        IsOfType = isOfType;
+    }
 
-        public TypeStatus Status { get; set; } = TypeStatus.Initialized;
-
-        /// <inheritdoc />
-        public bool? IsQueryType { get; set; }
-
-        /// <inheritdoc />
-        public bool? IsMutationType { get; set; }
-
-        /// <inheritdoc />
-        public bool? IsSubscriptionType { get; set; }
-
-        /// <summary>
-        /// Global middleware components.
-        /// </summary>
-        public List<FieldMiddleware>? GlobalComponents { get; private set; }
-
-        /// <inheritdoc />
-        IReadOnlyList<FieldMiddleware> ITypeCompletionContext.GlobalComponents
-            => GlobalComponents ?? (IReadOnlyList<FieldMiddleware>)Array.Empty<FieldMiddleware>();
-
-        /// <inheritdoc />
-        public IsOfTypeFallback? IsOfType { get; private set; }
-
-        public void PrepareForCompletion(
-            TypeReferenceResolver typeReferenceResolver,
-            Func<ISchema> schemaResolver,
-            List<FieldMiddleware> globalComponents,
-            IsOfTypeFallback? isOfType)
+    /// <inheritdoc />
+    public bool TryGetType<T>(
+        ITypeReference typeRef,
+        [NotNullWhen(true)] out T? type)
+        where T : IType
+    {
+        if (_typeReferenceResolver is null)
         {
-            _typeReferenceResolver = typeReferenceResolver;
-            _schemaResolver = schemaResolver;
-            GlobalComponents = globalComponents;
-            IsOfType = isOfType;
+            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        /// <inheritdoc />
-        public bool TryGetType<T>(
-            ITypeReference typeRef,
-            [NotNullWhen(true)] out T? type)
-            where T : IType
+        if (_typeReferenceResolver.TryGetType(typeRef, out IType? t) &&
+            t is T casted)
         {
-            if (_typeReferenceResolver is null)
-            {
-                throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-            }
-
-            if (_typeReferenceResolver.TryGetType(typeRef, out IType? t) &&
-                t is T casted)
-            {
-                type = casted;
-                return true;
-            }
-
-            type = default;
-            return false;
+            type = casted;
+            return true;
         }
 
-        /// <inheritdoc />
-        public T GetType<T>(ITypeReference typeRef) where T : IType
+        type = default;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public T GetType<T>(ITypeReference typeRef) where T : IType
+    {
+        if (typeRef is null)
         {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-            if (!TryGetType(typeRef, out T? type))
-            {
-                throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
-            }
-
-            return type;
+            throw new ArgumentNullException(nameof(typeRef));
         }
 
-        /// <inheritdoc />
-        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+        if (!TryGetType(typeRef, out T? type))
         {
-            if (_typeReferenceResolver is null)
-            {
-                throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-            }
-
-            return _typeReferenceResolver.GetNamedTypeReference(typeRef);
+            throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
         }
 
-        /// <inheritdoc />
-        public IEnumerable<T> GetTypes<T>() where T : IType
+        return type;
+    }
+
+    /// <inheritdoc />
+    public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+    {
+        if (_typeReferenceResolver is null)
         {
-            if (_typeReferenceResolver is null)
-            {
-                throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-            }
-
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
-            return _typeReferenceResolver.GetTypes<T>();
+            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        /// <inheritdoc />
-        public bool TryGetDirectiveType(IDirectiveReference directiveRef,
-            [NotNullWhen(true)] out DirectiveType? directiveType)
-        {
-            if (_typeReferenceResolver is null)
-            {
-                throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-            }
+        return _typeReferenceResolver.GetNamedTypeReference(typeRef);
+    }
 
-            return _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
+    /// <inheritdoc />
+    public IEnumerable<T> GetTypes<T>() where T : IType
+    {
+        if (_typeReferenceResolver is null)
+        {
+            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
         }
 
-        /// <inheritdoc />
-        public Func<ISchema> GetSchemaResolver()
+        if (Status == TypeStatus.Initialized)
         {
-            if (_schemaResolver is null)
-            {
-                throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
-            }
-
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
-            return _schemaResolver;
+            throw new NotSupportedException();
         }
+
+        return _typeReferenceResolver.GetTypes<T>();
+    }
+
+    /// <inheritdoc />
+    public bool TryGetDirectiveType(IDirectiveReference directiveRef,
+        [NotNullWhen(true)] out DirectiveType? directiveType)
+    {
+        if (_typeReferenceResolver is null)
+        {
+            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
+        }
+
+        return _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
+    }
+
+    /// <inheritdoc />
+    public Func<ISchema> GetSchemaResolver()
+    {
+        if (_schemaResolver is null)
+        {
+            throw new InvalidOperationException(RegisteredType_Completion_NotYetReady);
+        }
+
+        if (Status == TypeStatus.Initialized)
+        {
+            throw new NotSupportedException();
+        }
+
+        return _schemaResolver;
     }
 }

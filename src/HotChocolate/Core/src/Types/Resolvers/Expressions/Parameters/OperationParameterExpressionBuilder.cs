@@ -4,19 +4,18 @@ using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class OperationParameterExpressionBuilder
+    : LambdaParameterExpressionBuilder<IResolverContext, OperationDefinitionNode>
 {
-    internal sealed class OperationParameterExpressionBuilder
-        : LambdaParameterExpressionBuilder<IResolverContext, OperationDefinitionNode>
+    public OperationParameterExpressionBuilder()
+        : base(ctx => ctx.Operation)
     {
-        public OperationParameterExpressionBuilder()
-            : base(ctx => ctx.Operation)
-        {
-        }
-
-        public override ArgumentKind Kind => ArgumentKind.OperationDefinitionSyntax;
-
-        public override bool CanHandle(ParameterInfo parameter)
-            => typeof(OperationDefinitionNode) == parameter.ParameterType;
     }
+
+    public override ArgumentKind Kind => ArgumentKind.OperationDefinitionSyntax;
+
+    public override bool CanHandle(ParameterInfo parameter)
+        => typeof(OperationDefinitionNode) == parameter.ParameterType;
 }

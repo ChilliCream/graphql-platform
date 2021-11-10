@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
 {
-    public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
-    {
-        IEnumerable<IDirective> this[NameString key] { get; }
+    IEnumerable<IDirective> this[NameString key] { get; }
 
-        bool Contains(NameString key);
-    }
+    bool Contains(NameString key);
 }

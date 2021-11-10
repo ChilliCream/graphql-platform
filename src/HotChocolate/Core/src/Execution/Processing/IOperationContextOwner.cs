@@ -1,9 +1,8 @@
 using System;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal interface IOperationContextOwner : IDisposable
 {
-    internal interface IOperationContextOwner : IDisposable
-    {
-        IOperationContext OperationContext { get; }
-    }
+    IOperationContext OperationContext { get; }
 }

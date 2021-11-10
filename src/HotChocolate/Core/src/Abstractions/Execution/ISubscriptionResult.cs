@@ -1,8 +1,7 @@
-﻿namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface ISubscriptionResult
+    : IExecutionResult
+    , IResponseStream
 {
-    public interface ISubscriptionResult
-        : IExecutionResult
-        , IResponseStream
-    {
-    }
 }
