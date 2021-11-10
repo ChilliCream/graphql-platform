@@ -5,7 +5,6 @@
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

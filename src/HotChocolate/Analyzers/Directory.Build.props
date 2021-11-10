@@ -1,19 +1,6 @@
 <Project>
 
   <PropertyGroup>
-    <Product>Hot Chocolate</Product>
-    <Authors>ChilliCream authors and contributors</Authors>
-    <Company>ChilliCream Inc.</Company>
-    <Copyright>Copyright &#169; 2021 ChilliCream Inc. (Michael &amp; Rafael Staib)</Copyright>
-    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
-    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
-    <PackageTags>GraphQL ChilliCream</PackageTags>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
