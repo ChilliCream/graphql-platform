@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
-    <PackageIcon>../../website/resources/greendonut-signet.png</PackageIcon>
+    <PackageIcon>$(MSBuildThisFileDirectory)/../../website/resources/greendonut-signet.png</PackageIcon>
   </PropertyGroup>
 
 </Project>

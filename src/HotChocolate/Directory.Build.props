@@ -2,7 +2,7 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <PackageIcon>../../website/resources/hotchocolate-signet.png</PackageIcon>
+    <PackageIcon>$(MSBuildThisFileDirectory)/../../website/resources/hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
 
 </Project>
