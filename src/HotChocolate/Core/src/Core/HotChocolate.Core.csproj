@@ -24,4 +24,8 @@
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.targets" Pack="true" PackagePath="build/HotChocolate.targets" Visible="false" />
+  </ItemGroup>
+
 </Project>

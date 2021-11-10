@@ -29,4 +29,8 @@
     </Compile>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.targets" Visible="false" />
+  </ItemGroup>
+
 </Project>
