@@ -83,7 +83,7 @@ namespace HotChocolate.Types.Interceptors
 
             var list = new List<TypeDependency>();
 
-            foreach (var typeDef in _typeDefs)
+            foreach (ITypeDefinition? typeDef in _typeDefs)
             {
                 switch (typeDef)
                 {
@@ -334,7 +334,7 @@ namespace HotChocolate.Types.Interceptors
                 return;
             }
 
-            foreach (var resolverType in _resolverTypes[typeName])
+            foreach (Type? resolverType in _resolverTypes[typeName])
             {
                 CollectSourceMembers(context, resolverType);
             }
@@ -342,7 +342,7 @@ namespace HotChocolate.Types.Interceptors
 
         private void CollectSourceMembers(CompletionContext context, Type runtimeType)
         {
-            foreach (var member in _typeInspector.GetMembers(runtimeType, false))
+            foreach (MemberInfo? member in _typeInspector.GetMembers(runtimeType, false))
             {
                 NameString name = _naming.GetMemberName(member, MemberKind.ObjectField);
                 context.Members[name] = member;
@@ -358,7 +358,7 @@ namespace HotChocolate.Types.Interceptors
                 field.Type is not null &&
                 _typeReferenceResolver.TryGetType(field.Type, out IType? type))
             {
-                foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
+                foreach (ITypeDefinition? typeDef in context.TypeDefs[type.NamedType().Name])
                 {
                     if (typeDef.RuntimeType == typeof(object))
                     {
@@ -378,7 +378,7 @@ namespace HotChocolate.Types.Interceptors
                 List<ITypeDefinition>? updated = null;
                 Type? runtimeType = null;
 
-                foreach (var typeDef in context.TypeDefs[type.NamedType().Name])
+                foreach (ITypeDefinition? typeDef in context.TypeDefs[type.NamedType().Name])
                 {
                     if (typeDef.RuntimeType == typeof(object))
                     {

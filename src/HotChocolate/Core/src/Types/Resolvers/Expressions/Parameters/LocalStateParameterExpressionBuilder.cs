@@ -11,7 +11,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
     {
         public override ArgumentKind Kind => ArgumentKind.LocalState;
 
-        protected override PropertyInfo ContextDataProperty { get;  } =
+        protected override PropertyInfo ContextDataProperty { get; } =
             ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
 
         protected override MethodInfo SetStateMethod { get; } =

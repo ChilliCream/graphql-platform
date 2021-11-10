@@ -297,7 +297,7 @@ namespace HotChocolate
                 WellKnownContextData.EventMessage,
                 out var value) && value is { })
             {
-                if(value is T casted)
+                if (value is T casted)
                 {
                     return casted;
                 }

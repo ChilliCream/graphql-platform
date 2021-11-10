@@ -17,7 +17,7 @@ namespace HotChocolate
     {
         private class Error : ISchemaError
         {
-            private static readonly JsonWriterOptions _serializationOptions =  new()
+            private static readonly JsonWriterOptions _serializationOptions = new()
             {
                 Indented = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping

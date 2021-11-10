@@ -4,8 +4,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Types.Helpers.CompleteInterfacesHelper;
 
 #nullable enable
 

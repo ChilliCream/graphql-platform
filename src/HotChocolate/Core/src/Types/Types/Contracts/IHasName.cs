@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types
 {
     /// <summary>
     /// GraphQL type system members that have a name.

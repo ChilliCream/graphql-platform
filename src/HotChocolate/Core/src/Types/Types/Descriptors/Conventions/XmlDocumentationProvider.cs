@@ -124,7 +124,7 @@ namespace HotChocolate.Types.Descriptors
             foreach (XElement error in errors)
             {
                 XAttribute? code = error.Attribute(_code);
-                if (code is { }
+                if (code is { }
                     && !string.IsNullOrEmpty(error.Value)
                     && !string.IsNullOrEmpty(code.Value))
                 {
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Descriptors
                 return;
             }
 
-            foreach (var node in element.Nodes())
+            foreach (XNode? node in element.Nodes())
             {
                 var currentElement = node as XElement;
                 if (currentElement is null)
@@ -289,7 +289,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             List<XNode> children = element.Nodes().ToList();
-            foreach (var child in children.OfType<XElement>())
+            foreach (XElement? child in children.OfType<XElement>())
             {
                 if (string.Equals(child.Name.LocalName, _inheritdoc,
                     StringComparison.OrdinalIgnoreCase))
@@ -302,7 +302,7 @@ namespace HotChocolate.Types.Descriptors
 
                     if (baseMember != null)
                     {
-                        var baseDoc = GetMemberElement(baseMember);
+                        XElement? baseDoc = GetMemberElement(baseMember);
                         if (baseDoc != null)
                         {
                             object[] nodes =

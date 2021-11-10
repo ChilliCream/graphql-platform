@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownMiddleware;
-using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -161,8 +161,8 @@ namespace HotChocolate.Types.Pagination
         }
 
         public static bool TryGetNamedType(
-            ITypeInspector typeInspector, 
-            MemberInfo? member, 
+            ITypeInspector typeInspector,
+            MemberInfo? member,
             [NotNullWhen(true)] out Type? namedType)
         {
             if (member is not null &&

@@ -330,15 +330,15 @@ namespace HotChocolate
                         return objectType.Name.Equals(str.Type.NamedType().Name.Value);
                     }
                 }
-                else if(operationType == OperationType.Query)
+                else if (operationType == OperationType.Query)
                 {
                     return objectType.Name.Equals(OperationTypeNames.Query);
                 }
-                else if(operationType == OperationType.Mutation)
+                else if (operationType == OperationType.Mutation)
                 {
                     return objectType.Name.Equals(OperationTypeNames.Mutation);
                 }
-                else if(operationType == OperationType.Subscription)
+                else if (operationType == OperationType.Subscription)
                 {
                     return objectType.Name.Equals(OperationTypeNames.Subscription);
                 }

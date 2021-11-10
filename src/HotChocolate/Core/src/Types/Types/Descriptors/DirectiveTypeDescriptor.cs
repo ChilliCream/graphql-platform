@@ -224,7 +224,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             Type schemaType)
         {
-            var descriptor = New(context, schemaType);
+            DirectiveTypeDescriptor descriptor = New(context, schemaType);
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }

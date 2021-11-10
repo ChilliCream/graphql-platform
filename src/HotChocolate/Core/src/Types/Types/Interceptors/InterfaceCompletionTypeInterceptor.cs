@@ -60,7 +60,7 @@ namespace HotChocolate.Types.Interceptors
                 {
                     // if we detect that this type implements an interface,
                     // we will register it as a dependency.
-                    foreach (var typeDependency in _interfaceRuntimeTypes.Select(
+                    foreach (TypeDependency? typeDependency in _interfaceRuntimeTypes.Select(
                         t => new TypeDependency(
                             TypeReference.Create(
                                 typeInfo.Context.TypeInspector.GetType(t),
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Interceptors
         // defines if this type has a concrete runtime type.
         private bool IsRelevant(TypeInfo typeInfo)
         {
-            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef &&
+            if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef &&
                 objectDef.FieldBindingType != typeof(object))
             {
                 return true;
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Interceptors
                 _completedFields.Clear();
                 _backlog.Clear();
 
-                foreach (var interfaceRef in typeDef.Interfaces)
+                foreach (ITypeReference? interfaceRef in typeDef.Interfaces)
                 {
                     if (completionContext.TryGetType(
                         interfaceRef,
@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Interceptors
                     }
                 }
 
-                foreach (var field in typeDef.Fields)
+                foreach (InterfaceFieldDefinition? field in typeDef.Fields)
                 {
                     _completedFields.Add(field.Name);
                 }
@@ -127,13 +127,13 @@ namespace HotChocolate.Types.Interceptors
                 CompleteInterfacesAndFields(typeDef);
             }
 
-            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } }  objectTypeDef)
+            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } } objectTypeDef)
             {
                 _completed.Clear();
                 _completedFields.Clear();
                 _backlog.Clear();
 
-                foreach (var interfaceRef in objectTypeDef.Interfaces)
+                foreach (ITypeReference? interfaceRef in objectTypeDef.Interfaces)
                 {
                     if (completionContext.TryGetType(
                         interfaceRef,
@@ -144,7 +144,7 @@ namespace HotChocolate.Types.Interceptors
                     }
                 }
 
-                foreach (var field in objectTypeDef.Fields)
+                foreach (ObjectFieldDefinition? field in objectTypeDef.Fields)
                 {
                     _completedFields.Add(field.Name);
                 }
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Interceptors
 
         private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
         {
-            while(_backlog.Count > 0)
+            while (_backlog.Count > 0)
             {
                 InterfaceType current = _backlog.Dequeue();
                 TypeInfo typeInfo = _typeInfos[current];
@@ -163,7 +163,7 @@ namespace HotChocolate.Types.Interceptors
 
                 if (definition is InterfaceTypeDefinition interfaceDef)
                 {
-                    foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                    foreach (InterfaceFieldDefinition? field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
                     {
                         if (_completedFields.Add(field.Name))
                         {
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Interceptors
                     }
                 }
 
-                foreach (var interfaceType in current.Implements)
+                foreach (InterfaceType? interfaceType in current.Implements)
                 {
                     if (_completed.Add(interfaceType.Name))
                     {
@@ -213,7 +213,7 @@ namespace HotChocolate.Types.Interceptors
 
             public ITypeDiscoveryContext Context { get; }
 
-            public IComplexOutputTypeDefinition  Definition { get; }
+            public IComplexOutputTypeDefinition Definition { get; }
 
             public override string? ToString() => Definition.Name;
         }

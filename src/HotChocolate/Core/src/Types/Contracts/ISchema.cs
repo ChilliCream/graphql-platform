@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
@@ -90,7 +90,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)]out Type? runtimeType);
+        bool TryGetRuntimeType(NameString typeName, [MaybeNullWhen(false)] out Type? runtimeType);
 
         /// <summary>
         /// Gets the possible object types to
@@ -134,7 +134,7 @@ namespace HotChocolate
         /// </returns>
         bool TryGetDirectiveType(
             NameString directiveName,
-            [NotNullWhen(true)]out DirectiveType? directiveType);
+            [NotNullWhen(true)] out DirectiveType? directiveType);
 
         /// <summary>
         /// Generates a schema document.

@@ -17,7 +17,7 @@ namespace HotChocolate.Types
             _fields = fields ?? throw new ArgumentNullException(nameof(fields));
             _fieldsLookup = new Dictionary<NameString, T>(_fields.Length);
 
-            foreach (var field in _fields)
+            foreach (T? field in _fields)
             {
                 _fieldsLookup.Add(field.Name, field);
             }
@@ -36,7 +36,7 @@ namespace HotChocolate.Types
         {
             if (_fieldsLookup.TryGetValue(
                 fieldName.EnsureNotEmpty(nameof(fieldName)),
-                out var item))
+                out T? item))
             {
                 field = item;
                 return true;

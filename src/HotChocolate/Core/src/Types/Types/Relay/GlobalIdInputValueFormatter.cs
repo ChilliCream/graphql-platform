@@ -78,7 +78,7 @@ namespace HotChocolate.Types.Relay
                         list.Add(null);
                         continue;
                     }
-                    
+
                     if (!_validateType || _typeName.Equals(idv.Value.TypeName))
                     {
                         list.Add(idv.Value.Value);

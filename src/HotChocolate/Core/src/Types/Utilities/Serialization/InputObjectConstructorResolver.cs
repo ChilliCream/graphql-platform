@@ -71,7 +71,7 @@ namespace HotChocolate.Utilities.Serialization
             IReadOnlyDictionary<string, InputField> fields,
             ISet<string> required)
         {
-            foreach (var parameter in parameters)
+            foreach (ParameterInfo? parameter in parameters)
             {
                 if (fields.TryGetParameter(parameter, out InputField? field) &&
                     parameter.ParameterType == field.Property!.PropertyType)

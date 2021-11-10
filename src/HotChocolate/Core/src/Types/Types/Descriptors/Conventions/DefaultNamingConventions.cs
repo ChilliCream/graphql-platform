@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
                     return name + _inputPostfix;
                 }
 
-                if(!isInputObjectType && !isEndingInput)
+                if (!isInputObjectType && !isEndingInput)
                 {
                     return name + _inputPostfix;
                 }

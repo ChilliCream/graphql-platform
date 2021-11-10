@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Utilities.CompilerServices
+namespace HotChocolate.Utilities.CompilerServices
 {
     internal sealed class NullableContextAttribute
     {

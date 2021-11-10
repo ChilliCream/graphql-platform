@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using HotChocolate.Configuration;
-using HotChocolate.Internal;
-using HotChocolate.Properties;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -195,7 +195,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(convention));
             }
 
-            if(!_conventions.TryGetValue(
+            if (!_conventions.TryGetValue(
                 (convention, scope),
                 out List<CreateConvention>? factories))
             {

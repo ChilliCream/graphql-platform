@@ -24,7 +24,8 @@ namespace HotChocolate.Types
                 try
                 {
                     context.SetLocalValue(scopedServiceName, scopedService);
-                    await next(context).ConfigureAwait(false); ;
+                    await next(context).ConfigureAwait(false);
+                    ;
                 }
                 finally
                 {

@@ -28,7 +28,8 @@ namespace HotChocolate.Types
         public string? Name
         {
             get => _name;
-            [Obsolete("Use the new constructor.")] set => _name = value;
+            [Obsolete("Use the new constructor.")]
+            set => _name = value;
         }
 
         /// <summary>

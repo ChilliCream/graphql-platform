@@ -148,7 +148,7 @@ namespace HotChocolate.Types
                     }
                 }
 
-                foreach (var field in fields)
+                foreach (ObjectFieldDefinition? field in fields)
                 {
                     typeDef.Fields.Remove(field);
                 }

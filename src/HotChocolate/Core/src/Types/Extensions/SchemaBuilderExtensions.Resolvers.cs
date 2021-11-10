@@ -632,7 +632,7 @@ namespace HotChocolate
 
             if (resolverType is { IsClass: true } or { IsInterface: true })
             {
-                foreach (var property in resolverType.GetProperties())
+                foreach (PropertyInfo? property in resolverType.GetProperties())
                 {
                     AddResolverTypeInternal(builder, property.Name, property.PropertyType);
                 }

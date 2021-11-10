@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 
 #nullable enable
 
@@ -210,7 +210,7 @@ namespace HotChocolate.Types.Descriptors
             Convention convention,
             IList<IConventionExtension> extensions)
         {
-            foreach (var extension in extensions)
+            foreach (IConventionExtension? extension in extensions)
             {
                 if (extension is Convention extensionConvention)
                 {

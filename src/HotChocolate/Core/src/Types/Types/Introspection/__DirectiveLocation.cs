@@ -1,8 +1,8 @@
 #pragma warning disable IDE1006 // Naming Styles
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
-using Lang = HotChocolate.Language.DirectiveLocation;
 using static HotChocolate.Properties.TypeResources;
+using Lang = HotChocolate.Language.DirectiveLocation;
 
 #nullable enable
 namespace HotChocolate.Types.Introspection

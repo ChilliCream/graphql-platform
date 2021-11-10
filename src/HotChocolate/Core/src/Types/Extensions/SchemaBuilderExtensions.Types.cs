@@ -718,7 +718,7 @@ namespace HotChocolate
 
             return BindRuntimeTypeInternal(builder, typeName.Value, runtimeType);
         }
-        
+
         public static void TryBindRuntimeType(
             this IDescriptorContext context,
             NameString typeName,

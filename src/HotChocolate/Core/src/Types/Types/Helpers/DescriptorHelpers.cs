@@ -1,4 +1,4 @@
-﻿using HotChocolate.Internal;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Helpers
                 return true;
             }
 
-            return typeReference is ExtendedTypeReference clr && 
+            return typeReference is ExtendedTypeReference clr &&
                 !clr.Type.IsSchemaType;
         }
 

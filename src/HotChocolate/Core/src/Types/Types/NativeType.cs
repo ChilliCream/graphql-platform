@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types
 {
     internal class NativeType<T> : FluentWrapperType
     {

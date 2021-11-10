@@ -99,7 +99,7 @@ namespace HotChocolate.Types
                     return true;
                 }
             }
-            else if(Guid.TryParse(valueSyntax.Value, out _))
+            else if (Guid.TryParse(valueSyntax.Value, out _))
             {
                 return true;
             }
@@ -119,7 +119,7 @@ namespace HotChocolate.Types
                     return g;
                 }
             }
-            else if(Guid.TryParse(valueSyntax.Value, out Guid g))
+            else if (Guid.TryParse(valueSyntax.Value, out Guid g))
             {
                 return g;
             }

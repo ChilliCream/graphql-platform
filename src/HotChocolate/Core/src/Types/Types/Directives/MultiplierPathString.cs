@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
-using HotChocolate.Properties;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {

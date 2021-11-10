@@ -4,8 +4,8 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 

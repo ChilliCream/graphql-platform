@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -13,8 +12,9 @@ using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
-using static HotChocolate.Types.WellKnownContextData;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Properties.TypeResources;
+using static HotChocolate.Types.WellKnownContextData;
 
 #nullable enable
 
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Relay
             context.SetLocalValue(InternalType, typeName);
             context.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
 
-            if (context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
+            if (context.Schema.TryGetType<ObjectType>(typeName, out ObjectType? type) &&
                 type.ContextData.TryGetValue(NodeResolver, out var o) &&
                 o is FieldResolverDelegate resolver)
             {
@@ -149,7 +149,7 @@ namespace HotChocolate.Types.Relay
                         context.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
 
                         tasks[i] =
-                            context.Schema.TryGetType<ObjectType>(typeName, out var type) &&
+                            context.Schema.TryGetType<ObjectType>(typeName, out ObjectType? type) &&
                             type.ContextData.TryGetValue(NodeResolver, out var o) &&
                             o is FieldResolverDelegate resolver
                                 ? resolver.Invoke(context).AsTask()

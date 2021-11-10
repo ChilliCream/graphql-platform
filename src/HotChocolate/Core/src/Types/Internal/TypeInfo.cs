@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types;
@@ -146,7 +146,7 @@ namespace HotChocolate.Internal
         }
 
         private static TypeInfo CreateInternal(
-            IExtendedType type, 
+            IExtendedType type,
             Type originalType,
             TypeCache cache)
         {

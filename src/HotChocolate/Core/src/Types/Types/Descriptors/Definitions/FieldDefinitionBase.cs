@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.CopyTo(target);
 
-            if (_directives is { Count: > 0})
+            if (_directives is { Count: > 0 })
             {
                 target._directives = new List<DirectiveDefinition>(_directives);
             }
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.MergeInto(target);
 
-            if (_directives is { Count: > 0})
+            if (_directives is { Count: > 0 })
             {
                 target._directives ??= new List<DirectiveDefinition>();
                 target._directives.AddRange(_directives);

@@ -1,8 +1,8 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Configuration;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Helpers;
 
 #nullable enable

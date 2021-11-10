@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)]out T runtimeValue)
+        public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out T runtimeValue)
         {
             if (base.TryGetRuntimeValue(name, out object? rv) &&
                 rv is T casted)

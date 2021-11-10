@@ -39,6 +39,6 @@ namespace HotChocolate.Utilities
             Type source,
             Type target,
             ChangeTypeProvider root,
-            [NotNullWhen(true)]out ChangeType? converter);
+            [NotNullWhen(true)] out ChangeType? converter);
     }
 }

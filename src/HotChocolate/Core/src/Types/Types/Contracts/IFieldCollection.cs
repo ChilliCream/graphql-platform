@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -19,10 +19,10 @@ namespace HotChocolate.Types
         public static bool TryGetField<T>(
             this IFieldCollection<T> collection,
             NameString fieldName,
-            [NotNullWhen(true)]out T? field)
+            [NotNullWhen(true)] out T? field)
             where T : class, IField
         {
-            if(collection is FieldCollection<T> fc)
+            if (collection is FieldCollection<T> fc)
             {
                 return fc.TryGetField(fieldName, out field);
             }

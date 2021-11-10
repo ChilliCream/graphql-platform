@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using HotChocolate.Types;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 
 #nullable enable
 

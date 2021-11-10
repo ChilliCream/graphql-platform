@@ -205,7 +205,7 @@ namespace HotChocolate.Types
                 var fields = new List<ObjectFieldNode>();
                 var processed = 0;
 
-                foreach (var field in type.Fields)
+                foreach (InputField? field in type.Fields)
                 {
                     if (map.TryGetValue(field.Name, out var fieldValue))
                     {

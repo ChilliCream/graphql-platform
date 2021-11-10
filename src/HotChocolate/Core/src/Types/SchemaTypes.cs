@@ -27,7 +27,7 @@ namespace HotChocolate
         public ObjectType QueryType { get; }
 
         public ObjectType MutationType { get; }
-        
+
         public ObjectType SubscriptionType { get; }
 
         public T GetType<T>(NameString typeName) where T : IType

@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types
 {
     /// <summary>
     /// Represents a GraphQL output type which has a name.

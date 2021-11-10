@@ -83,7 +83,7 @@ namespace HotChocolate.Types
             }
             else
             {
-                
+
                 descriptor.Extend().OnBeforeCreate(d =>
                 {
                     MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(

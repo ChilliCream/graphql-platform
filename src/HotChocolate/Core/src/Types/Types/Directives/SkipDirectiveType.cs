@@ -1,4 +1,4 @@
-﻿using HotChocolate.Properties;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {

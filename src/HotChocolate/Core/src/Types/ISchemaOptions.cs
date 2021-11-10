@@ -38,10 +38,10 @@ namespace HotChocolate
         /// </summary>
         new bool UseXmlDocumentation { get; set; }
 
-         /// <summary>
-         /// A delegate which resolves the name of the XML documentation file to be read.
-         /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
-         /// </summary>
+        /// <summary>
+        /// A delegate which resolves the name of the XML documentation file to be read.
+        /// Only used if <seealso cref="UseXmlDocumentation"/> is true.
+        /// </summary>
         new Func<Assembly, string>? ResolveXmlDocumentationFileName { get; set; }
 
         /// <summary>

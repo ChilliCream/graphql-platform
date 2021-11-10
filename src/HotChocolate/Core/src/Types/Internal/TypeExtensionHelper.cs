@@ -132,7 +132,7 @@ namespace HotChocolate.Internal
                 }
                 else
                 {
-                    var entry = directives.FirstOrDefault(t => t.type == directiveType);
+                    (DirectiveType type, DirectiveDefinition def) entry = directives.FirstOrDefault(t => t.type == directiveType);
                     if (entry == default)
                     {
                         directives.Add((directiveType, directive));

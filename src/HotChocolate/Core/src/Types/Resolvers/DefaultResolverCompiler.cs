@@ -375,7 +375,7 @@ namespace HotChocolate.Resolvers
             ParameterInfo parameter,
             IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
         {
-            if (_cache.TryGetValue(parameter, out var cached))
+            if (_cache.TryGetValue(parameter, out IParameterExpressionBuilder? cached))
             {
                 return cached;
             }

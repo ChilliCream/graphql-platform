@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 
@@ -9,9 +9,9 @@ namespace HotChocolate.Utilities
     public class NullableTypeConverter : IChangeTypeProvider
     {
         public bool TryCreateConverter(
-            Type source, 
-            Type target, 
-            ChangeTypeProvider root, 
+            Type source,
+            Type target,
+            ChangeTypeProvider root,
             [NotNullWhen(true)] out ChangeType? converter)
         {
             Type innerFrom = GetUnderlyingNullableType(source);

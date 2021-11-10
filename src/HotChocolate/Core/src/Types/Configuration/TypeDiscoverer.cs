@@ -142,7 +142,7 @@ DISCOVER:
         {
             while (_unregistered.Count > 0)
             {
-                foreach (var typeRef in _unregistered)
+                foreach (ITypeReference? typeRef in _unregistered)
                 {
                     _handlers[(int)typeRef.Kind].Handle(_typeRegistrar, typeRef);
                 }
@@ -156,7 +156,7 @@ DISCOVER:
         {
             var inferred = false;
 
-            foreach (var typeRef in _typeRegistrar.Unresolved)
+            foreach (ITypeReference? typeRef in _typeRegistrar.Unresolved)
             {
                 if (typeRef is ExtendedTypeReference unresolvedType)
                 {

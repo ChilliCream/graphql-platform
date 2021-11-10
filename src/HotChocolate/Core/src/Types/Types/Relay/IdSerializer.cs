@@ -1,7 +1,7 @@
 using System;
-using System.Text;
 using System.Buffers;
 using System.Buffers.Text;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 

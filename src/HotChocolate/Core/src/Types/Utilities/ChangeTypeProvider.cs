@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.Utilities
 {
     public delegate bool ChangeTypeProvider(
-        Type source, 
-        Type target, 
-        [NotNullWhen(true)]out ChangeType? converter);
+        Type source,
+        Type target,
+        [NotNullWhen(true)] out ChangeType? converter);
 }

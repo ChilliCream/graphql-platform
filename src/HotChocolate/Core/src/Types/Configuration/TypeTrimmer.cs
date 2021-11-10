@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<TypeSystemObjectBase> Trim()
         {
-            foreach (var directiveType in _discoveredTypes.OfType<DirectiveType>())
+            foreach (DirectiveType? directiveType in _discoveredTypes.OfType<DirectiveType>())
             {
                 if (directiveType.IsExecutableDirective ||
                     directiveType.Name.Equals(WellKnownDirectives.Deprecated))

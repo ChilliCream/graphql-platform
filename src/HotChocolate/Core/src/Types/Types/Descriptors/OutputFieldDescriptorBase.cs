@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(Type type)
         {
-            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
+            Internal.ITypeInfo? typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
             if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
             {

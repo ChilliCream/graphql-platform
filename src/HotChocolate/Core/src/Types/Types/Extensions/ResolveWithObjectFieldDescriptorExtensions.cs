@@ -41,7 +41,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
+            UnaryExpression? convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
             var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,
                 propertyOrMethod.Parameters);
 
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            var convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
+            UnaryExpression? convertedBody = Expression.Convert(propertyOrMethod.Body, typeof(object));
             var newExpression = Expression.Lambda<Func<TResolver, object?>>(convertedBody,
                 propertyOrMethod.Parameters);
 

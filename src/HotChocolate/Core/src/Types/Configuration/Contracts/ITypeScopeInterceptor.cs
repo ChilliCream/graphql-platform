@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 

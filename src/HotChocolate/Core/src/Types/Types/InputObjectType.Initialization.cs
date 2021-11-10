@@ -5,8 +5,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 using static HotChocolate.Internal.FieldInitHelper;
+using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 #nullable enable
 
@@ -123,7 +123,7 @@ namespace HotChocolate.Types
         {
             var dictionary = new Dictionary<string, object?>();
 
-            foreach (var field in Fields)
+            foreach (InputField? field in Fields)
             {
                 dictionary.Add(field.Name, fieldValues[field.Index]);
             }
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
         {
             var map = (Dictionary<string, object?>)obj;
 
-            foreach (var field in Fields)
+            foreach (InputField? field in Fields)
             {
                 if (map.TryGetValue(field.Name, out var val))
                 {

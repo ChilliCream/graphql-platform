@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types
 {
     /// <summary>
     /// These constants represent well-known names for the operation types.

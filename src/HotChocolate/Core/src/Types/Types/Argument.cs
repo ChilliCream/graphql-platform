@@ -83,7 +83,7 @@ namespace HotChocolate.Types
             }
 
             base.OnCompleteField(context, declaringMember, definition);
-;
+            ;
             Type = context.GetType<IInputType>(definition.Type!);
             _runtimeType = definition.Parameter?.ParameterType!;
             _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);

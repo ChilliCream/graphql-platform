@@ -7,7 +7,7 @@ namespace HotChocolate.Utilities
         public static bool TryConvert(
             this ITypeConverter typeConverter,
             Type to,
-            object source, 
+            object source,
             out object converted) =>
             typeConverter.TryConvert(typeof(object), to, source, out converted);
 

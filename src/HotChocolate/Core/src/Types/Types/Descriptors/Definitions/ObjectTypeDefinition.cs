@@ -179,7 +179,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target.Fields.Clear();
 
-                foreach (var field in Fields)
+                foreach (ObjectFieldDefinition? field in Fields)
                 {
                     target.Fields.Add(field);
                 }
@@ -212,7 +212,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 target._fieldIgnores.AddRange(_fieldIgnores);
             }
 
-            foreach (var field in Fields)
+            foreach (ObjectFieldDefinition? field in Fields)
             {
                 ObjectFieldDefinition? targetField = field switch
                 {

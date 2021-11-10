@@ -1,8 +1,8 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Internal;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 

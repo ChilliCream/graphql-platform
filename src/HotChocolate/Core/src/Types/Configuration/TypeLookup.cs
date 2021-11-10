@@ -99,7 +99,7 @@ namespace HotChocolate.Configuration
             if (directiveRef is NameDirectiveReference nr)
             {
                 namedTypeRef = _typeRegistry.Types
-                    .FirstOrDefault(t =>t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
+                    .FirstOrDefault(t => t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
                     .References[0];
                 return namedTypeRef is not null;
             }

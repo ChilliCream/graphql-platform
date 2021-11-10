@@ -1,8 +1,8 @@
-﻿using System.Linq;
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 

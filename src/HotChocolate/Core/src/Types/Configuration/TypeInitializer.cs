@@ -258,15 +258,17 @@ namespace HotChocolate.Configuration
 
                 var extensionArray = new RegisteredType[1];
 
-                foreach (var extension in extensions.Except(processed))
+                foreach (RegisteredType? extension in extensions.Except(processed))
                 {
-                    if (extension.Type is INamedTypeExtension {
-                        ExtendsType: { } extendsType } namedTypeExtension)
+                    if (extension.Type is INamedTypeExtension
+                        {
+                            ExtendsType: { } extendsType
+                        } namedTypeExtension)
                     {
                         var isSchemaType = typeof(INamedType).IsAssignableFrom(extendsType);
                         extensionArray[0] = extension;
 
-                        foreach (var possibleMatchingType in types
+                        foreach (RegisteredType? possibleMatchingType in types
                             .Where(t =>
                                 t.Type is INamedType n &&
                                 n.Kind == namedTypeExtension.Kind))
@@ -364,7 +366,7 @@ namespace HotChocolate.Configuration
 
         private void FinalizeTypes()
         {
-            foreach (var registeredType in _typeRegistry.Types)
+            foreach (RegisteredType? registeredType in _typeRegistry.Types)
             {
                 if (!registeredType.IsExtension)
                 {
@@ -441,12 +443,12 @@ namespace HotChocolate.Configuration
         {
             _next.Clear();
 
-            foreach (var registeredType in _typeRegistry.Types)
+            foreach (RegisteredType? registeredType in _typeRegistry.Types)
             {
                 var conditional = false;
                 registeredType.ClearConditionals();
 
-                foreach (var dependency in registeredType.Dependencies)
+                foreach (TypeDependency? dependency in registeredType.Dependencies)
                 {
                     if (dependency.Kind == kind)
                     {
@@ -471,7 +473,7 @@ namespace HotChocolate.Configuration
         {
             foreach (RegisteredType type in _next)
             {
-                if (TryNormalizeDependencies(type.Conditionals, out var normalized) &&
+                if (TryNormalizeDependencies(type.Conditionals, out IReadOnlyList<ITypeReference>? normalized) &&
                     processed.IsSupersetOf(GetTypeRefsExceptSelfRefs(type, normalized)))
                 {
                     yield return type;
@@ -498,7 +500,7 @@ namespace HotChocolate.Configuration
                 _typeRefSet.Clear();
                 _typeRefSet.UnionWith(type.References);
 
-                foreach (var typeRef in normalizedTypeReferences)
+                foreach (ITypeReference? typeRef in normalizedTypeReferences)
                 {
                     if (_typeRefSet.Add(typeRef))
                     {

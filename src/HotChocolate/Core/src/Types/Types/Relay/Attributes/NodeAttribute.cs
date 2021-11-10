@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Relay
                     if (definition.Fields.Any(
                         t => t.Member == method || t.ResolverMember == method))
                     {
-                        foreach (var fieldDefinition in definition.Fields
+                        foreach (ObjectFieldDefinition? fieldDefinition in definition.Fields
                             .Where(t => t.Member == method || t.ResolverMember == method)
                             .ToArray())
                         {

@@ -6,6 +6,6 @@ using HotChocolate.Language;
 namespace HotChocolate
 {
     public delegate ValueTask<DocumentNode> LoadDocumentAsync(
-        IServiceProvider services, 
+        IServiceProvider services,
         CancellationToken cancellationToken);
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Introspection
             static INamedType? Resolve(IPureResolverContext ctx)
             {
                 var name = ctx.ArgumentValue<string>("name");
-                return ctx.Schema.TryGetType<INamedType>(name, out var type) ? type : null;
+                return ctx.Schema.TryGetType<INamedType>(name, out INamedType? type) ? type : null;
             }
 
             return CreateDefinition(descriptor);

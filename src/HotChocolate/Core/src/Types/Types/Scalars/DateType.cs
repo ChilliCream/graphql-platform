@@ -126,7 +126,7 @@ namespace HotChocolate.Types
 
         private static bool TryDeserializeFromString(
             string? serialized,
-            [NotNullWhen(true)]out DateTime? value)
+            [NotNullWhen(true)] out DateTime? value)
         {
             if (DateTime.TryParse(
                serialized,

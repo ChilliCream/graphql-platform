@@ -60,7 +60,7 @@ namespace HotChocolate.Configuration
         public IEnumerable<ITypeReference> RegisterMoreTypes(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts) =>
             Enumerable.Empty<ITypeReference>();
-        
+
         public void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,

@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers
 {
     public interface IDirectiveMiddleware
     {

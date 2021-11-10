@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Descriptors;

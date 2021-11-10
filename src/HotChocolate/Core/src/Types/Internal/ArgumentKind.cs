@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Internal
+namespace HotChocolate.Internal
 {
     /// <summary>
     /// Specifies resolver parameter kind.

@@ -18,7 +18,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(ExpressionHelper).GetMethod(
                 nameof(ExpressionHelper.GetScopedStateWithDefault))!;
 
-        protected virtual PropertyInfo ContextDataProperty { get;  } =
+        protected virtual PropertyInfo ContextDataProperty { get; } =
             ContextType.GetProperty(nameof(IResolverContext.ScopedContextData))!;
 
         protected virtual MethodInfo SetStateMethod { get; } =

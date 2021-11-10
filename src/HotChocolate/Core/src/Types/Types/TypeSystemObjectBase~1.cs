@@ -159,7 +159,7 @@ namespace HotChocolate.Types
         {
             OnBeforeRegisterDependencies(context, definition, definition.ContextData);
 
-            foreach (var configuration in definition.GetConfigurations())
+            foreach (ITypeSystemMemberConfiguration? configuration in definition.GetConfigurations())
             {
                 foreach (TypeDependency dependency in configuration.Dependencies)
                 {

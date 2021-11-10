@@ -37,6 +37,6 @@ namespace HotChocolate.Types
         /// </returns>
         bool TryGetRuntimeValue(
             NameString name,
-            [NotNullWhen(true)]out object? runtimeValue);
+            [NotNullWhen(true)] out object? runtimeValue);
     }
 }

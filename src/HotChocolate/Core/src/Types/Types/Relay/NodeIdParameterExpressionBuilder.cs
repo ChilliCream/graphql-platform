@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Relay
     {
         public override ArgumentKind Kind => ArgumentKind.LocalState;
 
-        protected override PropertyInfo ContextDataProperty { get;  } =
+        protected override PropertyInfo ContextDataProperty { get; } =
             ParameterExpressionBuilderHelpers.ContextType.GetProperty(nameof(IResolverContext.LocalContextData))!;
 
         protected override MethodInfo SetStateMethod

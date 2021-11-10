@@ -40,7 +40,7 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
-         /// <summary>
+        /// <summary>
         /// Specifies the type of an object field with GraphQL SDL type syntax.
         /// </summary>
         /// <param name="descriptor">

@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             {
                 target.Fields.Clear();
 
-                foreach (var field in Fields)
+                foreach (InputFieldDefinition? field in Fields)
                 {
                     target.Fields.Add(field);
                 }
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         {
             base.MergeInto(target);
 
-            foreach (var field in Fields)
+            foreach (InputFieldDefinition? field in Fields)
             {
                 InputFieldDefinition? targetField =
                     target.Fields.FirstOrDefault(t => field.Name.Equals(t.Name));
