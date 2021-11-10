@@ -2,15 +2,15 @@
   "SourceFiles": [
     {
       "Name": "CompanyName.Neo4J.Foo.cs",
-      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"1.0.0.0\")]\n    public partial class Foo\n    {\n        public global::System.String Title\n        {\n            get;\n            set;\n        }\n\n        public global::System.Int32 Year\n        {\n            get;\n            set;\n        }\n\n        public global::System.Double ImdbRating\n        {\n            get;\n            set;\n        }\n\n        public global::CompanyName.Neo4J.Baz Baz\n        {\n            get;\n            set;\n        }\n\n        public global::System.String Quox\n        {\n            get;\n            set;\n        }\n    }\n}"
+      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"0.0.0.0\")]\n    public partial class Foo\n    {\n        public global::System.String Title\n        {\n            get;\n            set;\n        }\n\n        public global::System.Int32 Year\n        {\n            get;\n            set;\n        }\n\n        public global::System.Double ImdbRating\n        {\n            get;\n            set;\n        }\n\n        public global::CompanyName.Neo4J.Baz Baz\n        {\n            get;\n            set;\n        }\n\n        public global::System.String Quox\n        {\n            get;\n            set;\n        }\n    }\n}"
     },
     {
       "Name": "CompanyName.Neo4J.Actor.cs",
-      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"1.0.0.0\")]\n    public partial class Actor\n    {\n        public global::System.String Name\n        {\n            get;\n            set;\n        }\n    }\n}"
+      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"0.0.0.0\")]\n    public partial class Actor\n    {\n        public global::System.String Name\n        {\n            get;\n            set;\n        }\n    }\n}"
     },
     {
       "Name": "CompanyName.Neo4J.Baz.cs",
-      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"1.0.0.0\")]\n    public partial class Baz\n    {\n        public global::System.String Foo\n        {\n            get;\n            set;\n        }\n    }\n}"
+      "Source": "namespace CompanyName.Neo4J\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"0.0.0.0\")]\n    public partial class Baz\n    {\n        public global::System.String Foo\n        {\n            get;\n            set;\n        }\n    }\n}"
     },
     {
       "Name": "CompanyName.Neo4J.Query.cs",
@@ -18,7 +18,7 @@
     },
     {
       "Name": "Microsoft.Extensions.DependencyInjection.MyNeo4JRequestExecutorBuilderExtensions.cs",
-      "Source": "namespace Microsoft.Extensions.DependencyInjection\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"1.0.0.0\")]\n    public static partial class MyNeo4JRequestExecutorBuilderExtensions\n    {\n        public static global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder AddMyNeo4JTypes(this global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder)\n        {\n            global::Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.AddTypeExtension<global::CompanyName.Neo4J.Query>(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JFiltering(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JSorting(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JProjections(builder);\n            return builder;\n        }\n    }\n}"
+      "Source": "namespace Microsoft.Extensions.DependencyInjection\n{\n    [global::System.CodeDom.Compiler.GeneratedCode(\"HotChocolate\", \"0.0.0.0\")]\n    public static partial class MyNeo4JRequestExecutorBuilderExtensions\n    {\n        public static global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder AddMyNeo4JTypes(this global::HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder)\n        {\n            global::Microsoft.Extensions.DependencyInjection.SchemaRequestExecutorBuilderExtensions.AddTypeExtension<global::CompanyName.Neo4J.Query>(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JFiltering(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JSorting(builder);\n            global::HotChocolate.Data.Neo4J.Neo4JDataRequestBuilderExtensions.AddNeo4JProjections(builder);\n            return builder;\n        }\n    }\n}"
     }
   ]
 }
