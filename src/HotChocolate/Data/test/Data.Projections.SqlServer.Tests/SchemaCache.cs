@@ -18,7 +18,8 @@ namespace HotChocolate.Data.Projections
             bool usePaging = false,
             bool useOffsetPaging = false,
             INamedType? objectType = null,
-            Action<ISchemaBuilder>? configure = null)
+            Action<ISchemaBuilder>? configure = null,
+            Type? schemaType = null)
             where T : class
         {
             (Type, T[] entites) key = (typeof(T), entities);
@@ -30,7 +31,8 @@ namespace HotChocolate.Data.Projections
                     useOffsetPaging: useOffsetPaging,
                     onModelCreating: onModelCreating,
                     objectType: objectType,
-                    configure: configure));
+                    configure: configure,
+                    schemaType: schemaType));
         }
 
         public void Dispose()
