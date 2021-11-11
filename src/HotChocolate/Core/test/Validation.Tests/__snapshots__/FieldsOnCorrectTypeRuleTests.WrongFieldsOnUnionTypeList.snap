@@ -5,26 +5,26 @@
     "Path": {
       "Parent": null,
       "Depth": 0,
-      "Name": "catOrDog"
+      "Name": "list"
     },
     "Locations": [
       {
-        "Line": 2,
-        "Column": 73
+        "Line": 3,
+        "Column": 26
       }
     ],
     "Extensions": {
-      "type": "CatOrDog",
+      "type": "Foo",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
     },
     "Exception": null,
     "SyntaxNode": {
       "Kind": "SelectionSet",
       "Location": {
-        "Start": 73,
-        "End": 140,
-        "Line": 2,
-        "Column": 73
+        "Start": 50,
+        "End": 119,
+        "Line": 3,
+        "Column": 26
       },
       "Selections": [
         {
@@ -33,20 +33,20 @@
           "Arguments": [],
           "SelectionSet": null,
           "Location": {
-            "Start": 95,
-            "End": 117,
-            "Line": 3,
-            "Column": 21
+            "Start": 76,
+            "End": 101,
+            "Line": 4,
+            "Column": 25
           },
           "Name": {
             "Kind": "Name",
             "Location": {
-              "Start": 95,
-              "End": 117,
-              "Line": 3,
-              "Column": 21
+              "Start": 76,
+              "End": 101,
+              "Line": 4,
+              "Column": 25
             },
-            "Value": "name"
+            "Value": "qux"
           },
           "Directives": []
         }

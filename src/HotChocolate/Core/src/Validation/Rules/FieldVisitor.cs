@@ -127,10 +127,10 @@ namespace HotChocolate.Validation.Rules
             IDocumentValidatorContext context)
         {
             if (context.Types.TryPeek(out IType type) &&
-                type.NamedType().Kind == TypeKind.Union &&
+                type.NamedType() is { Kind: TypeKind.Union } unionType &&
                 HasFields(node))
             {
-                context.Errors.Add(context.UnionFieldError(node, (UnionType)type));
+                context.Errors.Add(context.UnionFieldError(node, (UnionType)unionType));
                 return Skip;
             }
 
