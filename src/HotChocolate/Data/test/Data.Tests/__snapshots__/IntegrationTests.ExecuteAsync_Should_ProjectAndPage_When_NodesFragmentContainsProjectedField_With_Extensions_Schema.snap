@@ -11,6 +11,7 @@ type Author {
   id: Int!
   name: String
   books: [Book!]!
+  publishers: [Publisher!]!
 }
 
 type Book implements Node {
@@ -18,6 +19,7 @@ type Book implements Node {
   authorId: Int!
   title: String
   author: Author
+  publisher: Publisher
 }
 
 "A connection to a list of items."
@@ -50,6 +52,15 @@ type PageInfo {
   endCursor: String
 }
 
+type Publisher {
+  id: Int!
+  name: String!
+  address: String!
+  zipcode: String!
+  books: [Book!]!
+  authors: [Author!]!
+}
+
 type Query {
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node
@@ -64,6 +75,7 @@ input AuthorFilterInput {
   id: ComparableInt32OperationFilterInput
   name: StringOperationFilterInput
   books: ListFilterInputTypeOfBookFilterInput
+  publishers: ListFilterInputTypeOfPublisherFilterInput
 }
 
 input AuthorSortInput {
@@ -78,6 +90,7 @@ input BookFilterInput {
   authorId: ComparableInt32OperationFilterInput
   title: StringOperationFilterInput
   author: AuthorFilterInput
+  publisher: PublisherFilterInput
 }
 
 input BookSortInput {
@@ -85,6 +98,7 @@ input BookSortInput {
   authorId: SortEnumType
   title: SortEnumType
   author: AuthorSortInput
+  publisher: PublisherSortInput
 }
 
 input ComparableInt32OperationFilterInput {
@@ -102,11 +116,43 @@ input ComparableInt32OperationFilterInput {
   nlte: Int
 }
 
+input ListFilterInputTypeOfAuthorFilterInput {
+  all: AuthorFilterInput
+  none: AuthorFilterInput
+  some: AuthorFilterInput
+  any: Boolean
+}
+
 input ListFilterInputTypeOfBookFilterInput {
   all: BookFilterInput
   none: BookFilterInput
   some: BookFilterInput
   any: Boolean
+}
+
+input ListFilterInputTypeOfPublisherFilterInput {
+  all: PublisherFilterInput
+  none: PublisherFilterInput
+  some: PublisherFilterInput
+  any: Boolean
+}
+
+input PublisherFilterInput {
+  and: [PublisherFilterInput!]
+  or: [PublisherFilterInput!]
+  id: ComparableInt32OperationFilterInput
+  name: StringOperationFilterInput
+  address: StringOperationFilterInput
+  zipcode: StringOperationFilterInput
+  books: ListFilterInputTypeOfBookFilterInput
+  authors: ListFilterInputTypeOfAuthorFilterInput
+}
+
+input PublisherSortInput {
+  id: SortEnumType
+  name: SortEnumType
+  address: SortEnumType
+  zipcode: SortEnumType
 }
 
 input StringOperationFilterInput {
