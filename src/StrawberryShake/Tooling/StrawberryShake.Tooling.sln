@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.Tools.Confi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.Tools.Configuration.Tests", "test\Configuration.Tests\StrawberryShake.Tools.Configuration.Tests.csproj", "{C44805BC-37C6-484A-B86C-5565A627474B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrawberryShake.Tools.Tests", "test\StrawberryShake.Tools.Tests\StrawberryShake.Tools.Tests.csproj", "{918ACF33-98B5-4779-B959-F87E0493CA5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,7 @@ Global
 		{155E7E1E-E901-49F8-BFFB-56916FE34E69} = {C4F3ABC5-4596-4E1C-847A-2BBC1A7CBB00}
 		{C39020B6-E59E-47DB-AF09-824E7294CD87} = {B66A4E35-31A4-4412-BB5F-D0EE73C47D3D}
 		{C44805BC-37C6-484A-B86C-5565A627474B} = {7154A2B5-8CBD-402E-95D5-84519C5DEDF0}
+		{918ACF33-98B5-4779-B959-F87E0493CA5E} = {7154A2B5-8CBD-402E-95D5-84519C5DEDF0}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{2DEE304E-BB41-42FF-A7F3-7497F1AB94AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -222,5 +225,17 @@ Global
 		{C44805BC-37C6-484A-B86C-5565A627474B}.Release|x64.Build.0 = Release|Any CPU
 		{C44805BC-37C6-484A-B86C-5565A627474B}.Release|x86.ActiveCfg = Release|Any CPU
 		{C44805BC-37C6-484A-B86C-5565A627474B}.Release|x86.Build.0 = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|x64.Build.0 = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Debug|x86.Build.0 = Debug|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|x64.ActiveCfg = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|x64.Build.0 = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|x86.ActiveCfg = Release|Any CPU
+		{918ACF33-98B5-4779-B959-F87E0493CA5E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
