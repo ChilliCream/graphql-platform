@@ -6,17 +6,22 @@
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Product>Hot Chocolate</Product>
     <Authors>ChilliCream authors and contributors</Authors>
-    <Company>ChilliCream</Company>
-    <Copyright>Copyright &#169; 2021 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
-    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/main/LICENSE</PackageLicenseUrl>
+    <Company>ChilliCream Inc.</Company>
+    <Copyright>Copyright &#169; 2021 ChilliCream Inc.</Copyright>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/resources/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIcon>hotchocolate-signet.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -39,7 +44,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\greendonut-signet.png" Pack="true" PackagePath="greendonut-signet.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-signet.png" Pack="true" PackagePath="hotchocolate-signet.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\strawberryshake-signet.png" Pack="true" PackagePath="strawberryshake-signet.png" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
   
   <!-- PublicApiAnalyzers -->
