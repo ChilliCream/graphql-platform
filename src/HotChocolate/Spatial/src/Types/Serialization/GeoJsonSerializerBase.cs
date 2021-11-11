@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
@@ -9,7 +10,7 @@ using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial.Serialization
 {
-    internal abstract class GeoJsonSerializerBase<T> : IGeoJsonSerializer
+    internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
     {
         public abstract bool IsInstanceOfType(IType type, IValueNode valueSyntax);
 
@@ -21,11 +22,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             }
 
             if (runtimeValue is null)
-            {
-                return true;
-            }
-
-            if (runtimeValue is T)
             {
                 return true;
             }
@@ -83,6 +79,32 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public abstract void GetFieldData(IType type, object runtimeValue, object?[] fieldValues);
 
+        public virtual IValueNode ParseCoordinateResult(IType type, object? runtimeValue)
+        {
+            if (runtimeValue is IList { Count: > 0 } list && list[0] is IList)
+            {
+                var results = new IValueNode[list.Count];
+                for (var i = 0; i < list.Count; i++)
+                {
+                    results[i] = ParseCoordinateResult(type, list[i]);
+                }
+
+                return new ListValueNode(results);
+            }
+
+            if (runtimeValue is Coordinate)
+            {
+                return GeoJsonPositionSerializer.Default.ParseResult(type, runtimeValue);
+            }
+
+            if (runtimeValue is double[])
+            {
+                return GeoJsonPositionSerializer.Default.ParseResult(type, runtimeValue);
+            }
+
+            throw Serializer_CouldNotParseValue(type);
+        }
+
         protected (GeoJsonGeometryType type, object coordinates, int? crs) ParseFields(
             IType type,
             IReadOnlyDictionary<string, object> obj)
@@ -99,7 +121,7 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             if (obj.TryGetValue(CoordinatesFieldName, out var coordinateObject))
             {
-                coordinates = ParseCoordinates(type, coordinateObject);
+                coordinates = DeserializeCoordinate(type, coordinateObject);
             }
 
             if (obj.TryGetValue(CrsFieldName, out var crsObject) &&
@@ -142,7 +164,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 }
                 else if (CoordinatesFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
-                    coordinates = ParseCoordinates(type, syntaxNode);
+                    coordinates = ParseCoordinateLiteral(type, syntaxNode);
                 }
                 else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName) &&
                     syntaxNode is IntValueNode node &&
@@ -165,107 +187,155 @@ namespace HotChocolate.Types.Spatial.Serialization
             return (geometryType.Value, coordinates, crs);
         }
 
-        private object ParseCoordinates(IType type, object? runtimeValue)
+        private object DeserializeCoordinate(IType type, object? runtimeValue)
         {
-            if (runtimeValue is IList { Count: > 0 } top)
-            {
-                if (top[0] is IList { Count: > 0 } second)
-                {
-                    if (second[0] is IList)
-                    {
-                        var result = new Coordinate[top.Count][];
-                        for (var y = 0; y < result.Length; y++)
-                        {
-                            if (ParseCoordinates(type, top[y]) is Coordinate[] multi)
-                            {
-                                result[y] = multi;
-                            }
-                            else
-                            {
-                                throw Serializer_Parse_CoordinatesIsInvalid(type);
-                            }
-                        }
+            return GeoJsonCoordinatesSerializer.Default.DeserializeCoordinate(type, runtimeValue);
+        }
 
-                        return result;
+        private object ParseCoordinateLiteral(IType type, IValueNode syntaxNode)
+        {
+            return GeoJsonCoordinatesSerializer.Default.ParseCoordinateLiteral(type, syntaxNode);
+        }
+
+        public virtual bool TrySerializeCoordinates(
+            IType type,
+            object runtimeValue,
+            out object? serialized)
+        {
+            serialized = null;
+            if (runtimeValue is GeometryCollection collection)
+            {
+                var geometryCoords = new object?[collection.Geometries.Length];
+                for (var i = 0; i < collection.Geometries.Length; i++)
+                {
+                    if (GeoJsonSerializers.SerializersByTypeName.TryGetValue(
+                        collection.Geometries[i].GeometryType,
+                        out var serializer))
+                    {
+                        if (serializer.TrySerializeCoordinates(type,
+                            collection.Geometries[i],
+                            out var elementCoords))
+                        {
+                            geometryCoords[i] = elementCoords;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                     else
                     {
-                        var result = new Coordinate[top.Count];
-                        for (var y = 0; y < result.Length; y++)
+                        if (TrySerializeCoordinates(type,
+                            collection.Geometries[i],
+                            out var elementCoords))
                         {
-                            if (ParseCoordinates(type, top[y]) is Coordinate coordinate)
-                            {
-                                result[y] = coordinate;
-                            }
-                            else
-                            {
-                                throw Serializer_Parse_CoordinatesIsInvalid(type);
-                            }
+                            geometryCoords[i] = elementCoords;
                         }
-
-                        return result;
+                        else
+                        {
+                            return false;
+                        }
                     }
                 }
-                else if (GeoJsonPositionSerializer.Default.TryDeserialize(
-                    type, runtimeValue, out var result) &&
-                    result is not null)
+
+                serialized = geometryCoords;
+                return true;
+            }
+
+            if (runtimeValue is Geometry g)
+            {
+                var result = new double[g.Coordinates.Length][];
+                for (var i = 0; i < result.Length; i++)
                 {
-                    return result;
+                    if (GeoJsonPositionSerializer.Default.TrySerialize(type,
+                            g.Coordinates[i],
+                            out var serializedPoints) &&
+                        serializedPoints is double[] points)
+                    {
+                        result[i] = points;
+                    }
+                    else
+                    {
+                        serialized = null;
+                        return false;
+                    }
                 }
+
+                serialized = result;
+                return true;
+            }
+
+            serialized = null;
+            return false;
+        }
+
+        public virtual IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
+        {
+            if (runtimeValue is GeometryCollection collection)
+            {
+                var geometryCoords = new IValueNode[collection.Geometries.Length];
+                for (var i = 0; i < collection.Geometries.Length; i++)
+                {
+                    if (GeoJsonSerializers.SerializersByTypeName.TryGetValue(
+                        collection.Geometries[i].GeometryType,
+                        out var serializer))
+                    {
+                        geometryCoords[i] =
+                            serializer.ParseCoordinateValue(type, collection.Geometries[i]);
+                    }
+                    else
+                    {
+                        geometryCoords[i] = ParseCoordinateValue(type, collection.Geometries[i]);
+                    }
+                }
+
+                return new ListValueNode(geometryCoords);
+            }
+
+            if (runtimeValue is Geometry g)
+            {
+                var result = new IValueNode[g.Coordinates.Length];
+
+                for (var i = 0; i < result.Length; i++)
+                {
+                    if (GeoJsonPositionSerializer.Default
+                        .ParseResult(type, g.Coordinates[i]) is { } parsed)
+                    {
+                        result[i] = parsed;
+                    }
+                    else
+                    {
+                        throw Serializer_Parse_CoordinatesIsInvalid(type);
+                    }
+                }
+
+                return new ListValueNode(result);
             }
 
             throw Serializer_Parse_CoordinatesIsInvalid(type);
         }
+    }
 
-        private object ParseCoordinates(IType type, IValueNode syntaxNode)
+    internal abstract class GeoJsonSerializerBase<T> : GeoJsonSerializerBase
+    {
+        public override bool IsInstanceOfType(IType type, object? runtimeValue)
         {
-            if (syntaxNode is ListValueNode top && top.Items.Count > 0)
+            if (type is null)
             {
-                if (top.Items[0] is ListValueNode second && second.Items.Count > 0)
-                {
-                    if (second.Items[0] is ListValueNode)
-                    {
-                        var result = new Coordinate[top.Items.Count][];
-                        for (var y = 0; y < result.Length; y++)
-                        {
-                            if (ParseCoordinates(type, top.Items[y]) is Coordinate[] multi)
-                            {
-                                result[y] = multi;
-                            }
-                            else
-                            {
-                                throw Serializer_Parse_CoordinatesIsInvalid(type);
-                            }
-                        }
-
-                        return result;
-                    }
-                    else
-                    {
-                        var result = new Coordinate[top.Items.Count];
-                        for (var y = 0; y < result.Length; y++)
-                        {
-                            if (ParseCoordinates(type, top.Items[y]) is Coordinate coordinate)
-                            {
-                                result[y] = coordinate;
-                            }
-                            else
-                            {
-                                throw Serializer_Parse_CoordinatesIsInvalid(type);
-                            }
-                        }
-
-                        return result;
-                    }
-                }
-
-                if (GeoJsonPositionSerializer.Default.ParseLiteral(type, top) is Coordinate coord)
-                {
-                    return coord;
-                }
+                throw new ArgumentNullException(nameof(type));
             }
 
-            throw Serializer_Parse_CoordinatesIsInvalid(type);
+            if (runtimeValue is null)
+            {
+                return true;
+            }
+
+            if (runtimeValue is T)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

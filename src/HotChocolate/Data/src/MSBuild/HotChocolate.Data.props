@@ -1,0 +1,5 @@
+<Project>
+    <ItemGroup>
+        <Using Include="HotChocolate.Data" />
+    </ItemGroup>
+</Project>

@@ -60,13 +60,15 @@ namespace HotChocolate.Data.Filters.Spatial
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [
-                                                [240 80],
-                                                [140 120],
-                                                [180 240],
-                                                [280 200],
-                                                [240 80]
+                                                [
+                                                    [240 80],
+                                                    [140 120],
+                                                    [180 240],
+                                                    [280 200],
+                                                    [240 80]
+                                                ]
                                             ]
-                                        },
+                                        }
                                     }
                                 }
                             }){
@@ -87,13 +89,15 @@ namespace HotChocolate.Data.Filters.Spatial
                                         geometry: {
                                             type: Polygon,
                                             coordinates: [
-                                                [240 80],
-                                                [140 120],
-                                                [180 240],
-                                                [280 200],
-                                                [240 80]
+                                                [
+                                                    [240 80],
+                                                    [140 120],
+                                                    [180 240],
+                                                    [280 200],
+                                                    [240 80]
+                                                ]
                                             ]
-                                        },
+                                        }
                                     }
                                 }
                             }){

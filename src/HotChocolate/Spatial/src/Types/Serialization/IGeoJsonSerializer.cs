@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Spatial.Serialization
@@ -95,7 +96,10 @@ namespace HotChocolate.Types.Spatial.Serialization
         /// A runtime value representation of this type.
         /// </param>
         /// <returns>True if serializing was successful</returns>
-        bool TrySerialize(IType type, object? runtimeValue, out object? resultValue);
+        bool TrySerialize(
+            IType type,
+            object? runtimeValue,
+            [NotNullWhen(true)] out object? resultValue);
 
         /// <summary>
         /// Parses the GraphQL value syntax of this type into a runtime value representation.
@@ -168,5 +172,42 @@ namespace HotChocolate.Types.Spatial.Serialization
         /// <param name="runtimeValue">The runtime value.</param>
         /// <param name="fieldValues">The field values array.</param>
         void GetFieldData(IType type, object runtimeValue, object?[] fieldValues);
+
+        /// <summary>
+        /// Tries to serialize the `coordinates` field of the geometry
+        /// </summary>
+        /// <remarks>
+        /// This is used for serializing complex geometries that consist of other geometries
+        /// </remarks>
+        /// <param name="type"></param>
+        /// <param name="runtimeValue"></param>
+        /// <param name="serialized"></param>
+        /// <returns></returns>
+        bool TrySerializeCoordinates(
+            IType type,
+            object runtimeValue,
+            out object? serialized);
+
+        /// <summary>
+        /// Tries to parse the `coordinates` field of the geometry
+        /// </summary>
+        /// <remarks>
+        /// This is used for serializing complex geometries that consist of other geometries
+        /// </remarks>
+        /// <param name="type"></param>
+        /// <param name="runtimeValue"></param>
+        /// <returns></returns>
+        IValueNode ParseCoordinateValue(IType type, object? runtimeValue);
+
+        /// <summary>
+        /// Tries to parse the `coordinates` field of the geometry
+        /// </summary>
+        /// <remarks>
+        /// This is used for serializing complex geometries that consist of other geometries
+        /// </remarks>
+        /// <param name="type"></param>
+        /// <param name="runtimeValue"></param>
+        /// <returns></returns>
+        IValueNode ParseCoordinateResult(IType type, object? runtimeValue);
     }
 }

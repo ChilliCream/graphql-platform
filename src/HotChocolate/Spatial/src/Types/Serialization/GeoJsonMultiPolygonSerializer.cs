@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -29,32 +30,28 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             Polygon[]? geometries;
 
-            if (coordinates is List<List<Coordinate>> { Count: > 0 } list)
+            if (coordinates is IList { Count: > 0 } list)
             {
-                geometries = new Polygon[list.Count];
-
-                for (var i = 0; i < list.Count; i++)
+                if (list.Count != 0)
                 {
-                    geometries[i] =
-                        GeoJsonPolygonSerializer.Default
-                            .CreateGeometry(type, list[i].ToArray(), crs);
+                    geometries = new Polygon[list.Count];
+
+                    for (var index = 0; index < list.Count; index++)
+                    {
+                        if (list[index] is IList nestedCoords)
+                        {
+                            geometries[index] =
+                                GeoJsonPolygonSerializer.Default
+                                    .CreateGeometry(type, nestedCoords, crs);
+                        }
+                        else
+                        {
+                            throw Serializer_Parse_CoordinatesIsInvalid(type);
+                        }
+                    }
+
+                    goto Success;
                 }
-
-                goto Success;
-            }
-
-            if (coordinates is Coordinate[][] { Length: > 0 } parts)
-            {
-                geometries = new Polygon[parts.Length];
-
-                for (var i = 0; i < parts.Length; i++)
-                {
-                    geometries[i] =
-                        GeoJsonPolygonSerializer.Default
-                            .CreateGeometry(type, parts[i], crs);
-                }
-
-                goto Success;
             }
 
             goto Error;
@@ -96,13 +93,14 @@ namespace HotChocolate.Types.Spatial.Serialization
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (runtimeValue is not MultiPolygon geometry)
+            if (runtimeValue is not MultiPolygon geometry ||
+                !TrySerializeCoordinates(type, runtimeValue, out var serialized))
             {
                 throw Geometry_Parse_InvalidGeometryType(type, runtimeValue.GetType());
             }
 
             fieldValues[0] = GeoJsonGeometryType.MultiPolygon;
-            fieldValues[1] = geometry.Geometries.Select(t => t.Coordinates);
+            fieldValues[1] = serialized;
             fieldValues[2] = geometry.SRID;
         }
 
@@ -134,9 +132,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                             GeoJsonGeometryType.MultiPolygon)),
                     new ObjectFieldNode(
                         CoordinatesFieldName,
-                        ParseCoordinates(
-                            type,
-                            geometry.Geometries.Select(t => t.Coordinates).ToArray())),
+                        ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
                         new IntValueNode(geometry.SRID))

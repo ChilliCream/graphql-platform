@@ -238,6 +238,9 @@
   <data name="UseProjection_CannotHandleType_" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
+  <data name="PagingProjectionOptimizer_NotAPagingField" xml:space="preserve">
+    <value>The paging projection optimizer was applied to a field that is not of IPageType. The problem encounter on {0}.{1} : {2}</value>
+  </data>
   <data name="Filtering_CouldNotParseValue" xml:space="preserve">
     <value>The {0} could not parse the value of the filter. The value was {1}. The expected type was {2}. This error occured on {3}.{4}: {5}</value>
   </data>

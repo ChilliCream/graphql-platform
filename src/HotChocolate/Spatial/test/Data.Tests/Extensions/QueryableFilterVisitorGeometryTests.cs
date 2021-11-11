@@ -290,7 +290,7 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                             intersects: {
                                 geometry: {
                                     type: Polygon
-                                    coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                                    coordinates: [[[1, 1], [3, 1], [2, 0], [1, 1]]]
                                 }
                             }
                         }
@@ -381,7 +381,7 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
                             overlaps: {
                                 geometry: {
                                     type: Polygon
-                                    coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                                    coordinates: [[[1, 1], [3, 1], [2, 0], [1, 1]]]
                                 }
                             }
                         }
