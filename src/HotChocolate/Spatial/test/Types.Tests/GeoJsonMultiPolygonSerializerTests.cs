@@ -14,33 +14,35 @@ namespace HotChocolate.Types.Spatial
         private readonly IValueNode _coordinatesSyntaxNode = new ListValueNode(
             new ListValueNode(
                 new ListValueNode(
-                    new IntValueNode(30),
-                    new IntValueNode(20)),
-                new ListValueNode(
-                    new IntValueNode(45),
-                    new IntValueNode(40)),
-                new ListValueNode(
-                    new IntValueNode(10),
-                    new IntValueNode(40)),
-                new ListValueNode(
-                    new IntValueNode(30),
-                    new IntValueNode(20))),
+                    new ListValueNode(
+                        new IntValueNode(30),
+                        new IntValueNode(20)),
+                    new ListValueNode(
+                        new IntValueNode(45),
+                        new IntValueNode(40)),
+                    new ListValueNode(
+                        new IntValueNode(10),
+                        new IntValueNode(40)),
+                    new ListValueNode(
+                        new IntValueNode(30),
+                        new IntValueNode(20)))),
             new ListValueNode(
                 new ListValueNode(
-                    new IntValueNode(15),
-                    new IntValueNode(5)),
-                new ListValueNode(
-                    new IntValueNode(40),
-                    new IntValueNode(10)),
-                new ListValueNode(
-                    new IntValueNode(10),
-                    new IntValueNode(20)),
-                new ListValueNode(
-                    new IntValueNode(5),
-                    new IntValueNode(15)),
-                new ListValueNode(
-                    new IntValueNode(15),
-                    new IntValueNode(5))));
+                    new ListValueNode(
+                        new IntValueNode(15),
+                        new IntValueNode(5)),
+                    new ListValueNode(
+                        new IntValueNode(40),
+                        new IntValueNode(10)),
+                    new ListValueNode(
+                        new IntValueNode(10),
+                        new IntValueNode(20)),
+                    new ListValueNode(
+                        new IntValueNode(5),
+                        new IntValueNode(15)),
+                    new ListValueNode(
+                        new IntValueNode(15),
+                        new IntValueNode(5)))));
 
         private Geometry _geometry = new MultiPolygon(
             new[]
@@ -72,18 +74,24 @@ namespace HotChocolate.Types.Spatial
         {
             new[]
             {
-                new[] { 30.0, 20.0 },
-                new[] { 45.0, 40.0 },
-                new[] { 10.0, 40.0 },
-                new[] { 30.0, 20.0 }
+                new[]
+                {
+                    new[] { 30.0, 20.0 },
+                    new[] { 45.0, 40.0 },
+                    new[] { 10.0, 40.0 },
+                    new[] { 30.0, 20.0 }
+                }
             },
             new[]
             {
-                new[] { 15.0, 5.0 },
-                new[] { 40.0, 10.0 },
-                new[] { 10.0, 20.0 },
-                new[] { 5.0, 15.0 },
-                new[] { 15.0, 5.0 }
+                new[]
+                {
+                    new[] { 15.0, 5.0 },
+                    new[] { 40.0, 10.0 },
+                    new[] { 10.0, 20.0 },
+                    new[] { 5.0, 15.0 },
+                    new[] { 15.0, 5.0 }
+                }
             }
         };
 

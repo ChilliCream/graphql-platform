@@ -1,14 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>false</IsPackable>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- <PackageId>HotChocolate.CodeGeneration</PackageId> -->
     <AssemblyName>HotChocolate.CodeGeneration</AssemblyName>
     <RootNamespace>HotChocolate.CodeGeneration</RootNamespace>
     <Description>Contains source generators for Hot Chocolate.</Description>
@@ -25,5 +21,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
 
 </Project>

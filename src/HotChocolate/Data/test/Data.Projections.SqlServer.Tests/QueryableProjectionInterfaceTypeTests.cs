@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Data.Projections.Extensions;
@@ -167,6 +168,78 @@ namespace HotChocolate.Data.Projections
                         {
                             root {
                                 list {
+                                    name
+                                    ... on Foo {
+                                        fooProp
+                                    }
+                                    ... on Bar {
+                                        barProp
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Paging_Interface_List()
+        {
+            // arrange
+            IRequestExecutor tester = _cache
+                .CreateSchema(
+                    _barEntities,
+                    OnModelCreating,
+                    configure: ConfigureSchema,
+                    schemaType: typeof(InterfaceType<AbstractType>),
+                    usePaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                nodes {
+                                    name
+                                    ... on Foo {
+                                        fooProp
+                                    }
+                                    ... on Bar {
+                                        barProp
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task OffsetPaging_Interface_List()
+        {
+            // arrange
+            IRequestExecutor tester = _cache
+                .CreateSchema(
+                    _barEntities,
+                    OnModelCreating,
+                    configure: ConfigureSchema,
+                    schemaType: typeof(InterfaceType<AbstractType>),
+                    useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                items {
                                     name
                                     ... on Foo {
                                         fooProp

@@ -1,11 +1,5 @@
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
-using HotChocolate.Data.Projections;
-using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Types.Pagination;
 using Snapshooter.Xunit;
 using Xunit;
 

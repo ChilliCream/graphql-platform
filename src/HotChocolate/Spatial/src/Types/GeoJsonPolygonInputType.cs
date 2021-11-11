@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Spatial
 
             descriptor
                 .Field(CoordinatesFieldName)
-                .Type<ListType<GeoJsonPositionType>>()
+                .Type<ListType<ListType<GeoJsonPositionType>>>()
                 .Description(GeoJson_Field_Coordinates_Description_Polygon);
 
             descriptor
