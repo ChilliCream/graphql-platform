@@ -1,0 +1,16 @@
+﻿{
+  "data": {
+    "root": {
+      "items": [
+        {
+          "name": "Bar",
+          "barProp": "BarProp"
+        },
+        {
+          "name": "Foo",
+          "fooProp": "FooProp"
+        }
+      ]
+    }
+  }
+}
