@@ -258,12 +258,32 @@ namespace HotChocolate.Types.Spatial.Serialization
         }
 
         public object CreateInstance(IType type, object?[] fieldValues)
-            => throw new NotSupportedException(
-                GeoJsonGeometrySerializer_CreateInstance_NotSupported);
+            => throw Serializer_OperationIsNotSupported(type,
+                this,
+                nameof(CreateInstance));
 
         public void GetFieldData(IType type, object runtimeValue, object?[] fieldValues)
-            => throw new NotSupportedException(
-                GeoJsonGeometrySerializer_GetFieldData_NotSupported);
+            => throw Serializer_OperationIsNotSupported(type,
+                this,
+                nameof(GetFieldData));
+
+        public bool TrySerializeCoordinates(
+            IType type,
+            object runtimeValue,
+            out object? serialized)
+            => throw Serializer_OperationIsNotSupported(type,
+                this,
+                nameof(TrySerializeCoordinates));
+
+        public IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
+            => throw Serializer_OperationIsNotSupported(type,
+                this,
+                nameof(ParseCoordinateValue));
+
+        public IValueNode ParseCoordinateResult(IType type, object? runtimeValue)
+            => throw Serializer_OperationIsNotSupported(type,
+                this,
+                nameof(ParseCoordinateResult));
 
         private IGeoJsonSerializer GetGeometrySerializer(
             IType type,

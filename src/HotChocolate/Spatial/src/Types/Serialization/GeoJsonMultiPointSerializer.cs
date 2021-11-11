@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using NetTopologySuite;
@@ -15,21 +16,6 @@ namespace HotChocolate.Types.Spatial.Serialization
         {
         }
 
-        protected override bool TrySerializeCoordinates(
-            IType type,
-            Coordinate[] runtimeValue,
-            [NotNullWhen(true)] out object? resultValue)
-        {
-            if (runtimeValue.Length == 1)
-            {
-                resultValue = GeoJsonPositionSerializer.Default.Serialize(type, runtimeValue[0]);
-                return resultValue is {};
-            }
-
-            resultValue = null;
-            return false;
-        }
-
         public override MultiPoint CreateGeometry(
             IType type,
             object? coordinates,
@@ -42,27 +28,15 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             Point[]? geometries;
 
-            if (coordinates is List<Coordinate> { Count: > 0 } list)
+            if (coordinates is IList { Count: > 0 } listObjects &&
+                listObjects.TryConvertToCoordinates(out Coordinate[] list))
             {
-                geometries = new Point[list.Count];
+                geometries = new Point[list.Length];
 
-                for (var i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Length; i++)
                 {
                     geometries[i] =
                         GeoJsonPointSerializer.Default.CreateGeometry(type, list[i], crs);
-                }
-
-                goto Success;
-            }
-
-            if (coordinates is Coordinate[] { Length: > 0 } parts)
-            {
-                geometries = new Point[parts.Length];
-
-                for (var i = 0; i < parts.Length; i++)
-                {
-                    geometries[i] =
-                        GeoJsonPointSerializer.Default.CreateGeometry(type, parts[i], crs);
                 }
 
                 goto Success;

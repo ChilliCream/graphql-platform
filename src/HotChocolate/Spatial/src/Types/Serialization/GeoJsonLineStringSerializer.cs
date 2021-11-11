@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
@@ -30,7 +31,9 @@ namespace HotChocolate.Types.Spatial.Serialization
                     : list.ToArray();
             }
 
-            if (coordinates is not Coordinate[] coords || coords.Length < 2)
+            if (coordinates is not IList coordsObject ||
+                coordsObject.Count < 2 ||
+                !coordsObject.TryConvertToCoordinates(out var coords))
             {
                 throw Serializer_Parse_CoordinatesIsInvalid(type);
             }
