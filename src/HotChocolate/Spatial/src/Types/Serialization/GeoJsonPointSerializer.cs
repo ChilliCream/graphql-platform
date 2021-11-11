@@ -17,19 +17,29 @@ namespace HotChocolate.Types.Spatial.Serialization
         {
         }
 
-        protected override bool TrySerializeCoordinates(
+        public override bool TrySerializeCoordinates(
             IType type,
-            Coordinate[] runtimeValue,
-            [NotNullWhen(true)] out object? resultValue)
+            object runtimeValue,
+            out object? serialized)
         {
-            if (runtimeValue.Length == 1)
+            serialized = null;
+            if (runtimeValue is Point point)
             {
-                resultValue = GeoJsonPositionSerializer.Default.Serialize(type, runtimeValue[0]);
-                return resultValue is {};
+                serialized = GeoJsonPositionSerializer.Default.Serialize(type, point.Coordinate);
+                return true;
             }
 
-            resultValue = null;
             return false;
+        }
+
+        public override IValueNode ParseCoordinateValue(IType type, object? runtimeValue)
+        {
+            if (runtimeValue is Point point)
+            {
+                return GeoJsonPositionSerializer.Default.ParseValue(type, point.Coordinate);
+            }
+
+            throw Serializer_CouldNotParseValue(type);
         }
 
         public override Point CreateGeometry(
@@ -40,11 +50,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
-            }
-
-            if (coordinates is List<Coordinate> { Count: 1 } list)
-            {
-                coordinates = list[0];
             }
 
             if (coordinates is not Coordinate coordinate)
@@ -61,17 +66,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             }
 
             return new Point(coordinate);
-        }
-
-        protected override IValueNode ParseCoordinates(IType type, IList runtimeValue)
-        {
-            if (runtimeValue.Count > 0 && runtimeValue[0] is IList ||
-                runtimeValue is Coordinate[])
-            {
-                return GeoJsonPositionSerializer.Default.ParseResult(type, runtimeValue[0]);
-            }
-
-            return GeoJsonPositionSerializer.Default.ParseResult(type, runtimeValue);
         }
 
         public override object CreateInstance(IType type, object?[] fieldValues)
