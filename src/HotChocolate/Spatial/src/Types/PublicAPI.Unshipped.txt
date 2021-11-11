@@ -1,0 +1,11 @@
+HotChocolate.Types.Spatial.GeoJsonCoordinatesType
+HotChocolate.Types.Spatial.GeoJsonCoordinatesType.GeoJsonCoordinatesType() -> void
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers.GetCoordinates(NetTopologySuite.Geometries.Polygon! polygon) -> NetTopologySuite.Geometries.Coordinate![]![]!
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers.Resolvers() -> void
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax) -> object?
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseValue(object? value) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.TryDeserialize(object? serialized, out object? value) -> bool
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.TrySerialize(object? value, out object? serialized) -> bool
