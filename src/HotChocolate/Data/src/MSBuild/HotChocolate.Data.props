@@ -1,5 +1,4 @@
 <Project>
-    <ItemGroup>
-        <Using Include="HotChocolate.Data" />
-    </ItemGroup>
+  <!--HotChocolateImplicitUsings: default|disable|enable-->
+  <HotChocolateImplicitUsings>default</HotChocolateImplicitUsings>
 </Project>
