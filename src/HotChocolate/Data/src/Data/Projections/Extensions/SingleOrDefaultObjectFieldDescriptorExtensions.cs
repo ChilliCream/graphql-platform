@@ -54,7 +54,8 @@ namespace HotChocolate.Types
 
                         Type selectionType = typeInfo.NamedType;
                         definition.ResultType = selectionType;
-                        definition.Type = context.TypeInspector.GetTypeRef(selectionType);
+                        definition.Type =
+                            context.TypeInspector.GetTypeRef(selectionType, TypeContext.Output);
 
                         definition.Configurations.Add(
                             new CompleteConfiguration<ObjectFieldDefinition>(
