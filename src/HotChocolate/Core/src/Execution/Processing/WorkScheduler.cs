@@ -283,6 +283,7 @@ namespace HotChocolate.Execution.Processing
                 if (CanDispatch && !_requestAborted.IsCancellationRequested)
                 {
                     _batchDispatcher.BeginDispatch(_requestAborted);
+                    _diagnosticEvents.DispatchBatch(_requestContext);
                     return new(false);
                 }
 
