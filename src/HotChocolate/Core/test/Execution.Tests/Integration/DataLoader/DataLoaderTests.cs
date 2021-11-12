@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Execution.Integration.DataLoader.Repro;
 using HotChocolate.Fetching;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
@@ -15,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
+
+#nullable enable
 
 namespace HotChocolate.Execution.Integration.DataLoader
 {
@@ -166,7 +167,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             .GetOrRegister<TestDataLoader>(() => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -224,7 +225,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -306,55 +307,6 @@ namespace HotChocolate.Execution.Integration.DataLoader
         }
 
         [Fact]
-        public async Task ParallelStackedDataLoader()
-        {
-            // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType<Query>()
-                .AddDataLoader<ITestDataLoader, TestDataLoader>()
-                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true));
-
-            // act
-            var tasks = new List<Task<IExecutionResult>>();
-
-            for (var i = 0; i < 1000; i++)
-            {
-                tasks.Add(
-                    executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                            a: withStackedDataLoader(key: ""a"")
-                            b: withStackedDataLoader(key: ""b"")
-                        }")
-                            .Create()));
-
-                tasks.Add(
-                    executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                            a: withStackedDataLoader(key: ""a"")
-                        }")
-                            .Create()));
-
-                tasks.Add(
-                    executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                            c: withStackedDataLoader(key: ""c"")
-                        }")
-                            .Create()));
-            }
-
-            await Task.WhenAll(tasks);
-
-            // assert
-            tasks.Select(t => t.Result).ToArray().MatchSnapshot();
-        }
-
-        [Fact]
         public async Task ClassDataLoader_Resolve_From_DependencyInjection()
         {
             // arrange
@@ -370,7 +322,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                         (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -408,7 +360,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
         }
 
         [Fact]
-        public async Task SimpleTest()
+        public async Task NestedDataLoader()
         {
             using var cts = new CancellationTokenSource(500);
 
@@ -459,10 +411,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 BatchItemErrorTouched = true;
             }
         }
-    }
 
-    namespace Repro
-    {
         [ExtendObjectType("Query")]
         public class FooQueries
         {
@@ -491,24 +440,28 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             private readonly FooNestedDataLoader _nestedDataLoader;
 
-            public FooDataLoader(IBatchScheduler batchScheduler, [DataLoader] FooNestedDataLoader nestedDataLoader,
-                DataLoaderOptions? options = null) : base(batchScheduler,
-                options)
+            public FooDataLoader(
+                IBatchScheduler batchScheduler,
+                FooNestedDataLoader nestedDataLoader,
+                DataLoaderOptions? options = null)
+                : base(batchScheduler, options)
             {
                 _nestedDataLoader = nestedDataLoader;
             }
 
             protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
                 IReadOnlyList<string> keys,
-                CancellationToken cancellationToken) =>
-                (await _nestedDataLoader.LoadAsync(keys, cancellationToken)).ToImmutableDictionary(x => x.Field);
+                CancellationToken cancellationToken)
+                => (await _nestedDataLoader.LoadAsync(keys, cancellationToken))
+                    .ToImmutableDictionary(x => x.Field);
         }
 
         public class FooNestedDataLoader : BatchDataLoader<string, FooRecord>
         {
-            public FooNestedDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions? options = null) : base(
-                batchScheduler,
-                options)
+            public FooNestedDataLoader(
+                IBatchScheduler batchScheduler,
+                DataLoaderOptions? options = null)
+                : base(batchScheduler, options)
             {
             }
 
@@ -521,6 +474,14 @@ namespace HotChocolate.Execution.Integration.DataLoader
             }
         }
 
-        public record FooRecord(string Field);
+        public class FooRecord
+        {
+            public FooRecord(string field)
+            {
+                Field = field;
+            }
+
+            public string Field { get; }
+        }
     }
 }

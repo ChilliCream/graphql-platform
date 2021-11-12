@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
@@ -239,11 +240,21 @@ namespace HotChocolate.Execution.Processing
             if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
             {
                 _processing = true;
-                _pause.TryContinueUnsafe();
+                TryContinueUnsafe();
                 return true;
             }
 
             return false;
+        }
+
+        private void TryContinueUnsafe()
+        {
+            if (_pause is not null)
+            {
+                _pause.TryContinue();
+                _pausePool.Enqueue(_pause);
+                _pause = null;
+            }
         }
 
         private ValueTask<bool> TryStopProcessing()
@@ -269,9 +280,10 @@ namespace HotChocolate.Execution.Processing
                     return new(false);
                 }
 
-                if (CanDispatch)
+                if (CanDispatch && !_requestAborted.IsCancellationRequested)
                 {
-                    return InvokeDispatch();
+                    _batchDispatcher.BeginDispatch(_requestAborted);
+                    return new(false);
                 }
 
                 _processing = false;
@@ -279,25 +291,20 @@ namespace HotChocolate.Execution.Processing
 
                 return TryCompleteProcessingUnsafe()
                     ? new(true)
-                    : InvokePause();
+                    : CreatePauseUnsafe();
             }
 
-            async ValueTask<bool> InvokeDispatch()
+            ValueTask<bool> CreatePauseUnsafe()
             {
-                // we yield here to give back control so that the lock can be released.
-                await Task.Yield();
-
-                do
-                {
-                    await _batchDispatcher.DispatchAsync(_requestAborted).ConfigureAwait(false);
-                } while (!_requestAborted.IsCancellationRequested && CanDispatch);
-
-                return _requestAborted.IsCancellationRequested;
+                Debug.Assert(_pause is null, "Since we have only one main worker there should only be one pause obj.");
+                _pause = _pausePool.Dequeue();
+                _pause.Reset();
+                return InvokePause(_pause);
             }
 
-            async ValueTask<bool> InvokePause()
+            async ValueTask<bool> InvokePause(Pause pause)
             {
-                await _pause;
+                await pause;
                 return false;
             }
         }
@@ -319,14 +326,14 @@ namespace HotChocolate.Execution.Processing
             if (HasCompleted())
             {
                 _completed = true;
-                _pause.TryContinueUnsafe();
+                TryContinueUnsafe();
                 return true;
             }
 
             if (IsCanceled())
             {
                 _completed = true;
-                _pause.TryContinueUnsafe();
+                TryContinueUnsafe();
 
                 // if there are still tasks enqueues when we cancel the execution
                 // we will try to reclaim the resolver tasks by properly cancelling
