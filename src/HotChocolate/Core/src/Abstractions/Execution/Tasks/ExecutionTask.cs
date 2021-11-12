@@ -74,20 +74,14 @@ namespace HotChocolate.Execution
             {
                 Faulted();
 
-                if (cancellationToken.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    // if cancellation is request we do no longer report errors to the
-                    // operation context.
-                    return;
+                    Context.ReportError(this, ex);
                 }
-
-                Context.ReportError(this, ex);
             }
-            finally
-            {
-                Status = _completionStatus;
-                Context.Completed(this);
-            }
+            
+            Status = _completionStatus;
+            Context.Completed(this);
         }
 
         /// <summary>
