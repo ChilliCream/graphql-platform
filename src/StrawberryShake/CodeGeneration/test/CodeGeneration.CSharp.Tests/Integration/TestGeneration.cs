@@ -88,7 +88,9 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                 @"query GetJson {
                     json
                 }",
-                @"type Query {
+                @"scalar SomeScalar
+                scalar Any
+                type Query {
                     json: Any!
                 }");
 
