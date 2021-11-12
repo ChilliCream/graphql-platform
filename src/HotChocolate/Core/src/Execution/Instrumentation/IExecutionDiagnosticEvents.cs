@@ -214,6 +214,17 @@ public interface IExecutionDiagnosticEvents
     void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
     /// <summary>
+    /// Called when an error occurred while producing the subscription event result.
+    /// </summary>
+    /// <param name="subscription">
+    /// The subscription object.
+    /// </param>
+    /// <param name="exception">
+    /// The exception that occurred.
+    /// </param>
+    void SubscriptionEventError(ISubscription subscription, Exception exception);
+
+    /// <summary>
     /// A GraphQL request document was added to the document cache.
     /// </summary>
     /// <param name="context">

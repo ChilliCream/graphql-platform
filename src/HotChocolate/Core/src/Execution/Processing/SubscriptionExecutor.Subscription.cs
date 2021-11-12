@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing.Plan;
@@ -114,22 +115,13 @@ internal sealed partial class SubscriptionExecutor
             return subscription;
         }
 
-        public async IAsyncEnumerable<IQueryResult> ExecuteAsync()
-        {
-            await using IAsyncEnumerator<object> eventStreamEnumerator =
-                _sourceStream.ReadEventsAsync().GetAsyncEnumerator(
-                    _requestContext.RequestAborted);
-
-            while (await eventStreamEnumerator.MoveNextAsync().ConfigureAwait(false))
-            {
-                if (_requestContext.RequestAborted.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                yield return await OnEvent(eventStreamEnumerator.Current).ConfigureAwait(false);
-            }
-        }
+        public IAsyncEnumerable<IQueryResult> ExecuteAsync()
+            => new SubscriptionEnumerable(
+                _sourceStream,
+                OnEvent,
+                this,
+                _diagnosticEvents,
+                _requestContext.RequestAborted);
 
         /// <inheritdoc />
         public ulong Id => _id;
@@ -208,7 +200,9 @@ internal sealed partial class SubscriptionExecutor
             }
             catch (Exception ex)
             {
-                _diagnosticEvents.SubscriptionEventError(new(this, payload), ex);
+                _diagnosticEvents.SubscriptionEventError(
+                    new SubscriptionEventContext(this, payload),
+                    ex);
                 throw;
             }
             finally
@@ -308,5 +302,118 @@ internal sealed partial class SubscriptionExecutor
                 _operationContextPool.Return(operationContext);
             }
         }
+    }
+
+    private class SubscriptionEnumerable : IAsyncEnumerable<IQueryResult>
+    {
+        private readonly ISourceStream _sourceStream;
+        private readonly Func<object, Task<IQueryResult>> _onEvent;
+        private readonly Subscription _subscription;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly CancellationToken _requestAborted;
+
+        public SubscriptionEnumerable(
+            ISourceStream sourceStream,
+            Func<object, Task<IQueryResult>> onEvent,
+            Subscription subscription,
+            IExecutionDiagnosticEvents diagnosticEvents,
+            CancellationToken requestAborted)
+        {
+            _sourceStream = sourceStream;
+            _onEvent = onEvent;
+            _subscription = subscription;
+            _diagnosticEvents = diagnosticEvents;
+            _requestAborted = requestAborted;
+        }
+
+        public IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                IAsyncEnumerator<object> eventStreamEnumerator =
+                    _sourceStream.ReadEventsAsync()
+                        .GetAsyncEnumerator(_requestAborted);
+
+                return new SubscriptionEnumerator(
+                    eventStreamEnumerator,
+                    _onEvent,
+                    _subscription,
+                    _diagnosticEvents,
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _diagnosticEvents.SubscriptionEventError(_subscription, ex);
+                return new ErrorSubscriptionEnumerator();
+            }
+        }
+    }
+
+    private class SubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
+    {
+        private readonly IAsyncEnumerator<object> _eventEnumerator;
+        private readonly Func<object, Task<IQueryResult>> _onEvent;
+        private readonly Subscription _subscription;
+        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+        private readonly CancellationToken _requestAborted;
+        private bool _disposed;
+
+        public SubscriptionEnumerator(
+            IAsyncEnumerator<object> eventEnumerator,
+            Func<object, Task<IQueryResult>> onEvent,
+            Subscription subscription,
+            IExecutionDiagnosticEvents diagnosticEvents,
+            CancellationToken requestAborted)
+        {
+            _eventEnumerator = eventEnumerator;
+            _onEvent = onEvent;
+            _subscription = subscription;
+            _diagnosticEvents = diagnosticEvents;
+            _requestAborted = requestAborted;
+        }
+
+        public IQueryResult Current { get; private set; } = default!;
+
+        public async ValueTask<bool> MoveNextAsync()
+        {
+            if (_requestAborted.IsCancellationRequested)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (await _eventEnumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    Current = await _onEvent(_eventEnumerator.Current).ConfigureAwait(false);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _diagnosticEvents.SubscriptionEventError(_subscription, ex);
+            }
+
+            return false;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
+            {
+                await _eventEnumerator.DisposeAsync();
+                _disposed = true;
+            }
+        }
+    }
+
+    private class ErrorSubscriptionEnumerator : IAsyncEnumerator<IQueryResult>
+    {
+        public IQueryResult Current => default!;
+
+        public ValueTask<bool> MoveNextAsync() => new(false);
+
+        public ValueTask DisposeAsync() => default;
     }
 }

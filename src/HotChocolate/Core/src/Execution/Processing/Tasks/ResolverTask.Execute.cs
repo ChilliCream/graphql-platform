@@ -201,7 +201,7 @@ internal sealed partial class ResolverTask
 
     private async ValueTask<List<object?>> CreateListFromStreamAsync()
     {
-        IAsyncEnumerable<object?> enumerable = Selection.CreateStream(_tesolverContext.Result!);
+        IAsyncEnumerable<object?> enumerable = Selection.CreateStream(_resolverContext.Result!);
         var list = new List<object?>();
 
         await foreach (var item in enumerable

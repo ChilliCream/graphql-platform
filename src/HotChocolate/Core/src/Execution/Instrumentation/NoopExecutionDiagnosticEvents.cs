@@ -59,6 +59,10 @@ internal sealed class NoopExecutionDiagnosticEvents
     {
     }
 
+    public void SubscriptionEventError(ISubscription subscription, Exception exception)
+    {
+    }
+
     public void SubscriptionTransportError(ISubscription subscription, Exception exception)
     {
     }
