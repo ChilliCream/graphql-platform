@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -27,7 +28,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (coordinates is List<List<Coordinate>> { Count: > 0 } list)
+            if (coordinates is IList { Count: > 0 } list)
             {
                 if (list.Count == 0)
                 {
@@ -39,7 +40,15 @@ namespace HotChocolate.Types.Spatial.Serialization
 
                     for (var index = 0; index < list.Count; index++)
                     {
-                        temp[index] = list[index].ToArray();
+                        if (list[index] is IList nestedCoords &&
+                            nestedCoords.TryConvertToCoordinates(out var coordinate))
+                        {
+                            temp[index] = coordinate;
+                        }
+                        else
+                        {
+                            throw Serializer_Parse_CoordinatesIsInvalid(type);
+                        }
                     }
 
                     coordinates = temp;
@@ -131,9 +140,7 @@ namespace HotChocolate.Types.Spatial.Serialization
                             GeoJsonGeometryType.MultiLineString)),
                     new ObjectFieldNode(
                         CoordinatesFieldName,
-                        ParseCoordinates(
-                            type,
-                            geometry.Geometries.Select(t => t.Coordinates).ToArray())),
+                        ParseCoordinateValue(type, geometry)),
                     new ObjectFieldNode(
                         CrsFieldName,
                         new IntValueNode(geometry.SRID))

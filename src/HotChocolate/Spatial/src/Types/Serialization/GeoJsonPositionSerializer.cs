@@ -100,17 +100,33 @@ namespace HotChocolate.Types.Spatial.Serialization
                 return NullValueNode.Default;
             }
 
-            if (!(value is Coordinate coordinate))
+            double x = double.NaN;
+            double y = double.NaN;
+            double z = double.NaN;
+            switch (value)
             {
-                throw ThrowHelper.PositionScalar_CoordinatesCannotBeNull(null!);
+                case Coordinate coordinate:
+                    x = coordinate.X;
+                    y = coordinate.Y;
+                    z = coordinate.Z;
+                    break;
+
+                case double[] { Length: > 1 and < 4 } coordinateArray:
+                    x = coordinateArray[0];
+                    y = coordinateArray[1];
+                    z = coordinateArray.Length == 3 ? coordinateArray[2] : double.NaN;
+                    break;
+
+                default:
+                    throw ThrowHelper.PositionScalar_InvalidPositionObject(null!);
             }
 
-            var xNode = new FloatValueNode(coordinate.X);
-            var yNode = new FloatValueNode(coordinate.Y);
+            var xNode = new FloatValueNode(x);
+            var yNode = new FloatValueNode(y);
 
-            if (!double.IsNaN(coordinate.Z))
+            if (!double.IsNaN(z))
             {
-                var zNode = new FloatValueNode(coordinate.Z);
+                var zNode = new FloatValueNode(z);
                 return new ListValueNode(xNode, yNode, zNode);
             }
 
@@ -132,8 +148,8 @@ namespace HotChocolate.Types.Spatial.Serialization
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
-
             }
+
             if (resultValue is null)
             {
                 return NullValueNode.Default;
@@ -270,11 +286,20 @@ namespace HotChocolate.Types.Spatial.Serialization
 
             if (!double.IsNaN(coordinate.Z))
             {
-                serialized = new[] { coordinate.X, coordinate.Y, coordinate.Z };
+                serialized = new[]
+                {
+                    coordinate.X,
+                    coordinate.Y,
+                    coordinate.Z
+                };
                 return true;
             }
 
-            serialized = new[] { coordinate.X, coordinate.Y };
+            serialized = new[]
+            {
+                coordinate.X,
+                coordinate.Y
+            };
             return true;
         }
 

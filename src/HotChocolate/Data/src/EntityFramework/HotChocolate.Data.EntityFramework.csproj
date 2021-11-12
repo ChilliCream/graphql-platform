@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0-rc.2.21480.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +35,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EntityFrameworkResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.props" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

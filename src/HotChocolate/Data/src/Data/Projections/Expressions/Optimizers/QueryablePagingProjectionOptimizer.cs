@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
@@ -21,16 +20,22 @@ namespace HotChocolate.Data.Projections.Handlers
             SelectionOptimizerContext context,
             Selection selection)
         {
-            if (!(context.Type.NamedType() is IPageType pageType &&
-                pageType.ItemType.NamedType() is ObjectType itemType))
+            if (context.Type.NamedType() is not IPageType pageType)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper
+                    .PagingProjectionOptimizer_NotAPagingField(
+                        selection.DeclaringType,
+                        selection.Field);
             }
 
             IReadOnlyList<ISelectionNode> selections = CollectSelection(context);
 
             context.Fields[CombinedEdgeField] =
-                CreateCombinedSelection(context, selection, itemType, pageType, selections);
+                CreateCombinedSelection(context,
+                    selection,
+                    selection.DeclaringType,
+                    pageType,
+                    selections);
 
             return selection;
         }
@@ -38,7 +43,7 @@ namespace HotChocolate.Data.Projections.Handlers
         private Selection CreateCombinedSelection(
             SelectionOptimizerContext context,
             ISelection selection,
-            IObjectType itemType,
+            IObjectType declaringType,
             IPageType pageType,
             IReadOnlyList<ISelectionNode> selections)
         {
@@ -58,7 +63,7 @@ namespace HotChocolate.Data.Projections.Handlers
 
             return new Selection(
                 context.GetNextId(),
-                itemType,
+                declaringType,
                 nodesField,
                 combinedField,
                 nodesPipeline,

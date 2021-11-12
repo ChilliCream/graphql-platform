@@ -21,9 +21,12 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             ISelection selection)
         {
             IObjectField field = selection.Field;
-            Expression next = context.GetInstance().Append(field.Member);
+            if (field.Member is PropertyInfo { CanWrite: true })
+            {
+                Expression next = context.GetInstance().Append(field.Member);
 
-            context.PushInstance(next);
+                context.PushInstance(next);
+            }
 
             return context;
         }

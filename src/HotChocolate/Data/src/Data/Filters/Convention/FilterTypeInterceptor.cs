@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters
 {
@@ -43,6 +46,18 @@ namespace HotChocolate.Data.Filters
                 ApplyCorrectScope(extensionDefinition, discoveryContext);
 
                 discoveryContext.RegisterDependencies(extensionDefinition);
+
+                foreach (InputFieldDefinition field in def.Fields)
+                {
+                    if (field is FilterFieldDefinition filterField &&
+                        filterField.Member?.GetCustomAttribute(typeof(IDAttribute)) != null)
+                    {
+                        filterField.Type = discoveryContext.TypeInspector.GetTypeRef(
+                            typeof(IdOperationFilterInputType),
+                            TypeContext.Input,
+                            discoveryContext.Scope);
+                    }
+                }
             }
         }
 
