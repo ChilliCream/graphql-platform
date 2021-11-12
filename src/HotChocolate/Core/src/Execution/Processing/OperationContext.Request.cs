@@ -3,83 +3,82 @@ using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed partial class OperationContext
 {
-    internal sealed partial class OperationContext
+    internal IRequestContext RequestContext
     {
-        internal IRequestContext RequestContext
+        get
         {
-            get
-            {
-                 return _requestContext;
-            }
-            set
-            {
-                _requestContext = value;
-            }
+            return _requestContext;
         }
-
-        public ISchema Schema
+        set
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.Schema;
-            }
+            _requestContext = value;
         }
+    }
 
-        public IErrorHandler ErrorHandler
+    public ISchema Schema
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.ErrorHandler;
-            }
+            AssertInitialized();
+            return _requestContext.Schema;
         }
+    }
 
-        public ITypeConverter Converter
+    public IErrorHandler ErrorHandler
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.Converter;
-            }
+            AssertInitialized();
+            return _requestContext.ErrorHandler;
         }
+    }
 
-        public IActivator Activator
+    public ITypeConverter Converter
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.Activator;
-            }
+            AssertInitialized();
+            return _requestContext.Converter;
         }
+    }
 
-        public IExecutionDiagnosticEvents DiagnosticEvents
+    public IActivator Activator
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.DiagnosticEvents;
-            }
+            AssertInitialized();
+            return _requestContext.Activator;
         }
+    }
 
-        public IDictionary<string, object?> ContextData
+    public IExecutionDiagnosticEvents DiagnosticEvents
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.ContextData;
-            }
+            AssertInitialized();
+            return _requestContext.DiagnosticEvents;
         }
+    }
 
-        public CancellationToken RequestAborted
+    public IDictionary<string, object?> ContextData
+    {
+        get
         {
-            get
-            {
-                AssertInitialized();
-                return _requestContext.RequestAborted;
-            }
+            AssertInitialized();
+            return _requestContext.ContextData;
+        }
+    }
+
+    public CancellationToken RequestAborted
+    {
+        get
+        {
+            AssertInitialized();
+            return _requestContext.RequestAborted;
         }
     }
 }

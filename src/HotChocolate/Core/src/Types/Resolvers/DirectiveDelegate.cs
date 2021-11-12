@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 
-namespace HotChocolate.Resolvers
-{
-    public delegate ValueTask DirectiveDelegate(IDirectiveContext context);
-}
+namespace HotChocolate.Resolvers;
+
+public delegate ValueTask DirectiveDelegate(IDirectiveContext context);

@@ -1,68 +1,67 @@
-﻿using HotChocolate.Internal;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Helpers
+namespace HotChocolate.Types.Helpers;
+
+internal static class DescriptorHelpers
 {
-    internal static class DescriptorHelpers
+    public static TDefinition SetMoreSpecificType<TDefinition>(
+        this TDefinition definition,
+        IExtendedType type,
+        TypeContext context)
+        where TDefinition : FieldDefinitionBase
     {
-        public static TDefinition SetMoreSpecificType<TDefinition>(
-            this TDefinition definition,
-            IExtendedType type,
-            TypeContext context)
-            where TDefinition : FieldDefinitionBase
+        if (IsTypeMoreSpecific(definition.Type, type))
         {
-            if (IsTypeMoreSpecific(definition.Type, type))
-            {
-                definition.Type = TypeReference.Create(type, context);
-            }
-            return definition;
+            definition.Type = TypeReference.Create(type, context);
+        }
+        return definition;
+    }
+
+    public static TDefinition SetMoreSpecificType<TDefinition>(
+        this TDefinition definition,
+        ITypeNode typeNode,
+        TypeContext context)
+        where TDefinition : FieldDefinitionBase
+    {
+        if (IsTypeMoreSpecific(definition.Type, typeNode))
+        {
+            definition.Type = TypeReference.Create(typeNode, context);
+        }
+        return definition;
+    }
+
+    private static bool IsTypeMoreSpecific(
+        ITypeReference typeReference,
+        IExtendedType type)
+    {
+        if (typeReference is SchemaTypeReference)
+        {
+            return false;
         }
 
-        public static TDefinition SetMoreSpecificType<TDefinition>(
-            this TDefinition definition,
-            ITypeNode typeNode,
-            TypeContext context)
-            where TDefinition : FieldDefinitionBase
+        if (typeReference is null || type.IsSchemaType)
         {
-            if (IsTypeMoreSpecific(definition.Type, typeNode))
-            {
-                definition.Type = TypeReference.Create(typeNode, context);
-            }
-            return definition;
+            return true;
         }
 
-        private static bool IsTypeMoreSpecific(
-            ITypeReference typeReference,
-            IExtendedType type)
+        return typeReference is ExtendedTypeReference clr &&
+            !clr.Type.IsSchemaType;
+    }
+
+    private static bool IsTypeMoreSpecific(
+       ITypeReference typeReference,
+       ITypeNode typeNode)
+    {
+        if (typeReference is SchemaTypeReference)
         {
-            if (typeReference is SchemaTypeReference)
-            {
-                return false;
-            }
-
-            if (typeReference is null || type.IsSchemaType)
-            {
-                return true;
-            }
-
-            return typeReference is ExtendedTypeReference clr && 
-                !clr.Type.IsSchemaType;
+            return false;
         }
 
-        private static bool IsTypeMoreSpecific(
-           ITypeReference typeReference,
-           ITypeNode typeNode)
-        {
-            if (typeReference is SchemaTypeReference)
-            {
-                return false;
-            }
-
-            return typeNode != null
-                && (typeReference is null
-                    || typeReference is SyntaxTypeReference);
-        }
+        return typeNode != null
+            && (typeReference is null
+                || typeReference is SyntaxTypeReference);
     }
 }

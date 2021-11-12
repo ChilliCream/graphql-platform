@@ -7,33 +7,32 @@ using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class EventMessageParameterExpressionBuilder
+    : LambdaParameterExpressionBuilder<IResolverContext, object>
 {
-    internal sealed class EventMessageParameterExpressionBuilder
-        : LambdaParameterExpressionBuilder<IResolverContext, object>
+    public EventMessageParameterExpressionBuilder()
+        : base(ctx => GetEventMessage(ctx.ScopedContextData))
     {
-        public EventMessageParameterExpressionBuilder()
-            : base(ctx => GetEventMessage(ctx.ScopedContextData))
+    }
+
+    public override ArgumentKind Kind => ArgumentKind.EventMessage;
+
+    public override bool CanHandle(ParameterInfo parameter)
+        => parameter.IsDefined(typeof(EventMessageAttribute));
+
+    public override Expression Build(ParameterInfo parameter, Expression context)
+        => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);
+
+    private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
+    {
+        if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message) ||
+            message is null)
         {
+            throw new InvalidOperationException(
+                EventMessageParameterExpressionBuilder_MessageNotFound);
         }
-
-        public override ArgumentKind Kind => ArgumentKind.EventMessage;
-
-        public override bool CanHandle(ParameterInfo parameter)
-            => parameter.IsDefined(typeof(EventMessageAttribute));
-
-        public override Expression Build(ParameterInfo parameter, Expression context)
-            => Expression.Convert(base.Build(parameter, context), parameter.ParameterType);
-
-        private static object GetEventMessage(IImmutableDictionary<string, object?> contextData)
-        {
-            if (!contextData.TryGetValue(WellKnownContextData.EventMessage, out var message) ||
-                message is null)
-            {
-                throw new InvalidOperationException(
-                    EventMessageParameterExpressionBuilder_MessageNotFound);
-            }
-            return message;
-        }
+        return message;
     }
 }

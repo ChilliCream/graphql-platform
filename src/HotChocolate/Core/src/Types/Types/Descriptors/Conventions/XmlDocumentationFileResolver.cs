@@ -8,129 +8,128 @@ using IOPath = System.IO.Path;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
 {
-    public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
+    private const string _bin = "bin";
+
+    private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
+
+    private readonly ConcurrentDictionary<string, XDocument> _cache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    public XmlDocumentationFileResolver()
     {
-        private const string _bin = "bin";
+        _resolveXmlDocumentationFileName = null;
+    }
 
-        private readonly Func<Assembly, string>? _resolveXmlDocumentationFileName;
+    public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
+    {
+        _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
+    }
 
-        private readonly ConcurrentDictionary<string, XDocument> _cache =
-            new(StringComparer.OrdinalIgnoreCase);
+    public bool TryGetXmlDocument(
+        Assembly assembly,
+        [NotNullWhen(true)] out XDocument? document)
+    {
+        var fullName = assembly.GetName().FullName;
 
-        public XmlDocumentationFileResolver()
+        if (!_cache.TryGetValue(fullName, out XDocument? doc))
         {
-            _resolveXmlDocumentationFileName = null;
-        }
+            var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
 
-        public XmlDocumentationFileResolver(Func<Assembly, string>? resolveXmlDocumentationFileName)
-        {
-            _resolveXmlDocumentationFileName = resolveXmlDocumentationFileName;
-        }
-
-        public bool TryGetXmlDocument(
-            Assembly assembly,
-            [NotNullWhen(true)] out XDocument? document)
-        {
-            var fullName = assembly.GetName().FullName;
-
-            if (!_cache.TryGetValue(fullName, out XDocument? doc))
+            if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
             {
-                var xmlDocumentFileName = GetXmlDocumentationPath(assembly);
+                doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
+                _cache[fullName] = doc;
+            }
+        }
 
-                if (xmlDocumentFileName is not null && File.Exists(xmlDocumentFileName))
-                {
-                    doc = XDocument.Load(xmlDocumentFileName, LoadOptions.PreserveWhitespace);
-                    _cache[fullName] = doc;
-                }
+        document = doc;
+        return document != null;
+    }
+
+    private string? GetXmlDocumentationPath(Assembly? assembly)
+    {
+        try
+        {
+            if (assembly is null)
+            {
+                return null;
             }
 
-            document = doc;
-            return document != null;
-        }
-
-        private string? GetXmlDocumentationPath(Assembly? assembly)
-        {
-            try
+            AssemblyName assemblyName = assembly.GetName();
+            if (string.IsNullOrEmpty(assemblyName.Name))
             {
-                if (assembly is null)
-                {
-                    return null;
-                }
+                return null;
+            }
 
-                AssemblyName assemblyName = assembly.GetName();
-                if (string.IsNullOrEmpty(assemblyName.Name))
-                {
-                    return null;
-                }
+            if (_cache.ContainsKey(assemblyName.FullName))
+            {
+                return null;
+            }
 
-                if (_cache.ContainsKey(assemblyName.FullName))
-                {
-                    return null;
-                }
+            var expectedDocFile = _resolveXmlDocumentationFileName is null
+                ? $"{assemblyName.Name}.xml"
+                : _resolveXmlDocumentationFileName(assembly);
 
-                var expectedDocFile = _resolveXmlDocumentationFileName is null
-                    ? $"{assemblyName.Name}.xml"
-                    : _resolveXmlDocumentationFileName(assembly);
-
-                string path;
-                if (!string.IsNullOrEmpty(assembly.Location))
-                {
-                    var assemblyDirectory = IOPath.GetDirectoryName(assembly.Location);
-                    path = IOPath.Combine(assemblyDirectory!, expectedDocFile);
-                    if (File.Exists(path))
-                    {
-                        return path;
-                    }
-                }
-
-                var codeBase = assembly.CodeBase;
-                if (!string.IsNullOrEmpty(codeBase))
-                {
-                    path = IOPath.Combine(
-                        IOPath.GetDirectoryName(codeBase.Replace("file:///", string.Empty))!,
-                        expectedDocFile)
-                        .Replace("file:\\", string.Empty);
-
-                    if (File.Exists(path))
-                    {
-                        return path;
-                    }
-                }
-
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                if (!string.IsNullOrEmpty(baseDirectory))
-                {
-                    path = IOPath.Combine(baseDirectory, expectedDocFile);
-                    if (File.Exists(path))
-                    {
-                        return path;
-                    }
-
-                    return IOPath.Combine(baseDirectory, _bin, expectedDocFile);
-                }
-
-                var currentDirectory = Directory.GetCurrentDirectory();
-                path = IOPath.Combine(currentDirectory, expectedDocFile);
+            string path;
+            if (!string.IsNullOrEmpty(assembly.Location))
+            {
+                var assemblyDirectory = IOPath.GetDirectoryName(assembly.Location);
+                path = IOPath.Combine(assemblyDirectory!, expectedDocFile);
                 if (File.Exists(path))
                 {
                     return path;
                 }
+            }
 
-                path = IOPath.Combine(currentDirectory, _bin, expectedDocFile);
+            var codeBase = assembly.CodeBase;
+            if (!string.IsNullOrEmpty(codeBase))
+            {
+                path = IOPath.Combine(
+                    IOPath.GetDirectoryName(codeBase.Replace("file:///", string.Empty))!,
+                    expectedDocFile)
+                    .Replace("file:\\", string.Empty);
 
                 if (File.Exists(path))
                 {
                     return path;
                 }
+            }
 
-                return null;
-            }
-            catch
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if (!string.IsNullOrEmpty(baseDirectory))
             {
-                return null;
+                path = IOPath.Combine(baseDirectory, expectedDocFile);
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+
+                return IOPath.Combine(baseDirectory, _bin, expectedDocFile);
             }
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+            path = IOPath.Combine(currentDirectory, expectedDocFile);
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            path = IOPath.Combine(currentDirectory, _bin, expectedDocFile);
+
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            return null;
+        }
+        catch
+        {
+            return null;
         }
     }
 }

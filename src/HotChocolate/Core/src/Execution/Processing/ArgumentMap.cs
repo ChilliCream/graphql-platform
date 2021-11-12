@@ -4,59 +4,58 @@ using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed class ArgumentMap : IArgumentMap
 {
-    internal sealed class ArgumentMap : IArgumentMap
+    private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
+
+    public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
     {
-        private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
+        _arguments = arguments;
 
-        public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
+        IsFinalNoErrors = arguments.Count == 0;
+
+        if (_arguments.Count > 0)
         {
-            _arguments = arguments;
-
-            IsFinalNoErrors = arguments.Count == 0;
-
-            if (_arguments.Count > 0)
+            foreach (ArgumentValue argument in arguments.Values)
             {
-                foreach (ArgumentValue argument in arguments.Values)
+                if (!argument.IsFinal)
                 {
-                    if (!argument.IsFinal)
-                    {
-                        IsFinal = false;
-                    }
-
-                    if (argument.HasError)
-                    {
-                        HasErrors = true;
-                    }
+                    IsFinal = false;
                 }
 
-                IsFinalNoErrors = IsFinal && !HasErrors;
+                if (argument.HasError)
+                {
+                    HasErrors = true;
+                }
             }
+
+            IsFinalNoErrors = IsFinal && !HasErrors;
         }
-
-        public ArgumentValue this[NameString key] => _arguments[key];
-
-        public bool IsFinalNoErrors { get; }
-
-        public bool IsFinal { get; } = true;
-
-        public bool HasErrors { get; }
-
-        public IEnumerable<NameString> Keys => _arguments.Keys;
-
-        public IEnumerable<ArgumentValue> Values => _arguments.Values;
-
-        public int Count => _arguments.Count;
-
-        public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
-
-        public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value) =>
-            _arguments.TryGetValue(key, out value);
-
-        public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
-            _arguments.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+
+    public ArgumentValue this[NameString key] => _arguments[key];
+
+    public bool IsFinalNoErrors { get; }
+
+    public bool IsFinal { get; } = true;
+
+    public bool HasErrors { get; }
+
+    public IEnumerable<NameString> Keys => _arguments.Keys;
+
+    public IEnumerable<ArgumentValue> Values => _arguments.Values;
+
+    public int Count => _arguments.Count;
+
+    public bool ContainsKey(NameString key) => _arguments.ContainsKey(key);
+
+    public bool TryGetValue(NameString key, [MaybeNullWhen(false)] out ArgumentValue value) =>
+        _arguments.TryGetValue(key, out value);
+
+    public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
+        _arguments.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

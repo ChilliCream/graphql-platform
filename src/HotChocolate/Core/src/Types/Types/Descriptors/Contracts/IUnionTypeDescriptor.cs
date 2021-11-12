@@ -1,38 +1,37 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IUnionTypeDescriptor
+    : IDescriptor<UnionTypeDefinition>
+    , IFluent
 {
-    public interface IUnionTypeDescriptor
-        : IDescriptor<UnionTypeDefinition>
-        , IFluent
-    {
-        IUnionTypeDescriptor SyntaxNode(
-            UnionTypeDefinitionNode unionTypeDefinitionNode);
+    IUnionTypeDescriptor SyntaxNode(
+        UnionTypeDefinitionNode unionTypeDefinitionNode);
 
-        IUnionTypeDescriptor Name(NameString value);
+    IUnionTypeDescriptor Name(NameString value);
 
-        IUnionTypeDescriptor Description(string value);
+    IUnionTypeDescriptor Description(string value);
 
-        IUnionTypeDescriptor Type<TObjectType>()
-            where TObjectType : ObjectType;
+    IUnionTypeDescriptor Type<TObjectType>()
+        where TObjectType : ObjectType;
 
-        IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
-            where TObjectType : ObjectType;
+    IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
+        where TObjectType : ObjectType;
 
-        IUnionTypeDescriptor Type(NamedTypeNode objectType);
+    IUnionTypeDescriptor Type(NamedTypeNode objectType);
 
-        IUnionTypeDescriptor ResolveAbstractType(
-            ResolveAbstractType resolveAbstractType);
+    IUnionTypeDescriptor ResolveAbstractType(
+        ResolveAbstractType resolveAbstractType);
 
-        IUnionTypeDescriptor Directive<T>(T directiveInstance)
-            where T : class;
+    IUnionTypeDescriptor Directive<T>(T directiveInstance)
+        where T : class;
 
-        IUnionTypeDescriptor Directive<T>()
-            where T : class, new();
+    IUnionTypeDescriptor Directive<T>()
+        where T : class, new();
 
-        IUnionTypeDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
+    IUnionTypeDescriptor Directive(
+        NameString name,
+        params ArgumentNode[] arguments);
 }

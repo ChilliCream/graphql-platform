@@ -4,40 +4,39 @@ using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+[AttributeUsage(
+    AttributeTargets.Parameter | AttributeTargets.Property,
+    Inherited = true,
+    AllowMultiple = false)]
+public sealed class DefaultValueAttribute : DescriptorAttribute
 {
-    [AttributeUsage(
-        AttributeTargets.Parameter | AttributeTargets.Property,
-        Inherited = true,
-        AllowMultiple = false)]
-    public sealed class DefaultValueAttribute : DescriptorAttribute
+    public DefaultValueAttribute(object value)
     {
-        public DefaultValueAttribute(object value)
+        Value = value;
+    }
+
+    public object Value { get; }
+
+    protected internal override void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element)
+    {
+        if (descriptor is IArgumentDescriptor arg)
         {
-            Value = value;
+            arg.DefaultValue(Value);
         }
 
-        public object Value { get; }
-
-        protected internal override void TryConfigure(
-            IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider element)
+        if (descriptor is IDirectiveArgumentDescriptor darg)
         {
-            if (descriptor is IArgumentDescriptor arg)
-            {
-                arg.DefaultValue(Value);
-            }
+            darg.DefaultValue(Value);
+        }
 
-            if (descriptor is IDirectiveArgumentDescriptor darg)
-            {
-                darg.DefaultValue(Value);
-            }
-
-            if (descriptor is IInputFieldDescriptor field)
-            {
-                field.DefaultValue(Value);
-            }
+        if (descriptor is IInputFieldDescriptor field)
+        {
+            field.DefaultValue(Value);
         }
     }
 }

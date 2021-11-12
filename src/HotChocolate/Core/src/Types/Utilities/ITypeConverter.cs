@@ -2,12 +2,11 @@ using System;
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+public interface ITypeConverter
 {
-    public interface ITypeConverter
-    {
-        bool TryConvert(Type from, Type to, object? source, out object? converted);
-        
-        object? Convert(Type from, Type to, object? source);
-    }
+    bool TryConvert(Type from, Type to, object? source, out object? converted);
+
+    object? Convert(Type from, Type to, object? source);
 }

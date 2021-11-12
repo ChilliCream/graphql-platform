@@ -2,11 +2,10 @@ using System.Reflection;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal class ImplicitArgumentParameterExpressionBuilder : ArgumentParameterExpressionBuilder
 {
-    internal class ImplicitArgumentParameterExpressionBuilder : ArgumentParameterExpressionBuilder
-    {
-        public override bool CanHandle(ParameterInfo parameter)
-            => true;
-    }
+    public override bool CanHandle(ParameterInfo parameter)
+        => true;
 }

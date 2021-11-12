@@ -7,62 +7,61 @@ using static System.Linq.Expressions.Expression;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers;
+
+internal static class ResolveResultHelper
 {
-    internal static class ResolveResultHelper
+    private static readonly MethodInfo _awaitTaskHelper =
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
+    private static readonly MethodInfo _awaitValueTaskHelper =
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper))!;
+    private static readonly MethodInfo _wrapResultHelper =
+        typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
+
+    public static Expression EnsureResolveResult(Expression resolver, Type result)
     {
-        private static readonly MethodInfo _awaitTaskHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper))!;
-        private static readonly MethodInfo _awaitValueTaskHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitValueTaskHelper))!;
-        private static readonly MethodInfo _wrapResultHelper =
-            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.WrapResultHelper))!;
-
-        public static Expression EnsureResolveResult(Expression resolver, Type result)
+        if (result == typeof(ValueTask<object>))
         {
-            if (result == typeof(ValueTask<object>))
-            {
-                return resolver;
-            }
-
-            if (typeof(Task).IsAssignableFrom(result) &&
-                result.IsGenericType)
-            {
-                return AwaitTaskMethodCall(
-                    resolver,
-                    result.GetGenericArguments()[0]);
-            }
-
-            if (result.IsGenericType
-                && result.GetGenericTypeDefinition() == typeof(ValueTask<>))
-            {
-                return AwaitValueTaskMethodCall(
-                    resolver,
-                    result.GetGenericArguments()[0]);
-            }
-
-            return WrapResult(resolver, result);
+            return resolver;
         }
 
-        private static MethodCallExpression AwaitTaskMethodCall(
-            Expression taskExpression, Type value)
+        if (typeof(Task).IsAssignableFrom(result) &&
+            result.IsGenericType)
         {
-            MethodInfo awaitHelper = _awaitTaskHelper.MakeGenericMethod(value);
-            return Call(awaitHelper, taskExpression);
+            return AwaitTaskMethodCall(
+                resolver,
+                result.GetGenericArguments()[0]);
         }
 
-        private static MethodCallExpression AwaitValueTaskMethodCall(
-            Expression taskExpression, Type value)
+        if (result.IsGenericType
+            && result.GetGenericTypeDefinition() == typeof(ValueTask<>))
         {
-            MethodInfo awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(value);
-            return Call(awaitHelper, taskExpression);
+            return AwaitValueTaskMethodCall(
+                resolver,
+                result.GetGenericArguments()[0]);
         }
 
-        private static MethodCallExpression WrapResult(
-            Expression taskExpression, Type value)
-        {
-            MethodInfo wrapResultHelper = _wrapResultHelper.MakeGenericMethod(value);
-            return Call(wrapResultHelper, taskExpression);
-        }
+        return WrapResult(resolver, result);
+    }
+
+    private static MethodCallExpression AwaitTaskMethodCall(
+        Expression taskExpression, Type value)
+    {
+        MethodInfo awaitHelper = _awaitTaskHelper.MakeGenericMethod(value);
+        return Call(awaitHelper, taskExpression);
+    }
+
+    private static MethodCallExpression AwaitValueTaskMethodCall(
+        Expression taskExpression, Type value)
+    {
+        MethodInfo awaitHelper = _awaitValueTaskHelper.MakeGenericMethod(value);
+        return Call(awaitHelper, taskExpression);
+    }
+
+    private static MethodCallExpression WrapResult(
+        Expression taskExpression, Type value)
+    {
+        MethodInfo wrapResultHelper = _wrapResultHelper.MakeGenericMethod(value);
+        return Call(wrapResultHelper, taskExpression);
     }
 }

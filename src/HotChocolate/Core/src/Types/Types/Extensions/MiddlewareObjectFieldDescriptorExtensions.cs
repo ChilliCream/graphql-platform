@@ -1,28 +1,27 @@
-﻿using System;
+using System;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public static class MiddlewareObjectFieldDescriptorExtensions
 {
-    public static class MiddlewareObjectFieldDescriptorExtensions
+    public static IObjectFieldDescriptor Use<TMiddleware>(
+        this IObjectFieldDescriptor descriptor)
+        where TMiddleware : class
     {
-        public static IObjectFieldDescriptor Use<TMiddleware>(
-            this IObjectFieldDescriptor descriptor)
-            where TMiddleware : class
+        return descriptor.Use(FieldClassMiddlewareFactory.Create<TMiddleware>());
+    }
+
+    public static IObjectFieldDescriptor Use<TMiddleware>(
+        this IObjectFieldDescriptor descriptor,
+        Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+        where TMiddleware : class
+    {
+        if (factory is null)
         {
-            return descriptor.Use(FieldClassMiddlewareFactory.Create<TMiddleware>());
+            throw new ArgumentNullException(nameof(factory));
         }
 
-        public static IObjectFieldDescriptor Use<TMiddleware>(
-            this IObjectFieldDescriptor descriptor,
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
-            where TMiddleware : class
-        {
-            if (factory is null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            return descriptor.Use(FieldClassMiddlewareFactory.Create(factory));
-        }
+        return descriptor.Use(FieldClassMiddlewareFactory.Create(factory));
     }
 }

@@ -1,9 +1,8 @@
-namespace HotChocolate.Internal
+namespace HotChocolate.Internal;
+
+public enum ExtendedTypeKind
 {
-    public enum ExtendedTypeKind
-    {
-        Runtime,
-        Extended,
-        Schema
-    }
+    Runtime,
+    Extended,
+    Schema
 }
