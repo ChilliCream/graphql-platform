@@ -1,2 +1,6 @@
+HotChocolate.Fetching.BatchScheduler.BeginDispatch(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+HotChocolate.Fetching.IBatchDispatcher.BeginDispatch(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType, int order = 0) -> void
 *REMOVED*HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType) -> void
+*REMOVED*HotChocolate.Fetching.BatchScheduler.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
+*REMOVED*HotChocolate.Fetching.IBatchDispatcher.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!

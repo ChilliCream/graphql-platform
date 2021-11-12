@@ -19,7 +19,9 @@ namespace HotChocolate.Execution.Processing
 
         private readonly OperationContext _operationContext;
         private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
-        private readonly Pause _pause;
+        private readonly Queue<Pause> _pausePool = new();
+        private Pause? _pause;
+
 
         private bool _processing;
         private bool _completed;
@@ -36,7 +38,11 @@ namespace HotChocolate.Execution.Processing
         public WorkScheduler(OperationContext operationContext)
         {
             _operationContext = operationContext;
-            _pause = new(_sync);
+
+            _pausePool.Enqueue(new(_sync));
+            _pausePool.Enqueue(new(_sync));
+            _pausePool.Enqueue(new(_sync));
+            _pausePool.Enqueue(new(_sync));
         }
 
         public void Initialize(IBatchDispatcher batchDispatcher)
@@ -61,7 +67,7 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_sync)
             {
-                _pause.TryContinueUnsafe();
+                TryContinueUnsafe();
 
                 if (_batchDispatcher is not null)
                 {
@@ -96,7 +102,7 @@ namespace HotChocolate.Execution.Processing
         {
             lock (_sync)
             {
-                _pause.TryContinueUnsafe();
+                TryContinueUnsafe();
 
                 _work.Clear();
                 _serial.Clear();

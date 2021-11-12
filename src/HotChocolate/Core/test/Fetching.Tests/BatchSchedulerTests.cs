@@ -24,7 +24,7 @@ namespace HotChocolate
             Assert.True(scheduler.HasTasks);
 
             // act
-            await scheduler.DispatchAsync();
+            scheduler.BeginDispatch();
 
             // assert
             Assert.False(scheduler.HasTasks);
