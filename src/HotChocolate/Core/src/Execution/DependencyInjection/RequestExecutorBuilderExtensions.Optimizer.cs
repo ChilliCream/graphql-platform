@@ -2,37 +2,36 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+public static partial class RequestExecutorBuilderExtensions
 {
-    public static partial class RequestExecutorBuilderExtensions
+    public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
+        this IRequestExecutorBuilder builder)
+        where T : class, ISelectionOptimizer
     {
-        public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
-            this IRequestExecutorBuilder builder)
-            where T : class, ISelectionOptimizer
+        if (builder is null)
         {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            builder.ConfigureSchemaServices(s => s.AddSingleton<ISelectionOptimizer, T>());
-            return builder;
+            throw new ArgumentNullException(nameof(builder));
         }
 
-        public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
-            this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, T> factory)
-            where T : class, ISelectionOptimizer
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+        builder.ConfigureSchemaServices(s => s.AddSingleton<ISelectionOptimizer, T>());
+        return builder;
+    }
 
-            builder.ConfigureSchemaServices(
-                sc => sc.AddSingleton<ISelectionOptimizer>(
-                    sp => factory(sp.GetCombinedServices())));
-            return builder;
+    public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T> factory)
+        where T : class, ISelectionOptimizer
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
         }
+
+        builder.ConfigureSchemaServices(
+            sc => sc.AddSingleton<ISelectionOptimizer>(
+                sp => factory(sp.GetCombinedServices())));
+        return builder;
     }
 }

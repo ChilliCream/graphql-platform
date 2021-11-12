@@ -9,67 +9,68 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class MiddlewareContextTests
 {
-    public class MiddlewareContextTests
+    [Fact]
+    public async Task AccessVariables()
     {
-        [Fact]
-        public async Task AccessVariables()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo(bar: String) : String }")
-                .AddResolver("Query", "foo", ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
-                .Create();
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                "type Query { foo(bar: String) : String }")
+            .AddResolver("Query", "foo", ctx =>
+                ctx.Variables.GetVariable<string>("abc"))
+            .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
-                .SetVariableValue("abc", "def")
-                .Create();
+        IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            .SetQuery("query abc($abc: String){ foo(bar: $abc) }")
+            .SetVariableValue("abc", "def")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
+        // act
+        IExecutionResult result =
+            await schema.MakeExecutable().ExecuteAsync(request);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task AccessVariables_Fails_When_Variable_Not_Exists()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    "type Query { foo(bar: String) : String }")
-                .AddResolver("Query", "foo", ctx =>
-                    ctx.Variables.GetVariable<string>("abc"))
-                .Create();
+    [Fact]
+    public async Task AccessVariables_Fails_When_Variable_Not_Exists()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                "type Query { foo(bar: String) : String }")
+            .AddResolver("Query", "foo", ctx =>
+                ctx.Variables.GetVariable<string>("abc"))
+            .Create();
 
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("query abc($def: String){ foo(bar: $def) }")
-                .SetVariableValue("def", "ghi")
-                .Create();
+        IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+            .SetQuery("query abc($def: String){ foo(bar: $def) }")
+            .SetVariableValue("def", "ghi")
+            .Create();
 
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(request);
+        // act
+        IExecutionResult result =
+            await schema.MakeExecutable().ExecuteAsync(request);
 
-            // assert
-            result.MatchSnapshot();
-        }
+        // assert
+        result.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task CollectFields()
-        {
-            // arrange
-            var list = new List<IFieldSelection>();
+    [Fact]
+    [System.Obsolete]
+    public async Task CollectFields()
+    {
+        // arrange
+        var list = new List<IFieldSelection>();
 
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"
+        ISchema schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo: Foo
                     }
@@ -81,22 +82,22 @@ namespace HotChocolate.Execution
                     type Bar {
                         baz: String
                     }")
-                .Use(_ => context =>
+            .Use(_ => context =>
+            {
+                if (context.Field.Type.NamedType() is ObjectType type)
                 {
-                    if (context.Field.Type.NamedType() is ObjectType type)
+                    foreach (IFieldSelection selection in context.GetSelections(type))
                     {
-                        foreach (IFieldSelection selection in context.GetSelections(type))
-                        {
-                            CollectSelections(context, selection, list);
-                        }
+                        CollectSelections(context, selection, list);
                     }
-                    return default;
-                })
-                .Create();
+                }
+                return default;
+            })
+            .Create();
 
-            // act
-            await schema.MakeExecutable().ExecuteAsync(
-            @"{
+        // act
+        await schema.MakeExecutable().ExecuteAsync(
+        @"{
                 foo {
                     bar {
                         baz
@@ -104,55 +105,54 @@ namespace HotChocolate.Execution
                 }
             }");
 
+        // assert
+        list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task CustomServiceProvider()
+    {
+        // arrange
+        Snapshot.FullName();
+        var services = new DictionaryServiceProvider(typeof(string), "hello");
+
+        // assert
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name(OperationTypeNames.Query);
+
+                d.Field("foo")
+                    .Resolve(ctx => ctx.Service<string>())
+                    .Use(next => async context =>
+                    {
+                        context.Services = services;
+                        await next(context);
+                    });
+            })
+            .ExecuteRequestAsync("{ foo }")
+
             // assert
-            list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
+            .MatchSnapshotAsync();
+    }
+
+    private static void CollectSelections(
+        IResolverContext context,
+        IFieldSelection selection,
+        ICollection<IFieldSelection> collected)
+    {
+        if (selection.Field.Type.IsLeafType())
+        {
+            collected.Add(selection);
         }
 
-        [Fact]
-        public async Task CustomServiceProvider()
+        if (selection.Field.Type.NamedType() is ObjectType objectType)
         {
-            // arrange
-            Snapshot.FullName();
-            var services = new DictionaryServiceProvider(typeof(string), "hello");
-
-            // assert
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(d =>
-                {
-                    d.Name(OperationTypeNames.Query);
-
-                    d.Field("foo")
-                        .Resolve(ctx => ctx.Service<string>())
-                        .Use(next => async context =>
-                        {
-                            context.Services = services;
-                            await next(context);
-                        });
-                })
-                .ExecuteRequestAsync("{ foo }")
-
-            // assert
-                .MatchSnapshotAsync();
-        }
-
-        private static void CollectSelections(
-            IResolverContext context,
-            IFieldSelection selection,
-            ICollection<IFieldSelection> collected)
-        {
-            if (selection.Field.Type.IsLeafType())
+            foreach (IFieldSelection child in context.GetSelections(
+                objectType, selection.SyntaxNode.SelectionSet))
             {
-                collected.Add(selection);
-            }
-
-            if (selection.Field.Type.NamedType() is ObjectType objectType)
-            {
-                foreach (IFieldSelection child in context.GetSelections(
-                    objectType, selection.SyntaxNode.SelectionSet))
-                {
-                    CollectSelections(context, child, collected);
-                }
+                CollectSelections(context, child, collected);
             }
         }
     }

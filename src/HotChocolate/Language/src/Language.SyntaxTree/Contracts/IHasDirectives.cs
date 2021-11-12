@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IHasDirectives
 {
-    public interface IHasDirectives
-    {
-        IReadOnlyList<DirectiveNode> Directives { get; }
-    }
+    IReadOnlyList<DirectiveNode> Directives { get; }
 }

@@ -1,9 +1,8 @@
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J;
+
+public enum RelationshipDirection
 {
-    public enum RelationshipDirection
-    {
-        Outgoing,
-        Incoming,
-        None
-    }
+    Outgoing,
+    Incoming,
+    None
 }

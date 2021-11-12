@@ -1,52 +1,51 @@
-﻿using System;
+using System;
+using HotChocolate.Analyzers.Configuration.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using HotChocolate.Analyzers.Configuration.Properties;
 
-namespace HotChocolate.Analyzers.Configuration
+namespace HotChocolate.Analyzers.Configuration;
+
+public class GraphQLConfig
 {
-    public class GraphQLConfig
+    public string Schema { get; set; } = FileNames.SchemaFile;
+
+    public string Documents { get; set; } = "**/*.graphql";
+
+    public string? Location { get; set; }
+
+    public GraphQLConfigExtensions Extensions { get; } = new();
+
+    public override string ToString()
     {
-        public string Schema { get; set; } = FileNames.SchemaFile;
+        return JsonConvert.SerializeObject(this, CreateJsonSettings());
+    }
 
-        public string Documents { get; set; } = "**/*.graphql";
-
-        public string? Location { get; set; }
-
-        public GraphQLConfigExtensions Extensions { get; } = new();
-
-        public override string ToString()
+    public static GraphQLConfig FromJson(string json)
+    {
+        if (string.IsNullOrEmpty(json))
         {
-            return JsonConvert.SerializeObject(this, CreateJsonSettings());
+            throw new ArgumentException(
+                string.Format(
+                    ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
+                    nameof(json)),
+                nameof(json));
         }
 
-        public static GraphQLConfig FromJson(string json)
+        return JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings())!;
+    }
+
+    private static JsonSerializerSettings CreateJsonSettings()
+    {
+        var jsonSettings = new JsonSerializerSettings
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                throw new ArgumentException(
-                    string.Format(
-                        ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
-                        nameof(json)),
-                    nameof(json));
-            }
+            Formatting = Formatting.Indented,
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+        };
 
-            return JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings())!;
-        }
+        jsonSettings.Converters.Add(new StringEnumConverter());
 
-        private static JsonSerializerSettings CreateJsonSettings()
-        {
-            var jsonSettings = new JsonSerializerSettings
-            {
-                Formatting = Formatting.Indented,
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore,
-            };
-
-            jsonSettings.Converters.Add(new StringEnumConverter());
-
-            return jsonSettings;
-        }
+        return jsonSettings;
     }
 }

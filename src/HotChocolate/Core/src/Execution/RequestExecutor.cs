@@ -6,121 +6,120 @@ using HotChocolate.Execution.Batching;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
-{
-    internal sealed class RequestExecutor : IRequestExecutor
-    {
-        private readonly DefaultRequestContextAccessor _requestContextAccessor;
-        private readonly IServiceProvider _applicationServices;
-        private readonly RequestDelegate _requestDelegate;
-        private readonly BatchExecutor _batchExecutor;
-        private readonly ObjectPool<RequestContext> _contextPool;
+namespace HotChocolate.Execution;
 
-        public RequestExecutor(
-            ISchema schema,
-            DefaultRequestContextAccessor requestContextAccessor,
-            IServiceProvider applicationServices,
-            IServiceProvider executorServices,
-            RequestDelegate requestDelegate,
-            BatchExecutor batchExecutor,
-            ObjectPool<RequestContext> contextPool,
-            ulong version)
+internal sealed class RequestExecutor : IRequestExecutor
+{
+    private readonly DefaultRequestContextAccessor _requestContextAccessor;
+    private readonly IServiceProvider _applicationServices;
+    private readonly RequestDelegate _requestDelegate;
+    private readonly BatchExecutor _batchExecutor;
+    private readonly ObjectPool<RequestContext> _contextPool;
+
+    public RequestExecutor(
+        ISchema schema,
+        DefaultRequestContextAccessor requestContextAccessor,
+        IServiceProvider applicationServices,
+        IServiceProvider executorServices,
+        RequestDelegate requestDelegate,
+        BatchExecutor batchExecutor,
+        ObjectPool<RequestContext> contextPool,
+        ulong version)
+    {
+        Schema = schema ??
+            throw new ArgumentNullException(nameof(schema));
+        _requestContextAccessor = requestContextAccessor ??
+            throw new ArgumentNullException(nameof(requestContextAccessor));
+        _applicationServices = applicationServices ??
+            throw new ArgumentNullException(nameof(applicationServices));
+        Services = executorServices ??
+            throw new ArgumentNullException(nameof(executorServices));
+        _requestDelegate = requestDelegate ??
+            throw new ArgumentNullException(nameof(requestDelegate));
+        _batchExecutor = batchExecutor ??
+            throw new ArgumentNullException(nameof(batchExecutor));
+        _contextPool = contextPool ??
+            throw new ArgumentNullException(nameof(contextPool));
+        Version = version;
+    }
+
+    public ISchema Schema { get; }
+
+    public IServiceProvider Services { get; }
+
+    public ulong Version { get; }
+
+    public async Task<IExecutionResult> ExecuteAsync(
+        IQueryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request is null)
         {
-            Schema = schema ??
-                throw new ArgumentNullException(nameof(schema));
-            _requestContextAccessor = requestContextAccessor ??
-                throw new ArgumentNullException(nameof(requestContextAccessor));
-            _applicationServices = applicationServices ??
-                throw new ArgumentNullException(nameof(applicationServices));
-            Services = executorServices ??
-                throw new ArgumentNullException(nameof(executorServices));
-            _requestDelegate = requestDelegate ??
-                throw new ArgumentNullException(nameof(requestDelegate));
-            _batchExecutor = batchExecutor ??
-                throw new ArgumentNullException(nameof(batchExecutor));
-            _contextPool = contextPool ??
-                throw new ArgumentNullException(nameof(contextPool));
-            Version = version;
+            throw new ArgumentNullException(nameof(request));
         }
 
-        public ISchema Schema { get; }
+        IServiceScope? scope = request.Services is null
+            ? _applicationServices.CreateScope()
+            : null;
 
-        public IServiceProvider Services { get; }
+        IServiceProvider services = scope is null
+            ? request.Services!
+            : scope.ServiceProvider;
 
-        public ulong Version { get; }
+        RequestContext context = _contextPool.Get();
 
-        public async Task<IExecutionResult> ExecuteAsync(
-            IQueryRequest request,
-            CancellationToken cancellationToken = default)
+        try
         {
-            if (request is null)
+            context.RequestAborted = cancellationToken;
+            context.Initialize(request, services);
+
+            _requestContextAccessor.RequestContext = context;
+
+            await _requestDelegate(context).ConfigureAwait(false);
+
+            if (context.Result is null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new InvalidOperationException();
             }
 
-            IServiceScope? scope = request.Services is null
-                ? _applicationServices.CreateScope()
-                : null;
-
-            IServiceProvider services = scope is null
-                ? request.Services!
-                : scope.ServiceProvider;
-
-            RequestContext context = _contextPool.Get();
-
-            try
+            if (scope is null)
             {
-                context.RequestAborted = cancellationToken;
-                context.Initialize(request, services);
-
-                _requestContextAccessor.RequestContext = context;
-
-                await _requestDelegate(context).ConfigureAwait(false);
-
-                if (context.Result is null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                if (scope is null)
-                {
-                    return context.Result;
-                }
-
-                if (context.Result is DeferredQueryResult deferred)
-                {
-                    context.Result = new DeferredQueryResult(deferred, scope);
-                    scope = null;
-                }
-                else if (context.Result is SubscriptionResult result)
-                {
-                    context.Result = new SubscriptionResult(result, scope);
-                    scope = null;
-                }
-
                 return context.Result;
             }
-            finally
-            {
-                _contextPool.Return(context);
-                scope?.Dispose();
-            }
-        }
 
-        public Task<IBatchQueryResult> ExecuteBatchAsync(
-            IEnumerable<IQueryRequest> requestBatch,
-            bool allowParallelExecution = false,
-            CancellationToken cancellationToken = default)
+            if (context.Result is DeferredQueryResult deferred)
+            {
+                context.Result = new DeferredQueryResult(deferred, scope);
+                scope = null;
+            }
+            else if (context.Result is SubscriptionResult result)
+            {
+                context.Result = new SubscriptionResult(result, scope);
+                scope = null;
+            }
+
+            return context.Result;
+        }
+        finally
         {
-            if (requestBatch is null)
-            {
-                throw new ArgumentNullException(nameof(requestBatch));
-            }
-
-            return Task.FromResult<IBatchQueryResult>(
-                new BatchQueryResult(
-                    () => _batchExecutor.ExecuteAsync(this, requestBatch),
-                    null));
+            _contextPool.Return(context);
+            scope?.Dispose();
         }
+    }
+
+    public Task<IBatchQueryResult> ExecuteBatchAsync(
+        IEnumerable<IQueryRequest> requestBatch,
+        bool allowParallelExecution = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestBatch is null)
+        {
+            throw new ArgumentNullException(nameof(requestBatch));
+        }
+
+        return Task.FromResult<IBatchQueryResult>(
+            new BatchQueryResult(
+                () => _batchExecutor.ExecuteAsync(this, requestBatch),
+                null));
     }
 }

@@ -1,9 +1,8 @@
-namespace HotChocolate.Data.Neo4J.Language
-{
-    public interface IVisitor
-    {
-        void Enter(IVisitable visitable);
+namespace HotChocolate.Data.Neo4J.Language;
 
-        void Leave(IVisitable visitable);
-    }
+public interface IVisitor
+{
+    void Enter(IVisitable visitable);
+
+    void Leave(IVisitable visitable);
 }

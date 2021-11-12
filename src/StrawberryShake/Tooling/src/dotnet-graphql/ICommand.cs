@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public interface ICommand
 {
-    public interface ICommand
-    {
-        Task<int> OnExecute();
-    }
+    Task<int> OnExecute();
 }

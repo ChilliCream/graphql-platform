@@ -1,11 +1,11 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public enum OperationKind
 {
-    public enum OperationKind {
-        Read,
-        Create,
-        Update,
-        Delete,
-        All,
-        None
-    }
+    Read,
+    Create,
+    Update,
+    Delete,
+    All,
+    None
 }

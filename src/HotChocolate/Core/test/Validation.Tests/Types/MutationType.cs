@@ -1,17 +1,16 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class MutationType
+    : ObjectType
 {
-    public class MutationType
-        : ObjectType
+    protected override void Configure(IObjectTypeDescriptor descriptor)
     {
-        protected override void Configure(IObjectTypeDescriptor descriptor)
-        {
-            descriptor.Name("Mutation");
+        descriptor.Name("Mutation");
 
-            descriptor.Field("fieldB")
-                .Type<NonNullType<StringType>>()
-                .Resolve(() => "foo");
-        }
+        descriptor.Field("fieldB")
+            .Type<NonNullType<StringType>>()
+            .Resolve(() => "foo");
     }
 }

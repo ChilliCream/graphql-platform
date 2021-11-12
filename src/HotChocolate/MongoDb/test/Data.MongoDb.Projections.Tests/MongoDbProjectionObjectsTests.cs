@@ -6,13 +6,13 @@ using MongoDB.Bson.Serialization.Attributes;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.MongoDb.Projections
+namespace HotChocolate.Data.MongoDb.Projections;
+
+public class MongoDbProjectionObjectTests
+    : IClassFixture<MongoResource>
 {
-    public class MongoDbProjectionObjectTests
-        : IClassFixture<MongoResource>
+    private static readonly BarNullable[] _barWithoutRelation =
     {
-        private static readonly BarNullable[] _barWithoutRelation =
-        {
             new BarNullable
             {
                 Number = 2,
@@ -33,25 +33,25 @@ namespace HotChocolate.Data.MongoDb.Projections
             new BarNullable { Number = 2 }
         };
 
-        private readonly SchemaCache _cache;
+    private readonly SchemaCache _cache;
 
-        public MongoDbProjectionObjectTests(MongoResource resource)
-        {
-            _cache = new SchemaCache(resource);
-        }
+    public MongoDbProjectionObjectTests(MongoResource resource)
+    {
+        _cache = new SchemaCache(resource);
+    }
 
-        [Fact]
-        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+    [Fact]
+    public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 number
@@ -60,23 +60,23 @@ namespace HotChocolate.Data.MongoDb.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchDocumentSnapshot();
-        }
+        res1.MatchDocumentSnapshot();
+    }
 
-        [Fact]
-        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+    [Fact]
+    public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_TwoFields()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 number
@@ -85,23 +85,23 @@ namespace HotChocolate.Data.MongoDb.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchDocumentSnapshot();
-        }
+        res1.MatchDocumentSnapshot();
+    }
 
-        [Fact]
-        public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
+    [Fact]
+    public async Task Should_NotInitializeObject_When_ResultOfLeftJoinIsNull_Deep()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barWithoutRelation);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 number
@@ -115,101 +115,100 @@ namespace HotChocolate.Data.MongoDb.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchDocumentSnapshot();
-        }
+        res1.MatchDocumentSnapshot();
+    }
 
-        public class Foo
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class Foo
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public short BarShort { get; set; }
+        public short BarShort { get; set; }
 
-            public string BarString { get; set; } = string.Empty;
+        public string BarString { get; set; } = string.Empty;
 
-            public BarEnum BarEnum { get; set; }
+        public BarEnum BarEnum { get; set; }
 
-            public bool BarBool { get; set; }
+        public bool BarBool { get; set; }
 
-            public List<BarDeep> ObjectArray { get; set; }
+        public List<BarDeep>? ObjectArray { get; set; }
 
-            public BarDeep NestedObject { get; set; }
-        }
+        public BarDeep? NestedObject { get; set; }
+    }
 
-        public class FooDeep
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class FooDeep
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public short BarShort { get; set; }
+        public short BarShort { get; set; }
 
-            public string BarString { get; set; } = string.Empty;
-        }
+        public string BarString { get; set; } = string.Empty;
+    }
 
-        public class FooNullable
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class FooNullable
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public short? BarShort { get; set; }
+        public short? BarShort { get; set; }
 
-            public string? BarString { get; set; }
+        public string? BarString { get; set; }
 
-            public BarEnum? BarEnum { get; set; }
+        public BarEnum? BarEnum { get; set; }
 
-            public bool? BarBool { get; set; }
+        public bool? BarBool { get; set; }
 
-            public List<BarNullableDeep?>? ObjectArray { get; set; }
+        public List<BarNullableDeep?>? ObjectArray { get; set; }
 
-            public BarNullableDeep? NestedObject { get; set; }
-        }
+        public BarNullableDeep? NestedObject { get; set; }
+    }
 
-        public class Bar
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class Bar
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public Foo Foo { get; set; }
+        public Foo? Foo { get; set; }
 
-            public int Number { get; set; }
-        }
+        public int Number { get; set; }
+    }
 
-        public class BarDeep
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class BarDeep
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public FooDeep Foo { get; set; }
-        }
+        public FooDeep? Foo { get; set; }
+    }
 
-        public class BarNullableDeep
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class BarNullableDeep
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public FooDeep? Foo { get; set; }
+        public FooDeep? Foo { get; set; }
 
-            public int Number { get; set; }
-        }
+        public int Number { get; set; }
+    }
 
-        public class BarNullable
-        {
-            [BsonId]
-            public Guid Id { get; set; } = Guid.NewGuid();
+    public class BarNullable
+    {
+        [BsonId]
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-            public FooNullable? Foo { get; set; }
+        public FooNullable? Foo { get; set; }
 
-            public int Number { get; set; }
-        }
+        public int Number { get; set; }
+    }
 
-        public enum BarEnum
-        {
-            FOO,
-            BAR,
-            BAZ,
-            QUX
-        }
+    public enum BarEnum
+    {
+        FOO,
+        BAR,
+        BAZ,
+        QUX
     }
 }

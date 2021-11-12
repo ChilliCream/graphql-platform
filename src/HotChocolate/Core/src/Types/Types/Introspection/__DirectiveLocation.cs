@@ -5,18 +5,18 @@ using static HotChocolate.Properties.TypeResources;
 using Lang = HotChocolate.Language.DirectiveLocation;
 
 #nullable enable
-namespace HotChocolate.Types.Introspection
+namespace HotChocolate.Types.Introspection;
+
+[Introspection]
+internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
 {
-    [Introspection]
-    internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
-    {
-        protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-            => new(Names.__DirectiveLocation,
-                DirectiveLocation_Description,
-                typeof(DirectiveLocation))
+    protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
+        => new(Names.__DirectiveLocation,
+            DirectiveLocation_Description,
+            typeof(DirectiveLocation))
+        {
+            Values =
             {
-                Values =
-                {
                     new(Lang.Query.Value,
                         DirectiveLocation_Query,
                         DirectiveLocation.Query),
@@ -74,13 +74,12 @@ namespace HotChocolate.Types.Introspection
                     new(Lang.InputFieldDefinition.Value,
                         DirectiveLocation_InputFieldDefinition,
                         DirectiveLocation.InputFieldDefinition),
-                }
-            };
+            }
+        };
 
-        public static class Names
-        {
-            public const string __DirectiveLocation = "__DirectiveLocation";
-        }
+    public static class Names
+    {
+        public const string __DirectiveLocation = "__DirectiveLocation";
     }
 }
 #pragma warning restore IDE1006 // Naming Styles

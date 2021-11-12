@@ -1,6 +1,7 @@
 HotChocolate.Data.Filters.IdOperationFilterInputType
 HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType() -> void
 HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType(System.Action<HotChocolate.Data.Filters.IFilterInputTypeDescriptor!>! configure) -> void
+HotChocolate.Data.Sorting.SortEnumTypeDefinition.EntityType.get -> System.Type?
 HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null, int order = 0) -> void
 HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute(int order = 0) -> void
 HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute(int order = 0) -> void

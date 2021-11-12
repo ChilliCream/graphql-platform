@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Types
-{
-    public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
-    {
-        IEnumerable<IDirective> this[NameString key] { get; }
+namespace HotChocolate.Types;
 
-        bool Contains(NameString key);
-    }
+public interface IDirectiveCollection : IReadOnlyCollection<IDirective>
+{
+    IEnumerable<IDirective> this[NameString key] { get; }
+
+    bool Contains(NameString key);
 }

@@ -5,70 +5,70 @@ using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public class BatchSchedulerTests
 {
-    public class BatchSchedulerTests
+    [Fact]
+    public Task Dispatch_OneAction_ShouldDispatchOneAction()
     {
-        [Fact]
-        public async Task Dispatch_OneAction_ShouldDispatchOneAction()
-        {
-            // arrange
-            var context = new Mock<IExecutionTaskContext>();
-            context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
+        // arrange
+        var context = new Mock<IExecutionTaskContext>();
+        context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
 
-            var scheduler = new BatchScheduler();
+        var scheduler = new BatchScheduler();
 
-            ValueTask Dispatch() => default;
+        ValueTask Dispatch() => default;
 
-            scheduler.Schedule(Dispatch);
-            Assert.True(scheduler.HasTasks);
+        scheduler.Schedule(Dispatch);
+        Assert.True(scheduler.HasTasks);
 
-            // act
-            scheduler.BeginDispatch();
+        // act
+        scheduler.BeginDispatch();
 
-            // assert
-            Assert.False(scheduler.HasTasks);
-        }
+        // assert
+        Assert.False(scheduler.HasTasks);
+        return Task.CompletedTask;
+    }
 
-        [Fact]
-        public void Initialize_Nothing_ShouldMatchSnapshot()
-        {
-            // act
-            var scheduler = new BatchScheduler();
+    [Fact]
+    public void Initialize_Nothing_ShouldMatchSnapshot()
+    {
+        // act
+        var scheduler = new BatchScheduler();
 
-            // assert
-            scheduler.MatchSnapshot();
-        }
+        // assert
+        scheduler.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Schedule_OneAction_HasTasksShouldReturnTrue()
-        {
-            // arrange
-            var scheduler = new BatchScheduler();
-            ValueTask Dispatch() => default;
+    [Fact]
+    public void Schedule_OneAction_HasTasksShouldReturnTrue()
+    {
+        // arrange
+        var scheduler = new BatchScheduler();
+        ValueTask Dispatch() => default;
 
-            // act
-            scheduler.Schedule(Dispatch);
+        // act
+        scheduler.Schedule(Dispatch);
 
-            // assert
-            Assert.True(scheduler.HasTasks);
-        }
+        // assert
+        Assert.True(scheduler.HasTasks);
+    }
 
-        [Fact]
-        public void Schedule_OneAction_ShouldRaiseTaskEnqueued()
-        {
-            // arrange
-            var hasBeenRaised = false;
-            var scheduler = new BatchScheduler();
-            ValueTask Dispatch() => default;
+    [Fact]
+    public void Schedule_OneAction_ShouldRaiseTaskEnqueued()
+    {
+        // arrange
+        var hasBeenRaised = false;
+        var scheduler = new BatchScheduler();
+        ValueTask Dispatch() => default;
 
-            scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
+        scheduler.TaskEnqueued += (_, _) => hasBeenRaised = true;
 
-            // act
-            scheduler.Schedule(Dispatch);
+        // act
+        scheduler.Schedule(Dispatch);
 
-            // assert
-            Assert.True(hasBeenRaised);
-        }
+        // assert
+        Assert.True(hasBeenRaised);
     }
 }

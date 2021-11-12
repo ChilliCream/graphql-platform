@@ -3,19 +3,19 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.CodeGeneration.Analyzers.Models;
 using Xunit;
-using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 using static StrawberryShake.CodeGeneration.Mappers.TestDataHelper;
+using RequestStrategyGen = StrawberryShake.Tools.Configuration.RequestStrategy;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public class ResultBuilderDescriptorMapperTests
 {
-    public class ResultBuilderDescriptorMapperTests
+    [Fact]
+    public async Task MapResultBuilderDescriptors()
     {
-        [Fact]
-        public async Task MapResultBuilderDescriptors()
-        {
-            // arrange
-            ClientModel clientModel = await CreateClientModelAsync(
-                @"
+        // arrange
+        ClientModel clientModel = await CreateClientModelAsync(
+            @"
                 query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
@@ -38,34 +38,33 @@ namespace StrawberryShake.CodeGeneration.Mappers
                 }
             ");
 
-            // act
-            var context = new MapperContext(
-                "Foo.Bar",
-                "FooClient",
-                new Sha1DocumentHashProvider(),
-                RequestStrategyGen.Default,
-                new[]
-                {
+        // act
+        var context = new MapperContext(
+            "Foo.Bar",
+            "FooClient",
+            new Sha1DocumentHashProvider(),
+            RequestStrategyGen.Default,
+            new[]
+            {
                     TransportProfile.Default
-                });
-            TypeDescriptorMapper.Map(clientModel, context);
-            ResultBuilderDescriptorMapper.Map(clientModel, context);
+            });
+        TypeDescriptorMapper.Map(clientModel, context);
+        ResultBuilderDescriptorMapper.Map(clientModel, context);
 
-            // assert
-            Assert.Collection(
-                context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
-                resultBuilder =>
-                {
-                    Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
-                },
-                resultBuilder =>
-                {
-                    Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
-                },
-                resultBuilder =>
-                {
-                    Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
-                });
-        }
+        // assert
+        Assert.Collection(
+            context.ResultBuilders.OrderBy(t => t.RuntimeType.ToString()),
+            resultBuilder =>
+            {
+                Assert.Equal("CreateReviewBuilder", resultBuilder.RuntimeType.Name);
+            },
+            resultBuilder =>
+            {
+                Assert.Equal("GetHeroBuilder", resultBuilder.RuntimeType.Name);
+            },
+            resultBuilder =>
+            {
+                Assert.Equal("OnReviewBuilder", resultBuilder.RuntimeType.Name);
+            });
     }
 }

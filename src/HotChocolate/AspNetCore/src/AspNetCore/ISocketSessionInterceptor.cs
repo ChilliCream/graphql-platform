@@ -4,22 +4,21 @@ using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public interface ISocketSessionInterceptor
 {
-    public interface ISocketSessionInterceptor
-    {
-        ValueTask<ConnectionStatus> OnConnectAsync(
-            ISocketConnection connection,
-            InitializeConnectionMessage message,
-            CancellationToken cancellationToken);
+    ValueTask<ConnectionStatus> OnConnectAsync(
+        ISocketConnection connection,
+        InitializeConnectionMessage message,
+        CancellationToken cancellationToken);
 
-        ValueTask OnRequestAsync(
-            ISocketConnection connection,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken);
+    ValueTask OnRequestAsync(
+        ISocketConnection connection,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken);
 
-        ValueTask OnCloseAsync(
-            ISocketConnection connection,
-            CancellationToken cancellationToken);
-    }
+    ValueTask OnCloseAsync(
+        ISocketConnection connection,
+        CancellationToken cancellationToken);
 }

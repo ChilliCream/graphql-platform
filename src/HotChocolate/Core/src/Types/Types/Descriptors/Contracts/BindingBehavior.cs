@@ -1,8 +1,7 @@
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public enum BindingBehavior
 {
-    public enum BindingBehavior
-    {
-        Implicit = 0,
-        Explicit = 1
-    }
+    Implicit = 0,
+    Explicit = 1
 }

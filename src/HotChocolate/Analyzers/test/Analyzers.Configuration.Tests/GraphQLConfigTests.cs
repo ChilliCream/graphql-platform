@@ -2,23 +2,23 @@ using HotChocolate.Analyzers.Configuration;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace Analyzers.Tests
-{
-    public class GraphQLConfigTests
-    {
-        [Fact]
-        public void NewDefaultConfig()
-        {
-            new GraphQLConfig()
-                .ToString()
-                .MatchSnapshot();
-        }
+namespace Analyzers.Tests;
 
-        [Fact]
-        public void ParseNeo4JSettings()
-        {
-            // arrange
-            const string json = @"{
+public class GraphQLConfigTests
+{
+    [Fact]
+    public void NewDefaultConfig()
+    {
+        new GraphQLConfig()
+            .ToString()
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseNeo4JSettings()
+    {
+        // arrange
+        const string json = @"{
                 ""schema"": ""schema.graphql"",
                 ""documents"": ""**/*.graphql"",
                 ""extensions"": {
@@ -29,12 +29,11 @@ namespace Analyzers.Tests
                 }
             }";
 
-            // act
-            var config = GraphQLConfig.FromJson(json);
+        // act
+        var config = GraphQLConfig.FromJson(json);
 
-            // assert
-            config.MatchSnapshot();
-        }
+        // assert
+        config.MatchSnapshot();
     }
 }
 

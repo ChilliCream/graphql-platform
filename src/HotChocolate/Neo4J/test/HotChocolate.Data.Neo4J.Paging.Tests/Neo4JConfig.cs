@@ -1,17 +1,16 @@
 using Squadron;
 
-namespace HotChocolate.Data.Neo4J.Paging
+namespace HotChocolate.Data.Neo4J.Paging;
+
+public class Neo4JConfig : Neo4jDefaultOptions
 {
-    public class Neo4JConfig : Neo4jDefaultOptions
+    public override void Configure(ContainerResourceBuilder builder)
     {
-        public override void Configure(ContainerResourceBuilder builder)
-        {
-            builder
-                .Name("neo4j")
-                .Image("neo4j:4.2.0")
-                .InternalPort(7687)
-                .AddEnvironmentVariable("NEO4J_AUTH=none")
-                .WaitTimeout(120);
-        }
+        builder
+            .Name("neo4j")
+            .Image("neo4j:4.2.0")
+            .InternalPort(7687)
+            .AddEnvironmentVariable("NEO4J_AUTH=none")
+            .WaitTimeout(120);
     }
 }

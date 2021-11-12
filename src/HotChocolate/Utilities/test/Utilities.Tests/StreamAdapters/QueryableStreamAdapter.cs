@@ -7,111 +7,110 @@ using Xunit;
 
 #nullable enable
 
-namespace HotChocolate.Utilities.StreamAdapters
+namespace HotChocolate.Utilities.StreamAdapters;
+
+public class QueryableStreamAdapterTests
 {
-    public class QueryableStreamAdapterTests
+    private readonly string[] _strings = { "a", "b", "c", "d", "e" };
+    private readonly object[] _objects = { "a", "b", "c", "d", "e" };
+
+    [Fact]
+    public async Task QueryableToStream()
     {
-        private readonly string[] _strings = { "a", "b", "c", "d", "e" };
-        private readonly object[] _objects = { "a", "b", "c", "d", "e" };
+        // arrange
+        var list = new List<object?>();
+        var adapter = new QueryableStreamAdapter<string>(_strings.AsQueryable());
 
-        [Fact]
-        public async Task QueryableToStream()
+        // act
+        await foreach (var item in adapter)
         {
-            // arrange
-            var list = new List<object?>();
-            var adapter = new QueryableStreamAdapter<string>(_strings.AsQueryable());
-
-            // act
-            await foreach (var item in adapter)
-            {
-                list.Add(item);
-            }
-
-            // assert
-            for (var i = 0; i < list.Count; i++)
-            {
-                Assert.Equal(_strings[i], list[i]);
-            }
+            list.Add(item);
         }
 
-        [Fact]
-        public async Task Objects_QueryableToStream()
+        // assert
+        for (var i = 0; i < list.Count; i++)
         {
-            // arrange
-            var list = new List<object?>();
-            var adapter = new QueryableStreamAdapter(_objects.AsQueryable());
+            Assert.Equal(_strings[i], list[i]);
+        }
+    }
 
-            // act
-            await foreach (var item in adapter)
-            {
-                list.Add(item);
-            }
+    [Fact]
+    public async Task Objects_QueryableToStream()
+    {
+        // arrange
+        var list = new List<object?>();
+        var adapter = new QueryableStreamAdapter(_objects.AsQueryable());
 
-            // assert
-            for (var i = 0; i < list.Count; i++)
-            {
-                Assert.Equal(_objects[i], list[i]);
-            }
+        // act
+        await foreach (var item in adapter)
+        {
+            list.Add(item);
         }
 
-        [Fact]
-        public async Task QueryableToStream_Cancel()
+        // assert
+        for (var i = 0; i < list.Count; i++)
         {
-            // arrange
-            var list = new List<object?>();
-            var adapter = new QueryableStreamAdapter<string>(_strings.AsQueryable());
-            var cts = new CancellationTokenSource();
+            Assert.Equal(_objects[i], list[i]);
+        }
+    }
 
-            // act
-            await foreach (var item in adapter.WithCancellation(cts.Token))
-            {
-                list.Add(item);
-                cts.Cancel();
-            }
+    [Fact]
+    public async Task QueryableToStream_Cancel()
+    {
+        // arrange
+        var list = new List<object?>();
+        var adapter = new QueryableStreamAdapter<string>(_strings.AsQueryable());
+        var cts = new CancellationTokenSource();
 
-            // assert
-            Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+        // act
+        await foreach (var item in adapter.WithCancellation(cts.Token))
+        {
+            list.Add(item);
+            cts.Cancel();
         }
 
-        [Fact]
-        public async Task Objects_QueryableToStream_Cancel()
+        // assert
+        Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+    }
+
+    [Fact]
+    public async Task Objects_QueryableToStream_Cancel()
+    {
+        // arrange
+        var list = new List<object?>();
+        var adapter = new QueryableStreamAdapter(_objects.AsQueryable());
+        var cts = new CancellationTokenSource();
+
+        // act
+        await foreach (var item in adapter.WithCancellation(cts.Token))
         {
-            // arrange
-            var list = new List<object?>();
-            var adapter = new QueryableStreamAdapter(_objects.AsQueryable());
-            var cts = new CancellationTokenSource();
-
-            // act
-            await foreach (var item in adapter.WithCancellation(cts.Token))
-            {
-                list.Add(item);
-                cts.Cancel();
-            }
-
-            // assert
-            Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+            list.Add(item);
+            cts.Cancel();
         }
 
-        [Fact]
-        public void QueryableToStream_QueryIsNull()
-        {
-            // arrange
-            // act
-            void Verify() => new QueryableStreamAdapter<string>(null!);
+        // assert
+        Assert.Collection(list, s => Assert.Equal(_strings[0], s));
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(Verify);
-        }
+    [Fact]
+    public void QueryableToStream_QueryIsNull()
+    {
+        // arrange
+        // act
+        void Verify() => new QueryableStreamAdapter<string>(null!);
 
-        [Fact]
-        public void Objects_QueryableToStream_QueryIsNull()
-        {
-            // arrange
-            // act
-            void Verify() => new QueryableStreamAdapter(null!);
+        // assert
+        Assert.Throws<ArgumentNullException>(Verify);
+    }
 
-            // assert
-            Assert.Throws<ArgumentNullException>(Verify);
-        }
+    [Fact]
+    public void Objects_QueryableToStream_QueryIsNull()
+    {
+        // arrange
+        // act
+        void Verify() => new QueryableStreamAdapter(null!);
+
+        // assert
+        Assert.Throws<ArgumentNullException>(Verify);
     }
 }

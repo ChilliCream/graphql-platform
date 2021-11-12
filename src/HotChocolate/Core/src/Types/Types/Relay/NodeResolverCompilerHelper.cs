@@ -1,12 +1,11 @@
 using HotChocolate.Internal;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Relay;
+
+internal static class NodeResolverCompilerHelper
 {
-    internal static class NodeResolverCompilerHelper
+    public static readonly IParameterExpressionBuilder[] ParameterExpressionBuilders =
     {
-        public static readonly IParameterExpressionBuilder[] ParameterExpressionBuilders =
-        {
             NodeIdParameterExpressionBuilder.Instance
         };
-    }
 }

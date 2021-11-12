@@ -1,37 +1,36 @@
 using System;
 
-namespace HotChocolate.Execution.Configuration
+namespace HotChocolate.Execution.Configuration;
+
+public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSetup
 {
-    public sealed class ConfigureRequestExecutorSetup : IConfigureRequestExecutorSetup
+    private readonly Action<RequestExecutorSetup> _configure;
+
+    public ConfigureRequestExecutorSetup(
+        NameString schemaName,
+        Action<RequestExecutorSetup> configure)
     {
-        private readonly Action<RequestExecutorSetup> _configure;
+        SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+    }
 
-        public ConfigureRequestExecutorSetup(
-            NameString schemaName,
-            Action<RequestExecutorSetup> configure)
+    public ConfigureRequestExecutorSetup(
+        NameString schemaName,
+        RequestExecutorSetup options)
+    {
+        SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+        _configure = options.CopyTo;
+    }
+
+    public NameString SchemaName { get; }
+
+    public void Configure(RequestExecutorSetup options)
+    {
+        if (options is null)
         {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+            throw new ArgumentNullException(nameof(options));
         }
 
-        public ConfigureRequestExecutorSetup(
-            NameString schemaName,
-            RequestExecutorSetup options)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _configure = options.CopyTo;
-        }
-
-        public NameString SchemaName { get; }
-
-        public void Configure(RequestExecutorSetup options)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            _configure(options);
-        }
+        _configure(options);
     }
 }

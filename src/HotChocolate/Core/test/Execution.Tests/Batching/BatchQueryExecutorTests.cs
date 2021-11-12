@@ -1,32 +1,32 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Execution.Batching
+namespace HotChocolate.Execution.Batching;
+
+public class BatchQueryExecutorTests
 {
-    public class BatchQueryExecutorTests
+    [Fact]
+    public async Task ExecuteExportScalar()
     {
-        [Fact]
-        public async Task ExecuteExportScalar()
-        {
-            // arrange
-            Snapshot.FullName();
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -48,28 +48,28 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
 
-        [Fact]
-        public async Task ExecuteExportObject()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task ExecuteExportObject()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .AddInMemorySubscriptions()
-                .Services
-                .AddStarWarsRepositories());
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .AddInMemorySubscriptions()
+            .Services
+            .AddStarWarsRepositories());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -98,43 +98,43 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportLeafList()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task ExecuteExportLeafList()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d => d.Name("Query")
-                    .Field("foo")
-                    .Argument("bar", a => a.Type<ListType<StringType>>())
-                    .Type<ListType<StringType>>()
-                    .Resolve(ctx =>
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d => d.Name("Query")
+                .Field("foo")
+                .Argument("bar", a => a.Type<ListType<StringType>>())
+                .Type<ListType<StringType>>()
+                .Resolve(ctx =>
+                {
+                    List<string> list = ctx.ArgumentValue<List<string>>("bar");
+
+                    if (list is null)
                     {
-                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
-
-                        if (list is null)
+                        return new List<string>
                         {
-                            return new List<string>
-                            {
                                 "123",
                                 "456"
-                            };
-                        }
+                        };
+                    }
 
-                        list.Add("789");
-                        return list;
-                    }))
-                .AddExportDirectiveType());
+                    list.Add("789");
+                    return list;
+                }))
+            .AddExportDirectiveType());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -150,21 +150,21 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task ExecuteExportObjectList()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task ExecuteExportObjectList()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddDocumentFromString(
-                    @"
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddDocumentFromString(
+                @"
                     type Query {
                         foo(f: [FooInput]) : [Foo]
                     }
@@ -176,41 +176,41 @@ namespace HotChocolate.Execution.Batching
                     input FooInput {
                         bar: String!
                     }")
-                .AddResolver("Query", "foo", ctx =>
-                {
-                    List<object> list = ctx.ArgumentValue<List<object>>("f");
+            .AddResolver("Query", "foo", ctx =>
+            {
+                List<object> list = ctx.ArgumentValue<List<object>>("f");
 
-                    if (list is null)
+                if (list is null)
+                {
+                    return new List<object>
                     {
-                        return new List<object>
-                        {
                             new Dictionary<string, object>
                             {
                                 { "bar" , "123" }
                             }
-                        };
-                    }
+                    };
+                }
 
-                    list.Add(new Dictionary<string, object>
-                    {
-                        { "bar" , "456" }
-                    });
-                    return list;
-                })
-                .UseField(next => context =>
+                list.Add(new Dictionary<string, object>
                 {
-                    var o = context.Parent<object>();
-                    if (o is Dictionary<string, object> d
-                        && d.TryGetValue(context.ResponseName, out var v))
-                    {
-                        context.Result = v;
-                    }
-                    return next(context);
-                })
-                .AddExportDirectiveType());
+                        { "bar" , "456" }
+                });
+                return list;
+            })
+            .UseField(next => context =>
+            {
+                var o = context.Parent<object>();
+                if (o is Dictionary<string, object> d
+                    && d.TryGetValue(context.ResponseName, out var v))
+                {
+                    context.Result = v;
+                }
+                return next(context);
+            })
+            .AddExportDirectiveType());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -232,33 +232,33 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Add_Value_To_Variable_List()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task Add_Value_To_Variable_List()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d => d.Name("Query")
-                    .Field("foo")
-                    .Argument("bar", a => a.Type<ListType<StringType>>())
-                    .Type<ListType<StringType>>()
-                    .Resolve(ctx =>
-                    {
-                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
-                        list.Add("789");
-                        return list;
-                    }))
-                .AddExportDirectiveType());
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d => d.Name("Query")
+                .Field("foo")
+                .Argument("bar", a => a.Type<ListType<StringType>>())
+                .Type<ListType<StringType>>()
+                .Resolve(ctx =>
+                {
+                    List<string> list = ctx.ArgumentValue<List<string>>("bar");
+                    list.Add("789");
+                    return list;
+                }))
+            .AddExportDirectiveType());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -275,41 +275,41 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Convert_List_To_Single_Value_With_Converters()
-        {
-            // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task Convert_List_To_Single_Value_With_Converters()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddQueryType(d =>
-                {
-                    d.Name("Query");
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
 
-                    d.Field("foo")
-                        .Argument("bar", a => a.Type<ListType<StringType>>())
-                        .Type<ListType<StringType>>()
-                        .Resolve(ctx =>
-                        {
-                            List<string> list = ctx.ArgumentValue<List<string>>("bar");
-                            list.Add("789");
-                            return list;
-                        });
+                d.Field("foo")
+                    .Argument("bar", a => a.Type<ListType<StringType>>())
+                    .Type<ListType<StringType>>()
+                    .Resolve(ctx =>
+                    {
+                        List<string> list = ctx.ArgumentValue<List<string>>("bar");
+                        list.Add("789");
+                        return list;
+                    });
 
-                    d.Field("baz")
-                        .Argument("bar", a => a.Type<StringType>())
-                        .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
-                })
-                .AddExportDirectiveType());
+                d.Field("baz")
+                    .Argument("bar", a => a.Type<StringType>())
+                    .Resolve(ctx => ctx.ArgumentValue<string>("bar"));
+            })
+            .AddExportDirectiveType());
 
-            // act
-            var batch = new List<IReadOnlyQueryRequest>
+        // act
+        var batch = new List<IReadOnlyQueryRequest>
             {
                 QueryRequestBuilder.New()
                     .SetQuery(
@@ -326,29 +326,28 @@ namespace HotChocolate.Execution.Batching
                     .Create()
             };
 
-            IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
+        IBatchQueryResult batchResult = await executor.ExecuteBatchAsync(batch);
 
-            // assert
-            await batchResult.ToJsonAsync().MatchSnapshotAsync();
-        }
+        // assert
+        await batchResult.ToJsonAsync().MatchSnapshotAsync();
+    }
 
-        [Fact]
-        public async Task Batch_Is_Null()
-        {
-           // arrange
-            Snapshot.FullName();
+    [Fact]
+    public async Task Batch_Is_Null()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            IRequestExecutor executor = await CreateExecutorAsync(c => c
-                .AddStarWarsTypes()
-                .AddExportDirectiveType()
-                .Services
-                .AddStarWarsRepositories());
+        IRequestExecutor executor = await CreateExecutorAsync(c => c
+            .AddStarWarsTypes()
+            .AddExportDirectiveType()
+            .Services
+            .AddStarWarsRepositories());
 
-            // act
-            Task Action() => executor.ExecuteBatchAsync(null!);
+        // act
+        Task Action() => executor.ExecuteBatchAsync(null!);
 
-            // assert
-            await Assert.ThrowsAsync<ArgumentNullException>(Action);
-        }
+        // assert
+        await Assert.ThrowsAsync<ArgumentNullException>(Action);
     }
 }

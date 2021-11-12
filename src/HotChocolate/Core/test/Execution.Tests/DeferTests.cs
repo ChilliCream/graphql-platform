@@ -6,20 +6,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public class DeferTests
 {
-    public class DeferTests
+    [Fact]
+    public async Task NoOptimization_Defer_Single_Scalar_Field()
     {
-        [Fact]
-        public async Task NoOptimization_Defer_Single_Scalar_Field()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             hero(episode: NEW_HOPE) {
                                 id
                                 ... @defer {
@@ -28,29 +28,29 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+        IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
-            var results = new StringBuilder();
+        var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
+        await foreach (IQueryResult payload in stream.ReadResultsAsync())
+        {
+            results.AppendLine(payload.ToJson());
+            results.AppendLine();
         }
 
-        [Fact]
-        public async Task NoOptimization_Defer_Only_Root()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+        results.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NoOptimization_Defer_Only_Root()
+    {
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             ... @defer {
                                 hero(episode: NEW_HOPE) {
                                     id
@@ -59,19 +59,19 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            Assert.IsType<QueryResult>(result).MatchSnapshot();
-        }
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task NoOptimization_Defer_One_Root()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+    [Fact]
+    public async Task NoOptimization_Defer_One_Root()
+    {
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             ... @defer {
                                 a: hero(episode: NEW_HOPE) {
                                     id
@@ -84,29 +84,29 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+        IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
-            var results = new StringBuilder();
+        var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
+        await foreach (IQueryResult payload in stream.ReadResultsAsync())
+        {
+            results.AppendLine(payload.ToJson());
+            results.AppendLine();
         }
 
-        [Fact]
-        public async Task NoOptimization_Nested_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+        results.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NoOptimization_Nested_Defer()
+    {
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             hero(episode: NEW_HOPE) {
                                 id
                                 ... @defer(label: ""friends"") {
@@ -122,29 +122,29 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+        IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
-            var results = new StringBuilder();
+        var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
+        await foreach (IQueryResult payload in stream.ReadResultsAsync())
+        {
+            results.AppendLine(payload.ToJson());
+            results.AppendLine();
         }
 
-        [Fact]
-        public async Task NoOptimization_Spread_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+        results.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NoOptimization_Spread_Defer()
+    {
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             hero(episode: NEW_HOPE) {
                                 id
                                 ... deferred @defer(label: ""friends"")
@@ -159,29 +159,29 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
+        IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
-            var results = new StringBuilder();
+        var results = new StringBuilder();
 
-            await foreach (IQueryResult payload in stream.ReadResultsAsync())
-            {
-                results.AppendLine(payload.ToJson());
-                results.AppendLine();
-            }
-
-            results.ToString().MatchSnapshot();
+        await foreach (IQueryResult payload in stream.ReadResultsAsync())
+        {
+            results.AppendLine(payload.ToJson());
+            results.AppendLine();
         }
 
-        [Fact(Skip = "needs to be fixed.")]
-        public async Task Do_Not_Defer()
-        {
-            IExecutionResult result =
-                await new ServiceCollection()
-                    .AddStarWarsRepositories()
-                    .AddGraphQL()
-                    .AddStarWarsTypes()
-                    .ExecuteRequestAsync(
-                        @"{
+        results.ToString().MatchSnapshot();
+    }
+
+    [Fact(Skip = "needs to be fixed.")]
+    public async Task Do_Not_Defer()
+    {
+        IExecutionResult result =
+            await new ServiceCollection()
+                .AddStarWarsRepositories()
+                .AddGraphQL()
+                .AddStarWarsTypes()
+                .ExecuteRequestAsync(
+                    @"{
                             hero(episode: NEW_HOPE) {
                                 id
                                 ... deferred @defer(label: ""friends"", if: false)
@@ -196,7 +196,6 @@ namespace HotChocolate.Execution
                             }
                         }");
 
-            Assert.IsType<QueryResult>(result).MatchSnapshot();
-        }
+        Assert.IsType<QueryResult>(result).MatchSnapshot();
     }
 }

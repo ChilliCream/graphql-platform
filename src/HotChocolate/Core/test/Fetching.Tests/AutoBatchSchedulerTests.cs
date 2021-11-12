@@ -4,27 +4,26 @@ using GreenDonut;
 using HotChocolate.Fetching;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public class AutoBatchSchedulerTests
 {
-    public class AutoBatchSchedulerTests
+    [Fact]
+    public void Schedule_OneAction_DispatchesImmediately()
     {
-        [Fact]
-        public void Schedule_OneAction_DispatchesImmediately()
+        // arrange
+        var hasBeenDispatched = false;
+        var scheduler = new AutoBatchScheduler();
+        Func<ValueTask> dispatch = () =>
         {
-            // arrange
-            var hasBeenDispatched = false;
-            var scheduler = new AutoBatchScheduler();
-            Func<ValueTask> dispatch = () =>
-            {
-                hasBeenDispatched = true;
-                return default;
-            };
+            hasBeenDispatched = true;
+            return default;
+        };
 
-            // act
-            scheduler.Schedule(dispatch);
+        // act
+        scheduler.Schedule(dispatch);
 
-            // assert
-            Assert.True(hasBeenDispatched);
-        }
+        // assert
+        Assert.True(hasBeenDispatched);
     }
 }

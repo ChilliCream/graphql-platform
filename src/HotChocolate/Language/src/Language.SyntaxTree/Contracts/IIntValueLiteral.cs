@@ -1,22 +1,21 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface IIntValueLiteral
+    : IFloatValueLiteral
 {
-    public interface IIntValueLiteral
-        : IFloatValueLiteral
-    {
-        byte ToByte();
+    byte ToByte();
 
-        short ToInt16();
+    short ToInt16();
 
-        int ToInt32();
+    int ToInt32();
 
-        long ToInt64();
+    long ToInt64();
 
-        sbyte ToSByte();
+    sbyte ToSByte();
 
-        ushort ToUInt16();
+    ushort ToUInt16();
 
-        uint ToUInt32();
+    uint ToUInt32();
 
-        ulong ToUInt64();
-    }
+    ulong ToUInt64();
 }

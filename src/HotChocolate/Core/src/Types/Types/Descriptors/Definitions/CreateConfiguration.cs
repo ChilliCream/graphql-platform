@@ -3,41 +3,40 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public sealed class CreateConfiguration : ITypeSystemMemberConfiguration
 {
-    public sealed class CreateConfiguration : ITypeSystemMemberConfiguration
+    private readonly Action<IDescriptorContext, IDefinition> _configure;
+
+    public CreateConfiguration(
+        Action<IDescriptorContext, IDefinition> configure,
+        IDefinition owner)
     {
-        private readonly Action<IDescriptorContext, IDefinition> _configure;
+        _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+        Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+    }
 
-        public CreateConfiguration(
-            Action<IDescriptorContext, IDefinition> configure,
-            IDefinition owner)
+    public IDefinition Owner { get; }
+
+    public ApplyConfigurationOn On => ApplyConfigurationOn.Create;
+
+    public IReadOnlyList<TypeDependency> Dependencies { get; } = Array.Empty<TypeDependency>();
+
+    public void AddDependency(TypeDependency dependency)
+        => throw new NotSupportedException(
+            "Create configurations do not support dependencies.");
+
+    public void Configure(IDescriptorContext context)
+        => _configure(context, Owner);
+
+    public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
+    {
+        if (newOwner is null)
         {
-            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
-            Owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            throw new ArgumentNullException(nameof(newOwner));
         }
 
-        public IDefinition Owner { get; }
-
-        public ApplyConfigurationOn On => ApplyConfigurationOn.Create;
-
-        public IReadOnlyList<TypeDependency> Dependencies { get; } = Array.Empty<TypeDependency>();
-
-        public void AddDependency(TypeDependency dependency)
-            => throw new NotSupportedException(
-                "Create configurations do not support dependencies.");
-
-        public void Configure(IDescriptorContext context)
-            => _configure(context, Owner);
-
-        public ITypeSystemMemberConfiguration Copy(DefinitionBase newOwner)
-        {
-            if (newOwner is null)
-            {
-                throw new ArgumentNullException(nameof(newOwner));
-            }
-
-            return new CreateConfiguration(_configure, newOwner);
-        }
+        return new CreateConfiguration(_configure, newOwner);
     }
 }

@@ -1,13 +1,12 @@
-namespace StrawberryShake.Serialization
+namespace StrawberryShake.Serialization;
+
+/// <summary>
+/// This serializer handles short scalars.
+/// </summary>
+public class ShortSerializer : ScalarSerializer<short>
 {
-    /// <summary>
-    /// This serializer handles short scalars.
-    /// </summary>
-    public class ShortSerializer : ScalarSerializer<short>
+    public ShortSerializer(string typeName = BuiltInScalarNames.Short)
+        : base(typeName)
     {
-        public ShortSerializer(string typeName = BuiltInScalarNames.Short)
-            : base(typeName)
-        {
-        }
     }
 }

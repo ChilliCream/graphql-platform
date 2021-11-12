@@ -1,108 +1,107 @@
-﻿using System;
+using System;
 using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using Xunit;
 
-namespace HotChocolate.PersistedQueries.FileSystem
+namespace HotChocolate.PersistedQueries.FileSystem;
+
+public class ServiceCollectionTests
 {
-    public class ServiceCollectionTests
+    [Fact]
+    public void AddFileSystemQueryStorage_Services_Is_Null()
     {
-        [Fact]
-        public void AddFileSystemQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                    .AddFileSystemQueryStorage(null!);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void AddFileSystemQueryStorage_1_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
+        // arrange
+        // act
+        Action action = () =>
             HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddFileSystemQueryStorage(services, "foo");
+                .AddFileSystemQueryStorage(null!);
 
-            // assert
-            services.ToDictionary(
-                k => k.ServiceType.GetTypeName(),
-                v => v.ImplementationType?.GetTypeName())
-                .MatchSnapshot();
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void AddFileSystemQueryStorage_2_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
+    [Fact]
+    public void AddFileSystemQueryStorage_1_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-            // act
+        // act
+        HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+            .AddFileSystemQueryStorage(services, "foo");
+
+        // assert
+        services.ToDictionary(
+            k => k.ServiceType.GetTypeName(),
+            v => v.ImplementationType?.GetTypeName())
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void AddFileSystemQueryStorage_2_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
+
+        // act
+        HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+            .AddFileSystemQueryStorage(services);
+
+        // assert
+        services.ToDictionary(
+            k => k.ServiceType.GetTypeName(),
+            v => v.ImplementationType?.GetTypeName())
+            .MatchSnapshot();
+    }
+
+    [Fact]
+    public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
+    {
+        // arrange
+        // act
+        Action action = () =>
             HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddFileSystemQueryStorage(services);
+                .AddReadOnlyFileSystemQueryStorage(null!);
 
-            // assert
-            services.ToDictionary(
-                k => k.ServiceType.GetTypeName(),
-                v => v.ImplementationType?.GetTypeName())
-                .MatchSnapshot();
-        }
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                    .AddReadOnlyFileSystemQueryStorage(null!);
+    [Fact]
+    public void AddReadOnlyFileSystemQueryStorage_1_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // act
+        HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+            .AddReadOnlyFileSystemQueryStorage(services, "foo");
 
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_1_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
+        // assert
+        services.ToDictionary(
+            k => k.ServiceType.GetTypeName(),
+            v => v.ImplementationType?.GetTypeName())
+            .OrderBy(t => t.Key)
+            .MatchSnapshot();
+    }
 
-            // act
-            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyFileSystemQueryStorage(services, "foo");
+    [Fact]
+    public void AddReadOnlyFileSystemQueryStorage_2_Services()
+    {
+        // arrange
+        var services = new ServiceCollection();
 
-            // assert
-            services.ToDictionary(
-                k => k.ServiceType.GetTypeName(),
-                v => v.ImplementationType?.GetTypeName())
-                .OrderBy(t => t.Key)
-                .MatchSnapshot();
-        }
+        // act
+        HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+            .AddReadOnlyFileSystemQueryStorage(services);
 
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_2_Services()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
-            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
-                .AddReadOnlyFileSystemQueryStorage(services);
-
-            // assert
-            services.ToDictionary(
-                k => k.ServiceType.GetTypeName(),
-                v => v.ImplementationType?.GetTypeName())
-                .OrderBy(t => t.Key)
-                .MatchSnapshot();
-        }
+        // assert
+        services.ToDictionary(
+            k => k.ServiceType.GetTypeName(),
+            v => v.ImplementationType?.GetTypeName())
+            .OrderBy(t => t.Key)
+            .MatchSnapshot();
     }
 }

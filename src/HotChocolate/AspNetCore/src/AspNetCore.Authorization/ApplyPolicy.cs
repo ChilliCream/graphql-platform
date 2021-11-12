@@ -1,8 +1,7 @@
-namespace HotChocolate.AspNetCore.Authorization
+namespace HotChocolate.AspNetCore.Authorization;
+
+public enum ApplyPolicy
 {
-    public enum ApplyPolicy
-    {
-        BeforeResolver = 0,
-        AfterResolver = 1
-    }
+    BeforeResolver = 0,
+    AfterResolver = 1
 }

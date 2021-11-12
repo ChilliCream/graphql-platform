@@ -1,43 +1,42 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Utilities.Introspection
+namespace HotChocolate.Utilities.Introspection;
+
+public class IntrospectionDeserializerTests
 {
-    public class IntrospectionDeserializerTests
+    [Fact]
+    public void DeserializeStarWarsIntrospectionResult()
     {
-        [Fact]
-        public void DeserializeStarWarsIntrospectionResult()
-        {
-            // arrange
-            string json = FileResource.Open("StarWarsIntrospectionResult.json");
-            IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
-                json,
-                IntrospectionClient.SerializerOptions);
+        // arrange
+        string json = FileResource.Open("StarWarsIntrospectionResult.json");
+        IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
+            json,
+            IntrospectionClient.SerializerOptions);
 
-            // act
-            DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
+        // act
+        DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
 
-            // assert
-            schema.ToString(true).MatchSnapshot();
-        }
+        // assert
+        schema.ToString(true).MatchSnapshot();
+    }
 
-        [Fact]
-        public void DeserializeIntrospectionWithIntDefaultValues()
-        {
-            // arrange
-            string json = FileResource.Open("IntrospectionWithDefaultValues.json");
-            IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
-                json,
-                IntrospectionClient.SerializerOptions);
+    [Fact]
+    public void DeserializeIntrospectionWithIntDefaultValues()
+    {
+        // arrange
+        string json = FileResource.Open("IntrospectionWithDefaultValues.json");
+        IntrospectionResult result = JsonSerializer.Deserialize<IntrospectionResult>(
+            json,
+            IntrospectionClient.SerializerOptions);
 
-            // act
-            DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
+        // act
+        DocumentNode schema = IntrospectionDeserializer.Deserialize(result);
 
-            // assert
-            schema.ToString(true).MatchSnapshot();
-        }
+        // assert
+        schema.ToString(true).MatchSnapshot();
     }
 }

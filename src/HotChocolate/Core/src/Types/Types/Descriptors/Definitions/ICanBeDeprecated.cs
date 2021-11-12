@@ -1,9 +1,8 @@
-namespace HotChocolate.Types.Descriptors.Definitions
-{
-    public interface ICanBeDeprecated
-    {
-        string DeprecationReason { get; }
+namespace HotChocolate.Types.Descriptors.Definitions;
 
-        bool IsDeprecated { get; }
-    }
+public interface ICanBeDeprecated
+{
+    string DeprecationReason { get; }
+
+    bool IsDeprecated { get; }
 }

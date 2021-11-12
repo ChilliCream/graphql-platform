@@ -3,212 +3,211 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language.Utilities;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public sealed class ObjectValueNode
+    : IValueNode<IReadOnlyList<ObjectFieldNode>>
+    , IEquatable<ObjectValueNode>
 {
-    public sealed class ObjectValueNode
-        : IValueNode<IReadOnlyList<ObjectFieldNode>>
-        , IEquatable<ObjectValueNode>
+    private int? _hash;
+
+    public ObjectValueNode(
+        params ObjectFieldNode[] fields)
+        : this(null, fields)
     {
-        private int? _hash;
+    }
 
-        public ObjectValueNode(
-            params ObjectFieldNode[] fields)
-            : this(null, fields)
+    public ObjectValueNode(
+        IReadOnlyList<ObjectFieldNode> fields)
+        : this(null, fields)
+    {
+    }
+
+    public ObjectValueNode(
+        Location? location,
+        IReadOnlyList<ObjectFieldNode> fields)
+    {
+        Location = location;
+        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
+    }
+
+    public SyntaxKind Kind { get; } = SyntaxKind.ObjectValue;
+
+    public Location? Location { get; }
+
+    public IReadOnlyList<ObjectFieldNode> Fields { get; }
+
+    IReadOnlyList<ObjectFieldNode> IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
+
+    object IValueNode.Value => Fields;
+
+    public IEnumerable<ISyntaxNode> GetNodes() => Fields;
+
+    /// <summary>
+    /// Determines whether the specified <see cref="ObjectValueNode"/>
+    /// is equal to the current <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="ObjectValueNode"/> to compare with the current
+    /// <see cref="ObjectValueNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="ObjectValueNode"/> is equal
+    /// to the current <see cref="ObjectValueNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(ObjectValueNode? other)
+    {
+        if (other is null)
         {
-        }
-
-        public ObjectValueNode(
-            IReadOnlyList<ObjectFieldNode> fields)
-            : this(null, fields)
-        {
-        }
-
-        public ObjectValueNode(
-            Location? location,
-            IReadOnlyList<ObjectFieldNode> fields)
-        {
-            Location = location;
-            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
-        }
-
-        public SyntaxKind Kind { get; } = SyntaxKind.ObjectValue;
-
-        public Location? Location { get; }
-
-        public IReadOnlyList<ObjectFieldNode> Fields { get; }
-
-        IReadOnlyList<ObjectFieldNode> IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
-
-        object IValueNode.Value => Fields;
-
-        public IEnumerable<ISyntaxNode> GetNodes() => Fields;
-
-        /// <summary>
-        /// Determines whether the specified <see cref="ObjectValueNode"/>
-        /// is equal to the current <see cref="ObjectValueNode"/>.
-        /// </summary>
-        /// <param name="other">
-        /// The <see cref="ObjectValueNode"/> to compare with the current
-        /// <see cref="ObjectValueNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="ObjectValueNode"/> is equal
-        /// to the current <see cref="ObjectValueNode"/>;
-        /// otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(ObjectValueNode? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(other, this))
-            {
-                return true;
-            }
-
-            if (other.Fields.Count == Fields.Count)
-            {
-                IEnumerator<ObjectFieldNode> otherFields = other.Fields
-                    .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
-                    .GetEnumerator();
-
-                foreach (ObjectFieldNode field in
-                    Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
-                {
-                    otherFields.MoveNext();
-
-                    if (!otherFields.Current.Equals(field))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
             return false;
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="IValueNode"/> is equal
-        /// to the current <see cref="ObjectValueNode"/>.
-        /// </summary>
-        /// <param name="other">
-        /// The <see cref="IValueNode"/> to compare with the current
-        /// <see cref="ObjectValueNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
-        /// to the current <see cref="ObjectValueNode"/>;
-        /// otherwise, <c>false</c>.
-        /// </returns>
-        public bool Equals(IValueNode? other)
+        if (ReferenceEquals(other, this))
         {
-            if (other is null)
+            return true;
+        }
+
+        if (other.Fields.Count == Fields.Count)
+        {
+            IEnumerator<ObjectFieldNode> otherFields = other.Fields
+                .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
+                .GetEnumerator();
+
+            foreach (ObjectFieldNode field in
+                Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
             {
-                return false;
+                otherFields.MoveNext();
+
+                if (!otherFields.Current.Equals(field))
+                {
+                    return false;
+                }
             }
 
-            if (ReferenceEquals(other, this))
-            {
-                return true;
-            }
+            return true;
+        }
 
-            if (other is ObjectValueNode o)
-            {
-                return Equals(o);
-            }
+        return false;
+    }
 
+    /// <summary>
+    /// Determines whether the specified <see cref="IValueNode"/> is equal
+    /// to the current <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="other">
+    /// The <see cref="IValueNode"/> to compare with the current
+    /// <see cref="ObjectValueNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="IValueNode"/> is equal
+    /// to the current <see cref="ObjectValueNode"/>;
+    /// otherwise, <c>false</c>.
+    /// </returns>
+    public bool Equals(IValueNode? other)
+    {
+        if (other is null)
+        {
             return false;
         }
 
-        /// <summary>
-        /// Determines whether the specified <see cref="object"/> is equal to
-        /// the current <see cref="ObjectValueNode"/>.
-        /// </summary>
-        /// <param name="obj">
-        /// The <see cref="object"/> to compare with the current
-        /// <see cref="ObjectValueNode"/>.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the specified <see cref="object"/> is equal to the
-        /// current <see cref="ObjectValueNode"/>; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object? obj)
+        if (ReferenceEquals(other, this))
         {
-            if (obj is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(obj, this))
-            {
-                return true;
-            }
-
-            return Equals(obj as ObjectValueNode);
+            return true;
         }
 
-        /// <summary>
-        /// Serves as a hash function for a <see cref="ObjectValueNode"/>
-        /// object.
-        /// </summary>
-        /// <returns>
-        /// A hash code for this instance that is suitable for use in
-        /// hashing algorithms and data structures such as a hash table.
-        /// </returns>
-        public override int GetHashCode()
+        if (other is ObjectValueNode o)
         {
-            unchecked
+            return Equals(o);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified <see cref="object"/> is equal to
+    /// the current <see cref="ObjectValueNode"/>.
+    /// </summary>
+    /// <param name="obj">
+    /// The <see cref="object"/> to compare with the current
+    /// <see cref="ObjectValueNode"/>.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the specified <see cref="object"/> is equal to the
+    /// current <see cref="ObjectValueNode"/>; otherwise, <c>false</c>.
+    /// </returns>
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(obj, this))
+        {
+            return true;
+        }
+
+        return Equals(obj as ObjectValueNode);
+    }
+
+    /// <summary>
+    /// Serves as a hash function for a <see cref="ObjectValueNode"/>
+    /// object.
+    /// </summary>
+    /// <returns>
+    /// A hash code for this instance that is suitable for use in
+    /// hashing algorithms and data structures such as a hash table.
+    /// </returns>
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            if (_hash == null)
             {
-                if (_hash == null)
+                var hash = (Kind.GetHashCode() * 397);
+
+                foreach (ObjectFieldNode field in Fields.OrderBy(
+                    t => t.Name.Value, StringComparer.Ordinal))
                 {
-                    var hash = (Kind.GetHashCode() * 397);
-
-                    foreach (ObjectFieldNode field in Fields.OrderBy(
-                        t => t.Name.Value, StringComparer.Ordinal))
-                    {
-                        hash = hash ^ (field.GetHashCode() * 397);
-                    }
-                    _hash = hash;
+                    hash = hash ^ (field.GetHashCode() * 397);
                 }
-
-                return _hash.Value;
+                _hash = hash;
             }
+
+            return _hash.Value;
         }
+    }
 
-        /// <summary>
-        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
-        /// </summary>
-        /// <returns>
-        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
-        /// </returns>
-        public override string ToString() => SyntaxPrinter.Print(this, true);
+    /// <summary>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </summary>
+    /// <returns>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </returns>
+    public override string ToString() => SyntaxPrinter.Print(this, true);
 
-        /// <summary>
-        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
-        /// </summary>
-        /// <param name="indented">
-        /// A value that indicates whether the GraphQL output should be formatted,
-        /// which includes indenting nested GraphQL tokens, adding
-        /// new lines, and adding white space between property names and values.
-        /// </param>
-        /// <returns>
-        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
-        /// </returns>
-        public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
+    /// <summary>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </summary>
+    /// <param name="indented">
+    /// A value that indicates whether the GraphQL output should be formatted,
+    /// which includes indenting nested GraphQL tokens, adding
+    /// new lines, and adding white space between property names and values.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
+    /// </returns>
+    public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
-        public ObjectValueNode WithLocation(Location? location)
-        {
-            return new ObjectValueNode(location, Fields);
-        }
+    public ObjectValueNode WithLocation(Location? location)
+    {
+        return new ObjectValueNode(location, Fields);
+    }
 
-        public ObjectValueNode WithFields(
-            IReadOnlyList<ObjectFieldNode> fields)
-        {
-            return new ObjectValueNode(Location, fields);
-        }
+    public ObjectValueNode WithFields(
+        IReadOnlyList<ObjectFieldNode> fields)
+    {
+        return new ObjectValueNode(Location, fields);
     }
 }

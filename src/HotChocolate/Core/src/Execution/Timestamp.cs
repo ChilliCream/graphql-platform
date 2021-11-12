@@ -1,15 +1,14 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+internal static class Timestamp
 {
-    internal static class Timestamp
-    {
-        private const long _nanosecondsPerSecond = 1000000000;
+    private const long _nanosecondsPerSecond = 1000000000;
 
-        public static long GetNowInNanoseconds()
-        {
-            return Stopwatch.GetTimestamp() *
-                (_nanosecondsPerSecond / Stopwatch.Frequency);
-        }
+    public static long GetNowInNanoseconds()
+    {
+        return Stopwatch.GetTimestamp() *
+            (_nanosecondsPerSecond / Stopwatch.Frequency);
     }
 }

@@ -1,7 +1,6 @@
-namespace StrawberryShake.Tools.Configuration
+namespace StrawberryShake.Tools.Configuration;
+
+public class GraphQLConfigExtensions
 {
-    public class GraphQLConfigExtensions
-    {
-        public StrawberryShakeSettings StrawberryShake { get; } = new();
-    }
+    public StrawberryShakeSettings StrawberryShake { get; } = new();
 }

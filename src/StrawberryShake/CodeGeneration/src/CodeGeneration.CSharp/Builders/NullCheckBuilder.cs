@@ -1,95 +1,94 @@
 using System;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class NullCheckBuilder : ICode
 {
-    public class NullCheckBuilder : ICode
+    private ICode? _condition;
+    private ICode? _code;
+    private bool _determineStatement = true;
+    private bool _singleLine;
+
+    public NullCheckBuilder SetCondition(ICode condition)
     {
-        private ICode? _condition;
-        private ICode? _code;
-        private bool _determineStatement = true;
-        private bool _singleLine;
+        _condition = condition;
+        return this;
+    }
 
-        public NullCheckBuilder SetCondition(ICode condition)
+    public NullCheckBuilder SetCondition(string condition)
+    {
+        _condition = CodeInlineBuilder.From(condition);
+        return this;
+    }
+
+    public NullCheckBuilder SetCode(ICode code)
+    {
+        _code = code;
+        return this;
+    }
+
+    public NullCheckBuilder SetCode(string code)
+    {
+        _code = CodeInlineBuilder.From(code);
+        return this;
+    }
+
+    public NullCheckBuilder SetDetermineStatement(bool value)
+    {
+        _determineStatement = value;
+        return this;
+    }
+
+    public NullCheckBuilder SetSingleLine(bool value = true)
+    {
+        _singleLine = value;
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (_condition is null)
         {
-            _condition = condition;
-            return this;
+            throw new ArgumentNullException(nameof(_condition));
         }
 
-        public NullCheckBuilder SetCondition(string condition)
+        if (_code is null)
         {
-            _condition = CodeInlineBuilder.From(condition);
-            return this;
+            throw new ArgumentNullException(nameof(_code));
         }
 
-        public NullCheckBuilder SetCode(ICode code)
+        _condition.Build(writer);
+
+        if (!_singleLine)
         {
-            _code = code;
-            return this;
+            writer.WriteLine();
         }
 
-        public NullCheckBuilder SetCode(string code)
+        using (writer.IncreaseIndent())
         {
-            _code = CodeInlineBuilder.From(code);
-            return this;
-        }
-
-        public NullCheckBuilder SetDetermineStatement(bool value)
-        {
-            _determineStatement = value;
-            return this;
-        }
-
-        public NullCheckBuilder SetSingleLine(bool value = true)
-        {
-            _singleLine = value;
-            return this;
-        }
-
-        public void Build(CodeWriter writer)
-        {
-            if (_condition is null)
-            {
-                throw new ArgumentNullException(nameof(_condition));
-            }
-
-            if (_code is null)
-            {
-                throw new ArgumentNullException(nameof(_code));
-            }
-
-            _condition.Build(writer);
-
             if (!_singleLine)
             {
-                writer.WriteLine();
+                writer.WriteIndent();
             }
-
-            using (writer.IncreaseIndent())
+            else
             {
-                if (!_singleLine)
-                {
-                    writer.WriteIndent();
-                }
-                else
-                {
-                    writer.Write(" ");
-                }
-
-                writer.Write("?? ");
-                _code.Build(writer);
+                writer.Write(" ");
             }
 
-            if (_determineStatement)
-            {
-                writer.Write(";");
-                writer.WriteLine();
-            }
+            writer.Write("?? ");
+            _code.Build(writer);
         }
 
-        public static NullCheckBuilder New() => new();
-
-        public static NullCheckBuilder Inline() => New()
-            .SetDetermineStatement(false)
-            .SetSingleLine();
+        if (_determineStatement)
+        {
+            writer.Write(";");
+            writer.WriteLine();
+        }
     }
+
+    public static NullCheckBuilder New() => new();
+
+    public static NullCheckBuilder Inline() => New()
+        .SetDetermineStatement(false)
+        .SetSingleLine();
 }

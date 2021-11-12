@@ -1,29 +1,28 @@
-﻿using System.Threading.Tasks;
-using HotChocolate.Subscriptions;
+using System.Threading.Tasks;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
+using HotChocolate.Subscriptions;
 
-namespace HotChocolate.StarWars
+namespace HotChocolate.StarWars;
+
+public class Mutation
 {
-    public class Mutation
+    /// <summary>
+    /// Creates a review for a given Star Wars episode.
+    /// </summary>
+    /// <param name="episode">The episode to review.</param>
+    /// <param name="review">The review.</param>
+    /// <param name="repository">The review repository.</param>
+    /// <param name="eventSender">The event sending service.</param>
+    /// <returns>The created review.</returns>
+    public async Task<Review> CreateReview(
+        Episode episode,
+        Review review,
+        [Service] ReviewRepository repository,
+        [Service] ITopicEventSender eventSender)
     {
-        /// <summary>
-        /// Creates a review for a given Star Wars episode.
-        /// </summary>
-        /// <param name="episode">The episode to review.</param>
-        /// <param name="review">The review.</param>
-        /// <param name="repository">The review repository.</param>
-        /// <param name="eventSender">The event sending service.</param>
-        /// <returns>The created review.</returns>
-        public async Task<Review> CreateReview(
-            Episode episode,
-            Review review,
-            [Service]ReviewRepository repository,
-            [Service]ITopicEventSender eventSender)
-        {
-            repository.AddReview(episode, review);
-            await eventSender.SendAsync(episode, review);
-            return review;
-        }
+        repository.AddReview(episode, review);
+        await eventSender.SendAsync(episode, review);
+        return review;
     }
 }

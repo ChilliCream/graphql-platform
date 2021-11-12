@@ -1,15 +1,14 @@
 using System;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public interface IConsoleOutput
 {
-    public interface IConsoleOutput
-    {
-        bool HasErrors { get; }
+    bool HasErrors { get; }
 
-        IDisposable WriteCommand();
+    IDisposable WriteCommand();
 
-        IActivity WriteActivity(string text, string? path = null);
+    IActivity WriteActivity(string text, string? path = null);
 
-        void WriteFileCreated(string fileName);
-    }
+    void WriteFileCreated(string fileName);
 }

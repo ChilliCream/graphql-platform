@@ -4,67 +4,66 @@ using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Execution.Processing.Tasks;
 
-namespace HotChocolate.Execution.Processing.Plan
+namespace HotChocolate.Execution.Processing.Plan;
+
+internal sealed class ResolverStep : ExecutionStep
 {
-    internal sealed class ResolverStep : ExecutionStep
+    private readonly ISelection[] _selections;
+
+    public ResolverStep(
+        ExecutionStrategy strategy,
+        IReadOnlyList<ISelection> selections)
     {
-        private readonly ISelection[] _selections;
-
-        public ResolverStep(
-            ExecutionStrategy strategy,
-            IReadOnlyList<ISelection> selections)
+        if (selections is null)
         {
-            if (selections is null)
-            {
-                throw new ArgumentNullException(nameof(selections));
-            }
-
-            Strategy = strategy;
-            _selections = selections.ToArray();
+            throw new ArgumentNullException(nameof(selections));
         }
 
-        public override string Name =>
-            Strategy is ExecutionStrategy.Serial
-                ? "SerialResolver"
-                : "Resolver";
+        Strategy = strategy;
+        _selections = selections.ToArray();
+    }
 
-        public ExecutionStrategy Strategy { get; }
+    public override string Name =>
+        Strategy is ExecutionStrategy.Serial
+            ? "SerialResolver"
+            : "Resolver";
 
-        public IReadOnlyList<ISelection> Selections => _selections;
+    public ExecutionStrategy Strategy { get; }
 
-        public override bool TryActivate(IQueryPlanState state)
+    public IReadOnlyList<ISelection> Selections => _selections;
+
+    public override bool TryActivate(IQueryPlanState state)
+    {
+        IVariableValueCollection variables = state.Context.Variables;
+
+        foreach (ISelection? selection in _selections)
         {
-            IVariableValueCollection variables = state.Context.Variables;
-
-            foreach (var selection in _selections)
+            if (state.Selections.Contains(selection.Id) && selection.IsIncluded(variables))
             {
-                if (state.Selections.Contains(selection.Id) && selection.IsIncluded(variables))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public override void CompleteTask(IQueryPlanState state, IExecutionTask task)
-        {
-            Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
-
-            if (task is ResolverTask { ChildTasks: { Count: > 0 } } resolverTask)
-            {
-                foreach (var childTask in resolverTask.ChildTasks)
-                {
-                    state.Selections.Add(childTask.Selection.Id);
-                }
-
-                state.RegisterUnsafe(resolverTask.ChildTasks);
+                return true;
             }
         }
 
-        public override string ToString()
+        return false;
+    }
+
+    public override void CompleteTask(IQueryPlanState state, IExecutionTask task)
+    {
+        Debug.Assert(ReferenceEquals(task.State, this), "The task must be part of this step.");
+
+        if (task is ResolverTask { ChildTasks: { Count: > 0 } } resolverTask)
         {
-            return $"{Name}[{string.Join(", ", _selections.Select(t => t.Id))}]";
+            foreach (ResolverTask? childTask in resolverTask.ChildTasks)
+            {
+                state.Selections.Add(childTask.Selection.Id);
+            }
+
+            state.RegisterUnsafe(resolverTask.ChildTasks);
         }
+    }
+
+    public override string ToString()
+    {
+        return $"{Name}[{string.Join(", ", _selections.Select(t => t.Id))}]";
     }
 }

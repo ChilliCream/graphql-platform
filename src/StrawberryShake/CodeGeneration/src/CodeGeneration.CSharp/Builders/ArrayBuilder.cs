@@ -1,99 +1,98 @@
 using System;
 using System.Collections.Generic;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public class ArrayBuilder : ICode
 {
-    public class ArrayBuilder : ICode
+    private string? _prefix;
+    private string? _type;
+    private bool _determineStatement = true;
+    private bool _setReturn;
+    private readonly List<ICode> _assigment = new();
+
+    private ArrayBuilder()
     {
-        private string? _prefix;
-        private string? _type;
-        private bool _determineStatement = true;
-        private bool _setReturn;
-        private readonly List<ICode> _assigment = new();
+    }
 
-        private ArrayBuilder()
+    public ArrayBuilder SetType(string type)
+    {
+        _type = type;
+        return this;
+    }
+
+    public ArrayBuilder AddAssignment(ICode code)
+    {
+        _assigment.Add(code);
+        return this;
+    }
+
+    public ArrayBuilder SetDetermineStatement(bool value)
+    {
+        _determineStatement = value;
+        return this;
+    }
+
+    public ArrayBuilder SetPrefix(string prefix)
+    {
+        _prefix = prefix;
+        return this;
+    }
+
+    public ArrayBuilder SetReturn(bool value = true)
+    {
+        _setReturn = value;
+        return this;
+    }
+
+    public void Build(CodeWriter writer)
+    {
+        if (_type is null)
         {
+            throw new ArgumentNullException(nameof(_type));
         }
 
-        public ArrayBuilder SetType(string type)
+        if (_determineStatement)
         {
-            _type = type;
-            return this;
+            writer.WriteIndent();
         }
 
-        public ArrayBuilder AddAssignment(ICode code)
+        if (_setReturn)
         {
-            _assigment.Add(code);
-            return this;
+            writer.Write("return ");
         }
 
-        public ArrayBuilder SetDetermineStatement(bool value)
-        {
-            _determineStatement = value;
-            return this;
-        }
+        writer.Write(_prefix);
 
-        public ArrayBuilder SetPrefix(string prefix)
-        {
-            _prefix = prefix;
-            return this;
-        }
+        writer.Write("new ");
+        writer.Write(_type);
+        writer.Write("[] {");
+        writer.WriteLine();
 
-        public ArrayBuilder SetReturn(bool value = true)
+        using (writer.IncreaseIndent())
         {
-            _setReturn = value;
-            return this;
-        }
-
-        public void Build(CodeWriter writer)
-        {
-            if (_type is null)
-            {
-                throw new ArgumentNullException(nameof(_type));
-            }
-
-            if (_determineStatement)
+            for (var i = 0; i < _assigment.Count; i++)
             {
                 writer.WriteIndent();
-            }
-
-            if (_setReturn)
-            {
-                writer.Write("return ");
-            }
-
-            writer.Write(_prefix);
-
-            writer.Write("new ");
-            writer.Write(_type);
-            writer.Write("[] {");
-            writer.WriteLine();
-
-            using (writer.IncreaseIndent())
-            {
-                for (var i = 0; i < _assigment.Count; i++)
+                _assigment[i].Build(writer);
+                if (i != _assigment.Count - 1)
                 {
-                    writer.WriteIndent();
-                    _assigment[i].Build(writer);
-                    if (i != _assigment.Count - 1)
-                    {
-                        writer.Write(",");
-                        writer.WriteLine();
-                    }
+                    writer.Write(",");
+                    writer.WriteLine();
                 }
-            }
-
-            writer.WriteLine();
-            writer.WriteIndent();
-            writer.Write("}");
-
-            if (_determineStatement)
-            {
-                writer.Write(";");
-                writer.WriteLine();
             }
         }
 
-        public static ArrayBuilder New() => new ArrayBuilder();
+        writer.WriteLine();
+        writer.WriteIndent();
+        writer.Write("}");
+
+        if (_determineStatement)
+        {
+            writer.Write(";");
+            writer.WriteLine();
+        }
     }
+
+    public static ArrayBuilder New() => new ArrayBuilder();
 }

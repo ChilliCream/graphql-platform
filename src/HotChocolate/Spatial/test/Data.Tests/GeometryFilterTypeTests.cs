@@ -7,152 +7,151 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Filters.Spatial.Tests
+namespace HotChocolate.Data.Filters.Spatial.Tests;
+
+public class GeometryFilterInputTypeTest
+    : FilterTestBase
 {
-    public class GeometryFilterInputTypeTest
-        : FilterTestBase
+    [Fact]
+    public void GeometryFilterType_Native()
     {
-        [Fact]
-        public void GeometryFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<GeometryFilterInputType>());
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<GeometryFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void LineStringFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<LineStringFilterInputType>());
+    [Fact]
+    public void LineStringFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<LineStringFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void MultiLineStringFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiLineStringFilterInputType>());
+    [Fact]
+    public void MultiLineStringFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<MultiLineStringFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void PointFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<PointFilterInputType>());
+    [Fact]
+    public void PointFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<PointFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void MultiPointFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiPointFilterInputType>());
+    [Fact]
+    public void MultiPointFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<MultiPointFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void PolygonFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<PolygonFilterInputType>());
+    [Fact]
+    public void PolygonFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<PolygonFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        [Fact]
-        public void MultiPolygonFilterType_Native()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(s => s.AddType<MultiPolygonFilterInputType>());
+    [Fact]
+    public void MultiPolygonFilterType_Native()
+    {
+        // arrange
+        // act
+        ISchema schema = CreateSchema(s => s.AddType<MultiPolygonFilterInputType>());
 
-            // assert
+        // assert
 #if NETCOREAPP2_1
             schema.Print().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
 #else
-            schema.Print().MatchSnapshot();
+        schema.Print().MatchSnapshot();
 #endif
-        }
+    }
 
-        public class FooDirective
-        {
-        }
+    public class FooDirective
+    {
+    }
 
-        public class Foo
-        {
-            public string Bar { get; set; }
-        }
+    public class Foo
+    {
+        public string? Bar { get; set; }
+    }
 
-        public class Query
-        {
-            [GraphQLNonNullType]
-            public IQueryable<Book> Books() => new List<Book>().AsQueryable();
-        }
+    public class Query
+    {
+        [GraphQLNonNullType]
+        public IQueryable<Book> Books() => new List<Book>().AsQueryable();
+    }
 
-        public class Book
-        {
-            public int Id { get; set; }
+    public class Book
+    {
+        public int Id { get; set; }
 
-            [GraphQLNonNullType]
-            public string Title { get; set; }
+        [GraphQLNonNullType]
+        public string? Title { get; set; }
 
-            public int Pages { get; set; }
-            public int Chapters { get; set; }
+        public int Pages { get; set; }
+        public int Chapters { get; set; }
 
-            [GraphQLNonNullType]
-            public Author Author { get; set; }
-        }
+        [GraphQLNonNullType]
+        public Author? Author { get; set; }
+    }
 
-        public class Author
-        {
-            [GraphQLType(typeof(NonNullType<IdType>))]
-            public int Id { get; set; }
+    public class Author
+    {
+        [GraphQLType(typeof(NonNullType<IdType>))]
+        public int Id { get; set; }
 
-            [GraphQLNonNullType]
-            public string Name { get; set; }
-        }
+        [GraphQLNonNullType]
+        public string? Name { get; set; }
     }
 }

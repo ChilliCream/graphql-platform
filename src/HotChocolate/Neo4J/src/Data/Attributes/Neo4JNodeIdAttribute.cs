@@ -1,9 +1,8 @@
 using System;
 
-namespace HotChocolate.Data.Neo4J
+namespace HotChocolate.Data.Neo4J;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class Neo4JNodeIdAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class Neo4JNodeIdAttribute : Attribute
-    {
-    }
 }

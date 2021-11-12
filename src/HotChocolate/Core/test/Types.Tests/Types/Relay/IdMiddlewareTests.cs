@@ -1,35 +1,34 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Relay;
+
+public class IdMiddlewareTests
 {
-    public class IdMiddlewareTests
+    [Fact]
+    public async Task ExecuteQueryThatReturnsId_IdShouldBeOpaque()
     {
-        [Fact]
-        public async Task ExecuteQueryThatReturnsId_IdShouldBeOpaque()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<SomeQuery>()
-                .Create();
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<SomeQuery>()
+            .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+        IRequestExecutor executor = schema.MakeExecutable();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync("{ id string }");
+        // act
+        IExecutionResult result = await executor.ExecuteAsync("{ id string }");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        public class SomeQuery
-        {
-            [ID]
-            public string GetId() => "Hello";
+    public class SomeQuery
+    {
+        [ID]
+        public string GetId() => "Hello";
 
-            public string GetString() => "Hello";
-        }
+        public string GetString() => "Hello";
     }
 }

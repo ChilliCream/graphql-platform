@@ -1,9 +1,8 @@
-namespace StrawberryShake.Tools.Configuration
+namespace StrawberryShake.Tools.Configuration;
+
+public enum RequestStrategy
 {
-    public enum RequestStrategy
-    {
-        Default = 0,
-        PersistedQuery = 1,
-        AutomaticPersistedQuery = 2
-    }
+    Default = 0,
+    PersistedQuery = 1,
+    AutomaticPersistedQuery = 2
 }

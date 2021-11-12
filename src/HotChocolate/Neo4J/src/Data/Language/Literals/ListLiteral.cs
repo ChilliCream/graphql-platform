@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+public class ListLiteral<T> : Literal<IEnumerable<Literal<T>>>
 {
-    public class ListLiteral<T> : Literal<IEnumerable<Literal<T>>>
+    public ListLiteral(IEnumerable<Literal<T>> content) : base(content)
     {
-        public ListLiteral(IEnumerable<Literal<T>> content) : base(content)
-        {
-        }
+    }
 
-        public override string Print()
-        {
-            throw new System.NotImplementedException();
-        }
+    public override string Print()
+    {
+        throw new System.NotImplementedException();
     }
 }

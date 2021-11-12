@@ -1,11 +1,11 @@
 using System;
 
-namespace StrawberryShake.Transport.WebSockets.Protocols
+namespace StrawberryShake.Transport.WebSockets.Protocols;
+
+public static class GraphQLWebSocketMessageTypeSpans
 {
-    public static class GraphQLWebSocketMessageTypeSpans
+    public static ReadOnlySpan<byte> ConnectionInitialize => new[]
     {
-        public static ReadOnlySpan<byte> ConnectionInitialize => new[]
-        {
             (byte)'c',
             (byte)'o',
             (byte)'n',
@@ -23,8 +23,8 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'t'
         };
 
-        public static ReadOnlySpan<byte> ConnectionAccept => new[]
-        {
+    public static ReadOnlySpan<byte> ConnectionAccept => new[]
+    {
             (byte)'c',
             (byte)'o',
             (byte)'n',
@@ -41,8 +41,8 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'k'
         };
 
-        public static ReadOnlySpan<byte> ConnectionError => new[]
-        {
+    public static ReadOnlySpan<byte> ConnectionError => new[]
+    {
             (byte)'c',
             (byte)'o',
             (byte)'n',
@@ -61,14 +61,14 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'r'
         };
 
-        public static ReadOnlySpan<byte> KeepAlive => new[]
-        {
+    public static ReadOnlySpan<byte> KeepAlive => new[]
+    {
             (byte)'k',
             (byte)'a'
         };
 
-        public static ReadOnlySpan<byte> ConnectionTerminate => new[]
-        {
+    public static ReadOnlySpan<byte> ConnectionTerminate => new[]
+    {
             (byte)'c',
             (byte)'o',
             (byte)'n',
@@ -91,8 +91,8 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'e'
         };
 
-        public static ReadOnlySpan<byte> Start => new[]
-        {
+    public static ReadOnlySpan<byte> Start => new[]
+    {
             (byte)'s',
             (byte)'t',
             (byte)'a',
@@ -100,16 +100,16 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'t'
         };
 
-        public static ReadOnlySpan<byte> Data => new[]
-        {
+    public static ReadOnlySpan<byte> Data => new[]
+    {
             (byte)'d',
             (byte)'a',
             (byte)'t',
             (byte)'a'
         };
 
-        public static ReadOnlySpan<byte> Error => new[]
-        {
+    public static ReadOnlySpan<byte> Error => new[]
+    {
             (byte)'e',
             (byte)'r',
             (byte)'r',
@@ -117,8 +117,8 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'r'
         };
 
-        public static ReadOnlySpan<byte> Complete => new[]
-        {
+    public static ReadOnlySpan<byte> Complete => new[]
+    {
             (byte)'c',
             (byte)'o',
             (byte)'m',
@@ -129,12 +129,11 @@ namespace StrawberryShake.Transport.WebSockets.Protocols
             (byte)'e'
         };
 
-        public static ReadOnlySpan<byte> Stop => new[]
-        {
+    public static ReadOnlySpan<byte> Stop => new[]
+    {
             (byte)'s',
             (byte)'t',
             (byte)'o',
             (byte)'p'
         };
-    }
 }

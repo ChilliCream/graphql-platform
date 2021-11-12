@@ -1,7 +1,6 @@
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class SortableDirective
 {
-    public class SortableDirective
-    {
-        public SortDirection Direction { get; set; } = default!;
-    }
+    public SortDirection Direction { get; set; } = default!;
 }

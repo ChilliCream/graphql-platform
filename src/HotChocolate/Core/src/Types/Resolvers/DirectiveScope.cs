@@ -1,8 +1,7 @@
-namespace HotChocolate.Resolvers
+namespace HotChocolate.Resolvers;
+
+public enum DirectiveScope
 {
-    public enum DirectiveScope
-    {
-        All,
-        FieldSelection
-    }
+    All,
+    FieldSelection
 }

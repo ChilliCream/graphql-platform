@@ -1,17 +1,16 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public static class TestUtils
 {
-    public static class TestUtils
+    public static string CreateTypeName()
     {
-        public static string CreateTypeName()
-        {
-            return "Type_" + Guid.NewGuid().ToString("N");
-        }
+        return "Type_" + Guid.NewGuid().ToString("N");
+    }
 
-        public static string CreateFieldName()
-        {
-            return "field_" + Guid.NewGuid().ToString("N");
-        }
+    public static string CreateFieldName()
+    {
+        return "field_" + Guid.NewGuid().ToString("N");
     }
 }

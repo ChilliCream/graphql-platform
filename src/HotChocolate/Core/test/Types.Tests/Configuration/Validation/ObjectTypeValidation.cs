@@ -1,33 +1,33 @@
 using Xunit;
 
-namespace HotChocolate.Configuration.Validation
+namespace HotChocolate.Configuration.Validation;
+
+public class ObjectTypeValidation : TypeValidationTestBase
 {
-    public class ObjectTypeValidation : TypeValidationTestBase
+    [Fact]
+    public void Fields_With_Two_Underscores_Are_Not_Allowed()
     {
-        [Fact]
-        public void Fields_With_Two_Underscores_Are_Not_Allowed()
-        {
-            ExpectError(@"
+        ExpectError(@"
                 type Query {
                     __foo : String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Arguments_With_Two_Underscores_Are_Not_Allowed()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Arguments_With_Two_Underscores_Are_Not_Allowed()
+    {
+        ExpectError(@"
                 type Query {
                     foo(__bar: String) : String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_UnionType_Field_Is_ObjectType()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Implemented_Field_Is_UnionType_Field_Is_ObjectType()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -50,12 +50,12 @@ namespace HotChocolate.Configuration.Validation
                     baz: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_Interface_Field_Is_ObjectType()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Implemented_Field_Is_Interface_Field_Is_ObjectType()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -76,12 +76,12 @@ namespace HotChocolate.Configuration.Validation
                     bar: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_Interface_List_Field_Is_ObjectType_List()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Implemented_Field_Is_Interface_List_Field_Is_ObjectType_List()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -102,12 +102,12 @@ namespace HotChocolate.Configuration.Validation
                     bar: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_Interface_Field_Is_NonNull_ObjectType()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Implemented_Field_Is_Interface_Field_Is_NonNull_ObjectType()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -128,12 +128,12 @@ namespace HotChocolate.Configuration.Validation
                     bar: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_Nullable_Field_Is_NonNull()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Implemented_Field_Is_Nullable_Field_Is_NonNull()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -146,12 +146,12 @@ namespace HotChocolate.Configuration.Validation
                     bar: String!
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Field_Is_NonNull_Field_Is_Nullable()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Implemented_Field_Is_NonNull_Field_Is_Nullable()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -164,12 +164,12 @@ namespace HotChocolate.Configuration.Validation
                     bar: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void All_Arguments_Are_Implemented()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void All_Arguments_Are_Implemented()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -182,12 +182,12 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String): String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Field_Has_Additional_Arguments()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Field_Has_Additional_Arguments()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -200,12 +200,12 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String b:String): String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Field_Has_Additional_NonNull_Arguments()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Field_Has_Additional_NonNull_Arguments()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -218,12 +218,12 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String b:String!): String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Arguments_Are_Not_Implemented()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Arguments_Are_Not_Implemented()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -236,12 +236,12 @@ namespace HotChocolate.Configuration.Validation
                     abc: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Implemented_Argument_Types_Do_Not_Match()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Implemented_Argument_Types_Do_Not_Match()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -254,12 +254,12 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String!): String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Object_Implements_All_Interfaces()
-        {
-            ExpectValid(@"
+    [Fact]
+    public void Object_Implements_All_Interfaces()
+    {
+        ExpectValid(@"
                 type Query {
                     foo: Foo
                 }
@@ -278,12 +278,12 @@ namespace HotChocolate.Configuration.Validation
                     cde: String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -300,12 +300,12 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String): String
                 }
             ");
-        }
+    }
 
-        [Fact]
-        public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces_2()
-        {
-            ExpectError(@"
+    [Fact]
+    public void Object_Implements_Not_The_Interfaces_Of_Its_Interfaces_2()
+    {
+        ExpectError(@"
                 type Query {
                     foo: Foo
                 }
@@ -322,6 +322,5 @@ namespace HotChocolate.Configuration.Validation
                     abc(a: String): String
                 }
             ");
-        }
     }
 }

@@ -1,24 +1,24 @@
-﻿using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FragmentsMustBeUsedRuleTests
-       : DocumentValidatorVisitorTestBase
-    {
-        public FragmentsMustBeUsedRuleTests()
-            : base(builder => builder.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void UnusedFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+public class FragmentsMustBeUsedRuleTests
+   : DocumentValidatorVisitorTestBase
+{
+    public FragmentsMustBeUsedRuleTests()
+        : base(builder => builder.AddFragmentRules())
+    {
+    }
+
+    [Fact]
+    public void UnusedFragment()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -29,25 +29,25 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "The specified fragment `nameFragment` " +
-                    "is not used within the current document.", t.Message));
-            context.Errors.MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(context.Errors,
+            t => Assert.Equal(
+                "The specified fragment `nameFragment` " +
+                "is not used within the current document.", t.Message));
+        context.Errors.MatchSnapshot();
+    }
 
-        [Fact]
-        public void UsedFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void UsedFragment()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                 }
@@ -59,21 +59,21 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
+    }
 
-        [Fact]
-        public void UsedNestedFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void UsedNestedFragment()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                     ... nestedNameFragment
@@ -90,13 +90,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
     }
 }

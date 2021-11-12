@@ -1,48 +1,47 @@
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Neo4J.Language
+namespace HotChocolate.Data.Neo4J.Language;
+
+public class LiteralTests
 {
-    public class LiteralTests
+    [Fact]
+    public void StringLiteral()
     {
-        [Fact]
-        public void StringLiteral()
-        {
-            var visitor = new CypherVisitor();
+        var visitor = new CypherVisitor();
 
-            StringLiteral literal = new("Test");
-            literal.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
+        StringLiteral literal = new("Test");
+        literal.Visit(visitor);
+        visitor.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public void BooleanLiteral()
-        {
-            var visitor = new CypherVisitor();
+    [Fact]
+    public void BooleanLiteral()
+    {
+        var visitor = new CypherVisitor();
 
-            BooleanLiteral literal = Language.BooleanLiteral.True;
-            literal.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
+        BooleanLiteral literal = Language.BooleanLiteral.True;
+        literal.Visit(visitor);
+        visitor.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public void IntegerLiteral()
-        {
-            var visitor = new CypherVisitor();
+    [Fact]
+    public void IntegerLiteral()
+    {
+        var visitor = new CypherVisitor();
 
-            IntegerLiteral literal = new(1);
-            literal.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
+        IntegerLiteral literal = new(1);
+        literal.Visit(visitor);
+        visitor.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public void DoubleLiteral()
-        {
-            var visitor = new CypherVisitor();
+    [Fact]
+    public void DoubleLiteral()
+    {
+        var visitor = new CypherVisitor();
 
-            DoubleLiteral literal = new(1.11);
-            literal.Visit(visitor);
-            visitor.Print().MatchSnapshot();
-        }
+        DoubleLiteral literal = new(1.11);
+        literal.Visit(visitor);
+        visitor.Print().MatchSnapshot();
     }
 }

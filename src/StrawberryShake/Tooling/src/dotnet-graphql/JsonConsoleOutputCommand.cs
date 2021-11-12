@@ -1,26 +1,25 @@
 using System;
 using System.Text.Json;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public class JsonConsoleOutputCommand
+    : IDisposable
 {
-    public class JsonConsoleOutputCommand
-        : IDisposable
+    private readonly JsonConsoleOutputData _data;
+
+    public JsonConsoleOutputCommand(JsonConsoleOutputData data)
     {
-        private readonly JsonConsoleOutputData _data;
+        _data = data;
+    }
 
-        public JsonConsoleOutputCommand(JsonConsoleOutputData data)
+    public void Dispose()
+    {
+        string json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
         {
-            _data = data;
-        }
-
-        public void Dispose()
-        {
-            string json = JsonSerializer.Serialize(_data, new JsonSerializerOptions
-            {
-                IgnoreNullValues = true,
-                IgnoreReadOnlyProperties = false
-            });
-            Console.WriteLine(json);
-        }
+            IgnoreNullValues = true,
+            IgnoreReadOnlyProperties = false
+        });
+        Console.WriteLine(json);
     }
 }

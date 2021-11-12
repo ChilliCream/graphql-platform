@@ -1,9 +1,8 @@
-﻿namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public class Alien
+    : ISentient
 {
-    public class Alien
-        : ISentient
-    {
-        public string Name { get; set; }
-        public string HomePlanet { get; set; }
-    }
+    public string Name { get; set; }
+    public string HomePlanet { get; set; }
 }

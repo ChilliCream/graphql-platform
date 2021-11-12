@@ -1,9 +1,8 @@
-namespace HotChocolate.Analyzers.Configuration
+namespace HotChocolate.Analyzers.Configuration;
+
+public static class FileNames
 {
-    public static class FileNames
-    {
-        public const string SchemaFile = "schema.graphql";
-        public const string SchemaExtensionFile = "schema.extensions.graphql";
-        public const string GraphQLConfigFile = ".graphqlrc.json";
-    }
+    public const string SchemaFile = "schema.graphql";
+    public const string SchemaExtensionFile = "schema.extensions.graphql";
+    public const string GraphQLConfigFile = ".graphqlrc.json";
 }

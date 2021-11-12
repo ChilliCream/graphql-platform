@@ -5,14 +5,14 @@ using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Sorting;
+
+[Obsolete]
+public class SortMiddlewareTests
 {
-    [Obsolete]
-    public class SortMiddlewareTests
-    {
-        public static IEnumerable<object[]> Data =>
-            new List<object[]>
-            {
+    public static IEnumerable<object[]> Data =>
+        new List<object[]>
+        {
                 new object[]
                 {
                     new[]
@@ -27,50 +27,49 @@ namespace HotChocolate.Types.Sorting
                         .AsQueryable(),
                     "AsQueryable"
                 }
-            };
+        };
 
-        private static void AddField<T>(IObjectTypeDescriptor ctx, T resolvedItems)
-        {
-            ctx.Field("foo")
-                .Resolve(resolvedItems)
-                .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
-                .UseSorting();
-        }
+    private static void AddField<T>(IObjectTypeDescriptor ctx, T resolvedItems)
+    {
+        ctx.Field("foo")
+            .Resolve(resolvedItems)
+            .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
+            .UseSorting();
+    }
 
-        [MemberData(nameof(Data))]
-        [Theory]
-        public void InvokeAsync(object resolvedItems, string scenarioName)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(ctx =>
+    [MemberData(nameof(Data))]
+    [Theory]
+    public void InvokeAsync(object resolvedItems, string scenarioName)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(ctx =>
+            {
+                if (resolvedItems is IQueryable<Foo> queryable)
                 {
-                    if (resolvedItems is IQueryable<Foo> queryable)
-                    {
-                        AddField(ctx, queryable);
-                    }
-                    else if (resolvedItems is IEnumerable<Foo> enumerable)
-                    {
-                        AddField(ctx, enumerable);
-                    }
-                })
+                    AddField(ctx, queryable);
+                }
+                else if (resolvedItems is IEnumerable<Foo> enumerable)
+                {
+                    AddField(ctx, enumerable);
+                }
+            })
+            .Create();
+
+        IReadOnlyQueryRequest request =
+            QueryRequestBuilder.New()
+                .SetQuery("{ foo(order_by: { bar: DESC}) { bar } }")
                 .Create();
 
-            IReadOnlyQueryRequest request =
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo(order_by: { bar: DESC}) { bar } }")
-                    .Create();
+        // act
+        IExecutionResult result = schema.MakeExecutable().Execute(request);
 
-            // act
-            IExecutionResult result = schema.MakeExecutable().Execute(request);
+        // assert
+        result.MatchSnapshot(scenarioName);
+    }
 
-            // assert
-            result.MatchSnapshot(scenarioName);
-        }
-
-        private class Foo
-        {
-            public string Bar { get; set; }
-        }
+    private class Foo
+    {
+        public string Bar { get; set; }
     }
 }

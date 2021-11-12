@@ -1,22 +1,21 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+/// <summary>
+/// Query Documentation.
+/// </summary>
+public class QueryWithDocumentation
 {
     /// <summary>
-    /// Query Documentation.
+    /// Foo Documentation-
     /// </summary>
-    public class QueryWithDocumentation
+    /// <param name="bar">
+    /// Bar Documentation.
+    /// </param>
+    /// <returns>
+    /// Bar Returns Documentation.
+    /// </returns>
+    public string Foo(string bar)
     {
-        /// <summary>
-        /// Foo Documentation-
-        /// </summary>
-        /// <param name="bar">
-        /// Bar Documentation.
-        /// </param>
-        /// <returns>
-        /// Bar Returns Documentation.
-        /// </returns>
-        public string Foo(string bar)
-        {
-            return null;
-        }
+        return null;
     }
 }

@@ -1,15 +1,14 @@
-namespace StrawberryShake.Tools.OAuth
+namespace StrawberryShake.Tools.OAuth;
+
+public class AccessToken
 {
-    public class AccessToken
+    public AccessToken(string token, string? scheme)
     {
-        public AccessToken(string token, string? scheme)
-        {
-            Token = token;
-            Scheme = scheme;
-        }
-
-        public string Token { get; }
-
-        public string? Scheme { get; }
+        Token = token;
+        Scheme = scheme;
     }
+
+    public string Token { get; }
+
+    public string? Scheme { get; }
 }

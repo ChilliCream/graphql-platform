@@ -1,4 +1,3 @@
-namespace HotChocolate.Resolvers
-{
-    public delegate DirectiveDelegate DirectiveMiddleware(FieldDelegate next);
-}
+namespace HotChocolate.Resolvers;
+
+public delegate DirectiveDelegate DirectiveMiddleware(FieldDelegate next);

@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.CodeGeneration.Types
+namespace HotChocolate.CodeGeneration.Types;
+
+public class FilterableDirective
 {
-    public class FilterableDirective
-    {
-        public IReadOnlyList<FilterOperation> Operations { get; set; } = default!;
-    }
+    public IReadOnlyList<FilterOperation> Operations { get; set; } = default!;
 }

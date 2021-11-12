@@ -9,252 +9,251 @@ using HotChocolate.Types.Descriptors;
 
 #nullable  enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class TypeReferenceResolver
 {
-    internal sealed class TypeReferenceResolver
+    private readonly Dictionary<TypeId, IType> _typeCache = new();
+    private readonly ITypeInspector _typeInspector;
+    private readonly TypeRegistry _typeRegistry;
+    private readonly TypeLookup _typeLookup;
+
+    public TypeReferenceResolver(
+        ITypeInspector typeInspector,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup)
     {
-        private readonly Dictionary<TypeId, IType> _typeCache = new();
-        private readonly ITypeInspector _typeInspector;
-        private readonly TypeRegistry _typeRegistry;
-        private readonly TypeLookup _typeLookup;
+        _typeInspector = typeInspector ??
+            throw new ArgumentNullException(nameof(typeInspector));
+        _typeRegistry = typeRegistry ??
+            throw new ArgumentNullException(nameof(typeRegistry));
+        _typeLookup = typeLookup ??
+            throw new ArgumentNullException(nameof(typeLookup));
+    }
 
-        public TypeReferenceResolver(
-            ITypeInspector typeInspector,
-            TypeRegistry typeRegistry,
-            TypeLookup typeLookup)
+    public IEnumerable<T> GetTypes<T>() =>
+        _typeRegistry.Types
+            .Select(t => t.Type)
+            .OfType<T>()
+            .Distinct();
+
+    public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+    {
+        if (typeRef is null)
         {
-            _typeInspector = typeInspector ??
-                throw new ArgumentNullException(nameof(typeInspector));
-            _typeRegistry = typeRegistry ??
-                throw new ArgumentNullException(nameof(typeRegistry));
-            _typeLookup = typeLookup ??
-                throw new ArgumentNullException(nameof(typeLookup));
+            throw new ArgumentNullException(nameof(typeRef));
         }
 
-        public IEnumerable<T> GetTypes<T>() =>
-            _typeRegistry.Types
-                .Select(t => t.Type)
-                .OfType<T>()
-                .Distinct();
-
-        public ITypeReference GetNamedTypeReference(ITypeReference typeRef)
+        if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
         {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-            if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
-            {
-                return namedTypeRef;
-            }
-
-            throw new NotSupportedException();
+            return namedTypeRef;
         }
 
-        public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
+        throw new NotSupportedException();
+    }
+
+    public bool TryGetType(ITypeReference typeRef, [NotNullWhen(true)] out IType? type)
+    {
+        if (typeRef is null)
         {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-            if (typeRef is SchemaTypeReference { Type: IType schemaType })
-            {
-                type = schemaType;
-                return true;
-            }
-
-            if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
-            {
-                type = null;
-                return false;
-            }
-
-            TypeId typeId = CreateId(typeRef, namedTypeRef);
-            if (_typeCache.TryGetValue(typeId, out type))
-            {
-                return true;
-            }
-
-            if (!_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
-                registeredType.Type is not INamedType)
-            {
-                type = null;
-                return false;
-            }
-
-            var namedType = (INamedType)registeredType.Type;
-
-            switch (typeRef)
-            {
-                case ExtendedTypeReference r:
-                    ITypeFactory typeFactory = _typeInspector.CreateTypeFactory(r.Type);
-                    type = typeFactory.CreateType(namedType);
-                    _typeCache[typeId] = type;
-                    return true;
-
-                case SyntaxTypeReference r:
-                    type = CreateType(namedType, r.Type);
-                    return true;
-
-                case DependantFactoryTypeReference reference:
-                    type = namedType;
-                    return true;
-
-                default:
-                    throw new NotSupportedException();
-            }
+            throw new ArgumentNullException(nameof(typeRef));
         }
 
-        public bool TryGetDirectiveType(
-            IDirectiveReference typeRef,
-            [NotNullWhen(true)] out DirectiveType? directiveType)
+        if (typeRef is SchemaTypeReference { Type: IType schemaType })
         {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
+            type = schemaType;
+            return true;
+        }
 
-            if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
-            {
-                directiveType = null;
-                return false;
-            }
+        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        {
+            type = null;
+            return false;
+        }
 
-            if (_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
-                registeredType.Type is DirectiveType d)
-            {
-                directiveType = d;
+        TypeId typeId = CreateId(typeRef, namedTypeRef);
+        if (_typeCache.TryGetValue(typeId, out type))
+        {
+            return true;
+        }
+
+        if (!_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
+            registeredType.Type is not INamedType)
+        {
+            type = null;
+            return false;
+        }
+
+        var namedType = (INamedType)registeredType.Type;
+
+        switch (typeRef)
+        {
+            case ExtendedTypeReference r:
+                ITypeFactory typeFactory = _typeInspector.CreateTypeFactory(r.Type);
+                type = typeFactory.CreateType(namedType);
+                _typeCache[typeId] = type;
                 return true;
-            }
 
+            case SyntaxTypeReference r:
+                type = CreateType(namedType, r.Type);
+                return true;
+
+            case DependantFactoryTypeReference reference:
+                type = namedType;
+                return true;
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    public bool TryGetDirectiveType(
+        IDirectiveReference typeRef,
+        [NotNullWhen(true)] out DirectiveType? directiveType)
+    {
+        if (typeRef is null)
+        {
+            throw new ArgumentNullException(nameof(typeRef));
+        }
+
+        if (!_typeLookup.TryNormalizeReference(typeRef, out ITypeReference? namedTypeRef))
+        {
             directiveType = null;
             return false;
         }
 
-        private static IType CreateType(
-            IType namedType,
-            ITypeNode typeNode)
+        if (_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
+            registeredType.Type is DirectiveType d)
         {
-            if (typeNode is NonNullTypeNode nonNullType)
-            {
-                return new NonNullType(CreateType(namedType, nonNullType.Type));
-            }
-
-            if (typeNode is ListTypeNode listType)
-            {
-                return new ListType(CreateType(namedType, listType.Type));
-            }
-
-            return namedType;
+            directiveType = d;
+            return true;
         }
 
-        private TypeId CreateId(ITypeReference typeRef, ITypeReference namedTypeRef)
+        directiveType = null;
+        return false;
+    }
+
+    private static IType CreateType(
+        IType namedType,
+        ITypeNode typeNode)
+    {
+        if (typeNode is NonNullTypeNode nonNullType)
         {
-            switch (typeRef)
-            {
-                case ExtendedTypeReference r:
-                    ITypeInfo typeInfo = _typeInspector.CreateTypeInfo(r.Type);
-                    return new TypeId(namedTypeRef, CreateFlags(typeInfo));
-
-                case SyntaxTypeReference r:
-                    return new TypeId(namedTypeRef, CreateFlags(r.Type));
-
-                case SchemaTypeReference:
-                case DependantFactoryTypeReference:
-                    return new TypeId(namedTypeRef, 1);
-
-                default:
-                    throw new NotSupportedException();
-            }
+            return new NonNullType(CreateType(namedType, nonNullType.Type));
         }
 
-        private static int CreateFlags(ITypeInfo typeInfo)
+        if (typeNode is ListTypeNode listType)
         {
-            var flags = 1;
-
-            for (var i = 0; i < typeInfo.Components.Count; i++)
-            {
-                switch (typeInfo.Components[i].Kind)
-                {
-                    case TypeComponentKind.List:
-                        flags <<= 1;
-                        flags |= 1;
-                        break;
-
-                    case TypeComponentKind.NonNull:
-                        flags <<= 1;
-                        break;
-                }
-            }
-
-            return flags;
+            return new ListType(CreateType(namedType, listType.Type));
         }
 
-        private static int CreateFlags(ITypeNode type)
-        {
-            var flags = 1;
-            ITypeNode current = type;
+        return namedType;
+    }
 
-            while (current is not NamedTypeNode)
+    private TypeId CreateId(ITypeReference typeRef, ITypeReference namedTypeRef)
+    {
+        switch (typeRef)
+        {
+            case ExtendedTypeReference r:
+                ITypeInfo typeInfo = _typeInspector.CreateTypeInfo(r.Type);
+                return new TypeId(namedTypeRef, CreateFlags(typeInfo));
+
+            case SyntaxTypeReference r:
+                return new TypeId(namedTypeRef, CreateFlags(r.Type));
+
+            case SchemaTypeReference:
+            case DependantFactoryTypeReference:
+                return new TypeId(namedTypeRef, 1);
+
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    private static int CreateFlags(ITypeInfo typeInfo)
+    {
+        var flags = 1;
+
+        for (var i = 0; i < typeInfo.Components.Count; i++)
+        {
+            switch (typeInfo.Components[i].Kind)
             {
-                if (current is ListTypeNode listType)
-                {
+                case TypeComponentKind.List:
                     flags <<= 1;
                     flags |= 1;
-                    current = listType.Type;
-                }
-                else if (current is NonNullTypeNode nonNullType)
-                {
-                    flags <<= 1;
-                    current = nonNullType.Type;
-                }
-                else
-                {
                     break;
-                }
-            }
 
-            return flags;
+                case TypeComponentKind.NonNull:
+                    flags <<= 1;
+                    break;
+            }
         }
 
-        private readonly struct TypeId : IEquatable<TypeId>
+        return flags;
+    }
+
+    private static int CreateFlags(ITypeNode type)
+    {
+        var flags = 1;
+        ITypeNode current = type;
+
+        while (current is not NamedTypeNode)
         {
-            public TypeId(ITypeReference typeRef, int flags)
+            if (current is ListTypeNode listType)
             {
-                TypeRef = typeRef;
-                Flags = flags;
+                flags <<= 1;
+                flags |= 1;
+                current = listType.Type;
             }
-
-            public ITypeReference TypeRef { get; }
-
-            public int Flags { get; }
-
-            public bool Equals(TypeId other) =>
-                TypeRef.Equals(other.TypeRef) && Flags == other.Flags;
-
-            public override bool Equals(object? obj) =>
-                obj is TypeId other && Equals(other);
-
-            public override int GetHashCode()
+            else if (current is NonNullTypeNode nonNullType)
             {
-                unchecked
-                {
-                    return TypeRef.GetHashCode() * 397 ^
-                           Flags.GetHashCode() * 397;
-                }
+                flags <<= 1;
+                current = nonNullType.Type;
             }
-
-            public static bool operator ==(TypeId left, TypeId right)
+            else
             {
-                return left.Equals(right);
+                break;
             }
+        }
 
-            public static bool operator !=(TypeId left, TypeId right)
+        return flags;
+    }
+
+    private readonly struct TypeId : IEquatable<TypeId>
+    {
+        public TypeId(ITypeReference typeRef, int flags)
+        {
+            TypeRef = typeRef;
+            Flags = flags;
+        }
+
+        public ITypeReference TypeRef { get; }
+
+        public int Flags { get; }
+
+        public bool Equals(TypeId other) =>
+            TypeRef.Equals(other.TypeRef) && Flags == other.Flags;
+
+        public override bool Equals(object? obj) =>
+            obj is TypeId other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            unchecked
             {
-                return !left.Equals(right);
+                return TypeRef.GetHashCode() * 397 ^
+                       Flags.GetHashCode() * 397;
             }
+        }
+
+        public static bool operator ==(TypeId left, TypeId right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(TypeId left, TypeId right)
+        {
+            return !left.Equals(right);
         }
     }
 }

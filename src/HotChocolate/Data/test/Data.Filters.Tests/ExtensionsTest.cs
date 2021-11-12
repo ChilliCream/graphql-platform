@@ -5,172 +5,171 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Tests
+namespace HotChocolate.Data.Tests;
+
+public class ExtensionTests
 {
-    public class ExtensionTests
+    [Fact]
+    public void Convention_DefaultScope_Extensions()
     {
-        [Fact]
-        public void Convention_DefaultScope_Extensions()
+        // arrange
+        // act
+        var convention = new FilterConvention(
+            x => x.UseMock()
+                .Configure<StringOperationFilterInputType>(
+                    y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
+                .Operation(DefaultFilterOperations.Like)
+                .Name("like"));
+
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddConvention<IFilterConvention>(convention)
+            .TryAddTypeInterceptor<FilterTypeInterceptor>()
+            .AddQueryType(
+                c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolve("bar")
+                        .Argument("test", x => x.Type<TestFilter>()));
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos()).UseFiltering());
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering_Generic_RuntimeType()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos()).UseFiltering<Bar>());
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering_Generic_SchemaType()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering_Type_RuntimeType()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos()).UseFiltering(typeof(Bar)));
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering_Type_SchemaType()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterInput)));
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void ObjectField_UseFiltering_Descriptor()
+    {
+        // arrange
+        // act
+        ISchemaBuilder builder = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType<Query>(
+                c =>
+                    c.Field(x => x.GetFoos())
+                        .UseFiltering<Bar>(
+                            x => x.Name("foo").Field(x => x.Foo)));
+
+        ISchema schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    public class TestFilter : FilterInputType
+    {
+        protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            // arrange
-            // act
-            var convention = new FilterConvention(
-                x => x.UseMock()
-                    .Configure<StringOperationFilterInputType>(
-                        y => y.Operation(DefaultFilterOperations.Like).Type<StringType>())
-                    .Operation(DefaultFilterOperations.Like)
-                    .Name("like"));
-
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<IFilterConvention>(convention)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>()
-                .AddQueryType(
-                    c =>
-                        c.Name("Query")
-                            .Field("foo")
-                            .Type<StringType>()
-                            .Resolve("bar")
-                            .Argument("test", x => x.Type<TestFilter>()));
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
+            descriptor.Field("test").Type<StringOperationFilterInputType>();
         }
+    }
 
-        [Fact]
-        public void ObjectField_UseFiltering()
+    public class BarFilterInput : FilterInputType<Bar>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<Bar> descriptor)
         {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos()).UseFiltering());
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
+            descriptor.BindFieldsExplicitly().Field(m => m.Foo);
         }
+    }
 
-        [Fact]
-        public void ObjectField_UseFiltering_Generic_RuntimeType()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos()).UseFiltering<Bar>());
+    public class Foo
+    {
+        public string Bar { get; set; } = default!;
+    }
 
-            ISchema schema = builder.Create();
+    public class Bar
+    {
+        public string Foo { get; set; } = default!;
+    }
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ObjectField_UseFiltering_Generic_SchemaType()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos()).UseFiltering<BarFilterInput>());
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ObjectField_UseFiltering_Type_RuntimeType()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos()).UseFiltering(typeof(Bar)));
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ObjectField_UseFiltering_Type_SchemaType()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos()).UseFiltering(typeof(BarFilterInput)));
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ObjectField_UseFiltering_Descriptor()
-        {
-            // arrange
-            // act
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering()
-                .AddQueryType<Query>(
-                    c =>
-                        c.Field(x => x.GetFoos())
-                            .UseFiltering<Bar>(
-                                x => x.Name("foo").Field(x => x.Foo)));
-
-            ISchema schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        public class TestFilter : FilterInputType
-        {
-            protected override void Configure(IFilterInputTypeDescriptor descriptor)
-            {
-                descriptor.Field("test").Type<StringOperationFilterInputType>();
-            }
-        }
-
-        public class BarFilterInput : FilterInputType<Bar>
-        {
-            protected override void Configure(IFilterInputTypeDescriptor<Bar> descriptor)
-            {
-                descriptor.BindFieldsExplicitly().Field(m => m.Foo);
-            }
-        }
-
-        public class Foo
-        {
-            public string Bar { get; set; } = default!;
-        }
-
-        public class Bar
-        {
-            public string Foo { get; set; } = default!;
-        }
-
-        public class Query
-        {
-            public IQueryable<Foo> GetFoos() => throw new InvalidOperationException();
-        }
+    public class Query
+    {
+        public IQueryable<Foo> GetFoos() => throw new InvalidOperationException();
     }
 }

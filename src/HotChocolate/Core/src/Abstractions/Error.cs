@@ -6,205 +6,204 @@ using HotChocolate.Properties;
 
 #nullable enable
 
-namespace HotChocolate
+namespace HotChocolate;
+
+/// <summary>
+/// Represents a GraphQL execution error.
+/// </summary>
+public class Error : IError
 {
+    private const string _codePropertyName = "code";
+
     /// <summary>
-    /// Represents a GraphQL execution error.
+    /// Initializes a new instance of <see cref="Error"/>.
     /// </summary>
-    public class Error : IError
+    public Error(
+        string message,
+        string? code = null,
+        Path? path = null,
+        IReadOnlyList<Location>? locations = null,
+        IReadOnlyDictionary<string, object?>? extensions = null,
+        Exception? exception = null,
+        ISyntaxNode? syntaxNode = null)
     {
-        private const string _codePropertyName = "code";
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="Error"/>.
-        /// </summary>
-        public Error(
-            string message,
-            string? code = null,
-            Path? path = null,
-            IReadOnlyList<Location>? locations = null,
-            IReadOnlyDictionary<string, object?>? extensions = null,
-            Exception? exception = null,
-            ISyntaxNode? syntaxNode = null)
+        if (string.IsNullOrEmpty(message))
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
-                    nameof(message));
-            }
-
-            Message = message;
-            Code = code;
-            Path = path;
-            Locations = locations;
-            Extensions = extensions;
-            Exception = exception;
-            SyntaxNode = syntaxNode;
-
-            if (code is not null && Extensions is null)
-            {
-                Extensions = new OrderedDictionary<string, object?> { { _codePropertyName, code } };
-            }
+            throw new ArgumentException(
+                AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
+                nameof(message));
         }
 
-        public string Message { get; }
+        Message = message;
+        Code = code;
+        Path = path;
+        Locations = locations;
+        Extensions = extensions;
+        Exception = exception;
+        SyntaxNode = syntaxNode;
 
-        public string? Code { get; }
-
-        public Path? Path { get; }
-
-        public IReadOnlyList<Location>? Locations { get; }
-
-        public IReadOnlyDictionary<string, object?>? Extensions { get; }
-
-        public Exception? Exception { get; }
-
-        public ISyntaxNode? SyntaxNode { get; }
-
-        /// <inheritdoc />
-        public IError WithMessage(string message)
+        if (code is not null && Extensions is null)
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
-                    nameof(message));
-            }
+            Extensions = new OrderedDictionary<string, object?> { { _codePropertyName, code } };
+        }
+    }
 
-            return new Error(message, Code, Path, Locations, Extensions, Exception);
+    public string Message { get; }
+
+    public string? Code { get; }
+
+    public Path? Path { get; }
+
+    public IReadOnlyList<Location>? Locations { get; }
+
+    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+    public Exception? Exception { get; }
+
+    public ISyntaxNode? SyntaxNode { get; }
+
+    /// <inheritdoc />
+    public IError WithMessage(string message)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            throw new ArgumentException(
+                AbstractionResources.Error_WithMessage_Message_Cannot_Be_Empty,
+                nameof(message));
         }
 
-        /// <inheritdoc />
-        public IError WithCode(string? code)
-        {
-            if (string.IsNullOrEmpty(code))
-            {
-                return RemoveCode();
-            }
+        return new Error(message, Code, Path, Locations, Extensions, Exception);
+    }
 
-            OrderedDictionary<string, object?> extensions = Extensions is null
-                ? new OrderedDictionary<string, object?> { [_codePropertyName] = code }
-                : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
-            return new Error(Message, code, Path, Locations, extensions, Exception);
+    /// <inheritdoc />
+    public IError WithCode(string? code)
+    {
+        if (string.IsNullOrEmpty(code))
+        {
+            return RemoveCode();
         }
 
-        /// <inheritdoc />
-        public IError RemoveCode()
+        OrderedDictionary<string, object?> extensions = Extensions is null
+            ? new OrderedDictionary<string, object?> { [_codePropertyName] = code }
+            : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
+        return new Error(Message, code, Path, Locations, extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError RemoveCode()
+    {
+        IReadOnlyDictionary<string, object?>? extensions = Extensions;
+
+        if (Extensions is { })
         {
-            IReadOnlyDictionary<string, object?>? extensions = Extensions;
-
-            if (Extensions is { })
-            {
-                var temp = new OrderedDictionary<string, object?>(Extensions);
-                temp.Remove(_codePropertyName);
-                extensions = temp;
-            }
-
-            return new Error(Message, null, Path, Locations, extensions, Exception);
+            var temp = new OrderedDictionary<string, object?>(Extensions);
+            temp.Remove(_codePropertyName);
+            extensions = temp;
         }
 
-        /// <inheritdoc />
-        public IError WithPath(Path? path)
+        return new Error(Message, null, Path, Locations, extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError WithPath(Path? path)
+    {
+        return path is null
+            ? RemovePath()
+            : new Error(Message, Code, path, Locations, Extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError WithPath(IReadOnlyList<object>? path) =>
+        WithPath(path is null ? null : Path.FromList(path));
+
+    /// <inheritdoc />
+    public IError RemovePath()
+    {
+        return new Error(Message, Code, null, Locations, Extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError WithLocations(IReadOnlyList<Location>? locations)
+    {
+        return locations is null
+            ? RemoveLocations()
+            : new Error(Message, Code, Path, locations, Extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError RemoveLocations()
+    {
+        return new Error(Message, Code, Path, null, Extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
+    {
+        if (extensions is null)
         {
-            return path is null
-                ? RemovePath()
-                : new Error(Message, Code, path, Locations, Extensions, Exception);
+            throw new ArgumentNullException(nameof(extensions));
         }
 
-        /// <inheritdoc />
-        public IError WithPath(IReadOnlyList<object>? path) =>
-            WithPath(path is null ? null : Path.FromList(path));
+        return new Error(Message, Code, Path, Locations, extensions, Exception);
+    }
 
-        /// <inheritdoc />
-        public IError RemovePath()
+    /// <inheritdoc />
+    public IError RemoveExtensions()
+    {
+        return new Error(Message, Code, Path, Locations, null, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError SetExtension(string key, object? value)
+    {
+        if (string.IsNullOrEmpty(key))
         {
-            return new Error(Message, Code, null, Locations, Extensions, Exception);
+            throw new ArgumentException(
+                AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
+                nameof(key));
         }
 
-        /// <inheritdoc />
-        public IError WithLocations(IReadOnlyList<Location>? locations)
+        OrderedDictionary<string, object?> extensions = Extensions is { }
+            ? new OrderedDictionary<string, object?>(Extensions)
+            : new OrderedDictionary<string, object?>();
+        extensions[key] = value;
+        return new Error(Message, Code, Path, Locations, extensions, Exception);
+    }
+
+    /// <inheritdoc />
+    public IError RemoveExtension(string key)
+    {
+        if (string.IsNullOrEmpty(key))
         {
-            return locations is null
-                ? RemoveLocations()
-                : new Error(Message, Code, Path, locations, Extensions, Exception);
+            throw new ArgumentException(
+                AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
+                nameof(key));
         }
 
-        /// <inheritdoc />
-        public IError RemoveLocations()
+        if (Extensions is null)
         {
-            return new Error(Message, Code, Path, null, Extensions, Exception);
+            return this;
         }
 
-        /// <inheritdoc />
-        public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
-        {
-            if (extensions is null)
-            {
-                throw new ArgumentNullException(nameof(extensions));
-            }
+        var extensions = new OrderedDictionary<string, object?>(Extensions);
+        extensions.Remove(key);
 
-            return new Error(Message, Code, Path, Locations, extensions, Exception);
-        }
+        return extensions.Count == 0
+            ? new Error(Message, Code, Path, Locations, null, Exception)
+            : new Error(Message, Code, Path, Locations, extensions, Exception);
+    }
 
-        /// <inheritdoc />
-        public IError RemoveExtensions()
-        {
-            return new Error(Message, Code, Path, Locations, null, Exception);
-        }
+    /// <inheritdoc />
+    public IError WithException(Exception? exception)
+    {
+        return exception is null
+            ? RemoveException()
+            : new Error(Message, Code, Path, Locations, Extensions, exception);
+    }
 
-        /// <inheritdoc />
-        public IError SetExtension(string key, object? value)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
-                    nameof(key));
-            }
-
-            OrderedDictionary<string, object?> extensions = Extensions is { }
-                ? new OrderedDictionary<string, object?>(Extensions)
-                : new OrderedDictionary<string, object?>();
-            extensions[key] = value;
-            return new Error(Message, Code, Path, Locations, extensions, Exception);
-        }
-
-        /// <inheritdoc />
-        public IError RemoveExtension(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    AbstractionResources.Error_SetExtension_Key_Cannot_Be_Empty,
-                    nameof(key));
-            }
-
-            if (Extensions is null)
-            {
-                return this;
-            }
-
-            var extensions = new OrderedDictionary<string, object?>(Extensions);
-            extensions.Remove(key);
-
-            return extensions.Count == 0
-                ? new Error(Message, Code, Path, Locations, null, Exception)
-                : new Error(Message, Code, Path, Locations, extensions, Exception);
-        }
-
-        /// <inheritdoc />
-        public IError WithException(Exception? exception)
-        {
-            return exception is null
-                ? RemoveException()
-                : new Error(Message, Code, Path, Locations, Extensions, exception);
-        }
-
-        /// <inheritdoc />
-        public IError RemoveException()
-        {
-            return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
-        }
+    /// <inheritdoc />
+    public IError RemoveException()
+    {
+        return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
     }
 }

@@ -1,50 +1,50 @@
-﻿using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Validation
-{
-    public class FragmentSpreadTargetDefinedRuleTests
-        : DocumentValidatorVisitorTestBase
-    {
-        public FragmentSpreadTargetDefinedRuleTests()
-            : base(builder => builder.AddFragmentRules())
-        {
-        }
+namespace HotChocolate.Validation;
 
-        [Fact]
-        public void UndefinedFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+public class FragmentSpreadTargetDefinedRuleTests
+    : DocumentValidatorVisitorTestBase
+{
+    public FragmentSpreadTargetDefinedRuleTests()
+        : base(builder => builder.AddFragmentRules())
+    {
+    }
+
+    [Fact]
+    public void UndefinedFragment()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...undefinedFragment
                     }
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "The specified fragment `undefinedFragment` " +
-                    "does not exist.",
-                    t.Message));
-            context.Errors.MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(context.Errors,
+            t => Assert.Equal(
+                "The specified fragment `undefinedFragment` " +
+                "does not exist.",
+                t.Message));
+        context.Errors.MatchSnapshot();
+    }
 
-        [Fact]
-        public void DefinedFragment()
-        {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+    [Fact]
+    public void DefinedFragment()
+    {
+        // arrange
+        IDocumentValidatorContext context = ValidationUtils.CreateContext();
+        DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...definedFragment
@@ -56,13 +56,12 @@ namespace HotChocolate.Validation
                     barkVolume
                 }
             ");
-            context.Prepare(query);
+        context.Prepare(query);
 
-            // act
-            Rule.Validate(context, query);
+        // act
+        Rule.Validate(context, query);
 
-            // assert
-            Assert.Empty(context.Errors);
-        }
+        // assert
+        Assert.Empty(context.Errors);
     }
 }

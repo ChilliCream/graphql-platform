@@ -3,15 +3,15 @@ using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.CodeGeneration.Neo4J
+namespace HotChocolate.CodeGeneration.Neo4J;
+
+public class Neo4JCodeGeneratorTests
 {
-    public class Neo4JCodeGeneratorTests
+    [Fact]
+    public void Works()
     {
-        [Fact]
-        public void Works()
-        {
-            // Arrange
-            DocumentNode? doc = Utf8GraphQLParser.Parse(@"
+        // Arrange
+        DocumentNode? doc = Utf8GraphQLParser.Parse(@"
                 type Movie @typeName(name: ""Foo"", pluralName: ""Bars"") {
                   title: String
                   year: Int
@@ -37,19 +37,18 @@ namespace HotChocolate.CodeGeneration.Neo4J
                   query: Query
                 }");
 
-            var docs = new List<DocumentNode>() { doc };
+        var docs = new List<DocumentNode>() { doc };
 
-            var context = new CodeGeneratorContext(
-                "MyNeo4J",
-                "Neo4JDatabase",
-                "CompanyName.Neo4J",
-                docs);
+        var context = new CodeGeneratorContext(
+            "MyNeo4J",
+            "Neo4JDatabase",
+            "CompanyName.Neo4J",
+            docs);
 
-            // Act
-            CodeGenerationResult? result = new Neo4JCodeGenerator().Generate(context);
+        // Act
+        CodeGenerationResult? result = new Neo4JCodeGenerator().Generate(context);
 
-            // Assert
-            Snapshot.Match(result);
-        }
+        // Assert
+        Snapshot.Match(result);
     }
 }

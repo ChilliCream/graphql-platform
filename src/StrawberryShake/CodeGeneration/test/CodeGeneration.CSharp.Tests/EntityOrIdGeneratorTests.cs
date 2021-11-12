@@ -2,15 +2,15 @@ using ChilliCream.Testing;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
+namespace StrawberryShake.CodeGeneration.CSharp;
+
+public class EntityOrIdGeneratorTests
 {
-    public class EntityOrIdGeneratorTests
+    [Fact]
+    public void UnionList()
     {
-        [Fact]
-        public void UnionList()
-        {
-            AssertResult(
-                @"
+        AssertResult(
+            @"
                 query GetFoo {
                     foo {
                         ... on Baz {
@@ -28,7 +28,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: [Bar]
                 }
@@ -51,14 +51,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void UnionField()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void UnionField()
+    {
+        AssertResult(
+            @"
                 query GetFoo {
                     foo {
                         ... on Baz {
@@ -76,7 +76,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: Bar
                 }
@@ -99,14 +99,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void UnionWithNestedObject()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void UnionWithNestedObject()
+    {
+        AssertResult(
+            @"
                 mutation StoreUserSettingFor(
                     $userId: Int!,
                     $customerId: Int!,
@@ -117,7 +117,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: String
                 }
@@ -156,14 +156,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                   FAILED
                 }
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void UnionListInEntity()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void UnionListInEntity()
+    {
+        AssertResult(
+            @"
                 query GetFoo {
                     test {
                         foo {
@@ -183,7 +183,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     test: Test
                 }
@@ -210,14 +210,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void InterfaceList()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void InterfaceList()
+    {
+        AssertResult(
+            @"
                 query GetFoo {
                     foo {
                         foo
@@ -236,7 +236,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: [Bar]
                 }
@@ -265,14 +265,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     foo: String
                 }
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void InterfaceField()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void InterfaceField()
+    {
+        AssertResult(
+            @"
                 query GetFoo {
                     foo {
                         foo
@@ -291,7 +291,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: Bar
                 }
@@ -320,14 +320,14 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     foo: String
                 }
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
+    }
 
-        [Fact]
-        public void NonNullableValueTypeId()
-        {
-            AssertResult(
-                @"
+    [Fact]
+    public void NonNullableValueTypeId()
+    {
+        AssertResult(
+            @"
                 query GetFoo {
                     foo {
                         ... on Baz {
@@ -345,7 +345,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: [Bar]
                 }
@@ -368,7 +368,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
 
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
     }
 }

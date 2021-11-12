@@ -1,8 +1,7 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface ISelectionNode
+    : ISyntaxNode
+    , IHasDirectives
 {
-    public interface ISelectionNode
-        : ISyntaxNode
-        , IHasDirectives
-    {
-    }
 }

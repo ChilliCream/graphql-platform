@@ -146,7 +146,7 @@ internal class PipelineBuilder
     private static RequestDelegate CompileInvoke(object obj, MethodInfo invokeMethod)
     {
         Expression instance = Expression.Constant(obj);
-        var invoke = Expression.Call(instance, invokeMethod, _context);
+        MethodCallExpression? invoke = Expression.Call(instance, invokeMethod, _context);
         var lambda = Expression.Lambda<RequestDelegate>(invoke, _context);
         return lambda.Compile();
     }

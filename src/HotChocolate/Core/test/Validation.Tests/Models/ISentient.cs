@@ -1,9 +1,6 @@
-﻿namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public interface ISentient
 {
-    public interface ISentient
-    {
-        string Name { get; }
-    }
-
-
+    string Name { get; }
 }

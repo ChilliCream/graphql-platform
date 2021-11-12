@@ -9,82 +9,81 @@ using HotChocolate.Language;
 using Microsoft.CodeAnalysis;
 using static System.IO.Path;
 
-namespace HotChocolate.Analyzers
+namespace HotChocolate.Analyzers;
+
+public static class Files
 {
-    public static class Files
+    public const string GraphQLExtension = ".graphql";
+
+    public static IReadOnlyList<GraphQLConfig> GetConfigurations(
+        this GeneratorExecutionContext context)
     {
-        public const string GraphQLExtension = ".graphql";
+        var list = new List<GraphQLConfig>();
 
-        public static IReadOnlyList<GraphQLConfig> GetConfigurations(
-            this GeneratorExecutionContext context)
+        foreach (var configLocation in GetConfigurationFiles(context))
         {
-            var list = new List<GraphQLConfig>();
-
-            foreach (var configLocation in GetConfigurationFiles(context))
+            try
             {
-                try
-                {
-                    string json = File.ReadAllText(configLocation);
-                    GraphQLConfig config = GraphQLConfig.FromJson(json);
-                    config.Location = configLocation;
-                    list.Add(config);
-                }
-                catch (Exception ex)
-                {
-                    context.ReportError(
-                        ErrorBuilder.New()
-                            .SetMessage(ex.Message)
-                            .SetException(ex)
-                            .SetExtension(ErrorHelper.File, configLocation)
-                            .AddLocation(new Location(1, 1))
-                            .Build());
-                }
+                string json = File.ReadAllText(configLocation);
+                GraphQLConfig config = GraphQLConfig.FromJson(json);
+                config.Location = configLocation;
+                list.Add(config);
             }
-
-            return list;
+            catch (Exception ex)
+            {
+                context.ReportError(
+                    ErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .SetException(ex)
+                        .SetExtension(ErrorHelper.File, configLocation)
+                        .AddLocation(new Location(1, 1))
+                        .Build());
+            }
         }
 
-        private static IReadOnlyList<string> GetConfigurationFiles(
-            GeneratorExecutionContext context) =>
-            context.AdditionalFiles
-                .Select(t => t.Path)
-                .Where(t => GetFileName(t).Equals(
-                    FileNames.GraphQLConfigFile,
-                    StringComparison.OrdinalIgnoreCase))
-                .ToList();
+        return list;
+    }
 
-        public static IReadOnlyList<DocumentNode> GetSchemaDocuments(
-            this GeneratorExecutionContext context,
-            GraphQLConfig config)
+    private static IReadOnlyList<string> GetConfigurationFiles(
+        GeneratorExecutionContext context) =>
+        context.AdditionalFiles
+            .Select(t => t.Path)
+            .Where(t => GetFileName(t).Equals(
+                FileNames.GraphQLConfigFile,
+                StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    public static IReadOnlyList<DocumentNode> GetSchemaDocuments(
+        this GeneratorExecutionContext context,
+        GraphQLConfig config)
+    {
+        var list = new List<DocumentNode>();
+
+        var rootDirectory = GetDirectoryName(config.Location) + DirectorySeparatorChar;
+        var glob = Glob.Parse(config.Documents);
+
+        foreach (string file in context.AdditionalFiles
+            .Select(t => t.Path)
+            .Where(t => GetExtension(t).Equals(
+                GraphQLExtension,
+                StringComparison.OrdinalIgnoreCase))
+            .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t)))
         {
-            var list = new List<DocumentNode>();
-
-            var rootDirectory = GetDirectoryName(config.Location) + DirectorySeparatorChar;
-            var glob = Glob.Parse(config.Documents);
-
-            foreach (string file in context.AdditionalFiles
-                .Select(t => t.Path)
-                .Where(t => GetExtension(t).Equals(
-                    GraphQLExtension,
-                    StringComparison.OrdinalIgnoreCase))
-                .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t)))
+            try
             {
-                try
-                {
-                    DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(file));
+                DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(file));
 
-                    if (!document.Definitions.OfType<IExecutableDefinitionNode>().Any())
-                    {
-                        list.Add(document);
-                    }
-                }
-                catch (SyntaxException ex)
+                if (!document.Definitions.OfType<IExecutableDefinitionNode>().Any())
                 {
-                    context.ReportError(ex);
+                    list.Add(document);
                 }
             }
-
-            return list;
+            catch (SyntaxException ex)
+            {
+                context.ReportError(ex);
+            }
         }
+
+        return list;
     }
 }

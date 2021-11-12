@@ -11,23 +11,23 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Processing.Plan
-{
-    public class QueryPlanBuilderTests
-    {
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void GetHero_Plan(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+namespace HotChocolate.Execution.Processing.Plan;
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"query GetHero($episode: Episode, $withFriends: Boolean!) {
+public class QueryPlanBuilderTests
+{
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void GetHero_Plan(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
+
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"query GetHero($episode: Episode, $withFriends: Boolean!) {
                     hero(episode: $episode) {
                         name
                         friends @include(if: $withFriends) {
@@ -38,38 +38,38 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void GetHero_Root_Deferred_Plan(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void GetHero_Root_Deferred_Plan(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"query GetHero($episode: Episode, $withFriends: Boolean!) {
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"query GetHero($episode: Episode, $withFriends: Boolean!) {
                     ... @defer {
                         hero(episode: $episode) {
                             name
@@ -90,38 +90,38 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void CreateReviewForEpisode_Plan(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void CreateReviewForEpisode_Plan(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"mutation CreateReviewForEpisode(
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"mutation CreateReviewForEpisode(
                     $ep: Episode!, $review: ReviewInput!) {
                     createReview(episode: $ep, review: $review) {
                         stars
@@ -129,38 +129,38 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.MutationType!,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.MutationType!,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void CreateTwoReviewsForEpisode_Plan(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void CreateTwoReviewsForEpisode_Plan(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"mutation CreateReviewForEpisode(
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"mutation CreateReviewForEpisode(
                     $ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
                     createReview(episode: $ep, review: $review) {
                         stars
@@ -172,31 +172,31 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.MutationType!,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.MutationType!,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [Fact]
-        public void TypeNameFieldsInMutations()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void TypeNameFieldsInMutations()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddDocumentFromString(@"
                     type Query {
                         foo: String
                     }
@@ -209,191 +209,191 @@ namespace HotChocolate.Execution.Processing.Plan
                         test: String
                     }
                 ")
-                .Use(next => next)
-                .Create();
+            .Use(next => next)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"mutation {
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"mutation {
                     bar {
                         test
                         __typename
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.MutationType!,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.MutationType!,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root);
-        }
+        // assert
+        Snapshot(root);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void ExtendedRootTypesWillHonorSerialAttribute(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c.Name(OperationTypeNames.Query))
-                .AddType<FooQueries>()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void ExtendedRootTypesWillHonorSerialAttribute(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(c => c.Name(OperationTypeNames.Query))
+            .AddType<FooQueries>()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"{
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
                     foos
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void ExtendedRootTypesWillHonorGlobalSerialSetting(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(c => c.Name(OperationTypeNames.Query))
-                .AddType<BarQueries>()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void ExtendedRootTypesWillHonorGlobalSerialSetting(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType(c => c.Name(OperationTypeNames.Query))
+            .AddType<BarQueries>()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"{
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
                     bars
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void ExtendedTypeByTypeWillHonorSerialAttribute(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>()
-                .AddType<BarQueries1>()
-                .AddType<FooExtensions>()
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void ExtendedTypeByTypeWillHonorSerialAttribute(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<Query>()
+            .AddType<BarQueries1>()
+            .AddType<FooExtensions>()
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"{
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
                     bars { foo }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void ParallelAttributeWillBeHonored(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<ParallelQuery>()
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void ParallelAttributeWillBeHonored(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddQueryType<ParallelQuery>()
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"{
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
                     foo
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void GetHero_Stream_Plan(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void GetHero_Stream_Plan(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"query GetHero($episode: Episode, $withFriends: Boolean!) {
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"query GetHero($episode: Episode, $withFriends: Boolean!) {
                     hero(episode: $episode) {
                         name
                         friends @include(if: $withFriends) {
@@ -405,38 +405,38 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        [InlineData(ExecutionStrategy.Parallel)]
-        [InlineData(ExecutionStrategy.Serial)]
-        [Theory]
-        public void GetHero_Stream_Plan_Nested_Streams(ExecutionStrategy defaultStrategy)
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
-                .Create();
+    [InlineData(ExecutionStrategy.Parallel)]
+    [InlineData(ExecutionStrategy.Serial)]
+    [Theory]
+    public void GetHero_Stream_Plan_Nested_Streams(ExecutionStrategy defaultStrategy)
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .ModifyOptions(o => o.DefaultResolverStrategy = defaultStrategy)
+            .Create();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"{
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            @"{
                     hero(episode: NEW_HOPE) {
                         id
                         ... @defer(label: ""friends"") {
@@ -456,78 +456,77 @@ namespace HotChocolate.Execution.Processing.Plan
                     }
                 }");
 
-            OperationDefinitionNode operationDefinition =
-                document.Definitions.OfType<OperationDefinitionNode>().Single();
+        OperationDefinitionNode operationDefinition =
+            document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            IPreparedOperation operation =
-                OperationCompiler.Compile(
-                    "a",
-                    document,
-                    operationDefinition,
-                    schema,
-                    schema.QueryType,
-                    new(new DefaultTypeConverter()));
+        IPreparedOperation operation =
+            OperationCompiler.Compile(
+                "a",
+                document,
+                operationDefinition,
+                schema,
+                schema.QueryType,
+                new(new DefaultTypeConverter()));
 
-            // act
-            QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
+        // act
+        QueryPlanNode root = QueryPlanBuilder.Prepare(operation);
 
-            // assert
-            Snapshot(root, defaultStrategy);
-        }
+        // assert
+        Snapshot(root, defaultStrategy);
+    }
 
-        private static void Snapshot(
-            QueryPlanNode node,
-            ExecutionStrategy strategy = ExecutionStrategy.Parallel)
-        {
-            var options = new JsonWriterOptions { Indented = true };
-            using var stream = new MemoryStream();
-            using var writer = new Utf8JsonWriter(stream, options);
+    private static void Snapshot(
+        QueryPlanNode node,
+        ExecutionStrategy strategy = ExecutionStrategy.Parallel)
+    {
+        var options = new JsonWriterOptions { Indented = true };
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream, options);
 
-            node.Serialize(writer);
-            writer.Flush();
+        node.Serialize(writer);
+        writer.Flush();
 
-            Encoding.UTF8
-                .GetString(stream.ToArray())
-                .MatchSnapshot(new SnapshotNameExtension(strategy));
-        }
+        Encoding.UTF8
+            .GetString(stream.ToArray())
+            .MatchSnapshot(new SnapshotNameExtension(strategy));
+    }
 
-        [ExtendObjectType(OperationTypeNames.Query)]
-        public class FooQueries
-        {
-            [Serial]
-            public IQueryable<string> GetFoos() => new [] { "a", "b" }.AsQueryable();
-        }
+    [ExtendObjectType(OperationTypeNames.Query)]
+    public class FooQueries
+    {
+        [Serial]
+        public IQueryable<string> GetFoos() => new[] { "a", "b" }.AsQueryable();
+    }
 
-        [ExtendObjectType(OperationTypeNames.Query)]
-        public class BarQueries
-        {
-            public IQueryable<string> GetBars() => new [] { "a", "b" }.AsQueryable();
-        }
+    [ExtendObjectType(OperationTypeNames.Query)]
+    public class BarQueries
+    {
+        public IQueryable<string> GetBars() => new[] { "a", "b" }.AsQueryable();
+    }
 
-        public class Query { }
+    public class Query { }
 
-        [ExtendObjectType(typeof(Query))]
-        public class BarQueries1
-        {
-            public IQueryable<Foo> GetBars() => new [] { new Foo(), new Foo() }.AsQueryable();
-        }
+    [ExtendObjectType(typeof(Query))]
+    public class BarQueries1
+    {
+        public IQueryable<Foo> GetBars() => new[] { new Foo(), new Foo() }.AsQueryable();
+    }
 
-        public class Foo
-        {
+    public class Foo
+    {
 
-        }
+    }
 
-        [ExtendObjectType(typeof(Foo))]
-        public class FooExtensions
-        {
-            [Serial]
-            public Task<string> GetFooAsync() => Task.FromResult("baz");
-        }
+    [ExtendObjectType(typeof(Foo))]
+    public class FooExtensions
+    {
+        [Serial]
+        public Task<string> GetFooAsync() => Task.FromResult("baz");
+    }
 
-        public class ParallelQuery
-        {
-            [Parallel]
-            public Task<string> GetFooAsync() => Task.FromResult("Foo");
-        }
+    public class ParallelQuery
+    {
+        [Parallel]
+        public Task<string> GetFooAsync() => Task.FromResult("Foo");
     }
 }

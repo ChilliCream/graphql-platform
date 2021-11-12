@@ -4,12 +4,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+public interface ITypeScopeInterceptor
 {
-    public interface ITypeScopeInterceptor
-    {
-        bool TryCreateScope(
-            ITypeDiscoveryContext discoveryContext,
-            [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies);
-    }
+    bool TryCreateScope(
+        ITypeDiscoveryContext discoveryContext,
+        [NotNullWhen(true)] out IReadOnlyList<TypeDependency>? typeDependencies);
 }

@@ -1,7 +1,6 @@
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public interface IDefinitionFactory
 {
-    public interface IDefinitionFactory
-    {
-        DefinitionBase CreateDefinition();
-    }
+    DefinitionBase CreateDefinition();
 }

@@ -5,108 +5,107 @@ using System.Linq;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public sealed class BindableList<T>
+    : IBindableList<T>
 {
-    public sealed class BindableList<T>
-        : IBindableList<T>
+    private List<T>? _list;
+
+    public BindingBehavior BindingBehavior { get; set; }
+
+    public int Count => _list?.Count ?? 0;
+
+    public bool IsReadOnly => false;
+
+    public void Add(T item)
     {
-        private List<T>? _list;
+        _list ??= new List<T>();
+        _list.Add(item);
+    }
 
-        public BindingBehavior BindingBehavior { get; set; }
+    public void AddRange(IEnumerable<T> items)
+    {
+        _list ??= new List<T>();
+        _list.AddRange(items);
+    }
 
-        public int Count => _list?.Count ?? 0;
+    public void Clear()
+    {
+        _list?.Clear();
+        _list = null;
+    }
 
-        public bool IsReadOnly => false;
+    public bool Contains(T item)
+    {
+        return _list is not null && _list.Contains(item);
+    }
 
-        public void Add(T item)
+    public void CopyTo(T[] array, int arrayIndex)
+    {
+        _list?.CopyTo(array, arrayIndex);
+    }
+
+    public bool Remove(T item)
+    {
+        if (_list is null)
         {
-            _list ??= new List<T>();
-            _list.Add(item);
+            return false;
         }
 
-        public void AddRange(IEnumerable<T> items)
-        {
-            _list ??= new List<T>();
-            _list.AddRange(items);
-        }
+        var result = _list.Remove(item);
 
-        public void Clear()
+        if (_list.Count == 0)
         {
-            _list?.Clear();
             _list = null;
         }
 
-        public bool Contains(T item)
+        return result;
+    }
+
+    public int IndexOf(T item)
+    {
+        if (_list is null)
         {
-            return _list is not null && _list.Contains(item);
+            return -1;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            _list?.CopyTo(array, arrayIndex);
-        }
+        return _list.IndexOf(item);
+    }
 
-        public bool Remove(T item)
-        {
-            if (_list is null)
-            {
-                return false;
-            }
+    public void Insert(int index, T item)
+    {
+        _list ??= new List<T>();
+        _list.Insert(index, item);
+    }
 
-            var result = _list.Remove(item);
+    public void RemoveAt(int index)
+    {
+        _list?.RemoveAt(index);
+    }
 
-            if (_list.Count == 0)
-            {
-                _list = null;
-            }
-
-            return result;
-        }
-
-        public int IndexOf(T item)
-        {
-            if (_list is null)
-            {
-                return -1;
-            }
-
-            return _list.IndexOf(item);
-        }
-
-        public void Insert(int index, T item)
+    public T this[int index]
+    {
+        get => _list is not null ? _list[index] : throw new ArgumentOutOfRangeException();
+        set
         {
             _list ??= new List<T>();
-            _list.Insert(index, item);
+            _list[index] = value;
         }
+    }
 
-        public void RemoveAt(int index)
+    public IEnumerator<T> GetEnumerator()
+    {
+        if (_list is null)
         {
-            _list?.RemoveAt(index);
+            return Enumerable.Empty<T>().GetEnumerator();
         }
 
-        public T this[int index]
-        {
-            get => _list is not null ? _list[index] : throw new ArgumentOutOfRangeException();
-            set
-            {
-                _list ??= new List<T>();
-                _list[index] = value;
-            }
-        }
+        return _list.GetEnumerator();
+    }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            if (_list is null)
-            {
-                return Enumerable.Empty<T>().GetEnumerator();
-            }
-
-            return _list.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

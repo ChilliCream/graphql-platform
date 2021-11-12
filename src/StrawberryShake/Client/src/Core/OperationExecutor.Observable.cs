@@ -2,122 +2,121 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake
+namespace StrawberryShake;
+
+public partial class OperationExecutor<TData, TResult>
 {
-    public partial class OperationExecutor<TData, TResult>
+    private class OperationExecutorObservable : IObservable<IOperationResult<TResult>>
     {
-        private class OperationExecutorObservable : IObservable<IOperationResult<TResult>>
+        private readonly IConnection<TData> _connection;
+        private readonly IOperationStore _operationStore;
+        private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;
+        private readonly OperationRequest _request;
+        private readonly ExecutionStrategy _strategy;
+
+        public OperationExecutorObservable(
+            IConnection<TData> connection,
+            IOperationStore operationStore,
+            Func<IOperationResultBuilder<TData, TResult>> resultBuilder,
+            OperationRequest request,
+            ExecutionStrategy strategy)
         {
-            private readonly IConnection<TData> _connection;
-            private readonly IOperationStore _operationStore;
-            private readonly Func<IOperationResultBuilder<TData, TResult>> _resultBuilder;
-            private readonly OperationRequest _request;
-            private readonly ExecutionStrategy _strategy;
+            _connection = connection;
+            _operationStore = operationStore;
+            _resultBuilder = resultBuilder;
+            _request = request;
+            _strategy = strategy;
+        }
 
-            public OperationExecutorObservable(
-                IConnection<TData> connection,
-                IOperationStore operationStore,
-                Func<IOperationResultBuilder<TData, TResult>> resultBuilder,
-                OperationRequest request,
-                ExecutionStrategy strategy)
+        public IDisposable Subscribe(IObserver<IOperationResult<TResult>> observer)
+        {
+            if (_strategy == ExecutionStrategy.NetworkOnly ||
+                _request.Document.Kind == OperationKind.Subscription)
             {
-                _connection = connection;
-                _operationStore = operationStore;
-                _resultBuilder = resultBuilder;
-                _request = request;
-                _strategy = strategy;
+                var observerSession = new ObserverSession();
+                BeginExecute(observer, observerSession);
+                return observerSession;
             }
 
-            public IDisposable Subscribe(IObserver<IOperationResult<TResult>> observer)
+            var hasResultInStore = false;
+
+            if ((_strategy == ExecutionStrategy.CacheFirst ||
+                 _strategy == ExecutionStrategy.CacheAndNetwork) &&
+                _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
             {
-                if (_strategy == ExecutionStrategy.NetworkOnly ||
-                    _request.Document.Kind == OperationKind.Subscription)
-                {
-                    var observerSession = new ObserverSession();
-                    BeginExecute(observer, observerSession);
-                    return observerSession;
-                }
-
-                var hasResultInStore = false;
-
-                if ((_strategy == ExecutionStrategy.CacheFirst ||
-                     _strategy == ExecutionStrategy.CacheAndNetwork) &&
-                    _operationStore.TryGet(_request, out IOperationResult<TResult>? result))
-                {
-                    hasResultInStore = true;
-                    observer.OnNext(result);
-                }
-
-                IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
-
-                if (_strategy != ExecutionStrategy.CacheFirst ||
-                    !hasResultInStore)
-                {
-                    var observerSession = new ObserverSession();
-                    observerSession.SetStoreSession(session);
-                    BeginExecute(observer, observerSession);
-                    return observerSession;
-                }
-
-                return session;
+                hasResultInStore = true;
+                observer.OnNext(result);
             }
 
-            private void BeginExecute(
-                IObserver<IOperationResult<TResult>> observer,
-                ObserverSession session) =>
-                Task.Run(() => ExecuteAsync(observer, session));
+            IDisposable session = _operationStore.Watch<TResult>(_request).Subscribe(observer);
 
-            private async Task ExecuteAsync(
-                IObserver<IOperationResult<TResult>> observer,
-                ObserverSession session)
+            if (_strategy != ExecutionStrategy.CacheFirst ||
+                !hasResultInStore)
             {
-                try
-                {
-                    CancellationToken token = session.RequestSession.Token;
-                    IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+                var observerSession = new ObserverSession();
+                observerSession.SetStoreSession(session);
+                BeginExecute(observer, observerSession);
+                return observerSession;
+            }
 
-                    await foreach (var response in
-                        _connection.ExecuteAsync(_request, token).ConfigureAwait(false))
+            return session;
+        }
+
+        private void BeginExecute(
+            IObserver<IOperationResult<TResult>> observer,
+            ObserverSession session) =>
+            Task.Run(() => ExecuteAsync(observer, session));
+
+        private async Task ExecuteAsync(
+            IObserver<IOperationResult<TResult>> observer,
+            ObserverSession session)
+        {
+            try
+            {
+                CancellationToken token = session.RequestSession.Token;
+                IOperationResultBuilder<TData, TResult> resultBuilder = _resultBuilder();
+
+                await foreach (Response<TData>? response in
+                    _connection.ExecuteAsync(_request, token).ConfigureAwait(false))
+                {
+                    if (token.IsCancellationRequested)
                     {
-                        if (token.IsCancellationRequested)
+                        return;
+                    }
+
+                    IOperationResult<TResult> result = resultBuilder.Build(response);
+                    _operationStore.Set(_request, result);
+
+                    if (!session.HasStoreSession)
+                    {
+                        observer.OnNext(result);
+
+                        IDisposable storeSession =
+                            _operationStore
+                                .Watch<TResult>(_request)
+                                .Subscribe(observer);
+
+                        try
                         {
-                            return;
+                            session.SetStoreSession(storeSession);
                         }
-
-                        IOperationResult<TResult> result = resultBuilder.Build(response);
-                        _operationStore.Set(_request, result);
-
-                        if (!session.HasStoreSession)
+                        catch (ObjectDisposedException)
                         {
-                            observer.OnNext(result);
-
-                            IDisposable storeSession =
-                                _operationStore
-                                    .Watch<TResult>(_request)
-                                    .Subscribe(observer);
-
-                            try
-                            {
-                                session.SetStoreSession(storeSession);
-                            }
-                            catch (ObjectDisposedException)
-                            {
-                                storeSession.Dispose();
-                                throw;
-                            }
+                            storeSession.Dispose();
+                            throw;
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    observer.OnError(ex);
-                }
-                finally
-                {
-                    // after all the transport logic is finished we will dispose
-                    // the request session.
-                    session.RequestSession.Dispose();
-                }
+            }
+            catch (Exception ex)
+            {
+                observer.OnError(ex);
+            }
+            finally
+            {
+                // after all the transport logic is finished we will dispose
+                // the request session.
+                session.RequestSession.Dispose();
             }
         }
     }

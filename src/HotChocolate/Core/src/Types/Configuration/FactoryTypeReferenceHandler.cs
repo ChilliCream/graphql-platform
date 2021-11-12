@@ -3,32 +3,31 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
 {
-    internal sealed class FactoryTypeReferenceHandler : ITypeRegistrarHandler
+    private readonly HashSet<string> _handled = new();
+    private readonly IDescriptorContext _context;
+
+    public FactoryTypeReferenceHandler(IDescriptorContext context)
     {
-        private readonly HashSet<string> _handled = new();
-        private readonly IDescriptorContext _context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
 
-        public FactoryTypeReferenceHandler(IDescriptorContext context)
+    public TypeReferenceKind Kind => TypeReferenceKind.Factory;
+
+    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    {
+        var typeRef = (SyntaxTypeReference)typeReference;
+
+        if (_handled.Add(typeRef.Name))
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            TypeSystemObjectBase obj = typeRef.Factory!(_context);
+            typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
         }
 
-        public TypeReferenceKind Kind => TypeReferenceKind.Factory;
-
-        public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
-        {
-            var typeRef = (SyntaxTypeReference)typeReference;
-
-            if (_handled.Add(typeRef.Name))
-            {
-                TypeSystemObjectBase obj = typeRef.Factory!(_context);
-                typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
-            }
-
-            void AddTypeRef(RegisteredType registeredType)
-                => registeredType.References.Add(typeRef);
-        }
+        void AddTypeRef(RegisteredType registeredType)
+            => registeredType.References.Add(typeRef);
     }
 }

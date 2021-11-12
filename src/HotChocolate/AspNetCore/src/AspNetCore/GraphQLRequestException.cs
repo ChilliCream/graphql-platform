@@ -2,38 +2,37 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+[Serializable]
+public class GraphQLRequestException
+    : GraphQLException
 {
-    [Serializable]
-    public class GraphQLRequestException
-        : GraphQLException
+    public GraphQLRequestException(string message)
+        : base(message)
     {
-        public GraphQLRequestException(string message)
-            : base(message)
-        {
-        }
+    }
 
-        public GraphQLRequestException(IError error)
-            : base(error)
-        {
-        }
+    public GraphQLRequestException(IError error)
+        : base(error)
+    {
+    }
 
-        public GraphQLRequestException(params IError[] errors)
-            : base(errors)
-        {
+    public GraphQLRequestException(params IError[] errors)
+        : base(errors)
+    {
 
-        }
+    }
 
-        public GraphQLRequestException(IEnumerable<IError> errors)
-            : base(errors)
-        {
-        }
+    public GraphQLRequestException(IEnumerable<IError> errors)
+        : base(errors)
+    {
+    }
 
-        protected GraphQLRequestException(
-            SerializationInfo info,
-            StreamingContext context)
-            : base(info, context)
-        {
-        }
+    protected GraphQLRequestException(
+        SerializationInfo info,
+        StreamingContext context)
+        : base(info, context)
+    {
     }
 }

@@ -1,11 +1,10 @@
 #pragma warning disable CA1812
 #nullable disable
 
-namespace HotChocolate.Utilities.Introspection
+namespace HotChocolate.Utilities.Introspection;
+
+internal class IntrospectionError
 {
-    internal class IntrospectionError
-    {
-        public string Message { get; set; }
-    }
+    public string Message { get; set; }
 }
 #pragma warning restore CA1812

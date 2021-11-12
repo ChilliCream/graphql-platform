@@ -1,11 +1,8 @@
-﻿namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public enum DogCommand
 {
-    public enum DogCommand
-    {
-        Sit,
-        Down,
-        Heel
-    }
-
-
+    Sit,
+    Down,
+    Heel
 }

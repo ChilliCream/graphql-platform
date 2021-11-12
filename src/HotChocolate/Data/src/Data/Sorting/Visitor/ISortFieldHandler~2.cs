@@ -1,8 +1,7 @@
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+public interface ISortFieldHandler<in TContext, T>
+    : ISortFieldHandler<TContext>
+    where TContext : SortVisitorContext<T>
 {
-    public interface ISortFieldHandler<in TContext, T>
-        : ISortFieldHandler<TContext>
-        where TContext : SortVisitorContext<T>
-    {
-    }
 }

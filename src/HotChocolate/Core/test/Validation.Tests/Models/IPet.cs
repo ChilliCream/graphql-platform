@@ -1,7 +1,6 @@
-namespace HotChocolate.Validation
+namespace HotChocolate.Validation;
+
+public interface IPet
 {
-    public interface IPet
-    {
-        string Name { get; }
-    }
+    string Name { get; }
 }

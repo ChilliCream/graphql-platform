@@ -1,7 +1,6 @@
-namespace HotChocolate.Analyzers.Configuration
+namespace HotChocolate.Analyzers.Configuration;
+
+public class GraphQLConfigExtensions
 {
-    public class GraphQLConfigExtensions
-    {
-        public Neo4JSettings? Neo4J { get; set; }
-    }
+    public Neo4JSettings? Neo4J { get; set; }
 }

@@ -1,9 +1,8 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface ILiteralParser
 {
-    public interface ILiteralParser
-    {
-        object ParseLiteral(IValueNode literal);
-    }
+    object ParseLiteral(IValueNode literal);
 }

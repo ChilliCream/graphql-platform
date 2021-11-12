@@ -3,40 +3,25 @@ using StrawberryShake.Tools.Configuration;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp.Integration
+namespace StrawberryShake.CodeGeneration.CSharp.Integration;
+
+public class TestGeneration
 {
-    public class TestGeneration
-    {
-        [Fact]
-        public void StarWarsGetHero() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                @"query GetHero {
+    [Fact]
+    public void StarWarsGetHero() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
                     }
                 }");
 
-        [Fact]
-        public void StarWarsGetFriendsNoStore() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(noStore: true),
-                @"query GetHero {
-                    hero(episode: NEW_HOPE) {
-                        name
-                        friends {
-                            nodes {
-                                name
-                            }
-                        }
-                    }
-                }");
-
-        [Fact]
-        public void StarWarsGetFriends() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                @"query GetHero {
+    [Fact]
+    public void StarWarsGetFriendsNoStore() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(noStore: true),
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
                         friends {
@@ -47,15 +32,30 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                     }
                 }");
 
-        [Fact]
-        public void MultiProfile() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(profiles: new[]
-                {
+    [Fact]
+    public void StarWarsGetFriends() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
+                    hero(episode: NEW_HOPE) {
+                        name
+                        friends {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }");
+
+    [Fact]
+    public void MultiProfile() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(profiles: new[]
+            {
                     new TransportProfile("InMemory", TransportType.InMemory),
                     TransportProfile.Default
-                }),
-                @"query GetHero {
+            }),
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         name
                         friends {
@@ -65,7 +65,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                         }
                     }
                 }",
-                @"subscription OnReviewSub {
+            @"subscription OnReviewSub {
                     onReview(episode: NEW_HOPE) {
                       __typename
                       stars
@@ -73,50 +73,50 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                     }
                   }
                 ",
-                @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
+            @"mutation createReviewMut($episode: Episode!, $review: ReviewInput!) {
                     createReview(episode: $episode, review: $review) {
                         stars
                         commentary
                     }
                 }");
 
-        [Fact]
-        public void AnyScalarDefaultSerialization() =>
-            AssertResult(
-                CreateIntegrationTest(),
-                skipWarnings: true,
-                @"query GetJson {
+    [Fact]
+    public void AnyScalarDefaultSerialization() =>
+        AssertResult(
+            CreateIntegrationTest(),
+            skipWarnings: true,
+            @"query GetJson {
                     json
                 }",
-                @"type Query {
+            @"type Query {
                     json: Any!
                 }");
 
-        [Fact]
-        public void StarWarsTypeNameOnInterfaces() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                @"query GetHero {
+    [Fact]
+    public void StarWarsTypeNameOnInterfaces() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query GetHero {
                     hero(episode: NEW_HOPE) {
                         __typename
                     }
                 }");
 
-        [Fact]
-        public void StarWarsTypeNameOnUnions() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                @"query SearchHero {
+    [Fact]
+    public void StarWarsTypeNameOnUnions() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query SearchHero {
                     search(text: ""l"") {
                         __typename
                     }
                 }");
 
-        [Fact]
-        public void StarWarsUnionList() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                @"query SearchHero {
+    [Fact]
+    public void StarWarsUnionList() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            @"query SearchHero {
                     search(text: ""l"") {
                         ... on Human {
                             name
@@ -132,15 +132,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                     }
                 }");
 
-        [Fact]
-        public void EntityIdOrData() =>
-            AssertResult(
-                CreateIntegrationTest(profiles: new[]
-                {
+    [Fact]
+    public void EntityIdOrData() =>
+        AssertResult(
+            CreateIntegrationTest(profiles: new[]
+            {
                     new TransportProfile("Default", TransportType.InMemory)
-                }),
-                skipWarnings: true,
-                @"
+            }),
+            skipWarnings: true,
+            @"
                 query GetFoo {
                     foo {
                         ... on Baz {
@@ -158,7 +158,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
                     }
                 }
                 ",
-                @"
+            @"
                 type Query {
                     foo: [Bar]
                 }
@@ -181,12 +181,11 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
 
                 union Bar = Baz | Quox | Baz2 | Quox2
                 ",
-                "extend schema @key(fields: \"id\")");
+            "extend schema @key(fields: \"id\")");
 
-        [Fact]
-        public void StarWarsIntrospection() =>
-            AssertStarWarsResult(
-                CreateIntegrationTest(),
-                FileResource.Open("IntrospectionQuery.graphql"));
-    }
+    [Fact]
+    public void StarWarsIntrospection() =>
+        AssertStarWarsResult(
+            CreateIntegrationTest(),
+            FileResource.Open("IntrospectionQuery.graphql"));
 }

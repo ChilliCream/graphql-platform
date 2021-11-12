@@ -8,152 +8,151 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+internal sealed class RequestContext : IRequestContext
 {
-    internal sealed class RequestContext : IRequestContext
+    private readonly ConcurrentDictionary<string, object?> _contextData = new();
+    private DocumentValidatorResult? _validationResult;
+
+    public RequestContext(
+        ISchema schema,
+        ulong executorVersion,
+        IErrorHandler errorHandler,
+        ITypeConverter converter,
+        IActivator activator,
+        IExecutionDiagnosticEvents diagnosticEvents)
     {
-        private readonly ConcurrentDictionary<string, object?> _contextData = new();
-        private DocumentValidatorResult? _validationResult;
+        Schema = schema;
+        ExecutorVersion = executorVersion;
+        ErrorHandler = errorHandler;
+        Converter = converter;
+        Activator = activator;
+        DiagnosticEvents = diagnosticEvents;
+    }
 
-        public RequestContext(
-            ISchema schema,
-            ulong executorVersion,
-            IErrorHandler errorHandler,
-            ITypeConverter converter,
-            IActivator activator,
-            IExecutionDiagnosticEvents diagnosticEvents)
+    public ISchema Schema { get; }
+
+    public ulong ExecutorVersion { get; }
+
+    public IServiceProvider Services { get; private set; } = default!;
+
+    public IErrorHandler ErrorHandler { get; }
+
+    public ITypeConverter Converter { get; }
+
+    public IActivator Activator { get; }
+
+    public IExecutionDiagnosticEvents DiagnosticEvents { get; }
+
+    public IQueryRequest Request { get; private set; } = default!;
+
+    public IDictionary<string, object?> ContextData => _contextData;
+
+    public CancellationToken RequestAborted { get; set; }
+
+    public string? DocumentId { get; set; }
+
+    public string? DocumentHash { get; set; }
+
+    public bool IsCachedDocument { get; set; }
+
+    public bool IsPersistedDocument { get; set; }
+
+    public DocumentNode? Document { get; set; }
+
+    public DocumentValidatorResult? ValidationResult
+    {
+        get => _validationResult;
+        set
         {
-            Schema = schema;
-            ExecutorVersion = executorVersion;
-            ErrorHandler = errorHandler;
-            Converter = converter;
-            Activator = activator;
-            DiagnosticEvents = diagnosticEvents;
+            _validationResult = value;
+            IsValidDocument = !value?.HasErrors ?? false;
         }
+    }
 
-        public ISchema Schema { get; }
+    public bool IsValidDocument { get; private set; }
 
-        public ulong ExecutorVersion { get; }
+    public string? OperationId { get; set; }
 
-        public IServiceProvider Services { get; private set; } = default!;
+    public IPreparedOperation? Operation { get; set; }
 
-        public IErrorHandler ErrorHandler { get; }
+    public IVariableValueCollection? Variables { get; set; }
 
-        public ITypeConverter Converter { get; }
+    public IExecutionResult? Result { get; set; }
 
-        public IActivator Activator { get; }
+    public Exception? Exception { get; set; }
 
-        public IExecutionDiagnosticEvents DiagnosticEvents { get; }
-
-        public IQueryRequest Request { get; private set; } = default!;
-
-        public IDictionary<string, object?> ContextData => _contextData;
-
-        public CancellationToken RequestAborted { get; set; }
-
-        public string? DocumentId { get; set; }
-
-        public string? DocumentHash { get; set; }
-
-        public bool IsCachedDocument { get; set; }
-
-        public bool IsPersistedDocument { get; set; }
-
-        public DocumentNode? Document { get; set; }
-
-        public DocumentValidatorResult? ValidationResult
+    public IRequestContext Clone()
+    {
+        var cloned = new RequestContext(
+            Schema,
+            ExecutorVersion,
+            ErrorHandler,
+            Converter,
+            Activator,
+            DiagnosticEvents)
         {
-            get => _validationResult;
-            set
+            Request = Request,
+            Services = Services,
+            RequestAborted = RequestAborted,
+            DocumentId = DocumentId,
+            DocumentHash = DocumentHash,
+            IsCachedDocument = IsCachedDocument,
+            Document = Document,
+            ValidationResult = ValidationResult,
+            OperationId = OperationId,
+            Operation = Operation,
+            Variables = Variables,
+            Result = Result,
+            Exception = Exception
+        };
+
+        if (_contextData is not null)
+        {
+            foreach (KeyValuePair<string, object?> item in ContextData)
             {
-                _validationResult = value;
-                IsValidDocument = !value?.HasErrors ?? false;
+                cloned._contextData.TryAdd(item.Key, item.Value);
             }
         }
 
-        public bool IsValidDocument { get; private set; }
+        return cloned;
+    }
 
-        public string? OperationId { get; set; }
+    public void Initialize(IQueryRequest request, IServiceProvider services)
+    {
+        Request = request;
+        Services = services;
 
-        public IPreparedOperation? Operation { get; set; }
-
-        public IVariableValueCollection? Variables { get; set; }
-
-        public IExecutionResult? Result { get; set; }
-
-        public Exception? Exception { get; set; }
-
-        public IRequestContext Clone()
+        if (request.ContextData is not null)
         {
-            var cloned = new RequestContext(
-                Schema,
-                ExecutorVersion,
-                ErrorHandler,
-                Converter,
-                Activator,
-                DiagnosticEvents)
+            foreach (KeyValuePair<string, object?> item in request.ContextData)
             {
-                Request = Request,
-                Services = Services,
-                RequestAborted = RequestAborted,
-                DocumentId = DocumentId,
-                DocumentHash = DocumentHash,
-                IsCachedDocument = IsCachedDocument,
-                Document = Document,
-                ValidationResult = ValidationResult,
-                OperationId = OperationId,
-                Operation = Operation,
-                Variables = Variables,
-                Result = Result,
-                Exception = Exception
-            };
-
-            if (_contextData is not null)
-            {
-                foreach (KeyValuePair<string, object?> item in ContextData)
-                {
-                    cloned._contextData.TryAdd(item.Key, item.Value);
-                }
-            }
-
-            return cloned;
-        }
-
-        public void Initialize(IQueryRequest request, IServiceProvider services)
-        {
-            Request = request;
-            Services = services;
-
-            if (request.ContextData is not null)
-            {
-                foreach (KeyValuePair<string, object?> item in request.ContextData)
-                {
-                    _contextData.TryAdd(item.Key, item.Value);
-                }
+                _contextData.TryAdd(item.Key, item.Value);
             }
         }
+    }
 
-        public void Reset()
+    public void Reset()
+    {
+        if (_contextData.Count != 0)
         {
-            if (_contextData.Count != 0)
-            {
-                _contextData.Clear();
-            }
-
-            Request = default!;
-            Services = default!;
-            RequestAborted = default;
-            DocumentId = default;
-            DocumentHash = default;
-            IsCachedDocument = false;
-            Document = default;
-            ValidationResult = default;
-            IsValidDocument = false;
-            OperationId = default;
-            Operation = default;
-            Variables = default;
-            Result = default;
-            Exception = default;
+            _contextData.Clear();
         }
+
+        Request = default!;
+        Services = default!;
+        RequestAborted = default;
+        DocumentId = default;
+        DocumentHash = default;
+        IsCachedDocument = false;
+        Document = default;
+        ValidationResult = default;
+        IsValidDocument = false;
+        OperationId = default;
+        Operation = default;
+        Variables = default;
+        Result = default;
+        Exception = default;
     }
 }

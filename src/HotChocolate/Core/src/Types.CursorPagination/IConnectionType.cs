@@ -1,18 +1,17 @@
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+/// <summary>
+/// The connection type.
+/// </summary>
+public interface IConnectionType : IObjectType
 {
     /// <summary>
-    /// The connection type.
+    /// Gets the connection name of this connection type.
     /// </summary>
-    public interface IConnectionType : IObjectType
-    {
-        /// <summary>
-        /// Gets the connection name of this connection type.
-        /// </summary>
-        NameString ConnectionName { get; }
+    NameString ConnectionName { get; }
 
-        /// <summary>
-        /// Gets the edge type of this connection.
-        /// </summary>
-        IEdgeType EdgeType { get; }
-    }
+    /// <summary>
+    /// Gets the edge type of this connection.
+    /// </summary>
+    IEdgeType EdgeType { get; }
 }
