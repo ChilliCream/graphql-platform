@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -38,7 +37,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            public void TryContinueUnsafe()
+            public void TryContinue()
             {
                 lock (_sync)
                 {
@@ -47,11 +46,20 @@ namespace HotChocolate.Execution.Processing
 
                     if (continuation is not null)
                     {
-                        continuation.Invoke();
+                        continuation();
                         return;
                     }
 
                     _continue = true;
+                }
+            }
+
+            public void Reset()
+            {
+                lock (_sync)
+                {
+                    _continuation = null;
+                    _continue = false;
                 }
             }
 
