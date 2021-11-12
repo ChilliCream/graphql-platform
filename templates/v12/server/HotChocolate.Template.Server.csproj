@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
     <Using Include="HotChocolate.Template.Server" />
   </ItemGroup>
 
