@@ -27,11 +27,6 @@ internal partial class WorkScheduler : IWorkScheduler
     /// <inheritdoc />
     public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
 
-    private bool HasRunningTasks
-        => _work.HasRunningTasks ||
-           _serial.HasRunningTasks ||
-           !_stateMachine.IsCompleted;
-
     private bool CanDispatch
         => _batchDispatcher.HasTasks &&
            _work.IsEmpty &&
@@ -280,7 +275,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 return new(false);
             }
 
-            if (CanDispatch && !_requestAborted.IsCancellationRequested)
+            if (CanDispatch)
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
@@ -290,17 +285,20 @@ internal partial class WorkScheduler : IWorkScheduler
             _processing = false;
             _diagnosticEvents.StopProcessing(_requestContext);
 
-            return TryCompleteProcessingUnsafe()
-                ? new(true)
-                : CreatePauseUnsafe();
-        }
+            if (TryCompleteProcessingUnsafe())
+            {
+                return new(true);
+            }
 
-        ValueTask<bool> CreatePauseUnsafe()
-        {
-            Debug.Assert(_pause is null, "Since we have only one main worker there should only be one pause obj.");
-            _pause = _pausePool.Dequeue();
-            _pause.Reset();
-            return InvokePause(_pause);
+            var pause = _pause;
+
+            Debug.Assert(
+                pause is null,
+                "Since we have only one main worker there should only be one pause obj.");
+
+            pause = _pausePool.Dequeue();
+            pause.Reset();
+            return InvokePause(pause);
         }
 
         async ValueTask<bool> InvokePause(Pause pause)
@@ -324,40 +322,37 @@ internal partial class WorkScheduler : IWorkScheduler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryCompleteProcessingUnsafe()
     {
-        if (HasCompleted())
+        if (HasRunningTasks())
         {
-            _completed = true;
-            TryContinueUnsafe();
-            return true;
+            return false;
         }
 
-        if (IsCanceled())
+        if (HasCompleted() || _requestAborted.IsCancellationRequested)
         {
             _completed = true;
             TryContinueUnsafe();
-
-            // if there are still tasks enqueues when we cancel the execution
-            // we will try to reclaim the resolver tasks by properly cancelling
-            // them.
-            CancelTasks(_work);
-            CancelTasks(_serial);
-            CancelSuspendedTasks(_suspended);
-
+            EnsureContextIsClean();
             return true;
         }
 
         return false;
 
-        bool HasCompleted()
-            => !_processing &&
-                IsEmpty &&
-                !HasRunningTasks;
+        bool HasRunningTasks()
+            => _processing ||
+                _work.HasRunningTasks ||
+                _serial.HasRunningTasks;
 
-        bool IsCanceled()
-            => !_processing &&
-                !_work.HasRunningTasks &&
-                !_serial.HasRunningTasks &&
-               _requestAborted.IsCancellationRequested;
+        bool HasCompleted() => IsEmpty && _stateMachine.IsCompleted;;
+
+        void EnsureContextIsClean()
+        {
+            // if there are still tasks enqueued when we cancel the execution
+            // we will try to reclaim the resolver tasks by properly cancelling
+            // them.
+            CancelTasks(_work);
+            CancelTasks(_serial);
+            CancelSuspendedTasks(_suspended);
+        }
 
         void CancelTasks(WorkQueue queue)
         {
