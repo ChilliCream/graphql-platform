@@ -211,7 +211,7 @@ public interface IExecutionDiagnosticEvents
     /// <param name="exception">
     /// The exception that occurred.
     /// </param>
-    void SubscriptionTransportError(ISubscription subscription, Exception exception);
+    void SubscriptionEventError(ISubscription subscription, Exception exception);
 
     /// <summary>
     /// Called when an error occurred while producing the subscription event result.
@@ -222,7 +222,7 @@ public interface IExecutionDiagnosticEvents
     /// <param name="exception">
     /// The exception that occurred.
     /// </param>
-    void SubscriptionEventError(ISubscription subscription, Exception exception);
+    void SubscriptionTransportError(ISubscription subscription, Exception exception);
 
     /// <summary>
     /// A GraphQL request document was added to the document cache.
