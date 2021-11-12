@@ -3,82 +3,81 @@ using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// This definition represents a field or argument.
+/// </summary>
+public abstract class FieldDefinitionBase
+    : DefinitionBase
+    , IHasDirectiveDefinition
+    , IHasIgnore
 {
+    private List<DirectiveDefinition>? _directives;
+
     /// <summary>
-    /// This definition represents a field or argument.
+    /// Gets the field type.
     /// </summary>
-    public abstract class FieldDefinitionBase
-        : DefinitionBase
-        , IHasDirectiveDefinition
-        , IHasIgnore
+    public ITypeReference? Type { get; set; }
+
+    /// <summary>
+    /// Defines if this field is ignored and will
+    /// not be included into the schema.
+    /// </summary>
+    public bool Ignore { get; set; }
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this field.
+    /// </summary>
+    public IList<DirectiveDefinition> Directives =>
+        _directives ??= new List<DirectiveDefinition>();
+
+    /// <summary>
+    /// Specifies if this field has any directives.
+    /// </summary>
+    public bool HasDirectives => _directives is { Count: > 0 };
+
+    /// <summary>
+    /// Gets the list of directives that are annotated to this field.
+    /// </summary>
+    public IReadOnlyList<DirectiveDefinition> GetDirectives()
     {
-        private List<DirectiveDefinition>? _directives;
-
-        /// <summary>
-        /// Gets the field type.
-        /// </summary>
-        public ITypeReference? Type { get; set; }
-
-        /// <summary>
-        /// Defines if this field is ignored and will
-        /// not be included into the schema.
-        /// </summary>
-        public bool Ignore { get; set; }
-
-        /// <summary>
-        /// Gets the list of directives that are annotated to this field.
-        /// </summary>
-        public IList<DirectiveDefinition> Directives =>
-            _directives ??= new List<DirectiveDefinition>();
-
-        /// <summary>
-        /// Specifies if this field has any directives.
-        /// </summary>
-        public bool HasDirectives => _directives is { Count: > 0 };
-
-        /// <summary>
-        /// Gets the list of directives that are annotated to this field.
-        /// </summary>
-        public IReadOnlyList<DirectiveDefinition> GetDirectives()
+        if (_directives is null)
         {
-            if (_directives is null)
-            {
-                return Array.Empty<DirectiveDefinition>();
-            }
-
-            return _directives;
+            return Array.Empty<DirectiveDefinition>();
         }
 
-        protected void CopyTo(FieldDefinitionBase target)
+        return _directives;
+    }
+
+    protected void CopyTo(FieldDefinitionBase target)
+    {
+        base.CopyTo(target);
+
+        if (_directives is { Count: > 0 })
         {
-            base.CopyTo(target);
+            target._directives = new List<DirectiveDefinition>(_directives);
+        }
 
-            if (_directives is { Count: > 0})
-            {
-                target._directives = new List<DirectiveDefinition>(_directives);
-            }
+        target.Type = Type;
+        target.Ignore = Ignore;
+    }
 
+    protected void MergeInto(FieldDefinitionBase target)
+    {
+        base.MergeInto(target);
+
+        if (_directives is { Count: > 0 })
+        {
+            target._directives ??= new List<DirectiveDefinition>();
+            target._directives.AddRange(_directives);
+        }
+
+        if (Type is not null)
+        {
             target.Type = Type;
-            target.Ignore = Ignore;
         }
 
-        protected void MergeInto(FieldDefinitionBase target)
-        {
-            base.MergeInto(target);
-
-            if (_directives is { Count: > 0})
-            {
-                target._directives ??= new List<DirectiveDefinition>();
-                target._directives.AddRange(_directives);
-            }
-
-            if (Type is not null)
-            {
-                target.Type = Type;
-            }
-
-            target.Ignore = Ignore;
-        }
+        target.Ignore = Ignore;
     }
 }

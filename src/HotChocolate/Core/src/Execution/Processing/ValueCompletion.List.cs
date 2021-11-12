@@ -5,45 +5,32 @@ using HotChocolate.Execution.Processing.Tasks;
 using HotChocolate.Types;
 using static HotChocolate.Execution.ErrorHelper;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal static partial class ValueCompletion
 {
-    internal static partial class ValueCompletion
+    private static bool TryCompleteListValue(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        Path path,
+        IType fieldType,
+        string responseName,
+        int responseIndex,
+        object? result,
+        List<ResolverTask> bufferedTasks,
+        out object? completedValue)
     {
-        private static bool TryCompleteListValue(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            IType fieldType,
-            string responseName,
-            int responseIndex,
-            object? result,
-            List<ResolverTask> bufferedTasks,
-            out object? completedValue)
+        IType elementType = fieldType.InnerType();
+
+        if (elementType.Kind is TypeKind.NonNull)
         {
-            IType elementType = fieldType.InnerType();
+            elementType = elementType.InnerType();
+        }
 
-            if (elementType.Kind is TypeKind.NonNull)
-            {
-                elementType = elementType.InnerType();
-            }
-
-            if (elementType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
-            {
-                return TryCompleteCompositeListValue(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    path,
-                    fieldType,
-                    responseName,
-                    responseIndex,
-                    result,
-                    bufferedTasks,
-                    out completedValue);
-            }
-
-            return TryCompleteOtherListValue(
+        if (elementType.Kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union)
+        {
+            return TryCompleteCompositeListValue(
                 operationContext,
                 resolverContext,
                 selection,
@@ -56,215 +43,227 @@ namespace HotChocolate.Execution.Processing
                 out completedValue);
         }
 
-        private static bool TryCompleteCompositeListValue(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            IType fieldType,
-            string responseName,
-            int responseIndex,
-            object? result,
-            List<ResolverTask> bufferedTasks,
-            out object? completedResult)
+        return TryCompleteOtherListValue(
+            operationContext,
+            resolverContext,
+            selection,
+            path,
+            fieldType,
+            responseName,
+            responseIndex,
+            result,
+            bufferedTasks,
+            out completedValue);
+    }
+
+    private static bool TryCompleteCompositeListValue(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        Path path,
+        IType fieldType,
+        string responseName,
+        int responseIndex,
+        object? result,
+        List<ResolverTask> bufferedTasks,
+        out object? completedResult)
+    {
+        ResultMapList resultList = operationContext.Result.RentResultMapList();
+        IType elementType = fieldType.InnerType();
+        resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+
+        if (result is Array array)
         {
-            ResultMapList resultList = operationContext.Result.RentResultMapList();
-            IType elementType = fieldType.InnerType();
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-
-            if (result is Array array)
+            for (var i = 0; i < array.Length; i++)
             {
-                for (var i = 0; i < array.Length; i++)
+                if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
                 {
-                    if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
+                    completedResult = null;
+                    return true;
                 }
-
-                completedResult = resultList;
-                return true;
             }
 
-            if (result is IList list)
-            {
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (!TryCompleteElement(path.Append(i), list[i]))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
-                }
-
-                completedResult = resultList;
-                return true;
-            }
-
-            if (result is IEnumerable enumerable)
-            {
-                var index = 0;
-
-                foreach (var element in enumerable)
-                {
-                    if (!TryCompleteElement(path.Append(index++), element))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
-                }
-
-                completedResult = resultList;
-                return true;
-            }
-
-            ReportError(
-                operationContext,
-                resolverContext,
-                selection,
-                ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
-
-            completedResult = null;
-            return false;
-
-            bool TryCompleteElement(Path elementPath, object? elementResult)
-            {
-                if (TryComplete(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    elementPath,
-                    elementType,
-                    responseName,
-                    responseIndex,
-                    elementResult,
-                    bufferedTasks,
-                    out var completedElement) &&
-                    completedElement is ResultMap resultMap)
-                {
-                    resultMap.Parent = resultList;
-                    resultList.Add(resultMap);
-                }
-                else if (resultList.IsNullable)
-                {
-                    resultList.Add(null);
-                }
-                else
-                {
-                    return false;
-                }
-
-                return true;
-            }
+            completedResult = resultList;
+            return true;
         }
 
-        private static bool TryCompleteOtherListValue(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            IType fieldType,
-            string responseName,
-            int responseIndex,
-            object? result,
-            List<ResolverTask> bufferedTasks,
-            out object? completedResult)
+        if (result is IList list)
         {
-            ResultList resultList = operationContext.Result.RentResultList();
-            IType elementType = fieldType.InnerType();
-            resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
-            var isElementList = elementType.IsListType();
-
-            if (result is Array array)
+            for (var i = 0; i < list.Count; i++)
             {
-                for (var i = 0; i < array.Length; i++)
+                if (!TryCompleteElement(path.Append(i), list[i]))
                 {
-                    if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
+                    completedResult = null;
+                    return true;
                 }
-
-                completedResult = resultList;
-                return true;
             }
 
-            if (result is IList list)
-            {
-                for (var i = 0; i < list.Count; i++)
-                {
-                    if (!TryCompleteElement(path.Append(i), list[i]))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
-                }
+            completedResult = resultList;
+            return true;
+        }
 
-                completedResult = resultList;
-                return true;
+        if (result is IEnumerable enumerable)
+        {
+            var index = 0;
+
+            foreach (var element in enumerable)
+            {
+                if (!TryCompleteElement(path.Append(index++), element))
+                {
+                    completedResult = null;
+                    return true;
+                }
             }
 
-            if (result is IEnumerable enumerable)
-            {
-                var index = 0;
+            completedResult = resultList;
+            return true;
+        }
 
-                foreach (var element in enumerable)
-                {
-                    if (!TryCompleteElement(path.Append(index++), element))
-                    {
-                        completedResult = null;
-                        return true;
-                    }
-                }
+        ReportError(
+            operationContext,
+            resolverContext,
+            selection,
+            ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
 
-                completedResult = resultList;
-                return true;
-            }
+        completedResult = null;
+        return false;
 
-            ReportError(
+        bool TryCompleteElement(Path elementPath, object? elementResult)
+        {
+            if (TryComplete(
                 operationContext,
                 resolverContext,
                 selection,
-                ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
-
-            completedResult = null;
-            return false;
-
-            bool TryCompleteElement(Path elementPath, object? elementResult)
+                elementPath,
+                elementType,
+                responseName,
+                responseIndex,
+                elementResult,
+                bufferedTasks,
+                out var completedElement) &&
+                completedElement is ResultMap resultMap)
             {
-                if (TryComplete(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    elementPath,
-                    elementType,
-                    responseName,
-                    responseIndex,
-                    elementResult,
-                    bufferedTasks,
-                    out var completedElement) &&
-                    completedElement is not null)
-                {
-                    resultList.Add(completedElement);
-
-                    if (isElementList)
-                    {
-                        ((IHasResultDataParent)completedElement).Parent = resultList;
-                    }
-                }
-                else if (resultList.IsNullable)
-                {
-                    resultList.Add(null);
-                }
-                else
-                {
-                    return false;
-                }
-
-                return true;
+                resultMap.Parent = resultList;
+                resultList.Add(resultMap);
             }
+            else if (resultList.IsNullable)
+            {
+                resultList.Add(null);
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    private static bool TryCompleteOtherListValue(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        Path path,
+        IType fieldType,
+        string responseName,
+        int responseIndex,
+        object? result,
+        List<ResolverTask> bufferedTasks,
+        out object? completedResult)
+    {
+        ResultList resultList = operationContext.Result.RentResultList();
+        IType elementType = fieldType.InnerType();
+        resultList.IsNullable = elementType.Kind is not TypeKind.NonNull;
+        var isElementList = elementType.IsListType();
+
+        if (result is Array array)
+        {
+            for (var i = 0; i < array.Length; i++)
+            {
+                if (!TryCompleteElement(path.Append(i), array.GetValue(i)))
+                {
+                    completedResult = null;
+                    return true;
+                }
+            }
+
+            completedResult = resultList;
+            return true;
+        }
+
+        if (result is IList list)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (!TryCompleteElement(path.Append(i), list[i]))
+                {
+                    completedResult = null;
+                    return true;
+                }
+            }
+
+            completedResult = resultList;
+            return true;
+        }
+
+        if (result is IEnumerable enumerable)
+        {
+            var index = 0;
+
+            foreach (var element in enumerable)
+            {
+                if (!TryCompleteElement(path.Append(index++), element))
+                {
+                    completedResult = null;
+                    return true;
+                }
+            }
+
+            completedResult = resultList;
+            return true;
+        }
+
+        ReportError(
+            operationContext,
+            resolverContext,
+            selection,
+            ListValueIsNotSupported(resultList.GetType(), selection.SyntaxNode, path));
+
+        completedResult = null;
+        return false;
+
+        bool TryCompleteElement(Path elementPath, object? elementResult)
+        {
+            if (TryComplete(
+                operationContext,
+                resolverContext,
+                selection,
+                elementPath,
+                elementType,
+                responseName,
+                responseIndex,
+                elementResult,
+                bufferedTasks,
+                out var completedElement) &&
+                completedElement is not null)
+            {
+                resultList.Add(completedElement);
+
+                if (isElementList)
+                {
+                    ((IHasResultDataParent)completedElement).Parent = resultList;
+                }
+            }
+            else if (resultList.IsNullable)
+            {
+                resultList.Add(null);
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

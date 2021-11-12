@@ -6,161 +6,160 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Utilities;
+
+internal static class ErrorHelper
 {
-    internal static class ErrorHelper
-    {
-        public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
-            ITypeSystemObject interfaceOrObject,
-            ISyntaxNode? node) =>
-            SchemaErrorBuilder.New()
-                .SetMessage("COULD NOT RESOLVE INTERFACE")
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(interfaceOrObject)
-                .AddSyntaxNode(node)
-                .Build();
+    public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
+        ITypeSystemObject interfaceOrObject,
+        ISyntaxNode? node) =>
+        SchemaErrorBuilder.New()
+            .SetMessage("COULD NOT RESOLVE INTERFACE")
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(interfaceOrObject)
+            .AddSyntaxNode(node)
+            .Build();
 
-        public static ISchemaError DirectiveCollection_DirectiveIsUnique(
-            DirectiveType directiveType,
-            ITypeSystemObject type,
-            DirectiveNode? syntaxNode,
-            object source) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.DirectiveCollection_DirectiveIsUnique,
-                    directiveType.Name)
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension("Source", source)
-                .Build();
+    public static ISchemaError DirectiveCollection_DirectiveIsUnique(
+        DirectiveType directiveType,
+        ITypeSystemObject type,
+        DirectiveNode? syntaxNode,
+        object source) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                TypeResources.DirectiveCollection_DirectiveIsUnique,
+                directiveType.Name)
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension("Source", source)
+            .Build();
 
-        public static ISchemaError DirectiveCollection_LocationNotAllowed(
-            DirectiveType directiveType,
-            Types.DirectiveLocation location,
-            ITypeSystemObject type,
-            DirectiveNode? syntaxNode,
-            object source) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.DirectiveCollection_LocationNotAllowed,
-                    directiveType.Name,
-                    location)
-                .SetCode(ErrorCodes.Schema.MissingType)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension("Source", source)
-                .Build();
+    public static ISchemaError DirectiveCollection_LocationNotAllowed(
+        DirectiveType directiveType,
+        Types.DirectiveLocation location,
+        ITypeSystemObject type,
+        DirectiveNode? syntaxNode,
+        object source) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                TypeResources.DirectiveCollection_LocationNotAllowed,
+                directiveType.Name,
+                location)
+            .SetCode(ErrorCodes.Schema.MissingType)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension("Source", source)
+            .Build();
 
-        public static ISchemaError DirectiveCollection_ArgumentValueTypeIsWrong(
-            DirectiveType directiveType,
-            ITypeSystemObject type,
-            DirectiveNode? syntaxNode,
-            object source,
-            string argumentName) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The argument `{0}` value type is wrong.",
-                    argumentName)
-                .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
-                .SetTypeSystemObject(directiveType)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension("Source", source)
-                .Build();
+    public static ISchemaError DirectiveCollection_ArgumentValueTypeIsWrong(
+        DirectiveType directiveType,
+        ITypeSystemObject type,
+        DirectiveNode? syntaxNode,
+        object source,
+        string argumentName) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                "The argument `{0}` value type is wrong.",
+                argumentName)
+            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
+            .SetTypeSystemObject(directiveType)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension("Source", source)
+            .Build();
 
-        public static ISchemaError DirectiveCollection_ArgumentDoesNotExist(
-            DirectiveType directiveType,
-            ITypeSystemObject type,
-            DirectiveNode? syntaxNode,
-            object source,
-            string argumentName) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The argument `{0}` does not exist on the " +
-                    "directive `{1}`.",
-                    argumentName,
-                    directiveType.Name)
-                .SetCode(ErrorCodes.Schema.InvalidArgument)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension("Source", source)
-                .Build();
+    public static ISchemaError DirectiveCollection_ArgumentDoesNotExist(
+        DirectiveType directiveType,
+        ITypeSystemObject type,
+        DirectiveNode? syntaxNode,
+        object source,
+        string argumentName) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                "The argument `{0}` does not exist on the " +
+                "directive `{1}`.",
+                argumentName,
+                directiveType.Name)
+            .SetCode(ErrorCodes.Schema.InvalidArgument)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension("Source", source)
+            .Build();
 
-        public static ISchemaError DirectiveCollection_ArgumentNonNullViolation(
-            DirectiveType directiveType,
-            ITypeSystemObject type,
-            DirectiveNode? syntaxNode,
-            object source,
-            string argumentName) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The argument `{0}` of directive `{1}` " +
-                    "mustn't be null.",
-                    argumentName,
-                    directiveType.Name)
-                .SetCode(ErrorCodes.Schema.NonNullArgument)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension("Source", source)
-                .Build();
+    public static ISchemaError DirectiveCollection_ArgumentNonNullViolation(
+        DirectiveType directiveType,
+        ITypeSystemObject type,
+        DirectiveNode? syntaxNode,
+        object source,
+        string argumentName) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                "The argument `{0}` of directive `{1}` " +
+                "mustn't be null.",
+                argumentName,
+                directiveType.Name)
+            .SetCode(ErrorCodes.Schema.NonNullArgument)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension("Source", source)
+            .Build();
 
-        public static ISchemaError ObjectType_UnableToInferOrResolveType(
-            NameString typeName,
-            ObjectType type,
-            ObjectFieldDefinition field) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "Unable to infer or resolve the type of " +
-                    "field {0}.{1}. Try to explicitly provide the " +
-                    "type like the following: " +
-                    "`descriptor.Field(\"field\")" +
-                    ".Type<List<StringType>>()`.",
-                    typeName,
-                    field.Name)
-                .SetCode(ErrorCodes.Schema.NoFieldType)
-                .SetTypeSystemObject(type)
-                .SetPath(Path.New(typeName).Append(field.Name))
-                .SetExtension(TypeErrorFields.Definition, field)
-                .Build();
+    public static ISchemaError ObjectType_UnableToInferOrResolveType(
+        NameString typeName,
+        ObjectType type,
+        ObjectFieldDefinition field) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                "Unable to infer or resolve the type of " +
+                "field {0}.{1}. Try to explicitly provide the " +
+                "type like the following: " +
+                "`descriptor.Field(\"field\")" +
+                ".Type<List<StringType>>()`.",
+                typeName,
+                field.Name)
+            .SetCode(ErrorCodes.Schema.NoFieldType)
+            .SetTypeSystemObject(type)
+            .SetPath(Path.New(typeName).Append(field.Name))
+            .SetExtension(TypeErrorFields.Definition, field)
+            .Build();
 
-        public static ISchemaError ObjectField_HasNoResolver(
-            NameString typeName,
-            NameString fieldName,
-            ITypeSystemObject type,
-            ISyntaxNode? syntaxNode) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.ErrorHelper_ObjectField_HasNoResolver,
-                    typeName,
-                    fieldName)
-                .SetCode(ErrorCodes.Schema.NoResolver)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .Build();
+    public static ISchemaError ObjectField_HasNoResolver(
+        NameString typeName,
+        NameString fieldName,
+        ITypeSystemObject type,
+        ISyntaxNode? syntaxNode) =>
+        SchemaErrorBuilder.New()
+            .SetMessage(
+                TypeResources.ErrorHelper_ObjectField_HasNoResolver,
+                typeName,
+                fieldName)
+            .SetCode(ErrorCodes.Schema.NoResolver)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .Build();
 
-        public static ISchemaError MiddlewareOrderInvalid(
-            FieldCoordinate field,
-            ITypeSystemObject type,
-            ISyntaxNode? syntaxNode,
-            string currentOrder)
-            => SchemaErrorBuilder.New()
-                .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
-                .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
-                .SetTypeSystemObject(type)
-                .AddSyntaxNode(syntaxNode)
-                .SetExtension(nameof(field), field)
-                .Build();
+    public static ISchemaError MiddlewareOrderInvalid(
+        FieldCoordinate field,
+        ITypeSystemObject type,
+        ISyntaxNode? syntaxNode,
+        string currentOrder)
+        => SchemaErrorBuilder.New()
+            .SetMessage(TypeResources.ErrorHelper_MiddlewareOrderInvalid, field, currentOrder)
+            .SetCode(ErrorCodes.Schema.MiddlewareOrderInvalid)
+            .SetTypeSystemObject(type)
+            .AddSyntaxNode(syntaxNode)
+            .SetExtension(nameof(field), field)
+            .Build();
 
-        public static ISchemaError NoSchemaTypesAllowedAsRuntimeType(
-            ITypeSystemObject type,
-            Type runtimeType)
-            => SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.ErrorHelper_NoSchemaTypesAllowedAsRuntimeType,
-                    type.Name,
-                    runtimeType.FullName ?? runtimeType.Name)
-                .SetCode(ErrorCodes.Schema.NoSchemaTypesAllowedAsRuntimeType)
-                .SetTypeSystemObject(type)
-                .Build();
-    }
+    public static ISchemaError NoSchemaTypesAllowedAsRuntimeType(
+        ITypeSystemObject type,
+        Type runtimeType)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                TypeResources.ErrorHelper_NoSchemaTypesAllowedAsRuntimeType,
+                type.Name,
+                runtimeType.FullName ?? runtimeType.Name)
+            .SetCode(ErrorCodes.Schema.NoSchemaTypesAllowedAsRuntimeType)
+            .SetTypeSystemObject(type)
+            .Build();
 }

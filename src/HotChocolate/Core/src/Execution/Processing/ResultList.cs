@@ -1,19 +1,18 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+public sealed class ResultList
+    : List<object?>
+    , IResultList
+    , IHasResultDataParent
 {
-    public sealed class ResultList
-        : List<object?>
-        , IResultList
-        , IHasResultDataParent
-    {
-        public IResultData? Parent { get; set; }
+    public IResultData? Parent { get; set; }
 
-        IResultData? IHasResultDataParent.Parent { get => Parent; set => Parent = value; }
+    IResultData? IHasResultDataParent.Parent { get => Parent; set => Parent = value; }
 
-        /// <summary>
-        /// Defines if the elements of this list are nullable.
-        /// </summary>
-        public bool IsNullable { get; set; }
-    }
+    /// <summary>
+    /// Defines if the elements of this list are nullable.
+    /// </summary>
+    public bool IsNullable { get; set; }
 }
