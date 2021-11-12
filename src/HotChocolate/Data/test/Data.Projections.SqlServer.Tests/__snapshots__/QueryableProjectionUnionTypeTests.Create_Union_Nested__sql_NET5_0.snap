@@ -1,0 +1,3 @@
+﻿SELECT "a"."Id" IS NOT NULL, ("a"."d" = 'bar') AND "a"."d" IS NOT NULL, "a"."BarProp", ("a"."d" = 'foo') AND "a"."d" IS NOT NULL, "a"."FooProp"
+FROM "Data" AS "d"
+LEFT JOIN "AbstractType" AS "a" ON "d"."NestedId" = "a"."Id"

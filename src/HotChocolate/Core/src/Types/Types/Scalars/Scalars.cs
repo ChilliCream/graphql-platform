@@ -77,6 +77,8 @@ namespace HotChocolate.Types
             { typeof(ushort?), ValueKind.Integer },
             { typeof(byte), ValueKind.Integer },
             { typeof(byte?), ValueKind.Integer },
+            { typeof(sbyte), ValueKind.Integer },
+            { typeof(sbyte?), ValueKind.Integer },
             { typeof(float), ValueKind.Float },
             { typeof(double), ValueKind.Float },
             { typeof(decimal), ValueKind.Float },

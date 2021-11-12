@@ -613,6 +613,50 @@ namespace HotChocolate.Types
                 type);
         }
 
+        public static SerializationException UnsignedShortType_ParseValue_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedShortType_IsNotUnsigned_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedShort)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException UnsignedShortType_ParseLiteral_IsNotUnsigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.UnsignedShortType_IsNotUnsigned_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.UnsignedShort)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException SignedByteType_ParseValue_IsNotSigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.SignedByteType_IsNotSigned_ParseValue)
+                    .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
+                    .SetExtension("actualType", WellKnownScalarTypes.SignedByte)
+                    .Build(),
+                type);
+        }
+
+        public static SerializationException SignedByteType_ParseLiteral_IsNotSigned(IType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ScalarResources.SignedByteType_IsNotSigned_ParseLiteral)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .SetExtension("actualType", WellKnownScalarTypes.SignedByte)
+                    .Build(),
+                type);
+        }
+
         public static SerializationException UnsignedIntType_ParseValue_IsNotUnsigned(IType type)
         {
             return new SerializationException(

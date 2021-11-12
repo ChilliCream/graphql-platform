@@ -1,11 +1,18 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial.Properties;
+using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial
 {
     internal static class ThrowHelper
     {
+        public static SerializationException CoordinatesScalar_InvalidCoordinatesObject(IType type)
+            => new(Resources.CoordinatesScalar_InvalidCoordinatesObject, type);
+
+        public static SerializationException CoordinatesScalar_CoordinatesCannotBeNull(IType type)
+            => new(Resources.CoordinatesScalar_CoordinatesCannotBeNull, type);
+
         public static SerializationException PositionScalar_InvalidPositionObject(IType type)
             => new(Resources.PositionScalar_InvalidPositionObject, type);
 
@@ -87,6 +94,13 @@ namespace HotChocolate.Types.Spatial
                 string.Format(Resources.Geometry_Serializer_NotFound, geometryType),
                 type);
 
+        public static SerializationException Geometry_Serializer_NotFound(
+            IType type,
+            string geometryType)
+            => new(
+                string.Format(Resources.Geometry_Serializer_NotFound, geometryType),
+                type);
+
         public static SerializationException Geometry_Parse_InvalidGeometryKind(
             IType type,
             string typeName)
@@ -116,5 +130,18 @@ namespace HotChocolate.Types.Spatial
                     .SetMessage(Resources.Transformation_CoordinateMNotSupported)
                     .SetCode(ErrorCodes.Spatial.CoordinateMNotSupported)
                     .Build());
+
+        public static SerializationException Serializer_OperationIsNotSupported(
+            IType type,
+            IGeoJsonSerializer serializer,
+            string method) =>
+            new(
+                ErrorBuilder
+                    .New()
+                    .SetMessage(Resources.Serializer_OperationIsNotSupported,
+                        serializer.GetType().FullName ?? serializer.GetType().Name,
+                        method)
+                    .Build(),
+                type);
     }
 }

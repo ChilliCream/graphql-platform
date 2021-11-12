@@ -29,6 +29,12 @@ namespace StrawberryShake.Tools
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
+            CommandOption headersArg = init.Option(
+                "-x|--headers",
+                "Custom headers used in request to Graph QL server. " +
+                "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
+                CommandOptionType.MultipleValue);
+
             AuthArguments authArguments = init.AddAuthArguments();
 
             init.OnExecuteAsync(cancellationToken =>
@@ -37,7 +43,8 @@ namespace StrawberryShake.Tools
                     uriArg,
                     pathArg,
                     nameArg,
-                    authArguments);
+                    authArguments,
+                    headersArg);
                 InitCommandHandler handler =
                     CommandTools.CreateHandler<InitCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);

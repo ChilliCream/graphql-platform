@@ -28,14 +28,13 @@ namespace HotChocolate.Data.Projections
             var dbContext = new DatabaseContext<TResult>(FileName, onModelCreating);
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
 
-            try
+            DbSet<TResult> set = dbContext.Set<TResult>();
+
+            foreach (TResult result in results)
             {
+                set.Add(result);
                 dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
             }
 
             return ctx => dbContext.Data.AsQueryable();
@@ -50,7 +49,8 @@ namespace HotChocolate.Data.Projections
             bool usePaging = false,
             bool useOffsetPaging = false,
             INamedType? objectType = null,
-            Action<ISchemaBuilder>? configure = null)
+            Action<ISchemaBuilder>? configure = null,
+            Type? schemaType = null)
             where TEntity : class
         {
             provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
@@ -81,12 +81,14 @@ namespace HotChocolate.Data.Projections
 
                             ApplyConfigurationToFieldDescriptor<TEntity>(
                                 c.Field(x => x.Root).Resolve(resolver),
+                                schemaType,
                                 usePaging,
                                 useOffsetPaging);
 
                             ApplyConfigurationToFieldDescriptor<TEntity>(
                                 c.Field("rootExecutable")
                                     .Resolve(ctx => resolver(ctx).AsExecutable()),
+                                schemaType,
                                 usePaging,
                                 useOffsetPaging);
                         }));
@@ -122,17 +124,18 @@ namespace HotChocolate.Data.Projections
 
         private static void ApplyConfigurationToFieldDescriptor<TEntity>(
             IObjectFieldDescriptor descriptor,
+            Type? type,
             bool usePaging = false,
             bool useOffsetPaging = false)
         {
             if (usePaging)
             {
-                descriptor.UsePaging<ObjectType<TEntity>>();
+                descriptor.UsePaging(nodeType: type ?? typeof(ObjectType<TEntity>));
             }
 
             if (useOffsetPaging)
             {
-                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
+                descriptor.UseOffsetPaging(type ?? typeof(ObjectType<TEntity>));
             }
 
             descriptor

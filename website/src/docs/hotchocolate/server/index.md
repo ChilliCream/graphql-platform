@@ -30,11 +30,11 @@ Introspection allows us to query the type system of our GraphQL server using reg
 
 [Learn more about introspection](/docs/hotchocolate/server/introspection)
 
-# Uploading files
+# Files
 
-Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support.
+Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support. We will also take a look at what other options we have when it comes to uploading and serving files.
 
-[Learn more about uploading files](/docs/hotchocolate/server/uploading-files)
+[Learn more about handling files](/docs/hotchocolate/server/files)
 
 # Instrumentation
 

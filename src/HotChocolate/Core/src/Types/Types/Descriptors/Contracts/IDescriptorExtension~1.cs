@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     /// Allows for access to the type definition.
     /// </summary>
     /// <typeparam name="T">The type definition.</typeparam>
-    public interface IDescriptorExtension<T> : IHasDescriptorContext
+    public interface IDescriptorExtension<out T> : IHasDescriptorContext
         where T : DefinitionBase
     {
         /// <summary>

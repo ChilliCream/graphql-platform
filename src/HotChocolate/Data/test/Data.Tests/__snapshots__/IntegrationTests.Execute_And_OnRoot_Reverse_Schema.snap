@@ -6,6 +6,7 @@ type Author {
   id: Int!
   name: String
   books: [Book!]!
+  publishers: [Publisher!]!
 }
 
 type Book {
@@ -13,6 +14,7 @@ type Book {
   authorId: Int!
   title: String
   author: Author
+  publisher: Publisher
 }
 
 "A connection to a list of items."
@@ -49,12 +51,22 @@ type PageInfo {
   endCursor: String
 }
 
+type Publisher {
+  id: Int!
+  name: String!
+  address: String!
+  zipcode: String!
+  books: [Book!]!
+  authors: [Author!]!
+}
+
 input Foo_AuthorFilterInput {
   and: [Foo_AuthorFilterInput!]
   or: [Foo_AuthorFilterInput!]
   id: Foo_ComparableInt32OperationFilterInput
   name: Foo_StringOperationFilterInput
   books: Foo_ListFilterInputTypeOfBookFilterInput
+  publishers: Foo_ListFilterInputTypeOfPublisherFilterInput
 }
 
 input Foo_AuthorSortInput {
@@ -69,6 +81,7 @@ input Foo_BookFilterInput {
   authorId: Foo_ComparableInt32OperationFilterInput
   title: Foo_StringOperationFilterInput
   author: Foo_AuthorFilterInput
+  publisher: Foo_PublisherFilterInput
 }
 
 input Foo_BookSortInput {
@@ -76,6 +89,7 @@ input Foo_BookSortInput {
   authorId: Foo_SortEnumType
   title: Foo_SortEnumType
   author: Foo_AuthorSortInput
+  publisher: Foo_PublisherSortInput
 }
 
 input Foo_ComparableInt32OperationFilterInput {
@@ -93,11 +107,43 @@ input Foo_ComparableInt32OperationFilterInput {
   nlte: Int
 }
 
+input Foo_ListFilterInputTypeOfAuthorFilterInput {
+  all: Foo_AuthorFilterInput
+  none: Foo_AuthorFilterInput
+  some: Foo_AuthorFilterInput
+  any: Boolean
+}
+
 input Foo_ListFilterInputTypeOfBookFilterInput {
   all: Foo_BookFilterInput
   none: Foo_BookFilterInput
   some: Foo_BookFilterInput
   any: Boolean
+}
+
+input Foo_ListFilterInputTypeOfPublisherFilterInput {
+  all: Foo_PublisherFilterInput
+  none: Foo_PublisherFilterInput
+  some: Foo_PublisherFilterInput
+  any: Boolean
+}
+
+input Foo_PublisherFilterInput {
+  and: [Foo_PublisherFilterInput!]
+  or: [Foo_PublisherFilterInput!]
+  id: Foo_ComparableInt32OperationFilterInput
+  name: Foo_StringOperationFilterInput
+  address: Foo_StringOperationFilterInput
+  zipcode: Foo_StringOperationFilterInput
+  books: Foo_ListFilterInputTypeOfBookFilterInput
+  authors: Foo_ListFilterInputTypeOfAuthorFilterInput
+}
+
+input Foo_PublisherSortInput {
+  id: Foo_SortEnumType
+  name: Foo_SortEnumType
+  address: Foo_SortEnumType
+  zipcode: Foo_SortEnumType
 }
 
 input Foo_StringOperationFilterInput {
@@ -124,4 +170,4 @@ enum Foo_SortEnumType {
 directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 "The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
-directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean) on FIELD
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! = 0 "Streamed when true." if: Boolean) on FIELD

@@ -1,8 +1,6 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Tools.Configuration;
@@ -46,7 +44,8 @@ namespace StrawberryShake.Tools
                 FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
                 new Uri(arguments.Uri.Value!),
                 accessToken?.Token,
-                accessToken?.Scheme);
+                accessToken?.Scheme,
+                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             if(await ExecuteInternalAsync(context, cancellationToken).ConfigureAwait(false))
             {
@@ -88,7 +87,7 @@ namespace StrawberryShake.Tools
                 context.Path, context.SchemaExtensionFileName);
 
             HttpClient client = HttpClientFactory.Create(
-                context.Uri, context.Token, context.Scheme);
+                context.Uri, context.Token, context.Scheme, context.CustomHeaders);
 
             if (await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, schemaFilePath,

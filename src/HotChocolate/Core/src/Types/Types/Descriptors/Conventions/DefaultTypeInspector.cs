@@ -359,7 +359,9 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
-            foreach (var attr in GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
+            foreach (DescriptorAttribute attr in
+                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true)
+                    .OrderBy(t => t.Order))
             {
                 attr.TryConfigure(context, descriptor, attributeProvider);
             }
@@ -543,26 +545,30 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             ICustomAttributeProvider attributeProvider)
         {
+            IExtendedType resultType = type;
+
+            bool hasGraphQLTypeAttribute = false;
+
             if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
-                typeAttribute.Type is not null)
+                typeAttribute.Type is { } attributeType)
             {
-                return GetType(typeAttribute.Type);
+                hasGraphQLTypeAttribute = true;
+                resultType = GetType(attributeType);
             }
 
             if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
             {
-                return ChangeNullabilityInternal(
-                    type,
-                    nullAttribute.Nullable);
+                resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
             }
 
             if (!IgnoreRequiredAttribute &&
+                !hasGraphQLTypeAttribute &&
                 TryGetAttribute(attributeProvider, out RequiredAttribute? _))
             {
-                return ChangeNullability(type, false);
+                resultType = ChangeNullability(resultType, false);
             }
 
-            return type;
+            return resultType;
         }
 
         private bool TryGetAttribute<T>(

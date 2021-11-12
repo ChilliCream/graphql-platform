@@ -470,5 +470,95 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("UseProjection_CannotHandleType_", resourceCulture);
             }
         }
+        
+        internal static string PagingProjectionOptimizer_NotAPagingField {
+            get {
+                return ResourceManager.GetString("PagingProjectionOptimizer_NotAPagingField", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_CouldNotParseValue {
+            get {
+                return ResourceManager.GetString("Filtering_CouldNotParseValue", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFiltering_MemberInvalid {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableFiltering_NoMemberDeclared {
+            get {
+                return ResourceManager.GetString("QueryableFiltering_NoMemberDeclared", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_QueryableCombinator_QueueEmpty {
+            get {
+                return ResourceManager.GetString("Filtering_QueryableCombinator_QueueEmpty", resourceCulture);
+            }
+        }
+        
+        internal static string Filtering_QueryableCombinator_InvalidCombinator {
+            get {
+                return ResourceManager.GetString("Filtering_QueryableCombinator_InvalidCombinator", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_MemberInvalid {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_NoMemberFound {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NoMemberFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_InvalidState_NoParentScope {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_InvalidState_NoParentScope", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_NoConstructorFoundForSet {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_NoConstructorFoundForSet", resourceCulture);
+            }
+        }
+        
+        internal static string Sorting_InvalidState_ParentIsNoFieldSelector {
+            get {
+                return ResourceManager.GetString("Sorting_InvalidState_ParentIsNoFieldSelector", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSorting_MemberInvalid {
+            get {
+                return ResourceManager.GetString("QueryableSorting_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSorting_NoMemberDeclared {
+            get {
+                return ResourceManager.GetString("QueryableSorting_NoMemberDeclared", resourceCulture);
+            }
+        }
+        
+        internal static string SortField_ArgumentInvalid_NoHandlerWasFound {
+            get {
+                return ResourceManager.GetString("SortField_ArgumentInvalid_NoHandlerWasFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionVisitor_CouldNotUnwrapType {
+            get {
+                return ResourceManager.GetString("ProjectionVisitor_CouldNotUnwrapType", resourceCulture);
+            }
+        }
     }
 }

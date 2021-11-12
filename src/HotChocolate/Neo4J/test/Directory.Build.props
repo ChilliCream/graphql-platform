@@ -24,6 +24,8 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Snapshooter.Xunit" Version="0.5.5" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
+    <PackageReference Include="Squadron.Neo4j" Version="0.13.0" />
+    <PackageReference Include="Shouldly" Version="4.0.3" />
   </ItemGroup>
 
 </Project>

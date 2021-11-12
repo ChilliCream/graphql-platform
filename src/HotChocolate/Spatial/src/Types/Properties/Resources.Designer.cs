@@ -51,6 +51,12 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
+        internal static string GeoJsonCoordinatesScalar_Description {
+            get {
+                return ResourceManager.GetString("GeoJsonCoordinatesScalar_Description", resourceCulture);
+            }
+        }
+        
         internal static string InvalidInputObjectStructure_IsOfWrongGeometryType {
             get {
                 return ResourceManager.GetString("InvalidInputObjectStructure_IsOfWrongGeometryType", resourceCulture);
@@ -270,6 +276,24 @@ namespace HotChocolate.Types.Spatial.Properties {
         internal static string GeoJsonGeometrySerializer_CreateInstance_NotSupported {
             get {
                 return ResourceManager.GetString("GeoJsonGeometrySerializer_CreateInstance_NotSupported", resourceCulture);
+            }
+        }
+        
+        internal static string CoordinatesScalar_InvalidCoordinatesObject {
+            get {
+                return ResourceManager.GetString("CoordinatesScalar_InvalidCoordinatesObject", resourceCulture);
+            }
+        }
+        
+        internal static string CoordinatesScalar_CoordinatesCannotBeNull {
+            get {
+                return ResourceManager.GetString("CoordinatesScalar_CoordinatesCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string Serializer_OperationIsNotSupported {
+            get {
+                return ResourceManager.GetString("Serializer_OperationIsNotSupported", resourceCulture);
             }
         }
     }
