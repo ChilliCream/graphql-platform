@@ -17,4 +17,9 @@
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.props" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.AzureFunctions.targets" Pack="true" PackagePath="build/HotChocolate.AzureFunctions.targets" Visible="false" />
+  </ItemGroup>
+
 </Project>

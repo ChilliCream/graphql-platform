@@ -368,6 +368,16 @@ namespace HotChocolate.Data
                     .SetExtension("typeName", context.Field.Type.NamedType().Name)
                     .Build());
 
+        public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
+            IType actualType,
+            IObjectField fieldName) =>
+            new(string.Format(
+                CultureInfo.InvariantCulture,
+                DataResources.PagingProjectionOptimizer_NotAPagingField,
+                actualType.Print(),
+                fieldName.Name,
+                fieldName.Type.Print()));
+
         public static InvalidOperationException Filtering_CouldNotParseValue(
             IFilterFieldHandler handler,
             IValueNode valueNode,
@@ -473,8 +483,7 @@ namespace HotChocolate.Data
                 field.Name,
                 field.Type.Print()));
 
-        public static InvalidOperationException SortField_ArgumentInvalid_NoHandlerWasFound(
-            string argumentName) =>
+        public static InvalidOperationException SortField_ArgumentInvalid_NoHandlerWasFound() =>
             new(string.Format(
                 CultureInfo.CurrentCulture,
                 DataResources.SortField_ArgumentInvalid_NoHandlerWasFound));

@@ -471,6 +471,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string PagingProjectionOptimizer_NotAPagingField {
+            get {
+                return ResourceManager.GetString("PagingProjectionOptimizer_NotAPagingField", resourceCulture);
+            }
+        }
+        
         internal static string Filtering_CouldNotParseValue {
             get {
                 return ResourceManager.GetString("Filtering_CouldNotParseValue", resourceCulture);

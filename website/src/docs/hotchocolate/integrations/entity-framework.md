@@ -15,7 +15,7 @@ When using `services.AddDbContext<T>` to register a `DbContext` as a scoped serv
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
 
-Fortunatly there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
+Fortunatley there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
 
 # DbContextFactory
 
@@ -37,7 +37,7 @@ public class Startup
 
 ```
 
-> ⚠️ Note: All of the configuraion done in the `OnConfiguring` method of the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
+> ⚠️ Note: All of the configuration done in the `OnConfiguring` method of the `DbContext` needs to be moved to the configuration action on the `AddPooledDbContextFactory` call.
 
 Using the `IDbContextFactory` changes how we access an instance of our `DbContext`. Previously we would directly inject the scoped `DbContext` instance into our constructors or methods. Now we need to inject the `IDbContextFactory` instead and create an instance of the `DbContext` ourselves.
 
