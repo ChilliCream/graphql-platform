@@ -81,7 +81,7 @@ RESTART:
 
         // if there is no more work we will try to scale down.
         // Note: we always trigger this method, even if the request was canceled.
-        if (await TryStopProcessing() == false)
+        if (await TryStopProcessingAsync() == false)
         {
             goto RESTART;
         }

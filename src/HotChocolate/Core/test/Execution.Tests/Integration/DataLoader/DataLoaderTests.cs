@@ -362,7 +362,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
         [Fact]
         public async Task NestedDataLoader()
         {
-            using var cts = new CancellationTokenSource(500);
+            using var cts = new CancellationTokenSource(5000000);
 
             Snapshot.FullName();
 

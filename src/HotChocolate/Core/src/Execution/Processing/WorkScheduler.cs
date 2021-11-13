@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;
@@ -252,34 +251,47 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    private ValueTask<bool> TryStopProcessing()
+    private async ValueTask<bool> TryStopProcessingAsync()
+    {
+        var stataus = TryStopProcessing();
+        var pause = _pause;
+
+        if (pause is not null)
+        {
+            await pause;
+        }
+
+        return stataus;
+    }
+
+    private bool TryStopProcessing()
     {
         // if the execution is already completed or if the completion task is
         // null we stop processing
         if (_completed)
         {
-            return new(true);
+            return true;
         }
 
         // if there is still work we keep on processing. We check this here to
         // try to avoid the lock.
         if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
         {
-            return new(false);
+            return false;
         }
 
         lock (_sync)
         {
             if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
-                return new(false);
+                return false;
             }
 
             if (CanDispatch)
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
-                return new(false);
+                return false;
             }
 
             _processing = false;
@@ -287,7 +299,7 @@ internal partial class WorkScheduler : IWorkScheduler
 
             if (TryCompleteProcessingUnsafe())
             {
-                return new(true);
+                return true;
             }
 
             var pause = _pause;
@@ -296,14 +308,13 @@ internal partial class WorkScheduler : IWorkScheduler
                 pause is null,
                 "Since we have only one main worker there should only be one pause obj.");
 
+            // lets dequeue a fresh pause object and ensure its reset.
             pause = _pausePool.Dequeue();
             pause.Reset();
-            return InvokePause(pause);
-        }
 
-        async ValueTask<bool> InvokePause(Pause pause)
-        {
-            await pause;
+            // set the pause while we are holding the lock.
+            _pause = pause;
+
             return false;
         }
     }
@@ -319,7 +330,6 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryCompleteProcessingUnsafe()
     {
         if (HasRunningTasks())
@@ -330,8 +340,8 @@ internal partial class WorkScheduler : IWorkScheduler
         if (HasCompleted() || _requestAborted.IsCancellationRequested)
         {
             _completed = true;
-            TryContinueUnsafe();
             EnsureContextIsClean();
+            TryContinueUnsafe();
             return true;
         }
 
@@ -342,7 +352,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 _work.HasRunningTasks ||
                 _serial.HasRunningTasks;
 
-        bool HasCompleted() => IsEmpty && _stateMachine.IsCompleted;;
+        bool HasCompleted() => IsEmpty && _stateMachine.IsCompleted;
 
         void EnsureContextIsClean()
         {
