@@ -6,16 +6,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class WorkScheduler
 {
-    private sealed class Pause : INotifyCompletion
+    private sealed class ProcessingPause : INotifyCompletion
     {
-        private readonly object _sync;
+        private readonly object _sync = new();
         private Action? _continuation;
         private bool _continue;
-
-        public Pause(object syncRoot)
-        {
-            _sync = syncRoot;
-        }
 
         public bool IsCompleted => false;
 
@@ -25,14 +20,18 @@ internal partial class WorkScheduler
         {
             lock (_sync)
             {
+                // if we already received a continuation signal we can immediately
+                // continue without delay.
                 if (_continue)
                 {
-                    _continue = false;
                     continuation();
                     return;
                 }
 
-                Debug.Assert(_continuation is null, "There should only be one awaiter.");
+                // it is expected that there is only one awaiter per pause.
+                Debug.Assert(
+                    _continuation is null, 
+                    "There should only be one awaiter.");
                 _continuation = continuation;
             }
         }
@@ -41,15 +40,13 @@ internal partial class WorkScheduler
         {
             lock (_sync)
             {
-                Action? continuation = _continuation;
-                _continuation = null;
-
-                if (continuation is not null)
+                if (_continuation is not null)
                 {
-                    continuation();
+                    _continuation();
                     return;
                 }
 
+                _continuation = null;
                 _continue = true;
             }
         }
@@ -63,6 +60,6 @@ internal partial class WorkScheduler
             }
         }
 
-        public Pause GetAwaiter() => this;
+        public ProcessingPause GetAwaiter() => this;
     }
 }

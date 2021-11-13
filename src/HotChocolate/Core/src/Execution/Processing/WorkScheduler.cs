@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Tasks;
@@ -25,12 +24,6 @@ internal partial class WorkScheduler : IWorkScheduler
 
     /// <inheritdoc />
     public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
-
-    private bool CanDispatch
-        => _batchDispatcher.HasTasks &&
-           _work.IsEmpty &&
-           _work.HasRunningTasks &&
-           !_stateMachine.IsSerial;
 
     /// <inheritdoc/>
     public void Register(IExecutionTask task)
@@ -228,7 +221,6 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryStartProcessingUnsafe(bool force = false)
     {
         if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
@@ -243,11 +235,13 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private void TryContinueUnsafe()
     {
-        if (_pause is not null)
+        var pause = _pause;
+        _pause = null;
+
+        if (pause is not null)
         {
-            _pause.TryContinue();
-            _pausePool.Enqueue(_pause);
-            _pause = null;
+            pause.TryContinue();
+            _pausePool.Enqueue(pause);
         }
     }
 
@@ -287,7 +281,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 return false;
             }
 
-            if (CanDispatch)
+            if (CanDispatch())
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
@@ -317,13 +311,19 @@ internal partial class WorkScheduler : IWorkScheduler
 
             return false;
         }
+
+        bool CanDispatch()
+            => _batchDispatcher.HasTasks &&
+            _work.IsEmpty &&
+            _work.HasRunningTasks &&
+            !_stateMachine.IsSerial;
     }
 
     private void BatchDispatcherEventHandler(object? source, EventArgs args)
     {
         lock (_sync)
         {
-            if (!_processing && CanDispatch)
+            if (!_processing)
             {
                 TryStartProcessingUnsafe(force: true);
             }
@@ -332,6 +332,7 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private bool TryCompleteProcessingUnsafe()
     {
+        // if there are still running tasks we cannot complete the execution.
         if (HasRunningTasks())
         {
             return false;
