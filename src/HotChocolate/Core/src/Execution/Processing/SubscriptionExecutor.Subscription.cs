@@ -120,8 +120,7 @@ internal sealed partial class SubscriptionExecutor
                 _sourceStream,
                 OnEvent,
                 this,
-                _diagnosticEvents,
-                _requestContext.RequestAborted);
+                _diagnosticEvents);
 
         /// <inheritdoc />
         public ulong Id => _id;
@@ -310,20 +309,17 @@ internal sealed partial class SubscriptionExecutor
         private readonly Func<object, Task<IQueryResult>> _onEvent;
         private readonly Subscription _subscription;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-        private readonly CancellationToken _requestAborted;
 
         public SubscriptionEnumerable(
             ISourceStream sourceStream,
             Func<object, Task<IQueryResult>> onEvent,
             Subscription subscription,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            CancellationToken requestAborted)
+            IExecutionDiagnosticEvents diagnosticEvents)
         {
             _sourceStream = sourceStream;
             _onEvent = onEvent;
             _subscription = subscription;
             _diagnosticEvents = diagnosticEvents;
-            _requestAborted = requestAborted;
         }
 
         public IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
@@ -333,7 +329,7 @@ internal sealed partial class SubscriptionExecutor
             {
                 IAsyncEnumerator<object> eventStreamEnumerator =
                     _sourceStream.ReadEventsAsync()
-                        .GetAsyncEnumerator(_requestAborted);
+                        .GetAsyncEnumerator(cancellationToken);
 
                 return new SubscriptionEnumerator(
                     eventStreamEnumerator,
@@ -393,6 +389,7 @@ internal sealed partial class SubscriptionExecutor
             catch (Exception ex)
             {
                 _diagnosticEvents.SubscriptionEventError(_subscription, ex);
+                throw;
             }
 
             return false;
