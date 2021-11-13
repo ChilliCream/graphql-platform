@@ -21,22 +21,19 @@ internal sealed partial class ResolverTask
 
             Status = _completionStatus;
         }
-        catch (OperationCanceledException)
+        catch
         {
-            // If we run into this exception the request was aborted.
-            // In this case we do nothing and just return.
-            Status = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
-        }
-        catch (Exception ex)
-        {
-            Status = ExecutionTaskStatus.Faulted;
-            _resolverContext.Result = null;
+            // If an exception occurs on this level it means that something was wrong with the
+            // operation context. 
 
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                _resolverContext.ReportError(ex);
-            }
+            // In this case we will mark the task as faulted and set the result to null.
+
+            // However, we will not report or rethrow the exception since the context was already
+            // destroyed and we would cause further exceptions.
+
+            // The exception on this level is most likely caused by a cancellation of the request.
+            Status = ExecutionTaskStatus.Faulted;
+            _resolverContext.Result = null;
         }
 
         _operationContext.Scheduler.Complete(this);
@@ -45,26 +42,48 @@ internal sealed partial class ResolverTask
 
     private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
+        try
         {
-            _completionStatus = ExecutionTaskStatus.Faulted;
-            return false;
-        }
+            // We will precheck if the request was already canceled and mark the task as faulted if
+            // this is the case. This essentially gives us a cheap and easy way out without any
+            // exceptions.
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _completionStatus = ExecutionTaskStatus.Faulted;
+                return false;
+            }
 
-        if (Selection.Arguments.IsFinalNoErrors)
-        {
-            _resolverContext.Arguments = Selection.Arguments;
-            await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
-            return true;
-        }
+            // If the arguments are already parsed and processed we can just process. 
+            // Arguments need no pre-processing if they have no variables.
+            if (Selection.Arguments.IsFinalNoErrors)
+            {
+                _resolverContext.Arguments = Selection.Arguments;
+                await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+            }
 
-        if (Selection.Arguments.TryCoerceArguments(
-            _resolverContext,
-            out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+            // if this field has arguments that contain variables we first need to coerce them
+            // before we can start executing the resolver.
+            if (Selection.Arguments.TryCoerceArguments(
+                _resolverContext,
+                out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
+            {
+                _resolverContext.Arguments = coercedArgs;
+                await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+        }
+        catch (Exception ex)
         {
-            _resolverContext.Arguments = coercedArgs;
-            await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
-            return true;
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                // If cancellation has not been requested for the request we assume this to
+                // be a GraphQL resolver error and report it as such.
+                // This will let the error handler produce a GraphQL error and 
+                // we set the result to null. 
+                ResolverContext.ReportError(ex);
+                ResolverContext.Result = null;
+            }
         }
 
         return false;
