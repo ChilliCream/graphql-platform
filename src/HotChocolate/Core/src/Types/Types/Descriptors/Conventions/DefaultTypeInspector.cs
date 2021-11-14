@@ -13,801 +13,801 @@ using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+/// <summary>
+/// The default type inspector implementation that provides helpers to inspect .NET types and
+/// infer GraphQL type structures.
+/// </summary>
+public class DefaultTypeInspector
+    : Convention
+    , ITypeInspector
 {
-    /// <summary>
-    /// The default type inspector implementation that provides helpers to inspect .NET types and
-    /// infer GraphQL type structures.
-    /// </summary>
-    public class DefaultTypeInspector
-        : Convention
-            , ITypeInspector
+    private const string _toString = "ToString";
+    private const string _getHashCode = "GetHashCode";
+    private const string _equals = "Equals";
+    private const string _clone = "<Clone>$";
+
+    private readonly TypeCache _typeCache = new();
+    private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
+
+    public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
     {
-        private const string _toString = "ToString";
-        private const string _getHashCode = "GetHashCode";
-        private const string _equals = "Equals";
-        private const string _clone = "<Clone>$";
+        IgnoreRequiredAttribute = ignoreRequiredAttribute;
+    }
 
-        private readonly TypeCache _typeCache = new();
-        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods = new();
-        private readonly Dictionary<Type, bool> _records = new();
+    /// <summary>
+    /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
+    /// </summary>
+    public bool IgnoreRequiredAttribute { get; protected set; }
 
-        public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
+    /// <inheritdoc />
+    public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
+
+    /// <inheritdoc />
+    public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+    {
+        if (type is null)
         {
-            IgnoreRequiredAttribute = ignoreRequiredAttribute;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        /// <summary>
-        /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
-        /// </summary>
-        public bool IgnoreRequiredAttribute { get; protected set; }
+        return GetMembersInternal(type, includeIgnored);
+    }
 
-        /// <inheritdoc />
-        public virtual IEnumerable<MemberInfo> GetMembers(Type type) => GetMembers(type, false);
-
-        /// <inheritdoc />
-        public virtual IEnumerable<MemberInfo> GetMembers(Type type, bool includeIgnored)
+    /// <inheritdoc />
+    public virtual bool IsMemberIgnored(MemberInfo member)
+    {
+        if (member is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return GetMembersInternal(type, includeIgnored);
+            throw new ArgumentNullException(nameof(member));
         }
 
-        /// <inheritdoc />
-        public virtual bool IsMemberIgnored(MemberInfo member)
-        {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
+        return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+    }
 
-            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+    private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
+        type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
+            .Where(m => CanBeHandled(m, includeIgnored));
+
+    /// <inheritdoc />
+    public virtual ITypeReference GetReturnTypeRef(
+        MemberInfo member,
+        TypeContext context = TypeContext.None,
+        string? scope = null,
+        bool ignoreAttributes = false)
+    {
+        if (member is null)
+        {
+            throw new ArgumentNullException(nameof(member));
         }
 
-        private IEnumerable<MemberInfo> GetMembersInternal(Type type, bool includeIgnored) =>
-            type.GetMembers(BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => CanBeHandled(m, includeIgnored));
+        ITypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
 
-        /// <inheritdoc />
-        public virtual ITypeReference GetReturnTypeRef(
-            MemberInfo member,
-            TypeContext context = TypeContext.None,
-            string? scope = null,
-            bool ignoreAttributes = false)
+        if (!ignoreAttributes &&
+            TryGetAttribute(member, out GraphQLTypeAttribute? attribute) &&
+            attribute.TypeSyntax is not null)
         {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            ITypeReference typeRef = TypeReference.Create(GetReturnType(member), context, scope);
-
-            if (!ignoreAttributes &&
-                TryGetAttribute(member, out GraphQLTypeAttribute? attribute) &&
-                attribute.TypeSyntax is not null)
-            {
-                return TypeReference.Create(attribute.TypeSyntax, context, scope);
-            }
-
-            return typeRef;
+            return TypeReference.Create(attribute.TypeSyntax, context, scope);
         }
 
-        /// <inheritdoc />
-        public virtual IExtendedType GetReturnType(
-            MemberInfo member,
-            bool ignoreAttributes = false)
+        return typeRef;
+    }
+
+    /// <inheritdoc />
+    public virtual IExtendedType GetReturnType(
+        MemberInfo member,
+        bool ignoreAttributes = false)
+    {
+        if (member is null)
         {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
-
-            return ignoreAttributes ? returnType : ApplyTypeAttributes(returnType, member);
+            throw new ArgumentNullException(nameof(member));
         }
 
-        /// <inheritdoc />
-        public ITypeReference GetArgumentTypeRef(
-            ParameterInfo parameter,
-            string? scope = null,
-            bool ignoreAttributes = false)
+        IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
+
+        return ignoreAttributes ? returnType : ApplyTypeAttributes(returnType, member);
+    }
+
+    /// <inheritdoc />
+    public ITypeReference GetArgumentTypeRef(
+        ParameterInfo parameter,
+        string? scope = null,
+        bool ignoreAttributes = false)
+    {
+        if (parameter is null)
         {
-            if (parameter is null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-
-            ITypeReference typeRef = TypeReference.Create(
-                GetArgumentType(
-                    parameter,
-                    ignoreAttributes),
-                TypeContext.Input,
-                scope);
-
-            if (!ignoreAttributes &&
-                TryGetAttribute(parameter, out GraphQLTypeAttribute? attribute) &&
-                attribute.TypeSyntax is not null)
-            {
-                return TypeReference.Create(attribute.TypeSyntax, TypeContext.Input, scope);
-            }
-
-            return typeRef;
+            throw new ArgumentNullException(nameof(parameter));
         }
 
-        /// <inheritdoc />
-        public IExtendedType GetArgumentType(
-            ParameterInfo parameter,
-            bool ignoreAttributes = false)
-        {
-            if (parameter is null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
+        ITypeReference typeRef = TypeReference.Create(
+            GetArgumentType(
+                parameter,
+                ignoreAttributes),
+            TypeContext.Input,
+            scope);
 
-            IExtendedType argumentType = GetArgumentTypeInternal(parameter);
-            return ignoreAttributes ? argumentType : ApplyTypeAttributes(argumentType, parameter);
+        if (!ignoreAttributes &&
+            TryGetAttribute(parameter, out GraphQLTypeAttribute? attribute) &&
+            attribute.TypeSyntax is not null)
+        {
+            return TypeReference.Create(attribute.TypeSyntax, TypeContext.Input, scope);
         }
 
-        private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
+        return typeRef;
+    }
+
+    /// <inheritdoc />
+    public IExtendedType GetArgumentType(
+        ParameterInfo parameter,
+        bool ignoreAttributes = false)
+    {
+        if (parameter is null)
         {
-            MethodInfo method = (MethodInfo)parameter.Member;
-
-            if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
-            {
-                info = ExtendedType.FromMethod(method, _typeCache);
-                _methods[method] = info;
-            }
-
-            return info.ParameterTypes[parameter];
+            throw new ArgumentNullException(nameof(parameter));
         }
 
-        /// <inheritdoc />
-        public ExtendedTypeReference GetTypeRef(
-            Type type,
-            TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            TypeReference.Create(GetType(type), context, scope);
+        IExtendedType argumentType = GetArgumentTypeInternal(parameter);
+        return ignoreAttributes ? argumentType : ApplyTypeAttributes(argumentType, parameter);
+    }
 
-        /// <inheritdoc />
-        public IExtendedType GetType(Type type)
+    private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
+    {
+        MethodInfo method = (MethodInfo)parameter.Member;
+
+        if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return ExtendedType.FromType(type, _typeCache);
+            info = ExtendedType.FromMethod(method, _typeCache);
+            _methods[method] = info;
         }
 
-        /// <inheritdoc />
-        public IExtendedType GetType(Type type, params bool?[] nullable)
+        return info.ParameterTypes[parameter];
+    }
+
+    /// <inheritdoc />
+    public ExtendedTypeReference GetTypeRef(
+        Type type,
+        TypeContext context = TypeContext.None,
+        string? scope = null) =>
+        TypeReference.Create(GetType(type), context, scope);
+
+    /// <inheritdoc />
+    public IExtendedType GetType(Type type)
+    {
+        if (type is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (nullable is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
-
-            return nullable is { Length: > 0 }
-                ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
-                : extendedType;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        /// <inheritdoc />
-        public IExtendedType GetType(Type type, ReadOnlySpan<bool?> nullable)
+        return ExtendedType.FromType(type, _typeCache);
+    }
+
+    /// <inheritdoc />
+    public IExtendedType GetType(Type type, params bool?[] nullable)
+    {
+        if (type is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
-
-            return nullable is { Length: > 0 }
-                ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
-                : extendedType;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        /// <inheritdoc />
-        public virtual IEnumerable<object> GetEnumValues(Type enumType)
+        if (nullable is null)
         {
-            if (enumType is null)
-            {
-                throw new ArgumentNullException(nameof(enumType));
-            }
-
-            if (enumType != typeof(object) && enumType.IsEnum)
-            {
-                return Enum.GetValues(enumType).Cast<object>()!;
-            }
-
-            return Enumerable.Empty<object>();
+            throw new ArgumentNullException(nameof(type));
         }
 
-        /// <inheritdoc />
-        public MemberInfo? GetEnumValueMember(object value)
+        ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+
+        return nullable is { Length: > 0 }
+            ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+            : extendedType;
+    }
+
+    /// <inheritdoc />
+    public IExtendedType GetType(Type type, ReadOnlySpan<bool?> nullable)
+    {
+        if (type is null)
         {
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            Type enumType = value.GetType();
-
-            if (enumType.IsEnum)
-            {
-                return enumType.GetMember(value.ToString()!).FirstOrDefault();
-            }
-
-            return null;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public virtual MemberInfo? GetNodeIdMember(Type type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+        ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
 
-            return GetMembers(type)
-                .FirstOrDefault(
-                    member =>
-                        member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
-                        member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
-                        member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+        return nullable is { Length: > 0 }
+            ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+            : extendedType;
+    }
+
+    /// <inheritdoc />
+    public virtual IEnumerable<object> GetEnumValues(Type enumType)
+    {
+        if (enumType is null)
+        {
+            throw new ArgumentNullException(nameof(enumType));
         }
 
-        public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+        if (enumType != typeof(object) && enumType.IsEnum)
         {
-            if (nodeType == null)
-            {
-                throw new ArgumentNullException(nameof(nodeType));
-            }
+            return Enum.GetValues(enumType).Cast<object>()!;
+        }
 
-            // if we are inspecting the node type itself the method mus be static and does
-            // not need to include the node name.
-            if (resolverType is null)
-            {
-                return nodeType
-                    .GetMembers(BindingFlags.Static | BindingFlags.Public)
-                    .OfType<MethodInfo>()
-                    .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
-            }
+        return Enumerable.Empty<object>();
+    }
 
-            // if we have a resolver type on the other hand the load method must
-            // include the type name and can be an instance method.
-            // first we will check for static load methods.
-            MethodInfo? method = resolverType
+    /// <inheritdoc />
+    public MemberInfo? GetEnumValueMember(object value)
+    {
+        if (value is null)
+        {
+            throw new ArgumentNullException(nameof(value));
+        }
+
+        Type enumType = value.GetType();
+
+        if (enumType.IsEnum)
+        {
+            return enumType.GetMember(value.ToString()!).FirstOrDefault();
+        }
+
+        return null;
+    }
+
+    public virtual MemberInfo? GetNodeIdMember(Type type)
+    {
+        if (type == null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return GetMembers(type)
+            .FirstOrDefault(
+                member =>
+                    member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                    member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
+                    member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+    }
+
+    public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+    {
+        if (nodeType == null)
+        {
+            throw new ArgumentNullException(nameof(nodeType));
+        }
+
+        // if we are inspecting the node type itself the method mus be static and does
+        // not need to include the node name.
+        if (resolverType is null)
+        {
+            return nodeType
                 .GetMembers(BindingFlags.Static | BindingFlags.Public)
                 .OfType<MethodInfo>()
-                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
-
-            if (method is not null)
-            {
-                return method;
-            }
-
-            // if there is no static load method we will move on the check
-            // for instance load methods.
-            return GetMembers(resolverType)
-                .OfType<MethodInfo>()
-                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+                .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
         }
 
-        private static bool IsPossibleNodeResolver(
-            MemberInfo member,
-            Type nodeType) =>
-            member.IsDefined(typeof(NodeResolverAttribute)) ||
-            member.Name.Equals(
-                "Get",
-                StringComparison.OrdinalIgnoreCase) ||
-            member.Name.Equals(
-                "GetAsync",
-                StringComparison.OrdinalIgnoreCase) ||
-            IsPossibleExternalNodeResolver(member, nodeType);
+        // if we have a resolver type on the other hand the load method must
+        // include the type name and can be an instance method.
+        // first we will check for static load methods.
+        MethodInfo? method = resolverType
+            .GetMembers(BindingFlags.Static | BindingFlags.Public)
+            .OfType<MethodInfo>()
+            .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
 
-        private static bool IsPossibleExternalNodeResolver(
-            MemberInfo member,
-            Type nodeType) =>
-            member.IsDefined(typeof(NodeResolverAttribute)) ||
-            member.Name.Equals(
-                $"Get{nodeType.Name}",
-                StringComparison.OrdinalIgnoreCase) ||
-            member.Name.Equals(
-                $"Get{nodeType.Name}Async",
-                StringComparison.OrdinalIgnoreCase);
-
-        /// <inheritdoc />
-        public Type ExtractNamedType(Type type)
+        if (method is not null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
-            {
-                return type;
-            }
-
-            return ExtendedType.Tools.GetNamedType(type) ?? type;
+            return method;
         }
 
-        /// <inheritdoc />
-        public bool IsSchemaType(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
+        // if there is no static load method we will move on the check
+        // for instance load methods.
+        return GetMembers(resolverType)
+            .OfType<MethodInfo>()
+            .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+    }
 
-            return ExtendedType.Tools.IsSchemaType(type);
+    private static bool IsPossibleNodeResolver(
+        MemberInfo member,
+        Type nodeType) =>
+        member.IsDefined(typeof(NodeResolverAttribute)) ||
+        member.Name.Equals(
+            "Get",
+            StringComparison.OrdinalIgnoreCase) ||
+        member.Name.Equals(
+            "GetAsync",
+            StringComparison.OrdinalIgnoreCase) ||
+        IsPossibleExternalNodeResolver(member, nodeType);
+
+    private static bool IsPossibleExternalNodeResolver(
+        MemberInfo member,
+        Type nodeType) =>
+        member.IsDefined(typeof(NodeResolverAttribute)) ||
+        member.Name.Equals(
+            $"Get{nodeType.Name}",
+            StringComparison.OrdinalIgnoreCase) ||
+        member.Name.Equals(
+            $"Get{nodeType.Name}Async",
+            StringComparison.OrdinalIgnoreCase);
+
+    /// <inheritdoc />
+    public Type ExtractNamedType(Type type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
         }
 
-        /// <inheritdoc />
-        public void ApplyAttributes(
-            IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider attributeProvider)
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
         {
-            foreach (var attr in GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
-            {
-                attr.TryConfigure(context, descriptor, attributeProvider);
-            }
+            return type;
         }
 
-        /// <inheritdoc />
-        public virtual bool TryGetDefaultValue(ParameterInfo parameter, out object? defaultValue)
+        return ExtendedType.Tools.GetNamedType(type) ?? type;
+    }
+
+    /// <inheritdoc />
+    public bool IsSchemaType(Type type)
+    {
+        if (type is null)
         {
-            if (parameter.IsDefined(typeof(CompDefaultValueAttribute)))
-            {
-                defaultValue = parameter.GetCustomAttribute<CompDefaultValueAttribute>()!.Value;
-                return true;
-            }
+            throw new ArgumentNullException(nameof(type));
+        }
 
-            if (parameter.HasDefaultValue)
-            {
-                defaultValue = parameter.DefaultValue;
-                return true;
-            }
+        return ExtendedType.Tools.IsSchemaType(type);
+    }
 
-            defaultValue = null;
+    /// <inheritdoc />
+    public void ApplyAttributes(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider attributeProvider)
+    {
+        foreach (DescriptorAttribute attr in
+            GetCustomAttributes<DescriptorAttribute>(attributeProvider, true)
+                .OrderBy(t => t.Order))
+        {
+            attr.TryConfigure(context, descriptor, attributeProvider);
+        }
+    }
+
+    /// <inheritdoc />
+    public virtual bool TryGetDefaultValue(ParameterInfo parameter, out object? defaultValue)
+    {
+        if (parameter.IsDefined(typeof(CompDefaultValueAttribute)))
+        {
+            defaultValue = parameter.GetCustomAttribute<CompDefaultValueAttribute>()!.Value;
+            return true;
+        }
+
+        if (parameter.HasDefaultValue)
+        {
+            defaultValue = parameter.DefaultValue;
+            return true;
+        }
+
+        defaultValue = null;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public virtual bool TryGetDefaultValue(PropertyInfo property, out object? defaultValue)
+    {
+        if (TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
+        {
+            defaultValue = attribute.Value;
+            return true;
+        }
+
+        if (TryGetDefaultValueFromConstructor(property, out defaultValue))
+        {
+            return true;
+        }
+
+        defaultValue = null;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (nullable is null)
+        {
+            throw new ArgumentNullException(nameof(nullable));
+        }
+
+        if (nullable.Length > 32)
+        {
+            throw new ArgumentException(
+                "Types with more than 32 components are not supported.");
+        }
+
+        if (nullable.Length == 0)
+        {
+            return type;
+        }
+
+        return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
+    }
+
+    private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (nullable is null)
+        {
+            throw new ArgumentNullException(nameof(nullable));
+        }
+
+        if (nullable.Length > 32)
+        {
+            throw new ArgumentException(
+                "Types with more than 32 components are not supported.");
+        }
+
+        if (nullable.Length == 0)
+        {
+            return type;
+        }
+
+        Span<bool?> n = stackalloc bool?[nullable.Length];
+
+        for (var i = 0; i < n.Length; i++)
+        {
+            n[i] = nullable[i];
+        }
+
+        return ExtendedType.Tools.ChangeNullability(type, n, _typeCache);
+    }
+
+    /// <inheritdoc />
+    public IExtendedType ChangeNullability(IExtendedType type, ReadOnlySpan<bool?> nullable)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        if (nullable.Length > 32)
+        {
+            throw new ArgumentException(
+                "Types with more than 32 components are not supported.");
+        }
+
+        if (nullable.Length == 0)
+        {
+            return type;
+        }
+
+        return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
+    }
+
+    /// <inheritdoc />
+    public bool?[] CollectNullability(IExtendedType type)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return ExtendedType.Tools.CollectNullability(type);
+    }
+
+    /// <inheritdoc />
+    public bool CollectNullability(IExtendedType type, Span<bool?> buffer, out int written)
+    {
+        if (type is null)
+        {
+            throw new ArgumentNullException(nameof(type));
+        }
+
+        return ExtendedType.Tools.CollectNullability(type, buffer, out written);
+    }
+
+    /// <inheritdoc />
+    public ITypeInfo CreateTypeInfo(Type type) =>
+        TypeInfo.Create(GetType(type), _typeCache);
+
+    /// <inheritdoc />
+    public ITypeInfo CreateTypeInfo(IExtendedType type) =>
+        TypeInfo.Create(type, _typeCache);
+
+    /// <inheritdoc />
+    public ITypeFactory CreateTypeFactory(IExtendedType type) =>
+        TypeInfo.Create(type, _typeCache);
+
+    /// <inheritdoc />
+    public bool TryCreateTypeInfo(
+        Type type,
+        [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
+        TryCreateTypeInfo(GetType(type), out typeInfo);
+
+    /// <inheritdoc />
+    public bool TryCreateTypeInfo(
+        IExtendedType type,
+        [NotNullWhen(true)] out ITypeInfo? typeInfo)
+    {
+        if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
+        {
+            typeInfo = t;
+            return true;
+        }
+
+        typeInfo = null;
+        return false;
+    }
+
+    private IExtendedType ApplyTypeAttributes(
+        IExtendedType type,
+        ICustomAttributeProvider attributeProvider)
+    {
+        IExtendedType resultType = type;
+
+        bool hasGraphQLTypeAttribute = false;
+
+        if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
+            typeAttribute.Type is { } attributeType)
+        {
+            hasGraphQLTypeAttribute = true;
+            resultType = GetType(attributeType);
+        }
+
+        if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
+        {
+            resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
+        }
+
+        if (!IgnoreRequiredAttribute &&
+            !hasGraphQLTypeAttribute &&
+            TryGetAttribute(attributeProvider, out RequiredAttribute? _))
+        {
+            resultType = ChangeNullability(resultType, false);
+        }
+
+        return resultType;
+    }
+
+    private bool TryGetAttribute<T>(
+        ICustomAttributeProvider attributeProvider,
+        [NotNullWhen(true)] out T? attribute)
+        where T : Attribute
+    {
+        if (attributeProvider.IsDefined(typeof(T), true))
+        {
+            attribute = attributeProvider
+                .GetCustomAttributes(typeof(T), true)
+                .OfType<T>()
+                .First();
+            return true;
+        }
+
+        attribute = null;
+        return false;
+    }
+
+    private bool CanBeHandled(MemberInfo member, bool includeIgnored)
+    {
+        if (IsSystemMember(member))
+        {
             return false;
         }
 
-        /// <inheritdoc />
-        public virtual bool TryGetDefaultValue(PropertyInfo property, out object? defaultValue)
+        if (!includeIgnored && IsMemberIgnored(member))
         {
-            if (TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
-            {
-                defaultValue = attribute.Value;
-                return true;
-            }
-
-            if (TryGetDefaultValueFromConstructor(property, out defaultValue))
-            {
-                return true;
-            }
-
-            defaultValue = null;
             return false;
         }
 
-        /// <inheritdoc />
-        public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
+        if (member.DeclaringType == typeof(object))
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (nullable is null)
-            {
-                throw new ArgumentNullException(nameof(nullable));
-            }
-
-            if (nullable.Length > 32)
-            {
-                throw new ArgumentException(
-                    "Types with more than 32 components are not supported.");
-            }
-
-            if (nullable.Length == 0)
-            {
-                return type;
-            }
-
-            return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
-        }
-
-        private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (nullable is null)
-            {
-                throw new ArgumentNullException(nameof(nullable));
-            }
-
-            if (nullable.Length > 32)
-            {
-                throw new ArgumentException(
-                    "Types with more than 32 components are not supported.");
-            }
-
-            if (nullable.Length == 0)
-            {
-                return type;
-            }
-
-            Span<bool?> n = stackalloc bool?[nullable.Length];
-
-            for (var i = 0; i < n.Length; i++)
-            {
-                n[i] = nullable[i];
-            }
-
-            return ExtendedType.Tools.ChangeNullability(type, n, _typeCache);
-        }
-
-        /// <inheritdoc />
-        public IExtendedType ChangeNullability(IExtendedType type, ReadOnlySpan<bool?> nullable)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (nullable.Length > 32)
-            {
-                throw new ArgumentException(
-                    "Types with more than 32 components are not supported.");
-            }
-
-            if (nullable.Length == 0)
-            {
-                return type;
-            }
-
-            return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
-        }
-
-        /// <inheritdoc />
-        public bool?[] CollectNullability(IExtendedType type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return ExtendedType.Tools.CollectNullability(type);
-        }
-
-        /// <inheritdoc />
-        public bool CollectNullability(IExtendedType type, Span<bool?> buffer, out int written)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return ExtendedType.Tools.CollectNullability(type, buffer, out written);
-        }
-
-        /// <inheritdoc />
-        public ITypeInfo CreateTypeInfo(Type type) =>
-            TypeInfo.Create(GetType(type), _typeCache);
-
-        /// <inheritdoc />
-        public ITypeInfo CreateTypeInfo(IExtendedType type) =>
-            TypeInfo.Create(type, _typeCache);
-
-        /// <inheritdoc />
-        public ITypeFactory CreateTypeFactory(IExtendedType type) =>
-            TypeInfo.Create(type, _typeCache);
-
-        /// <inheritdoc />
-        public bool TryCreateTypeInfo(
-            Type type,
-            [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
-            TryCreateTypeInfo(GetType(type), out typeInfo);
-
-        /// <inheritdoc />
-        public bool TryCreateTypeInfo(
-            IExtendedType type,
-            [NotNullWhen(true)] out ITypeInfo? typeInfo)
-        {
-            if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
-            {
-                typeInfo = t;
-                return true;
-            }
-
-            typeInfo = null;
             return false;
         }
 
-        private IExtendedType ApplyTypeAttributes(
-            IExtendedType type,
-            ICustomAttributeProvider attributeProvider)
+        if (member is PropertyInfo { CanRead: false } ||
+            member is PropertyInfo { IsSpecialName: true } ||
+            member is MethodInfo { IsSpecialName: true })
         {
-            IExtendedType resultType = type;
-
-            bool hasGraphQLTypeAttribute = false;
-
-            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute) &&
-                typeAttribute.Type is { } attributeType)
-            {
-                hasGraphQLTypeAttribute = true;
-                resultType = GetType(attributeType);
-            }
-
-            if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
-            {
-                resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
-            }
-
-            if (!IgnoreRequiredAttribute &&
-                !hasGraphQLTypeAttribute &&
-                TryGetAttribute(attributeProvider, out RequiredAttribute? _))
-            {
-                resultType = ChangeNullability(resultType, false);
-            }
-
-            return resultType;
-        }
-
-        private bool TryGetAttribute<T>(
-            ICustomAttributeProvider attributeProvider,
-            [NotNullWhen(true)] out T? attribute)
-            where T : Attribute
-        {
-            if (attributeProvider.IsDefined(typeof(T), true))
-            {
-                attribute = attributeProvider
-                    .GetCustomAttributes(typeof(T), true)
-                    .OfType<T>()
-                    .First();
-                return true;
-            }
-
-            attribute = null;
             return false;
         }
 
-        private bool CanBeHandled(MemberInfo member, bool includeIgnored)
+        if (member is PropertyInfo property)
         {
-            if (IsSystemMember(member))
-            {
-                return false;
-            }
+            return CanHandleReturnType(member, property.PropertyType) &&
+                   property.GetIndexParameters().Length == 0;
+        }
 
-            if (!includeIgnored && IsMemberIgnored(member))
-            {
-                return false;
-            }
+        if (member is MethodInfo method &&
+            CanHandleReturnType(member, method.ReturnType) &&
+            method.GetParameters().All(CanHandleParameter))
+        {
+            return true;
+        }
 
-            if (member.DeclaringType == typeof(object))
-            {
-                return false;
-            }
+        return false;
+    }
 
-            if (member is PropertyInfo { CanRead: false } ||
-                member is PropertyInfo { IsSpecialName: true } ||
-                member is MethodInfo { IsSpecialName: true })
-            {
-                return false;
-            }
-
-            if (member is PropertyInfo property)
-            {
-                return CanHandleReturnType(member, property.PropertyType) &&
-                       property.GetIndexParameters().Length == 0;
-            }
-
-            if (member is MethodInfo method &&
-                CanHandleReturnType(member, method.ReturnType) &&
-                method.GetParameters().All(CanHandleParameter))
-            {
-                return true;
-            }
-
+    private static bool CanHandleReturnType(MemberInfo member, Type returnType)
+    {
+        if (returnType == typeof(void) ||
+            returnType == typeof(Task) ||
+            returnType == typeof(ValueTask))
+        {
             return false;
         }
 
-        private static bool CanHandleReturnType(MemberInfo member, Type returnType)
+        if (returnType == typeof(object) ||
+            returnType == typeof(Task<object>) ||
+            returnType == typeof(ValueTask<object>))
         {
-            if (returnType == typeof(void) ||
-                returnType == typeof(Task) ||
-                returnType == typeof(ValueTask))
-            {
-                return false;
-            }
+            return HasConfiguration(member);
+        }
 
-            if (returnType == typeof(object) ||
-                returnType == typeof(Task<object>) ||
-                returnType == typeof(ValueTask<object>))
+        if (typeof(IAsyncResult).IsAssignableFrom(returnType))
+        {
+            if (returnType.IsGenericType)
             {
-                return HasConfiguration(member);
-            }
+                Type returnTypeDefinition = returnType.GetGenericTypeDefinition();
 
-            if (typeof(IAsyncResult).IsAssignableFrom(returnType))
-            {
-                if (returnType.IsGenericType)
+                if (returnTypeDefinition == typeof(ValueTask<>) ||
+                    returnTypeDefinition == typeof(Task<>))
                 {
-                    Type returnTypeDefinition = returnType.GetGenericTypeDefinition();
-
-                    if (returnTypeDefinition == typeof(ValueTask<>) ||
-                        returnTypeDefinition == typeof(Task<>))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
             }
 
-            // All other types may cause errors and need to have an explicit configuration.
-            if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
-            {
-                return HasConfiguration(member);
-            }
+            return false;
+        }
 
-            // reflection types should also be excluded by default.
-            if (typeof(ICustomAttributeProvider).IsAssignableFrom(returnType))
-            {
-                return HasConfiguration(member);
-            }
+        // All other types may cause errors and need to have an explicit configuration.
+        if (typeof(ITypeSystemMember).IsAssignableFrom(returnType))
+        {
+            return HasConfiguration(member);
+        }
+
+        // reflection types should also be excluded by default.
+        if (typeof(ICustomAttributeProvider).IsAssignableFrom(returnType))
+        {
+            return HasConfiguration(member);
+        }
 
 #if NETSTANDARD2_0
             if (returnType.IsByRef)
 
 #else
-            if (returnType.IsByRefLike ||
-                returnType.IsByRef)
+        if (returnType.IsByRefLike ||
+            returnType.IsByRef)
 #endif
-            {
-                return false;
-            }
+        {
+            return false;
+        }
 
-            if (typeof(Delegate).IsAssignableFrom(returnType))
-            {
-                return HasConfiguration(member);
-            }
+        if (typeof(Delegate).IsAssignableFrom(returnType))
+        {
+            return HasConfiguration(member);
+        }
 
+        return true;
+    }
+
+    private static bool CanHandleParameter(ParameterInfo parameter)
+    {
+        // schema, object type and object field can be injected into a resolver, so
+        // we allow these as parameter type.
+        if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType) ||
+            typeof(IObjectType).IsAssignableFrom(parameter.ParameterType) ||
+            typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
+        {
             return true;
         }
 
-        private static bool CanHandleParameter(ParameterInfo parameter)
+        // All other types may cause errors and need to have an explicit configuration.
+        if (typeof(ITypeSystemMember).IsAssignableFrom(parameter.ParameterType) ||
+            parameter.ParameterType == typeof(object))
         {
-            // schema, object type and object field can be injected into a resolver, so
-            // we allow these as parameter type.
-            if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType) ||
-                typeof(IObjectType).IsAssignableFrom(parameter.ParameterType) ||
-                typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
-            {
-                return true;
-            }
+            return HasConfiguration(parameter);
+        }
 
-            // All other types may cause errors and need to have an explicit configuration.
-            if (typeof(ITypeSystemMember).IsAssignableFrom(parameter.ParameterType) ||
-                parameter.ParameterType == typeof(object))
-            {
-                return HasConfiguration(parameter);
-            }
+        // Async results are not allowed.
+        if (parameter.ParameterType == typeof(ValueTask) ||
+            parameter.ParameterType == typeof(Task) ||
+            typeof(IAsyncResult).IsAssignableFrom(parameter.ParameterType))
+        {
+            return false;
+        }
 
-            // Async results are not allowed.
-            if (parameter.ParameterType == typeof(ValueTask) ||
-                parameter.ParameterType == typeof(Task) ||
-                typeof(IAsyncResult).IsAssignableFrom(parameter.ParameterType))
+        if (parameter.ParameterType.IsGenericType)
+        {
+            Type parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
+
+            if (parameterTypeDefinition == typeof(ValueTask<>) ||
+                parameterTypeDefinition == typeof(Task<>))
             {
                 return false;
             }
+        }
 
-            if (parameter.ParameterType.IsGenericType)
-            {
-                Type parameterTypeDefinition = parameter.ParameterType.GetGenericTypeDefinition();
+        // reflection types should also be excluded by default.
+        if (typeof(ICustomAttributeProvider).IsAssignableFrom(parameter.ParameterType))
+        {
+            return HasConfiguration(parameter);
+        }
 
-                if (parameterTypeDefinition == typeof(ValueTask<>) ||
-                    parameterTypeDefinition == typeof(Task<>))
-                {
-                    return false;
-                }
-            }
-
-            // reflection types should also be excluded by default.
-            if (typeof(ICustomAttributeProvider).IsAssignableFrom(parameter.ParameterType))
-            {
-                return HasConfiguration(parameter);
-            }
-
-            // by ref and out will never be allowed
-            if (parameter.ParameterType.IsByRef ||
+        // by ref and out will never be allowed
+        if (parameter.ParameterType.IsByRef ||
 #if !NETSTANDARD2_0
                 parameter.ParameterType.IsByRefLike ||
 #endif
                 parameter.IsOut)
-            {
-                return false;
-            }
-
-            if (typeof(Delegate).IsAssignableFrom(parameter.ParameterType))
-            {
-                return HasConfiguration(parameter);
-            }
-
-            return true;
-        }
-
-        private static bool HasConfiguration(ICustomAttributeProvider element)
-            => element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
-               element.IsDefined(typeof(ParentAttribute), true) ||
-               element.IsDefined(typeof(ServiceAttribute), true) ||
-               element.IsDefined(typeof(GlobalStateAttribute), true) ||
-               element.IsDefined(typeof(ScopedServiceAttribute), true) ||
-               element.IsDefined(typeof(ScopedStateAttribute), true) ||
-               element.IsDefined(typeof(LocalStateAttribute), true) ||
-               element.IsDefined(typeof(DescriptorAttribute), true);
-
-        private static bool IsSystemMember(MemberInfo member)
         {
-            return IsCloneMember(member) ||
-                   IsToString(member) ||
-                   IsGetHashCode(member) ||
-                   IsEquals(member);
-        }
-
-        private static bool IsToString(MemberInfo member)
-            => member is MethodInfo { Name: _toString };
-
-        private static bool IsGetHashCode(MemberInfo member)
-            => member is MethodInfo { Name: _getHashCode } m &&
-               m.GetParameters().Length == 0;
-
-        private static bool IsEquals(MemberInfo member)
-            => member is MethodInfo { Name: _equals };
-
-        private static bool IsCloneMember(MemberInfo member) =>
-            member.Name.EqualsOrdinal(_clone);
-
-        private IEnumerable<T> GetCustomAttributes<T>(
-            ICustomAttributeProvider attributeProvider,
-            bool inherit)
-            where T : Attribute
-            => attributeProvider.GetCustomAttributes(inherit).OfType<T>();
-
-        private bool TryGetDefaultValueFromConstructor(
-            PropertyInfo property,
-            out object? defaultValue)
-        {
-            defaultValue = null;
-            ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        return TryGetDefaultValue(parameter, out defaultValue);
-                    }
-                }
-            }
-
             return false;
         }
+
+        if (typeof(Delegate).IsAssignableFrom(parameter.ParameterType))
+        {
+            return HasConfiguration(parameter);
+        }
+
+        return true;
+    }
+
+    private static bool HasConfiguration(ICustomAttributeProvider element)
+        => element.IsDefined(typeof(GraphQLTypeAttribute), true) ||
+           element.IsDefined(typeof(ParentAttribute), true) ||
+           element.IsDefined(typeof(ServiceAttribute), true) ||
+           element.IsDefined(typeof(GlobalStateAttribute), true) ||
+           element.IsDefined(typeof(ScopedServiceAttribute), true) ||
+           element.IsDefined(typeof(ScopedStateAttribute), true) ||
+           element.IsDefined(typeof(LocalStateAttribute), true) ||
+           element.IsDefined(typeof(DescriptorAttribute), true);
+
+    private static bool IsSystemMember(MemberInfo member)
+    {
+        return IsCloneMember(member) ||
+               IsToString(member) ||
+               IsGetHashCode(member) ||
+               IsEquals(member);
+    }
+
+    private static bool IsToString(MemberInfo member)
+        => member is MethodInfo { Name: _toString };
+
+    private static bool IsGetHashCode(MemberInfo member)
+        => member is MethodInfo { Name: _getHashCode } m &&
+           m.GetParameters().Length == 0;
+
+    private static bool IsEquals(MemberInfo member)
+        => member is MethodInfo { Name: _equals };
+
+    private static bool IsCloneMember(MemberInfo member) =>
+        member.Name.EqualsOrdinal(_clone);
+
+    private IEnumerable<T> GetCustomAttributes<T>(
+        ICustomAttributeProvider attributeProvider,
+        bool inherit)
+        where T : Attribute
+        => attributeProvider.GetCustomAttributes(inherit).OfType<T>();
+
+    private bool TryGetDefaultValueFromConstructor(
+        PropertyInfo property,
+        out object? defaultValue)
+    {
+        defaultValue = null;
+        ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+
+        if (constructors.Length == 1)
+        {
+            foreach (ParameterInfo parameter in constructors[0].GetParameters())
+            {
+                if (parameter.Name.EqualsOrdinal(property.Name))
+                {
+                    return TryGetDefaultValue(parameter, out defaultValue);
+                }
+            }
+        }
+
+        return false;
     }
 }

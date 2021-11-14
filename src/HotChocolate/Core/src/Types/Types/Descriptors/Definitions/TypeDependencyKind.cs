@@ -1,23 +1,22 @@
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// Defines when the type dependency has to be fulfilled.
+/// </summary>
+public enum TypeDependencyKind
 {
     /// <summary>
-    /// Defines when the type dependency has to be fulfilled.
+    /// The dependency instance does not need to be completed.
     /// </summary>
-    public enum TypeDependencyKind
-    {
-        /// <summary>
-        /// The dependency instance does not need to be completed.
-        /// </summary>
-        Default,
+    Default,
 
-        /// <summary>
-        /// The dependency instance needs to have it`s name completed.
-        /// </summary>
-        Named,
+    /// <summary>
+    /// The dependency instance needs to have it`s name completed.
+    /// </summary>
+    Named,
 
-        /// <summary>
-        /// The dependency instance needs to be fully completed.
-        /// </summary>
-        Completed
-    }
+    /// <summary>
+    /// The dependency instance needs to be fully completed.
+    /// </summary>
+    Completed
 }

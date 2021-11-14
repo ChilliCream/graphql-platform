@@ -5,99 +5,98 @@ using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public class InterfaceTypeDefinition
+    : TypeDefinitionBase<InterfaceTypeDefinitionNode>
+    , IComplexOutputTypeDefinition
 {
-    public class InterfaceTypeDefinition
-        : TypeDefinitionBase<InterfaceTypeDefinitionNode>
-        , IComplexOutputTypeDefinition
+    private List<Type>? _knownClrTypes;
+    private List<ITypeReference>? _interfaces;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// </summary>
+    public InterfaceTypeDefinition() { }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
+    /// </summary>
+    public InterfaceTypeDefinition(
+        NameString name,
+        string? description = null,
+        Type? runtimeType = null)
+        : base(runtimeType ?? typeof(object))
     {
-        private List<Type>? _knownClrTypes;
-        private List<ITypeReference>? _interfaces;
+        Name = name;
+        Description = description;
+    }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
-        /// </summary>
-        public InterfaceTypeDefinition() { }
+    public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= new List<Type>();
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="ObjectTypeDefinition"/>.
-        /// </summary>
-        public InterfaceTypeDefinition(
-            NameString name,
-            string? description = null,
-            Type? runtimeType = null)
-            : base(runtimeType ?? typeof(object))
+    public ResolveAbstractType? ResolveAbstractType { get; set; }
+
+    public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
+
+    /// <summary>
+    /// Specifies if this definition has interfaces.
+    /// </summary>
+    public bool HasInterfaces => _interfaces is { Count: > 0 };
+
+    public IBindableList<InterfaceFieldDefinition> Fields { get; } =
+        new BindableList<InterfaceFieldDefinition>();
+
+    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    {
+        List<ITypeSystemMemberConfiguration>? configs = null;
+
+        if (HasConfigurations)
         {
-            Name = name;
-            Description = description;
+            configs ??= new();
+            configs.AddRange(Configurations);
         }
 
-        public IList<Type> KnownRuntimeTypes => _knownClrTypes ??= new List<Type>();
-
-        public ResolveAbstractType? ResolveAbstractType { get; set; }
-
-        public IList<ITypeReference> Interfaces => _interfaces ??= new List<ITypeReference>();
-
-        /// <summary>
-        /// Specifies if this definition has interfaces.
-        /// </summary>
-        public bool HasInterfaces => _interfaces is { Count: > 0 };
-
-        public IBindableList<InterfaceFieldDefinition> Fields { get; } =
-            new BindableList<InterfaceFieldDefinition>();
-
-        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+        foreach (InterfaceFieldDefinition field in Fields)
         {
-            List<ITypeSystemMemberConfiguration>? configs = null;
-
-            if (HasConfigurations)
+            if (field.HasConfigurations)
             {
                 configs ??= new();
-                configs.AddRange(Configurations);
+                configs.AddRange(field.Configurations);
             }
 
-            foreach (InterfaceFieldDefinition field in Fields)
+            if (field.HasArguments)
             {
-                if (field.HasConfigurations)
+                foreach (ArgumentDefinition argument in field.Arguments)
                 {
-                    configs ??= new();
-                    configs.AddRange(field.Configurations);
-                }
-
-                if (field.HasArguments)
-                {
-                    foreach (ArgumentDefinition argument in field.Arguments)
+                    if (argument.HasConfigurations)
                     {
-                        if (argument.HasConfigurations)
-                        {
-                            configs ??= new();
-                            configs.AddRange(argument.Configurations);
-                        }
+                        configs ??= new();
+                        configs.AddRange(argument.Configurations);
                     }
                 }
             }
-
-            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
 
-        internal IReadOnlyList<Type> GetKnownClrTypes()
+        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
+    }
+
+    internal IReadOnlyList<Type> GetKnownClrTypes()
+    {
+        if (_knownClrTypes is null)
         {
-            if (_knownClrTypes is null)
-            {
-                return Array.Empty<Type>();
-            }
-
-            return _knownClrTypes;
+            return Array.Empty<Type>();
         }
 
-        internal IReadOnlyList<ITypeReference> GetInterfaces()
+        return _knownClrTypes;
+    }
+
+    internal IReadOnlyList<ITypeReference> GetInterfaces()
+    {
+        if (_interfaces is null)
         {
-            if (_interfaces is null)
-            {
-                return Array.Empty<ITypeReference>();
-            }
-
-            return _interfaces;
+            return Array.Empty<ITypeReference>();
         }
+
+        return _interfaces;
     }
 }

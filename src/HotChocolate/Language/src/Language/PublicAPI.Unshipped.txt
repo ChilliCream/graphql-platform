@@ -1,3 +1,0 @@
-static HotChocolate.Language.ListExtensions.PeekOrDefault<T>(this System.Collections.Generic.IList<T>! list, T? defaultValue = default(T?)) -> T?
-static HotChocolate.Language.ListExtensions.TryPeek<T>(this System.Collections.Generic.IList<T>! list, int elements, out T item) -> bool
-*REMOVED*static HotChocolate.Language.ListExtensions.PeekOrDefault<T>(this System.Collections.Generic.IList<T>! list, T defaultValue = default(T)) -> T

@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Test
+namespace HotChocolate.Data
 {
     public class TypeValidationTests
     {
@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Test
         {
             void Action() =>
                 SchemaBuilder.New()
-                    .AddQueryType<InvalidMiddlewarePipeline1>()
+                    .AddQueryType<InvalidMiddlewarePipeline2>()
                     .AddProjections()
                     .AddFiltering()
                     .AddSorting()
@@ -46,7 +46,27 @@ namespace HotChocolate.Data.Test
             Assert.Collection(
                 exception.Errors,
                 error => Assert.Equal("HC0050", error.Code));
-            
+
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void UseOrderProperty()
+        {
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddQueryType<InvalidMiddlewarePipeline3>()
+                    .AddProjections()
+                    .AddFiltering()
+                    .AddSorting()
+                    .Create();
+
+            SchemaException exception = Assert.Throws<SchemaException>(Action);
+
+            Assert.Collection(
+                exception.Errors,
+                error => Assert.Equal("HC0050", error.Code));
+
             exception.Message.MatchSnapshot();
         }
 
@@ -75,6 +95,14 @@ namespace HotChocolate.Data.Test
             [UsePaging]
             [UseFiltering]
             [UseProjection]
+            public IEnumerable<string> GetBars() => throw new NotImplementedException();
+        }
+
+        public class InvalidMiddlewarePipeline3
+        {
+            [UsePaging(Order = 1)]
+            [UseProjection(Order = 0)]
+            [UseFiltering(Order = 15)]
             public IEnumerable<string> GetBars() => throw new NotImplementedException();
         }
 

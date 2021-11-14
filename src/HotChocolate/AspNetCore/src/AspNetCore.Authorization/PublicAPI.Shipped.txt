@@ -23,14 +23,12 @@ HotChocolate.AspNetCore.Authorization.AuthorizeDirective.Roles.get -> System.Col
 HotChocolate.AspNetCore.Authorization.AuthorizeDirectiveType
 HotChocolate.AspNetCore.Authorization.AuthorizeDirectiveType.AuthorizeDirectiveType() -> void
 HotChocolate.AuthorizeSchemaBuilderExtensions
-HotChocolate.AuthorizeSchemaConfigurationExtensions
 HotChocolate.Types.AuthorizeObjectFieldDescriptorExtensions
 HotChocolate.Types.AuthorizeObjectTypeDescriptorExtensions
 HotChocolate.Types.AuthorizeSchemaTypeDescriptorExtensions
 Microsoft.Extensions.DependencyInjection.HotChocolateAuthorizeRequestExecutorBuilder
 override HotChocolate.AspNetCore.Authorization.AuthorizeAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
 static HotChocolate.AuthorizeSchemaBuilderExtensions.AddAuthorizeDirectiveType(this HotChocolate.ISchemaBuilder! builder) -> HotChocolate.ISchemaBuilder!
-static HotChocolate.AuthorizeSchemaConfigurationExtensions.RegisterAuthorizeDirectiveType(this HotChocolate.Configuration.ISchemaConfiguration! configuration) -> void
 static HotChocolate.Types.AuthorizeObjectFieldDescriptorExtensions.Authorize(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, HotChocolate.AspNetCore.Authorization.ApplyPolicy apply = HotChocolate.AspNetCore.Authorization.ApplyPolicy.BeforeResolver) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.AuthorizeObjectFieldDescriptorExtensions.Authorize(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, params string![]! roles) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.AuthorizeObjectFieldDescriptorExtensions.Authorize(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, string! policy, HotChocolate.AspNetCore.Authorization.ApplyPolicy apply = HotChocolate.AspNetCore.Authorization.ApplyPolicy.BeforeResolver) -> HotChocolate.Types.IObjectFieldDescriptor!

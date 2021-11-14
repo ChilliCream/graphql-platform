@@ -2,7 +2,7 @@
 title: "Input Object Types"
 ---
 
-import { ExampleTabs } from "../../../components/mdx/example-tabs"
+import { ExampleTabs } from "../../../../components/mdx/example-tabs"
 
 We already looked at [arguments](/docs/hotchocolate/v11/defining-a-schema/arguments), which allow us to use simple [scalars](/docs/hotchocolate/v11/defining-a-schema/scalars) like `String` to pass data into a field. GraphQL defines input object types to allow us to use objects as arguments on our fields.
 

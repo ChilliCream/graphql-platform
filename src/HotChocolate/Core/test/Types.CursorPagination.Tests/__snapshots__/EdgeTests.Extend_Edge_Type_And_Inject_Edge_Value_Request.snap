@@ -1,0 +1,11 @@
+﻿{
+  "data": {
+    "users": {
+      "edges": [
+        {
+          "test": "Hello"
+        }
+      ]
+    }
+  }
+}

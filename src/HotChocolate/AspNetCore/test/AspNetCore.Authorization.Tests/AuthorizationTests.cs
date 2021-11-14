@@ -14,8 +14,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public class AuthorizationTests
-        : ServerTestBase
+    public class AuthorizationTests : ServerTestBase
     {
         public AuthorizationTests(TestServerFactory serverFactory)
             : base(serverFactory)
@@ -612,7 +611,7 @@ namespace HotChocolate.AspNetCore.Authorization
                         .AddGraphQLServer()
                         .AddHttpRequestInterceptor(
                             (context, requestExecutor, requestBuilder, cancellationToken) =>
-                            {  
+                            {
                                 configureUser(context);
                                 return default;
                             }));

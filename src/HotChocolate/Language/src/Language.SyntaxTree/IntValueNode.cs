@@ -15,6 +15,7 @@ namespace HotChocolate.Language
         private ReadOnlyMemory<byte> _memory;
         private string? _stringValue;
         private byte? _byteValue;
+        private sbyte? _sbyteValue;
         private short? _shortValue;
         private int? _intValue;
         private long? _longValue;
@@ -68,6 +69,23 @@ namespace HotChocolate.Language
         {
             Location = location;
             _longValue = value;
+        }
+
+        public IntValueNode(sbyte value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, sbyte value)
+        {
+            Location = location;
+            _sbyteValue = value;
+
+            Span<byte> buffer = stackalloc byte[32];
+            Utf8Formatter.TryFormat(value, buffer, out int written);
+            var memory = new Memory<byte>(new byte[written]);
+            buffer.Slice(0, written).CopyTo(memory.Span);
+            _memory = memory;
         }
 
         public IntValueNode(ushort value)
@@ -358,6 +376,22 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
+        public sbyte ToSByte()
+        {
+            if (_sbyteValue.HasValue)
+            {
+                return _sbyteValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out sbyte value, out _))
+            {
+                _sbyteValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
         public ushort ToUInt16()
         {
             if (_uShortValue.HasValue)
@@ -456,28 +490,34 @@ namespace HotChocolate.Language
 
         public ReadOnlySpan<byte> AsSpan()
         {
-            if (_memory.IsEmpty)
+            if (!_memory.IsEmpty)
             {
-                Span<byte> buffer = stackalloc byte[32];
-                var written = 0;
-
-                if (_shortValue.HasValue)
-                {
-                    Utf8Formatter.TryFormat(_shortValue.Value, buffer, out written);
-                }
-                else if (_intValue.HasValue)
-                {
-                    Utf8Formatter.TryFormat(_intValue.Value, buffer, out written);
-                }
-                else
-                {
-                    Utf8Formatter.TryFormat(_longValue!.Value, buffer, out written);
-                }
-
-                var memory = new Memory<byte>(new byte[written]);
-                buffer.Slice(0, written).CopyTo(memory.Span);
-                _memory = memory;
+                return _memory.Span;
             }
+
+            Span<byte> buffer = stackalloc byte[32];
+            var written = 0;
+
+            if (_shortValue.HasValue)
+            {
+                Utf8Formatter.TryFormat(_shortValue.Value, buffer, out written);
+            }
+            else if (_intValue.HasValue)
+            {
+                Utf8Formatter.TryFormat(_intValue.Value, buffer, out written);
+            }
+            else if (_sbyteValue.HasValue)
+            {
+                Utf8Formatter.TryFormat(_sbyteValue.Value, buffer, out written);
+            }
+            else
+            {
+                Utf8Formatter.TryFormat(_longValue!.Value, buffer, out written);
+            }
+
+            var memory = new Memory<byte>(new byte[written]);
+            buffer.Slice(0, written).CopyTo(memory.Span);
+            _memory = memory;
 
             return _memory.Span;
         }
@@ -490,11 +530,17 @@ namespace HotChocolate.Language
                 _shortValue = _shortValue,
                 _intValue = _intValue,
                 _longValue = _longValue,
+                _sbyteValue = _sbyteValue,
                 _memory = _memory
             };
         }
 
         public IntValueNode WithValue(byte value)
+        {
+            return new IntValueNode(Location, value);
+        }
+
+        public IntValueNode WithValue(sbyte value)
         {
             return new IntValueNode(Location, value);
         }

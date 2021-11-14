@@ -77,21 +77,6 @@ const PlatformPage: FC = () => {
           </ContentContainer>
         </SectionRow>
       </Section>
-      <Section>
-        <SectionRow>
-          <ImageContainer>
-            <UnderConstructionSvg />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>Marshmallow Pie</SectionTitle>
-            <p>
-              Keep track of all clients that depend on your GraphQL endpoints.
-            </p>
-            {/* comment in again, once there is documentation */}
-            {/* <Link to="/docs/marshmallowpie">Learn more</Link> */}
-          </ContentContainer>
-        </SectionRow>
-      </Section>
     </Layout>
   );
 };

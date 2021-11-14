@@ -13,6 +13,7 @@ class Helpers
         "GreenDonut",
         Path.Combine("HotChocolate", "Analyzers"),
         Path.Combine("HotChocolate", "AspNetCore"),
+        Path.Combine("HotChocolate", "AzureFunctions"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "CodeGeneration"),
         Path.Combine("HotChocolate", "Language"),

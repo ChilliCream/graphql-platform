@@ -1,57 +1,120 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
+using HotChocolate.Execution.Processing.Plan;
+using HotChocolate.Execution.Processing.Tasks;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal partial class WorkScheduler : IWorkScheduler
 {
-    internal partial class WorkScheduler : IWorkScheduler
-    {
-        /// <inheritdoc/>
-        public bool IsCompleted => _completed;
+    /// <inheritdoc/>
+    public bool IsCompleted => _completed;
 
-        /// <inheritdoc />
-        public IDeferredWorkBacklog DeferredWork
+    /// <inheritdoc />
+    public IDeferredWorkBacklog DeferredWork
+    {
+        get
         {
-            get
+            AssertNotPooled();
+            return _deferredWorkBacklog;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+
+    private bool HasRunningTasks
+        => _work.HasRunningTasks ||
+           _serial.HasRunningTasks ||
+           !_stateMachine.IsCompleted;
+
+    private bool CanDispatch
+        => _batchDispatcher.HasTasks &&
+           _work.IsEmpty &&
+           _work.HasRunningTasks &&
+           !_stateMachine.IsSerial;
+
+    /// <inheritdoc/>
+    public void Register(IExecutionTask task)
+    {
+        if (task is null)
+        {
+            throw new ArgumentNullException(nameof(task));
+        }
+
+        var started = false;
+
+        // first we initialize the task execution state.
+        // This can be done without acquiring a lock since we only
+        // interact with the task object itself.
+        _stateMachine.TryInitializeTask(task);
+        task.IsRegistered = true;
+
+        lock (_sync)
+        {
+            if (_stateMachine.RegisterTask(task))
             {
-                AssertNotPooled();
-                return _deferredWorkBacklog;
+                WorkQueue work = task.IsSerial ? _serial : _work;
+                work.Push(task);
+                started = TryStartProcessingUnsafe();
+            }
+            else
+            {
+                _suspended.Enqueue(task);
             }
         }
 
-        private bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
-
-        private bool HasRunningTasks
-            => _work.HasRunningTasks ||
-               _serial.HasRunningTasks ||
-               !_stateMachine.IsCompleted;
-
-        private bool CanDispatch
-            => _batchDispatcher.HasTasks &&
-               _work.IsEmpty &&
-               _work.HasRunningTasks &&
-               !_stateMachine.IsSerial;
-
-        /// <inheritdoc/>
-        public void Register(IExecutionTask task)
+        if (started)
         {
-            if (task is null)
-            {
-                throw new ArgumentNullException(nameof(task));
-            }
+            // we invoke the scale diagnostic event after leaving the lock to not block
+            // if a an event listener is badly implemented.
+            _diagnosticEvents.StartProcessing(_requestContext);
+        }
+    }
 
-            var started = false;
-            var state = _stateMachine.TryGetStep(task);
+    /// <inheritdoc/>
+    public void Register(IReadOnlyList<IExecutionTask> tasks)
+    {
+        if (tasks is null)
+        {
+            throw new ArgumentNullException(nameof(tasks));
+        }
 
-            lock (_sync)
+        if (tasks.Count == 1)
+        {
+            Register(tasks[0]);
+            return;
+        }
+
+        var started = false;
+
+        // first we initialize the task execution state.
+        // This can be done without acquiring a lock since we only
+        // interact with the task object itself.
+        for (var i = 0; i < tasks.Count; i++)
+        {
+            IExecutionTask task = tasks[i];
+            _stateMachine.TryInitializeTask(task);
+            task.IsRegistered = true;
+        }
+
+        lock (_sync)
+        {
+            var start = false;
+
+            for (var i = 0; i < tasks.Count; i++)
             {
-                if (_stateMachine.RegisterTask(task, state))
+                IExecutionTask task = tasks[i];
+
+                if (_stateMachine.RegisterTask(task))
                 {
                     WorkQueue work = task.IsSerial ? _serial : _work;
                     work.Push(task);
-                    started = TryStartProcessingUnsafe();
+                    start = true;
                 }
                 else
                 {
@@ -59,93 +122,45 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            if (started)
+            if (start)
             {
-                // we invoke the scale diagnostic event after leaving the lock to not block
-                // if a an event listener is badly implemented.
-                _diagnosticEvents.StartProcessing(_requestContext);
+                started = TryStartProcessingUnsafe();
             }
         }
 
-        /// <inheritdoc/>
-        public void Register(List<IExecutionTask> tasks)
+        if (started)
         {
-            if (tasks is null)
-            {
-                throw new ArgumentNullException(nameof(tasks));
-            }
+            // we invoke the scale diagnostic event after leaving the lock to not block
+            // if a an event listener is badly implemented.
+            _diagnosticEvents.StartProcessing(_requestContext);
+        }
+    }
 
-            if (tasks.Count == 1)
-            {
-                Register(tasks[0]);
-                return;
-            }
-
-            var started = false;
-
-            for (var i = 0; i < tasks.Count; i++)
-            {
-                IExecutionTask task = tasks[i];
-                task.State ??= _stateMachine.TryGetStep(task);
-            }
-
-            lock (_sync)
-            {
-                var start = false;
-
-                for (var i = 0; i < tasks.Count; i++)
-                {
-                    IExecutionTask task = tasks[i];
-
-                    if (_stateMachine.RegisterTask(task))
-                    {
-                        WorkQueue work = task.IsSerial ? _serial : _work;
-                        work.Push(task);
-                        start = true;
-                    }
-                    else
-                    {
-                        _suspended.Enqueue(task);
-                    }
-                }
-
-                if (start)
-                {
-                    started = TryStartProcessingUnsafe();
-                }
-            }
-
-            if (started)
-            {
-                // we invoke the scale diagnostic event after leaving the lock to not block
-                // if a an event listener is badly implemented.
-                _diagnosticEvents.StartProcessing(_requestContext);
-            }
+    /// <inheritdoc/>
+    public void Complete(IExecutionTask task)
+    {
+        if (task is null)
+        {
+            throw new ArgumentNullException(nameof(task));
         }
 
-        /// <inheritdoc/>
-        public void Complete(IExecutionTask task)
+        var started = false;
+
+        lock (_sync)
         {
-            if (task is null)
+            var registered = _serial.Count + _work.Count;
+
+            // we first complete the task on the state machine so that if we are completing
+            // the last task the state machine is marked as complete before the work queue
+            // signals that it is complete.
+            if (_stateMachine.Complete(task) && _suspended.HasWork)
             {
-                throw new ArgumentNullException(nameof(task));
+                _suspended.CopyTo(_work, _serial, _stateMachine);
             }
 
-            if (task.Parent is not null)
+            // if was registered than we will mark it complete on the queue.
+            if (task.IsRegistered)
             {
-                return;
-            }
-
-            lock (_sync)
-            {
-                // we first complete the task on the state machine so that if we are completing
-                // the last task the state machine is marked as complete before the work queue
-                // signals that it is complete.
-                if (_stateMachine.Complete(task) && _suspended.HasWork)
-                {
-                    _suspended.CopyTo(_work, _serial, _stateMachine);
-                }
-
                 // determine the work queue.
                 WorkQueue work = task.IsSerial ? _serial : _work;
 
@@ -153,174 +168,217 @@ namespace HotChocolate.Execution.Processing
                 // that work has been completed if it has no more tasks enqueued or marked
                 // running.
                 work.Complete();
+            }
 
-                // if there is now more work and the state machine is not completed yet we will
-                // close open steps and reevaluate. This can happen if optional resolver tasks
-                // are not enqueued.
-                while (NeedsStateMachineCompletion())
+            // if there is now more work and the state machine is not completed yet we will
+            // close open steps and reevaluate. This can happen if optional resolver tasks
+            // are not enqueued.
+            while (NeedsStateMachineCompletion())
+            {
+                if (_stateMachine.CompleteNext() && _suspended.HasWork)
                 {
-                    if (_stateMachine.CompleteNext() && _suspended.HasWork)
-                    {
-                        _suspended.CopyTo(_work, _serial, _stateMachine);
-                    }
+                    _suspended.CopyTo(_work, _serial, _stateMachine);
+                }
+            }
+
+            // if the workload changed through completion we will ensure
+            // that the task processing is running.
+            if (registered != _serial.Count + _work.Count)
+            {
+                started = TryStartProcessingUnsafe();
+            }
+
+            TryCompleteProcessingUnsafe();
+        }
+
+        if (started)
+        {
+            // we invoke the scale diagnostic event after leaving the lock to not block
+            // if a an event listener is badly implemented.
+            _diagnosticEvents.StartProcessing(_requestContext);
+        }
+
+        bool NeedsStateMachineCompletion()
+            => !_stateMachine.IsCompleted &&
+               _work.IsEmpty &&
+               _serial.IsEmpty &&
+               !_work.HasRunningTasks &&
+               !_serial.HasRunningTasks;
+    }
+
+    private int TryTake(IExecutionTask?[] buffer)
+    {
+        var size = 0;
+
+        if (_completed || _requestAborted.IsCancellationRequested)
+        {
+            return default;
+        }
+
+        lock (_sync)
+        {
+            WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
+
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                if (!work.TryTake(out IExecutionTask? task))
+                {
+                    break;
                 }
 
-                TryCompleteProcessingUnsafe();
+                size++;
+                buffer[i] = task;
             }
 
-            bool NeedsStateMachineCompletion()
-                => !_stateMachine.IsCompleted &&
-                   _work.IsEmpty &&
-                   _serial.IsEmpty &&
-                   !_work.HasRunningTasks &&
-                   !_serial.HasRunningTasks;
+            return size;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryStartProcessingUnsafe(bool force = false)
+    {
+        if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
+        {
+            _processing = true;
+            TryContinueUnsafe();
+            return true;
         }
 
-        private int TryTake(IExecutionTask?[] buffer)
+        return false;
+    }
+
+    private void TryContinueUnsafe()
+    {
+        if (_pause is not null)
         {
-            var size = 0;
+            _pause.TryContinue();
+            _pausePool.Enqueue(_pause);
+            _pause = null;
+        }
+    }
 
-            if (_completed)
-            {
-                return default;
-            }
-
-            lock (_sync)
-            {
-                WorkQueue work = _stateMachine.IsSerial ? _serial : _work;
-
-                for (var i = 0; i < buffer.Length; i++)
-                {
-                    if (!work.TryTake(out IExecutionTask? task))
-                    {
-                        break;
-                    }
-
-                    size++;
-                    buffer[i] = task;
-                }
-
-                return size;
-            }
+    private ValueTask<bool> TryStopProcessing()
+    {
+        // if the execution is already completed or if the completion task is
+        // null we stop processing
+        if (_completed)
+        {
+            return new(true);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryStartProcessingUnsafe(bool force = false)
+        // if there is still work we keep on processing. We check this here to
+        // try to avoid the lock.
+        if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
         {
-            if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
-            {
-                _processing = true;
-                _pause.TryContinueUnsafe();
-                return true;
-            }
-
-            return false;
+            return new(false);
         }
 
-        private ValueTask<bool> TryStopProcessing()
+        lock (_sync)
         {
-            // if the execution is already completed or if the completion task is
-            // null we stop processing
-            if (_completed || _requestAborted.IsCancellationRequested)
-            {
-                return new(true);
-            }
-
-            // if there is still work we keep on processing. We check this here to
-            // try to avoid the lock.
-            if (!_work.IsEmpty)
+            if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
                 return new(false);
             }
 
-            lock (_sync)
+            if (CanDispatch && !_requestAborted.IsCancellationRequested)
             {
-                if (!_work.IsEmpty)
-                {
-                    return new(false);
-                }
-
-                if (CanDispatch)
-                {
-                    return InvokeDispatch();
-                }
-
-                _processing = false;
-
-                if (TryCompleteProcessingUnsafe())
-                {
-                    return new(true);
-                }
-
-                return InvokePause();
+                _batchDispatcher.BeginDispatch(_requestAborted);
+                _diagnosticEvents.DispatchBatch(_requestContext);
+                return new(false);
             }
 
-            async ValueTask<bool> InvokeDispatch()
-            {
-                do
-                {
-                    await _batchDispatcher.DispatchAsync(_requestAborted).ConfigureAwait(false);
-                } while (!_requestAborted.IsCancellationRequested && CanDispatch);
+            _processing = false;
+            _diagnosticEvents.StopProcessing(_requestContext);
 
-                return _requestAborted.IsCancellationRequested;
-            }
-
-            async ValueTask<bool> InvokePause()
-            {
-                await _pause;
-                return false;
-            }
+            return TryCompleteProcessingUnsafe()
+                ? new(true)
+                : CreatePauseUnsafe();
         }
 
-        private void BatchDispatcherEventHandler(object? source, EventArgs args)
+        ValueTask<bool> CreatePauseUnsafe()
         {
-            lock (_sync)
-            {
-                if (!_processing && CanDispatch)
-                {
-                    TryStartProcessingUnsafe(force: true);
-                }
-            }
+            Debug.Assert(_pause is null, "Since we have only one main worker there should only be one pause obj.");
+            _pause = _pausePool.Dequeue();
+            _pause.Reset();
+            return InvokePause(_pause);
         }
 
-        private void Cancel()
+        async ValueTask<bool> InvokePause(Pause pause)
         {
-            lock (_sync)
-            {
-                _completed = true;
-                _pause.TryContinueUnsafe();
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryCompleteProcessingUnsafe()
-        {
-            if (HasCompleted())
-            {
-                _completed = true;
-                _pause.TryContinueUnsafe();
-                return true;
-            }
-
-            if (IsCanceled())
-            {
-                _completed = true;
-                _pause.TryContinueUnsafe();
-                return true;
-            }
-
+            await pause;
             return false;
+        }
+    }
 
-            bool HasCompleted()
-                => !_completed &&
-                   !_processing &&
-                   IsEmpty &&
-                   !HasRunningTasks;
+    private void BatchDispatcherEventHandler(object? source, EventArgs args)
+    {
+        lock (_sync)
+        {
+            if (!_processing && CanDispatch)
+            {
+                TryStartProcessingUnsafe(force: true);
+            }
+        }
+    }
 
-            bool IsCanceled()
-                => !_completed &&
-                   !_processing &&
-                   _requestAborted.IsCancellationRequested;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool TryCompleteProcessingUnsafe()
+    {
+        if (HasCompleted())
+        {
+            _completed = true;
+            TryContinueUnsafe();
+            return true;
+        }
+
+        if (IsCanceled())
+        {
+            _completed = true;
+            TryContinueUnsafe();
+
+            // if there are still tasks enqueues when we cancel the execution
+            // we will try to reclaim the resolver tasks by properly cancelling
+            // them.
+            CancelTasks(_work);
+            CancelTasks(_serial);
+            CancelSuspendedTasks(_suspended);
+
+            return true;
+        }
+
+        return false;
+
+        bool HasCompleted()
+            => !_processing &&
+                IsEmpty &&
+                !HasRunningTasks;
+
+        bool IsCanceled()
+            => !_processing &&
+                !_work.HasRunningTasks &&
+                !_serial.HasRunningTasks &&
+               _requestAborted.IsCancellationRequested;
+
+        void CancelTasks(WorkQueue queue)
+        {
+            while (queue.TryTake(out IExecutionTask? task))
+            {
+                if (task is ResolverTask resolverTask)
+                {
+                    resolverTask.Return();
+                }
+            }
+        }
+
+        void CancelSuspendedTasks(SuspendedWorkQueue queue)
+        {
+            while (queue.TryDequeue(out IExecutionTask? task))
+            {
+                if (task is ResolverTask resolverTask)
+                {
+                    resolverTask.Return();
+                }
+            }
         }
     }
 }

@@ -17,8 +17,38 @@ namespace HotChocolate.Data.Filtering
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+            new Foo { Bar = true, Baz = "a" },
+            new Foo { Bar = false, Baz = "b" }
         };
+
+        [Fact]
+        public async Task Test()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(x =>
+                {
+                    x.Name("Query");
+                    x.Field("foo")
+                        .Type(new ObjectType(x => x.Name("A").Field("bar").Resolve("a")))
+                        .Resolve(new object());
+                    x.Field("bar")
+                        .Type(new ObjectType(x => x.Name("B").Field("bar").Resolve("a")))
+                        .Resolve(new object());
+                })
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult res1 = await executor.ExecuteAsync(
+                QueryRequestBuilder
+                    .New()
+                    .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                    .Create());
+
+            // assert
+            res1.ToJson().MatchSnapshot();
+        }
 
         [Fact]
         public async Task Extensions_Should_FilterQuery()

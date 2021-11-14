@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "C",
   "StrictValidation": false,
   "UseXmlDocumentation": false,
+  "ResolveXmlDocumentationFileName": null,
   "SortFieldsByName": true,
   "PreserveSyntaxNodes": true,
   "RemoveUnreachableTypes": false,

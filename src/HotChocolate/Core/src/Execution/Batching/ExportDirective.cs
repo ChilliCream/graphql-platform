@@ -1,8 +1,7 @@
 
-namespace HotChocolate.Execution.Batching
+namespace HotChocolate.Execution.Batching;
+
+public sealed class ExportDirective
 {
-    public sealed class ExportDirective
-    {
-        public string? As { get; set; }
-    }
+    public string? As { get; set; }
 }

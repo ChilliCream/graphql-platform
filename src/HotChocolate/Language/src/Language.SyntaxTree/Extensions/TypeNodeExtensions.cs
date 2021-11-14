@@ -5,25 +5,49 @@ namespace HotChocolate.Language
     public static class TypeNodeExtensions
     {
         public static bool IsNonNullType(this ITypeNode type)
-        {
-            return type is NonNullTypeNode;
-        }
+            => type.Kind == SyntaxKind.NonNullType;
 
         public static bool IsListType(this ITypeNode type)
         {
-            return type is ListTypeNode;
+            if (type.Kind == SyntaxKind.ListType)
+            {
+                return true;
+            }
+
+            if (type.Kind == SyntaxKind.NonNullType &&
+                ((NonNullTypeNode)type).Kind == SyntaxKind.ListType)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static ITypeNode ElementType(this ITypeNode type)
+        {
+            if (type.Kind == SyntaxKind.NonNullType)
+            {
+                type = ((NonNullTypeNode)type).Type;
+            }
+
+            if (type.Kind == SyntaxKind.ListType)
+            {
+                return ((ListTypeNode)type).Type;
+            }
+
+            throw new InvalidOperationException();
         }
 
         public static ITypeNode InnerType(this ITypeNode type)
         {
-            if (type is NonNullTypeNode n)
+            if (type.Kind == SyntaxKind.NonNullType)
             {
-                return n.Type;
+                return ((NonNullTypeNode)type).Type;
             }
 
-            if (type is ListTypeNode l)
+            if (type.Kind == SyntaxKind.ListType)
             {
-                return l.Type;
+                return ((ListTypeNode)type).Type;
             }
 
             return type;
@@ -31,9 +55,9 @@ namespace HotChocolate.Language
 
         public static ITypeNode NullableType(this ITypeNode type)
         {
-            if (type is NonNullTypeNode n)
+            if (type.Kind == SyntaxKind.NonNullType)
             {
-                return n.Type;
+                return ((NonNullTypeNode)type).Type;
             }
 
             return type;

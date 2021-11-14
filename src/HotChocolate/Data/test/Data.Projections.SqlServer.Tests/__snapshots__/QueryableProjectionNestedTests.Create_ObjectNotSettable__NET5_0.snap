@@ -1,0 +1,16 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "notSettable": {
+          "barString": "Worked"
+        }
+      },
+      {
+        "notSettable": {
+          "barString": "Worked"
+        }
+      }
+    ]
+  }
+}

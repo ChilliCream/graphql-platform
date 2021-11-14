@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using HotChocolate.ConferencePlanner.Data;
 using GreenDonut;
-using HotChocolate.Fetching;
 
 namespace HotChocolate.ConferencePlanner.DataLoader
 {
@@ -15,9 +14,10 @@ namespace HotChocolate.ConferencePlanner.DataLoader
         private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
         public TrackByIdDataLoader(
+            IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IBatchScheduler batchScheduler,
-            IDbContextFactory<ApplicationDbContext> dbContextFactory)
-            : base(batchScheduler)
+            DataLoaderOptions options)
+            : base(batchScheduler, options)
         {
             _dbContextFactory = dbContextFactory ??
                 throw new ArgumentNullException(nameof(dbContextFactory));
@@ -27,11 +27,6 @@ namespace HotChocolate.ConferencePlanner.DataLoader
             IReadOnlyList<int> keys,
             CancellationToken cancellationToken)
         {
-            if (keys.Count == 1)
-            {
-                Counter.One();
-            }
-
             await using ApplicationDbContext dbContext =
                 _dbContextFactory.CreateDbContext();
 
@@ -39,12 +34,5 @@ namespace HotChocolate.ConferencePlanner.DataLoader
                 .Where(s => keys.Contains(s.Id))
                 .ToDictionaryAsync(t => t.Id, cancellationToken);
         }
-    }
-
-    public static class Counter
-    {
-        public static int Count = 0;
-
-        public static int One() => Interlocked.Increment(ref Count);
     }
 }

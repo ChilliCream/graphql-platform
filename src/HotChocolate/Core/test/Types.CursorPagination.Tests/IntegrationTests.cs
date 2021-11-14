@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types.Pagination.Extensions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -161,6 +163,74 @@ namespace HotChocolate.Types.Pagination
                 .ExecuteAsync(@"
                 {
                     letters(first: 2) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task MaxPageSizeReached_First()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { MaxPageSize = 2 })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters(first: 3) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                            startCursor
+                            endCursor
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task MaxPageSizeReached_Last()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { MaxPageSize = 2 })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters(last: 3) {
                         edges {
                             node
                             cursor
@@ -737,6 +807,29 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
+        public async Task FluentPagingTests()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<FluentPaging>()
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    items {
+                        nodes
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task SelectDefaultProvider()
         {
             Snapshot.FullName();
@@ -760,6 +853,27 @@ namespace HotChocolate.Types.Pagination
                 }")
                 .MatchSnapshotAsync();
         }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Ensure_That_Explicit_Backward_Paging_Fields_Work_Execute()
+        {
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<BackwardQuery>()
+                .ExecuteRequestAsync("{ foos { nodes } }")
+                .MatchSnapshotAsync();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -930,6 +1044,20 @@ namespace HotChocolate.Types.Pagination
             public string[] Abc => Array.Empty<string>();
         }
 
+        public class FluentPaging
+        {
+            [UsePaging(ProviderName = "Items")]
+            public async Task<Connection<string>> GetItems(
+                int? first,
+                int? last,
+                string? before,
+                string? after,
+                CancellationToken cancellationToken)
+                => await new[] { "a", "b", "c", "d" }
+                    .AsQueryable()
+                    .ApplyCursorPaginationAsync(first, last, before, after, cancellationToken);
+        }
+
         public class DummyProvider : CursorPagingProvider
         {
             public override bool CanHandle(IExtendedType source) => false;
@@ -980,6 +1108,16 @@ namespace HotChocolate.Types.Pagination
                     new[] { new Edge<string>("d", "e") },
                     new ConnectionPageInfo(false, false, null, null),
                     _ => new(1)));
+        }
+
+        public class BackwardQuery
+        {
+            [UsePaging(AllowBackwardPagination = false)]
+            public Connection<string> GetFoos(int? first, string? after)
+                => new Connection<string>(
+                    new[] { new Edge<string>("abc", "def") },
+                    new ConnectionPageInfo(false, false, null, null, 1),
+                    _ => new(1));
         }
     }
 }

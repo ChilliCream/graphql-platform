@@ -1,11 +1,5 @@
-using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
-using HotChocolate.Data.Projections;
-using HotChocolate.Data.Sorting.Expressions;
-using HotChocolate.Types.Pagination;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -83,7 +77,7 @@ namespace HotChocolate.Data
             IExecutable executable = _context.Authors.AsExecutable();
 
             // act
-            object? result = await executable.FirstOrDefaultAsync(default);
+            var result = await executable.FirstOrDefaultAsync(default);
 
             // assert
             new { result, executable = executable.Print() }.MatchSnapshot();

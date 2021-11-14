@@ -17,15 +17,9 @@ namespace HotChocolate.Execution
         ExecutionTaskKind Kind { get; }
 
         /// <summary>
-        /// Defines if this task is completed.
+        /// Specifies the status of this task.
         /// </summary>
-        bool IsCompleted { get; }
-
-        /// <summary>
-        /// If this task is being executed within another task the parent property exposes the
-        /// owner task. Child tasks are not tracked within the execution engine.
-        /// </summary>
-        IExecutionTask? Parent { get; set; }
+        ExecutionTaskStatus Status { get; }
 
         /// <summary>
         /// Next and previous are properties that are used by the execution engine to
@@ -49,6 +43,11 @@ namespace HotChocolate.Execution
         /// executed in a serial context.
         /// </summary>
         bool IsSerial { get; set; }
+
+        /// <summary>
+        /// Specifies if the task was fully registered with the scheduler.
+        /// </summary>
+        bool IsRegistered { get; set; }
 
         /// <summary>
         /// Begins executing this task.

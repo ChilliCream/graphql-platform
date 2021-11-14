@@ -1,0 +1,1 @@
+~static Microsoft.Extensions.DependencyInjection.RedisSubscriptionsServiceCollectionExtensions.AddRedisSubscriptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder

@@ -9,17 +9,17 @@ namespace HotChocolate.Data
     {
         [UseDbContext(typeof(BookContext))]
         public IQueryable<Author> GetAuthors(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             context.Authors;
 
         [UseDbContext(typeof(BookContext))]
         public async Task<Author> GetAuthor(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             await context.Authors.FirstOrDefaultAsync();
 
         [UseDbContext(typeof(BookContext))]
         public Author? GetAuthorSync(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             context.Authors.FirstOrDefault();
 
         [UseDbContext(typeof(BookContext))]
@@ -27,7 +27,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public IQueryable<Author> GetAuthorOffsetPaging(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             context.Authors;
 
         [UseDbContext(typeof(BookContext))]
@@ -35,7 +35,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public IExecutable<Author> GetAuthorOffsetPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             context.Authors.AsExecutable();
 
         [UseDbContext(typeof(BookContext))]
@@ -43,7 +43,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public IExecutable<Author> GetAuthorCursorPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             context.Authors.AsExecutable();
     }
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Data
     {
         [UseDbContext(typeof(BookContext))]
         public Task<IQueryable<Author>> GetAuthors(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             Task.FromResult<IQueryable<Author>>(context.Authors);
 
         [UseDbContext(typeof(BookContext))]
@@ -59,7 +59,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public Task<IQueryable<Author>> GetAuthorOffsetPaging(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             Task.FromResult<IQueryable<Author>>(context.Authors);
 
         [UseDbContext(typeof(BookContext))]
@@ -67,7 +67,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public Task<IExecutable<Author>> GetAuthorOffsetPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             Task.FromResult(context.Authors.AsExecutable());
 
         [UseDbContext(typeof(BookContext))]
@@ -75,7 +75,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public Task<IExecutable<Author>> GetAuthorCursorPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             Task.FromResult(context.Authors.AsExecutable());
     }
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Data
     {
         [UseDbContext(typeof(BookContext))]
         public ValueTask<IQueryable<Author>> GetAuthors(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             new(context.Authors);
 
         [UseDbContext(typeof(BookContext))]
@@ -91,7 +91,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public ValueTask<IQueryable<Author>> GetAuthorOffsetPaging(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             new(context.Authors);
 
         [UseDbContext(typeof(BookContext))]
@@ -99,7 +99,7 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public ValueTask<IExecutable<Author>> GetAuthorOffsetPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             new(context.Authors.AsExecutable());
 
         [UseDbContext(typeof(BookContext))]
@@ -107,18 +107,45 @@ namespace HotChocolate.Data
         [UseFiltering]
         [UseSorting]
         public ValueTask<IExecutable<Author>> GetAuthorCursorPagingExecutable(
-            [ScopedService]BookContext context) =>
+            [ScopedService] BookContext context) =>
             new(context.Authors.AsExecutable());
     }
 
     public class InvalidQuery
     {
         [UseDbContext(typeof(object))]
-        public IQueryable<Author> GetAuthors([ScopedService]BookContext context) =>
+        public IQueryable<Author> GetAuthors([ScopedService] BookContext context) =>
             context.Authors;
 
         [UseDbContext(typeof(object))]
-        public async Task<Author> GetAuthor([ScopedService]BookContext context) =>
+        public async Task<Author> GetAuthor([ScopedService] BookContext context) =>
             await context.Authors.FirstOrDefaultAsync();
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name(nameof(Query));
+
+            descriptor
+                .Field("books")
+                .UseDbContext<BookContext>()
+                .Resolve(ctx =>
+                {
+                    BookContext context = ctx.DbContext<BookContext>();
+
+                    return context.Books;
+                });
+
+            descriptor
+                .Field("booksWithMissingContext")
+                .Resolve(ctx =>
+                {
+                    BookContext context = ctx.DbContext<BookContext>();
+
+                    return context.Books;
+                });
+        }
     }
 }

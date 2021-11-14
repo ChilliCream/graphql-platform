@@ -5,36 +5,35 @@ using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
 {
-    internal sealed class SyntaxTypeReferenceHandler : ITypeRegistrarHandler
+    private readonly HashSet<string> _handled = new();
+    private readonly ITypeInspector _typeInspector;
+
+    public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
     {
-        private readonly HashSet<string> _handled = new();
-        private readonly ITypeInspector _typeInspector;
+        _typeInspector = typeInspector ??
+            throw new ArgumentNullException(nameof(typeInspector));
+    }
 
-        public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
+    public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
+
+    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    {
+        var typeRef = (SyntaxTypeReference)typeReference;
+
+        if (_handled.Add(typeRef.Name) &&
+            Scalars.TryGetScalar(typeRef.Name, out Type? scalarType))
         {
-            _typeInspector = typeInspector ??
-                throw new ArgumentNullException(nameof(typeInspector));
-        }
+            ExtendedTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
 
-        public TypeReferenceKind Kind => TypeReferenceKind.Syntax;
-
-        public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
-        {
-            var typeRef = (SyntaxTypeReference)typeReference;
-
-            if (_handled.Add(typeRef.Name) &&
-                Scalars.TryGetScalar(typeRef.Name, out Type? scalarType))
+            if (!typeRegistrar.IsResolved(namedTypeReference))
             {
-                ExtendedTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
-
-                if (!typeRegistrar.IsResolved(namedTypeReference))
-                {
-                    typeRegistrar.Register(
-                        typeRegistrar.CreateInstance(namedTypeReference.Type.Type),
-                        typeRef.Scope);
-                }
+                typeRegistrar.Register(
+                    typeRegistrar.CreateInstance(namedTypeReference.Type.Type),
+                    typeRef.Scope);
             }
         }
     }

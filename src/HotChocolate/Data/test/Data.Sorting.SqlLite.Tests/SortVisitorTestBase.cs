@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Sorting
@@ -18,14 +19,13 @@ namespace HotChocolate.Data.Sorting
             var dbContext = new DatabaseContext<TResult>();
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
 
-            try
+            DbSet<TResult> set = dbContext.Set<TResult>();
+
+            foreach (TResult result in results)
             {
+                set.Add(result);
                 dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
             }
 
             return ctx => dbContext.Data.AsQueryable();

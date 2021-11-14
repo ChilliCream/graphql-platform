@@ -160,7 +160,7 @@
     <value>There is no operation on the context which can be used to coerce variables.</value>
   </data>
   <data name="ErrorHelper_StateInvalidForOperationExecution_Message" xml:space="preserve">
-    <value>Either now compiled operation was found or the variables have not been coerced.</value>
+    <value>Either no compiled operation was found or the variables have not been coerced.</value>
   </data>
   <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
     <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
@@ -211,7 +211,7 @@
     <value>There was no argument with the name `{0}` found on the field `{1}`.</value>
   </data>
   <data name="ThrowHelper_OperationResolverHelper_NoOperationFound_Message" xml:space="preserve">
-    <value>There are now operations in the GraphQL document.</value>
+    <value>There are no operations in the GraphQL document.</value>
   </data>
   <data name="ThrowHelper_OperationResolverHelper_MultipleOperation_Message" xml:space="preserve">
     <value>The operation name can only be omitted if there is just one operation in a GraphQL document.</value>

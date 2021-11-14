@@ -7,59 +7,58 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal class ScopedServiceParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    internal class ScopedServiceParameterExpressionBuilder : IParameterExpressionBuilder
+    private static readonly PropertyInfo _contextData =
+        ContextType.GetProperty(
+            nameof(IResolverContext.LocalContextData))!;
+    private static readonly MethodInfo _getScopedState =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.GetScopedState))!;
+
+    private static readonly MethodInfo _getScopedStateWithDefault =
+        typeof(ExpressionHelper).GetMethod(
+            nameof(ExpressionHelper.GetScopedStateWithDefault))!;
+
+    public virtual ArgumentKind Kind => ArgumentKind.Service;
+
+    public bool IsPure => false;
+
+    public virtual bool CanHandle(ParameterInfo parameter)
+        => parameter.IsDefined(typeof(ScopedServiceAttribute));
+
+    public Expression Build(ParameterInfo parameter, Expression context)
     {
-        private static readonly PropertyInfo _contextData =
-            ContextType.GetProperty(
-                nameof(IResolverContext.LocalContextData))!;
-        private static readonly MethodInfo _getScopedState =
-            typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedState))!;
+        ConstantExpression key = Expression.Constant(
+            parameter.ParameterType.FullName ??
+                parameter.ParameterType.Name,
+            typeof(string));
 
-        private static readonly MethodInfo _getScopedStateWithDefault =
-            typeof(ExpressionHelper).GetMethod(
-                nameof(ExpressionHelper.GetScopedStateWithDefault))!;
+        MemberExpression contextData = Expression.Property(context, _contextData);
 
-        public virtual ArgumentKind Kind => ArgumentKind.Service;
+        MethodInfo getScopedState =
+            parameter.HasDefaultValue
+                ? _getScopedStateWithDefault.MakeGenericMethod(parameter.ParameterType)
+                : _getScopedState.MakeGenericMethod(parameter.ParameterType);
 
-        public bool IsPure => false;
-
-        public virtual bool CanHandle(ParameterInfo parameter)
-            => parameter.IsDefined(typeof(ScopedServiceAttribute));
-
-        public Expression Build(ParameterInfo parameter, Expression context)
-        {
-            ConstantExpression key = Expression.Constant(
-                parameter.ParameterType.FullName ??
-                    parameter.ParameterType.Name,
-                typeof(string));
-
-            MemberExpression contextData = Expression.Property(context, _contextData);
-
-            MethodInfo getScopedState =
-                parameter.HasDefaultValue
-                    ? _getScopedStateWithDefault.MakeGenericMethod(parameter.ParameterType)
-                    : _getScopedState.MakeGenericMethod(parameter.ParameterType);
-
-            return parameter.HasDefaultValue
-                ? Expression.Call(
-                    getScopedState,
-                    context,
-                    contextData,
-                    key,
-                    Expression.Constant(true, typeof(bool)),
-                    Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
-                : Expression.Call(
-                    getScopedState,
-                    context,
-                    contextData,
-                    key,
-                    Expression.Constant(
-                        new NullableHelper(parameter.ParameterType)
-                            .GetFlags(parameter).FirstOrDefault() ?? false,
-                        typeof(bool)));
-        }
+        return parameter.HasDefaultValue
+            ? Expression.Call(
+                getScopedState,
+                context,
+                contextData,
+                key,
+                Expression.Constant(true, typeof(bool)),
+                Expression.Constant(parameter.RawDefaultValue, parameter.ParameterType))
+            : Expression.Call(
+                getScopedState,
+                context,
+                contextData,
+                key,
+                Expression.Constant(
+                    new NullableHelper(parameter.ParameterType)
+                        .GetFlags(parameter).FirstOrDefault() ?? false,
+                    typeof(bool)));
     }
 }

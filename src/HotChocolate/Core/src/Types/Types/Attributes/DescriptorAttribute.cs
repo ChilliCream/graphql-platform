@@ -1,18 +1,23 @@
 using System;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public abstract class DescriptorAttribute : Attribute
 {
-    public abstract class DescriptorAttribute : Attribute
-    {
-        protected internal abstract void TryConfigure(
-            IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider element);
-    }
+    /// <summary>
+    /// Gets the order in which the attributes shall be applied.
+    /// </summary>
+    public int Order { get; set; } = int.MaxValue;
+
+    /// <summary>
+    /// Override this to implement the configuration logic for this attribute.
+    /// </summary>
+    protected internal abstract void TryConfigure(
+        IDescriptorContext context,
+        IDescriptor descriptor,
+        ICustomAttributeProvider element);
 }

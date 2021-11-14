@@ -2,13 +2,12 @@ using System;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+public interface IHasExtendsType
 {
-    public interface IHasExtendsType
-    {
-        /// <summary>
-        /// If this is a type definition extension this is the type we want to extend.
-        /// </summary>
-        Type? ExtendsType { get; }
-    }
+    /// <summary>
+    /// If this is a type definition extension this is the type we want to extend.
+    /// </summary>
+    Type? ExtendsType { get; }
 }
