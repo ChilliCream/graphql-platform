@@ -2,12 +2,11 @@ using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public static class DirectiveTypeExtensions
 {
-    public static class DirectiveTypeExtensions
-    {
-        public static ISchemaBuilder AddCostDirectiveType(
-            this ISchemaBuilder builder) =>
-            builder.AddDirectiveType<CostDirectiveType>();
-    }
+    public static ISchemaBuilder AddCostDirectiveType(
+        this ISchemaBuilder builder) =>
+        builder.AddDirectiveType<CostDirectiveType>();
 }

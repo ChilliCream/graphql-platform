@@ -1,7 +1,6 @@
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal interface IHasResultDataParent
 {
-    internal interface IHasResultDataParent
-    {
-        IResultData? Parent { get; set; }
-    }
+    IResultData? Parent { get; set; }
 }

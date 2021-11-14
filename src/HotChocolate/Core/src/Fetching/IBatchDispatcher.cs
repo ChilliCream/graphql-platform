@@ -25,8 +25,8 @@ namespace HotChocolate.Fetching
         bool DispatchOnSchedule { get; set; }
 
         /// <summary>
-        /// Dispatches execution tasks to the execution engine work backlog.
+        /// Begins dispatching batched tasks.
         /// </summary>
-        Task<BatchDispatcherResult> DispatchAsync(CancellationToken cancellationToken = default);
+        void BeginDispatch(CancellationToken cancellationToken = default);
     }
 }

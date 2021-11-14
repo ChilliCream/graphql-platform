@@ -1,12 +1,11 @@
-﻿namespace HotChocolate.Utilities.CompilerServices
-{
-    internal sealed class NullableContextAttribute
-    {
-        public readonly byte Flag;
+namespace HotChocolate.Utilities.CompilerServices;
 
-        public NullableContextAttribute(byte flag)
-        {
-            Flag = flag;
-        }
+internal sealed class NullableContextAttribute
+{
+    public readonly byte Flag;
+
+    public NullableContextAttribute(byte flag)
+    {
+        Flag = flag;
     }
 }

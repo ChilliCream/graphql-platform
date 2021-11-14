@@ -1,8 +1,6 @@
 <Project>
-  <ItemGroup>
-    <Using Include="HotChocolate" />
-    <Using Include="HotChocolate.Types" />
-    <Using Include="HotChocolate.Types.Relay" />
-    <Using Include="GreenDonut" />
-  </ItemGroup>
+  <PropertyGroup>
+    <!--HotChocolateImplicitUsings: default|disable|enable-->
+    <HotChocolateImplicitUsings>default</HotChocolateImplicitUsings>
+  </PropertyGroup>
 </Project>

@@ -5,70 +5,69 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+public static class ExecutionResultExtensions
 {
-    public static class ExecutionResultExtensions
+    private static readonly JsonQueryResultSerializer _serializer = new(false);
+    private static readonly JsonArrayResponseStreamSerializer _streamSerializer = new();
+    private static readonly JsonQueryResultSerializer _serializerIndented = new(true);
+
+    public static string ToJson(
+        this IExecutionResult result,
+        bool withIndentations = true)
     {
-        private static readonly JsonQueryResultSerializer _serializer = new(false);
-        private static readonly JsonArrayResponseStreamSerializer _streamSerializer = new();
-        private static readonly JsonQueryResultSerializer _serializerIndented = new(true);
-
-        public static string ToJson(
-            this IExecutionResult result,
-            bool withIndentations = true)
+        if (result is null)
         {
-            if (result is null)
-            {
-                throw new ArgumentNullException(nameof(result));
-            }
-
-            if (result is IReadOnlyQueryResult queryResult)
-            {
-                if (withIndentations)
-                {
-                    return _serializerIndented.Serialize(queryResult);
-                }
-                return _serializer.Serialize(queryResult);
-            }
-
-            // TODO : resources / throw helper
-            throw new NotSupportedException(
-                "Only query results are supported.");
+            throw new ArgumentNullException(nameof(result));
         }
 
-        public static async ValueTask<string> ToJsonAsync(
-            this IExecutionResult result,
-            bool withIndentations = true)
+        if (result is IReadOnlyQueryResult queryResult)
         {
-            if (result is null)
+            if (withIndentations)
             {
-                throw new ArgumentNullException(nameof(result));
+                return _serializerIndented.Serialize(queryResult);
             }
-
-            if (result is IReadOnlyQueryResult queryResult)
-            {
-                if (withIndentations)
-                {
-                    return _serializerIndented.Serialize(queryResult);
-                }
-                return _serializer.Serialize(queryResult);
-            }
-
-            if (result is IResponseStream responseStream)
-            {
-                // TODO : lets rework the serializer to align it with the query result serializer
-                using (var stream = new MemoryStream())
-                {
-                    await _streamSerializer
-                        .SerializeAsync(responseStream, stream)
-                        .ConfigureAwait(false);
-                    return Encoding.UTF8.GetString(stream.ToArray());
-                }
-            }
-
-            // TODO : resources / throw helper
-            throw new NotSupportedException(
-                "Only query results are supported.");
+            return _serializer.Serialize(queryResult);
         }
+
+        // TODO : resources / throw helper
+        throw new NotSupportedException(
+            "Only query results are supported.");
+    }
+
+    public static async ValueTask<string> ToJsonAsync(
+        this IExecutionResult result,
+        bool withIndentations = true)
+    {
+        if (result is null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
+        if (result is IReadOnlyQueryResult queryResult)
+        {
+            if (withIndentations)
+            {
+                return _serializerIndented.Serialize(queryResult);
+            }
+            return _serializer.Serialize(queryResult);
+        }
+
+        if (result is IResponseStream responseStream)
+        {
+            // TODO : lets rework the serializer to align it with the query result serializer
+            using (var stream = new MemoryStream())
+            {
+                await _streamSerializer
+                    .SerializeAsync(responseStream, stream)
+                    .ConfigureAwait(false);
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
+        }
+
+        // TODO : resources / throw helper
+        throw new NotSupportedException(
+            "Only query results are supported.");
     }
 }

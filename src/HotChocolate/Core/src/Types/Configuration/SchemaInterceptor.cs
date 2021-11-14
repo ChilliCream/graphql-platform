@@ -3,30 +3,29 @@ using HotChocolate.Types.Descriptors;
 
 #nullable  enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+public class SchemaInterceptor : ISchemaInterceptor
 {
-    public class SchemaInterceptor : ISchemaInterceptor
+    protected SchemaInterceptor()
     {
-        protected SchemaInterceptor()
-        {
-        }
+    }
 
-        public virtual void OnBeforeCreate(
-            IDescriptorContext context,
-            ISchemaBuilder schemaBuilder)
-        {
-        }
+    public virtual void OnBeforeCreate(
+        IDescriptorContext context,
+        ISchemaBuilder schemaBuilder)
+    {
+    }
 
-        public virtual void OnAfterCreate(
-            IDescriptorContext context,
-            ISchema schema)
-        {
-        }
+    public virtual void OnAfterCreate(
+        IDescriptorContext context,
+        ISchema schema)
+    {
+    }
 
-        public virtual void OnError(
-            IDescriptorContext context,
-            Exception exception)
-        {
-        }
+    public virtual void OnError(
+        IDescriptorContext context,
+        Exception exception)
+    {
     }
 }
