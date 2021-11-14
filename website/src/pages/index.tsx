@@ -44,8 +44,8 @@ import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
-import SplashbackLogoSvg from "../images/companies/splashback.svg";
 import SpeedwayMotorsLogoSvg from "../images/companies/speedway-motors.svg";
+import SplashbackLogoSvg from "../images/companies/splashback.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
@@ -278,8 +278,8 @@ const IndexPage: FC = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={120}>
-                <Link to="https://www.hiloenergie.com/en-ca">
+              <Logo width={70}>
+                <Link to="https://www.hiloenergie.com">
                   <HiloLogoSvg />
                 </Link>
               </Logo>
@@ -288,7 +288,7 @@ const IndexPage: FC = () => {
                   <IncloudLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={120}>
+              <Logo width={130}>
                 <Link to="https://www.infoslips.com">
                   <InfoslipsLogoSvg />
                 </Link>
@@ -303,7 +303,7 @@ const IndexPage: FC = () => {
                   <OrderinLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={120}>
+              <Logo width={110}>
                 <Link to="https://poweredsoft.com">
                   <PoweredSoftLogoSvg />
                 </Link>
@@ -333,7 +333,7 @@ const IndexPage: FC = () => {
                   <SpeedwayMotorsLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={180}>
                 <Link to="https://splashback.io">
                   <SplashbackLogoSvg />
                 </Link>
@@ -358,7 +358,7 @@ const IndexPage: FC = () => {
                   <TravelSoftLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={120}>
                 <Link to="https://xm.com">
                   <XMLogoSvg />
                 </Link>
