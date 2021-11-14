@@ -1,83 +1,82 @@
 using System;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed partial class OperationContext : IExecutionTaskContext
 {
-    internal sealed partial class OperationContext : IExecutionTaskContext
+    void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
     {
-        void IExecutionTaskContext.ReportError(IExecutionTask task, IError error)
+        ReportError(task, error);
+    }
+
+    void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
+    {
+        ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
+    }
+
+    void IExecutionTaskContext.Register(IExecutionTask task)
+    {
+        Scheduler.Register(task);
+    }
+
+    private void ReportError(IExecutionTask task, IError error)
+    {
+        if (task is null)
         {
-            ReportError(task, error);
+            throw new ArgumentNullException(nameof(task));
         }
 
-        void IExecutionTaskContext.ReportError(IExecutionTask task, Exception exception)
+        if (error is null)
         {
-            ReportError(task, ErrorHandler.CreateUnexpectedError(exception).Build());
+            throw new ArgumentNullException(nameof(error));
         }
 
-        void IExecutionTaskContext.Register(IExecutionTask task)
-        {
-            Scheduler.Register(task);
-        }
+        AssertInitialized();
 
-        private void ReportError(IExecutionTask task, IError error)
+        if (error is AggregateError aggregateError)
         {
-            if (task is null)
+            foreach (IError? innerError in aggregateError.Errors)
             {
-                throw new ArgumentNullException(nameof(task));
+                ReportSingle(innerError);
             }
+        }
+        else
+        {
+            ReportSingle(error);
+        }
 
-            if (error is null)
-            {
-                throw new ArgumentNullException(nameof(error));
-            }
+        void ReportSingle(IError singleError)
+        {
+            AddProcessedError(ErrorHandler.Handle(singleError));
+        }
 
-            AssertInitialized();
-            
-            if (error is AggregateError aggregateError)
+        void AddProcessedError(IError processed)
+        {
+            if (processed is AggregateError ar)
             {
-                foreach (var innerError in aggregateError.Errors)
+                foreach (IError? ie in ar.Errors)
                 {
-                    ReportSingle(innerError);
+                    Result.AddError(ie);
+                    DiagnosticEvents.TaskError(task, ie);
                 }
             }
             else
             {
-                ReportSingle(error);
-            }
-
-            void ReportSingle(IError singleError)
-            {
-                AddProcessedError(ErrorHandler.Handle(singleError));
-            }
-
-            void AddProcessedError(IError processed)
-            {
-                if (processed is AggregateError ar)
-                {
-                    foreach (var ie in ar.Errors)
-                    {
-                        Result.AddError(ie);
-                        DiagnosticEvents.TaskError(task, ie);
-                    }
-                }
-                else
-                {
-                    Result.AddError(processed);
-                    DiagnosticEvents.TaskError(task, processed);
-                }
+                Result.AddError(processed);
+                DiagnosticEvents.TaskError(task, processed);
             }
         }
+    }
 
-        void IExecutionTaskContext.Completed(IExecutionTask task)
-        {
-            AssertInitialized();
-            Scheduler.Complete(task);
-        }
+    void IExecutionTaskContext.Completed(IExecutionTask task)
+    {
+        AssertInitialized();
+        Scheduler.Complete(task);
+    }
 
-        IDisposable IExecutionTaskContext.Track(IExecutionTask task)
-        {
-            AssertInitialized();
-            return DiagnosticEvents.RunTask(task);
-        }
+    IDisposable IExecutionTaskContext.Track(IExecutionTask task)
+    {
+        AssertInitialized();
+        return DiagnosticEvents.RunTask(task);
     }
 }

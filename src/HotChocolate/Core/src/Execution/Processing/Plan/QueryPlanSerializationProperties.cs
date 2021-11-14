@@ -1,9 +1,8 @@
-namespace HotChocolate.Execution.Processing.Plan
+namespace HotChocolate.Execution.Processing.Plan;
+
+internal static class QueryPlanSerializationProperties
 {
-    internal static class QueryPlanSerializationProperties
-    {
-        public const string TypeProp = "type";
-        public const string NodesProp = "nodes";
-        public const string CancelOnErrorProp = "cancelOnError";
-    }
+    public const string TypeProp = "type";
+    public const string NodesProp = "nodes";
+    public const string CancelOnErrorProp = "cancelOnError";
 }

@@ -2,61 +2,60 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
 {
-    internal sealed class AggregateSchemaInterceptor : SchemaInterceptor
+    private IReadOnlyList<ISchemaInterceptor> _interceptors;
+
+    public AggregateSchemaInterceptor()
     {
-        private IReadOnlyList<ISchemaInterceptor> _interceptors;
+        _interceptors = Array.Empty<ISchemaInterceptor>();
+    }
 
-        public AggregateSchemaInterceptor()
+    public void SetInterceptors(IReadOnlyList<ISchemaInterceptor> interceptors)
+    {
+        _interceptors = interceptors;
+    }
+
+    public override void OnBeforeCreate(
+        IDescriptorContext context,
+        ISchemaBuilder schemaBuilder)
+    {
+        if (_interceptors.Count == 0)
         {
-            _interceptors = Array.Empty<ISchemaInterceptor>();
+            return;
         }
 
-        public void SetInterceptors(IReadOnlyList<ISchemaInterceptor> interceptors)
+        foreach (ISchemaInterceptor interceptor in _interceptors)
         {
-            _interceptors = interceptors;
+            interceptor.OnBeforeCreate(context, schemaBuilder);
+        }
+    }
+
+    public override void OnAfterCreate(IDescriptorContext context, ISchema schema)
+    {
+        if (_interceptors.Count == 0)
+        {
+            return;
         }
 
-        public override void OnBeforeCreate(
-            IDescriptorContext context,
-            ISchemaBuilder schemaBuilder)
+        foreach (ISchemaInterceptor interceptor in _interceptors)
         {
-            if (_interceptors.Count == 0)
-            {
-                return;
-            }
+            interceptor.OnAfterCreate(context, schema);
+        }
+    }
 
-            foreach (ISchemaInterceptor interceptor in _interceptors)
-            {
-                interceptor.OnBeforeCreate(context, schemaBuilder);
-            }
+    public override void OnError(IDescriptorContext context, Exception exception)
+    {
+        if (_interceptors.Count == 0)
+        {
+            return;
         }
 
-        public override void OnAfterCreate(IDescriptorContext context, ISchema schema)
+        foreach (ISchemaInterceptor interceptor in _interceptors)
         {
-            if (_interceptors.Count == 0)
-            {
-                return;
-            }
-
-            foreach (ISchemaInterceptor interceptor in _interceptors)
-            {
-                interceptor.OnAfterCreate(context, schema);
-            }
-        }
-
-        public override void OnError(IDescriptorContext context, Exception exception)
-        {
-            if (_interceptors.Count == 0)
-            {
-                return;
-            }
-
-            foreach (ISchemaInterceptor interceptor in _interceptors)
-            {
-                interceptor.OnError(context, exception);
-            }
+            interceptor.OnError(context, exception);
         }
     }
 }

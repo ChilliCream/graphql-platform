@@ -43,6 +43,7 @@ namespace HotChocolate.Data.Projections.Spatial
         }
 
         [Fact]
+
         public async Task Create_Expression()
         {
             // arrange

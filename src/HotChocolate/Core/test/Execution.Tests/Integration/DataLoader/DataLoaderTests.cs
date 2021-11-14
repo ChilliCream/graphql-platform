@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Fetching;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
+
+#nullable enable
 
 namespace HotChocolate.Execution.Integration.DataLoader
 {
@@ -20,16 +26,16 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query", "fetchItem",
-                        async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
-            )
-            .MatchSnapshotAsync();
+                    "{ fetchItem }",
+                    configure: b => b
+                        .AddGraphQL()
+                        .AddDocumentFromString("type Query { fetchItem: String }")
+                        .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                        .AddResolver(
+                            "Query", "fetchItem",
+                            async ctx => await ctx.FetchOnceAsync(_ => Task.FromResult("fooBar")))
+                )
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -37,18 +43,18 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query", "fetchItem",
-                        async ctx => await ctx.CacheDataLoader<string, string>(
-                            (key, _) => Task.FromResult(key))
-                            .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+                    "{ fetchItem }",
+                    configure: b => b
+                        .AddGraphQL()
+                        .AddDocumentFromString("type Query { fetchItem: String }")
+                        .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                        .AddResolver(
+                            "Query", "fetchItem",
+                            async ctx => await ctx.CacheDataLoader<string, string>(
+                                    (key, _) => Task.FromResult(key))
+                                .LoadAsync("fooBar"))
+                )
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -56,19 +62,19 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query", "fetchItem",
-                        async ctx => await ctx.BatchDataLoader<string, string>(
-                            (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
-                                keys.ToDictionary(t => t)))
-                            .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+                    "{ fetchItem }",
+                    configure: b => b
+                        .AddGraphQL()
+                        .AddDocumentFromString("type Query { fetchItem: String }")
+                        .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                        .AddResolver(
+                            "Query", "fetchItem",
+                            async ctx => await ctx.BatchDataLoader<string, string>(
+                                    (keys, _) => Task.FromResult<IReadOnlyDictionary<string, string>>(
+                                        keys.ToDictionary(t => t)))
+                                .LoadAsync("fooBar"))
+                )
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -76,19 +82,19 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ fetchItem }",
-                configure: b => b
-                    .AddGraphQL()
-                    .AddDocumentFromString("type Query { fetchItem: String }")
-                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-                    .AddResolver(
-                        "Query", "fetchItem",
-                        async ctx => await ctx.GroupDataLoader<string, string>(
-                            (keys, _) => Task.FromResult(
-                                keys.ToLookup(t => t)))
-                            .LoadAsync("fooBar"))
-            )
-            .MatchSnapshotAsync();
+                    "{ fetchItem }",
+                    configure: b => b
+                        .AddGraphQL()
+                        .AddDocumentFromString("type Query { fetchItem: String }")
+                        .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                        .AddResolver(
+                            "Query", "fetchItem",
+                            async ctx => await ctx.GroupDataLoader<string, string>(
+                                    (keys, _) => Task.FromResult(
+                                        keys.ToLookup(t => t)))
+                                .LoadAsync("fooBar"))
+                )
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -161,7 +167,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             .GetOrRegister<TestDataLoader>(() => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -219,7 +225,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -316,7 +322,7 @@ namespace HotChocolate.Execution.Integration.DataLoader
                         (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
 
                     context.Result = QueryResultBuilder
-                        .FromResult(((IQueryResult)context.Result)!)
+                        .FromResult(((IQueryResult)context.Result!))
                         .AddExtension("loads", dataLoader.Loads)
                         .Create();
                 })
@@ -333,7 +339,6 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             b: dataLoaderWithInterface(key: ""b"")
                         }")
                         .Create()),
-
                 await executor.ExecuteAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(
@@ -341,7 +346,6 @@ namespace HotChocolate.Execution.Integration.DataLoader
                             a: dataLoaderWithInterface(key: ""a"")
                         }")
                         .Create()),
-
                 await executor.ExecuteAsync(
                     QueryRequestBuilder.New()
                         .SetQuery(
@@ -353,6 +357,23 @@ namespace HotChocolate.Execution.Integration.DataLoader
 
             // assert
             results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task NestedDataLoader()
+        {
+            using var cts = new CancellationTokenSource(500);
+
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType()
+                .AddType<FooQueries>()
+                .AddDataLoader<FooDataLoader>()
+                .AddDataLoader<FooNestedDataLoader>()
+                .ExecuteRequestAsync("query Foo { foo { id field } }", cancellationToken: cts.Token)
+                .MatchSnapshotAsync();
         }
 
         public class DataLoaderListener : DataLoaderDiagnosticEventListener
@@ -374,7 +395,8 @@ namespace HotChocolate.Execution.Integration.DataLoader
                 return base.ExecuteBatch(dataLoader, keys);
             }
 
-            public override void BatchResults<TKey, TValue>(IReadOnlyList<TKey> keys, ReadOnlySpan<Result<TValue>> values)
+            public override void BatchResults<TKey, TValue>(IReadOnlyList<TKey> keys,
+                ReadOnlySpan<Result<TValue>> values)
             {
                 BatchResultsTouched = true;
             }
@@ -388,6 +410,78 @@ namespace HotChocolate.Execution.Integration.DataLoader
             {
                 BatchItemErrorTouched = true;
             }
+        }
+
+        [ExtendObjectType("Query")]
+        public class FooQueries
+        {
+            public async Task<FooObject?> GetFoo(IResolverContext context, CancellationToken ct) =>
+                await FooObject.Get(context, "hello", ct);
+        }
+
+        [GraphQLName("Foo")]
+        [Node]
+        public class FooObject
+        {
+            public FooObject(string field)
+            {
+                id = field;
+            }
+
+            public string id { get; }
+            public string field => id;
+
+            public static async Task<FooObject?> Get(IResolverContext context, string id,
+                CancellationToken ct) =>
+                new((await context.DataLoader<FooDataLoader>().LoadAsync(id, ct)).Field);
+        }
+
+        public class FooDataLoader : BatchDataLoader<string, FooRecord>
+        {
+            private readonly FooNestedDataLoader _nestedDataLoader;
+
+            public FooDataLoader(
+                IBatchScheduler batchScheduler,
+                FooNestedDataLoader nestedDataLoader,
+                DataLoaderOptions? options = null)
+                : base(batchScheduler, options)
+            {
+                _nestedDataLoader = nestedDataLoader;
+            }
+
+            protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
+                IReadOnlyList<string> keys,
+                CancellationToken cancellationToken)
+                => (await _nestedDataLoader.LoadAsync(keys, cancellationToken))
+                    .ToImmutableDictionary(x => x.Field);
+        }
+
+        public class FooNestedDataLoader : BatchDataLoader<string, FooRecord>
+        {
+            public FooNestedDataLoader(
+                IBatchScheduler batchScheduler,
+                DataLoaderOptions? options = null)
+                : base(batchScheduler, options)
+            {
+            }
+
+            protected override async Task<IReadOnlyDictionary<string, FooRecord>> LoadBatchAsync(
+                IReadOnlyList<string> keys,
+                CancellationToken cancellationToken)
+            {
+                await Task.Delay(1, cancellationToken);
+                return keys.ToImmutableDictionary(key => key, key => new FooRecord(key));
+            }
+        }
+
+        public class FooRecord
+        {
+            public FooRecord(string field)
+            {
+                Field = field;
+            }
+
+            public string Field { get; }
         }
     }
 }

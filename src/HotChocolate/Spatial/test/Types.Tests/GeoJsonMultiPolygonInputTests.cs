@@ -15,33 +15,35 @@ namespace HotChocolate.Types.Spatial
         private readonly ListValueNode _multiPolygon = new(
             new ListValueNode(
                 new ListValueNode(
-                    new IntValueNode(30),
-                    new IntValueNode(20)),
-                new ListValueNode(
-                    new IntValueNode(45),
-                    new IntValueNode(40)),
-                new ListValueNode(
-                    new IntValueNode(10),
-                    new IntValueNode(40)),
-                new ListValueNode(
-                    new IntValueNode(30),
-                    new IntValueNode(20))),
+                    new ListValueNode(
+                        new IntValueNode(30),
+                        new IntValueNode(20)),
+                    new ListValueNode(
+                        new IntValueNode(45),
+                        new IntValueNode(40)),
+                    new ListValueNode(
+                        new IntValueNode(10),
+                        new IntValueNode(40)),
+                    new ListValueNode(
+                        new IntValueNode(30),
+                        new IntValueNode(20)))),
             new ListValueNode(
                 new ListValueNode(
-                    new IntValueNode(15),
-                    new IntValueNode(5)),
-                new ListValueNode(
-                    new IntValueNode(40),
-                    new IntValueNode(10)),
-                new ListValueNode(
-                    new IntValueNode(10),
-                    new IntValueNode(20)),
-                new ListValueNode(
-                    new IntValueNode(5),
-                    new IntValueNode(15)),
-                new ListValueNode(
-                    new IntValueNode(15),
-                    new IntValueNode(5))));
+                    new ListValueNode(
+                        new IntValueNode(15),
+                        new IntValueNode(5)),
+                    new ListValueNode(
+                        new IntValueNode(40),
+                        new IntValueNode(10)),
+                    new ListValueNode(
+                        new IntValueNode(10),
+                        new IntValueNode(20)),
+                    new ListValueNode(
+                        new IntValueNode(5),
+                        new IntValueNode(15)),
+                    new ListValueNode(
+                        new IntValueNode(15),
+                        new IntValueNode(5)))));
 
         [Fact]
         public void ParseLiteral_MultiPolygon_With_Single_Ring()
@@ -197,9 +199,19 @@ namespace HotChocolate.Types.Spatial
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MultiPolygon, coordinates:[ [" +
-                "[[30, 20], [45, 40], [10, 40], [30, 20]] ], " +
-                "[ [[15, 5], [40, 10], [10, 20], [5, 10], [15, 5]] ] ] })}");
+                @"
+                {
+                  test(
+                    arg: {
+                      type: MultiPolygon
+                      coordinates: [
+                        [[[30, 20], [45, 40], [10, 40], [30, 20]]]
+                        [[[15, 5], [40, 10], [10, 20], [5, 10], [15, 5]]]
+                      ]
+                    }
+                  )
+                }
+                ");
 
             // assert
             result.MatchSnapshot();

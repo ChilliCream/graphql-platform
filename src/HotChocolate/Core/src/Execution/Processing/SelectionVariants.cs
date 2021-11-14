@@ -2,122 +2,121 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed class SelectionVariants : ISelectionVariants
 {
-    internal sealed class SelectionVariants : ISelectionVariants
+    private IObjectType? _firstType;
+    private ISelectionSet? _firstSelections;
+    private IObjectType? _secondType;
+    private ISelectionSet? _secondSelections;
+    private Dictionary<IObjectType, ISelectionSet>? _map;
+
+    public SelectionVariants(SelectionSetNode selectionSet)
     {
-        private IObjectType? _firstType;
-        private ISelectionSet? _firstSelections;
-        private IObjectType? _secondType;
-        private ISelectionSet? _secondSelections;
-        private Dictionary<IObjectType, ISelectionSet>? _map;
+        SelectionSet = selectionSet;
+    }
 
-        public SelectionVariants(SelectionSetNode selectionSet)
+    public SelectionSetNode SelectionSet { get; }
+
+    public IEnumerable<IObjectType> GetPossibleTypes()
+    {
+        if (_map is { })
         {
-            SelectionSet = selectionSet;
+            foreach (IObjectType possibleType in _map.Keys)
+            {
+                yield return possibleType;
+            }
+        }
+        else
+        {
+            yield return _firstType!;
+
+            if (_secondType is { })
+            {
+                yield return _secondType;
+            }
+        }
+    }
+
+    public ISelectionSet GetSelectionSet(IObjectType typeContext)
+    {
+        if (_map is { })
+        {
+            return _map.TryGetValue(typeContext, out ISelectionSet? selections)
+                ? selections
+                : Processing.SelectionSet.Empty;
         }
 
-        public SelectionSetNode SelectionSet { get; }
-
-        public IEnumerable<IObjectType> GetPossibleTypes()
+        if (ReferenceEquals(_firstType, typeContext))
         {
-            if (_map is { })
+            return _firstSelections!;
+        }
+
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            return _secondSelections!;
+        }
+
+        return Processing.SelectionSet.Empty;
+    }
+
+    public void AddSelectionSet(
+        IObjectType typeContext,
+        IReadOnlyList<ISelection> selections,
+        IReadOnlyList<IFragment>? fragments,
+        bool isConditional)
+    {
+        var selectionSet = new SelectionSet(selections, fragments, isConditional);
+
+        if (_map is { })
+        {
+            _map[typeContext] = selectionSet;
+        }
+        else
+        {
+            if (_firstType is null)
             {
-                foreach (IObjectType possibleType in _map.Keys)
-                {
-                    yield return possibleType;
-                }
+                _firstType = typeContext;
+                _firstSelections = selectionSet;
+            }
+            else if (_secondType is null)
+            {
+                _secondType = typeContext;
+                _secondSelections = selectionSet;
             }
             else
             {
-                yield return _firstType!;
-
-                if (_secondType is { })
-                {
-                    yield return _secondType;
-                }
-            }
-        }
-
-        public ISelectionSet GetSelectionSet(IObjectType typeContext)
-        {
-            if (_map is { })
-            {
-                return _map.TryGetValue(typeContext, out ISelectionSet? selections)
-                    ? selections
-                    : Processing.SelectionSet.Empty;
-            }
-
-            if (ReferenceEquals(_firstType, typeContext))
-            {
-                return _firstSelections!;
-            }
-
-            if (ReferenceEquals(_secondType, typeContext))
-            {
-                return _secondSelections!;
-            }
-
-            return Processing.SelectionSet.Empty;
-        }
-
-        public void AddSelectionSet(
-            IObjectType typeContext,
-            IReadOnlyList<ISelection> selections,
-            IReadOnlyList<IFragment>? fragments,
-            bool isConditional)
-        {
-            var selectionSet = new SelectionSet(selections, fragments, isConditional);
-
-            if (_map is { })
-            {
-                _map[typeContext] = selectionSet;
-            }
-            else
-            {
-                if (_firstType is null)
-                {
-                    _firstType = typeContext;
-                    _firstSelections = selectionSet;
-                }
-                else if (_secondType is null)
-                {
-                    _secondType = typeContext;
-                    _secondSelections = selectionSet;
-                }
-                else
-                {
-                    _map = new Dictionary<IObjectType, ISelectionSet>
+                _map = new Dictionary<IObjectType, ISelectionSet>
                     {
                         { _firstType, _firstSelections! },
                         { _secondType, _secondSelections! },
                         { typeContext, selectionSet }
                     };
 
-                    _firstType = null;
-                    _firstSelections = null;
-                    _secondType = null;
-                    _secondSelections = null;
-                }
+                _firstType = null;
+                _firstSelections = null;
+                _secondType = null;
+                _secondSelections = null;
             }
         }
+    }
 
-        public void ReplaceSelectionSet(IObjectType typeContext, ISelectionSet selectionSet)
+    public void ReplaceSelectionSet(IObjectType typeContext, ISelectionSet selectionSet)
+    {
+        if (_map is not null)
         {
-            if (_map is not null)
-            {
-                _map[typeContext] = selectionSet;
-            }
+            _map[typeContext] = selectionSet;
+        }
 
-            if (ReferenceEquals(_firstType, typeContext))
-            {
-                _firstSelections = selectionSet;
-            }
+        if (ReferenceEquals(_firstType, typeContext))
+        {
+            _firstSelections = selectionSet;
+        }
 
-            if (ReferenceEquals(_secondType, typeContext))
-            {
-                _secondSelections = selectionSet;
-            }
+        if (ReferenceEquals(_secondType, typeContext))
+        {
+            _secondSelections = selectionSet;
         }
     }
 }

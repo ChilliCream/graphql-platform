@@ -40,7 +40,8 @@ namespace StrawberryShake.Tools
                 new Uri(arguments.Uri.Value!),
                 FileSystem.ResolvePath(arguments.FileName.Value()?.Trim(), "schema.graphql"),
                 accessToken?.Token,
-                accessToken?.Scheme);
+                accessToken?.Scheme,
+                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
             FileSystem.EnsureDirectoryExists(
                 FileSystem.GetDirectoryName(context.FileName));
@@ -58,7 +59,7 @@ namespace StrawberryShake.Tools
             using IActivity activity = Output.WriteActivity("Download schema");
 
             HttpClient client = HttpClientFactory.Create(
-                context.Uri, context.Token, context.Scheme);
+                context.Uri, context.Token, context.Scheme, context.CustomHeaders);
 
             return await IntrospectionHelper.DownloadSchemaAsync(
                 client, FileSystem, activity, context.FileName,

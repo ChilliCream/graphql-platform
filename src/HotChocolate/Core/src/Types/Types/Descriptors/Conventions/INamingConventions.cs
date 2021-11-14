@@ -1,32 +1,31 @@
-using System.Reflection;
 using System;
+using System.Reflection;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public interface INamingConventions : IConvention
 {
-    public interface INamingConventions : IConvention
-    {
-        NameString GetTypeName(Type type);
+    NameString GetTypeName(Type type);
 
-        NameString GetTypeName(Type type, TypeKind kind);
+    NameString GetTypeName(Type type, TypeKind kind);
 
-        string? GetTypeDescription(Type type, TypeKind kind);
+    string? GetTypeDescription(Type type, TypeKind kind);
 
-        NameString GetMemberName(MemberInfo member, MemberKind kind);
+    NameString GetMemberName(MemberInfo member, MemberKind kind);
 
-        string? GetMemberDescription(MemberInfo member, MemberKind kind);
+    string? GetMemberDescription(MemberInfo member, MemberKind kind);
 
-        NameString GetArgumentName(ParameterInfo parameter);
+    NameString GetArgumentName(ParameterInfo parameter);
 
-        string? GetArgumentDescription(ParameterInfo parameter);
+    string? GetArgumentDescription(ParameterInfo parameter);
 
-        NameString GetEnumValueName(object value);
+    NameString GetEnumValueName(object value);
 
-        string? GetEnumValueDescription(object value);
+    string? GetEnumValueDescription(object value);
 
-        bool IsDeprecated(MemberInfo member, out string? reason);
+    bool IsDeprecated(MemberInfo member, out string? reason);
 
-        bool IsDeprecated(object value, out string? reason);
-    }
+    bool IsDeprecated(object value, out string? reason);
 }

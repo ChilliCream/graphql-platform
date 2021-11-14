@@ -6,58 +6,57 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public class EnumType<T>
+    : EnumType
+    , IEnumType<T>
 {
-    public class EnumType<T>
-        : EnumType
-        , IEnumType<T>
+    private Action<IEnumTypeDescriptor<T>>? _configure;
+
+    public EnumType()
     {
-        private Action<IEnumTypeDescriptor<T>>? _configure;
+        _configure = Configure;
+    }
 
-        public EnumType()
+    public EnumType(Action<IEnumTypeDescriptor<T>> configure)
+    {
+        _configure = configure
+            ?? throw new ArgumentNullException(nameof(configure));
+    }
+
+    /// <inheritdoc />
+    public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)] out T runtimeValue)
+    {
+        if (base.TryGetRuntimeValue(name, out object? rv) &&
+            rv is T casted)
         {
-            _configure = Configure;
+            runtimeValue = casted;
+            return true;
         }
 
-        public EnumType(Action<IEnumTypeDescriptor<T>> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
+        runtimeValue = default!;
+        return false;
+    }
 
-        /// <inheritdoc />
-        public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)]out T runtimeValue)
-        {
-            if (base.TryGetRuntimeValue(name, out object? rv) &&
-                rv is T casted)
-            {
-                runtimeValue = casted;
-                return true;
-            }
+    protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
+    {
+    }
 
-            runtimeValue = default!;
-            return false;
-        }
+    protected sealed override void Configure(IEnumTypeDescriptor descriptor)
+    {
+        throw new NotSupportedException();
+    }
 
-        protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
-        {
-        }
+    protected override EnumTypeDefinition CreateDefinition(
+        ITypeDiscoveryContext context)
+    {
+        var descriptor =
+            EnumTypeDescriptor.New<T>(context.DescriptorContext);
 
-        protected sealed override void Configure(IEnumTypeDescriptor descriptor)
-        {
-            throw new NotSupportedException();
-        }
+        _configure!(descriptor);
+        _configure = null;
 
-        protected override EnumTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor =
-                EnumTypeDescriptor.New<T>(context.DescriptorContext);
-
-            _configure!(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
+        return descriptor.CreateDefinition();
     }
 }

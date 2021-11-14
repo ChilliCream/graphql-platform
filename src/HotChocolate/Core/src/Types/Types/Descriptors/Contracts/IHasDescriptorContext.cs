@@ -1,9 +1,8 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IHasDescriptorContext
 {
-    public interface IHasDescriptorContext
-    {
-        IDescriptorContext Context { get; }
-    }
+    IDescriptorContext Context { get; }
 }

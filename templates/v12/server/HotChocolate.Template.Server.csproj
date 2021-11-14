@@ -6,6 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
+    <Using Include="HotChocolate.Template.Server" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="HotChocolate.AspNetCore" Version="11.1.0" />
   </ItemGroup>

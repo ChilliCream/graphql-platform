@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Sorting
         {
             Member = definition.Member;
             Handler = definition.Handler ??
-                throw ThrowHelper.SortField_ArgumentInvalid_NoHandlerWasFound(nameof(definition));
+                throw ThrowHelper.SortField_ArgumentInvalid_NoHandlerWasFound();
         }
 
         public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;

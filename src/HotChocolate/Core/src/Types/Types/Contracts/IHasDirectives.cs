@@ -1,15 +1,14 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// GraphQL type system members that have directives.
+/// </summary>
+public interface IHasDirectives
 {
     /// <summary>
-    /// GraphQL type system members that have directives.
+    /// Gets the directives of this type system member.
     /// </summary>
-    public interface IHasDirectives
-    {
-        /// <summary>
-        /// Gets the directives of this type system member.
-        /// </summary>
-        public IDirectiveCollection Directives { get; }
-    }
+    public IDirectiveCollection Directives { get; }
 }

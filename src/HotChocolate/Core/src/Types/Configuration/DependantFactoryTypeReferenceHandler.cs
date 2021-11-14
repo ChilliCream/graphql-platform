@@ -3,32 +3,31 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class DependantFactoryTypeReferenceHandler : ITypeRegistrarHandler
 {
-    internal sealed class DependantFactoryTypeReferenceHandler : ITypeRegistrarHandler
+    private readonly HashSet<DependantFactoryTypeReference> _handled = new();
+    private readonly IDescriptorContext _context;
+
+    public DependantFactoryTypeReferenceHandler(IDescriptorContext context)
     {
-        private readonly HashSet<DependantFactoryTypeReference> _handled = new();
-        private readonly IDescriptorContext _context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
 
-        public DependantFactoryTypeReferenceHandler(IDescriptorContext context)
+    public TypeReferenceKind Kind => TypeReferenceKind.DependantFactory;
+
+    public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
+    {
+        var typeRef = (DependantFactoryTypeReference)typeReference;
+
+        if (_handled.Add(typeRef))
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            TypeSystemObjectBase obj = typeRef.Factory(_context);
+            typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
         }
 
-        public TypeReferenceKind Kind => TypeReferenceKind.DependantFactory;
-
-        public void Handle(ITypeRegistrar typeRegistrar, ITypeReference typeReference)
-        {
-            var typeRef = (DependantFactoryTypeReference)typeReference;
-
-            if (_handled.Add(typeRef))
-            {
-                TypeSystemObjectBase obj = typeRef.Factory(_context);
-                typeRegistrar.Register(obj, typeRef.Scope, configure: AddTypeRef);
-            }
-
-            void AddTypeRef(RegisteredType registeredType)
-                => registeredType.References.Add(typeRef);
-        }
+        void AddTypeRef(RegisteredType registeredType)
+            => registeredType.References.Add(typeRef);
     }
 }

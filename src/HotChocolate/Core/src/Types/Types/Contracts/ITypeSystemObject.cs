@@ -1,11 +1,10 @@
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface ITypeSystemObject
+    : IHasName
+    , IHasDescription
+    , IHasReadOnlyContextData
+    , IHasScope
+    , ITypeSystemMember
 {
-    public interface ITypeSystemObject
-        : IHasName
-        , IHasDescription
-        , IHasReadOnlyContextData
-        , IHasScope
-        , ITypeSystemMember
-    {
-    }
 }

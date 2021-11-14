@@ -8,15 +8,7 @@
 
   <PropertyGroup>
     <Product>Strawberry Shake</Product>
-    <Authors>ChilliCream authors and contributors</Authors>
-    <Company>ChilliCream</Company>
-    <Copyright>Copyright &#169; 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
-    <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
-    <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
-    <PackageTags>GraphQL ChilliCream</PackageTags>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/resources/strawberryshake-signet.png</PackageIconUrl>
+    <PackageIcon>strawberryshake-signet.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>

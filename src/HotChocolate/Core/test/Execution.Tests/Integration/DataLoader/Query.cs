@@ -37,16 +37,19 @@ namespace HotChocolate.Execution.Integration.DataLoader
 
         public async Task<string> GetWithStackedDataLoader(
             string key,
-            FieldNode fieldSelection,
             [DataLoader("fooBar")] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
-
-            string s = await testDataLoader.LoadAsync(key + "a", cancellationToken);
+            var s = await testDataLoader.LoadAsync(key + "a", cancellationToken);
             s += await testDataLoader.LoadAsync(key + "b", cancellationToken);
             s += await testDataLoader.LoadAsync(key + "c", cancellationToken);
             s += await testDataLoader.LoadAsync(key + "d", cancellationToken);
+            await Task.Delay(10, cancellationToken);
             s += await testDataLoader.LoadAsync(key + "e", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "f", cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "g", cancellationToken);
+            await Task.Delay(10, cancellationToken);
+            s += await testDataLoader.LoadAsync(key + "h", cancellationToken);
             return s;
         }
     }

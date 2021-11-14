@@ -7,32 +7,17 @@ indent_size = 2
 indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
+rulers = 100
 
 [*.md]
 trim_trailing_whitespace = false
 
 # CSharp code style settings:
 [*.cs]
-root = true
-
-[*]
-charset = utf-8
-end_of_line = lf
-indent_size = 2
-indent_style = space
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.md]
-trim_trailing_whitespace = false
-
-# Cake build code style settings:
-[*.cake]
 indent_size = 4
 
-# CSharp code style settings:
-[*.cs]
-indent_size = 4
+# Namespace settings
+csharp_style_namespace_declarations = file_scoped:warning
 
 # Avoid "this." and "Me." if not necessary
 dotnet_style_qualification_for_field = false:suggestion
@@ -112,13 +97,11 @@ csharp_space_between_parentheses = false
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks = true
 
-indent_size = 4
-
 # Sort using and Import directives with System.* appearing first
 dotnet_sort_system_directives_first = true
 
 # Avoid "this." and "Me." if not necessary
-dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_field = false:suggestion 
 dotnet_style_qualification_for_property = false:suggestion
 dotnet_style_qualification_for_method = false:suggestion
 dotnet_style_qualification_for_event = false:suggestion
@@ -165,3 +148,6 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 
 dotnet_style_require_accessibility_modifiers = always
+
+# Public API
+dotnet_diagnostic.RS0016.severity = warning

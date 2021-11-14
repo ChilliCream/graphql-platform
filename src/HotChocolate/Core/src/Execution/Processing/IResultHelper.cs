@@ -1,50 +1,49 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal interface IResultHelper
 {
-    internal interface IResultHelper
-    {
-        ResultMapList RentResultMapList();
+    ResultMapList RentResultMapList();
 
-        ResultMap RentResultMap(int count);
+    ResultMap RentResultMap(int count);
 
-        ResultList RentResultList();
+    ResultList RentResultList();
 
-        IReadOnlyList<IError> Errors { get; }
+    IReadOnlyList<IError> Errors { get; }
 
-        void SetData(ResultMap resultMap);
+    void SetData(ResultMap resultMap);
 
-        void SetExtension(string key, object? value);
+    void SetExtension(string key, object? value);
 
-        void SetContextData(string key, object? value);
+    void SetContextData(string key, object? value);
 
-        void SetPath(Path? path);
+    void SetPath(Path? path);
 
-        void SetLabel(string? label);
+    void SetLabel(string? label);
 
-        void SetHasNext(bool value);
+    void SetHasNext(bool value);
 
-        /// <summary>
-        /// Adds an error thread-safe to the result object.
-        /// </summary>
-        /// <param name="error">The error that shall be added.</param>
-        /// <param name="selection">The affected field.</param>
-        void AddError(IError error, FieldNode? selection = null);
+    /// <summary>
+    /// Adds an error thread-safe to the result object.
+    /// </summary>
+    /// <param name="error">The error that shall be added.</param>
+    /// <param name="selection">The affected field.</param>
+    void AddError(IError error, FieldNode? selection = null);
 
-        /// <summary>
-        /// Adds a errors thread-safe to the result object.
-        /// </summary>
-        /// <param name="errors">The errors that shall be added.</param>
-        /// <param name="selection">The affected field.</param>
-        void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
+    /// <summary>
+    /// Adds a errors thread-safe to the result object.
+    /// </summary>
+    /// <param name="errors">The errors that shall be added.</param>
+    /// <param name="selection">The affected field.</param>
+    void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
-        void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
+    void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
 
-        IQueryResult BuildResult();
+    IQueryResult BuildResult();
 
-        void DropResult();
+    void DropResult();
 
-        void Clear();
-    }
+    void Clear();
 }
