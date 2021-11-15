@@ -9,6 +9,8 @@ namespace HotChocolate.Execution.Processing;
 
 internal partial class WorkScheduler : IWorkScheduler
 {
+    private bool _dispatch;
+
     /// <inheritdoc/>
     public bool IsCompleted => _completed;
 
@@ -281,7 +283,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 return false;
             }
 
-            if (_batchDispatcher.HasTasks && _work.IsEmpty)
+            if (_dispatch && _work.IsEmpty)
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
@@ -317,6 +319,7 @@ internal partial class WorkScheduler : IWorkScheduler
     {
         lock (_sync)
         {
+            _dispatch = true;
             TryStartProcessingUnsafe(force: true);
         }
     }

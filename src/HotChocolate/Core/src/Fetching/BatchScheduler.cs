@@ -14,12 +14,13 @@ namespace HotChocolate.Fetching
         : IBatchScheduler
         , IBatchDispatcher
     {
+        private static List<Func<ValueTask>>? _localTasks;
+        private static List<Task<Exception?>>? _localProcessing;
+
         private const int _waitTimeout = 30_000;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly object _sync = new();
         private readonly List<Func<ValueTask>> _tasks = new();
-        private List<Func<ValueTask>>? _localTasks;
-        private List<Task<Exception?>>? _localProcessing;
         private bool _dispatchOnSchedule;
 
         /// <inheritdoc />
