@@ -27,9 +27,6 @@ namespace HotChocolate.Fetching
         public event EventHandler? TaskEnqueued;
 
         /// <inheritdoc />
-        public bool HasTasks => _tasks.Count > 0;
-
-        /// <inheritdoc />
         public bool DispatchOnSchedule
         {
             get => _dispatchOnSchedule;
@@ -91,8 +88,6 @@ namespace HotChocolate.Fetching
                         // we will try to reuse the pooled list.
                         tasks = Exchange(ref _localTasks, null) ?? new();
                         tasks.AddRange(_tasks);
-
-                        _localProcessing = null;
                         _tasks.Clear();
                         break;
                 }
