@@ -287,6 +287,7 @@ internal partial class WorkScheduler : IWorkScheduler
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
+                _dispatch = false;
                 return false;
             }
 
