@@ -8,9 +8,18 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 
 
 ```
+main
 |                                         Method |      Mean |     Error |     StdDev |    Median | Rank |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |
 |----------------------------------------------- |----------:|----------:|-----------:|----------:|-----:|---------:|--------:|--------:|----------:|
 |             Sessions_TitleAndAbstract_10_Items |  1.120 ms | 0.0096 ms |  0.0085 ms |  1.119 ms |    1 |  11.7188 |  1.9531 |       - |    120 KB |
 | Sessions_TitleAndAbstractAndTrackName_10_Items |  2.081 ms | 0.0218 ms |  0.0193 ms |  2.084 ms |    2 |  15.6250 |  3.9063 |       - |    190 KB |
 |                                Sessions_Medium |  4.999 ms | 0.0934 ms |  0.0874 ms |  4.982 ms |    3 | 109.3750 | 23.4375 |  7.8125 |  1,171 KB |
 |                                 Sessions_Large | 37.946 ms | 4.3162 ms | 12.5220 ms | 33.716 ms |    4 | 218.7500 | 62.5000 | 31.2500 |  2,386 KB |
+
+12.0.1
+|                                         Method |      Mean |     Error |    StdDev |    Median | Rank |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |
+|----------------------------------------------- |----------:|----------:|----------:|----------:|-----:|---------:|--------:|--------:|----------:|
+|             Sessions_TitleAndAbstract_10_Items |  1.123 ms | 0.0094 ms | 0.0088 ms |  1.121 ms |    1 |  11.7188 |  1.9531 |       - |    122 KB |
+| Sessions_TitleAndAbstractAndTrackName_10_Items |  2.090 ms | 0.0240 ms | 0.0213 ms |  2.088 ms |    2 |  15.6250 |  3.9063 |       - |    192 KB |
+|                                Sessions_Medium |  5.105 ms | 0.1000 ms | 0.1027 ms |  5.092 ms |    3 | 117.1875 | 23.4375 | 15.6250 |  1,149 KB |
+|                                 Sessions_Large | 18.940 ms | 0.3203 ms | 0.2839 ms | 18.911 ms |    4 | 218.7500 | 31.2500 | 31.2500 |  2,399 KB |

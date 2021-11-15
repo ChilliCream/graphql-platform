@@ -8,10 +8,12 @@ namespace HotChocolate.ConferencePlanner
 {
     public class UseApplicationDbContextAttribute : ObjectFieldDescriptorAttribute
     {
+        /*
         public UseApplicationDbContextAttribute([CallerLineNumber] int order = 0)
         {
             Order = order;
         }
+        */
 
         public override void OnConfigure(
             IDescriptorContext context,

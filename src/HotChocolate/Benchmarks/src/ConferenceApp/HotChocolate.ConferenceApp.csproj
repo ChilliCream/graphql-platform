@@ -2,13 +2,18 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.ConferencePlanner</RootNamespace>
+    <PackageVersion>12.0.1</PackageVersion>
+    <UsePackageVersion>true</UsePackageVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  <ItemGroup Condition="'$(UsePackageVersion)' != 'true'">
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    <!--PackageReference Include="HotChocolate.AspNetCore" Version="12.0.0-rc.11" /-->
-    <!--PackageReference Include="HotChocolate.Data" Version="12.0.0-rc.11" /-->
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UsePackageVersion)' == 'true'">
+    <PackageReference Include="HotChocolate.AspNetCore" Version="$(PackageVersion)" />
+    <PackageReference Include="HotChocolate.Data" Version="$(PackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
