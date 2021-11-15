@@ -285,10 +285,12 @@ internal partial class WorkScheduler : IWorkScheduler
 
             if (_dispatch && _work.IsEmpty)
             {
-                _batchDispatcher.BeginDispatch(_requestAborted);
-                _diagnosticEvents.DispatchBatch(_requestContext);
-                _dispatch = false;
-                return false;
+                using (_diagnosticEvents.DispatchBatch(_requestContext))
+                {
+                    _batchDispatcher.BeginDispatch(_requestAborted);
+                    _dispatch = false;
+                    return false;
+                }
             }
 
             _processing = false;
