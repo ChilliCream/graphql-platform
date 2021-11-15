@@ -249,15 +249,20 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private async ValueTask<bool> TryStopProcessingAsync()
     {
-        var status = TryStopProcessing();
+        var processingFinished = TryStopProcessing();
         ProcessingPause? pause = _pause;
+
+        if (pause is not null || processingFinished)
+        {
+            _diagnosticEvents.StopProcessing(_requestContext);
+        }
 
         if (pause is not null)
         {
             await pause;
         }
 
-        return status;
+        return processingFinished;
     }
 
     private bool TryStopProcessing()
@@ -287,7 +292,6 @@ internal partial class WorkScheduler : IWorkScheduler
             }
 
             _processing = false;
-            _diagnosticEvents.StopProcessing(_requestContext);
 
             if (TryCompleteProcessingUnsafe())
             {
