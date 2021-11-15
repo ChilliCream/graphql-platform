@@ -24,7 +24,7 @@ internal sealed partial class ResolverTask
         catch
         {
             // If an exception occurs on this level it means that something was wrong with the
-            // operation context. 
+            // operation context.
 
             // In this case we will mark the task as faulted and set the result to null.
 
@@ -44,7 +44,7 @@ internal sealed partial class ResolverTask
     {
         try
         {
-            // We will precheck if the request was already canceled and mark the task as faulted if
+            // We will pre-check if the request was already canceled and mark the task as faulted if
             // this is the case. This essentially gives us a cheap and easy way out without any
             // exceptions.
             if (cancellationToken.IsCancellationRequested)
@@ -53,7 +53,7 @@ internal sealed partial class ResolverTask
                 return false;
             }
 
-            // If the arguments are already parsed and processed we can just process. 
+            // If the arguments are already parsed and processed we can just process.
             // Arguments need no pre-processing if they have no variables.
             if (Selection.Arguments.IsFinalNoErrors)
             {
@@ -79,8 +79,8 @@ internal sealed partial class ResolverTask
             {
                 // If cancellation has not been requested for the request we assume this to
                 // be a GraphQL resolver error and report it as such.
-                // This will let the error handler produce a GraphQL error and 
-                // we set the result to null. 
+                // This will let the error handler produce a GraphQL error and
+                // we set the result to null.
                 ResolverContext.ReportError(ex);
                 ResolverContext.Result = null;
             }
