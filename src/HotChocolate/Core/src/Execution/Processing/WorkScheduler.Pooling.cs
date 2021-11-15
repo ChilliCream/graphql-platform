@@ -61,7 +61,7 @@ internal partial class WorkScheduler
     {
         lock (_sync)
         {
-            TryContinueUnsafe();
+            TryContinue();
 
             if (_batchDispatcher is not null)
             {
@@ -96,7 +96,7 @@ internal partial class WorkScheduler
     {
         lock (_sync)
         {
-            TryContinueUnsafe();
+            TryContinue();
 
             _work.Clear();
             _serial.Clear();

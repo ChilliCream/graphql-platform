@@ -9,12 +9,12 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 
 ```
 main
-|                                         Method |      Mean |     Error |     StdDev |    Median | Rank |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |
-|----------------------------------------------- |----------:|----------:|-----------:|----------:|-----:|---------:|--------:|--------:|----------:|
-|             Sessions_TitleAndAbstract_10_Items |  1.176 ms | 0.0082 ms |  0.0073 ms |  1.179 ms |    1 |  11.7188 |  1.9531 |       - |    120 KB |
-| Sessions_TitleAndAbstractAndTrackName_10_Items |  2.205 ms | 0.0389 ms |  0.0345 ms |  2.206 ms |    2 |  15.6250 |  3.9063 |       - |    191 KB |
-|                                Sessions_Medium |  5.692 ms | 0.1134 ms |  0.3291 ms |  5.598 ms |    3 | 117.1875 | 23.4375 | 15.6250 |  1,155 KB |
-|                                 Sessions_Large | 34.772 ms | 5.6657 ms | 15.8873 ms | 29.982 ms |    4 | 187.5000 |       - |       - |  2,417 KB |
+|                                         Method |      Mean |     Error |    StdDev |    Median | Rank |    Gen 0 |   Gen 1 |  Gen 2 | Allocated |
+|----------------------------------------------- |----------:|----------:|----------:|----------:|-----:|---------:|--------:|-------:|----------:|
+|             Sessions_TitleAndAbstract_10_Items |  1.126 ms | 0.0120 ms | 0.0106 ms |  1.128 ms |    1 |   9.7656 |       - |      - |    118 KB |
+| Sessions_TitleAndAbstractAndTrackName_10_Items |  2.087 ms | 0.0241 ms | 0.0226 ms |  2.092 ms |    2 |  15.6250 |       - |      - |    180 KB |
+|                                Sessions_Medium |  5.123 ms | 0.0997 ms | 0.1430 ms |  5.102 ms |    3 | 101.5625 | 39.0625 | 7.8125 |  1,083 KB |
+|                                 Sessions_Large | 31.583 ms | 3.2914 ms | 9.1751 ms | 32.831 ms |    4 | 187.5000 | 31.2500 |      - |  2,319 KB |
 
 12.2.1
 |                                         Method |      Mean |     Error |    StdDev |    Median | Rank |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |

@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 
@@ -18,10 +19,14 @@ internal partial class WorkScheduler
             _suspended.CopyTo(_work, _serial, _stateMachine);
         }
 
-        _processing = true;
         IExecutionTask?[] buffer = _buffer;
 
 RESTART:
+        lock (_sync)
+        {
+            _processing = true;
+        }
+
         _diagnosticEvents.StartProcessing(_requestContext);
 
         try

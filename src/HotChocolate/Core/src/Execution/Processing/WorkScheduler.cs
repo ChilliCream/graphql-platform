@@ -35,7 +35,7 @@ internal partial class WorkScheduler : IWorkScheduler
             throw new ArgumentNullException(nameof(task));
         }
 
-        var started = false;
+        var start = false;
 
         // first we initialize the task execution state.
         // This can be done without acquiring a lock since we only
@@ -49,7 +49,7 @@ internal partial class WorkScheduler : IWorkScheduler
             {
                 WorkQueue work = task.IsSerial ? _serial : _work;
                 work.Push(task);
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
             else
             {
@@ -57,11 +57,9 @@ internal partial class WorkScheduler : IWorkScheduler
             }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
     }
 
@@ -79,7 +77,7 @@ internal partial class WorkScheduler : IWorkScheduler
             return;
         }
 
-        var started = false;
+        var start= false;
 
         // first we initialize the task execution state.
         // This can be done without acquiring a lock since we only
@@ -93,8 +91,6 @@ internal partial class WorkScheduler : IWorkScheduler
 
         lock (_sync)
         {
-            var start = false;
-
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
@@ -113,15 +109,13 @@ internal partial class WorkScheduler : IWorkScheduler
 
             if (start)
             {
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
     }
 
@@ -133,7 +127,7 @@ internal partial class WorkScheduler : IWorkScheduler
             throw new ArgumentNullException(nameof(task));
         }
 
-        var started = false;
+        var start = false;
 
         lock (_sync)
         {
@@ -174,21 +168,19 @@ internal partial class WorkScheduler : IWorkScheduler
             // that the task processing is running.
             if (registered != _serial.Count + _work.Count)
             {
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
 
             if (TryCompleteProcessingUnsafe())
             {
                 EnsureContextIsClean();
-                TryContinueUnsafe();
+                start = true;
             }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
 
         bool NeedsStateMachineCompletion()
@@ -227,20 +219,10 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    private bool TryStartProcessingUnsafe(bool force = false)
-    {
-        if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
-        {
-            _processing = true;
-            TryContinueUnsafe();
-            return true;
-        }
-
-        return false;
-    }
+    private bool ShouldStartProcessing() => !_processing && (!_work.IsEmpty || !_serial.IsEmpty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void TryContinueUnsafe() => _pause.TryContinue();
+    private void TryContinue() => _pause.TryContinue();
 
     private async ValueTask<bool> TryStopProcessingAsync()
     {
@@ -303,7 +285,10 @@ internal partial class WorkScheduler : IWorkScheduler
         lock (_sync)
         {
             _dispatch = true;
-            TryStartProcessingUnsafe(force: true);
+            if (!_processing)
+            {
+                TryContinue();
+            }
         }
     }
 
