@@ -9,11 +9,11 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 
 ```
 main
-|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
-|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
-|               Query_TypeName |   8.266 μs | 0.0717 μs | 0.0599 μs |   8.280 μs |    1 |  0.2289 |      - |      2 KB |
-|          Query_Introspection | 963.767 μs | 3.8239 μs | 3.5768 μs | 964.592 μs |    2 | 21.4844 |      - |    230 KB |
-| Query_Introspection_Prepared | 960.092 μs | 3.9952 μs | 3.5416 μs | 959.823 μs |    2 | 21.4844 | 0.9766 |    229 KB |
+|                       Method |       Mean |      Error |     StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |-----------:|-----------:|-----------:|-----------:|-----:|--------:|-------:|----------:|
+|               Query_TypeName |   8.530 μs |  0.0871 μs |  0.0727 μs |   8.550 μs |    1 |  0.2289 |      - |      2 KB |
+|          Query_Introspection | 988.293 μs |  8.0080 μs |  7.4907 μs | 987.087 μs |    2 | 21.4844 |      - |    230 KB |
+| Query_Introspection_Prepared | 972.450 μs | 13.6141 μs | 12.7347 μs | 973.180 μs |    2 | 21.4844 | 1.9531 |    229 KB |
 
 12.2.1
 |                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |

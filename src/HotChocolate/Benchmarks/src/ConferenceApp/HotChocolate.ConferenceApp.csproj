@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>HotChocolate.ConferencePlanner</RootNamespace>
     <PackageVersion>12.2.1</PackageVersion>
-    <UsePackageVersion>true</UsePackageVersion>
+    <UsePackageVersion>false</UsePackageVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(UsePackageVersion)' != 'true'">
