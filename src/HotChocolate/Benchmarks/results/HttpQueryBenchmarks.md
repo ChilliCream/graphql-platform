@@ -11,10 +11,10 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 main
 |                                         Method |      Mean |     Error |    StdDev |    Median | Rank |    Gen 0 |   Gen 1 |  Gen 2 | Allocated |
 |----------------------------------------------- |----------:|----------:|----------:|----------:|-----:|---------:|--------:|-------:|----------:|
-|             Sessions_TitleAndAbstract_10_Items |  1.126 ms | 0.0120 ms | 0.0106 ms |  1.128 ms |    1 |   9.7656 |       - |      - |    118 KB |
-| Sessions_TitleAndAbstractAndTrackName_10_Items |  2.087 ms | 0.0241 ms | 0.0226 ms |  2.092 ms |    2 |  15.6250 |       - |      - |    180 KB |
-|                                Sessions_Medium |  5.123 ms | 0.0997 ms | 0.1430 ms |  5.102 ms |    3 | 101.5625 | 39.0625 | 7.8125 |  1,083 KB |
-|                                 Sessions_Large | 31.583 ms | 3.2914 ms | 9.1751 ms | 32.831 ms |    4 | 187.5000 | 31.2500 |      - |  2,319 KB |
+|             Sessions_TitleAndAbstract_10_Items |  1.063 ms | 0.0200 ms | 0.0187 ms |  1.055 ms |    1 |   9.7656 |       - |      - |    118 KB |
+| Sessions_TitleAndAbstractAndTrackName_10_Items |  2.056 ms | 0.0404 ms | 0.0415 ms |  2.050 ms |    2 |  15.6250 |       - |      - |    179 KB |
+|                                Sessions_Medium |  4.878 ms | 0.0972 ms | 0.1363 ms |  4.841 ms |    3 | 101.5625 | 39.0625 | 7.8125 |  1,093 KB |
+|                                 Sessions_Large | 17.222 ms | 0.3136 ms | 0.2618 ms | 17.264 ms |    4 | 187.5000 | 31.2500 |      - |  2,321 KB |
 
 12.2.1
 |                                         Method |      Mean |     Error |    StdDev |    Median | Rank |    Gen 0 |   Gen 1 |   Gen 2 | Allocated |

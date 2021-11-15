@@ -11,9 +11,9 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 main
 |                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
 |----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
-|               Query_TypeName |   8.309 μs | 0.1518 μs | 0.1420 μs |   8.333 μs |    1 |  0.2289 |      - |      2 KB |
-|          Query_Introspection | 978.173 μs | 7.4497 μs | 6.9684 μs | 978.810 μs |    3 | 21.4844 |      - |    230 KB |
-| Query_Introspection_Prepared | 949.835 μs | 4.5202 μs | 4.0071 μs | 950.746 μs |    2 | 21.4844 | 0.9766 |    229 KB |
+|               Query_TypeName |   8.134 μs | 0.1533 μs | 0.1434 μs |   8.138 μs |    1 |  0.2289 |      - |      2 KB |
+|          Query_Introspection | 960.094 μs | 5.8602 μs | 5.4817 μs | 961.218 μs |    2 | 22.4609 | 0.9766 |    230 KB |
+| Query_Introspection_Prepared | 968.765 μs | 9.4212 μs | 8.8126 μs | 968.530 μs |    2 | 21.4844 | 0.9766 |    229 KB |
 
 12.2.1
 |                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |

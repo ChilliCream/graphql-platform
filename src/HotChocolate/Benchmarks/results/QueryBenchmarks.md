@@ -9,13 +9,13 @@ Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
 
 ```
 main
-|                                         Method |        Mean |       Error |       StdDev |      Median | Rank |    Gen 0 |    Gen 1 | Allocated |
-|----------------------------------------------- |------------:|------------:|-------------:|------------:|-----:|---------:|---------:|----------:|
-|             Sessions_TitleAndAbstract_10_Items |    884.6 μs |     7.09 μs |      6.29 μs |    886.0 μs |    1 |   5.8594 |        - |     60 KB |
-| Sessions_TitleAndAbstractAndTrackName_10_Items |  1,908.8 μs |    16.44 μs |     15.38 μs |  1,909.5 μs |    2 |  11.7188 |        - |    120 KB |
-|                                Sessions_Medium |  4,754.2 μs |    95.07 μs |    173.85 μs |  4,737.3 μs |    3 |  70.3125 |  15.6250 |    759 KB |
-|                                 Sessions_Large | 29,844.9 μs | 3,545.60 μs |  9,942.26 μs | 27,878.4 μs |    4 | 156.2500 |  31.2500 |  1,821 KB |
-|                      Sessions_DataLoader_Large | 90,713.4 μs | 7,516.16 μs | 21,076.13 μs | 86,151.5 μs |    5 | 333.3333 | 166.6667 |  3,753 KB |
+|                                         Method |        Mean |       Error |       StdDev |      Median | Rank |    Gen 0 |   Gen 1 | Allocated |
+|----------------------------------------------- |------------:|------------:|-------------:|------------:|-----:|---------:|--------:|----------:|
+|             Sessions_TitleAndAbstract_10_Items |    790.1 μs |     6.97 μs |      6.52 μs |    789.4 μs |    1 |   5.8594 |       - |     60 KB |
+| Sessions_TitleAndAbstractAndTrackName_10_Items |  1,757.7 μs |    12.07 μs |     11.29 μs |  1,756.8 μs |    2 |  11.7188 |       - |    120 KB |
+|                                Sessions_Medium |  4,325.8 μs |    82.52 μs |     95.02 μs |  4,322.9 μs |    3 |  70.3125 | 23.4375 |    770 KB |
+|                                 Sessions_Large | 22,833.1 μs | 1,933.54 μs |  5,260.33 μs | 21,199.8 μs |    4 | 156.2500 | 31.2500 |  1,819 KB |
+|                      Sessions_DataLoader_Large | 73,436.0 μs | 6,805.55 μs | 19,744.13 μs | 59,959.6 μs |    5 | 200.0000 |       - |  3,715 KB |
 
 12.2.1
 |                                         Method |        Mean |     Error |    StdDev |      Median | Rank |    Gen 0 |    Gen 1 | Allocated |
