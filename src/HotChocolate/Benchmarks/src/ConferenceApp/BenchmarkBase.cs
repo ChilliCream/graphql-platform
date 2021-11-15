@@ -191,8 +191,8 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerBySessionIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
-                    .AddDiagnosticEventListener<BatchDataLoaderDiagnostics>()
-                    .AddDiagnosticEventListener<BatchExecutionDiagnostics>()
+                    // .AddDiagnosticEventListener<BatchDataLoaderDiagnostics>()
+                    // .AddDiagnosticEventListener<BatchExecutionDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
