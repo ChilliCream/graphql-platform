@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Caching</PackageId>
+    <AssemblyName>HotChocolate.Caching</AssemblyName>
+    <RootNamespace>HotChocolate.Caching</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Caching.Http</PackageId>
+    <AssemblyName>HotChocolate.Caching.Http</AssemblyName>
+    <RootNamespace>HotChocolate.Caching.Http</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Caching\HotChocolate.Caching.csproj" />
+  </ItemGroup>
+
+</Project>
