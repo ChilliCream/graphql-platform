@@ -262,15 +262,8 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private bool TryStopProcessing()
     {
-        // if the execution is already completed or if the completion task is
-        // null we stop processing
-        if (_completed)
-        {
-            return true;
-        }
-
-        // if there is still work we keep on processing. We check this here to
-        // try to avoid the lock.
+        // if there is still work we keep on processing.
+        // We check this here to try to avoid the lock.
         if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
         {
             return false;
@@ -278,6 +271,13 @@ internal partial class WorkScheduler : IWorkScheduler
 
         lock (_sync)
         {
+            // if the execution is already completed or if the completion task is
+            // null we stop processing
+            if (_completed)
+            {
+                return true;
+            }
+
             if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
                 return false;
