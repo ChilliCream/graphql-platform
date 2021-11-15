@@ -235,11 +235,11 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private void TryContinueUnsafe()
     {
-        var pause = _pause;
-        _pause = null;
+        ProcessingPause? pause = _pause;
 
         if (pause is not null)
         {
+            _pause = null;
             pause.TryContinue();
             _pausePool.Enqueue(pause);
         }
@@ -247,15 +247,15 @@ internal partial class WorkScheduler : IWorkScheduler
 
     private async ValueTask<bool> TryStopProcessingAsync()
     {
-        var stataus = TryStopProcessing();
-        var pause = _pause;
+        var status = TryStopProcessing();
+        ProcessingPause? pause = _pause;
 
         if (pause is not null)
         {
             await pause;
         }
 
-        return stataus;
+        return status;
     }
 
     private bool TryStopProcessing()
@@ -281,7 +281,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 return false;
             }
 
-            if (CanDispatch())
+            if (_batchDispatcher.HasTasks && _work.IsEmpty)
             {
                 _batchDispatcher.BeginDispatch(_requestAborted);
                 _diagnosticEvents.DispatchBatch(_requestContext);
@@ -296,7 +296,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 return true;
             }
 
-            var pause = _pause;
+            ProcessingPause? pause = _pause;
 
             Debug.Assert(
                 pause is null,
@@ -311,22 +311,13 @@ internal partial class WorkScheduler : IWorkScheduler
 
             return false;
         }
-
-        bool CanDispatch()
-            => _batchDispatcher.HasTasks &&
-            _work.IsEmpty &&
-            _work.HasRunningTasks &&
-            !_stateMachine.IsSerial;
     }
 
     private void BatchDispatcherEventHandler(object? source, EventArgs args)
     {
         lock (_sync)
         {
-            if (!_processing)
-            {
-                TryStartProcessingUnsafe(force: true);
-            }
+            TryStartProcessingUnsafe(force: true);
         }
     }
 
