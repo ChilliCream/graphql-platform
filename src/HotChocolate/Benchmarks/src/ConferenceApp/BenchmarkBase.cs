@@ -31,6 +31,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using GreenDonut;
 
 namespace HotChocolate.ConferencePlanner
 {
@@ -190,7 +191,8 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerBySessionIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
-                    // .AddDiagnosticEventListener<BatchDiagnostics>()
+                    .AddDiagnosticEventListener<BatchDataLoaderDiagnostics>()
+                    .AddDiagnosticEventListener<BatchExecutionDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
@@ -221,7 +223,16 @@ namespace HotChocolate.ConferencePlanner
         }
     }
 
-    public class BatchDiagnostics : DiagnosticEventListener
+    public class BatchDataLoaderDiagnostics : DataLoaderDiagnosticEventListener
+    {
+        public override IDisposable ExecuteBatch<TKey>(IDataLoader dataLoader, IReadOnlyList<TKey> keys)
+        {
+            Console.WriteLine($"ExecuteBatch {dataLoader.GetType().Name} {string.Join(", ", keys)}.");
+            return EmptyScope;
+        }
+    }
+
+    public class BatchExecutionDiagnostics : ExecutionDiagnosticEventListener
     {
         public override IDisposable ExecuteRequest(IRequestContext context)
         {

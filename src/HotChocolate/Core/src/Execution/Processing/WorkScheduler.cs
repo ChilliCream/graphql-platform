@@ -271,13 +271,6 @@ internal partial class WorkScheduler : IWorkScheduler
 
         lock (_sync)
         {
-            // if the execution is already completed or if the completion task is
-            // null we stop processing
-            if (_completed)
-            {
-                return true;
-            }
-
             if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
                 return false;
