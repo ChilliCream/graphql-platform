@@ -15,6 +15,12 @@ main
 |          Query_Introspection | 963.767 μs | 3.8239 μs | 3.5768 μs | 964.592 μs |    2 | 21.4844 |      - |    230 KB |
 | Query_Introspection_Prepared | 960.092 μs | 3.9952 μs | 3.5416 μs | 959.823 μs |    2 | 21.4844 | 0.9766 |    229 KB |
 
+12.2.1
+|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
+|               Query_TypeName |   8.100 μs | 0.0869 μs | 0.0770 μs |   8.104 μs |    1 |  0.2289 |      - |      2 KB |
+|          Query_Introspection | 969.357 μs | 2.5649 μs | 2.3992 μs | 969.569 μs |    2 | 22.4609 | 0.9766 |    230 KB |
+| Query_Introspection_Prepared | 958.411 μs | 3.8217 μs | 3.5748 μs | 958.212 μs |    2 | 21.4844 | 0.9766 |    229 KB |
 
 12.0.1
 |                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
