@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
 using HotChocolate.Execution.Processing.Tasks;
@@ -177,7 +177,11 @@ internal partial class WorkScheduler : IWorkScheduler
                 started = TryStartProcessingUnsafe();
             }
 
-            TryCompleteProcessingUnsafe();
+            if (TryCompleteProcessingUnsafe())
+            {
+                EnsureContextIsClean();
+                TryContinueUnsafe();
+            }
         }
 
         if (started)
@@ -235,31 +239,21 @@ internal partial class WorkScheduler : IWorkScheduler
         return false;
     }
 
-    private void TryContinueUnsafe()
-    {
-        ProcessingPause? pause = _pause;
-
-        if (pause is not null)
-        {
-            _pause = null;
-            pause.TryContinue();
-            _pausePool.Enqueue(pause);
-        }
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void TryContinueUnsafe() => _pause.TryContinue();
 
     private async ValueTask<bool> TryStopProcessingAsync()
     {
         var processingFinished = TryStopProcessing();
-        ProcessingPause? pause = _pause;
 
-        if (pause is not null || processingFinished)
+        if (!_processing)
         {
             _diagnosticEvents.StopProcessing(_requestContext);
-        }
 
-        if (pause is not null)
-        {
-            await pause;
+            if (_pause.IsPaused)
+            {
+                await _pause;
+            }
         }
 
         return processingFinished;
@@ -295,22 +289,11 @@ internal partial class WorkScheduler : IWorkScheduler
 
             if (TryCompleteProcessingUnsafe())
             {
+                EnsureContextIsClean();
                 return true;
             }
 
-            ProcessingPause? pause = _pause;
-
-            Debug.Assert(
-                pause is null,
-                "Since we have only one main worker there should only be one pause obj.");
-
-            // lets dequeue a fresh pause object and ensure its reset.
-            pause = _pausePool.Dequeue();
-            pause.Reset();
-
-            // set the pause while we are holding the lock.
-            _pause = pause;
-
+            _pause.Reset();
             return false;
         }
     }
@@ -335,8 +318,6 @@ internal partial class WorkScheduler : IWorkScheduler
         if (HasCompleted() || _requestAborted.IsCancellationRequested)
         {
             _completed = true;
-            EnsureContextIsClean();
-            TryContinueUnsafe();
             return true;
         }
 
@@ -348,16 +329,16 @@ internal partial class WorkScheduler : IWorkScheduler
                 _serial.HasRunningTasks;
 
         bool HasCompleted() => IsEmpty && _stateMachine.IsCompleted;
+    }
 
-        void EnsureContextIsClean()
-        {
-            // if there are still tasks enqueued when we cancel the execution
-            // we will try to reclaim the resolver tasks by properly cancelling
-            // them.
-            CancelTasks(_work);
-            CancelTasks(_serial);
-            CancelSuspendedTasks(_suspended);
-        }
+    private void EnsureContextIsClean()
+    {
+        // if there are still tasks enqueued when we cancel the execution
+        // we will try to reclaim the resolver tasks by properly cancelling
+        // them.
+        CancelTasks(_work);
+        CancelTasks(_serial);
+        CancelSuspendedTasks(_suspended);
 
         void CancelTasks(WorkQueue queue)
         {
