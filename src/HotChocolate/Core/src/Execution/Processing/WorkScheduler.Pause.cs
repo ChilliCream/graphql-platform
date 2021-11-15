@@ -21,35 +21,42 @@ internal partial class WorkScheduler
 
         public void OnCompleted(Action continuation)
         {
+            bool cont;
+
             lock (_sync)
             {
-                // if we already received a continuation signal we can immediately
-                // continue without delay.
-                if (_continue)
-                {
-                    continuation();
-                    return;
-                }
+                cont = _continue;
 
-                // it is expected that there is only one awaiter per pause.
-                Debug.Assert(
-                    _continuation is null,
-                    "There should only be one awaiter.");
-                _continuation = continuation;
+                if (!cont)
+                {
+                    // it is expected that there is only one awaiter per pause.
+                    Debug.Assert(
+                        _continuation is null,
+                        "There should only be one awaiter.");
+                    _continuation = continuation;
+                }
             }
+
+            // if we already received a continuation signal we will immediatly 
+            // invoke the continutation delegate.
+            if(cont) 
+            {
+                continuation();
+            }                
         }
 
         public void TryContinue()
         {
+            Action? continuation = null;
+
             lock (_sync)
             {
-                Action? continuation = _continuation;
-
+                continuation = _continuation;
                 _continue = true;
                 _continuation = null;
-
-                continuation?.Invoke();
             }
+
+            continuation?.Invoke();
         }
 
         public void Reset()
