@@ -25,6 +25,7 @@ internal partial class WorkScheduler
 
             lock (_sync)
             {
+                // first we capture the current state.
                 cont = _continue;
 
                 if (!cont)
@@ -37,12 +38,12 @@ internal partial class WorkScheduler
                 }
             }
 
-            // if we already received a continuation signal we will immediatly 
-            // invoke the continutation delegate.
-            if(cont) 
+            // if we already received a continuation signal we will immediately
+            // invoke the continuation delegate.
+            if(cont)
             {
                 continuation();
-            }                
+            }
         }
 
         public void TryContinue()
