@@ -9,6 +9,15 @@ Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
 
 ```
 
+12.2.1
+|                                         Method |        Mean |     Error |    StdDev |      Median | Rank |     Gen 0 |    Gen 1 | Allocated |
+|----------------------------------------------- |------------:|----------:|----------:|------------:|-----:|----------:|---------:|----------:|
+|             Sessions_TitleAndAbstract_10_Items |    107.7 μs |   2.09 μs |   3.49 μs |    107.5 μs |    1 |   24.1699 |        - |     50 KB |
+| Sessions_TitleAndAbstractAndTrackName_10_Items |    371.2 μs |   7.26 μs |  12.52 μs |    368.4 μs |    2 |   47.8516 |        - |     96 KB |
+|                                Sessions_Medium |  1,819.4 μs |  25.44 μs |  23.79 μs |  1,809.4 μs |    3 |  261.7188 |  99.6094 |    741 KB |
+|                                 Sessions_Large |  4,891.7 μs |  73.56 μs |  68.80 μs |  4,891.4 μs |    4 |  695.3125 | 304.6875 |  1,778 KB |
+|                      Sessions_DataLoader_Large | 10,463.0 μs | 204.13 μs | 250.69 μs | 10,423.4 μs |    5 | 1406.2500 | 562.5000 |  3,700 KB |
+
 12.0.1
 |                                         Method |        Mean |     Error |    StdDev |      Median | Rank |     Gen 0 |    Gen 1 | Allocated |
 |----------------------------------------------- |------------:|----------:|----------:|------------:|-----:|----------:|---------:|----------:|
