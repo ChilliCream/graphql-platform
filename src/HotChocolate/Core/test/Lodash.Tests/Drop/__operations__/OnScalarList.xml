@@ -1,0 +1,27 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @drop(count: 2)
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "stringList": [
+          "c"
+        ]
+      }
+    </json>
+  </result>
+</test>

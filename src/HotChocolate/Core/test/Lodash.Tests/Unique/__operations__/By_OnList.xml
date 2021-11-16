@@ -1,0 +1,46 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": 1,
+            "string": "a"
+          },
+          {
+            "int": 2,
+            "string": "a"
+          },
+          {
+            "int": 3,
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @unique(by: "string"){
+        int
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "int": 1,
+            "string": "a"
+          },
+          {
+            "int": 3,
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

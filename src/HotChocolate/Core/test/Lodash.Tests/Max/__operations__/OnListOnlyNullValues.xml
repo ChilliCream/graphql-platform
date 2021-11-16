@@ -1,0 +1,37 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "1",
+            "int": null
+          },
+          {
+            "string": "2",
+            "int": null
+          },
+          null
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @max{
+        string
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+            "string": "1",
+            "int": null
+          }
+      }
+    </json>
+  </result>
+</test>

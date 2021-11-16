@@ -1,0 +1,66 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          list @count {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": 2
+            }
+          },
+          {
+            "single": {
+              "list": 3
+            }
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

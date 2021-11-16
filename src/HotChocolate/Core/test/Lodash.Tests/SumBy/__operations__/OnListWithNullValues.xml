@@ -1,0 +1,34 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": null
+          },
+          null,
+          {
+            "int": 1
+          },
+          {
+            "int": 2
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @sumBy(key: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": 3
+      }
+    </json>
+  </result>
+</test>

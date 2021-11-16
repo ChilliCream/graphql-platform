@@ -1,0 +1,34 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "1",
+            "int": null
+          },
+          {
+            "string": "2",
+            "int": null
+          },
+          null
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @meanBy(key: "int"){
+        string
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": null
+      }
+    </json>
+  </result>
+</test>

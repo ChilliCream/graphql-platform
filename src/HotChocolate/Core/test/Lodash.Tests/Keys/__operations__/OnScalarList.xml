@@ -1,0 +1,20 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @keys
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

@@ -1,0 +1,38 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": null
+          },
+          null,
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @count(by: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "null": 1,
+          "b": 1,
+          "c": 1
+        }
+      }
+    </json>
+  </result>
+</test>

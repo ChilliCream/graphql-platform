@@ -1,0 +1,29 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "string": "a"
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @flatten(depth: 2) {
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "single": [
+          {
+            "string": "a"
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

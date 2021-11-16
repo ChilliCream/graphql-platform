@@ -1,0 +1,37 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @map(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </result>
+</test>

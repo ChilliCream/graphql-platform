@@ -1,0 +1,56 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            }
+          ],
+          [
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            },
+            {
+              "int": 1
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @max{
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "nestedList": [
+          {
+            "int": 1
+          },
+          {
+            "int": 1
+          },
+          {
+            "int": 1
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

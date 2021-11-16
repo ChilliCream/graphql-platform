@@ -1,0 +1,35 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": "a"
+          },
+          {
+            "int": "b"
+          },
+          {
+            "int": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @minBy(key: "someOtherProperty"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "int": "a"
+        }
+      }
+    </json>
+  </result>
+</test>

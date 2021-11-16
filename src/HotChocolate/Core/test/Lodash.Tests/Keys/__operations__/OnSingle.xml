@@ -1,0 +1,27 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "string": "a"
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @keys {
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "single": [
+          "string"
+        ]
+      }
+    </json>
+  </result>
+</test>

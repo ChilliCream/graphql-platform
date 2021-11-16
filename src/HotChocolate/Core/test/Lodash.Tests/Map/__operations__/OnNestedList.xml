@@ -1,0 +1,57 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            },
+            {
+              "string": "c"
+            }
+          ],
+          [
+            {
+              "string": "d"
+            },
+            {
+              "string": "e"
+            },
+            {
+              "string": "f"
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @map(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "nestedList": [
+          [
+            "a",
+            "b",
+            "c"
+          ],
+          [
+            "d",
+            "e",
+            "f"
+          ]
+        ]
+      }
+    </json>
+  </result>
+</test>

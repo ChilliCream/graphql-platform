@@ -1,0 +1,28 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @takeRight(count: 2)
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "stringList": [
+          "b",
+          "c"
+        ]
+      }
+    </json>
+  </result>
+</test>

@@ -1,0 +1,21 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": {
+          "int": 1
+        }
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @minBy(key: "missingProperty"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0001</error-code>
+  </result>
+</test>

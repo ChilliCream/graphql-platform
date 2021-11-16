@@ -1,0 +1,56 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "id": 1,
+                  "string": "a"
+                },
+                {
+                  "id": 2,
+                  "string": "b"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "id": 3,
+                  "string": "a"
+                },
+                {
+                  "id": 4,
+                  "string": "a"
+                },
+                {
+                  "id": 5,
+                  "string": "b"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          list @keys {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

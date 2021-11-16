@@ -1,0 +1,20 @@
+<test>
+  <data>
+    <json>
+      {
+        "stringList": [
+          "a",
+          "b"
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      stringList @unique(by: "string")
+    }
+  </query>
+  <result>
+    <error-code>AG0002</error-code>
+  </result>
+</test>

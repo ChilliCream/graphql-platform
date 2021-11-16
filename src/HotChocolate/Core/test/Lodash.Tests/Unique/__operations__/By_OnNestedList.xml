@@ -1,0 +1,42 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            },
+            {
+              "string": "c"
+            }
+          ],
+          [
+            {
+              "string": "d"
+            },
+            {
+              "string": "e"
+            },
+            {
+              "string": "f"
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @unique(by: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

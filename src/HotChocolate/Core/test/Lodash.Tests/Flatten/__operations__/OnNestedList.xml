@@ -1,0 +1,67 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            }
+          ],
+          [
+            {
+              "string": "c"
+            },
+            {
+              "string": "d"
+            }
+          ],
+          [
+            {
+              "string": "e"
+            },
+            {
+              "string": "f"
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @flatten(depth: 1){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "nestedList": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          },
+          {
+            "string": "d"
+          },
+          {
+            "string": "e"
+          },
+          {
+            "string": "f"
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

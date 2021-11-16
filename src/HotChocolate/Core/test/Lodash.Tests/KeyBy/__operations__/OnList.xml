@@ -1,0 +1,45 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "id": 1,
+            "string": "a"
+          },
+          {
+            "id": 2,
+            "string": "a"
+          },
+          {
+            "id": 3,
+            "string": "b"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @keyBy(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "a": {
+            "id": 1,
+            "string": "a"
+          },
+          "b": {
+            "id": 3,
+            "string": "b"
+          }
+        }
+      }
+    </json>
+  </result>
+</test>

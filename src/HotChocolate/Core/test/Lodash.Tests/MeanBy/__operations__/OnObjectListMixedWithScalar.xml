@@ -1,0 +1,27 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": 1
+          },
+          1,
+          {
+            "int": 3
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @meanBy(key: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0002</error-code>
+  </result>
+</test>

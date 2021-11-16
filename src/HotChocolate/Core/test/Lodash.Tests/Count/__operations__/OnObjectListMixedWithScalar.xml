@@ -1,0 +1,31 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          "a",
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @count{
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": 3
+      }
+    </json>
+  </result>
+</test>

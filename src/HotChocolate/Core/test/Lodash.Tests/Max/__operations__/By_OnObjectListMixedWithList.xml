@@ -1,0 +1,31 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "int": 1
+          },
+          [
+            {
+              "int": 1
+            }
+          ],
+          {
+            "int": 3
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @max(by: "int"){
+        int
+      }
+    }
+  </query>
+  <result>
+    <error-code>AG0003</error-code>
+  </result>
+</test>

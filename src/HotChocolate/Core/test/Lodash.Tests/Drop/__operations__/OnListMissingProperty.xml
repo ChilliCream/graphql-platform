@@ -1,0 +1,41 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      floatList @drop(count: 2)
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "string": "a"
+          },
+          {
+            "string": "b"
+          },
+          {
+            "string": "c"
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

@@ -1,0 +1,96 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "c"
+                },
+                {
+                  "string": "d"
+                },
+                {
+                  "string": "e"
+                },
+                {
+                  "string": "f"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": []
+            }
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list {
+        single {
+          list @takeRight(count: 3) {
+            string
+          }
+        }
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": [
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "a"
+                },
+                {
+                  "string": "b"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": [
+                {
+                  "string": "d"
+                },
+                {
+                  "string": "e"
+                },
+                {
+                  "string": "f"
+                }
+              ]
+            }
+          },
+          {
+            "single": {
+              "list": []
+            }
+          }
+        ]
+      }
+    </json>
+  </result>
+</test>

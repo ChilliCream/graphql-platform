@@ -1,0 +1,57 @@
+<test>
+  <data>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            }
+          ],
+          [
+            {
+              "string": "c"
+            },
+            {
+              "string": "d"
+            }
+          ],
+          [
+            {
+              "string": "e"
+            },
+            {
+              "string": "f"
+            }
+          ]
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      nestedList @dropRight(count: 2){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "nestedList": [
+          [
+            {
+              "string": "a"
+            },
+            {
+              "string": "b"
+            }
+          ]
+        ]
+      }
+    </json>
+  </result>
+</test>

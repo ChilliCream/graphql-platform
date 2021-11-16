@@ -1,0 +1,23 @@
+<test>
+  <data>
+    <json>
+      {
+        "single": null
+      }
+    </json>
+  </data>
+  <query>
+    {
+      single @groupBy(key: "string"){
+        string
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "single": null
+      }
+    </json>
+  </result>
+</test>

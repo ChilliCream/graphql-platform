@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>$(WarningsAsErrors);nullable</WarningsAsErrors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Lodash</PackageId>
+    <AssemblyName>HotChocolate.Lodash</AssemblyName>
+    <RootNamespace>HotChocolate.Lodash</RootNamespace>
+    <Description>Adds support for the graphql lodash directive</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="6.0.0-preview.6.21352.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\LodashResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LodashResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\LodashResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LodashResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

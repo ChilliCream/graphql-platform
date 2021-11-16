@@ -1,0 +1,40 @@
+<test>
+  <data>
+    <json>
+      {
+        "list": [
+          {
+            "string": "1",
+            "int": 1
+          },
+          {
+            "string": "2",
+            "int": 2
+          },
+          {
+            "string": "3",
+            "int": 2
+          }
+        ]
+      }
+    </json>
+  </data>
+  <query>
+    {
+      list @max{
+        string
+        int
+      }
+    }
+  </query>
+  <result>
+    <json>
+      {
+        "list": {
+          "string": "1",
+          "int": 1
+        }
+      }
+    </json>
+  </result>
+</test>
