@@ -130,6 +130,10 @@ public class Startup
 >
 > [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
+A subscription type is just a regular object type, so everything that applies to an object type also applies to the subscription type (this is true for all all root types).
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
+
 # Transport
 
 After defining the subscription type, we need to add the WebSockets middleware to our request pipeline.
