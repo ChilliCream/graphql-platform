@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -41,7 +37,7 @@ public class ToolOptionsFileMiddleware
                 if (endpointOptions is not null)
                 {
                     config.UseBrowserUrlAsEndpoint = true;
-                    config.SchemaEndpoint = endpointOptions.GraphQLEndpoint;
+                    config.Endpoint = endpointOptions.GraphQLEndpoint;
                 }
 
                 if (options is not null)
@@ -52,12 +48,12 @@ public class ToolOptionsFileMiddleware
 
                     if (options.GraphQLEndpoint is not null)
                     {
-                        config.SchemaEndpoint = options.GraphQLEndpoint;
+                        config.Endpoint = options.GraphQLEndpoint;
                     }
 
                     config.IncludeCookies = options.IncludeCookies;
                     config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
-                    config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
+                    config.UseGet = ConvertHttpMethodToString(options.HttpMethod);
                     config.GaTrackingId = options.GaTrackingId;
                     config.DisableTelemetry = options.DisableTelemetry;
                 }
@@ -91,21 +87,13 @@ public class ToolOptionsFileMiddleware
         return null;
     }
 
-    private string? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
-    {
-        if (httpMethod is not null)
+    private bool? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
+        => httpMethod switch
         {
-            switch (httpMethod)
-            {
-                case DefaultHttpMethod.Get:
-                    return "GET";
-                case DefaultHttpMethod.Post:
-                    return "POST";
-            }
-        }
-
-        return null;
-    }
+            DefaultHttpMethod.Get => true,
+            DefaultHttpMethod.Post => false,
+            _ => null
+        };
 
     private class BananaCakePopConfiguration
     {
@@ -113,7 +101,7 @@ public class ToolOptionsFileMiddleware
 
         public bool UseBrowserUrlAsEndpoint { get; set; } = true;
 
-        public string? SchemaEndpoint { get; set; }
+        public string? Endpoint { get; set; }
 
         public string? GraphQLDocument { get; set; }
 
@@ -121,7 +109,7 @@ public class ToolOptionsFileMiddleware
 
         public IDictionary<string, string>? HttpHeaders { get; set; }
 
-        public string? HttpMethod { get; set; }
+        public bool? UseGet { get; set; }
 
         public string? GaTrackingId { get; set; }
 
