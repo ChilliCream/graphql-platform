@@ -39,7 +39,7 @@ internal partial class WorkScheduler
 
             // if we already received a continuation signal we will immediately
             // invoke the continuation delegate.
-            if(cont)
+            if (cont)
             {
                 continuation();
             }
