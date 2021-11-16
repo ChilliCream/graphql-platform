@@ -81,5 +81,14 @@ namespace HotChocolate.Benchmarks
             await PrintQueryPlanAsync(SessionLargeQuery);
 
         public string SessionLargeQuery { get; } = Resources.SessionLargeQuery;
+
+        [Benchmark]
+        public async Task Sessions_DataLoader_Large() =>
+            await BenchmarkAsync(SessionLargeDLQuery);
+
+        public async Task Print_Sessions_DataLoader_Large() =>
+            await PrintQueryPlanAsync(SessionLargeDLQuery);
+
+        public string SessionLargeDLQuery { get; } = Resources.SessionLargeDLQuery;
     }
 }

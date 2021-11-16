@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Execution;
 using static System.Threading.Interlocked;
 
 namespace HotChocolate.Fetching
@@ -15,19 +14,17 @@ namespace HotChocolate.Fetching
         : IBatchScheduler
         , IBatchDispatcher
     {
+        private static List<Func<ValueTask>>? _localTasks;
+        private static List<Task<Exception?>>? _localProcessing;
+
         private const int _waitTimeout = 30_000;
         private readonly SemaphoreSlim _semaphore = new(1, 1);
         private readonly object _sync = new();
         private readonly List<Func<ValueTask>> _tasks = new();
-        private List<Func<ValueTask>>? _localTasks;
-        private List<Task<Exception>>? _localProcessing;
         private bool _dispatchOnSchedule;
 
         /// <inheritdoc />
         public event EventHandler? TaskEnqueued;
-
-        /// <inheritdoc />
-        public bool HasTasks => _tasks.Count > 0;
 
         /// <inheritdoc />
         public bool DispatchOnSchedule
@@ -72,31 +69,38 @@ namespace HotChocolate.Fetching
         /// <inheritdoc />
         public void BeginDispatch(CancellationToken cancellationToken = default)
         {
-            List<Func<ValueTask>> tasks;
+            List<Func<ValueTask>>? tasks = null;
+            Func<ValueTask>? task = null;
 
             lock (_sync)
             {
-                if (_tasks.Count == 0)
+                switch (_tasks.Count)
                 {
-                    return;
+                    case 0:
+                        return;
+
+                    case 1:
+                        task = _tasks[0];
+                        _tasks.Clear();
+                        break;
+
+                    default:
+                        // we will try to reuse the pooled list.
+                        tasks = Exchange(ref _localTasks, null) ?? new();
+                        tasks.AddRange(_tasks);
+                        _tasks.Clear();
+                        break;
                 }
-
-                if(_tasks.Count == 1)
-                {
-                    BeginProcessTask(_tasks[0], cancellationToken);
-                    _tasks.Clear();
-                    return;
-                }
-
-                // we will try to reuse the pooled list.
-                tasks = Exchange(ref _localTasks, null) ?? new();
-                tasks.AddRange(_tasks);
-
-                _localProcessing = null;
-                _tasks.Clear();
             }
 
-            BeginProcessTasks(tasks);
+            if (task is not null)
+            {
+                BeginProcessTask(task, cancellationToken);
+            }
+            else if (tasks is not null)
+            {
+                BeginProcessTasks(tasks, cancellationToken);
+            }
         }
 
 #pragma warning disable 4014
@@ -136,6 +140,13 @@ namespace HotChocolate.Fetching
             }
 
             await Task.WhenAll(processing).ConfigureAwait(false);
+
+            processing.Clear();
+            tasks.Clear();
+
+            // if there is no new instance for processing we will return our processing instances.
+            CompareExchange(ref _localProcessing, processing, null);
+            CompareExchange(ref _localTasks, tasks, null);
         }
 
         private static async Task<Exception?> ExecuteBatchAsync(
@@ -167,7 +178,7 @@ namespace HotChocolate.Fetching
         }
 
 #pragma warning disable 4014
-        private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch) 
+        private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch)
             => DispatchOnEnqueue(dispatch);
 #pragma warning restore 4014
 

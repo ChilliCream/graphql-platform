@@ -184,6 +184,14 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
+    public void SubscriptionEventError(ISubscription subscription, Exception exception)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].SubscriptionEventError(subscription, exception);
+        }
+    }
+
     public void SubscriptionTransportError(ISubscription subscription, Exception exception)
     {
         for (var i = 0; i < _listeners.Length; i++)

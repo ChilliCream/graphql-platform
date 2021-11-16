@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Tasks;
 
@@ -18,10 +19,16 @@ internal partial class WorkScheduler
             _suspended.CopyTo(_work, _serial, _stateMachine);
         }
 
-        _processing = true;
         IExecutionTask?[] buffer = _buffer;
 
 RESTART:
+        lock (_sync)
+        {
+            _processing = true;
+        }
+
+        _diagnosticEvents.StartProcessing(_requestContext);
+
         try
         {
             do
@@ -61,11 +68,6 @@ RESTART:
                 }
                 else
                 {
-                    if (_work.HasRunningTasks || _serial.HasRunningTasks)
-                    {
-                        await Task.Yield();
-                    }
-
                     break;
                 }
 
@@ -81,7 +83,7 @@ RESTART:
 
         // if there is no more work we will try to scale down.
         // Note: we always trigger this method, even if the request was canceled.
-        if (await TryStopProcessing() == false)
+        if (await TryStopProcessingAsync().ConfigureAwait(false) == false)
         {
             goto RESTART;
         }

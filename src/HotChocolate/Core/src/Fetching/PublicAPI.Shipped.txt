@@ -8,7 +8,6 @@ HotChocolate.Fetching.BatchScheduler.BatchScheduler() -> void
 HotChocolate.Fetching.BatchScheduler.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.set -> void
-HotChocolate.Fetching.BatchScheduler.HasTasks.get -> bool
 HotChocolate.Fetching.BatchScheduler.Schedule(System.Func<System.Threading.Tasks.ValueTask>! dispatch) -> void
 HotChocolate.Fetching.BatchScheduler.TaskEnqueued -> System.EventHandler?
 HotChocolate.Fetching.DataLoaderParameterExpressionBuilder
@@ -24,7 +23,6 @@ HotChocolate.Fetching.FetchGroup<TKey, TValue>
 HotChocolate.Fetching.IBatchDispatcher
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.set -> void
-HotChocolate.Fetching.IBatchDispatcher.HasTasks.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.TaskEnqueued -> System.EventHandler?
 HotChocolate.Fetching.IDataLoaderRegistry
 HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(string! key, System.Func<T>! createDataLoader) -> T
