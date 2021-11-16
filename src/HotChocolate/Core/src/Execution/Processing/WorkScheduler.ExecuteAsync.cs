@@ -68,11 +68,6 @@ RESTART:
                 }
                 else
                 {
-                    if (_work.HasRunningTasks || _serial.HasRunningTasks)
-                    {
-                        await Task.Yield();
-                    }
-
                     break;
                 }
 

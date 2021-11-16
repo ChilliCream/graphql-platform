@@ -24,8 +24,11 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    /// <inheritdoc />
-    public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsEmpty() => _work.IsEmpty && _serial.IsEmpty;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool ShouldStartProcessing() => !_processing && !IsEmpty();
 
     /// <inheritdoc/>
     public void Register(IExecutionTask task)
@@ -153,7 +156,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 work.Complete();
             }
 
-            // if there is now more work and the state machine is not completed yet we will
+            // if there is no more work and the state machine is not completed we will
             // close open steps and reevaluate. This can happen if optional resolver tasks
             // are not enqueued.
             while (NeedsStateMachineCompletion())
@@ -185,8 +188,7 @@ internal partial class WorkScheduler : IWorkScheduler
 
         bool NeedsStateMachineCompletion()
             => !_stateMachine.IsCompleted &&
-               _work.IsEmpty &&
-               _serial.IsEmpty &&
+               IsEmpty() &&
                !_work.HasRunningTasks &&
                !_serial.HasRunningTasks;
     }
@@ -218,8 +220,6 @@ internal partial class WorkScheduler : IWorkScheduler
             return size;
         }
     }
-
-    private bool ShouldStartProcessing() => !_processing && (!_work.IsEmpty || !_serial.IsEmpty);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void TryContinue() => _pause.TryContinue();
@@ -313,7 +313,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 _work.HasRunningTasks ||
                 _serial.HasRunningTasks;
 
-        bool HasCompleted() => IsEmpty && _stateMachine.IsCompleted;
+        bool HasCompleted() => IsEmpty() && _stateMachine.IsCompleted;
     }
 
     private void EnsureContextIsClean()
