@@ -1,9 +1,8 @@
 using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public sealed class SchemaServiceAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class SchemaServiceAttribute : Attribute
-    {
-    }
 }

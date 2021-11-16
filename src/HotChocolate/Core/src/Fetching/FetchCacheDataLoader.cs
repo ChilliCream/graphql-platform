@@ -1,27 +1,26 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
 #nullable enable
 
-namespace HotChocolate.Fetching
+namespace HotChocolate.Fetching;
+
+internal sealed class FetchCacheDataLoader<TKey, TValue>
+    : CacheDataLoader<TKey, TValue>
+    where TKey : notnull
 {
-    internal sealed class FetchCacheDataLoader<TKey, TValue>
-        : CacheDataLoader<TKey, TValue>
-        where TKey : notnull
+    private readonly FetchCacheCt<TKey, TValue> _fetch;
+
+    public FetchCacheDataLoader(FetchCacheCt<TKey, TValue> fetch, DataLoaderOptions options)
+        : base(options)
     {
-        private readonly FetchCacheCt<TKey, TValue> _fetch;
-
-        public FetchCacheDataLoader(FetchCacheCt<TKey, TValue> fetch, DataLoaderOptions options)
-            : base(options)
-        {
-            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
-        }
-
-        protected override Task<TValue> LoadSingleAsync(
-            TKey key,
-            CancellationToken cancellationToken) =>
-            _fetch(key, cancellationToken);
+        _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
     }
+
+    protected override Task<TValue> LoadSingleAsync(
+        TKey key,
+        CancellationToken cancellationToken) =>
+        _fetch(key, cancellationToken);
 }

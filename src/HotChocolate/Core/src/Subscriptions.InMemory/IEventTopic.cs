@@ -1,14 +1,13 @@
 using System;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Subscriptions.InMemory
+namespace HotChocolate.Subscriptions.InMemory;
+
+internal interface IEventTopic
 {
-    internal interface IEventTopic
-    {
-        event EventHandler<EventArgs>? Unsubscribed;
+    event EventHandler<EventArgs>? Unsubscribed;
 
-        ValueTask CompleteAsync();
+    ValueTask CompleteAsync();
 
-        Task<bool> TryClose();
-    }
+    Task<bool> TryClose();
 }

@@ -1,16 +1,15 @@
-﻿using System.Threading;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IQueryResultSerializer
 {
-    public interface IQueryResultSerializer
-    {
-        Task SerializeAsync(
-            IQueryResult result,
-            Stream stream,
-            CancellationToken cancellationToken = default);
-    }
+    Task SerializeAsync(
+        IQueryResult result,
+        Stream stream,
+        CancellationToken cancellationToken = default);
 }

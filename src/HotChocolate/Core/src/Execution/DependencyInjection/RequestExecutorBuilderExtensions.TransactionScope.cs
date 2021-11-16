@@ -42,12 +42,12 @@ public static partial class RequestExecutorBuilderExtensions
             builder,
             services =>
             {
-                    // we remove all handlers from the schema DI
-                    services.RemoveAll(typeof(ITransactionScopeHandler));
+                // we remove all handlers from the schema DI
+                services.RemoveAll(typeof(ITransactionScopeHandler));
 
-                    // and then reference the transaction scope handler from the global DI.
-                    services.AddSingleton<ITransactionScopeHandler>(
-                    s => s.GetApplicationServices().GetRequiredService<T>());
+                // and then reference the transaction scope handler from the global DI.
+                services.AddSingleton<ITransactionScopeHandler>(
+                s => s.GetApplicationServices().GetRequiredService<T>());
             });
     }
 

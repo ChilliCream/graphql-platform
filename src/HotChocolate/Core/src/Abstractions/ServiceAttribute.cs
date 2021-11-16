@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(AttributeTargets.Parameter)]
+public sealed class ServiceAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ServiceAttribute : Attribute
-    {
-    }
 }

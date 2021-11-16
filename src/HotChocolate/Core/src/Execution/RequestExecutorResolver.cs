@@ -156,9 +156,9 @@ internal sealed class RequestExecutorResolver
                 }
                 finally
                 {
-                        // we will give the request executor some grace period to finish all request
-                        // in the pipeline
-                        await Task.Delay(TimeSpan.FromMinutes(5));
+                    // we will give the request executor some grace period to finish all request
+                    // in the pipeline
+                    await Task.Delay(TimeSpan.FromMinutes(5));
                     registeredExecutor.Dispose();
                 }
             }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
