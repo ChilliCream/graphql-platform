@@ -22,6 +22,8 @@ HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor.CreateDefin
 HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor.DefaultSrid(int srid) -> HotChocolate.Types.Spatial.Configuration.ISpatialConventionDescriptor!
 HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor.Definition.get -> HotChocolate.Types.Spatial.Configuration.SpatialConventionDefinition!
 HotChocolate.Types.Spatial.Configuration.SpatialConventionDescriptor.SpatialConventionDescriptor() -> void
+HotChocolate.Types.Spatial.GeoJsonCoordinatesType
+HotChocolate.Types.Spatial.GeoJsonCoordinatesType.GeoJsonCoordinatesType() -> void
 HotChocolate.Types.Spatial.GeoJsonGeometryEnumType
 HotChocolate.Types.Spatial.GeoJsonGeometryEnumType.GeoJsonGeometryEnumType() -> void
 HotChocolate.Types.Spatial.GeoJsonGeometryType
@@ -62,6 +64,9 @@ HotChocolate.Types.Spatial.GeoJsonPolygonInputType
 HotChocolate.Types.Spatial.GeoJsonPolygonInputType.GeoJsonPolygonInputType() -> void
 HotChocolate.Types.Spatial.GeoJsonPolygonType
 HotChocolate.Types.Spatial.GeoJsonPolygonType.GeoJsonPolygonType() -> void
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers.GetCoordinates(NetTopologySuite.Geometries.Polygon! polygon) -> NetTopologySuite.Geometries.Coordinate![]![]!
+HotChocolate.Types.Spatial.GeoJsonPolygonType.Resolvers.Resolvers() -> void
 HotChocolate.Types.Spatial.GeoJsonPositionType
 HotChocolate.Types.Spatial.GeoJsonPositionType.GeoJsonPositionType() -> void
 HotChocolate.Types.Spatial.GeometryType
@@ -78,6 +83,12 @@ HotChocolate.Types.Spatial.Transformation.IGeometryTransformerFactory.HasCoordin
 Microsoft.Extensions.DependencyInjection.HotChocolateSpatialRequestExecutorBuilderExtensions
 override HotChocolate.Types.Spatial.Configuration.SpatialConvention.Complete(HotChocolate.Types.Descriptors.IConventionContext! context) -> void
 override HotChocolate.Types.Spatial.Configuration.SpatialConvention.CreateDefinition(HotChocolate.Types.Descriptors.IConventionContext! context) -> HotChocolate.Types.Spatial.Configuration.SpatialConventionDefinition!
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseLiteral(HotChocolate.Language.IValueNode! valueSyntax) -> object?
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseResult(object? resultValue) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.ParseValue(object? value) -> HotChocolate.Language.IValueNode!
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.TryDeserialize(object? serialized, out object? value) -> bool
+override HotChocolate.Types.Spatial.GeoJsonCoordinatesType.TrySerialize(object? value, out object? serialized) -> bool
 override HotChocolate.Types.Spatial.GeoJsonInputType<T>.OnCompleteCreateInstance(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> System.Func<object?[]!, object!>!
 override HotChocolate.Types.Spatial.GeoJsonInputType<T>.OnCompleteGetFieldValues(HotChocolate.Configuration.ITypeCompletionContext! context, HotChocolate.Types.Descriptors.Definitions.InputObjectTypeDefinition! definition) -> System.Action<object!, object?[]!>!
 override HotChocolate.Types.Spatial.GeoJsonPositionType.IsInstanceOfType(HotChocolate.Language.IValueNode! valueSyntax) -> bool
