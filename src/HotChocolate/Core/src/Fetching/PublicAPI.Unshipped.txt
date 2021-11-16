@@ -4,3 +4,5 @@ HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! da
 *REMOVED*HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType) -> void
 *REMOVED*HotChocolate.Fetching.BatchScheduler.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
 *REMOVED*HotChocolate.Fetching.IBatchDispatcher.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
+*REMOVED*HotChocolate.Fetching.BatchScheduler.HasTasks.get -> bool
+*REMOVED*HotChocolate.Fetching.IBatchDispatcher.HasTasks.get -> bool

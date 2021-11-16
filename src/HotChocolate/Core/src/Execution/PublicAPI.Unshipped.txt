@@ -1,1 +1,2 @@
+HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.SubscriptionEventError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SubscriptionEventError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
