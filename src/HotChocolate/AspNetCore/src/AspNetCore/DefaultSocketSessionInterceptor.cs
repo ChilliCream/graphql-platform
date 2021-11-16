@@ -1,48 +1,47 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
 {
-    public class DefaultSocketSessionInterceptor : ISocketSessionInterceptor
+    public virtual ValueTask<ConnectionStatus> OnConnectAsync(
+        ISocketConnection connection,
+        InitializeConnectionMessage message,
+        CancellationToken cancellationToken) =>
+        new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+
+    public virtual ValueTask OnRequestAsync(
+        ISocketConnection connection,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
     {
-        public virtual ValueTask<ConnectionStatus> OnConnectAsync(
-            ISocketConnection connection,
-            InitializeConnectionMessage message,
-            CancellationToken cancellationToken) =>
-            new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
+        HttpContext context = connection.HttpContext;
+        requestBuilder.TrySetServices(connection.RequestServices);
+        requestBuilder.TryAddProperty(nameof(CancellationToken), connection.RequestAborted);
+        requestBuilder.TryAddProperty(nameof(HttpContext), context);
+        requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
 
-        public virtual ValueTask OnRequestAsync(
-            ISocketConnection connection,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken)
+        if (context.IsTracingEnabled())
         {
-            HttpContext context = connection.HttpContext;
-            requestBuilder.TrySetServices(connection.RequestServices);
-            requestBuilder.TryAddProperty(nameof(CancellationToken), connection.RequestAborted);
-            requestBuilder.TryAddProperty(nameof(HttpContext), context);
-            requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-
-            if (context.IsTracingEnabled())
-            {
-                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
-            }
-
-            if (context.IncludeQueryPlan())
-            {
-                requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
-            }
-
-            return default;
+            requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
         }
 
-        public virtual ValueTask OnCloseAsync(
-            ISocketConnection connection,
-            CancellationToken cancellationToken) =>
-            default;
+        if (context.IncludeQueryPlan())
+        {
+            requestBuilder.TryAddProperty(WellKnownContextData.IncludeQueryPlan, true);
+        }
+
+        return default;
     }
+
+    public virtual ValueTask OnCloseAsync(
+        ISocketConnection connection,
+        CancellationToken cancellationToken) =>
+        default;
 }

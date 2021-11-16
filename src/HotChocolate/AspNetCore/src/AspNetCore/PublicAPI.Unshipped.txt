@@ -1,0 +1,2 @@
+HotChocolate.AspNetCore.ToolDefaultFileMiddleware.ToolDefaultFileMiddleware(HotChocolate.Execution.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void
+HotChocolate.AspNetCore.ToolStaticFileMiddleware.ToolStaticFileMiddleware(HotChocolate.Execution.RequestDelegate! next, Microsoft.Extensions.FileProviders.IFileProvider! fileProvider, Microsoft.AspNetCore.Http.PathString matchUrl) -> void

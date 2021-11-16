@@ -5,121 +5,120 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Properties;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+public class WebSocketSession : ISocketSession
 {
-    public class WebSocketSession : ISocketSession
+    private readonly Pipe _pipe = new();
+    private readonly ISocketConnection _connection;
+    private readonly KeepConnectionAliveJob _keepAlive;
+    private readonly MessageProcessor _messageProcessor;
+    private readonly MessageReceiver _messageReceiver;
+    private readonly bool _disposeConnection;
+    private readonly ISocketSessionInterceptor _sessionInterceptor;
+    private bool _disposed;
+
+    private WebSocketSession(
+        ISocketSessionInterceptor sessionInterceptor,
+        ISocketConnection connection,
+        IMessagePipeline messagePipeline,
+        bool disposeConnection)
     {
-        private readonly Pipe _pipe = new();
-        private readonly ISocketConnection _connection;
-        private readonly KeepConnectionAliveJob _keepAlive;
-        private readonly MessageProcessor _messageProcessor;
-        private readonly MessageReceiver _messageReceiver;
-        private readonly bool _disposeConnection;
-        private readonly ISocketSessionInterceptor _sessionInterceptor;
-        private bool _disposed;
+        _connection = connection;
+        _disposeConnection = disposeConnection;
+        _sessionInterceptor = sessionInterceptor;
 
-        private WebSocketSession(
-            ISocketSessionInterceptor sessionInterceptor,
-            ISocketConnection connection,
-            IMessagePipeline messagePipeline,
-            bool disposeConnection)
+        _keepAlive = new KeepConnectionAliveJob(connection);
+        _messageProcessor = new MessageProcessor(connection, messagePipeline, _pipe.Reader);
+        _messageReceiver = new MessageReceiver(connection, _pipe.Writer);
+    }
+
+    public async Task HandleAsync(CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        if (await _connection.TryOpenAsync())
         {
-            _connection = connection;
-            _disposeConnection = disposeConnection;
-            _sessionInterceptor = sessionInterceptor;
-
-            _keepAlive = new KeepConnectionAliveJob(connection);
-            _messageProcessor = new MessageProcessor(connection, messagePipeline, _pipe.Reader);
-            _messageReceiver = new MessageReceiver(connection, _pipe.Writer);
-        }
-
-        public async Task HandleAsync(CancellationToken cancellationToken)
-        {
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            if (await _connection.TryOpenAsync())
+            try
+            {
+                _keepAlive.Begin(cts.Token);
+                _messageProcessor.Begin(cts.Token);
+                await _messageReceiver.ReceiveAsync(cts.Token);
+            }
+            catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+            {
+                // OperationCanceledException are caught and will not
+                // bubble further. We will just close the current subscription
+                // context.
+            }
+            finally
             {
                 try
                 {
-                    _keepAlive.Begin(cts.Token);
-                    _messageProcessor.Begin(cts.Token);
-                    await _messageReceiver.ReceiveAsync(cts.Token);
-                }
-                catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
-                {
-                    // OperationCanceledException are caught and will not
-                    // bubble further. We will just close the current subscription
-                    // context.
-                }
-                finally
-                {
-                    try
+                    if (!cts.IsCancellationRequested)
                     {
-                        if (!cts.IsCancellationRequested)
-                        {
-                            cts.Cancel();
-                        }
+                        cts.Cancel();
+                    }
 
-                        await _connection.CloseAsync(
-                            AspNetCoreResources.WebSocketSession_SessionEnded,
-                            SocketCloseStatus.NormalClosure,
-                            CancellationToken.None);
-                        await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
-                    }
-                    catch
-                    {
-                        // original exception must not be lost if new exception occurs
-                        // during closing session
-                    }
+                    await _connection.CloseAsync(
+                        AspNetCoreResources.WebSocketSession_SessionEnded,
+                        SocketCloseStatus.NormalClosure,
+                        CancellationToken.None);
+                    await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
                 }
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing && _disposeConnection)
+                catch
                 {
-                    _connection.Dispose();
+                    // original exception must not be lost if new exception occurs
+                    // during closing session
                 }
-
-                _disposed = true;
             }
         }
+    }
 
-        public static WebSocketSession New(
-            HttpContext httpContext,
-            IMessagePipeline messagePipeline,
-            ISocketSessionInterceptor socketSessionInterceptor)
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
         {
-            if (httpContext is null)
+            if (disposing && _disposeConnection)
             {
-                throw new ArgumentNullException(nameof(httpContext));
+                _connection.Dispose();
             }
 
-            if (messagePipeline is null)
-            {
-                throw new ArgumentNullException(nameof(messagePipeline));
-            }
-
-            if (socketSessionInterceptor is null)
-            {
-                throw new ArgumentNullException(nameof(socketSessionInterceptor));
-            }
-
-            var connection = WebSocketConnection.New(httpContext);
-            return new WebSocketSession(
-                socketSessionInterceptor,
-                connection,
-                messagePipeline,
-                true);
+            _disposed = true;
         }
+    }
+
+    public static WebSocketSession New(
+        HttpContext httpContext,
+        IMessagePipeline messagePipeline,
+        ISocketSessionInterceptor socketSessionInterceptor)
+    {
+        if (httpContext is null)
+        {
+            throw new ArgumentNullException(nameof(httpContext));
+        }
+
+        if (messagePipeline is null)
+        {
+            throw new ArgumentNullException(nameof(messagePipeline));
+        }
+
+        if (socketSessionInterceptor is null)
+        {
+            throw new ArgumentNullException(nameof(socketSessionInterceptor));
+        }
+
+        var connection = WebSocketConnection.New(httpContext);
+        return new WebSocketSession(
+            socketSessionInterceptor,
+            connection,
+            messagePipeline,
+            true);
     }
 }
