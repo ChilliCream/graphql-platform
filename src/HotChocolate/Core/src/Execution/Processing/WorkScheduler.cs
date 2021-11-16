@@ -80,7 +80,7 @@ internal partial class WorkScheduler : IWorkScheduler
             return;
         }
 
-        var start= false;
+        var start = false;
 
         // first we initialize the task execution state.
         // This can be done without acquiring a lock since we only
