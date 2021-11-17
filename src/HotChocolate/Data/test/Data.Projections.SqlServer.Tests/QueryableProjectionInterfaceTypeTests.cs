@@ -255,6 +255,31 @@ namespace HotChocolate.Data.Projections
             res1.MatchSqlSnapshot();
         }
 
+        [Fact]
+        public async Task Create_Interface_Without_Missing()
+        {
+            // arrange
+            IRequestExecutor tester =
+                _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                ... on Foo {
+                                    fooProp
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
         public static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<AbstractType>()
