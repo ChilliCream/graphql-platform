@@ -80,7 +80,7 @@ internal partial class MiddlewareContext
             {
                 T casted => casted,
                 null => default!,
-                _ => throw PureResolverContext_CannotCastParent(
+                _ => throw ResolverContext_CannotCastParent(
                     Selection.Field.Coordinate,
                     _path,
                     typeof(T),

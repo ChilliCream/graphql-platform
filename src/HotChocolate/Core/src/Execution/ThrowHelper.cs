@@ -293,18 +293,19 @@ internal static class ThrowHelper
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
             .Build());
 
-    public static GraphQLException PureResolverContext_CannotCastParent(
+    public static GraphQLException ResolverContext_CannotCastParent(
         FieldCoordinate field,
         Path path,
         Type requestType,
         Type parentType)
         => new(ErrorBuilder.New()
             .SetMessage(
-                ThrowHelper_PureResolverContext_CannotCastParent,
+                ThrowHelper_ResolverContext_CannotCastParent,
                 field,
                 parentType,
                 requestType)
             .SetPath(path)
             .SetExtension(nameof(field), field.ToString())
+            .SetCode(ErrorCodes.Execution.CannotCastParent)
             .Build());
 }

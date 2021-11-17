@@ -51,6 +51,10 @@ internal partial class MiddlewareContext
             return casted;
         }
 
-        throw new InvalidCastException($"The parent cannot be cast to {typeof(T).FullName}.");
+        throw ThrowHelper.ResolverContext_CannotCastParent(
+            Selection.Field.Coordinate,
+            Path,
+            typeof(T),
+            _parent.GetType());
     }
 }

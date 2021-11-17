@@ -357,9 +357,9 @@ namespace HotChocolate.Execution.Properties {
             }
         }
         
-        internal static string ThrowHelper_PureResolverContext_CannotCastParent {
+        internal static string ThrowHelper_ResolverContext_CannotCastParent {
             get {
-                return ResourceManager.GetString("ThrowHelper_PureResolverContext_CannotCastParent", resourceCulture);
+                return ResourceManager.GetString("ThrowHelper_ResolverContext_CannotCastParent", resourceCulture);
             }
         }
     }
