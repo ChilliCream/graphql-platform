@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -75,12 +76,16 @@ internal partial class MiddlewareContext
 
         public T Parent<T>()
         {
-            if (_parent is T casted)
+            return _parent switch
             {
-                return casted;
-            }
-
-            return default!;
+                T casted => casted,
+                null => default!,
+                _ => throw ResolverContext_CannotCastParent(
+                    Selection.Field.Coordinate,
+                    _path,
+                    typeof(T),
+                    _parent.GetType())
+            };
         }
 
         public T ArgumentValue<T>(NameString name)
