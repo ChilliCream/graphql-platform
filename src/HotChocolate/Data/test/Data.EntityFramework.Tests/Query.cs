@@ -1,6 +1,10 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
+using HotChocolate.Types.Pagination.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data
@@ -45,6 +49,32 @@ namespace HotChocolate.Data
         public IExecutable<Author> GetAuthorCursorPagingExecutable(
             [ScopedService] BookContext context) =>
             context.Authors.AsExecutable();
+
+        [UseDbContext(typeof(BookContext))]
+        [UsePaging(IncludeTotalCount = true)]
+        public IQueryable<Author> GetAuthorCursorPaging(
+            [ScopedService] BookContext context) =>
+            context.Authors;
+
+        [UseDbContext(typeof(BookContext))]
+        [UsePaging(IncludeTotalCount = true)]
+        public async Task<Connection<Author>> GetQueryableExtensionsCursor(
+            [ScopedService] BookContext context,
+            IResolverContext resolverContext,
+            CancellationToken ct) =>
+            await context.Authors
+                .ApplyCursorPaginationAsync(resolverContext, cancellationToken:ct);
+
+        [UseDbContext(typeof(BookContext))]
+        [UseOffsetPaging(IncludeTotalCount = true)]
+        [UseFiltering]
+        [UseSorting]
+        public async Task<CollectionSegment<Author>> GetQueryableExtensionsOffset(
+            [ScopedService] BookContext context,
+            IResolverContext resolverContext,
+            CancellationToken ct) =>
+            await context.Authors
+                .ApplyOffsetPaginationAsync(resolverContext, cancellationToken:ct);
     }
 
     public class QueryTask
@@ -77,6 +107,12 @@ namespace HotChocolate.Data
         public Task<IExecutable<Author>> GetAuthorCursorPagingExecutable(
             [ScopedService] BookContext context) =>
             Task.FromResult(context.Authors.AsExecutable());
+
+        [UseDbContext(typeof(BookContext))]
+        [UsePaging(IncludeTotalCount = true)]
+        public Task<IQueryable<Author>> GetAuthorCursorPaging(
+            [ScopedService] BookContext context) =>
+            Task.FromResult(context.Authors.AsQueryable());
     }
 
     public class QueryValueTask
@@ -109,6 +145,12 @@ namespace HotChocolate.Data
         public ValueTask<IExecutable<Author>> GetAuthorCursorPagingExecutable(
             [ScopedService] BookContext context) =>
             new(context.Authors.AsExecutable());
+
+        [UseDbContext(typeof(BookContext))]
+        [UsePaging(IncludeTotalCount = true)]
+        public ValueTask<IQueryable<Author>> GetAuthorCursorPaging(
+            [ScopedService] BookContext context) =>
+            new(context.Authors.AsQueryable());
     }
 
     public class InvalidQuery
