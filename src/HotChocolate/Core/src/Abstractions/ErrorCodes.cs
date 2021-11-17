@@ -52,6 +52,11 @@ public static class ErrorCodes
         public const string TaskProcessingError = "HC0008";
         public const string SyntaxError = "HC0014";
         public const string CannotCreateRootValue = "HC0019";
+
+        /// <summary>
+        /// Cannot cast the parent type to the resolver requested type.
+        /// </summary>
+        public const string CannotCastParent = "HC0053";
     }
 
     /// <summary>
