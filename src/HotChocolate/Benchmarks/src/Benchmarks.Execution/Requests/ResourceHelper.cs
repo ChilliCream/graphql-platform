@@ -9,15 +9,21 @@ namespace HotChocolate.Benchmarks
         private const string _resourcePath = "HotChocolate.Benchmarks.Requests";
         private static readonly Assembly _assembly = typeof(Resources).Assembly;
         private static string? _introspection;
+        private static string? _sessionLargeQuery;
+        private static string? _sessionLargeDLQuery;
+        private static string? _sessionMediumQuery;
 
         public static string Introspection => 
             _introspection ??= GetResourceString(nameof(Introspection));
 
         public static string SessionLargeQuery => 
-            _introspection ??= GetResourceString(nameof(SessionLargeQuery));
+            _sessionLargeQuery ??= GetResourceString(nameof(SessionLargeQuery));
+
+        public static string SessionLargeDLQuery => 
+            _sessionLargeDLQuery ??= GetResourceString(nameof(SessionLargeDLQuery));
 
         public static string SessionMediumQuery => 
-            _introspection ??= GetResourceString(nameof(SessionMediumQuery));
+            _sessionMediumQuery ??= GetResourceString(nameof(SessionMediumQuery));
 
         public static string GetResourceString(string fileName)
         {

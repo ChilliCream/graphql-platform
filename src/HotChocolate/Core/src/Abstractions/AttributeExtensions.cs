@@ -6,214 +6,213 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+internal static class AttributeExtensions
 {
-    internal static class AttributeExtensions
+    private const string _get = "Get";
+    private const string _async = "Async";
+    private const string _typePostfix = "`1";
+
+    public static string GetGraphQLName(this Type type)
     {
-        private const string _get = "Get";
-        private const string _async = "Async";
-        private const string _typePostfix = "`1";
-
-        public static string GetGraphQLName(this Type type)
+        if (type is null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            TypeInfo typeInfo = type.GetTypeInfo();
-            string name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
-                ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-                : GetFromType(typeInfo);
-
-            return NameUtils.MakeValidGraphQLName(name)!;
+            throw new ArgumentNullException(nameof(type));
         }
 
-        public static string GetGraphQLName(this PropertyInfo property)
+        TypeInfo typeInfo = type.GetTypeInfo();
+        string name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
+            ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : GetFromType(typeInfo);
+
+        return NameUtils.MakeValidGraphQLName(name)!;
+    }
+
+    public static string GetGraphQLName(this PropertyInfo property)
+    {
+        if (property is null)
         {
-            if (property is null)
-            {
-                throw new ArgumentNullException(nameof(property));
-            }
-
-            string name = property.IsDefined(
-                typeof(GraphQLNameAttribute), false)
-                ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-                : NormalizeName(property.Name);
-
-            return NameUtils.MakeValidGraphQLName(name)!;
+            throw new ArgumentNullException(nameof(property));
         }
 
-        public static string GetGraphQLName(this MethodInfo method)
+        string name = property.IsDefined(
+            typeof(GraphQLNameAttribute), false)
+            ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : NormalizeName(property.Name);
+
+        return NameUtils.MakeValidGraphQLName(name)!;
+    }
+
+    public static string GetGraphQLName(this MethodInfo method)
+    {
+        if (method is null)
         {
-            if (method is null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            string name = method.IsDefined(
-                typeof(GraphQLNameAttribute), false)
-                ? method.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-                : NormalizeMethodName(method);
-
-            return NameUtils.MakeValidGraphQLName(name)!;
+            throw new ArgumentNullException(nameof(method));
         }
 
-        public static string GetGraphQLName(this ParameterInfo parameter)
+        string name = method.IsDefined(
+            typeof(GraphQLNameAttribute), false)
+            ? method.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : NormalizeMethodName(method);
+
+        return NameUtils.MakeValidGraphQLName(name)!;
+    }
+
+    public static string GetGraphQLName(this ParameterInfo parameter)
+    {
+        if (parameter is null)
         {
-            if (parameter is null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-
-            string name = parameter.IsDefined(
-                typeof(GraphQLNameAttribute), false)
-                ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
-                : NormalizeName(parameter.Name!);
-
-            return NameUtils.MakeValidGraphQLName(name)!;
+            throw new ArgumentNullException(nameof(parameter));
         }
 
-        public static string GetGraphQLName(this MemberInfo member)
+        string name = parameter.IsDefined(
+            typeof(GraphQLNameAttribute), false)
+            ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
+            : NormalizeName(parameter.Name!);
+
+        return NameUtils.MakeValidGraphQLName(name)!;
+    }
+
+    public static string GetGraphQLName(this MemberInfo member)
+    {
+        if (member is null)
         {
-            if (member is null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            if (member is MethodInfo m)
-            {
-                return GetGraphQLName(m);
-            }
-
-            if (member is PropertyInfo p)
-            {
-                return GetGraphQLName(p);
-            }
-
-            throw new NotSupportedException(
-                "Only properties and methods are accepted as members.");
+            throw new ArgumentNullException(nameof(member));
         }
 
-        private static string NormalizeMethodName(MethodInfo method)
+        if (member is MethodInfo m)
         {
-            string name = method.Name;
-
-            if (name.StartsWith(_get, StringComparison.Ordinal)
-                && name.Length > _get.Length)
-            {
-                name = name.Substring(_get.Length);
-            }
-
-            if (IsAsyncMethod(method.ReturnType)
-                && name.Length > _async.Length
-                && name.EndsWith(_async, StringComparison.Ordinal))
-            {
-                name = name.Substring(0, name.Length - _async.Length);
-            }
-
-            return NormalizeName(name);
+            return GetGraphQLName(m);
         }
 
-        private static bool IsAsyncMethod(Type returnType)
+        if (member is PropertyInfo p)
         {
-            if (typeof(Task).IsAssignableFrom(returnType)
-                || typeof(ValueTask).IsAssignableFrom(returnType))
-            {
-                return true;
-            }
-
-            if (returnType.IsGenericType)
-            {
-                Type typeDefinition = returnType.GetGenericTypeDefinition();
-                return typeof(ValueTask<>) == typeDefinition
-                    || typeof(IAsyncEnumerable<>) == typeDefinition;
-            }
-
-            return false;
+            return GetGraphQLName(p);
         }
 
-        public static string? GetGraphQLDescription(
-            this ICustomAttributeProvider attributeProvider)
-        {
-            if (attributeProvider.IsDefined(
-                typeof(GraphQLDescriptionAttribute),
-                false))
-            {
-                GraphQLDescriptionAttribute attribute =
-                    (GraphQLDescriptionAttribute)
-                        attributeProvider.GetCustomAttributes(
-                            typeof(GraphQLDescriptionAttribute),
-                            false)[0];
-                return attribute.Description;
-            }
+        throw new NotSupportedException(
+            "Only properties and methods are accepted as members.");
+    }
 
-            return null;
+    private static string NormalizeMethodName(MethodInfo method)
+    {
+        string name = method.Name;
+
+        if (name.StartsWith(_get, StringComparison.Ordinal)
+            && name.Length > _get.Length)
+        {
+            name = name.Substring(_get.Length);
         }
 
-        public static bool IsDeprecated(
-            this ICustomAttributeProvider attributeProvider,
-            out string? reason)
+        if (IsAsyncMethod(method.ReturnType)
+            && name.Length > _async.Length
+            && name.EndsWith(_async, StringComparison.Ordinal))
         {
-            GraphQLDeprecatedAttribute? deprecatedAttribute =
-                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
-
-            if (deprecatedAttribute is not null)
-            {
-                reason = deprecatedAttribute.DeprecationReason;
-                return true;
-            }
-
-            ObsoleteAttribute? obsoleteAttribute =
-                GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
-
-            if (obsoleteAttribute is not null)
-            {
-                reason = obsoleteAttribute.Message;
-                return true;
-            }
-
-            reason = null;
-            return false;
+            name = name.Substring(0, name.Length - _async.Length);
         }
 
-        private static string GetFromType(Type type)
+        return NormalizeName(name);
+    }
+
+    private static bool IsAsyncMethod(Type returnType)
+    {
+        if (typeof(Task).IsAssignableFrom(returnType)
+            || typeof(ValueTask).IsAssignableFrom(returnType))
         {
-            if (type.GetTypeInfo().IsGenericType)
-            {
-                string name = type.GetTypeInfo()
-                    .GetGenericTypeDefinition()
-                    .Name;
-
-                name = name.Substring(0, name.Length - _typePostfix.Length);
-
-                IEnumerable<string> arguments = type
-                    .GetTypeInfo().GenericTypeArguments
-                    .Select(GetFromType);
-
-                return $"{name}Of{string.Join("And", arguments)}";
-            }
-            return type.Name;
+            return true;
         }
 
-        private static string NormalizeName(string name)
-            => name.Length > 1
-                ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
-                : name.ToLowerInvariant();
-
-        private static TAttribute? GetAttributeIfDefined<TAttribute>(
-            ICustomAttributeProvider attributeProvider)
-            where TAttribute : Attribute
+        if (returnType.IsGenericType)
         {
-            Type attributeType = typeof(TAttribute);
-
-            if (attributeProvider.IsDefined(attributeType, false))
-            {
-                return (TAttribute)attributeProvider
-                    .GetCustomAttributes(attributeType, false)[0];
-            }
-
-            return null;
+            Type typeDefinition = returnType.GetGenericTypeDefinition();
+            return typeof(ValueTask<>) == typeDefinition
+                || typeof(IAsyncEnumerable<>) == typeDefinition;
         }
+
+        return false;
+    }
+
+    public static string? GetGraphQLDescription(
+        this ICustomAttributeProvider attributeProvider)
+    {
+        if (attributeProvider.IsDefined(
+            typeof(GraphQLDescriptionAttribute),
+            false))
+        {
+            GraphQLDescriptionAttribute attribute =
+                (GraphQLDescriptionAttribute)
+                    attributeProvider.GetCustomAttributes(
+                        typeof(GraphQLDescriptionAttribute),
+                        false)[0];
+            return attribute.Description;
+        }
+
+        return null;
+    }
+
+    public static bool IsDeprecated(
+        this ICustomAttributeProvider attributeProvider,
+        out string? reason)
+    {
+        GraphQLDeprecatedAttribute? deprecatedAttribute =
+            GetAttributeIfDefined<GraphQLDeprecatedAttribute>(attributeProvider);
+
+        if (deprecatedAttribute is not null)
+        {
+            reason = deprecatedAttribute.DeprecationReason;
+            return true;
+        }
+
+        ObsoleteAttribute? obsoleteAttribute =
+            GetAttributeIfDefined<ObsoleteAttribute>(attributeProvider);
+
+        if (obsoleteAttribute is not null)
+        {
+            reason = obsoleteAttribute.Message;
+            return true;
+        }
+
+        reason = null;
+        return false;
+    }
+
+    private static string GetFromType(Type type)
+    {
+        if (type.GetTypeInfo().IsGenericType)
+        {
+            string name = type.GetTypeInfo()
+                .GetGenericTypeDefinition()
+                .Name;
+
+            name = name.Substring(0, name.Length - _typePostfix.Length);
+
+            IEnumerable<string> arguments = type
+                .GetTypeInfo().GenericTypeArguments
+                .Select(GetFromType);
+
+            return $"{name}Of{string.Join("And", arguments)}";
+        }
+        return type.Name;
+    }
+
+    private static string NormalizeName(string name)
+        => name.Length > 1
+            ? name.Substring(0, 1).ToLowerInvariant() + name.Substring(1)
+            : name.ToLowerInvariant();
+
+    private static TAttribute? GetAttributeIfDefined<TAttribute>(
+        ICustomAttributeProvider attributeProvider)
+        where TAttribute : Attribute
+    {
+        Type attributeType = typeof(TAttribute);
+
+        if (attributeProvider.IsDefined(attributeType, false))
+        {
+            return (TAttribute)attributeProvider
+                .GetCustomAttributes(attributeType, false)[0];
+        }
+
+        return null;
     }
 }

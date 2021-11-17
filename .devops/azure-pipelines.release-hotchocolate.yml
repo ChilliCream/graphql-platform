@@ -16,6 +16,7 @@ stages:
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
+            continueOnError: true
             inputs:
               script: "./build.cmd test --test-partition $(System.JobPositionInPhase)"
           - task: PublishBuildArtifacts@1

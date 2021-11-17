@@ -3,11 +3,9 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using Snapshooter.Xunit;
+using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions

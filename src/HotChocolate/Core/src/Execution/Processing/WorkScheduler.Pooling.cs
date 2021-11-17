@@ -19,8 +19,7 @@ internal partial class WorkScheduler
 
     private readonly OperationContext _operationContext;
     private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
-    private readonly Queue<Pause> _pausePool = new();
-    private Pause? _pause;
+    private readonly ProcessingPause _pause = new();
 
 
     private bool _processing;
@@ -38,11 +37,6 @@ internal partial class WorkScheduler
     public WorkScheduler(OperationContext operationContext)
     {
         _operationContext = operationContext;
-
-        _pausePool.Enqueue(new(_sync));
-        _pausePool.Enqueue(new(_sync));
-        _pausePool.Enqueue(new(_sync));
-        _pausePool.Enqueue(new(_sync));
     }
 
     public void Initialize(IBatchDispatcher batchDispatcher)
@@ -67,7 +61,7 @@ internal partial class WorkScheduler
     {
         lock (_sync)
         {
-            TryContinueUnsafe();
+            TryContinue();
 
             if (_batchDispatcher is not null)
             {
@@ -102,7 +96,7 @@ internal partial class WorkScheduler
     {
         lock (_sync)
         {
-            TryContinueUnsafe();
+            TryContinue();
 
             _work.Clear();
             _serial.Clear();

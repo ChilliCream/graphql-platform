@@ -25,14 +25,14 @@ internal sealed class WorkQueue
     public bool TryTake([MaybeNullWhen(false)] out IExecutionTask executionTask)
     {
 #if NETSTANDARD2_0
-            if (_stack.Count > 0)
-            {
-                executionTask = _stack.Pop();
-                _running++;
-                return true;
-            }
+        if (_stack.Count > 0)
+        {
+            executionTask = _stack.Pop();
+            _running++;
+            return true;
+        }
 
-            executionTask = default;
+        executionTask = default;
 #else
         if (_stack.TryPop(out executionTask))
         {

@@ -1,8 +1,7 @@
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+internal static class OffsetPagingArgumentNames
 {
-    internal static class OffsetPagingArgumentNames
-    {
-        public const string Skip = "skip";
-        public const string Take = "take";
-    }
+    public const string Skip = "skip";
+    public const string Take = "take";
 }
