@@ -6,13 +6,12 @@ Banana Cake Pop makes it easy and enjoyable to test your GraphQL server implemen
 
 # Download
 
-Banana Cake Pop is currently in preview and the current version is `1.0.0-preview.15`. It has an auto update feature built in, so as new releases come out you will get notifications in the app.
+Banana Cake Pop is currently in preview and the current version is `1.0.0-preview.14`. It has an auto update feature built in, so as new releases come out you will get notifications in the app.
 
-- [MacOS Installer (Intel)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.15-mac-x64.dmg)
-- [MacOS Installer (Apple Silicon)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.15-mac-arm64.dmg)
-- [Windows Installer](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.15-win-x64.exe)
-- [Ubuntu Installer (AppImage)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.15-linux-x86_64.AppImage)
-- [Ubuntu Installer (Snap)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.15-linux-amd64.snap)
+- [MacOS Installer (Intel)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.14.dmg)
+- [Windows Installer](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.14.exe)
+- [Ubuntu Installer (AppImage)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.14.AppImage)
+- [Ubuntu Installer (Snap)](https://download.chillicream.com/bananacakepop/BananaCakePop-1.0.0-preview.14.snap)
 
 After downloading head over to [getting started](/docs/bananacakepop/getting-started) and lets make our first GraphQL query in Banana Cake Pop.
 
