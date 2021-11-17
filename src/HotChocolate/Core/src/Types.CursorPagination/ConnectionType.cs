@@ -196,7 +196,7 @@ namespace HotChocolate.Types.Pagination
         private static async ValueTask<object?> GetTotalCountAsync(IResolverContext context)
             => await context.Parent<Connection>().GetTotalCountAsync(context.RequestAborted);
 
-        private static class Names
+        internal static class Names
         {
             public const string PageInfo = "pageInfo";
             public const string Edges = "edges";

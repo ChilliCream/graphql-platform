@@ -43,20 +43,9 @@ namespace HotChocolate.Types.Pagination
 
             // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
             // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-            if (IncludeTotalCount &&
-                context.Selection.Type is ObjectType objectType &&
-                context.Selection.SyntaxNode.SelectionSet is { } selectionSet)
+            if (IncludeTotalCount && context.IsTotalCountSelected())
             {
-                IReadOnlyList<IFieldSelection> selections =
-                    context.GetSelections(objectType, selectionSet, true);
-
-                for (var i = 0; i < selections.Count; i++)
-                {
-                    if (selections[i].Field.Name.Value is "totalCount")
-                    {
-                        totalCount = source.Count();
-                    }
-                }
+                totalCount = source.Count();
             }
 
             return await _pagination

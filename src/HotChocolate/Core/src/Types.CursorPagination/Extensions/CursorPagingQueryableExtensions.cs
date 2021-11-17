@@ -135,6 +135,11 @@ namespace HotChocolate.Types.Pagination.Extensions
                 context.ArgumentValue<string?>(CursorPagingArgumentNames.After),
                 context.ArgumentValue<string?>(CursorPagingArgumentNames.Before));
 
+            if (totalCount is null && context.IsTotalCountSelected())
+            {
+                totalCount = query.Count();
+            }
+
             return QueryableCursorPagination<TEntity>.Instance.ApplyPaginationAsync(
                 query,
                 arguments,
