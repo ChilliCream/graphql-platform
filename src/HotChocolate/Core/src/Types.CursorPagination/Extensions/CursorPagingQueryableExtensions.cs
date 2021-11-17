@@ -124,6 +124,11 @@ public static class CursorPagingQueryableExtensions
         var first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
         var last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
 
+        if (totalCount is null && context.IsTotalCountSelected())
+        {
+            totalCount = query.Count();
+        }
+
         if (first is null && last is null)
         {
             first = defaultPageSize;
