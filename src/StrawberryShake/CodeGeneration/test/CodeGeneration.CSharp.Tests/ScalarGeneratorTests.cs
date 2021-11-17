@@ -153,6 +153,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 }",
                 "extend schema @key(fields: \"id\")");
         }
+
+        [Fact]
+        public void Uuid_Type() =>
+            AssertResult(
+                "query GetPerson { person { Uuid UUID } }",
+                "type Query { person: Person }",
+                "type Person { Uuid:Uuid UUID:UUID }",
+                "scalar UUID",
+                "scalar Uuid",
+                "extend schema @key(fields: \"id\")");
+
+        [Fact]
+        public void Uri_Type() =>
+            AssertResult(
+                "query GetPerson { person { uri URI } }",
+                "type Query { person: Person }",
+                "type Person { uri:Uri URI:URI }",
+                "scalar Uri",
+                "scalar URI",
+                "extend schema @key(fields: \"id\")");
     }
 
     public class Custom { }
