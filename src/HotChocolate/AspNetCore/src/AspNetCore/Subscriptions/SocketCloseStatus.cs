@@ -1,16 +1,15 @@
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+public enum SocketCloseStatus
 {
-    public enum SocketCloseStatus
-    {
-        None,
-        NormalClosure,
-        EndpointUnavailable,
-        ProtocolError,
-        InvalidMessageType,
-        InvalidPayloadData,
-        PolicyViolation,
-        MessageTooBig,
-        MandatoryExtension,
-        InternalServerError
-    }
+    None,
+    NormalClosure,
+    EndpointUnavailable,
+    ProtocolError,
+    InvalidMessageType,
+    InvalidPayloadData,
+    PolicyViolation,
+    MessageTooBig,
+    MandatoryExtension,
+    InternalServerError
 }

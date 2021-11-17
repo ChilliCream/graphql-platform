@@ -1,15 +1,14 @@
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+internal class IndexPathSegment : IVariablePathSegment
 {
-    internal class IndexPathSegment : IVariablePathSegment
+    public IndexPathSegment(int value, IVariablePathSegment? next)
     {
-        public IndexPathSegment(int value, IVariablePathSegment? next)
-        {
-            Value = value;
-            Next = next;
-        }
-
-        public int Value { get; }
-
-        public IVariablePathSegment? Next { get; }
+        Value = value;
+        Next = next;
     }
+
+    public int Value { get; }
+
+    public IVariablePathSegment? Next { get; }
 }
