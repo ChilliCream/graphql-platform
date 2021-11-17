@@ -915,23 +915,6 @@ namespace HotChocolate.Types.Pagination
             }
         }
 
-        public class QueryableExtensionsQueryType : ObjectType<QueryableExtensionsQuery>
-        {
-            protected override void Configure(
-                IObjectTypeDescriptor<QueryableExtensionsQuery> descriptor)
-            {
-                descriptor
-                    .Field("fooExecutable")
-                    .Resolve(ctx => ctx.Parent<QueryableExtensionsQuery>().Queryable().Ap)
-                    .UsePaging(
-                        options: new PagingOptions
-                        {
-                            MaxPageSize = 2,
-                            IncludeTotalCount = true
-                        });
-            }
-        }
-
         public class Query
         {
             public string[] Letters => new[]
@@ -958,21 +941,6 @@ namespace HotChocolate.Types.Pagination
                 new List<Foo> { new() { Bar = "e" } },
                 new List<Foo> { new() { Bar = "f" } }
             };
-        }
-
-        public class QueryableExtensionsQuery
-        {
-            [UsePaging]
-            public Connection<Foo> Queryable(IResolverContext context, ) =>
-                new List<Foo>
-                {
-                    new() { Bar = "a" },
-                    new() { Bar = "b" },
-                    new() { Bar = "c" } ,
-                    new() { Bar = "d" },
-                    new() { Bar = "e" },
-                    new() { Bar = "f" }
-                }.AsQueryable().ApplyCursorPaginationAsync(context);
         }
 
         public class ExecutableQuery
