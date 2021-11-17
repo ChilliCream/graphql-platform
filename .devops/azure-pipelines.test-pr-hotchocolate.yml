@@ -18,10 +18,11 @@ stages:
         dependsOn: []
         continueOnError: true
         strategy:
-          parallel: 3
+          parallel: 4
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
+            continueOnError: true
             inputs:
               script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)'
           - task: PublishBuildArtifacts@1
