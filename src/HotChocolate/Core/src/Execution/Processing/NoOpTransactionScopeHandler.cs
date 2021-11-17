@@ -1,13 +1,12 @@
-namespace HotChocolate.Execution.Processing
-{
-    /// <summary>
-    /// This transaction scope handler represents creates
-    /// a non transactional mutation transaction scope.
-    /// </summary>
-    internal sealed class NoOpTransactionScopeHandler : ITransactionScopeHandler
-    {
-        private readonly NoOpTransactionScope _noOpTransaction = new();
+namespace HotChocolate.Execution.Processing;
 
-        public ITransactionScope Create(IRequestContext context) => _noOpTransaction;
-    }
+/// <summary>
+/// This transaction scope handler represents creates
+/// a non transactional mutation transaction scope.
+/// </summary>
+internal sealed class NoOpTransactionScopeHandler : ITransactionScopeHandler
+{
+    private readonly NoOpTransactionScope _noOpTransaction = new();
+
+    public ITransactionScope Create(IRequestContext context) => _noOpTransaction;
 }

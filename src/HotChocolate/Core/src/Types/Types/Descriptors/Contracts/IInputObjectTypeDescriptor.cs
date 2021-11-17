@@ -1,29 +1,28 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public interface IInputObjectTypeDescriptor
+    : IDescriptor<InputObjectTypeDefinition>
+    , IFluent
 {
-    public interface IInputObjectTypeDescriptor
-        : IDescriptor<InputObjectTypeDefinition>
-        , IFluent
-    {
-        IInputObjectTypeDescriptor SyntaxNode(
-            InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
+    IInputObjectTypeDescriptor SyntaxNode(
+        InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
 
-        IInputObjectTypeDescriptor Name(NameString value);
+    IInputObjectTypeDescriptor Name(NameString value);
 
-        IInputObjectTypeDescriptor Description(string value);
+    IInputObjectTypeDescriptor Description(string value);
 
-        IInputFieldDescriptor Field(NameString name);
+    IInputFieldDescriptor Field(NameString name);
 
-        IInputObjectTypeDescriptor Directive<T>(T directiveInstance)
-            where T : class;
+    IInputObjectTypeDescriptor Directive<T>(T directiveInstance)
+        where T : class;
 
-        IInputObjectTypeDescriptor Directive<T>()
-            where T : class, new();
+    IInputObjectTypeDescriptor Directive<T>()
+        where T : class, new();
 
-        IInputObjectTypeDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
+    IInputObjectTypeDescriptor Directive(
+        NameString name,
+        params ArgumentNode[] arguments);
 }

@@ -1,61 +1,60 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors.Definitions;
+
+/// <summary>
+/// Defines the properties of a GraphQL enum type.
+/// </summary>
+public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
 {
     /// <summary>
-    /// Defines the properties of a GraphQL enum type.
+    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
     /// </summary>
-    public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
-    {
-        /// <summary>
-        /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
-        /// </summary>
-        public EnumTypeDefinition() { }
+    public EnumTypeDefinition() { }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
-        /// </summary>
-        public EnumTypeDefinition(
-            NameString name,
-            string? description = null,
-            Type? runtimeType = null)
-            : base(runtimeType ?? typeof(object))
+    /// <summary>
+    /// Initializes a new instance of <see cref="EnumTypeDefinition"/>.
+    /// </summary>
+    public EnumTypeDefinition(
+        NameString name,
+        string? description = null,
+        Type? runtimeType = null)
+        : base(runtimeType ?? typeof(object))
+    {
+        Name = name;
+        Description = description;
+    }
+
+    /// <summary>
+    /// Gets the enum values.
+    /// </summary>
+    public IBindableList<EnumValueDefinition> Values { get; } =
+        new BindableList<EnumValueDefinition>();
+
+    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    {
+        List<ITypeSystemMemberConfiguration>? configs = null;
+
+        if (HasConfigurations)
         {
-            Name = name;
-            Description = description;
+            configs ??= new();
+            configs.AddRange(Configurations);
         }
 
-        /// <summary>
-        /// Gets the enum values.
-        /// </summary>
-        public IBindableList<EnumValueDefinition> Values { get; } =
-            new BindableList<EnumValueDefinition>();
-
-        internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+        foreach (EnumValueDefinition value in Values)
         {
-            List<ITypeSystemMemberConfiguration>? configs = null;
-
-            if (HasConfigurations)
+            if (value.HasConfigurations)
             {
                 configs ??= new();
-                configs.AddRange(Configurations);
+                configs.AddRange(value.Configurations);
             }
-
-            foreach (EnumValueDefinition value in Values)
-            {
-                if (value.HasConfigurations)
-                {
-                    configs ??= new();
-                    configs.AddRange(value.Configurations);
-                }
-            }
-
-            return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
         }
+
+        return configs ?? Enumerable.Empty<ITypeSystemMemberConfiguration>();
     }
 }

@@ -1,9 +1,8 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public enum TypeContext
 {
-    public enum TypeContext
-    {
-        None = 0,
-        Output = 2,
-        Input = 4
-    }
+    None = 0,
+    Output = 2,
+    Input = 4
 }

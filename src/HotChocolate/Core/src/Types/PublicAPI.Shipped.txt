@@ -1561,6 +1561,8 @@ HotChocolate.Types.DeprecatedDirectiveType.DeprecatedDirectiveType() -> void
 HotChocolate.Types.DeprecatedDirectiveType.Names
 HotChocolate.Types.DescriptorAttribute
 HotChocolate.Types.DescriptorAttribute.DescriptorAttribute() -> void
+HotChocolate.Types.DescriptorAttribute.Order.get -> int
+HotChocolate.Types.DescriptorAttribute.Order.set -> void
 HotChocolate.Types.Descriptors.ArgumentDescriptor
 HotChocolate.Types.Descriptors.ClrTypeDirectiveReference
 HotChocolate.Types.Descriptors.ClrTypeDirectiveReference.ClrType.get -> System.Type!
@@ -2976,6 +2978,7 @@ HotChocolate.Types.UrlType
 HotChocolate.Types.UrlType.UrlType() -> void
 HotChocolate.Types.UrlType.UrlType(HotChocolate.NameString name, string? description = null, HotChocolate.Types.BindingBehavior bind = HotChocolate.Types.BindingBehavior.Explicit) -> void
 HotChocolate.Types.UseServiceScopeAttribute
+HotChocolate.Types.UseServiceScopeAttribute.UseServiceScopeAttribute(int order = 0) -> void
 HotChocolate.Types.UuidType
 HotChocolate.Types.UuidType.UuidType() -> void
 HotChocolate.Types.UuidType.UuidType(char defaultFormat = '\0', bool enforceFormat = false) -> void

@@ -1,15 +1,14 @@
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types.Pagination;
+
+internal sealed class PagingProviderEntry
 {
-    internal sealed class PagingProviderEntry
+    public PagingProviderEntry(string? name, CursorPagingProvider provider)
     {
-        public PagingProviderEntry(string? name, CursorPagingProvider provider)
-        {
-            Name = name;
-            Provider = provider;
-        }
-
-        public string? Name { get; }
-
-        public CursorPagingProvider Provider { get; }
+        Name = name;
+        Provider = provider;
     }
+
+    public string? Name { get; }
+
+    public CursorPagingProvider Provider { get; }
 }

@@ -5,23 +5,22 @@ using static HotChocolate.Configuration.Validation.ComplexOutputTypeValidationHe
 
 #nullable enable
 
-namespace HotChocolate.Configuration.Validation
+namespace HotChocolate.Configuration.Validation;
+
+public class InterfaceTypeValidationRule : ISchemaValidationRule
 {
-    public class InterfaceTypeValidationRule : ISchemaValidationRule
+    public void Validate(
+        IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+        IReadOnlySchemaOptions options,
+        ICollection<ISchemaError> errors)
     {
-        public void Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
-            IReadOnlySchemaOptions options,
-            ICollection<ISchemaError> errors)
+        if (options.StrictValidation)
         {
-            if (options.StrictValidation)
+            foreach (InterfaceType type in typeSystemObjects.OfType<InterfaceType>())
             {
-                foreach (InterfaceType type in typeSystemObjects.OfType<InterfaceType>())
-                {
-                    EnsureTypeHasFields(type, errors);
-                    EnsureFieldNamesAreValid(type, errors);
-                    EnsureInterfacesAreCorrectlyImplemented(type, errors);
-                }
+                EnsureTypeHasFields(type, errors);
+                EnsureFieldNamesAreValid(type, errors);
+                EnsureInterfacesAreCorrectlyImplemented(type, errors);
             }
         }
     }

@@ -1,9 +1,8 @@
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IResultData
 {
-    public interface IResultData
-    {
-        IResultData? Parent { get; }
-    }
+    IResultData? Parent { get; }
 }

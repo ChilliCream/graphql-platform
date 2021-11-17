@@ -1,27 +1,26 @@
-﻿using System;
+using System;
 
-namespace HotChocolate
+namespace HotChocolate;
+
+[AttributeUsage(AttributeTargets.Class
+    | AttributeTargets.Struct
+    | AttributeTargets.Interface
+    | AttributeTargets.Property
+    | AttributeTargets.Method
+    | AttributeTargets.Parameter
+    | AttributeTargets.Enum
+    | AttributeTargets.Field)]
+public sealed class GraphQLNameAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class
-        | AttributeTargets.Struct
-        | AttributeTargets.Interface
-        | AttributeTargets.Property
-        | AttributeTargets.Method
-        | AttributeTargets.Parameter
-        | AttributeTargets.Enum
-        | AttributeTargets.Field)]
-    public sealed class GraphQLNameAttribute : Attribute
+    public GraphQLNameAttribute(string name)
     {
-        public GraphQLNameAttribute(string name)
+        if (string.IsNullOrEmpty(name))
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            Name = name;
+            throw new ArgumentNullException(nameof(name));
         }
 
-        public string Name { get; }
+        Name = name;
     }
+
+    public string Name { get; }
 }

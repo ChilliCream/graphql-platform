@@ -5,10 +5,9 @@ HotChocolate.Fetching.BatchDispatcherResult.Exceptions.get -> System.Collections
 HotChocolate.Fetching.BatchDispatcherResult.IsSuccessful.get -> bool
 HotChocolate.Fetching.BatchScheduler
 HotChocolate.Fetching.BatchScheduler.BatchScheduler() -> void
-HotChocolate.Fetching.BatchScheduler.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
+HotChocolate.Fetching.BatchScheduler.BeginDispatch(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.BatchScheduler.DispatchOnSchedule.set -> void
-HotChocolate.Fetching.BatchScheduler.HasTasks.get -> bool
 HotChocolate.Fetching.BatchScheduler.Schedule(System.Func<System.Threading.Tasks.ValueTask>! dispatch) -> void
 HotChocolate.Fetching.BatchScheduler.TaskEnqueued -> System.EventHandler?
 HotChocolate.Fetching.DataLoaderParameterExpressionBuilder
@@ -22,10 +21,9 @@ HotChocolate.Fetching.FetchBatch<TKey, TValue>
 HotChocolate.Fetching.FetchCacheCt<TKey, TValue>
 HotChocolate.Fetching.FetchGroup<TKey, TValue>
 HotChocolate.Fetching.IBatchDispatcher
-HotChocolate.Fetching.IBatchDispatcher.DispatchAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<HotChocolate.Fetching.BatchDispatcherResult!>!
+HotChocolate.Fetching.IBatchDispatcher.BeginDispatch(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.DispatchOnSchedule.set -> void
-HotChocolate.Fetching.IBatchDispatcher.HasTasks.get -> bool
 HotChocolate.Fetching.IBatchDispatcher.TaskEnqueued -> System.EventHandler?
 HotChocolate.Fetching.IDataLoaderRegistry
 HotChocolate.Fetching.IDataLoaderRegistry.GetOrRegister<T>(string! key, System.Func<T>! createDataLoader) -> T
@@ -35,6 +33,7 @@ HotChocolate.Fetching.RegisterDataLoaderException.RegisterDataLoaderException(st
 HotChocolate.Types.DataLoaderObjectFieldExtensions
 HotChocolate.Types.DataLoaderResolverContextExtensions
 HotChocolate.Types.UseDataLoaderAttribute
+HotChocolate.Types.UseDataLoaderAttribute.UseDataLoaderAttribute(System.Type! dataLoaderType, int order = 0) -> void
 override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.Build(System.Reflection.ParameterInfo! parameter, System.Linq.Expressions.Expression! context) -> System.Linq.Expressions.Expression!
 override HotChocolate.Fetching.DataLoaderParameterExpressionBuilder.CanHandle(System.Reflection.ParameterInfo! parameter) -> bool
 override HotChocolate.Types.UseDataLoaderAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void

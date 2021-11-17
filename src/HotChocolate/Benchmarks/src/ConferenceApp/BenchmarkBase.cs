@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,9 +10,14 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
+using GreenDonut;
 using HotChocolate.ConferencePlanner.Attendees;
 using HotChocolate.ConferencePlanner.Data;
 using HotChocolate.ConferencePlanner.DataLoader;
@@ -26,10 +32,6 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 
 namespace HotChocolate.ConferencePlanner
@@ -190,7 +192,8 @@ namespace HotChocolate.ConferencePlanner
                     .AddDataLoader<SpeakerBySessionIdDataLoader>()
                     .AddDataLoader<TrackByIdDataLoader>()
 
-                    // .AddDiagnosticEventListener<BatchDiagnostics>()
+                    // .AddDiagnosticEventListener<BatchDataLoaderDiagnostics>()
+                    // .AddDiagnosticEventListener<BatchExecutionDiagnostics>()
 
                     // we make sure that the db exists and prefill it with conference data.
                     .EnsureDatabaseIsCreated()
@@ -221,10 +224,27 @@ namespace HotChocolate.ConferencePlanner
         }
     }
 
-    public class BatchDiagnostics : DiagnosticEventListener
+    public class BatchDataLoaderDiagnostics : DataLoaderDiagnosticEventListener
     {
+        private static int _batches = 0;
+
+        public static int Batches { get => _batches;  set => _batches = value; }
+
+        public override IDisposable ExecuteBatch<TKey>(IDataLoader dataLoader, IReadOnlyList<TKey> keys)
+        {
+            Interlocked.Increment(ref _batches);
+            // Console.WriteLine($"ExecuteBatch {dataLoader.GetType().Name} {string.Join(", ", keys)}.");
+            return EmptyScope;
+        }
+    }
+
+    public class BatchExecutionDiagnostics : ExecutionDiagnosticEventListener
+    {
+        public static int Starts { get; set;}
+
         public override IDisposable ExecuteRequest(IRequestContext context)
         {
+            BatchDataLoaderDiagnostics.Batches = 0;
             var scope = new RequestScope();
             context.ContextData[nameof(RequestScope)] = scope;
             context.ContextData[nameof(Stopwatch)] = scope.Stopwatch;
@@ -239,14 +259,16 @@ namespace HotChocolate.ConferencePlanner
 
         public override void StartProcessing(IRequestContext context)
         {
-            TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
-            Console.WriteLine($"{timeSpan} Start processing.");
+            ((RequestScope)context.ContextData[nameof(RequestScope)]!).CountStarts();
+        
+            // TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
+            // Console.WriteLine($"{timeSpan} Start processing.");
         }
 
         public override void StopProcessing(IRequestContext context)
         {
-            TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
-            Console.WriteLine($"{timeSpan} Stop processing.");
+            // TimeSpan timeSpan = ((RequestScope)context.ContextData[nameof(RequestScope)]!).Elapsed;
+            // Console.WriteLine($"{timeSpan} Stop processing.");
         }
 
         public override IDisposable ResolveFieldValue(IMiddlewareContext context)
@@ -258,6 +280,7 @@ namespace HotChocolate.ConferencePlanner
         {
             private readonly Stopwatch _stopwatch;
             private readonly System.Collections.Concurrent.ConcurrentDictionary<FieldCoordinate, int> _ = new();
+            private int _starts;
 
             public RequestScope()
             {
@@ -274,6 +297,11 @@ namespace HotChocolate.ConferencePlanner
                 _.AddOrUpdate(coordinate, c => 1, (c, v) => v + 1);
             }
 
+            public void CountStarts()
+            {
+                Interlocked.Add(ref _starts, 1);
+            }
+
             public void Dispose()
             {
                 Console.WriteLine($"Completed in {Elapsed}");
@@ -288,6 +316,8 @@ namespace HotChocolate.ConferencePlanner
                 Console.WriteLine("-----------------------------------");
 
                 Console.WriteLine($"Fields:{_.Select(t => t.Value).Sum()}");
+                Console.WriteLine($"Starts:{_starts}");
+                BatchExecutionDiagnostics.Starts = _starts;
 
                 Console.WriteLine("-----------------------------------");
                 Console.WriteLine("-----------------------------------");
@@ -303,12 +333,12 @@ namespace HotChocolate.ConferencePlanner
             public BatchScope(RequestScope requestScope)
             {
                 _requestScope = requestScope;
-                Console.WriteLine($"{_requestScope.Elapsed} Begin Dispatching Batch.");
+                // Console.WriteLine($"{_requestScope.Elapsed} Begin Dispatching Batch.");
             }
 
             public void Dispose()
             {
-                Console.WriteLine($"{_requestScope.Elapsed} End Dispatching Batch.");
+                // Console.WriteLine($"{_requestScope.Elapsed} End Dispatching Batch.");
             }
         }
 

@@ -1,6 +1,5 @@
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors;
+
+public interface IDirectiveReference
 {
-    public interface IDirectiveReference
-    {
-    }
 }

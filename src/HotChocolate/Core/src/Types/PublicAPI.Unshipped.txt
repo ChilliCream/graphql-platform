@@ -1,4 +1,0 @@
-HotChocolate.Types.DescriptorAttribute.Order.get -> int
-HotChocolate.Types.DescriptorAttribute.Order.set -> void
-HotChocolate.Types.UseServiceScopeAttribute.UseServiceScopeAttribute(int order = 0) -> void
-*REMOVED*HotChocolate.Types.UseServiceScopeAttribute.UseServiceScopeAttribute() -> void

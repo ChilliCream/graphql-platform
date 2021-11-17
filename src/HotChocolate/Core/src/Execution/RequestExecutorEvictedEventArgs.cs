@@ -1,17 +1,16 @@
 using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public sealed class RequestExecutorEvictedEventArgs : EventArgs
 {
-    public sealed class RequestExecutorEvictedEventArgs : EventArgs
+    public RequestExecutorEvictedEventArgs(string name, IRequestExecutor evictedExecutor)
     {
-        public RequestExecutorEvictedEventArgs(string name, IRequestExecutor evictedExecutor)
-        {
-            Name = name;
-            EvictedExecutor = evictedExecutor;
-        }
-
-        public string Name { get; }
-
-        public IRequestExecutor EvictedExecutor { get; }
+        Name = name;
+        EvictedExecutor = evictedExecutor;
     }
+
+    public string Name { get; }
+
+    public IRequestExecutor EvictedExecutor { get; }
 }

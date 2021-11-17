@@ -99,6 +99,7 @@ HotChocolate.Execution.Instrumentation.DiagnosticEventListener
 HotChocolate.Execution.Instrumentation.DiagnosticEventListener.DiagnosticEventListener() -> void
 HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener
 HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.ExecutionDiagnosticEventListener() -> void
+HotChocolate.Execution.Instrumentation.ExecutionDiagnosticEventListener.SubscriptionEventError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
 HotChocolate.Execution.Instrumentation.IDiagnosticEventListener
 HotChocolate.Execution.Instrumentation.IDiagnosticEvents
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEventListener
@@ -123,6 +124,7 @@ HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.RunTask(HotCho
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.StartProcessing(HotChocolate.Execution.IRequestContext! context) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.StopProcessing(HotChocolate.Execution.IRequestContext! context) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SubscriptionEventError(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, System.Exception! exception) -> void
+HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SubscriptionEventError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SubscriptionEventResult(HotChocolate.Execution.Instrumentation.SubscriptionEventContext context, HotChocolate.Execution.IQueryResult! result) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SubscriptionTransportError(HotChocolate.Execution.Processing.ISubscription! subscription, System.Exception! exception) -> void
 HotChocolate.Execution.Instrumentation.IExecutionDiagnosticEvents.SyntaxError(HotChocolate.Execution.IRequestContext! context, HotChocolate.IError! error) -> void

@@ -1,11 +1,10 @@
 #nullable enable
 
-namespace HotChocolate.Fetching
+namespace HotChocolate.Fetching;
+
+public class RegisterDataLoaderException : GraphQLException
 {
-    public class RegisterDataLoaderException : GraphQLException
+    public RegisterDataLoaderException(string message) : base(message)
     {
-        public RegisterDataLoaderException(string message) : base(message)
-        {
-        }
     }
 }

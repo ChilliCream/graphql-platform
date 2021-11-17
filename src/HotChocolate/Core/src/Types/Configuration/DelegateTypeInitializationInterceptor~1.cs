@@ -6,155 +6,154 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+public class DelegateTypeInitializationInterceptor<T>
+    : ITypeInitializationInterceptor
+    where T : DefinitionBase
 {
-    public class DelegateTypeInitializationInterceptor<T>
-        : ITypeInitializationInterceptor
-        where T : DefinitionBase
+    private readonly Func<ITypeSystemObjectContext, bool> _canHandle;
+    private readonly Action<ITypeDiscoveryContext>? _onBeforeInitialize;
+    private readonly OnInitializeType<T>? _onAfterInitialize;
+    private readonly OnInitializeType<T>? _onBeforeRegisterDependencies;
+    private readonly OnInitializeType<T>? _onAfterRegisterDependencies;
+    private readonly OnCompleteType<T>? _onBeforeCompleteName;
+    private readonly OnCompleteType<T>? _onAfterCompleteName;
+    private readonly OnCompleteType<T>? _onBeforeCompleteType;
+    private readonly OnCompleteType<T>? _onAfterCompleteType;
+
+    public DelegateTypeInitializationInterceptor(
+        Func<ITypeSystemObjectContext, bool>? canHandle = null,
+        Action<ITypeDiscoveryContext>? onBeforeInitialize = null,
+        OnInitializeType<T>? onAfterInitialize = null,
+        OnInitializeType<T>? onBeforeRegisterDependencies = null,
+        OnInitializeType<T>? onAfterRegisterDependencies = null,
+        OnCompleteType<T>? onBeforeCompleteName = null,
+        OnCompleteType<T>? onAfterCompleteName = null,
+        OnCompleteType<T>? onBeforeCompleteType = null,
+        OnCompleteType<T>? onAfterCompleteType = null)
     {
-        private readonly Func<ITypeSystemObjectContext, bool> _canHandle;
-        private readonly Action<ITypeDiscoveryContext>? _onBeforeInitialize;
-        private readonly OnInitializeType<T>? _onAfterInitialize;
-        private readonly OnInitializeType<T>? _onBeforeRegisterDependencies;
-        private readonly OnInitializeType<T>? _onAfterRegisterDependencies;
-        private readonly OnCompleteType<T>? _onBeforeCompleteName;
-        private readonly OnCompleteType<T>? _onAfterCompleteName;
-        private readonly OnCompleteType<T>? _onBeforeCompleteType;
-        private readonly OnCompleteType<T>? _onAfterCompleteType;
+        _canHandle = canHandle ?? (_ => true);
+        _onBeforeInitialize = onBeforeInitialize;
+        _onAfterInitialize = onAfterInitialize;
+        _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
+        _onAfterRegisterDependencies = onAfterRegisterDependencies;
+        _onBeforeCompleteName = onBeforeCompleteName;
+        _onAfterCompleteName = onAfterCompleteName;
+        _onBeforeCompleteType = onBeforeCompleteType;
+        _onAfterCompleteType = onAfterCompleteType;
+    }
 
-        public DelegateTypeInitializationInterceptor(
-            Func<ITypeSystemObjectContext, bool>? canHandle = null,
-            Action<ITypeDiscoveryContext>? onBeforeInitialize = null,
-            OnInitializeType<T>? onAfterInitialize = null,
-            OnInitializeType<T>? onBeforeRegisterDependencies = null,
-            OnInitializeType<T>? onAfterRegisterDependencies = null,
-            OnCompleteType<T>? onBeforeCompleteName = null,
-            OnCompleteType<T>? onAfterCompleteName = null,
-            OnCompleteType<T>? onBeforeCompleteType = null,
-            OnCompleteType<T>? onAfterCompleteType = null)
+    public bool TriggerAggregations => false;
+
+    public bool CanHandle(ITypeSystemObjectContext context) =>
+        _canHandle(context);
+
+    public void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext)
+    {
+        _onBeforeInitialize?.Invoke(discoveryContext);
+    }
+
+    public void OnAfterInitialize(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            _canHandle = canHandle ?? (_ => true);
-            _onBeforeInitialize = onBeforeInitialize;
-            _onAfterInitialize = onAfterInitialize;
-            _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
-            _onAfterRegisterDependencies = onAfterRegisterDependencies;
-            _onBeforeCompleteName = onBeforeCompleteName;
-            _onAfterCompleteName = onAfterCompleteName;
-            _onBeforeCompleteType = onBeforeCompleteType;
-            _onAfterCompleteType = onAfterCompleteType;
+            _onAfterInitialize?.Invoke(discoveryContext, casted, contextData);
         }
+    }
 
-        public bool TriggerAggregations => false;
+    public IEnumerable<ITypeReference> RegisterMoreTypes(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        => Enumerable.Empty<ITypeReference>();
 
-        public bool CanHandle(ITypeSystemObjectContext context) =>
-            _canHandle(context);
-
-        public void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext)
+    public void OnBeforeRegisterDependencies(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            _onBeforeInitialize?.Invoke(discoveryContext);
+            _onBeforeRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
         }
+    }
 
-        public void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public void OnAfterRegisterDependencies(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            if (definition is T casted)
-            {
-                _onAfterInitialize?.Invoke(discoveryContext, casted, contextData);
-            }
+            _onAfterRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
         }
+    }
 
-        public IEnumerable<ITypeReference> RegisterMoreTypes(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-            => Enumerable.Empty<ITypeReference>();
-
-        public void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public void OnBeforeCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            if (definition is T casted)
-            {
-                _onBeforeRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
-            }
+            _onBeforeCompleteName?.Invoke(completionContext, casted, contextData);
         }
+    }
 
-        public void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public void OnAfterCompleteName(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            if (definition is T casted)
-            {
-                _onAfterRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
-            }
+            _onAfterCompleteName?.Invoke(completionContext, casted, contextData);
         }
+    }
 
-        public void OnBeforeCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            if (definition is T casted)
-            {
-                _onBeforeCompleteName?.Invoke(completionContext, casted, contextData);
-            }
+            _onBeforeCompleteType?.Invoke(completionContext, casted, contextData);
         }
+    }
 
-        public void OnAfterCompleteName(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is T casted)
         {
-            if (definition is T casted)
-            {
-                _onAfterCompleteName?.Invoke(completionContext, casted, contextData);
-            }
+            _onAfterCompleteType?.Invoke(completionContext, casted, contextData);
         }
+    }
 
-        public void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            if (definition is T casted)
-            {
-                _onBeforeCompleteType?.Invoke(completionContext, casted, contextData);
-            }
-        }
+    public void OnValidateType(
+        ITypeSystemObjectContext validationContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+    }
 
-        public void OnAfterCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            if (definition is T casted)
-            {
-                _onAfterCompleteType?.Invoke(completionContext, casted, contextData);
-            }
-        }
+    public void OnTypesInitialized(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+    }
 
-        public void OnValidateType(
-            ITypeSystemObjectContext validationContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-        }
+    public void OnTypesCompletedName(
+        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    {
+    }
 
-        public void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        {
-        }
-
-        public void OnTypesCompletedName(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
-        {
-        }
-
-        public void OnTypesCompleted(
-            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
-        {
-        }
+    public void OnTypesCompleted(
+        IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+    {
     }
 }

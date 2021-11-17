@@ -2,37 +2,36 @@ using System;
 
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public abstract class NonNamedType
+    : IOutputType
+    , IInputType
 {
-    public abstract class NonNamedType
-        : IOutputType
-        , IInputType
+    private Type? _innerClrType;
+    private Type? _clrType;
+
+    protected NonNamedType(IType innerType)
     {
-        private Type? _innerClrType;
-        private Type? _clrType;
+        InnerType = innerType ?? throw new ArgumentNullException(nameof(innerType));
+    }
 
-        protected NonNamedType(IType innerType)
+    public abstract TypeKind Kind { get; }
+
+    protected IType InnerType { get; }
+
+    protected Type InnerClrType
+    {
+        get
         {
-            InnerType = innerType ?? throw new ArgumentNullException(nameof(innerType));
+            return _innerClrType ??= InnerType.ToRuntimeType();
         }
-
-        public abstract TypeKind Kind { get; }
-
-        protected IType InnerType { get; }
-
-        protected Type InnerClrType
+    }
+    public Type RuntimeType
+    {
+        get
         {
-            get
-            {
-                return _innerClrType ??= InnerType.ToRuntimeType();
-            }
-        }
-        public Type RuntimeType
-        {
-            get
-            {
-                return _clrType ??= this.ToRuntimeType();
-            }
+            return _clrType ??= this.ToRuntimeType();
         }
     }
 }
