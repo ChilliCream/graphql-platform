@@ -356,5 +356,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ErrorHelper_OperationCanceled_Message", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_ResolverContext_CannotCastParent {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ResolverContext_CannotCastParent", resourceCulture);
+            }
+        }
     }
 }

@@ -31,7 +31,7 @@ partial class Build : NukeBuild
         "HotChocolate.Analyzers.Tests"
     };
 
-    [Partition(3)] readonly Partition TestPartition;
+    [Partition(4)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
