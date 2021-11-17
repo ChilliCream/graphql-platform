@@ -2,31 +2,184 @@
 title: "Get started with Hot Chocolate"
 ---
 
-> We are still working on the documentation for Hot Chocolate so help us by finding typos, missing things or write some additional docs with us.
+import { ApiChoiceTabs } from "../../components/mdx/api-choice-tabs"
+import { InputChoiceTabs } from "../../components/mdx/input-choice-tabs"
 
-In this tutorial, we will walk you through the basics of creating a GraphQL server with Hot Chocolate. If you want to dig deeper into Hot Chocolate, we have our [GraphQL workshop](https://github.com/ChilliCream/graphql-workshop), which touches on topics like schema design, DataLoader, and many more things.
+TODO
 
-In this tutorial, we will teach you how to:
+# Setup
 
-- Set up a GraphQL server.
-- Define a GraphQL schema.
-- Query your GraphQL server.
+TODO
 
-# Step 1: Create a GraphQL server project
+## Using our template
 
-Open your preferred terminal and select a directory where you want to add the code of this tutorial.
+TODO
 
-1. Create an empty ASP.NET Core server project.
+#### 1. Install the templates
+
+The `HotChocolate.Templates` collection can be installed like the following.
+
+```bash
+dotnet new -i HotChocolate.Templates
+```
+
+These templates are kept up to date by us with the latest .NET and Hot Chocolate features. We are for example making use of _Implicit Usings_ added with .NET 6 to provide the most common Hot Chocolate namespaces implicitly.
+
+> Note: Our templates have to be updated manually. To update just re-execute the above command. We recommend doing so after Hot Chocolate releases a new major version.
+
+#### 2. Create a new project using a template
+
+<InputChoiceTabs>
+<InputChoiceTabs.CLI>
+
+```bash
+dotnet new graphql -n Demo
+```
+
+</InputChoiceTabs.CLI>
+<InputChoiceTabs.VisualStudio>
+
+TODO
+
+</InputChoiceTabs.VisualStudio>
+</InputChoiceTabs>
+
+## From scratch
+
+If you do not want to use the template or you have to integrate Hot Chocolate into an existing ASP.NET Core application, you can setup a functioning GraphQL server in a few simple steps. If you have already setup an ASP.NET Core project you can skip step 1.
+
+#### 1. Create a new ASP.NET Core project
+
+<InputChoiceTabs>
+<InputChoiceTabs.CLI>
 
 ```bash
 dotnet new web -n Demo
 ```
 
-2. Add the `HotChocolate.AspNetCore` package.
+This will create a new directory called "Demo" containing your project's files.
+
+</InputChoiceTabs.CLI>
+<InputChoiceTabs.VisualStudio>
+
+<!-- todo: verify template name -->
+
+In Visual Studio you can create a new ASP.NET Core project using the "Web" template.
+
+[Learn how you can create a new project within Visual Studio](https://docs.microsoft.com/visualstudio/ide/create-new-project)
+
+</InputChoiceTabs.VisualStudio>
+</InputChoiceTabs>
+
+After you have successfully created the project you can go ahead and open it in your favorite Code Editor.
+
+#### 2. Add the HotChocolate.AspNetCore package
+
+This package includes everything that's needed to get your GraphQL server up and running.
+
+<InputChoiceTabs>
+<InputChoiceTabs.CLI>
 
 ```bash
-dotnet add ./Demo package HotChocolate.AspNetCore
+dotnet add package HotChocolate.AspNetCore
 ```
+
+</InputChoiceTabs.CLI>
+<InputChoiceTabs.VisualStudio>
+
+You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manager within Visual Studio.
+
+[Learn how you can use the NuGet Package Manager to install a package](https://docs.microsoft.com/nuget/quickstart/install-and-use-a-package-in-visual-studio#nuget-package-manager)
+
+</InputChoiceTabs.VisualStudio>
+</InputChoiceTabs>
+
+#### 3. Adding some object types
+
+TODO
+
+#### 4. Adding a Query type
+
+TODO
+
+#### 5. Adding GraphQL services
+
+We need to add the services required by Hot Chocolate to operate a GraphQL server to our Dependency Injection container.
+
+<ApiChoiceTabs>
+<ApiChoiceTabs.MinimalApis>
+
+TODO
+
+</ApiChoiceTabs.MinimalApis>
+<ApiChoiceTabs.Regular>
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services
+        .AddGraphQLServer()
+        .AddQueryType<Query>();
+}
+```
+
+</ApiChoiceTabs.Regular>
+</ApiChoiceTabs>
+
+The `AddGraphQLServer` returns an `IRequestExecutorBuilder` which is the main way to configure our GraphQL server. In the above example we are specifying which Query type should be exposed by our GraphQL server.
+
+#### 6. Mapping the GraphQL endpoint
+
+Now that we've added the necessary services, we need to expose our GraphQL server at an endpoint. Hot Chocolate comes with an ASP.NET Core middleware that is used to serve up the GraphQL server.
+
+<ApiChoiceTabs>
+<ApiChoiceTabs.MinimalApis>
+
+TODO
+
+</ApiChoiceTabs.MinimalApis>
+<ApiChoiceTabs.Regular>
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    app.UseRouting();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGraphQL();
+    });
+}
+```
+
+</ApiChoiceTabs.Regular>
+</ApiChoiceTabs>
+
+And this is it - you have successfully built your first GraphQL server! 🚀
+
+# Executing a query
+
+TODO
+
+<!--
+todo:
+versions need to be the same
+services refer to the service collection
+ -->
+
+# Additional resources
+
+Now that you've setup a basic GraphQL server using Hot Chocolate, what should be your next steps?
+
+If this is your first time using GraphQL, we recommend [this guide](https://graphql.org/learn/) that walks you through the basic concepts of GraphQL.
+
+If you want to get an overview of Hot Chocolate's features, we recommend reading the _Overview_ pages in each section of the documentation. They can be found in the sidebar to your left.
+
+For a guided tutorial that explains how you can setup your GraphQL server beyond this basic example, checkout [our workshop](https://github.com/ChilliCream/graphql-workshop). Here we will dive deeper into several topics around Hot Chocolate and GraphQL in general.
+
+You can also jump straight into our documentation and learn more about<br/>[Defining a GraphQL schema](/docs/hotchocolate/defining-a-schema).
+
+<!--
 
 # Step 2: Create a GraphQL schema
 
@@ -107,18 +260,6 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-We also offer a template, which includes the configurations we have just made. Install the template like the following:
-
-```bash
-dotnet new -i HotChocolate.Templates.Server
-```
-
-Now we can use the following to bootstrap our future GraphQL servers:
-
-```bash
-dotnet new graphql
-```
-
 # Step 3: Execute a GraphQL query
 
 Now that your server is finished let us try it out by executing a simple GraphQL query.
@@ -160,4 +301,4 @@ Moreover, we explored our GraphQL schema with our GraphQL IDE Banana Cake Pop an
 
 If you want to dive deeper, you can start with our [GraphQL tutorial](https://github.com/ChilliCream/graphql-workshop) to get into several topics around GraphQL and Hot Chocolate.
 
-Further, you can learn more about defining GraphQL schemas in .NET [here](/docs/hotchocolate/defining-a-schema).
+Further, you can learn more about defining GraphQL schemas in .NET [here](/docs/hotchocolate/defining-a-schema). -->
