@@ -273,4 +273,7 @@
   <data name="ErrorHelper_OperationCanceled_Message" xml:space="preserve">
     <value>The GraphQL request execution was canceled.</value>
   </data>
+  <data name="ThrowHelper_ResolverContext_CannotCastParent" xml:space="preserve">
+    <value>The resolver parent type of field `{0}` is `{1}` but the resolver requested the type `{2}`. The resolver was unable to cast the parent type to the requested type.</value>
+  </data>
 </root>

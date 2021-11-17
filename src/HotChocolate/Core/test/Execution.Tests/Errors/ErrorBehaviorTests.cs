@@ -138,6 +138,39 @@ namespace HotChocolate.Execution.Errors
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = false));
         }
 
+        [Fact]
+        public async void Resolver_InvalidParentCast()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.Resolver = _ => new ValueTask<object>(new Baz()))
+                .ExecuteRequestAsync("{ foo { bar } }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async void PureResolver_InvalidParentCast()
+        {
+            Snapshot.FullName();
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d => d
+                    .Field("foo")
+                    .Type<ObjectType<Foo>>()
+                    .Extend()
+                    // in the pure resolver we will return the wrong type
+                    .Definition.PureResolver = _ => new Baz())
+                .ExecuteRequestAsync("{ foo { bar } }")
+                .MatchSnapshotAsync();
+        }
+
+
         private async Task ExpectError(
             string query,
             int expectedErrorCount = 1)
@@ -242,6 +275,11 @@ namespace HotChocolate.Execution.Errors
         }
 
         public class Foo
+        {
+            public string Bar => throw new Exception("baz");
+        }
+
+        public class Baz
         {
             public string Bar => throw new Exception("baz");
         }
