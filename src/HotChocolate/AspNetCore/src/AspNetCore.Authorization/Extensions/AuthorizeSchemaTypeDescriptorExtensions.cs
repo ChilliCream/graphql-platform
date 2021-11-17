@@ -1,56 +1,55 @@
 using System;
 using HotChocolate.AspNetCore.Authorization;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public static class AuthorizeSchemaTypeDescriptorExtensions
 {
-    public static class AuthorizeSchemaTypeDescriptorExtensions
+    public static ISchemaTypeDescriptor Authorize(
+        this ISchemaTypeDescriptor self,
+        params string[] roles)
     {
-        public static ISchemaTypeDescriptor Authorize(
-            this ISchemaTypeDescriptor self,
-            params string[] roles)
+        if (self == null)
         {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
-
-            return self.Directive(new AuthorizeDirective(roles));
+            throw new ArgumentNullException(nameof(self));
         }
 
-        public static ISchemaTypeDescriptor Authorize(
-            this ISchemaTypeDescriptor self)
-        {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
+        return self.Directive(new AuthorizeDirective(roles));
+    }
 
-            return self.Directive(new AuthorizeDirective());
+    public static ISchemaTypeDescriptor Authorize(
+        this ISchemaTypeDescriptor self)
+    {
+        if (self == null)
+        {
+            throw new ArgumentNullException(nameof(self));
         }
 
-        public static ISchemaTypeDescriptor Authorize(
-            this ISchemaTypeDescriptor self,
-            string policy)
-        {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
+        return self.Directive(new AuthorizeDirective());
+    }
 
-            return self.Directive(new AuthorizeDirective(policy));
+    public static ISchemaTypeDescriptor Authorize(
+        this ISchemaTypeDescriptor self,
+        string policy)
+    {
+        if (self == null)
+        {
+            throw new ArgumentNullException(nameof(self));
         }
 
-        public static ISchemaTypeDescriptor Authorize(
-            this ISchemaTypeDescriptor self,
-            string policy,
-            params string[] roles)
-        {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
+        return self.Directive(new AuthorizeDirective(policy));
+    }
 
-            return self.Directive(new AuthorizeDirective(policy, roles));
+    public static ISchemaTypeDescriptor Authorize(
+        this ISchemaTypeDescriptor self,
+        string policy,
+        params string[] roles)
+    {
+        if (self == null)
+        {
+            throw new ArgumentNullException(nameof(self));
         }
+
+        return self.Directive(new AuthorizeDirective(policy, roles));
     }
 }

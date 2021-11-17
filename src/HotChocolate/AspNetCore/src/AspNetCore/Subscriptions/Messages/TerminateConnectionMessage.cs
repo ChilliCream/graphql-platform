@@ -1,14 +1,13 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
-{
-    public sealed class TerminateConnectionMessage
-        : OperationMessage
-    {
-        public TerminateConnectionMessage()
-            : base(MessageTypes.Connection.Terminate)
-        {
-        }
+namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
-        public static TerminateConnectionMessage Default { get; } =
-            new TerminateConnectionMessage();
+public sealed class TerminateConnectionMessage
+    : OperationMessage
+{
+    public TerminateConnectionMessage()
+        : base(MessageTypes.Connection.Terminate)
+    {
     }
+
+    public static TerminateConnectionMessage Default { get; } =
+        new TerminateConnectionMessage();
 }

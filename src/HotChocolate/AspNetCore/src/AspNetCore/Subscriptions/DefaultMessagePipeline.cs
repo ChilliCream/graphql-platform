@@ -10,192 +10,191 @@ using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Language;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+internal sealed class DefaultMessagePipeline : IMessagePipeline
 {
-    internal sealed class DefaultMessagePipeline : IMessagePipeline
+    private readonly IMessageHandler[] _messageHandlers;
+
+    public DefaultMessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
     {
-        private readonly IMessageHandler[] _messageHandlers;
-
-        public DefaultMessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+        if (messageHandlers is null)
         {
-            if (messageHandlers is null)
-            {
-                throw new ArgumentNullException(nameof(messageHandlers));
-            }
-
-            _messageHandlers = messageHandlers.ToArray();
+            throw new ArgumentNullException(nameof(messageHandlers));
         }
 
-        public async Task ProcessAsync(
-            ISocketConnection connection,
-            ReadOnlySequence<byte> slice,
-            CancellationToken cancellationToken)
-        {
-            try
-            {
-                if (TryParseMessage(slice, out OperationMessage? message))
-                {
-                    await HandleMessageAsync(connection, message, cancellationToken);
-                }
-                else
-                {
-                    await connection.SendAsync(
-                        KeepConnectionAliveMessage.Default,
-                        CancellationToken.None);
-                }
-            }
-            catch (WebSocketException)
-            {
-                // we will just stop receiving
-            }
-        }
+        _messageHandlers = messageHandlers.ToArray();
+    }
 
-        private static bool TryParseMessage(
-            ReadOnlySequence<byte> slice,
-            [NotNullWhen(true)] out OperationMessage? message)
+    public async Task ProcessAsync(
+        ISocketConnection connection,
+        ReadOnlySequence<byte> slice,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            ReadOnlySpan<byte> messageData;
-            byte[]? buffer = null;
-
-            if (slice.IsSingleSegment)
+            if (TryParseMessage(slice, out OperationMessage? message))
             {
-                messageData = slice.First.Span;
+                await HandleMessageAsync(connection, message, cancellationToken);
             }
             else
             {
-                buffer = ArrayPool<byte>.Shared.Rent(1024 * 4);
-                var buffered = 0;
-
-                SequencePosition position = slice.Start;
-                while (slice.TryGet(ref position, out ReadOnlyMemory<byte> memory))
-                {
-                    ReadOnlySpan<byte> span = memory.Span;
-                    var bytesRemaining = buffer.Length - buffered;
-
-                    if (span.Length > bytesRemaining)
-                    {
-                        // TODO : we need to ensure that the message size is restricted like on the
-                        // http request.
-                        byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
-                        Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                        ArrayPool<byte>.Shared.Return(buffer);
-                        buffer = next;
-                    }
-
-                    for (var i = 0; i < span.Length; i++)
-                    {
-                        buffer[buffered++] = span[i];
-                    }
-                }
-
-                messageData = buffer;
-                messageData = messageData.Slice(0, buffered);
+                await connection.SendAsync(
+                    KeepConnectionAliveMessage.Default,
+                    CancellationToken.None);
             }
+        }
+        catch (WebSocketException)
+        {
+            // we will just stop receiving
+        }
+    }
 
-            try
-            {
-                if (messageData.Length == 0 ||
-                    (messageData.Length == 1 && messageData[0] == default))
-                {
-                    message = null;
-                    return false;
-                }
+    private static bool TryParseMessage(
+        ReadOnlySequence<byte> slice,
+        [NotNullWhen(true)] out OperationMessage? message)
+    {
+        ReadOnlySpan<byte> messageData;
+        byte[]? buffer = null;
 
-                GraphQLSocketMessage parsedMessage = ParseMessage(messageData);
-                return TryDeserializeMessage(parsedMessage, out message);
-            }
-            catch (SyntaxException)
+        if (slice.IsSingleSegment)
+        {
+            messageData = slice.First.Span;
+        }
+        else
+        {
+            buffer = ArrayPool<byte>.Shared.Rent(1024 * 4);
+            var buffered = 0;
+
+            SequencePosition position = slice.Start;
+            while (slice.TryGet(ref position, out ReadOnlyMemory<byte> memory))
             {
-                message = null;
-                return false;
-            }
-            finally
-            {
-                if (buffer is not null)
+                ReadOnlySpan<byte> span = memory.Span;
+                var bytesRemaining = buffer.Length - buffered;
+
+                if (span.Length > bytesRemaining)
                 {
+                    // TODO : we need to ensure that the message size is restricted like on the
+                    // http request.
+                    byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
+                    Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                     ArrayPool<byte>.Shared.Return(buffer);
+                    buffer = next;
+                }
+
+                for (var i = 0; i < span.Length; i++)
+                {
+                    buffer[buffered++] = span[i];
                 }
             }
+
+            messageData = buffer;
+            messageData = messageData.Slice(0, buffered);
         }
 
-        private static bool TryDeserializeMessage(
-            GraphQLSocketMessage parsedMessage,
-            [NotNullWhen(true)]out OperationMessage? message)
+        try
         {
-            switch (parsedMessage.Type)
-            {
-                case MessageTypes.Connection.Initialize:
-                    message = DeserializeInitConnMessage(parsedMessage);
-                    return true;
-
-                case MessageTypes.Connection.Terminate:
-                    message = TerminateConnectionMessage.Default;
-                    return true;
-
-                case MessageTypes.Subscription.Start:
-                    return TryDeserializeDataStartMessage(parsedMessage, out message);
-
-                case MessageTypes.Subscription.Stop:
-                    message = DeserializeDataStopMessage(parsedMessage);
-                    return true;
-
-                default:
-                    message = null;
-                    return false;
-            }
-        }
-
-        private static InitializeConnectionMessage DeserializeInitConnMessage(
-            GraphQLSocketMessage parsedMessage) =>
-            parsedMessage.Payload.Length > 0 &&
-                ParseJson(parsedMessage.Payload) is IReadOnlyDictionary<string, object?> payload
-                    ? new InitializeConnectionMessage(payload)
-                    : new InitializeConnectionMessage();
-
-        private static bool TryDeserializeDataStartMessage(
-            GraphQLSocketMessage parsedMessage,
-            [NotNullWhen(true)]out OperationMessage? message)
-        {
-            if (parsedMessage.Payload.Length == 0 || parsedMessage.Id is null)
+            if (messageData.Length == 0 ||
+                (messageData.Length == 1 && messageData[0] == default))
             {
                 message = null;
                 return false;
             }
 
-            IReadOnlyList<GraphQLRequest> batch = Parse(parsedMessage.Payload);
-            message = new DataStartMessage(parsedMessage.Id, batch[0]);
-            return true;
+            GraphQLSocketMessage parsedMessage = ParseMessage(messageData);
+            return TryDeserializeMessage(parsedMessage, out message);
         }
-
-        private static DataStopMessage DeserializeDataStopMessage(
-            GraphQLSocketMessage parsedMessage)
+        catch (SyntaxException)
         {
-            if (parsedMessage.Payload.Length > 0 || parsedMessage.Id is null)
-            {
-                throw new InvalidOperationException("Invalid message structure.");
-            }
-
-            return new DataStopMessage(parsedMessage.Id);
+            message = null;
+            return false;
         }
-
-        private async Task HandleMessageAsync(
-            ISocketConnection connection,
-            OperationMessage message,
-            CancellationToken cancellationToken)
+        finally
         {
-            for (int i = 0; i < _messageHandlers.Length; i++)
+            if (buffer is not null)
             {
-                IMessageHandler handler = _messageHandlers[i];
-                if (handler.CanHandle(message))
-                {
-                    await handler.HandleAsync(connection, message, cancellationToken);
-
-                    // the message is handled and we are done.
-                    return;
-                }
+                ArrayPool<byte>.Shared.Return(buffer);
             }
-
-            throw new NotSupportedException("The specified message type is not supported.");
         }
+    }
+
+    private static bool TryDeserializeMessage(
+        GraphQLSocketMessage parsedMessage,
+        [NotNullWhen(true)] out OperationMessage? message)
+    {
+        switch (parsedMessage.Type)
+        {
+            case MessageTypes.Connection.Initialize:
+                message = DeserializeInitConnMessage(parsedMessage);
+                return true;
+
+            case MessageTypes.Connection.Terminate:
+                message = TerminateConnectionMessage.Default;
+                return true;
+
+            case MessageTypes.Subscription.Start:
+                return TryDeserializeDataStartMessage(parsedMessage, out message);
+
+            case MessageTypes.Subscription.Stop:
+                message = DeserializeDataStopMessage(parsedMessage);
+                return true;
+
+            default:
+                message = null;
+                return false;
+        }
+    }
+
+    private static InitializeConnectionMessage DeserializeInitConnMessage(
+        GraphQLSocketMessage parsedMessage) =>
+        parsedMessage.Payload.Length > 0 &&
+            ParseJson(parsedMessage.Payload) is IReadOnlyDictionary<string, object?> payload
+                ? new InitializeConnectionMessage(payload)
+                : new InitializeConnectionMessage();
+
+    private static bool TryDeserializeDataStartMessage(
+        GraphQLSocketMessage parsedMessage,
+        [NotNullWhen(true)] out OperationMessage? message)
+    {
+        if (parsedMessage.Payload.Length == 0 || parsedMessage.Id is null)
+        {
+            message = null;
+            return false;
+        }
+
+        IReadOnlyList<GraphQLRequest> batch = Parse(parsedMessage.Payload);
+        message = new DataStartMessage(parsedMessage.Id, batch[0]);
+        return true;
+    }
+
+    private static DataStopMessage DeserializeDataStopMessage(
+        GraphQLSocketMessage parsedMessage)
+    {
+        if (parsedMessage.Payload.Length > 0 || parsedMessage.Id is null)
+        {
+            throw new InvalidOperationException("Invalid message structure.");
+        }
+
+        return new DataStopMessage(parsedMessage.Id);
+    }
+
+    private async Task HandleMessageAsync(
+        ISocketConnection connection,
+        OperationMessage message,
+        CancellationToken cancellationToken)
+    {
+        for (int i = 0; i < _messageHandlers.Length; i++)
+        {
+            IMessageHandler handler = _messageHandlers[i];
+            if (handler.CanHandle(message))
+            {
+                await handler.HandleAsync(connection, message, cancellationToken);
+
+                // the message is handled and we are done.
+                return;
+            }
+        }
+
+        throw new NotSupportedException("The specified message type is not supported.");
     }
 }
