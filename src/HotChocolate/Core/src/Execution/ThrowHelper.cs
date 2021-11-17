@@ -292,4 +292,20 @@ internal static class ThrowHelper
             .SetMessage("PersistedQueryNotFound")
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
             .Build());
+
+    public static GraphQLException ResolverContext_CannotCastParent(
+        FieldCoordinate field,
+        Path path,
+        Type requestType,
+        Type parentType)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_ResolverContext_CannotCastParent,
+                field,
+                parentType,
+                requestType)
+            .SetPath(path)
+            .SetExtension(nameof(field), field.ToString())
+            .SetCode(ErrorCodes.Execution.CannotCastParent)
+            .Build());
 }
