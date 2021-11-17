@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions
@@ -18,6 +19,14 @@ namespace HotChocolate.Data.Projections.Expressions
             var isAbstractType = field.Type.NamedType().IsAbstractType();
             if (isAbstractType && context.TryGetQueryableScope(out QueryableProjectionScope? scope))
             {
+                IReadOnlyList<IFieldSelection> selections =
+                    context.Context.GetSelections(objectType, selectionSet, true);
+
+                if (selections.Count == 0)
+                {
+                    return Continue;
+                }
+
                 context.PushInstance(
                     Expression.Convert(context.GetInstance(), objectType.RuntimeType));
                 scope.Level.Push(new Queue<MemberAssignment>());
