@@ -9,11 +9,13 @@ TODO
 
 # Setup
 
-TODO
+There are two ways to setup a Hot Chocolate GraphQL server. Either you use our official template or you integrate Hot Chocolate into an existing project manually. While the from scratch approach certainly takes a bit longer, ultimately the setup is really straight forward and fast in both cases.
+
+Keep reading if you want to use our template or jump ahead to the [from scratch section](#from-scratch).
 
 ## Using our template
 
-TODO
+We offer some templates for Hot Chocolate to help you get a GraphQL server up and running in a matter of seconds.
 
 #### 1. Install the templates
 
@@ -25,9 +27,11 @@ dotnet new -i HotChocolate.Templates
 
 These templates are kept up to date by us with the latest .NET and Hot Chocolate features. We are for example making use of _Implicit Usings_ added with .NET 6 to provide the most common Hot Chocolate namespaces implicitly.
 
-> Note: Our templates have to be updated manually. To update just re-execute the above command. We recommend doing so after Hot Chocolate releases a new major version.
+> Note: Our templates have to be updated manually. To update just re-execute the above command. We recommend doing so every time Hot Chocolate releases a new major version.
 
 #### 2. Create a new project using a template
+
+Once you have installed our templates you can use them to bootstrap your next ASP.NET Core project with Hot Chocolate.
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -35,6 +39,8 @@ These templates are kept up to date by us with the latest .NET and Hot Chocolate
 ```bash
 dotnet new graphql -n Demo
 ```
+
+This will create a new directory called "Demo" containing your project's files.
 
 </InputChoiceTabs.CLI>
 <InputChoiceTabs.VisualStudio>
@@ -44,11 +50,19 @@ TODO
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
+After you have successfully created the project you can go ahead and open it in your favorite Code Editor.
+
+And this is it - you have successfully setup a Hot Chocolate GraphQL server! 🚀
+
+[Lets explore how you can execute your first GraphQL query](#executing-a-query)
+
 ## From scratch
 
-If you do not want to use the template or you have to integrate Hot Chocolate into an existing ASP.NET Core application, you can setup a functioning GraphQL server in a few simple steps. If you have already setup an ASP.NET Core project you can skip step 1.
+If you do not want to use the template or you have to integrate Hot Chocolate into an existing ASP.NET Core application, you can setup a functioning GraphQL server in a few simple steps. If you have already created an ASP.NET Core project you can skip step 1.
 
 #### 1. Create a new ASP.NET Core project
+
+We start of by creating a new ASP.NET Core project.
 
 <InputChoiceTabs>
 <InputChoiceTabs.CLI>
@@ -94,17 +108,50 @@ You can add the `HotChocolate.AspNetCore` package using the NuGet Package Manage
 </InputChoiceTabs.VisualStudio>
 </InputChoiceTabs>
 
-#### 3. Adding some object types
+#### 3. Defining the schema
 
-TODO
+Next, we want to create a GraphQL schema. The GraphQL schema defines which data we expose and how consumers can interact with said data.
+
+For starters we can define two object types (models) that we want to expose through our schema.
+
+```csharp
+public class Author
+{
+    public string Name { get; set; }\
+}
+
+public class Book
+{
+    public string Title { get; set; }
+
+    public Author Author { get; set; }
+}
+```
+
+With these two classes we have a nice and simple model that we can use to build our GraphQL schema.
 
 #### 4. Adding a Query type
 
-TODO
+Now that we have defined our models, we need to
+
+```csharp
+public class Query
+{
+    public Book GetBook() =>
+        new Book
+        {
+            Title = "C# in depth.",
+            Author = new Author
+            {
+                Name = "Jon Skeet"
+            }
+        };
+}
+```
 
 #### 5. Adding GraphQL services
 
-We need to add the services required by Hot Chocolate to operate a GraphQL server to our Dependency Injection container.
+Next, we need to add the services required by Hot Chocolate to operate a GraphQL server to our Dependency Injection container.
 
 <ApiChoiceTabs>
 <ApiChoiceTabs.MinimalApis>
@@ -126,7 +173,7 @@ public void ConfigureServices(IServiceCollection services)
 </ApiChoiceTabs.Regular>
 </ApiChoiceTabs>
 
-The `AddGraphQLServer` returns an `IRequestExecutorBuilder` which is the main way to configure our GraphQL server. In the above example we are specifying which Query type should be exposed by our GraphQL server.
+The `AddGraphQLServer` returns an `IRequestExecutorBuilder` which is the main way to configure our GraphQL server. In the above example we are specifying the Query type that should be exposed by our GraphQL server.
 
 #### 6. Mapping the GraphQL endpoint
 
@@ -155,17 +202,34 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 </ApiChoiceTabs.Regular>
 </ApiChoiceTabs>
 
-And this is it - you have successfully built your first GraphQL server! 🚀
+And this is it - you have successfully setup a Hot Chocolate GraphQL server! 🚀
 
 # Executing a query
 
+In order to isue a query against your newly built GraphQL server, we first have to run it.
+
+<InputChoiceTabs>
+<InputChoiceTabs.CLI>
+
+```bash
+dotnet run
+```
+
+</InputChoiceTabs.CLI>
+<InputChoiceTabs.VisualStudio>
+
 TODO
 
-<!--
-todo:
-versions need to be the same
-services refer to the service collection
- -->
+</InputChoiceTabs.VisualStudio>
+</InputChoiceTabs>
+
+If you have setup everything so far correctly you should be able to naviagte to <a href="http://localhost:5000/graphql" target="_blank" rel="noopener noreferrer">http://localhost:5000/graphql</a> and be greeted by our GraphQL IDE [Banana Cake Pop](/docs/bananacakepop)
+
+![GraphQL IDE](../../images/get-started-bcp.png)
+
+![GraphQL IDE execute Query](../../images/get-started-bcp-query.png)
+
+[Learn more about the features of Banana Cake Pop](/docs/bananacakepop)
 
 # Additional resources
 
@@ -181,94 +245,6 @@ You can also jump straight into our documentation and learn more about<br/>[Defi
 
 <!--
 
-# Step 2: Create a GraphQL schema
-
-Next, we want to create a GraphQL schema. The GraphQL schema defines how we expose data to our consumers. To define the schema, open your favorite C# editor and let us get started.
-
-1. Add a new class `Author`.
-
-```csharp
-namespace Demo
-{
-    public class Author
-    {
-        public string Name { get; set; }
-    }
-}
-```
-
-2. Add a new class `Book`.
-
-```csharp
-namespace Demo
-{
-    public class Book
-    {
-        public string Title { get; set; }
-
-        public Author Author { get; set; }
-    }
-}
-```
-
-With these two classes we have a nice and simple model that we can use to build our GraphQL schema. We now need to define a query root type. The query root type exposes all the possible queries that a user can drill into. A query root type can be defined in the same way we defined our models.
-
-3. Add a new class `Query`.
-
-```csharp
-namespace Demo
-{
-    public class Query
-    {
-        public Book GetBook() =>
-            new Book
-            {
-                Title = "C# in depth.",
-                Author = new Author
-                {
-                    Name = "Jon Skeet"
-                }
-            };
-    }
-}
-```
-
-Now, we have all the parts to create a valid GraphQL schema. Let us now head over to the `Startup.cs` and configure our GraphQL schema.
-
-4. Add the GraphQL schema to the service configuration by adding the following code to the `ConfigureServices` method in the `Startup.cs`.
-
-```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    services
-        .AddGraphQLServer()
-        .AddQueryType<Query>();
-}
-```
-
-5. Lastly, we need something to execute our code; for this, we will head over to the `Configure` method of our `Startup.cs` and add `MapGraphQL` to `UseEndpoints`.
-
-```csharp
-public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-{
-    app
-        .UseRouting()
-        .UseEndpoints(endpoints =>
-        {
-            endpoints.MapGraphQL();
-        });
-}
-```
-
-# Step 3: Execute a GraphQL query
-
-Now that your server is finished let us try it out by executing a simple GraphQL query.
-
-1. Start your GraphQL server.
-
-```bash
-dotnet run --project ./Demo
-```
 
 2. Open your browser and head over to `http://localhost:5000/graphql` to open our built-in GraphQL IDE [Banana Cake Pop](/docs/bananacakepop).
 
