@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Processing.Internal;
-using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Execution.Processing.Tasks;
 
 namespace HotChocolate.Execution.Processing;
 
 internal partial class WorkScheduler : IWorkScheduler
 {
+    private bool _dispatch;
+
     /// <inheritdoc/>
     public bool IsCompleted => _completed;
 
@@ -24,19 +24,11 @@ internal partial class WorkScheduler : IWorkScheduler
         }
     }
 
-    /// <inheritdoc />
-    public bool IsEmpty => _work.IsEmpty && _serial.IsEmpty;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool IsEmpty() => _work.IsEmpty && _serial.IsEmpty;
 
-    private bool HasRunningTasks
-        => _work.HasRunningTasks ||
-           _serial.HasRunningTasks ||
-           !_stateMachine.IsCompleted;
-
-    private bool CanDispatch
-        => _batchDispatcher.HasTasks &&
-           _work.IsEmpty &&
-           _work.HasRunningTasks &&
-           !_stateMachine.IsSerial;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool ShouldStartProcessing() => !_processing && !IsEmpty();
 
     /// <inheritdoc/>
     public void Register(IExecutionTask task)
@@ -46,7 +38,7 @@ internal partial class WorkScheduler : IWorkScheduler
             throw new ArgumentNullException(nameof(task));
         }
 
-        var started = false;
+        var start = false;
 
         // first we initialize the task execution state.
         // This can be done without acquiring a lock since we only
@@ -60,7 +52,7 @@ internal partial class WorkScheduler : IWorkScheduler
             {
                 WorkQueue work = task.IsSerial ? _serial : _work;
                 work.Push(task);
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
             else
             {
@@ -68,11 +60,9 @@ internal partial class WorkScheduler : IWorkScheduler
             }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
     }
 
@@ -90,7 +80,7 @@ internal partial class WorkScheduler : IWorkScheduler
             return;
         }
 
-        var started = false;
+        var start = false;
 
         // first we initialize the task execution state.
         // This can be done without acquiring a lock since we only
@@ -104,8 +94,6 @@ internal partial class WorkScheduler : IWorkScheduler
 
         lock (_sync)
         {
-            var start = false;
-
             for (var i = 0; i < tasks.Count; i++)
             {
                 IExecutionTask task = tasks[i];
@@ -124,15 +112,13 @@ internal partial class WorkScheduler : IWorkScheduler
 
             if (start)
             {
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
     }
 
@@ -144,7 +130,7 @@ internal partial class WorkScheduler : IWorkScheduler
             throw new ArgumentNullException(nameof(task));
         }
 
-        var started = false;
+        var start = false;
 
         lock (_sync)
         {
@@ -170,7 +156,7 @@ internal partial class WorkScheduler : IWorkScheduler
                 work.Complete();
             }
 
-            // if there is now more work and the state machine is not completed yet we will
+            // if there is no more work and the state machine is not completed we will
             // close open steps and reevaluate. This can happen if optional resolver tasks
             // are not enqueued.
             while (NeedsStateMachineCompletion())
@@ -185,23 +171,24 @@ internal partial class WorkScheduler : IWorkScheduler
             // that the task processing is running.
             if (registered != _serial.Count + _work.Count)
             {
-                started = TryStartProcessingUnsafe();
+                start = ShouldStartProcessing();
             }
 
-            TryCompleteProcessingUnsafe();
+            if (TryCompleteProcessingUnsafe())
+            {
+                EnsureContextIsClean();
+                start = true;
+            }
         }
 
-        if (started)
+        if (start)
         {
-            // we invoke the scale diagnostic event after leaving the lock to not block
-            // if a an event listener is badly implemented.
-            _diagnosticEvents.StartProcessing(_requestContext);
+            TryContinue();
         }
 
         bool NeedsStateMachineCompletion()
             => !_stateMachine.IsCompleted &&
-               _work.IsEmpty &&
-               _serial.IsEmpty &&
+               IsEmpty() &&
                !_work.HasRunningTasks &&
                !_serial.HasRunningTasks;
     }
@@ -235,77 +222,60 @@ internal partial class WorkScheduler : IWorkScheduler
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryStartProcessingUnsafe(bool force = false)
+    private void TryContinue() => _pause.TryContinue();
+
+    private async ValueTask<bool> TryStopProcessingAsync()
     {
-        if (!_processing && (force || !_work.IsEmpty || !_serial.IsEmpty))
+        var processingFinished = TryStopProcessing();
+
+        if (!_processing)
         {
-            _processing = true;
-            TryContinueUnsafe();
-            return true;
+            _diagnosticEvents.StopProcessing(_requestContext);
+
+            if (_pause.IsPaused)
+            {
+                await _pause;
+            }
         }
 
-        return false;
+        return processingFinished;
     }
 
-    private void TryContinueUnsafe()
+    private bool TryStopProcessing()
     {
-        if (_pause is not null)
-        {
-            _pause.TryContinue();
-            _pausePool.Enqueue(_pause);
-            _pause = null;
-        }
-    }
-
-    private ValueTask<bool> TryStopProcessing()
-    {
-        // if the execution is already completed or if the completion task is
-        // null we stop processing
-        if (_completed)
-        {
-            return new(true);
-        }
-
-        // if there is still work we keep on processing. We check this here to
-        // try to avoid the lock.
+        // if there is still work we keep on processing.
+        // We check this here to try to avoid the lock.
         if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
         {
-            return new(false);
+            return false;
         }
 
         lock (_sync)
         {
             if (!_work.IsEmpty && !_requestAborted.IsCancellationRequested)
             {
-                return new(false);
+                return false;
             }
 
-            if (CanDispatch && !_requestAborted.IsCancellationRequested)
+            if (_dispatch && _work.IsEmpty)
             {
-                _batchDispatcher.BeginDispatch(_requestAborted);
-                _diagnosticEvents.DispatchBatch(_requestContext);
-                return new(false);
+                using (_diagnosticEvents.DispatchBatch(_requestContext))
+                {
+                    _batchDispatcher.BeginDispatch(_requestAborted);
+                    _dispatch = false;
+                    return false;
+                }
             }
 
             _processing = false;
-            _diagnosticEvents.StopProcessing(_requestContext);
 
-            return TryCompleteProcessingUnsafe()
-                ? new(true)
-                : CreatePauseUnsafe();
-        }
+            if (TryCompleteProcessingUnsafe())
+            {
+                EnsureContextIsClean();
+                return true;
+            }
 
-        ValueTask<bool> CreatePauseUnsafe()
-        {
-            Debug.Assert(_pause is null, "Since we have only one main worker there should only be one pause obj.");
-            _pause = _pausePool.Dequeue();
             _pause.Reset();
-            return InvokePause(_pause);
-        }
-
-        async ValueTask<bool> InvokePause(Pause pause)
-        {
-            await pause;
             return false;
         }
     }
@@ -314,50 +284,46 @@ internal partial class WorkScheduler : IWorkScheduler
     {
         lock (_sync)
         {
-            if (!_processing && CanDispatch)
+            _dispatch = true;
+            if (!_processing)
             {
-                TryStartProcessingUnsafe(force: true);
+                TryContinue();
             }
         }
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool TryCompleteProcessingUnsafe()
     {
-        if (HasCompleted())
+        // if there are still running tasks we cannot complete the execution.
+        if (HasRunningTasks())
         {
-            _completed = true;
-            TryContinueUnsafe();
-            return true;
+            return false;
         }
 
-        if (IsCanceled())
+        if (HasCompleted() || _requestAborted.IsCancellationRequested)
         {
             _completed = true;
-            TryContinueUnsafe();
-
-            // if there are still tasks enqueues when we cancel the execution
-            // we will try to reclaim the resolver tasks by properly cancelling
-            // them.
-            CancelTasks(_work);
-            CancelTasks(_serial);
-            CancelSuspendedTasks(_suspended);
-
             return true;
         }
 
         return false;
 
-        bool HasCompleted()
-            => !_processing &&
-                IsEmpty &&
-                !HasRunningTasks;
+        bool HasRunningTasks()
+            => _processing ||
+                _work.HasRunningTasks ||
+                _serial.HasRunningTasks;
 
-        bool IsCanceled()
-            => !_processing &&
-                !_work.HasRunningTasks &&
-                !_serial.HasRunningTasks &&
-               _requestAborted.IsCancellationRequested;
+        bool HasCompleted() => IsEmpty() && _stateMachine.IsCompleted;
+    }
+
+    private void EnsureContextIsClean()
+    {
+        // if there are still tasks enqueued when we cancel the execution
+        // we will try to reclaim the resolver tasks by properly cancelling
+        // them.
+        CancelTasks(_work);
+        CancelTasks(_serial);
+        CancelSuspendedTasks(_suspended);
 
         void CancelTasks(WorkQueue queue)
         {

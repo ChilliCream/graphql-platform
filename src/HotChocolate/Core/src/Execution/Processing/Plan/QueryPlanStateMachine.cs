@@ -34,7 +34,7 @@ internal sealed class QueryPlanStateMachine
     /// <summary>
     /// Defines if the main processor execution strategy is serial.
     /// </summary>
-    public bool IsSerial => Strategy == ExecutionStrategy.Serial;
+    public bool IsSerial => Strategy is ExecutionStrategy.Serial;
 
     /// <summary>
     /// Initializes the state machine.

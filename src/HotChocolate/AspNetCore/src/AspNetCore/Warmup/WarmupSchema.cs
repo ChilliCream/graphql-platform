@@ -1,12 +1,11 @@
-namespace HotChocolate.AspNetCore.Warmup
-{
-    internal class WarmupSchema
-    {
-        public WarmupSchema(NameString schemaName)
-        {
-            SchemaName = schemaName;
-        }
+namespace HotChocolate.AspNetCore.Warmup;
 
-        public NameString SchemaName { get; }
+internal class WarmupSchema
+{
+    public WarmupSchema(NameString schemaName)
+    {
+        SchemaName = schemaName;
     }
+
+    public NameString SchemaName { get; }
 }

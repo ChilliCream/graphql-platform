@@ -135,25 +135,25 @@ public static class ObjectFieldDescriptorExtensions
 
         return descriptor.Use(next => async context =>
         {
-                // first we preserve the original services so that we can restore them once
-                // we have executed the inner pipeline.
-                IServiceProvider services = context.Services;
+            // first we preserve the original services so that we can restore them once
+            // we have executed the inner pipeline.
+            IServiceProvider services = context.Services;
 
-                // now we create the service scope that we will wrap around the execution of next.
-                using IServiceScope scope = services.CreateScope();
+            // now we create the service scope that we will wrap around the execution of next.
+            using IServiceScope scope = services.CreateScope();
             context.Services = scope.ServiceProvider;
 
             try
             {
-                    // We execute the inner pipeline by invoking next.
-                    // Next will now use the service provider from the scope that we have created.
-                    await next(context).ConfigureAwait(false);
+                // We execute the inner pipeline by invoking next.
+                // Next will now use the service provider from the scope that we have created.
+                await next(context).ConfigureAwait(false);
             }
             finally
             {
-                    // once we are finished, even in the case of an exception caused by next
-                    // we will restore the services so that the outer pipeline is not effected.
-                    context.Services = services;
+                // once we are finished, even in the case of an exception caused by next
+                // we will restore the services so that the outer pipeline is not effected.
+                context.Services = services;
             }
         });
     }

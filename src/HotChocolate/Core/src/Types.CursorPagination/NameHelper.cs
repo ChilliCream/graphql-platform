@@ -1,11 +1,10 @@
-namespace HotChocolate.Types.Pagination
-{
-    internal static class NameHelper
-    {
-        public static string CreateConnectionName(NameString connectionName)
-            => connectionName + "Connection";
+namespace HotChocolate.Types.Pagination;
 
-        public static string CreateEdgeName(NameString connectionName)
-            => connectionName + "Edge";
-    }
+internal static class NameHelper
+{
+    public static string CreateConnectionName(NameString connectionName)
+        => connectionName + "Connection";
+
+    public static string CreateEdgeName(NameString connectionName)
+        => connectionName + "Edge";
 }

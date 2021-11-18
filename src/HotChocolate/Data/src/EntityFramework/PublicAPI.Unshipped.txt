@@ -1,2 +1,0 @@
-HotChocolate.Data.UseDbContextAttribute.UseDbContextAttribute(System.Type! dbContext, int order = 0) -> void
-*REMOVED*HotChocolate.Data.UseDbContextAttribute.UseDbContextAttribute(System.Type! dbContext) -> void

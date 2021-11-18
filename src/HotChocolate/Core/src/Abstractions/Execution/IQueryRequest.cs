@@ -1,31 +1,30 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IQueryRequest
 {
-    public interface IQueryRequest
-    {
-        IQuery? Query { get; }
+    IQuery? Query { get; }
 
-        string? QueryId { get; }
+    string? QueryId { get; }
 
-        string? QueryHash { get; }
+    string? QueryHash { get; }
 
-        string? OperationName { get; }
+    string? OperationName { get; }
 
-        IReadOnlyDictionary<string, object?>? VariableValues { get; }
+    IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
-        object? InitialValue { get; }
+    object? InitialValue { get; }
 
-        IReadOnlyDictionary<string, object?>? ContextData { get; }
+    IReadOnlyDictionary<string, object?>? ContextData { get; }
 
-        IReadOnlyDictionary<string, object?>? Extensions { get; }
+    IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        IServiceProvider? Services { get; }
+    IServiceProvider? Services { get; }
 
-        OperationType[]? AllowedOperations { get; }
-    }
+    OperationType[]? AllowedOperations { get; }
 }

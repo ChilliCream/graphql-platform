@@ -1,5 +1,5 @@
 ﻿{
-  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"schemaEndpoint\":\"..\"}",
+  "Content": "{\"useBrowserUrlAsEndpoint\":true,\"endpoint\":\"..\"}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [

@@ -7,138 +7,137 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using static HotChocolate.AspNetCore.ErrorHelper;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+internal sealed class SubscriptionSession : ISubscriptionSession
 {
-    internal sealed class SubscriptionSession : ISubscriptionSession
+    internal const byte Delimiter = 0x07;
+    private readonly CancellationTokenSource _session;
+    private readonly ISocketSessionInterceptor _sessionInterceptor;
+    private readonly CancellationToken _sessionToken;
+    private readonly ISocketConnection _connection;
+    private readonly IResponseStream _responseStream;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private bool _disposed;
+
+    /// <inheritdoc />
+    public event EventHandler? Completed;
+
+    public SubscriptionSession(
+        CancellationTokenSource session,
+        ISocketSessionInterceptor sessionInterceptor,
+        ISocketConnection connection,
+        IResponseStream responseStream,
+        ISubscription subscription,
+        IExecutionDiagnosticEvents diagnosticEvents,
+        string clientSubscriptionId)
     {
-        internal const byte Delimiter = 0x07;
-        private readonly CancellationTokenSource _session;
-        private readonly ISocketSessionInterceptor _sessionInterceptor;
-        private readonly CancellationToken _sessionToken;
-        private readonly ISocketConnection _connection;
-        private readonly IResponseStream _responseStream;
-        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
-        private bool _disposed;
+        _session = session ??
+            throw new ArgumentNullException(nameof(session));
+        _sessionInterceptor = sessionInterceptor ??
+            throw new ArgumentNullException(nameof(sessionInterceptor));
+        _connection = connection ??
+            throw new ArgumentNullException(nameof(connection));
+        _responseStream = responseStream ??
+            throw new ArgumentNullException(nameof(responseStream));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
+        Subscription = subscription ??
+            throw new ArgumentNullException(nameof(subscription));
+        Id = clientSubscriptionId ??
+            throw new ArgumentNullException(nameof(clientSubscriptionId));
 
-        /// <inheritdoc />
-        public event EventHandler? Completed;
+        _sessionToken = _session.Token;
 
-        public SubscriptionSession(
-            CancellationTokenSource session,
-            ISocketSessionInterceptor sessionInterceptor,
-            ISocketConnection connection,
-            IResponseStream responseStream,
-            ISubscription subscription,
-            IExecutionDiagnosticEvents diagnosticEvents,
-            string clientSubscriptionId)
+        Task.Factory.StartNew(
+            SendResultsAsync,
+            _sessionToken,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
+    }
+
+    /// <inheritdoc />
+    public string Id { get; }
+
+    /// <inheritdoc />
+    public ISubscription Subscription { get; }
+
+    private async Task SendResultsAsync()
+    {
+        await using IResponseStream responseStream = _responseStream;
+        CancellationToken cancellationToken = _sessionToken;
+
+        try
         {
-            _session = session ??
-                throw new ArgumentNullException(nameof(session));
-            _sessionInterceptor = sessionInterceptor ??
-                throw new ArgumentNullException(nameof(sessionInterceptor));
-            _connection = connection ??
-                throw new ArgumentNullException(nameof(connection));
-            _responseStream = responseStream ??
-                throw new ArgumentNullException(nameof(responseStream));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            Subscription = subscription ??
-                throw new ArgumentNullException(nameof(subscription));
-            Id = clientSubscriptionId ??
-                throw new ArgumentNullException(nameof(clientSubscriptionId));
-
-            _sessionToken = _session.Token;
-
-            Task.Factory.StartNew(
-                SendResultsAsync,
-                _sessionToken,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
-        }
-
-        /// <inheritdoc />
-        public string Id { get; }
-
-        /// <inheritdoc />
-        public ISubscription Subscription { get; }
-
-        private async Task SendResultsAsync()
-        {
-            await using IResponseStream responseStream = _responseStream;
-            CancellationToken cancellationToken = _sessionToken;
-
-            try
+            await foreach (IQueryResult result in
+                responseStream.ReadResultsAsync().WithCancellation(cancellationToken))
             {
-                await foreach (IQueryResult result in
-                    responseStream.ReadResultsAsync().WithCancellation(cancellationToken))
+                using (result)
                 {
-                    using (result)
+                    if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
                     {
-                        if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
-                        {
-                            await _connection.SendAsync(
-                                new DataResultMessage(Id, result),
-                                cancellationToken);
-                        }
+                        await _connection.SendAsync(
+                            new DataResultMessage(Id, result),
+                            cancellationToken);
                     }
                 }
-
-                if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
-                {
-                    await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
-                }
             }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+
+            if (!cancellationToken.IsCancellationRequested && !_connection.Closed)
             {
-                if (!_connection.Closed)
+                await _connection.SendAsync(new DataCompleteMessage(Id), cancellationToken);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (ObjectDisposedException) { }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            if (!_connection.Closed)
+            {
+                try
                 {
                     try
                     {
-                        try
-                        {
-                            await _connection.SendAsync(
-                                new DataResultMessage(Id, UnknownSubscriptionError(ex)),
-                                cancellationToken);
-                        }
-                        finally
-                        {
-                            await _connection.SendAsync(
-                                new DataCompleteMessage(Id),
-                                cancellationToken);
-                            await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
-                        }
+                        await _connection.SendAsync(
+                            new DataResultMessage(Id, UnknownSubscriptionError(ex)),
+                            cancellationToken);
                     }
-                    catch
+                    finally
                     {
-                        // suppress all errors, so original exception can be rethrown
+                        await _connection.SendAsync(
+                            new DataCompleteMessage(Id),
+                            cancellationToken);
+                        await _sessionInterceptor.OnCloseAsync(_connection, cancellationToken);
                     }
                 }
-
-                _diagnosticEvents.SubscriptionTransportError(Subscription, ex);
-            }
-            finally
-            {
-                // completed should be always invoked to be ensure that disposed subscription is
-                // removed from subscription manager
-                Completed?.Invoke(this, EventArgs.Empty);
-                Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                if (!_session.IsCancellationRequested)
+                catch
                 {
-                    _session.Cancel();
+                    // suppress all errors, so original exception can be rethrown
                 }
-
-                _session.Dispose();
-                _disposed = true;
             }
+
+            _diagnosticEvents.SubscriptionTransportError(Subscription, ex);
+        }
+        finally
+        {
+            // completed should be always invoked to be ensure that disposed subscription is
+            // removed from subscription manager
+            Completed?.Invoke(this, EventArgs.Empty);
+            Dispose();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            if (!_session.IsCancellationRequested)
+            {
+                _session.Cancel();
+            }
+
+            _session.Dispose();
+            _disposed = true;
         }
     }
 }

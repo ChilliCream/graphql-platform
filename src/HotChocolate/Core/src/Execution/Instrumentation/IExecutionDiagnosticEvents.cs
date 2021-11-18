@@ -192,15 +192,26 @@ public interface IExecutionDiagnosticEvents
     void SubscriptionEventResult(SubscriptionEventContext context, IQueryResult result);
 
     /// <summary>
-    /// Called when an error occured while producing the subscription event result.
+    /// Called when an error occurred while producing the subscription event result.
     /// </summary>
     /// <param name="context">
     /// The subscription event context.
     /// </param>
     /// <param name="exception">
-    /// The exception that occured.
+    /// The exception that occurred.
     /// </param>
     void SubscriptionEventError(SubscriptionEventContext context, Exception exception);
+
+    /// <summary>
+    /// Called when an error occurred while producing the subscription event result.
+    /// </summary>
+    /// <param name="subscription">
+    /// The subscription object.
+    /// </param>
+    /// <param name="exception">
+    /// The exception that occurred.
+    /// </param>
+    void SubscriptionEventError(ISubscription subscription, Exception exception);
 
     /// <summary>
     /// Called when an error occurred while producing the subscription event result.

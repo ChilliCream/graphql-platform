@@ -1,16 +1,15 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public interface IHttpRequestInterceptor
 {
-    public interface IHttpRequestInterceptor
-    {
-        ValueTask OnCreateAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IQueryRequestBuilder requestBuilder,
-            CancellationToken cancellationToken);
-    }
+    ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        IQueryRequestBuilder requestBuilder,
+        CancellationToken cancellationToken);
 }

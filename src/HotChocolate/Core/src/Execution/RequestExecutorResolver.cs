@@ -135,32 +135,33 @@ internal sealed class RequestExecutorResolver
 
     private void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
     {
-        Task.Run(async () =>
-        {
-            try
+        Task.Factory.StartNew(
+            async () =>
             {
-                foreach (OnRequestExecutorEvictedAction action in
-                    registeredExecutor.Setup.OnRequestExecutorEvicted)
+                try
                 {
-                    action.Action?.Invoke(registeredExecutor.Executor);
-
-                    if (action.AsyncAction is { } task)
+                    foreach (OnRequestExecutorEvictedAction action in
+                        registeredExecutor.Setup.OnRequestExecutorEvicted)
                     {
-                        await task.Invoke(
-                                registeredExecutor.Executor,
-                                CancellationToken.None)
-                            .ConfigureAwait(false);
+                        action.Action?.Invoke(registeredExecutor.Executor);
+
+                        if (action.AsyncAction is { } task)
+                        {
+                            await task.Invoke(
+                                    registeredExecutor.Executor,
+                                    CancellationToken.None)
+                                .ConfigureAwait(false);
+                        }
                     }
                 }
-            }
-            finally
-            {
+                finally
+                {
                     // we will give the request executor some grace period to finish all request
                     // in the pipeline
                     await Task.Delay(TimeSpan.FromMinutes(5));
-                registeredExecutor.Dispose();
-            }
-        });
+                    registeredExecutor.Dispose();
+                }
+            }, default, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default);
     }
 
     private async Task<IServiceProvider> CreateSchemaServicesAsync(

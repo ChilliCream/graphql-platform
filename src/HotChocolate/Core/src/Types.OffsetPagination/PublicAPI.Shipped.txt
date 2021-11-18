@@ -64,6 +64,7 @@ HotChocolate.Types.UseOffsetPagingAttribute.ProviderName.set -> void
 HotChocolate.Types.UseOffsetPagingAttribute.RequirePagingBoundaries.get -> bool
 HotChocolate.Types.UseOffsetPagingAttribute.RequirePagingBoundaries.set -> void
 HotChocolate.Types.UseOffsetPagingAttribute.Type.get -> System.Type?
+HotChocolate.Types.UseOffsetPagingAttribute.UseOffsetPagingAttribute(System.Type? type = null, int order = 0) -> void
 Microsoft.Extensions.DependencyInjection.OffsetPagingRequestExecutorBuilderExtension
 override HotChocolate.Types.Pagination.CollectionSegmentCountType<T>.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegment!>! descriptor) -> void
 override HotChocolate.Types.Pagination.CollectionSegmentInfoType.Configure(HotChocolate.Types.IObjectTypeDescriptor<HotChocolate.Types.Pagination.CollectionSegmentInfo!>! descriptor) -> void

@@ -1,8 +1,7 @@
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public enum AllowedGetOperations
 {
-    public enum AllowedGetOperations
-    {
-        Query,
-        QueryAndMutation
-    }
+    Query,
+    QueryAndMutation
 }

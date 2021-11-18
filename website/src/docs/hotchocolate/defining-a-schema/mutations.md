@@ -141,6 +141,10 @@ public class Startup
 >
 > [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
+A mutation type is just a regular object type, so everything that applies to an object type also applies to the mutation type (this is true for all root types).
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)
+
 # Transactions
 
 With multiple mutations executed serially in one request it can be useful to wrap these in a transaction that we can control.

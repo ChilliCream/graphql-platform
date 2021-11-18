@@ -38,7 +38,7 @@ namespace HotChocolate.Data.Sorting
 
             if (Member?.DeclaringType is not null)
             {
-                RuntimeType = context.TypeInspector.GetReturnType(Member);
+                RuntimeType = context.TypeInspector.GetReturnType(Member, ignoreAttributes: true);
             }
         }
     }
