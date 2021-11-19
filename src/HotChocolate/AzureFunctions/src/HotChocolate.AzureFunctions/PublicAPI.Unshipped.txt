@@ -1,0 +1,1 @@
+*REMOVED*static Microsoft.Extensions.DependencyInjection.HotChocolateAzureFunctionServiceCollectionExtensions.ModifyFunctionOptions(HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Action<HotChocolate.AspNetCore.GraphQLServerOptions!>! configure) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
