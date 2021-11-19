@@ -90,7 +90,7 @@ public static class HotChocolateAzureFunctionServiceCollectionExtensions
     /// Returns <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
     public static IRequestExecutorBuilder ModifyFunctionOptions(
-        IRequestExecutorBuilder builder,
+        this IRequestExecutorBuilder builder,
         Action<GraphQLServerOptions> configure)
     {
         if (builder is null)
