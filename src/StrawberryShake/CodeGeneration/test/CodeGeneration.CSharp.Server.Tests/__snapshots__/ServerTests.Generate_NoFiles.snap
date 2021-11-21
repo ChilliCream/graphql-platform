@@ -1,0 +1,8 @@
+﻿{
+  "Documents": [],
+  "Errors": [
+    {
+      "Message": "There must be at least one graphql document specified."
+    }
+  ]
+}

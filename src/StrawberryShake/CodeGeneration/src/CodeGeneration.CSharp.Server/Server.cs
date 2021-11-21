@@ -133,7 +133,7 @@ public sealed class Server
             {
                 settings.TransportProfiles.Clear();
 
-                foreach (var profile in profiles)
+                foreach (StrawberryShakeSettingsTransportProfile profile in profiles)
                 {
                     settings.TransportProfiles.Add(
                         new TransportProfile(
@@ -171,10 +171,6 @@ public sealed class Server
             // context.Log.Error(ex);
             // context.ReportError(ex);
             return GeneratorResponse.Error(ex.Message);
-        }
-        finally
-        {
-            // context.Log.EndGenerateCode();
         }
     }
 
