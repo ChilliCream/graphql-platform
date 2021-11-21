@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+
+    <AssemblyName>BerryCodeGen</AssemblyName>
+    <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DotNet.Glob" Version="3.1.2" />
+    <PackageReference Include="StreamJsonRpc" Version="2.9.85" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
+    <ProjectReference Include="..\CodeGeneration.CSharp.Server.Messages\StrawberryShake.CodeGeneration.CSharp.Messages.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
+</Project>
