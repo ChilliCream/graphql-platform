@@ -18,6 +18,7 @@ public sealed class Server
     private GraphQLConfig? _config;
     private string[]? _fileNames;
 
+    [JsonRpcMethod("generator/SetConfiguration")]
     public async Task<ServerResponse> SetConfigurationAsync(string fileName)
     {
         if (string.IsNullOrEmpty(fileName))
@@ -45,7 +46,8 @@ public sealed class Server
         }
     }
 
-    public ServerResponse SetDocumentsAsync(string[] fileNames)
+    [JsonRpcMethod("generator/SetDocuments")]
+    public ServerResponse SetDocuments(string[] fileNames)
     {
         if(fileNames is null || fileNames.Length == 0)
         {
@@ -56,6 +58,7 @@ public sealed class Server
         return ServerResponse.Success;
     }
 
+    [JsonRpcMethod("generator/Generate")]
     public Task<GeneratorResponse> GenerateAsync()
     {
         if (_config is null)

@@ -22,13 +22,25 @@ public class ServerTests
     }
 
     [Fact]
-    public async Task SetConfiguration_FileIsEmpt()
+    public async Task SetConfiguration_FileIsEmpty()
     {
         // arrange
         var server = new Server();
 
         // act
         ServerResponse response = await server.SetConfigurationAsync(string.Empty);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    public async Task SetDocuments_FilesIsNull()
+    {
+        // arrange
+        var server = new Server();
+
+        // act
+        ServerResponse response = await server.SetDocumentsAsync(null);
 
         // assert
         response.MatchSnapshot();
