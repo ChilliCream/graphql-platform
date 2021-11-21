@@ -1,89 +1,104 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DotNet.Globbing;
 using HotChocolate;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Nerdbank.Streams;
 using StrawberryShake.Tools.Configuration;
 using StreamJsonRpc;
-using IOPath = System.IO.Path;
+using static System.IO.Path;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
 
-internal sealed class Server
+public sealed class Server
 {
-    private GraphQLConfig _config;
-    private StrawberryShakeSettings _settings;
-    private string[] _fileNames;
+    private GraphQLConfig? _config;
+    private string[]? _fileNames;
 
-    public async Task<ServerResponse> SetConfiguration(string fileName)
+    public async Task<ServerResponse> SetConfigurationAsync(string fileName)
     {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            return ServerResponse.Error("The `fileName` cannot be null or empty.");
+        }
+
         try
         {
-            string json = await File.ReadAllTextAsync(fileName);
-            GraphQLConfig config = GraphQLConfig.FromJson(json);
+            var json = await File.ReadAllTextAsync(fileName);
+            var config = GraphQLConfig.FromJson(json);
 
             if (!NameUtils.IsValidGraphQLName(config.Extensions.StrawberryShake.Name))
             {
-                return new ServerResponse
-                {
-                    Errors = new[]
-                    {
-                            new GeneratorError { Message = "ReportInvalidClientName" }
-                        }
-                };
+                return ServerResponse.Error("The client name is invalid.");
             }
 
             config.Location = fileName;
             _config = config;
-            _settings = config.Extensions.StrawberryShake;
-            return new ServerResponse();
+            return ServerResponse.Success;
         }
-        catch (Exception ex)
+        catch
         {
-            return new ServerResponse
-            {
-                Errors = new[] { new GeneratorError { Message = "Unexpected" } }
-            };
+            return ServerResponse.Error("Unexpected Error.");
         }
     }
 
-    public ServerResponse SetDocuments(string[] fileNames)
+    public ServerResponse SetDocumentsAsync(string[] fileNames)
     {
+        if(fileNames is null || fileNames.Length == 0)
+        {
+            return ServerResponse.Error("There must be at least one graphql document specified.");
+        }
+
         _fileNames = fileNames;
-        return new ServerResponse();
+        return ServerResponse.Success;
     }
 
-
-    public async Task<GeneratorResponse> Generate()
+    public Task<GeneratorResponse> GenerateAsync()
     {
-        IReadOnlyList<string> documents = GetDocuments();
+        if (_config is null)
+        {
+            return Task.FromResult(
+                GeneratorResponse.Error("The configuration must be specified first."));
+        }
+
+        if (_fileNames is null || _fileNames.Length == 0)
+        {
+            return Task.FromResult(
+                GeneratorResponse.Error("There must be at least one graphql document specified."));
+        }
+
+        var context = new GeneratorContext(
+            _config,
+            _config.Extensions.StrawberryShake,
+            _fileNames);
+
+        IReadOnlyList<string> documents = GetDocuments(context);
 
         if (documents.Count == 0)
         {
-            return new GeneratorResponse { Documents = Array.Empty<SourceDocument>() };
+            return Task.FromResult(GeneratorResponse.Success());
         }
 
-        return GenerateClient(documents);
+        return Task.Run(() => GenerateClient(context, documents));
     }
 
-    private IReadOnlyList<string> GetDocuments()
+    private IReadOnlyList<string> GetDocuments(GeneratorContext context)
     {
-        string rootDirectory = IOPath.GetDirectoryName(_config.Location) + IOPath.DirectorySeparatorChar;
+        var rootDirectory = GetDirectoryName(context.Config.Location) + DirectorySeparatorChar;
 
-        var glob = Glob.Parse(_config.Documents);
+        var glob = Glob.Parse(context.Config.Documents);
 
-        return _fileNames
+        return context.FileNames
             .Where(t => t.StartsWith(rootDirectory) && glob.IsMatch(t))
             .ToList();
     }
 
-    private GeneratorResponse GenerateClient(IReadOnlyList<string> documents)
+    private GeneratorResponse GenerateClient(
+        GeneratorContext context,
+        IReadOnlyList<string> documents)
     {
         // context.Log.BeginGenerateCode();
 
@@ -91,16 +106,16 @@ internal sealed class Server
         {
             var settings = new CSharpGeneratorSettings
             {
-                ClientName = _settings.Name,
+                ClientName = context.Settings.Name,
                 Namespace = "Test.NS",
-                RequestStrategy = _settings.RequestStrategy,
-                StrictSchemaValidation = _settings.StrictSchemaValidation,
-                NoStore = _settings.NoStore,
-                InputRecords = _settings.Records.Inputs,
-                RazorComponents = _settings.RazorComponents,
-                EntityRecords = _settings.Records.Entities,
-                SingleCodeFile = _settings.UseSingleFile,
-                HashProvider = _settings.HashAlgorithm.ToLowerInvariant() switch
+                RequestStrategy = context.Settings.RequestStrategy,
+                StrictSchemaValidation = context.Settings.StrictSchemaValidation,
+                NoStore = context.Settings.NoStore,
+                InputRecords = context.Settings.Records.Inputs,
+                RazorComponents = context.Settings.RazorComponents,
+                EntityRecords = context.Settings.Records.Entities,
+                SingleCodeFile = context.Settings.UseSingleFile,
+                HashProvider = context.Settings.HashAlgorithm.ToLowerInvariant() switch
                 {
                     "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
                     "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
@@ -109,7 +124,7 @@ internal sealed class Server
                 }
             };
 
-            if (_settings.TransportProfiles
+            if (context.Settings.TransportProfiles
                 .Where(t => !string.IsNullOrEmpty(t.Name))
                 .ToList() is { Count: > 0 } profiles)
             {
@@ -140,24 +155,19 @@ internal sealed class Server
 
             CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
 
-            return new GeneratorResponse { Documents = result.Documents.ToArray() };
+            return GeneratorResponse.Success(result.Documents.ToArray());
         }
         catch (GraphQLException ex)
         {
             // context.ReportError(ex.Errors);
-            return new GeneratorResponse
-            {
-                Errors = new[] { new GeneratorError { Message = ex.Message } }
-            };
+
+            return GeneratorResponse.Error(ex.Message);
         }
         catch (Exception ex)
         {
             // context.Log.Error(ex);
             // context.ReportError(ex);
-            return new GeneratorResponse
-            {
-                Errors = new[] { new GeneratorError { Message = ex.Message } }
-            };
+            return GeneratorResponse.Error(ex.Message);
         }
         finally
         {
@@ -179,4 +189,9 @@ internal sealed class Server
 
     private static Task LogAsync(string s)
         => Console.Error.WriteLineAsync(s);
+
+    private readonly record struct GeneratorContext(
+        GraphQLConfig Config,
+        StrawberryShakeSettings Settings,
+        string[] FileNames);
 }

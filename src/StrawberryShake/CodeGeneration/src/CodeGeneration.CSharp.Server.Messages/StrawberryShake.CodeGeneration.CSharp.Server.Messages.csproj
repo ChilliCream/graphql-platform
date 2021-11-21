@@ -4,4 +4,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
+  </ItemGroup>
+
 </Project>

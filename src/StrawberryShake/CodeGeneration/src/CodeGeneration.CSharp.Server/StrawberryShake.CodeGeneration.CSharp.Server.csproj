@@ -5,6 +5,10 @@
     <TargetFrameworks>net6.0</TargetFrameworks>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
+    
+    <RuntimeIdentifiers>osx-arm64; osx-x64; win-x86; win-x64; win-arm; win-arm64; linux-x64; linux-musl-x64; linux-arm; linux-arm64</RuntimeIdentifiers>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
 
     <AssemblyName>BerryCodeGen</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
@@ -16,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CodeGeneration.CSharp.Server.Messages\StrawberryShake.CodeGeneration.CSharp.Server.Messages.csproj" />
     <ProjectReference Include="..\CodeGeneration.CSharp\StrawberryShake.CodeGeneration.CSharp.csproj" />
-    <ProjectReference Include="..\CodeGeneration.CSharp.Server.Messages\StrawberryShake.CodeGeneration.CSharp.Messages.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
