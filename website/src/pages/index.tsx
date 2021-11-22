@@ -5,6 +5,7 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
+import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
 import { Link } from "../components/misc/link";
@@ -112,6 +113,11 @@ const IndexPage: FC = () => {
           showStatus={false}
           showThumbs={false}
         >
+          <Slide>
+            <Link to="/blog/2021/11/22/banana-cake-pop-cloud">
+              <BlogPostBananaCakePopCloud />
+            </Link>
+          </Slide>
           <Slide>
             <Link to="https://bananacakepop.com">
               <BananaCakePop shadow />
