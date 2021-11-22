@@ -53,7 +53,7 @@ In the upcoming versions, we’re mainly focusing on reducing paper cuts to impr
 - Team Workspaces
 - Environments
 - Different views for the Schema Reference
-- GraphQL WebSocket Transport
+- Support for the new graphql-ws protocol
 - GraphQL File Upload
 
 # Let us know what you think
