@@ -26,8 +26,10 @@ export const GlobalLayoutStyle = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --brand-color: #3b4f74;//before: f40010;
-    --brand-color-hover: #b7020a;
+    --main-color: #3b4f74;//before: f40010;
+    --main-color-hover: #b7020a;
+    --link-color: #f40010;
+    --link-color-hover: #b7020a;
     --text-color: #667;
     --heading-text-color: #334;
     --footer-text-color: #c6c6ce;
@@ -73,8 +75,12 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   a {
-    color: var(--brand-color);
+    color: var(--link-color);
     text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--link-color-hover);
   }
 
   button {

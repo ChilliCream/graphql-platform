@@ -8,10 +8,10 @@ export const Intro = styled.header`
   align-items: center;
   padding: 25px 0;
   width: 100%;
-  background-color: var(--brand-color);
+  background-color: var(--main-color);
   background: linear-gradient(
     180deg,
-    var(--brand-color) 70%,
+    var(--main-color) 70%,
     #3d5f9f 100%
   ); //before: ff892a
 

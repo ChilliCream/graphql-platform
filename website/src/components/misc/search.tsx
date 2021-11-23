@@ -226,7 +226,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
     line-height: 1.667em;
 
     > a {
-      color: var(--brand-color);
+      color: var(--main-color);
 
       &:hover {
         color: var(--text-color);
@@ -251,7 +251,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   mark {
     display: inline-block;
     padding: 3px 2px;
-    background: var(--brand-color);
+    background: var(--main-color);
     color: var(--text-color-contrast);
   }
 
