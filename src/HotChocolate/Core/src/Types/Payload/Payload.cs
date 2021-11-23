@@ -1,18 +1,17 @@
 #nullable enable
 
-namespace HotChocolate.Types.Payload
-{
-    /// <summary>
-    /// <see cref="Payload"/> is used as a data transform structure for the execution engine and
-    /// the typesystem
-    /// </summary>
-    internal class Payload
-    {
-        public Payload(object? result)
-        {
-            Result = result;
-        }
+namespace HotChocolate.Types.Payload;
 
-        public object? Result { get; }
+/// <summary>
+/// <see cref="Payload"/> is used as a data transform structure for the execution engine and
+/// the typesystem
+/// </summary>
+internal class Payload
+{
+    public Payload(object? result)
+    {
+        Result = result;
     }
+
+    public object? Result { get; }
 }

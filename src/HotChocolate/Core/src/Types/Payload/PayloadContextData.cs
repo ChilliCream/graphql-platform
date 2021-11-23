@@ -1,7 +1,18 @@
-namespace HotChocolate.Types
+#nullable enable
+
+namespace HotChocolate.Types;
+
+internal class PayloadContextData
 {
-    internal static class PayloadContextData
+    public static readonly string Payload = "HotChocolate.Types.PayloadAttribute";
+
+    public PayloadContextData(string? fieldName, string? typeName)
     {
-        public static readonly string Payload = "HotChocolate.Types.PayloadAttribute";
+        FieldName = fieldName;
+        TypeName = typeName;
     }
+
+    public string? FieldName { get; }
+
+    public string? TypeName { get; }
 }

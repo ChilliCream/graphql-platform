@@ -5,6 +5,7 @@
 
 type CreateFooPayload {
   foo: Foo
+  query: Query!
 }
 
 type Foo {

@@ -1,24 +1,25 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Payload
+#nullable enable
+
+namespace HotChocolate.Types.Payload;
+
+internal class PayloadMiddleware
 {
-    internal class PayloadMiddleware
+    public static readonly string MiddlewareIdentifier =
+        "HotChocolate.Types.Payload.PayloadMiddleware";
+
+    private readonly FieldDelegate _next;
+
+    public PayloadMiddleware(FieldDelegate next)
     {
-        public static readonly string MiddlewareIdentifier =
-            "HotChocolate.Types.Payload.PayloadMiddleware";
+        _next = next;
+    }
 
-        private readonly FieldDelegate _next;
-
-        public PayloadMiddleware(FieldDelegate next)
-        {
-            _next = next;
-        }
-
-        public async Task InvokeAsync(IMiddlewareContext context)
-        {
-            await _next(context).ConfigureAwait(false);
-            context.Result = new Payload(context.Result);
-        }
+    public async Task InvokeAsync(IMiddlewareContext context)
+    {
+        await _next(context).ConfigureAwait(false);
+        context.Result = new Payload(context.Result);
     }
 }

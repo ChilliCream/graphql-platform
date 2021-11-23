@@ -46,7 +46,7 @@ namespace HotChocolate.Types
             }
 
             return new StringBuilder()
-                .Append(char.ToUpper(name[0]))
+                .Append(char.ToLower(name[0]))
                 .Append(name.Substring(1))
                 .ToString();
         }

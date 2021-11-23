@@ -67,15 +67,6 @@ public static class ReflectionUtils
     {
         if (memberExpression is null)
         {
-            return p.Member;
-        }
-    }
-
-    public static MemberInfo ExtractMember<T, TPropertyType>(
-        this Expression<Func<T, TPropertyType>> memberExpression)
-    {
-        if (memberExpression is null)
-        {
             throw new ArgumentNullException(nameof(memberExpression));
         }
 

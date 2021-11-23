@@ -1,18 +1,18 @@
 ﻿schema {
   query: Query
-  mutation: Mutation
+  mutation: DefaultMutation
 }
 
-type CreateFooPayload {
-  foo: Foo
+type DefaultMutation {
+  foo: FooPayload
 }
 
 type Foo {
   bar: String
 }
 
-type Mutation {
-  createFoo: CreateFooPayload
+type FooPayload {
+  foo: Foo
 }
 
 type Query {

@@ -1,30 +1,29 @@
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Payload.Tests
-{
-    public class PayloadTests
-    {
-        [Fact]
-        public async Task PayloadMiddleware_Should_TransformPayload()
-        {
-            // Arrange
-            IRequestExecutor executor =
-                await new ServiceCollection()
-                    .AddGraphQL()
-                    .AddQueryType<Query>()
-                    .BuildRequestExecutorAsync();
+namespace HotChocolate.Types.Payload.Tests;
 
-            // Act
-            IExecutionResult res = await executor
-                .ExecuteAsync(@"
-                    {
+public class PayloadTests
+{
+    [Fact]
+    public async Task PayloadMiddleware_Should_TransformPayload()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                    mutation {
                         createFoo {
                             foo {
                                 bar
@@ -33,28 +32,115 @@ namespace HotChocolate.Types.Payload.Tests
                     }
                 ");
 
-            // Assert
-            res.ToJson().MatchSnapshot();
-            SnapshotFullName fullName = Snapshot.FullName();
-            SnapshotFullName snapshotName =
-                new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
-            executor.Schema.Print().MatchSnapshot(snapshotName);
-        }
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName =
+            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
 
-        public class Foo
+    [Fact]
+    public async Task PayloadMiddleware_Should_TransformPayload_When_QueryIsSpecified()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<Mutation>()
+                .AddQueryFieldToMutationPayloads()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                    mutation {
+                        createFoo {
+                            foo {
+                                bar
+                            }
+                            query {
+                                foo {
+                                    bar
+                                }
+                            }
+                        }
+                    }
+                ");
+
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName =
+            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
+
+    [Fact]
+    public async Task PayloadAttribute_Should_AddTypeName_When_CustomTypeNameSpecified()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<CustomTypeName>()
+                .BuildRequestExecutorAsync();
+
+        // Act
+
+        // Assert
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task PayloadAttribute_Should_UserResultTypeForField_When_NoFieldNameSpecified()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<DefaultMutation>()
+                .BuildRequestExecutorAsync();
+
+        // Act
+
+        // Assert
+        executor.Schema.Print().MatchSnapshot();
+    }
+
+    public class Foo
+    {
+        public Foo(string bar)
         {
-            public Foo(string bar)
-            {
-                Bar = bar;
-            }
-
-            public string Bar { get; set; }
+            Bar = bar;
         }
 
-        public class Query
-        {
-            [Payload("foo")]
-            public Foo CreateFoo() => new Foo("Bar");
-        }
+        public string Bar { get; set; }
+    }
+
+    public class Query
+    {
+        public Foo GetFoo() => new Foo("Bar");
+    }
+
+    public class DefaultMutation
+    {
+        [Payload]
+        public Foo GetFoo() => new Foo("Bar");
+    }
+
+    public class CustomTypeName
+    {
+        [Payload(TypeName = "FooBarBazPayload")]
+        public Foo GetFoo() => new Foo("Bar");
+    }
+
+    public class Mutation
+    {
+        [Payload("foo")]
+        public Foo CreateFoo() => new Foo("Bar");
     }
 }
