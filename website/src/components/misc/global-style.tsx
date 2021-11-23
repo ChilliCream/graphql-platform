@@ -26,7 +26,7 @@ export const GlobalLayoutStyle = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --brand-color: #f40010;
+    --brand-color: #3b4f74;//before: f40010;
     --brand-color-hover: #b7020a;
     --text-color: #667;
     --heading-text-color: #334;
@@ -245,7 +245,7 @@ export const GlobalStyle = createGlobalStyle`
     left: 0;
     visibility: hidden;
   }
-  
+
   h1:hover a.anchor,
   h2:hover a.anchor,
   h3:hover a.anchor,
@@ -253,5 +253,5 @@ export const GlobalStyle = createGlobalStyle`
   h5:hover a.anchor,
   h6:hover a.anchor {
     visibility: visible;
-  }  
+  }
 `;

@@ -9,7 +9,11 @@ export const Intro = styled.header`
   padding: 25px 0;
   width: 100%;
   background-color: var(--brand-color);
-  background: linear-gradient(180deg, var(--brand-color) 70%, #ff892a 100%);
+  background: linear-gradient(
+    180deg,
+    var(--brand-color) 70%,
+    #3d5f9f 100%
+  ); //before: ff892a
 
   @media only screen and (min-width: 992px) {
     padding: 60px 0;
