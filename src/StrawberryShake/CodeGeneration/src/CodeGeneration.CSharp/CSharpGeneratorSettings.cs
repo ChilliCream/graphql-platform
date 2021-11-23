@@ -72,5 +72,10 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     TransportType.Http,
                     subscription: TransportType.WebSocket)
             };
+
+        /// <summary>
+        /// The GraphQL File Glob Filter.
+        /// </summary>
+        public string Documents { get; set; } = "**/*.graphql";
     }
 }

@@ -21,8 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="12.0.0-preview.26" PrivateAssets="all" GeneratePathProperty="true" />
+    <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server.Messages\*.cs" />
+    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="12.0.1" PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="StreamJsonRpc" Version="2.9.85" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,10 +34,6 @@
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.props" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.props" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\StrawberryShake.targets" Pack="true" PackagePath="build/StrawberryShake.CodeGeneration.CSharp.Analyzers.targets" Visible="false" />
     <None Include="$(MSBuildThisFileDirectory)..\MSBuild\VSCode.targets" Pack="true" PackagePath="build/VSCode.targets" Visible="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Tooling\src\Configuration\StrawberryShake.Tools.Configuration.csproj" />
   </ItemGroup>
 
   <ItemGroup>

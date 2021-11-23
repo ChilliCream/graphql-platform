@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -37,12 +38,14 @@ namespace StrawberryShake.Tools.Configuration
             {
                 throw new ArgumentException(
                     string.Format(
+                        CultureInfo.InvariantCulture,
                         ToolsConfigResources.GraphQLConfig_FromJson_JsonCannotBeNull,
                         nameof(json)),
                     nameof(json));
             }
 
-            var config = JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
+            GraphQLConfig config =
+                JsonConvert.DeserializeObject<GraphQLConfig>(json, CreateJsonSettings());
 
             if (config.Extensions.StrawberryShake.TransportProfiles.Count == 0)
             {

@@ -1,7 +1,15 @@
 using System;
+using System.Buffers;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.Unicode;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Nerdbank.Streams;
 using Snapshooter.Xunit;
+using StreamJsonRpc;
 using Xunit;
 
 namespace StrawberryShake.CodeGeneration.CSharp;
@@ -9,118 +17,10 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 public class ServerTests
 {
     [Fact]
-    public async Task SetConfiguration_FileIsNull()
-    {
-        // arrange
-        var server = new Server();
-
-        // act
-        ServerResponse response = await server.SetConfigurationAsync(null!);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task SetConfiguration_FileIsEmpty()
-    {
-        // arrange
-        var server = new Server();
-
-        // act
-        ServerResponse response = await server.SetConfigurationAsync(string.Empty);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task SetConfiguration_ValidConfig()
-    {
-        // arrange
-        var server = new Server();
-        var configFile = FilePath(".graphqlrc.json");
-
-        // act
-        ServerResponse response = await server.SetConfigurationAsync(configFile);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public void SetDocuments_FilesIsNull()
-    {
-        // arrange
-        var server = new Server();
-
-        // act
-        ServerResponse response = server.SetDocuments(null!);
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public void SetDocuments_FilesIsEmpty()
-    {
-        // arrange
-        var server = new Server();
-
-        // act
-        ServerResponse response = server.SetDocuments(Array.Empty<string>());
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public void SetDocuments_ValidFiles()
-    {
-        // arrange
-        var server = new Server();
-        var document = FilePath("ChatGetPeople.graphql");
-
-        // act
-        ServerResponse response = server.SetDocuments(new[] { document });
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Generate_NoConfig()
-    {
-        // arrange
-        var server = new Server();
-
-        // act
-        GeneratorResponse response = await server.GenerateAsync();
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
-    public async Task Generate_NoFiles()
-    {
-        // arrange
-        var server = new Server();
-        var configFile = FilePath(".graphqlrc.json");
-        await server.SetConfigurationAsync(configFile);
-
-        // act
-        GeneratorResponse response = await server.GenerateAsync();
-
-        // assert
-        response.MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Generate_StarWars()
     {
         // arrange
-        var server = new Server();
+        var server = new CSharpGeneratorServer();
         var configFile = FilePath(".graphqlrc.json");
         var documents = new[]
         {
@@ -129,11 +29,9 @@ public class ServerTests
             FilePath("Schema.graphql")
         };
 
-
         // act
-        await server.SetConfigurationAsync(configFile);
-        server.SetDocuments(documents);
-        GeneratorResponse response = await server.GenerateAsync();
+        GeneratorRequest request = new(configFile, documents);
+        GeneratorResponse response = await server.GenerateAsync(request);
 
         // assert
         response.MatchSnapshot();
@@ -142,3 +40,39 @@ public class ServerTests
     private static string FilePath(string name)
         => Path.Combine("__resources__", name);
 }
+
+public class ProtocolTests
+{
+    [Fact]
+    public async Task Generate_StarWars()
+    {
+        // arrange
+        // .. start server
+        using var cts = new CancellationTokenSource(400000);
+        (Stream, Stream) streams = FullDuplexStream.CreatePair();
+        Stream serverStream = streams.Item1;
+        Stream clientStream = streams.Item2;
+
+        // .. prepare request
+        var configFile = FilePath(".graphqlrc.json");
+        var documents = new[]
+        {
+            FilePath("ChatGetPeople.graphql"),
+            FilePath("Schema.extensions.graphql"),
+            FilePath("Schema.graphql")
+        };
+        var request = new GeneratorRequest(configFile, documents);
+
+        // act
+        var client = new CSharpGeneratorClient(clientStream, clientStream);
+        GeneratorResponse response = await client.GenerateAsync(request, cts.Token);
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    private static string FilePath(string name)
+        => Path.Combine("__resources__", name);
+}
+
+

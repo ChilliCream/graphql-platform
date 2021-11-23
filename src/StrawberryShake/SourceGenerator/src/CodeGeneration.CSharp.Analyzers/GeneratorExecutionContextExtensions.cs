@@ -84,12 +84,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             this GeneratorExecutionContext context,
             IError error)
         {
-            string title =
+            var title =
                 error.Extensions is not null &&
                 error.Extensions.TryGetValue(ErrorHelper.TitleExtensionKey, out var value) &&
                 value is string s ? s : nameof(SourceGeneratorErrorCodes.Unexpected);
 
-            string code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
+            var code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
 
             if (error is { Locations: { Count: > 0 } locations } &&
                 error.Extensions is not null &&
