@@ -50,10 +50,10 @@ const ContactUs = styled.a`
   font-weight: 600;
   border: 1px solid transparent;
   border-radius: 0.375rem;
-  background-color: var(--main-color);
+  background-color: var(--primary-color);
 
   :hover {
-    background-color: var(--main-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 

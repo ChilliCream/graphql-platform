@@ -26,8 +26,8 @@ export const GlobalLayoutStyle = createGlobalStyle`
 
 export const GlobalStyle = createGlobalStyle`
   :root {
-    --main-color: #3b4f74;//before: f40010;
-    --main-color-hover: #81a1e0;
+    --primary-color: #3b4f74;//before: f40010;
+    --secondary-color: #7989ab;
     --link-color: #b7020a;
     --text-color: #667;
     --heading-text-color: #334;

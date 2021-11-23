@@ -128,7 +128,7 @@ const Container = styled.header`
   z-index: 30;
   width: 100vw;
   height: 60px;
-  background-color: var(--main-color);
+  background-color: var(--primary-color);
   transition: box-shadow 0.2s ease-in-out;
 
   &.shadow {
@@ -217,7 +217,7 @@ const Navigation = styled.nav<{ open: boolean }>`
   flex: 1 1 auto;
   flex-direction: column;
   max-height: 100vh;
-  background-color: var(--main-color);
+  background-color: var(--primary-color);
   opacity: ${({ open }) => (open ? "1" : "0")};
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
@@ -312,7 +312,7 @@ const NavLink = styled(Link)`
 
   &.active,
   &:hover {
-    background-color: var(--main-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 
@@ -354,7 +354,7 @@ const ToolLink = styled(Link)`
   }
 
   :hover > ${IconContainer} > svg {
-    fill: var(--main-color-hover);
+    fill: var(--secondary-color);
   }
 `;
 

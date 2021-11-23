@@ -6,10 +6,10 @@ export const Button = styled.button`
   font-size: var(--font-size);
   color: var(--text-color-contrast);
 
-  background-color: var(--main-color);
+  background-color: var(--primary-color);
   transition: background-color 0.2s ease-in-out;
 
   &:hover {
-    background-color: var(--main-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
