@@ -21,10 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server.Messages\*.cs" />
-    <PackageReference Include="StrawberryShake.CodeGeneration.CSharp" Version="12.0.1" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="DotNet.Glob" Version="3.1.2" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="StreamJsonRpc" Version="2.9.85" />
+    <PackageReference Include="System.Text.Json" Version="4.6.0" />
+    <Compile Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\*.cs" />
+    <!--ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\StrawberryShake.CodeGeneration.CSharp.Client.csproj" /-->
   </ItemGroup>
 
   <ItemGroup>

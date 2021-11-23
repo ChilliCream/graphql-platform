@@ -1,5 +1,3 @@
-using System.Linq;
-using HotChocolate;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,7 +9,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             this GeneratorExecutionContext context,
             DiagnosticDescriptor descriptor,
             string filePath,
-            HotChocolate.Location location,
+            Location location,
             params object[] messageArgs) =>
             context.ReportDiagnostic(Diagnostic.Create(
                 descriptor,
@@ -59,7 +57,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             string title,
             string message,
             string filePath,
-            HotChocolate.Location location) =>
+            Location location) =>
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     new DiagnosticDescriptor(
@@ -79,29 +77,5 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
                             new LinePosition(
                                 location.Line,
                                 location.Column + 1)))));
-
-        public static void ReportError(
-            this GeneratorExecutionContext context,
-            IError error)
-        {
-            var title =
-                error.Extensions is not null &&
-                error.Extensions.TryGetValue(ErrorHelper.TitleExtensionKey, out var value) &&
-                value is string s ? s : nameof(SourceGeneratorErrorCodes.Unexpected);
-
-            var code = error.Code ?? SourceGeneratorErrorCodes.Unexpected;
-
-            if (error is { Locations: { Count: > 0 } locations } &&
-                error.Extensions is not null &&
-                error.Extensions.TryGetValue(ErrorHelper.FileExtensionKey, out value) &&
-                value is string filePath)
-            {
-                context.ReportDiagnostic(code, title, error.Message, filePath, locations.First());
-            }
-            else
-            {
-                context.ReportDiagnostic(code, title, error.Message);
-            }
-        }
     }
 }

@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Location = HotChocolate.Location;
 using static StrawberryShake.CodeGeneration.CSharp.Analyzers.Properties.AnalyzerResources;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers

@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using HotChocolate;
-using HotChocolate.Utilities;
 using static System.IO.Path;
 
 namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
@@ -29,7 +28,16 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         {
             _location = GetPackageLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
-            var client = CodeGenerationClient.Connect(_location);
+
+            var childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+            })!;
+
+            var client = new CSharpGeneratorClient(
+                childProcess.StandardInput.BaseStream,
+                childProcess.StandardOutput.BaseStream);
 
             foreach (var configFileName in GetConfigFiles(context))
             {
@@ -41,25 +49,38 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 
         private static async Task ExecuteAsync(
             GeneratorExecutionContext context,
-            CodeGenerationClient client,
+            CSharpGeneratorClient client,
             string configFileName,
             string[] documentFileNames)
         {
-            await client.SetConfigurationAsync(configFileName);
-            await client.SetDocumentsAsync(documentFileNames);
+            GeneratorRequest request = new(configFileName, documentFileNames);
+            GeneratorResponse response = await client.GenerateAsync(request);
 
-            GeneratorResponse response = await client.GenerateAsync();
-
-            foreach (SourceDocument document in response.Documents.SelectCSharp())
+            foreach (GeneratorDocument document in response.Documents.SelectCSharp())
             {
                 context.AddSource(document.Name, document.SourceText);
             }
 
-            if (response.Errors.Length > 0)
+            if (response.Errors.Count > 0)
             {
-                foreach (ServerError error in response.Errors)
+                foreach (GeneratorError error in response.Errors)
                 {
-                    context.ReportError(new Error(error.Message));
+                    if (error.Location is null || error.FilePath is null)
+                    {
+                        context.ReportDiagnostic(
+                            error.Code,
+                            error.Title,
+                            error.Message);
+                    }
+                    else
+                    {
+                        context.ReportDiagnostic(
+                            error.Code,
+                            error.Title,
+                            error.Message,
+                            error.FilePath,
+                            new Location(error.Location.Line, error.Location.Column));
+                    }
                 }
             }
         }
@@ -68,14 +89,14 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
             GeneratorExecutionContext context) =>
             context.AdditionalFiles
                 .Select(t => t.Path)
-                .Where(t => GetExtension(t).EqualsOrdinal(".graphql"))
+                .Where(t => GetExtension(t).Equals(".graphql", StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
         private static IReadOnlyList<string> GetConfigFiles(
             GeneratorExecutionContext context) =>
             context.AdditionalFiles
                 .Select(t => t.Path)
-                .Where(t => GetFileName(t).EqualsOrdinal(".graphqlrc.json"))
+                .Where(t => GetFileName(t).Equals(".graphqlrc.json", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
         private static string GetPackageLocation(GeneratorExecutionContext context)

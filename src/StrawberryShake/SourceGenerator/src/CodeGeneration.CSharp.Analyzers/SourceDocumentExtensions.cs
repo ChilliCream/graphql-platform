@@ -5,12 +5,12 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
 {
     public static class SourceDocumentExtensions
     {
-        public static IEnumerable<SourceDocument> SelectCSharp(
-            this IEnumerable<SourceDocument> documents) =>
-            documents.Where(t => t.Kind is SourceDocumentKind.CSharp or SourceDocumentKind.Razor);
+        public static IEnumerable<GeneratorDocument> SelectCSharp(
+            this IEnumerable<GeneratorDocument> documents) =>
+            documents.Where(t => t.Kind is GeneratorDocumentKind.CSharp or GeneratorDocumentKind.CSharp);
 
-        public static IEnumerable<SourceDocument> SelectGraphQL(
-            this IEnumerable<SourceDocument> documents) =>
-            documents.Where(t => t.Kind == SourceDocumentKind.GraphQL);
+        public static IEnumerable<GeneratorDocument> SelectGraphQL(
+            this IEnumerable<GeneratorDocument> documents) =>
+            documents.Where(t => t.Kind == GeneratorDocumentKind.GraphQL);
     }
 }

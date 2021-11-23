@@ -6,10 +6,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
 
-    <RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
     <RuntimeIdentifiers>osx-arm64; osx-x64; win-x86; win-x64; win-arm; win-arm64; linux-x64; linux-musl-x64; linux-arm; linux-arm64</RuntimeIdentifiers>
-    <PublishReadyToRun>true</PublishReadyToRun>
-    <PublishSingleFile>true</PublishSingleFile>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
 
     <AssemblyName>BerryCodeGen</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>

@@ -140,15 +140,10 @@ public sealed class CSharpGeneratorServer
 
     public static async Task RunAsync()
     {
-        await LogAsync("StrawberryShake is initializing.");
         await using Stream stream = FullDuplexStream.Splice(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput());
         var jsonRpc = JsonRpc.Attach(stream, new CSharpGeneratorServer());
-        await LogAsync("StrawberryShake is ready for requests.");
         await jsonRpc.Completion;
-        await LogAsync("StrawberryShake terminated.");
-
-        static Task LogAsync(string s) => Console.Error.WriteLineAsync(s);
     }
 }
