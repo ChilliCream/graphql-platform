@@ -1,10 +1,9 @@
-﻿namespace StrawberryShake.CodeGeneration.CSharp.Builders
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
+
+public enum Inheritance
 {
-    public enum Inheritance
-    {
-        None,
-        Sealed,
-        Override,
-        Virtual
-    }
+    None,
+    Sealed,
+    Override,
+    Virtual
 }

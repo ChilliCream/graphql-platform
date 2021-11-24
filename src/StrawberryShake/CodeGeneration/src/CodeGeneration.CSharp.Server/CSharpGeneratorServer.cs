@@ -71,12 +71,12 @@ public sealed class CSharpGeneratorServer
                 Documents = config.Documents,
                 HashProvider = config.Extensions.StrawberryShake.HashAlgorithm.ToLowerInvariant()
                     switch
-                    {
-                        "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
-                        "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
-                        "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
-                        _ => new Sha1DocumentHashProvider(HashFormat.Hex)
-                    }
+                {
+                    "sha1" => new Sha1DocumentHashProvider(HashFormat.Hex),
+                    "sha256" => new Sha256DocumentHashProvider(HashFormat.Hex),
+                    "md5" => new MD5DocumentHashProvider(HashFormat.Hex),
+                    _ => new Sha1DocumentHashProvider(HashFormat.Hex)
+                }
             };
 
             if (config.Extensions.StrawberryShake.TransportProfiles
@@ -99,7 +99,7 @@ public sealed class CSharpGeneratorServer
 
             return generatorSettings;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             throw new GraphQLException(ex.Message);
         }

@@ -1,141 +1,140 @@
 using System;
 using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
-using System.Threading;
-using StrawberryShake.Tools.OAuth;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using StrawberryShake.Tools.Configuration;
+using StrawberryShake.Tools.OAuth;
 
-namespace StrawberryShake.Tools
+namespace StrawberryShake.Tools;
+
+public class UpdateCommandHandler
+    : CommandHandler<UpdateCommandArguments>
 {
-    public class UpdateCommandHandler
-        : CommandHandler<UpdateCommandArguments>
+    public UpdateCommandHandler(
+        IFileSystem fileSystem,
+        IHttpClientFactory httpClientFactory,
+        IConsoleOutput output)
     {
-        public UpdateCommandHandler(
-            IFileSystem fileSystem,
-            IHttpClientFactory httpClientFactory,
-            IConsoleOutput output)
+        FileSystem = fileSystem;
+        HttpClientFactory = httpClientFactory;
+        Output = output;
+    }
+
+    public IFileSystem FileSystem { get; }
+
+    public IHttpClientFactory HttpClientFactory { get; }
+
+    public IConsoleOutput Output { get; }
+
+    public override async Task<int> ExecuteAsync(
+        UpdateCommandArguments arguments,
+        CancellationToken cancellationToken)
+    {
+        using IDisposable command = Output.WriteCommand();
+
+        AccessToken? accessToken =
+            await arguments.AuthArguments
+                .RequestTokenAsync(Output, cancellationToken)
+                .ConfigureAwait(false);
+
+        var context = new UpdateCommandContext(
+            arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()!.Trim()) : null,
+            FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
+            accessToken?.Token,
+            accessToken?.Scheme,
+            CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
+
+        return context.Path is null
+            ? await FindAndUpdateSchemasAsync(context, cancellationToken)
+                .ConfigureAwait(false)
+            : await UpdateSingleSchemaAsync(context, context.Path, cancellationToken)
+                .ConfigureAwait(false);
+    }
+
+    private async Task<int> FindAndUpdateSchemasAsync(
+        UpdateCommandContext context,
+        CancellationToken cancellationToken)
+    {
+        foreach (string path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
         {
-            FileSystem = fileSystem;
-            HttpClientFactory = httpClientFactory;
-            Output = output;
-        }
-
-        public IFileSystem FileSystem { get; }
-
-        public IHttpClientFactory HttpClientFactory { get; }
-
-        public IConsoleOutput Output { get; }
-
-        public override async Task<int> ExecuteAsync(
-            UpdateCommandArguments arguments,
-            CancellationToken cancellationToken)
-        {
-            using IDisposable command = Output.WriteCommand();
-
-            AccessToken? accessToken =
-                await arguments.AuthArguments
-                    .RequestTokenAsync(Output, cancellationToken)
-                    .ConfigureAwait(false);
-
-            var context = new UpdateCommandContext(
-                arguments.Uri.HasValue() ? new Uri(arguments.Uri.Value()!.Trim()) : null,
-                FileSystem.ResolvePath(arguments.Path.Value()?.Trim()),
-                accessToken?.Token,
-                accessToken?.Scheme,
-                CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
-
-            return context.Path is null
-                ? await FindAndUpdateSchemasAsync(context, cancellationToken)
-                    .ConfigureAwait(false)
-                : await UpdateSingleSchemaAsync(context, context.Path, cancellationToken)
-                    .ConfigureAwait(false);
-        }
-
-        private async Task<int> FindAndUpdateSchemasAsync(
-            UpdateCommandContext context,
-            CancellationToken cancellationToken)
-        {
-            foreach (string path in FileSystem.GetClientDirectories(FileSystem.CurrentDirectory))
+            try
             {
-                try
-                {
-                    await UpdateSingleSchemaAsync(
-                        context, path, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-#pragma warning disable CA1031 // Do not catch general exception types
-                catch
-                {
-                    return 1;
-                }
-#pragma warning restore CA1031 // Do not catch general exception types
+                await UpdateSingleSchemaAsync(
+                    context, path, cancellationToken)
+                    .ConfigureAwait(false);
             }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+            {
+                return 1;
+            }
+#pragma warning restore CA1031 // Do not catch general exception types
+        }
+        return 0;
+    }
+
+    private async Task<int> UpdateSingleSchemaAsync(
+        UpdateCommandContext context,
+        string clientDirectory,
+        CancellationToken cancellationToken)
+    {
+        string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
+        var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
+        var json = Encoding.UTF8.GetString(buffer);
+        GraphQLConfig configuration = GraphQLConfig.FromJson(json);
+
+        if (configuration is not null &&
+            await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
+                .ConfigureAwait(false))
+        {
             return 0;
         }
 
-        private async Task<int> UpdateSingleSchemaAsync(
-            UpdateCommandContext context,
-            string clientDirectory,
-            CancellationToken cancellationToken)
-        {
-            string configFilePath = Path.Combine(clientDirectory, WellKnownFiles.Config);
-            var buffer = await FileSystem.ReadAllBytesAsync(configFilePath).ConfigureAwait(false);
-            var json = Encoding.UTF8.GetString(buffer);
-            GraphQLConfig configuration = GraphQLConfig.FromJson(json);
+        return 1;
+    }
 
-            if (configuration is not null &&
-                await UpdateSchemaAsync(context, clientDirectory, configuration, cancellationToken)
-                    .ConfigureAwait(false))
+    private async Task<bool> UpdateSchemaAsync(
+        UpdateCommandContext context,
+        string clientDirectory,
+        GraphQLConfig configuration,
+        CancellationToken cancellationToken)
+    {
+        var hasErrors = false;
+
+        if (configuration.Extensions.StrawberryShake.Url is not null)
+        {
+            var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
+            var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+
+            if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
+                .ConfigureAwait(false))
             {
-                return 0;
+                hasErrors = true;
             }
-
-            return 1;
         }
 
-        private async Task<bool> UpdateSchemaAsync(
-            UpdateCommandContext context,
-            string clientDirectory,
-            GraphQLConfig configuration,
-            CancellationToken cancellationToken)
-        {
-            var hasErrors = false;
+        return !hasErrors;
+    }
 
-            if (configuration.Extensions.StrawberryShake.Url is not null)
-            {
-                var uri = new Uri(configuration.Extensions.StrawberryShake.Url);
-                var schemaFilePath = Path.Combine(clientDirectory, configuration.Schema);
+    private async Task<bool> DownloadSchemaAsync(
+        UpdateCommandContext context,
+        Uri serviceUri,
+        string schemaFilePath,
+        CancellationToken cancellationToken)
+    {
+        using IActivity activity = Output.WriteActivity("Download schema");
 
-                if (!await DownloadSchemaAsync(context, uri, schemaFilePath, cancellationToken)
-                    .ConfigureAwait(false))
-                {
-                    hasErrors = true;
-                }
-            }
+        HttpClient client = HttpClientFactory.Create(
+            context.Uri ?? serviceUri,
+            context.Token,
+            context.Scheme,
+            context.CustomHeaders);
 
-            return !hasErrors;
-        }
-
-        private async Task<bool> DownloadSchemaAsync(
-            UpdateCommandContext context,
-            Uri serviceUri,
-            string schemaFilePath,
-            CancellationToken cancellationToken)
-        {
-            using IActivity activity = Output.WriteActivity("Download schema");
-
-            HttpClient client = HttpClientFactory.Create(
-                context.Uri ?? serviceUri,
-                context.Token,
-                context.Scheme,
-                context.CustomHeaders);
-
-            return await IntrospectionHelper.DownloadSchemaAsync(
-                client, FileSystem, activity, schemaFilePath,
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
+        return await IntrospectionHelper.DownloadSchemaAsync(
+            client, FileSystem, activity, schemaFilePath,
+            cancellationToken)
+            .ConfigureAwait(false);
     }
 }

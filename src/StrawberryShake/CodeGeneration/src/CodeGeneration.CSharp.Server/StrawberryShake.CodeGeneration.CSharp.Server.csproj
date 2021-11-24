@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-
-    <RuntimeIdentifiers>osx-arm64; osx-x64; win-x86; win-x64; win-arm; win-arm64; linux-x64; linux-musl-x64; linux-arm; linux-arm64</RuntimeIdentifiers>
-    <PublishReadyToRun>false</PublishReadyToRun>
-    <PublishSingleFile>false</PublishSingleFile>
-
     <AssemblyName>BerryCodeGen</AssemblyName>
     <RootNamespace>StrawberryShake.CodeGeneration.CSharp</RootNamespace>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>  
 
   <ItemGroup>
     <PackageReference Include="DotNet.Glob" Version="3.1.2" />

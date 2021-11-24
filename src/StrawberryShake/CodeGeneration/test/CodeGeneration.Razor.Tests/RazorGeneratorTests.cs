@@ -2,19 +2,19 @@ using StrawberryShake.Razor;
 using Xunit;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
-namespace StrawberryShake.CodeGeneration.CSharp
-{
-    public class RazorGeneratorTests
-    {
-        [Fact]
-        public void Query_And_Mutation()
-        {
-            // force assembly to load!
-            Assert.NotNull(typeof(QueryBase<>));
+namespace StrawberryShake.CodeGeneration.CSharp;
 
-            AssertResult(
-                settings: new() { RazorComponents = true },
-                @"query GetBars($a: String! $b: String) {
+public class RazorGeneratorTests
+{
+    [Fact]
+    public void Query_And_Mutation()
+    {
+        // force assembly to load!
+        Assert.NotNull(typeof(QueryBase<>));
+
+        AssertResult(
+            settings: new() { RazorComponents = true },
+            @"query GetBars($a: String! $b: String) {
                     bars(a: $a b: $b) {
                         id
                         name
@@ -27,7 +27,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                         name
                     }
                 }",
-                @"type Query {
+            @"type Query {
                     bars(a: String!, b: String): [Bar]
                 }
 
@@ -39,7 +39,6 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     id: String!
                     name: String
                 }",
-                "extend schema @key(fields: \"id\")");
-        }
+            "extend schema @key(fields: \"id\")");
     }
 }

@@ -6,62 +6,61 @@ using StrawberryShake.CodeGeneration.Descriptors.Operations;
 using StrawberryShake.CodeGeneration.Descriptors.TypeDescriptors;
 using StrawberryShake.Tools.Configuration;
 
-namespace StrawberryShake.CodeGeneration.Mappers
+namespace StrawberryShake.CodeGeneration.Mappers;
+
+public interface IMapperContext
 {
-    public interface IMapperContext
-    {
-        string ClientName { get; }
+    string ClientName { get; }
 
-        /// <summary>
-        /// Gets the client root namespace.
-        /// This namespace is where we have all the public client APIs.
-        /// </summary>
-        string Namespace { get; }
+    /// <summary>
+    /// Gets the client root namespace.
+    /// This namespace is where we have all the public client APIs.
+    /// </summary>
+    string Namespace { get; }
 
-        /// <summary>
-        /// Gets the client request strategy.
-        /// </summary>
-        RequestStrategy RequestStrategy { get; }
+    /// <summary>
+    /// Gets the client request strategy.
+    /// </summary>
+    RequestStrategy RequestStrategy { get; }
 
-        /// <summary>
-        /// Gets the hash provider that is used to hash queries.
-        /// </summary>
-        IDocumentHashProvider HashProvider { get; }
+    /// <summary>
+    /// Gets the hash provider that is used to hash queries.
+    /// </summary>
+    IDocumentHashProvider HashProvider { get; }
 
-        IReadOnlyList<INamedTypeDescriptor> Types { get; }
+    IReadOnlyList<INamedTypeDescriptor> Types { get; }
 
-        IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
+    IReadOnlyCollection<EntityTypeDescriptor> EntityTypes { get; }
 
-        IReadOnlyCollection<OperationDescriptor> Operations { get; }
+    IReadOnlyCollection<OperationDescriptor> Operations { get; }
 
-        IReadOnlyList<TransportProfile> TransportProfiles { get; }
+    IReadOnlyList<TransportProfile> TransportProfiles { get; }
 
-        ClientDescriptor Client { get; }
+    ClientDescriptor Client { get; }
 
-        StoreAccessorDescriptor StoreAccessor { get; }
+    StoreAccessorDescriptor StoreAccessor { get; }
 
-        EntityIdFactoryDescriptor EntityIdFactory { get; }
+    EntityIdFactoryDescriptor EntityIdFactory { get; }
 
-        void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
+    void Register(IEnumerable<INamedTypeDescriptor> typeDescriptors);
 
-        void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
+    void Register(IEnumerable<EntityTypeDescriptor> entityTypeDescriptor);
 
-        void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
+    void Register(IEnumerable<DataTypeDescriptor> dataTypeDescriptors);
 
-        void Register(NameString operationName, OperationDescriptor operationDescriptor);
+    void Register(NameString operationName, OperationDescriptor operationDescriptor);
 
-        void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
+    void Register(NameString resultBuilderName, ResultBuilderDescriptor operationDescriptor);
 
-        void Register(ClientDescriptor clientDescriptor);
+    void Register(ClientDescriptor clientDescriptor);
 
-        void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
+    void Register(EntityIdFactoryDescriptor entityIdFactoryDescriptor);
 
-        void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
+    void Register(DependencyInjectionDescriptor dependencyInjectionDescriptor);
 
-        void Register(StoreAccessorDescriptor storeAccessorDescriptor);
+    void Register(StoreAccessorDescriptor storeAccessorDescriptor);
 
-        bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
+    bool Register(NameString typeName, TypeKind kind, RuntimeTypeInfo runtimeType);
 
-        RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
-    }
+    RuntimeTypeInfo GetRuntimeType(NameString typeName, TypeKind kind);
 }

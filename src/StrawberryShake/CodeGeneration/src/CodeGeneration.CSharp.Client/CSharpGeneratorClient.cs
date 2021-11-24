@@ -105,7 +105,6 @@ public class CSharpGeneratorClient
 
         const int maxRead = 256;
         var response = new byte[contentLength.Value];
-        var pos = 0;
         var consumed = 0;
 
         do

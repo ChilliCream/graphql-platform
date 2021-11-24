@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("StrawberryShake.Abstractions.Tests")]
+[assembly: InternalsVisibleTo("StrawberryShake.Abstractions.Tests")]
