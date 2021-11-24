@@ -5,121 +5,165 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Input
+namespace HotChocolate.Types.Input;
+
+internal class InputArgumentInterceptor : TypeInterceptor
 {
-    internal class InputArgumentInterceptor : TypeInterceptor
+    public override void OnBeforeRegisterDependencies(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        public override void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        if (definition is not ObjectTypeDefinition def)
         {
-            if (definition is not ObjectTypeDefinition def)
+            return;
+        }
+
+        foreach (ObjectFieldDefinition field in def.Fields)
+        {
+            // get the graphql argument name that was specified on the member
+
+            string? fieldInputName = null;
+            string? fieldInputTypeName = null;
+            if (
+                field.ContextData.TryGetValue(InputContextData.Input, out object? contextObj) &&
+                contextObj is InputContextData context)
             {
-                return;
+                fieldInputName = context.ArgumentName;
+                fieldInputTypeName = context.TypeName;
             }
 
-            foreach (ObjectFieldDefinition field in def.Fields)
+            Dictionary<string, ArgumentReference>? arguments = null;
+            for (var i = field.Arguments.Count - 1; i >= 0; i--)
             {
-                // get the graphql argument name that was specified on the member
+                ArgumentDefinition argument = field.Arguments[i];
 
-                string? fieldInputName =
-                    field.ContextData.TryGetValue(InputContextData.Input, out object strObj)
-                        ? strObj as string
-                        : null;
+                // get the graphql argument name that was specified on the parameter
+                string? argumentInputName = null;
+                string? argumentInputTypeName = null;
 
-                Dictionary<string, List<ArgumentDefinition>>? arguments = null;
-                for (var i = field.Arguments.Count - 1; i >= 0; i--)
+                if (argument.ContextData.TryGetValue(InputContextData.Input, out contextObj) &&
+                    contextObj is InputContextData argumentContext)
                 {
-                    ArgumentDefinition argument = field.Arguments[i];
-
-                    // get the graphql argument name that was specified on the parameter
-                    string? argumentInputName =
-                        argument.ContextData.TryGetValue(InputContextData.Input, out strObj)
-                            ? strObj as string
-                            : null;
-
-                    // if the argument name of the parameter is null, assign the parameter name of
-                    // the field
-                    argumentInputName ??= fieldInputName;
-
-                    if (argumentInputName is not null)
-                    {
-                        arguments ??= new Dictionary<string, List<ArgumentDefinition>>();
-                        if (!arguments.TryGetValue(argumentInputName, out var list))
-                        {
-                            list = new List<ArgumentDefinition>();
-                            arguments[argumentInputName] = list;
-                        }
-
-                        list.Add(argument);
-                        field.Arguments.RemoveAt(i);
-                    }
+                    argumentInputName = argumentContext.ArgumentName;
+                    argumentInputTypeName = argumentContext.TypeName;
                 }
 
-                if (arguments is not { Count: >0 })
+                // if the argument name of the parameter is null, assign the parameter name of
+                // the field
+                argumentInputName ??= fieldInputName;
+
+                if (argumentInputName is not null)
+                {
+                    arguments ??= new Dictionary<string, ArgumentReference>();
+                    if (!arguments.TryGetValue(argumentInputName, out var reference))
+                    {
+                        reference = new ArgumentReference(
+                            fieldInputTypeName,
+                            argumentInputTypeName);
+                        arguments[argumentInputName] = reference;
+                    }
+
+                    if (argumentInputTypeName is not null &&
+                        argumentInputTypeName != reference.TypeNameOnArgument)
+                    {
+                        if (reference.TypeNameOnArgument is not null)
+                        {
+                            throw ThrowHelper.ArgumentTypeNameMissMatch(def,
+                                argumentInputName,
+                                field,
+                                reference.TypeNameOnArgument,
+                                argumentInputTypeName);
+                        }
+
+                        reference.TypeNameOnArgument = argumentInputTypeName;
+                    }
+
+                    reference.ArgumentDefinitions.Add(argument);
+                    field.Arguments.RemoveAt(i);
+                }
+            }
+
+            if (arguments is not { Count: > 0 })
+            {
+                continue;
+            }
+
+            foreach (var argument in arguments)
+            {
+                if (field.Type is null)
                 {
                     continue;
                 }
 
-                foreach (var argument in arguments)
-                {
-                    if (field.Type is null)
+                NameString typeName =
+                    argument.Value.TypeNameOnArgument ??
+                    argument.Value.TypeName ??
+                    field.Name.ToTypeName(argument.Key, "Input");
+
+                DependantFactoryTypeReference typeReference =
+                    new(typeName, field.Type, CreateType, TypeContext.Output);
+
+                field.Arguments.Add(new ArgumentDefinition(argument.Key, "", typeReference));
+
+                TypeSystemObjectBase CreateType(IDescriptorContext _) =>
+                    new InputObjectType(x =>
                     {
-                        continue;
-                    }
-
-                    NameString typeName = field.Name.ToTypeName(argument.Key, "Input");
-
-                    DependantFactoryTypeReference typeReference =
-                        new(typeName, field.Type, CreateType, TypeContext.Output);
-
-                    field.Arguments.Add(new ArgumentDefinition(argument.Key, "", typeReference));
-
-                    TypeSystemObjectBase CreateType(IDescriptorContext _) =>
-                        new InputObjectType(x =>
+                        x.Name(typeName);
+                        foreach (var argumentDefinition in argument.Value.ArgumentDefinitions)
                         {
-                            x.Name(typeName);
-                            foreach (var argumentDefinition in argument.Value)
-                            {
-                                MergeFieldWithArgument(
-                                    x.Field(argumentDefinition.Name),
-                                    argumentDefinition);
-                            }
-                        });
-                }
+                            MergeFieldWithArgument(
+                                x.Field(argumentDefinition.Name),
+                                argumentDefinition);
+                        }
+                    });
             }
         }
+    }
 
-        private static void MergeFieldWithArgument(
-            IInputFieldDescriptor descriptor,
-            ArgumentDefinition argumentDefinition)
+    private static void MergeFieldWithArgument(
+        IInputFieldDescriptor descriptor,
+        ArgumentDefinition argumentDefinition)
+    {
+        InputFieldDefinition definition = descriptor.Extend().Definition;
+
+        definition.Type = argumentDefinition.Type;
+        definition.Description = argumentDefinition.Description;
+        definition.DefaultValue = argumentDefinition.DefaultValue;
+        definition.Ignore = argumentDefinition.Ignore;
+        definition.RuntimeDefaultValue = argumentDefinition.RuntimeDefaultValue;
+
+        definition.ContextData.AddRange(argumentDefinition.ContextData);
+        definition.Formatters.AddRange(argumentDefinition.Formatters);
+
+        if (argumentDefinition.HasConfigurations)
         {
-            InputFieldDefinition definition = descriptor.Extend().Definition;
-
-            definition.Type = argumentDefinition.Type;
-            definition.Description = argumentDefinition.Description;
-            definition.DefaultValue = argumentDefinition.DefaultValue;
-            definition.Ignore = argumentDefinition.Ignore;
-            definition.RuntimeDefaultValue = argumentDefinition.RuntimeDefaultValue;
-
-            definition.ContextData.AddRange(argumentDefinition.ContextData);
-            definition.Formatters.AddRange(argumentDefinition.Formatters);
-
-            if (argumentDefinition.HasConfigurations)
-            {
-                definition.Configurations.AddRange(argumentDefinition.Configurations);
-            }
-
-            if (argumentDefinition.HasDependencies)
-            {
-                definition.Dependencies.AddRange(argumentDefinition.Dependencies);
-            }
-
-            if (argumentDefinition.HasDirectives)
-            {
-                definition.Directives.AddRange(argumentDefinition.Directives);
-            }
+            definition.Configurations.AddRange(argumentDefinition.Configurations);
         }
+
+        if (argumentDefinition.HasDependencies)
+        {
+            definition.Dependencies.AddRange(argumentDefinition.Dependencies);
+        }
+
+        if (argumentDefinition.HasDirectives)
+        {
+            definition.Directives.AddRange(argumentDefinition.Directives);
+        }
+    }
+
+    private class ArgumentReference
+    {
+        public ArgumentReference(string? typeName, string? typeNameOnArgument)
+        {
+            TypeName = typeName;
+            TypeNameOnArgument = typeNameOnArgument;
+        }
+
+        public List<ArgumentDefinition> ArgumentDefinitions { get; } = new();
+
+        public string? TypeName { get; }
+
+        public string? TypeNameOnArgument { get; set; }
     }
 }

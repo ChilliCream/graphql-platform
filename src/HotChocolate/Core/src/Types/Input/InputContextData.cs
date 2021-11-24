@@ -1,7 +1,18 @@
-namespace HotChocolate.Types.Input
+#nullable enable
+
+namespace HotChocolate.Types.Input;
+
+internal class InputContextData
 {
-    internal static class InputContextData
+    public static readonly string Input = "HotChocolate.Types.InputAttribute";
+
+    public InputContextData(string? typeName, string argumentName)
     {
-        public static readonly string Input = "HotChocolate.Types.InputAttribute";
+        TypeName = typeName;
+        ArgumentName = argumentName;
     }
+
+    public string? TypeName { get; }
+
+    public string ArgumentName { get; }
 }

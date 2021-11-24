@@ -1430,5 +1430,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch", resourceCulture);
+            }
+        }
     }
 }
