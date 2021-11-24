@@ -58,7 +58,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ot &&
             ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
@@ -84,8 +84,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         VariableDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType(
-            node.Type.NamedType().Name.Value, out INamedType variableType))
+        if (context.Schema.TryGetType<INamedType>(
+            node.Type.NamedType().Name.Value, out INamedType? variableType))
         {
             context.Types.Push(variableType);
             return base.Enter(node, context);
@@ -129,7 +129,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Directives.TryPeek(out DirectiveType directive))
+        if (context.Directives.TryPeek(out DirectiveType? directive))
         {
             if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
             {
@@ -141,7 +141,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.OutputFields.TryPeek(out IOutputField field))
+        if (context.OutputFields.TryPeek(out IOutputField? field))
         {
             if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
             {
@@ -219,7 +219,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is InputObjectType it &&
             it.Fields.TryGetField(node.Name.Value, out InputField? field))
         {
@@ -284,7 +284,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IValueNode valueNode,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType currentType) &&
+        if (context.Types.TryPeek(out IType? currentType) &&
             currentType is IInputType locationType)
         {
             if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
@@ -313,7 +313,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         error = node.Kind switch
         {
             SyntaxKind.ObjectField =>
-                context.InputFields.TryPeek(out IInputField field)
+                context.InputFields.TryPeek(out IInputField? field)
                     ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
                     : null,
             SyntaxKind.VariableDefinition =>
@@ -352,7 +352,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     {
         if (value is VariableNode v
             && context.Variables.TryGetValue(v.Name.Value, out VariableDefinitionNode? t)
-            && t?.Type is { } typeNode)
+            && t is { Type: { } typeNode })
         {
             return IsTypeCompatible(inputType, typeNode);
         }

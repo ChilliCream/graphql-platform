@@ -101,8 +101,8 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         context.Unused.Add(variableName);
         context.Declared.Add(variableName);
 
-        if (context.Schema.TryGetType(
-            node.Type.NamedType().Name.Value, out INamedType type) &&
+        if (context.Schema.TryGetType<INamedType>(
+            node.Type.NamedType().Name.Value, out INamedType? type) &&
             !type.IsInputType())
         {
             context.Errors.Add(context.VariableNotInputType(node, variableName));
@@ -125,9 +125,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
             context.OutputFields.Push(of);
             context.Types.Push(of.Type);
@@ -173,9 +173,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Directives.TryPeek(out DirectiveType directive))
+        if (context.Directives.TryPeek(out DirectiveType? directive))
         {
-            if (directive.Arguments.TryGetField(node.Name.Value, out Argument argument))
+            if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
             {
                 context.InputFields.Push(argument);
                 context.Types.Push(argument.Type);
@@ -185,9 +185,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.OutputFields.TryPeek(out IOutputField field))
+        if (context.OutputFields.TryPeek(out IOutputField? field))
         {
-            if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
+            if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
             {
                 context.InputFields.Push(argument);
                 context.Types.Push(argument.Type);
@@ -214,9 +214,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is InputObjectType it &&
-            it.Fields.TryGetField(node.Name.Value, out InputField field))
+            it.Fields.TryGetField(node.Name.Value, out InputField? field))
         {
             context.InputFields.Push(field);
             context.Types.Push(field.Type);

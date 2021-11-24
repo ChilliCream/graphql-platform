@@ -75,7 +75,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ct)
         {
             if (ct.Fields.TryGetField(node.Name.Value, out IOutputField? of))
@@ -126,7 +126,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         SelectionSetNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is { Kind: TypeKind.Union } unionType &&
             HasFields(node))
         {
@@ -134,7 +134,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Path.TryPeek(out ISyntaxNode parent))
+        if (context.Path.TryPeek(out ISyntaxNode? parent))
         {
             if (parent.Kind == SyntaxKind.OperationDefinition ||
                 parent.Kind == SyntaxKind.Field)
@@ -150,7 +150,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         SelectionSetNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Path.TryPeek(out ISyntaxNode parent))
+        if (context.Path.TryPeek(out ISyntaxNode? parent))
         {
             if (parent.Kind == SyntaxKind.OperationDefinition ||
                 parent.Kind == SyntaxKind.Field)
