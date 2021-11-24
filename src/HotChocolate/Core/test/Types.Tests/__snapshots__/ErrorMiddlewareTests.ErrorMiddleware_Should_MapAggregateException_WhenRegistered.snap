@@ -11,7 +11,7 @@
           "message": "This is a null ref"
         },
         {
-          "__typename": "ArgumentException",
+          "__typename": "ArgumentError",
           "message": "Value does not fall within the expected range."
         }
       ]

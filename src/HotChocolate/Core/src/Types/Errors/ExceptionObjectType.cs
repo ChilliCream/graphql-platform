@@ -1,22 +1,33 @@
 using System;
-using HotChocolate.Types;
 
-namespace HotChocolate.Types.Errors
+namespace HotChocolate.Types.Errors;
+
+internal class ExceptionObjectType<T> : ObjectType<T> where T : Exception
 {
-    internal class ExceptionObjectType<T> : ObjectType<T> where T : Exception
+    protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
-        protected override void Configure(IObjectTypeDescriptor<T> descriptor)
+        descriptor.Name(GetNameFromException());
+        descriptor.Ignore(x => x.Data);
+        descriptor.Ignore(x => x.Source);
+        descriptor.Ignore(x => x.HelpLink);
+        descriptor.Ignore(x => x.HResult);
+        descriptor.Ignore(x => x.InnerException);
+        descriptor.Ignore(x => x.StackTrace);
+        descriptor.Ignore(x => x.TargetSite);
+        descriptor.Ignore(x => x.GetBaseException());
+        descriptor.Field(x => x.Message).Type<NonNullType<StringType>>();
+        descriptor.Implements<ErrorInterfaceType>();
+    }
+
+    private static string GetNameFromException()
+    {
+        string name = typeof(T).Name;
+        const string exceptionSuffix = nameof(Exception);
+        if (name.EndsWith(exceptionSuffix))
         {
-            descriptor.Ignore(x => x.Data);
-            descriptor.Ignore(x => x.Source);
-            descriptor.Ignore(x => x.HelpLink);
-            descriptor.Ignore(x => x.HResult);
-            descriptor.Ignore(x => x.InnerException);
-            descriptor.Ignore(x => x.StackTrace);
-            descriptor.Ignore(x => x.TargetSite);
-            descriptor.Ignore(x => x.GetBaseException());
-            descriptor.Field(x => x.Message).Type<NonNullType<StringType>>();
-            descriptor.Implements<ErrorInterfaceType>();
+            return $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error";
         }
+
+        return name;
     }
 }

@@ -3,7 +3,7 @@
     "throw": {
       "errors": [
         {
-          "__typename": "InvalidOperationException",
+          "__typename": "InvalidOperationError",
           "message": "Operation is not valid due to the current state of the object."
         }
       ]

@@ -90,9 +90,9 @@ namespace HotChocolate.Types.Errors.Tests
             IRequestExecutor executor =
                 await BuildSchemaAsync(
                     () => throw new AggregateException(
-                              new InvalidOperationException(),
-                              new NullReferenceException(),
-                              new ArgumentException()),
+                        new InvalidOperationException(),
+                        new NullReferenceException(),
+                        new ArgumentException()),
                     field => field.Error<CustomError>()
                         .Error<CustomNullRef>()
                         .Error<ArgumentException>());
@@ -190,6 +190,48 @@ namespace HotChocolate.Types.Errors.Tests
             executor.Schema.Print().MatchSnapshot(snapshotName);
         }
 
+        [Fact]
+        public async Task
+            ErrorMiddleware_Should_MapMultipleFactories_When_NotStatic()
+        {
+            // Arrange
+            IRequestExecutor executor =
+                await BuildSchemaAsync(
+                    () => throw new NullReferenceException(),
+                    field => field.Error<CustomErrorNonStatic>());
+
+            // Act
+            IExecutionResult res = await executor.ExecuteAsync(_query);
+
+            // Assert
+            res.ToJson().MatchSnapshot();
+            SnapshotFullName fullName = Snapshot.FullName();
+            SnapshotFullName snapshotName =
+                new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+            executor.Schema.Print().MatchSnapshot(snapshotName);
+        }
+
+        [Fact]
+        public async Task
+            ErrorMiddleware_Should_MapMultipleFactories_When_InterfaceIsUsed()
+        {
+            // Arrange
+            IRequestExecutor executor =
+                await BuildSchemaAsync(
+                    () => throw new NullReferenceException(),
+                    field => field.Error<CustomErrorPayloadErrorFactory>());
+
+            // Act
+            IExecutionResult res = await executor.ExecuteAsync(_query);
+
+            // Assert
+            res.ToJson().MatchSnapshot();
+            SnapshotFullName fullName = Snapshot.FullName();
+            SnapshotFullName snapshotName =
+                new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+            executor.Schema.Print().MatchSnapshot(snapshotName);
+        }
+
         private ValueTask<IRequestExecutor> BuildSchemaAsync(
             Action throwError,
             Action<IObjectFieldDescriptor> configureField) =>
@@ -258,6 +300,34 @@ namespace HotChocolate.Types.Errors.Tests
             }
 
             public string Message => "Foo";
+        }
+
+        public class CustomErrorNonStatic
+        {
+            public CustomError CreateErrorFrom(InvalidOperationException ex)
+            {
+                return new CustomError(ex);
+            }
+
+            public CustomNullRef CreateErrorFrom(NullReferenceException ex)
+            {
+                return new CustomNullRef(ex);
+            }
+        }
+
+        public class CustomErrorPayloadErrorFactory
+            : IPayloadErrorFactory<CustomError, InvalidOperationException>,
+              IPayloadErrorFactory<CustomNullRef, NullReferenceException>
+        {
+            public CustomError CreateErrorFrom(InvalidOperationException ex)
+            {
+                return new CustomError(ex);
+            }
+
+            public CustomNullRef CreateErrorFrom(NullReferenceException ex)
+            {
+                return new CustomNullRef(ex);
+            }
         }
 
         public class CustomError

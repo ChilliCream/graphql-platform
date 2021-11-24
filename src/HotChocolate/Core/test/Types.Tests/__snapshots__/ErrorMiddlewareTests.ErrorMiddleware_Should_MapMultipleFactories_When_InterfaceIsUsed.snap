@@ -3,8 +3,8 @@
     "throw": {
       "errors": [
         {
-          "__typename": "CustomError",
-          "message": "Customer Exception"
+          "__typename": "CustomNullRef",
+          "message": "This is a null ref"
         }
       ]
     }
