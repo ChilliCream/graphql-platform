@@ -45,7 +45,7 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Completed_Complete()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
+        async IAsyncEnumerable<OperationMessage> Producer(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield break;
@@ -77,7 +77,7 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Data_ParseJson()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
+        async IAsyncEnumerable<OperationMessage> Producer(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var messageData = JsonDocument.Parse(@"{""Foo"": ""Bar""}");
@@ -112,7 +112,7 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Error_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
+        async IAsyncEnumerable<OperationMessage> Producer(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield return ErrorOperationMessage.ConnectionInitializationError;
@@ -145,7 +145,7 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Cancelled_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
+        async IAsyncEnumerable<OperationMessage> Producer(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield return CancelledOperationMessage.Default;
@@ -178,7 +178,7 @@ public class WebSocketConnectionTests
     public async Task ExecuteAsync_Completed_ReturnResult()
     {
         // arrange
-        IAsyncEnumerable<OperationMessage> Producer(
+        async IAsyncEnumerable<OperationMessage> Producer(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             yield return CompleteOperationMessage.Default;

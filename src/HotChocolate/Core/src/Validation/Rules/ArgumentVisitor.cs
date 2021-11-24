@@ -54,9 +54,9 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
 
             return Skip;
         }
-        else if (context.Types.TryPeek(out IType type) &&
+        else if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ot &&
-            ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+            ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
             ValidateArguments(
                 context, node, node.Arguments,
@@ -150,7 +150,7 @@ internal sealed class ArgumentVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        for (int i = 0; i < arguments.Count; i++)
+        for (var i = 0; i < arguments.Count; i++)
         {
             IInputField argument = arguments[i];
 
