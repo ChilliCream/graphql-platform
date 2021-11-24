@@ -1,4 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+  <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.props" />
+
 
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -9,6 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
+    <ProjectReference Include="..\..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp.Analyzers\StrawberryShake.CodeGeneration.CSharp.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
@@ -32,4 +37,5 @@
     </None>
   </ItemGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.targets" />
 </Project>

@@ -15,35 +15,46 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers
         private static string _location =
             GetDirectoryName(typeof(CSharpClientGenerator).Assembly.Location)!;
 
-        static CSharpClientGenerator()
-        {
-            Assembly.LoadFrom("/Users/michael/.nuget/packages/streamjsonrpc/2.9.85/lib/netstandard2.0/StreamJsonRpc.dll");
-        }
-
         public void Initialize(GeneratorInitializationContext context)
         {
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
-            _location = GetPackageLocation(context);
-            var documentFileNames = GetDocumentFileNames(context);
-
-            var childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
+            try
             {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-            })!;
+                _location = GetPackageLocation(context);
+                var documentFileNames = GetDocumentFileNames(context);
 
-            var client = new CSharpGeneratorClient(
-                childProcess.StandardInput.BaseStream,
-                childProcess.StandardOutput.BaseStream);
+                var childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
+                {
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                })!;
 
-            foreach (var configFileName in GetConfigFiles(context))
+                var client = new CSharpGeneratorClient(
+                    childProcess.StandardInput.BaseStream,
+                    childProcess.StandardOutput.BaseStream);
+
+                foreach (var configFileName in GetConfigFiles(context))
+                {
+                    ExecuteAsync(context, client, configFileName, documentFileNames)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+            }
+            catch (Exception ex)
             {
-                ExecuteAsync(context, client, configFileName, documentFileNames)
-                    .GetAwaiter()
-                    .GetResult();
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        new DiagnosticDescriptor(
+                            "SSG002",
+                            "Generator Error",
+                            ex.Message,
+                            "Generator",
+                            DiagnosticSeverity.Error,
+                            true),
+                        Microsoft.CodeAnalysis.Location.None));
             }
         }
 

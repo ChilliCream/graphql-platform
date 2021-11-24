@@ -45,6 +45,7 @@ public class CSharpGeneratorClient
             await _requestStream.WriteAsync(message, 0, message.Length, cancellationToken);
 
             var response = await ReadResponseInternalAsync(cancellationToken);
+
             return JsonSerializer.Deserialize<GeneratorResponseMessage>(response, _options)!.Result;
         }
         finally
@@ -102,8 +103,24 @@ public class CSharpGeneratorClient
             throw new Exception("Unable to read the message.");
         }
 
+        const int maxRead = 256;
         var response = new byte[contentLength.Value];
-        await _responseStream.ReadAsync(response, 0, contentLength.Value, cancellationToken);
+        var pos = 0;
+        var consumed = 0;
+
+        do
+        {
+            var next = contentLength.Value - consumed;
+
+            if (next > maxRead)
+            {
+                next = maxRead;
+            }
+
+            read = await _responseStream.ReadAsync(response, consumed, next, cancellationToken);
+            consumed += read;
+        } while (consumed < contentLength.Value);
+
         return response;
 
         void CheckNewLine(int b)

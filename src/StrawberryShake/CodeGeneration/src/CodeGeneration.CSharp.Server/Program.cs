@@ -4,5 +4,6 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 
 class Program
 {
-    static Task Main(string[] args) => CSharpGeneratorServer.RunAsync();
+    static Task Main(string[] args) =>
+        CSharpGeneratorServer.RunAsync();
 }
