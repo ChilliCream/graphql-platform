@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.props" />
 
-
   <PropertyGroup>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>

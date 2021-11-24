@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DotNet.Globbing;
 using HotChocolate;
@@ -21,17 +22,27 @@ public sealed class CSharpGeneratorServer
     {
         try
         {
-            CSharpGeneratorSettings settings = await LoadSettingsAsync(request);
+            CSharpGeneratorServerSettings settings = await LoadSettingsAsync(request);
             IReadOnlyList<string> documents = GetMatchingDocuments(request, settings);
 
-            if (settings.RequestStrategy == RequestStrategy.PersistedQuery &&
-                request.PersistedQueryDirectory is null)
+            if (settings.RequestStrategy == RequestStrategy.PersistedQuery)
             {
-                settings.RequestStrategy = RequestStrategy.Default;
+                if (settings.PersistedQueryDirectory is null)
+                {
+                    settings.RequestStrategy = RequestStrategy.Default;
+                }
+                else
+                {
+                    ClearPersistedQueryDirectory(settings.PersistedQueryDirectory);
+                }
             }
 
             CSharpGeneratorResult result = CSharpGenerator.Generate(documents, settings);
-            return CreateSuccessResponse(result.Documents);
+
+            return CreateResponse(
+                result.Documents,
+                ConvertErrors(result.Errors),
+                settings.PersistedQueryDirectory);
         }
         catch (GraphQLException ex)
         {
@@ -43,7 +54,7 @@ public sealed class CSharpGeneratorServer
         }
     }
 
-    private async Task<CSharpGeneratorSettings> LoadSettingsAsync(GeneratorRequest request)
+    private async Task<CSharpGeneratorServerSettings> LoadSettingsAsync(GeneratorRequest request)
     {
         try
         {
@@ -55,7 +66,7 @@ public sealed class CSharpGeneratorServer
                 throw new GraphQLException("The client name is invalid.");
             }
 
-            var generatorSettings = new CSharpGeneratorSettings
+            var generatorSettings = new CSharpGeneratorServerSettings
             {
                 ClientName = config.Extensions.StrawberryShake.Name,
                 Namespace = request.Namespace ??
@@ -69,6 +80,7 @@ public sealed class CSharpGeneratorServer
                 EntityRecords = config.Extensions.StrawberryShake.Records.Entities,
                 SingleCodeFile = config.Extensions.StrawberryShake.UseSingleFile,
                 Documents = config.Documents,
+                PersistedQueryDirectory = request.PersistedQueryDirectory,
                 HashProvider = config.Extensions.StrawberryShake.HashAlgorithm.ToLowerInvariant()
                     switch
                 {
@@ -107,7 +119,7 @@ public sealed class CSharpGeneratorServer
 
     private IReadOnlyList<string> GetMatchingDocuments(
         GeneratorRequest request,
-        CSharpGeneratorSettings settings)
+        CSharpGeneratorServerSettings settings)
     {
         var rootDirectory = GetDirectoryName(request.ConfigFileName) + DirectorySeparatorChar;
 
@@ -118,24 +130,54 @@ public sealed class CSharpGeneratorServer
             .ToList();
     }
 
-    private static GeneratorResponse CreateSuccessResponse(
-        IReadOnlyList<SourceDocument> sourceDocuments)
+    private static GeneratorResponse CreateResponse(
+        IReadOnlyList<SourceDocument> sourceDocuments,
+        IReadOnlyList<GeneratorError> errors,
+        string? persistedQueryDirectory)
     {
-        var generatorDocuments = new GeneratorDocument[sourceDocuments.Count];
+        var generatorDocuments = new List<GeneratorDocument>();
 
-        for (var i = 0; i < sourceDocuments.Count; i++)
+        foreach (SourceDocument sourceDocument in sourceDocuments)
         {
-            SourceDocument sourceDocument = sourceDocuments[i];
-
-            generatorDocuments[i] = new GeneratorDocument(
-                sourceDocument.Name,
-                sourceDocument.SourceText,
-                (GeneratorDocumentKind)(int)sourceDocument.Kind,
-                sourceDocument.Hash,
-                sourceDocument.Path);
+            if (sourceDocument.Kind is SourceDocumentKind.GraphQL)
+            {
+                if (persistedQueryDirectory is not null)
+                {
+                    File.WriteAllText(
+                        Combine(persistedQueryDirectory, sourceDocument.Name),
+                        sourceDocument.SourceText,
+                        Encoding.UTF8);
+                }
+            }
+            else
+            {
+                generatorDocuments.Add(
+                    new GeneratorDocument(
+                        sourceDocument.Name,
+                        sourceDocument.SourceText,
+                        (GeneratorDocumentKind)(int)sourceDocument.Kind,
+                        sourceDocument.Hash,
+                        sourceDocument.Path));
+            }
         }
 
-        return new GeneratorResponse(generatorDocuments);
+        return new GeneratorResponse(generatorDocuments, errors);
+    }
+
+    private static void ClearPersistedQueryDirectory(string persistedQueryDirectory)
+    {
+        foreach (var fileName in Directory.GetFiles(persistedQueryDirectory, "*.graphql"))
+        {
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch
+            {
+                // We ignore if we cannot delete a file.
+                // We will report on write that there is and issue.
+            }
+        }
     }
 
     public static async Task RunAsync()

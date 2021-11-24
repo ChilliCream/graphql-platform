@@ -39,13 +39,12 @@ public class CSharpGeneratorClient
                 _options);
 
             var header = $"Content-Length: {message.Length}\r\n" +
-                         "Content-Type: text/plain; charset=utf-8\r\n\r\n";
+                "Content-Type: text/plain; charset=utf-8\r\n\r\n";
             var headerBytes = _headerEncoding.GetBytes(header);
             await _requestStream.WriteAsync(headerBytes, 0, headerBytes.Length, cancellationToken);
             await _requestStream.WriteAsync(message, 0, message.Length, cancellationToken);
 
             var response = await ReadResponseInternalAsync(cancellationToken);
-
             return JsonSerializer.Deserialize<GeneratorResponseMessage>(response, _options)!.Result;
         }
         finally

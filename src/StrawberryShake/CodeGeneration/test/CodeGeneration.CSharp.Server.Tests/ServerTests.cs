@@ -19,7 +19,7 @@ namespace StrawberryShake.CodeGeneration.CSharp;
 public class ServerTests
 {
     [Fact]
-    public async Task Generate_StarWars()
+    public async Task Generate_StarWarsAsync()
     {
         // arrange
         var server = new CSharpGeneratorServer();
@@ -46,7 +46,7 @@ public class ServerTests
 public class ProtocolTests
 {
     [Fact]
-    public async Task Generate_StarWars()
+    public async Task Generate_StarWarsAsync()
     {
         // arrange
         // .. start server
