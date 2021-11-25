@@ -13,9 +13,6 @@ namespace StrawberryShake.CodeGeneration.CSharp.Analyzers;
 [Generator]
 public class CSharpClientGenerator : ISourceGenerator
 {
-    private static string _location =
-        GetDirectoryName(typeof(CSharpClientGenerator).Assembly.Location)!;
-
     public void Initialize(GeneratorInitializationContext context)
     {
     }
@@ -24,14 +21,17 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
-            _location = GetPackageLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
+            var codeGenServer = GetCodeGenServerLocation(context);
 
-            var childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
-            {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-            })!;
+            var childProcess = Process.Start(
+                new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = codeGenServer,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                })!;
 
             var client = new CSharpGeneratorClient(
                 childProcess.StandardInput.BaseStream,
@@ -114,22 +114,14 @@ public class CSharpClientGenerator : ISourceGenerator
             .Where(t => GetFileName(t).Equals(".graphqlrc.json", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-    private static string GetPackageLocation(GeneratorExecutionContext context)
-    {
-        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-            "build_property.StrawberryShake_BuildDirectory",
-            out var value) &&
-            !string.IsNullOrEmpty(value))
-        {
-            return value;
-        }
-
-        return _location;
-    }
-
     private static string GetDefaultNamespace(GeneratorExecutionContext context)
     {
-        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+        if (TryGetBuildProperty(context, "StrawberryShake_DefaultNamespace", out var ns))
+        {
+
+        }
+
+        if (string?(
             "build_property.StrawberryShake_DefaultNamespace",
             out var value) &&
             !string.IsNullOrEmpty(value))
@@ -137,6 +129,47 @@ public class CSharpClientGenerator : ISourceGenerator
             return value;
         }
 
-        return _location;
+    }
+
+     private static string GetCodeGenServerLocation(GeneratorExecutionContext context)
+    {
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+            "build_property.StrawberryShake_CodeGenServer",
+            out var value) &&
+            !string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        throw new Exception("Could not locate the code generation server.");
+    }
+
+    private static string GetProjectFileName(GeneratorExecutionContext context)
+    {
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+            "build_property.MSBuildProjectFile",
+            out var value) &&
+            !string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        throw new Exception("Could not locate the code generation server.");
+    }
+
+    private static bool TryGetBuildProperty(
+        GeneratorExecutionContext context,
+        string key,
+        out string? value)
+    {
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+            $"build_property.{key}",
+            out var value) &&
+            !string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        return null;
     }
 }

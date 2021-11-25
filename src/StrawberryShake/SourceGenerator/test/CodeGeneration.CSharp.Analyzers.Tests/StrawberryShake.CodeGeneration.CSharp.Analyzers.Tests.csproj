@@ -7,10 +7,10 @@
 
     <StrawberryShake_LogFile>$(BaseIntermediateOutputPath)\StrawberryShake.log</StrawberryShake_LogFile>
     <StrawberryShake_PersistedQueryDirectory>$(BaseIntermediateOutputPath)\GraphQL</StrawberryShake_PersistedQueryDirectory>
+    <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)..\..\src\.server\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Client\src\Razor\StrawberryShake.Razor.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\..\..\Client\src\Transport.WebSockets\StrawberryShake.Transport.WebSockets.csproj" />
     <ProjectReference Include="..\..\src\CodeGeneration.CSharp.Analyzers\StrawberryShake.CodeGeneration.CSharp.Analyzers.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
