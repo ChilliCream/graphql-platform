@@ -38,13 +38,16 @@ else
     curl -Lsfo "$DOTNET_INSTALL_FILE" "$DOTNET_INSTALL_URL"
     chmod +x "$DOTNET_INSTALL_FILE"
 
-    # install older frameworks for tests
-    "$DOTNET_INSTALL_FILE" --channel "2.1"
-    "$DOTNET_INSTALL_FILE" --channel "3.1"
-    "$DOTNET_INSTALL_FILE" --channel "5.0"
-    "$DOTNET_INSTALL_FILE" --channel "6.0"
+    DOTNET_DIRECTORY="$TEMP_DIRECTORY/dotnet-unix"
 
-    export DOTNET_EXE="$(command -v dotnet)"
+    "$DOTNET_INSTALL_FILE" --channel "2.1" --install-dir "$DOTNET_DIRECTORY" --no-path
+    "$DOTNET_INSTALL_FILE" --channel "3.1" --install-dir "$DOTNET_DIRECTORY" --no-path
+    "$DOTNET_INSTALL_FILE" --channel "5.0" --install-dir "$DOTNET_DIRECTORY" --no-path
+    "$DOTNET_INSTALL_FILE" --channel "6.0" --install-dir "$DOTNET_DIRECTORY" --no-path
+
+    # we update the current path and replace the current dotnet.
+    export PATH=$DOTNET_DIRECTORY:$PATH
+    export DOTNET_EXE="$DOTNET_DIRECTORY/dotnet"
 fi
 
 echo "Microsoft (R) .NET Core SDK version $("$DOTNET_EXE" --version)"
