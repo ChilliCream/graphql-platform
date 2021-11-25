@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using HotChocolate;
 
 namespace StrawberryShake.Tools;
 
-public class DefaultConsoleOutputActivity
-    : IActivity
+public class DefaultConsoleOutputActivity : IActivity
 {
     private readonly string _activityText;
     private readonly string? _path;
@@ -20,6 +20,13 @@ public class DefaultConsoleOutputActivity
         _errorReceived = errorReceived;
         _stopwatch = Stopwatch.StartNew();
         Console.WriteLine($"{activityText} started.");
+    }
+
+    public void WriteError(Exception ex)
+    {
+        _hasErrors = true;
+        ErrorBuilder.New().SetMessage(ex.Message).SetException(ex).Build().Write();
+        _errorReceived();
     }
 
     public void WriteError(HotChocolate.IError error)

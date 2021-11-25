@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using HotChocolate;
 
 namespace StrawberryShake.Tools;
 
-public class JsonConsoleOutputActivity
-    : IActivity
+public class JsonConsoleOutputActivity : IActivity
 {
     private readonly JsonConsoleOutputData _data;
     private readonly string _activityText;
@@ -26,6 +26,12 @@ public class JsonConsoleOutputActivity
         _errorReceived = errorReceived;
         _stopwatch = Stopwatch.StartNew();
     }
+
+    public void WriteError(Exception ex)
+    {
+        WriteError(ErrorBuilder.New().SetMessage(ex.Message).SetException(ex).Build());
+    }
+
 
     public void WriteError(HotChocolate.IError error)
     {

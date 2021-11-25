@@ -30,6 +30,8 @@ public class CSharpClientGenerator : ISourceGenerator
                     Arguments = codeGenServer,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    UseShellExecute = false
                 })!;
 
             var client = new CSharpGeneratorClient(
@@ -124,6 +126,11 @@ public class CSharpClientGenerator : ISourceGenerator
         if (TryGetBuildProperty(context, "MSBuildProjectFile", out var projectFile))
         {
             return GetFileNameWithoutExtension(projectFile);
+        }
+
+        if (!string.IsNullOrEmpty(context.Compilation.Assembly.Name))
+        {
+            return context.Compilation.Assembly.Name;
         }
 
         return "StrawberryShake.Generated";
