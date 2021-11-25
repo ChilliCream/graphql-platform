@@ -2,11 +2,11 @@
   <Import Project="$(MSBuildThisFileDirectory)..\..\src\MSBuild\StrawberryShake.props" />
 
   <PropertyGroup>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <!--EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles-->
     <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
 
     <StrawberryShake_LogFile>$(BaseIntermediateOutputPath)\StrawberryShake.log</StrawberryShake_LogFile>
-    <StrawberryShake_PersistedQueryDirectory>$(BaseIntermediateOutputPath)\GraphQL</StrawberryShake_PersistedQueryDirectory>
+    <StrawberryShake_PersistedQueryDirectory>$(MSBuildThisFileDirectory)\..\.persisted-queries</StrawberryShake_PersistedQueryDirectory>
     <StrawberryShake_CodeGenServer>$(MSBuildThisFileDirectory)..\..\src\.server\BerryCodeGen.dll</StrawberryShake_CodeGenServer>
   </PropertyGroup>
 

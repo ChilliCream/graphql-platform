@@ -15,7 +15,7 @@ public sealed class GeneratorRequest
             throw new ArgumentNullException(nameof(configFileName));
         DocumentFileNames = documentFileNames ??
             throw new ArgumentNullException(nameof(documentFileNames));
-        Namespace = ns;
+        DefaultNamespace = ns;
         PersistedQueryDirectory = persistedQueryDirectory;
     }
 
@@ -23,7 +23,7 @@ public sealed class GeneratorRequest
 
     public IReadOnlyList<string> DocumentFileNames { get; }
 
-    public string? Namespace { get; }
+    public string? DefaultNamespace { get; }
 
     public string? PersistedQueryDirectory { get; }
 }

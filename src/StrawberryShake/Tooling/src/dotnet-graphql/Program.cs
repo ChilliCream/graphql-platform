@@ -15,6 +15,7 @@ internal static class Program
         root.Command("init", InitCommand.Build);
         root.Command("update", UpdateCommand.Build);
         root.Command("download", DownloadCommand.Build);
+        root.Command("generate", GenerateClientCommand.Build);
 
         root.OnExecute(() =>
         {

@@ -56,5 +56,4 @@
     <Exec Command="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/"/>
   </Target>
 
-
 </Project>

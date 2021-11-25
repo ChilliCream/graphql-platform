@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using static System.IO.Path;
@@ -21,8 +20,8 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         try
         {
-            var documentFileNames = GetDocumentFileNames(context);
             var codeGenServer = GetCodeGenServerLocation(context);
+            var documentFileNames = GetDocumentFileNames(context);
 
             var childProcess = Process.Start(
                 new ProcessStartInfo
@@ -63,12 +62,13 @@ public class CSharpClientGenerator : ISourceGenerator
         GeneratorExecutionContext context,
         CSharpGeneratorClient client,
         string configFileName,
-        string[] documentFileNames)
+        IReadOnlyList<string> documentFileNames)
     {
         GeneratorRequest request = new(
             configFileName,
             documentFileNames,
-            GetDefaultNamespace(context));
+            GetDefaultNamespace(context),
+            GetPersistedQueryDirectory(context));
         GeneratorResponse response = await client.GenerateAsync(request);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
@@ -118,58 +118,46 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         if (TryGetBuildProperty(context, "StrawberryShake_DefaultNamespace", out var ns))
         {
-
+            return ns;
         }
 
-        if (string?(
-            "build_property.StrawberryShake_DefaultNamespace",
-            out var value) &&
-            !string.IsNullOrEmpty(value))
+        if (TryGetBuildProperty(context, "MSBuildProjectFile", out var projectFile))
         {
-            return value;
+            return GetFileNameWithoutExtension(projectFile);
         }
 
+        return "StrawberryShake.Generated";
     }
 
-     private static string GetCodeGenServerLocation(GeneratorExecutionContext context)
+    private static string GetCodeGenServerLocation(GeneratorExecutionContext context)
     {
-        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-            "build_property.StrawberryShake_CodeGenServer",
-            out var value) &&
-            !string.IsNullOrEmpty(value))
+        if (TryGetBuildProperty(context, "StrawberryShake_CodeGenServer", out var loc))
         {
-            return value;
+            return loc;
         }
 
         throw new Exception("Could not locate the code generation server.");
     }
 
-    private static string GetProjectFileName(GeneratorExecutionContext context)
-    {
-        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-            "build_property.MSBuildProjectFile",
-            out var value) &&
-            !string.IsNullOrEmpty(value))
-        {
-            return value;
-        }
-
-        throw new Exception("Could not locate the code generation server.");
-    }
+    private static string? GetPersistedQueryDirectory(GeneratorExecutionContext context)
+        => TryGetBuildProperty(context, "StrawberryShake_PersistedQueryDirectory", out var loc)
+            ? loc
+            : null;
 
     private static bool TryGetBuildProperty(
         GeneratorExecutionContext context,
         string key,
-        out string? value)
+        [NotNullWhen(true)] out string? value)
     {
         if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
             $"build_property.{key}",
-            out var value) &&
+            out value) &&
             !string.IsNullOrEmpty(value))
         {
-            return value;
+            return true;
         }
 
-        return null;
+        value = null;
+        return false;
     }
 }

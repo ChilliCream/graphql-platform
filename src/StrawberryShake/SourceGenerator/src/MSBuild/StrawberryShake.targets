@@ -35,12 +35,9 @@
     <CompilerVisibleProperty Include="StrawberryShake_CodeGenServer" />
     <CompilerVisibleProperty Include="StrawberryShake_PersistedQueryDirectory" />
     <CompilerVisibleProperty Include="StrawberryShake_State" />
-<<<<<<< Updated upstream
     <CompilerVisibleProperty Include="StrawberryShake_EmitGeneratedCode" />
     <CompilerVisibleProperty Include="MSBuildProjectDirectory" />
-=======
     <CompilerVisibleProperty Include="MSBuildProjectFile" />
->>>>>>> Stashed changes
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)VSCode.targets" Condition="'$(StrawberryShake_RemoveGeneratedCode)' == 'true'" />

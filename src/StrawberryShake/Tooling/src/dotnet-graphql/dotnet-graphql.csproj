@@ -20,9 +20,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Client\StrawberryShake.CodeGeneration.CSharp.Client.csproj" />
     <ProjectReference Include="..\Configuration\StrawberryShake.Tools.Configuration.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Core\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj" />
+  </ItemGroup>
+
+  <Target Name="PublishingCodeGenerationServer" BeforeTargets="BeforeBuild">
+    <Message Text="Publishing Code Generation Server"  Importance="high" />
+    <Message Text="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/"  Importance="high" />
+    <Exec Command="dotnet publish $(MSBuildThisFileDirectory)..\..\..\CodeGeneration\src\CodeGeneration.CSharp.Server -f net6.0 -c $(Configuration) --output $(MSBuildThisFileDirectory)..\.server/"/>
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\.server\**\*.*" Pack="true" PackagePath="gen" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup>

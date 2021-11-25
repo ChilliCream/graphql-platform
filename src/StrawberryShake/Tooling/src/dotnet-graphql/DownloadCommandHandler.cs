@@ -44,7 +44,7 @@ public class DownloadCommandHandler
             CustomHeaderHelper.ParseHeadersArgument(arguments.CustomHeaders.Values));
 
         FileSystem.EnsureDirectoryExists(
-            FileSystem.GetDirectoryName(context.FileName));
+            FileSystem.GetDirectoryName(context.FileName)!);
 
         return await DownloadSchemaAsync(
             context, cancellationToken)

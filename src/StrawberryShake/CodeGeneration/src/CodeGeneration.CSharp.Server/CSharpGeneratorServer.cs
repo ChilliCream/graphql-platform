@@ -33,6 +33,11 @@ public sealed class CSharpGeneratorServer
                 }
                 else
                 {
+                    if(!Directory.Exists(settings.PersistedQueryDirectory))
+                    {
+                        Directory.CreateDirectory(settings.PersistedQueryDirectory);
+                    }
+
                     ClearPersistedQueryDirectory(settings.PersistedQueryDirectory);
                 }
             }
@@ -69,8 +74,8 @@ public sealed class CSharpGeneratorServer
             var generatorSettings = new CSharpGeneratorServerSettings
             {
                 ClientName = config.Extensions.StrawberryShake.Name,
-                Namespace = request.Namespace ??
-                    config.Extensions.StrawberryShake.Namespace ??
+                Namespace = config.Extensions.StrawberryShake.Namespace ??
+                    request.DefaultNamespace ??
                     "StrawberryShake.Generated",
                 RequestStrategy = config.Extensions.StrawberryShake.RequestStrategy,
                 StrictSchemaValidation = config.Extensions.StrawberryShake.StrictSchemaValidation,
