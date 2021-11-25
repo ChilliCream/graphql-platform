@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using static System.IO.Path;
@@ -26,7 +27,7 @@ public class CSharpClientGenerator : ISourceGenerator
             _location = GetPackageLocation(context);
             var documentFileNames = GetDocumentFileNames(context);
 
-            Process? childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
+            var childProcess = Process.Start(new ProcessStartInfo("/Users/michael/local/hc-1/src/StrawberryShake/CodeGeneration/src/CodeGeneration.CSharp.Server/bin/Debug/net6.0/BerryCodeGen")
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -64,7 +65,10 @@ public class CSharpClientGenerator : ISourceGenerator
         string configFileName,
         string[] documentFileNames)
     {
-        GeneratorRequest request = new(configFileName, documentFileNames);
+        GeneratorRequest request = new(
+            configFileName,
+            documentFileNames,
+            GetDefaultNamespace(context));
         GeneratorResponse response = await client.GenerateAsync(request);
 
         foreach (GeneratorDocument document in response.Documents.SelectCSharp())
@@ -114,6 +118,19 @@ public class CSharpClientGenerator : ISourceGenerator
     {
         if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
             "build_property.StrawberryShake_BuildDirectory",
+            out var value) &&
+            !string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        return _location;
+    }
+
+    private static string GetDefaultNamespace(GeneratorExecutionContext context)
+    {
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+            "build_property.StrawberryShake_DefaultNamespace",
             out var value) &&
             !string.IsNullOrEmpty(value))
         {
