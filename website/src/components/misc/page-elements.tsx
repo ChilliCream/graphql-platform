@@ -24,7 +24,7 @@ export const Title = styled.h3`
   flex: 0 0 auto;
   font-size: 1em;
   text-align: center;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--quaternary-color);
   text-transform: uppercase;
 `;
 
@@ -49,7 +49,7 @@ export const Teaser = styled.p`
   max-width: 800px;
   font-size: 1.222em;
   text-align: center;
-  color: var(--text-color-contrast);
+  color: var(--quaternary-color);
   ${IsSmallDesktop(`
     padding: 0 40px;
   `)}

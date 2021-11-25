@@ -175,6 +175,7 @@ const LogoLink = styled(Link)`
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
   fill: var(--text-color-contrast);
+  transition: fill 0.2s ease-in-out;
 `;
 
 const LogoText = styled(LogoTextSvg)`
@@ -182,6 +183,7 @@ const LogoText = styled(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
   fill: var(--text-color-contrast);
+  transition: fill 0.2s ease-in-out;
 
   @media only screen and (min-width: 600px) {
     display: inline-block;
@@ -311,6 +313,10 @@ const NavLink = styled(Link)`
   transition: background-color 0.2s ease-in-out;
 
   &.active,
+  &.active:hover {
+    background-color: var(--tertiary-color);
+  }
+
   &:hover {
     background-color: var(--secondary-color);
   }
@@ -346,29 +352,29 @@ const Tools = styled.div`
 
 const ToolLink = styled(Link)`
   flex: 0 0 auto;
-  margin-left: 15px;
+  margin-left: 5px;
+  border-radius: var(--border-radius);
+  padding: 7px;
   text-decoration: none;
+  transition: background-color 0.2s ease-in-out;
 
   > ${IconContainer} > svg {
-    transition: fill 0.2s ease-in-out;
+    fill: var(--text-color-contrast);
   }
 
-  :hover > ${IconContainer} > svg {
-    fill: var(--secondary-color);
+  :hover {
+    background-color: var(--secondary-color);
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: var(--text-color-contrast);
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: var(--text-color-contrast);
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: var(--text-color-contrast);
 `;

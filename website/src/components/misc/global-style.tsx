@@ -27,14 +27,16 @@ export const GlobalLayoutStyle = createGlobalStyle`
 export const GlobalStyle = createGlobalStyle`
   :root {
     --primary-color: #3b4f74;//before: f40010;
-    --secondary-color: #7989ab;
+    --secondary-color: #516083;
+    --tertiary-color: #7989ab;
+    --quaternary-color: #bfcef1;
     --link-color: #f4125b;
     --text-color: #667;
     --heading-text-color: #3b4f74;
     --footer-text-color: #c6c6ce;
     --text-color-contrast: #fff;
-    --box-highlight-color: #ddd;
-    --box-border-color: #ccc;
+    --box-highlight-color: #e8ecf5;
+    --box-border-color: #bfcef1;
     --warning-color: #ffba00;
     --border-radius: 4px;
     --font-size: .833rem;
