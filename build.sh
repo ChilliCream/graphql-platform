@@ -42,7 +42,7 @@ else
     "$DOTNET_INSTALL_FILE" --version "2.1.816" --no-path
     "$DOTNET_INSTALL_FILE" --version "3.1.409" --no-path
     "$DOTNET_INSTALL_FILE" --version "5.0.401" --no-path
-    "$DOTNET_INSTALL_FILE" --version "5.0.100" --no-path
+    "$DOTNET_INSTALL_FILE" --version "6.0.100" --no-path
 
     export DOTNET_EXE="$(command -v dotnet)"
 fi
