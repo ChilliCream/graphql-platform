@@ -56,7 +56,7 @@ module.exports = {
             resolve: `gatsby-remark-images`,
             options: {
               maxWidth: 800,
-              quality: 90,
+              quality: 100,
               backgroundColor: "transparent",
             },
           },
@@ -126,7 +126,12 @@ module.exports = {
     },
     `gatsby-transformer-json`,
     `gatsby-plugin-image`,
-    `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        quality: 100,
+      },
+    },
     `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
@@ -142,8 +147,8 @@ module.exports = {
         name: `ChilliCream GraphQL`,
         short_name: `ChilliCream`,
         start_url: `/`,
-        background_color: `#f40010`,
-        theme_color: `#f40010`,
+        background_color: `#3b4f74`,
+        theme_color: `#3b4f74`,
         display: `standalone`,
         icon: `src/images/chillicream-favicon.png`,
       },
@@ -218,7 +223,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          gatsbyImageData(layout: CONSTRAINED, width: 800)
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
                         }
                       }
                     }
@@ -244,8 +249,8 @@ module.exports = {
                 const link = siteUrl + pathPrefix + frontmatter.path;
                 let image = frontmatter.featuredImage
                   ? siteUrl +
-                    frontmatter.featuredImage.childImageSharp
-                      .gatsbyImageData.src
+                    frontmatter.featuredImage.childImageSharp.gatsbyImageData
+                      .src
                   : null;
 
                 return {
@@ -254,10 +259,7 @@ module.exports = {
                   date,
                   published: date,
                   description: excerpt,
-                  content: body.replace(
-                    imgSrcPattern,
-                    `${siteUrl}/static/`
-                  ),
+                  content: body.replace(imgSrcPattern, `${siteUrl}/static/`),
                   image,
                   author: frontmatter.author,
                 };
