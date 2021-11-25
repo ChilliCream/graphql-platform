@@ -39,10 +39,10 @@ else
     chmod +x "$DOTNET_INSTALL_FILE"
 
     # install older frameworks for tests
-    "$DOTNET_INSTALL_FILE" --version "2.1.816" --no-path
-    "$DOTNET_INSTALL_FILE" --version "3.1.409" --no-path
-    "$DOTNET_INSTALL_FILE" --version "5.0.401" --no-path
-    "$DOTNET_INSTALL_FILE" --version "6.0.100" --no-path
+    "$DOTNET_INSTALL_FILE" --channel "2.1"
+    "$DOTNET_INSTALL_FILE" --channel "3.1"
+    "$DOTNET_INSTALL_FILE" --channel "5.0"
+    "$DOTNET_INSTALL_FILE" --channel "6.0"
 
     export DOTNET_EXE="$(command -v dotnet)"
 fi
