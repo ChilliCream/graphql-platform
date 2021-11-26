@@ -34,20 +34,21 @@ partial class Build
         "CodeGeneration.CSharp.Analyzers.Tests"
     };
 
-    const int _testPartitionCount = 4;
+    const int TestPartitionCount = 4;
 
-    [Partition(_testPartitionCount)] readonly Partition TestPartitions;
+    [Partition(TestPartitionCount)] readonly Partition TestPartition;
 
-    IEnumerable<Project> TestProjects => TestPartitions.GetCurrent(
+    IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
-                .Where((t => !ExcludedTests.Contains(t.Name))));
+                .Where(t => !ExcludedTests.Contains(t.Name)));
 
-    IEnumerable<Project> CoverProjects => TestPartitions.GetCurrent(
+    IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
-                .Where((t => !ExcludedCover.Contains(t.Name))));
+                .Where(t => !ExcludedCover.Contains(t.Name)));
 
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
+        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
@@ -77,7 +78,7 @@ partial class Build
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(_testPartitionCount)
+        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             try
