@@ -28,7 +28,10 @@ partial class Build
         "HotChocolate.Configuration.Analyzers.Tests",
         "HotChocolate.Data.Neo4J.Integration.Tests",
         "HotChocolate.CodeGeneration.Neo4J.Tests",
-        "HotChocolate.Analyzers.Tests"
+        "HotChocolate.Analyzers.Tests",
+        "dotnet-graphql",
+        "CodeGeneration.CSharp.Analyzers",
+        "CodeGeneration.CSharp.Analyzers.Tests"
     };
 
     const int _testPartitionCount = 4;

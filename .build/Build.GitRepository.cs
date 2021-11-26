@@ -1,5 +1,3 @@
-using System;
-using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitVersion;
 

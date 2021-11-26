@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.Build.Evaluation;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
