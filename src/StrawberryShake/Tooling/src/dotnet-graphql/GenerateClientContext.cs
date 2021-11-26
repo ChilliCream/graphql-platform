@@ -202,14 +202,15 @@ public class GenerateClientCommandHandler : CommandHandler<GenerateClientArgumen
         }
     }
 
-    private bool TryLoadConfig(
+    private async Task<bool> TryLoadConfigAsync(
         IActivity activity,
         string fileName,
         [NotNullWhen(true)] out GraphQLConfig? config)
     {
         try
         {
-            config = GraphQLConfig.FromJson(fileName);
+            var json = await File.ReadAllTextAsync(fileName);
+            config = GraphQLConfig.FromJson(json);
             return true;
         }
         catch (Exception ex)
