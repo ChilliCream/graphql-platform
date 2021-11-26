@@ -133,7 +133,7 @@ partial class Build
                 .SetProjectFile(v)
                 .SetLoggers($"trx;LogFileName={v.Name}.trx"));
 
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnlyNet60(
         DotNetTestSettings settings,
         IEnumerable<Project> projects) =>
         TestBaseSettings(settings)

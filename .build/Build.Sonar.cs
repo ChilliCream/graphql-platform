@@ -35,7 +35,7 @@ partial class Build
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
             DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
+                c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
                 degreeOfParallelism: DegreeOfParallelism,
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
@@ -57,7 +57,7 @@ partial class Build
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);
             DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
+                c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
                 degreeOfParallelism: DegreeOfParallelism,
                 completeOnFailure: true);
             SonarScannerEnd(SonarEndSettings);
