@@ -7,7 +7,7 @@ partial class Build
     const string Net50 = "net5.0";
     const string Net60 = "net6.0";
 
-    readonly int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
+    readonly int DegreeOfParallelism = System.Environment.ProcessorCount * 3;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
