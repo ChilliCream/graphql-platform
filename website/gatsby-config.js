@@ -55,7 +55,7 @@ module.exports = {
           {
             resolve: `gatsby-remark-images`,
             options: {
-              maxWidth: 1200,
+              maxWidth: 800,
               quality: 100,
               backgroundColor: "transparent",
             },
@@ -126,7 +126,12 @@ module.exports = {
     },
     `gatsby-transformer-json`,
     `gatsby-plugin-image`,
-    `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        quality: 100,
+      },
+    },
     `gatsby-transformer-sharp`,
     {
       resolve: "gatsby-plugin-web-font-loader",
@@ -218,7 +223,7 @@ module.exports = {
                       path
                       featuredImage {
                         childImageSharp {
-                          gatsbyImageData(layout: CONSTRAINED, width: 800)
+                          gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
                         }
                       }
                     }

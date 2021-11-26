@@ -197,10 +197,15 @@ const SearchField = styled.input`
   font-size: 0.833em;
   background-color: var(--secondary-color);
   color: var(--text-color-contrast);
+  transition: background-color 0.2s ease-in-out;
 
   ::placeholder {
-    opacity: 0.7;
     color: var(--text-color-contrast);
+  }
+
+  :hover,
+  :focus {
+    background-color: var(--tertiary-color);
   }
 `;
 

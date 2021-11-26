@@ -58,10 +58,7 @@ export const BlogArticleGraphQLFragment = graphql`
       frontmatter {
         featuredImage {
           childImageSharp {
-            gatsbyImageData(
-              layout: CONSTRAINED
-              width: 800
-            )
+            gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
           }
         }
         path

@@ -11,10 +11,7 @@ export const HotChocolate: FC = () => {
         sourceInstanceName: { eq: "images" }
       ) {
         childImageSharp {
-          gatsbyImageData(
-            layout: CONSTRAINED
-            width: 1200
-          )
+          gatsbyImageData(layout: CONSTRAINED, width: 1200, quality: 100)
         }
       }
     }
