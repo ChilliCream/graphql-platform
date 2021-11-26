@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
+    <PackageDownload Include="GitVersion.Tool" Version="[5.8.0]" />
     <PackageDownload Include="NuGet.CommandLine" Version="[5.11.0]" />
     <PackageDownload Include="dotnet-sonarscanner" Version="[5.3.2]" />
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />

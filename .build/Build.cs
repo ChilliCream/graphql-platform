@@ -8,7 +8,7 @@ using Nuke.Notifications;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 
-[Notifications]
+[Notifications(EnableCancellation = true)]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
