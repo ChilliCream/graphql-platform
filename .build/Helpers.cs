@@ -41,7 +41,7 @@ class Helpers
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
                 if (!(include?.Invoke(file) ?? true)
-                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("sample", StringComparison.OrdinalIgnoreCase))
                 {

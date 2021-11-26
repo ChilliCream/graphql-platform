@@ -4,6 +4,7 @@ partial class Build
 {
     const string Debug = "Debug";
     const string Release = "Release";
+    const string Net50 = "net5.0";
     const string Net60 = "net6.0";
 
     readonly int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
