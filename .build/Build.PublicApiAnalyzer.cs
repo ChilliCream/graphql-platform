@@ -13,11 +13,11 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Helpers;
 
-partial class Build : NukeBuild
+partial class Build
 {
-    private readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
-    private readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
-    private readonly string _removedApiPrefix = "*REMOVED*";
+    readonly string _shippedApiFile = "PublicAPI.Shipped.txt";
+    readonly string _unshippedApiFile = "PublicAPI.Unshipped.txt";
+    readonly string _removedApiPrefix = "*REMOVED*";
 
     [Parameter] readonly string From;
     [Parameter] readonly string To;
@@ -27,7 +27,7 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            Helpers.TryDelete(PublicApiSolutionFile);
+            TryDelete(PublicApiSolutionFile);
 
             DotNetBuildSonarSolution(
                 PublicApiSolutionFile,
@@ -180,7 +180,7 @@ partial class Build : NukeBuild
             }
         });
 
-    private static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
+    static async Task<List<string>> GetNonEmptyLinesAsync(string filepath)
     {
         var lines = await File.ReadAllLinesAsync(filepath);
 

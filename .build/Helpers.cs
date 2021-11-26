@@ -8,7 +8,7 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    public static readonly string[] Directories =
+    static readonly string[] Directories =
     {
         "GreenDonut",
         Path.Combine("HotChocolate", "Analyzers"),
@@ -30,8 +30,8 @@ class Helpers
         Path.Combine("StrawberryShake", "Tooling")
     };
 
-    public static IEnumerable<string> GetAllProjects(
-        string sourceDirectory, 
+    static IEnumerable<string> GetAllProjects(
+        string sourceDirectory,
         IEnumerable<string> directories,
         Func<string, bool> include = null)
     {
@@ -98,7 +98,7 @@ class Helpers
         return list;
     }
 
-    public static void TryDelete(string fileName) 
+    public static void TryDelete(string fileName)
     {
         if(File.Exists(fileName))
         {

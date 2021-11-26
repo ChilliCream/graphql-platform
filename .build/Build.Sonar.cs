@@ -9,7 +9,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
 using static System.IO.Path;
 
-partial class Build : NukeBuild
+partial class Build
 {
     [Parameter] readonly string SonarToken;
     [Parameter] readonly string SonarServer = "https://sonarcloud.io";
@@ -75,12 +75,12 @@ partial class Build : NukeBuild
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
                 .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"))
-            .SetFramework(Net50);
+            .SetFramework(Net60);
 
     SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
             .SetVersion(GitVersion.SemVer)
-            .SetFramework(Net50);
+            .SetFramework(Net60);
 
     SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
         SonarBaseSettings(settings)
@@ -104,7 +104,7 @@ partial class Build : NukeBuild
         settings
             .SetLogin(SonarToken)
             .SetProcessWorkingDirectory(RootDirectory)
-            .SetFramework(Net50);
+            .SetFramework(Net60);
 
     DotNetBuildSettings SonarBuildAll(DotNetBuildSettings settings) =>
         settings
@@ -113,8 +113,6 @@ partial class Build : NukeBuild
             .SetConfiguration(Debug)
             .SetProcessWorkingDirectory(RootDirectory);
 
-    private bool IsRelevantForSonar(string fileName)
-    {
-        return !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
-    }
+    bool IsRelevantForSonar(string fileName)
+        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
 }

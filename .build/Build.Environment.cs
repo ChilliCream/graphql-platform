@@ -1,13 +1,12 @@
-using Nuke.Common;
 using Nuke.Common.IO;
 
-partial class Build : NukeBuild
+partial class Build
 {
     const string Debug = "Debug";
     const string Release = "Release";
-    const string Net50 = "net5.0";
+    const string Net60 = "net6.0";
 
-    int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
+    readonly int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";

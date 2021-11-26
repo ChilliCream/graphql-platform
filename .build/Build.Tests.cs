@@ -15,7 +15,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Helpers;
 
-partial class Build : NukeBuild
+partial class Build
 {
     readonly HashSet<string> ExcludedTests = new()
     {
@@ -31,13 +31,15 @@ partial class Build : NukeBuild
         "HotChocolate.Analyzers.Tests"
     };
 
-    [Partition(4)] readonly Partition TestPartition;
+    const int _testPartitionCount = 4;
 
-    IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
+    [Partition(_testPartitionCount)] readonly Partition TestPartitions;
+
+    IEnumerable<Project> TestProjects => TestPartitions.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where((t => !ExcludedTests.Contains(t.Name))));
 
-    IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
+    IEnumerable<Project> CoverProjects => TestPartitions.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where((t => !ExcludedCover.Contains(t.Name))));
 
@@ -72,7 +74,7 @@ partial class Build : NukeBuild
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(() => TestPartition)
+        .Partition(_testPartitionCount)
         .Executes(() =>
         {
             try
@@ -125,20 +127,20 @@ partial class Build : NukeBuild
         TestBaseSettings(settings)
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx"));
+                .SetLoggers($"trx;LogFileName={v.Name}.trx"));
 
     IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
-        DotNetTestSettings settings, 
+        DotNetTestSettings settings,
         IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
-            .SetFramework(Net50)
+            .SetFramework(Net60)
             .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
@@ -149,7 +151,7 @@ partial class Build : NukeBuild
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>

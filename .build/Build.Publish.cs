@@ -16,7 +16,7 @@ using static Nuke.Common.Tools.NuGet.NuGetTasks;
 using Project = Microsoft.Build.Evaluation.Project;
 
 
-partial class Build : NukeBuild
+partial class Build
 {
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
     [Parameter("NuGet Source for Packages")] readonly string NuGetSource = "https://api.nuget.org/v3/index.json";
@@ -27,7 +27,7 @@ partial class Build : NukeBuild
         .Produces(PackageDirectory / "*.nupkg")
         .Produces(PackageDirectory / "*.snupkg")
         .Requires(() => Configuration.Equals(Release));
-        
+
 
     Target PackLocal => _ => _
         .Produces(PackageDirectory / "*.nupkg")
