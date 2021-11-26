@@ -135,7 +135,9 @@ public class GenerateClientCommandHandler : CommandHandler<GenerateClientArgumen
     {
         using IActivity activity = Output.WriteActivity($"Generate Client for {configFileName}");
 
-        if (!TryLoadConfig(activity, configFileName, out GraphQLConfig? config))
+        GraphQLConfig? config = await TryLoadConfigAsync(activity, configFileName);
+
+        if (config is null)
         {
             return;
         }
@@ -202,22 +204,19 @@ public class GenerateClientCommandHandler : CommandHandler<GenerateClientArgumen
         }
     }
 
-    private async Task<bool> TryLoadConfigAsync(
+    private async Task<GraphQLConfig?> TryLoadConfigAsync(
         IActivity activity,
-        string fileName,
-        [NotNullWhen(true)] out GraphQLConfig? config)
+        string fileName)
     {
         try
         {
             var json = await File.ReadAllTextAsync(fileName);
-            config = GraphQLConfig.FromJson(json);
-            return true;
+            return GraphQLConfig.FromJson(json);
         }
         catch (Exception ex)
         {
             activity.WriteError(ex);
-            config = null;
-            return false;
+            return null;
         }
     }
 
