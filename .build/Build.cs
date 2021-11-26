@@ -4,31 +4,11 @@ using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.CI.GitHubActions;
 using Nuke.Common.Execution;
 using Nuke.Common.Tools.DotNet;
+using Nuke.Notifications;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Helpers;
 
-[AzurePipelines(
-    suffix: "test-pr-hotchocolate",
-    AzurePipelinesImage.UbuntuLatest,
-    InvokedTargets = new[] { nameof(Sonar) },
-    PullRequestsAutoCancel = true,
-    PullRequestsBranchesInclude = new[] { "master" },
-    AutoGenerate = false)]
-[GitHubActions(
-    "sonar-pr-hotchocolate",
-    GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(SonarPr) },
-    ImportGitHubTokenAs = nameof(GitHubToken),
-    ImportSecrets = new[] { nameof(SonarToken) },
-    AutoGenerate = false)]
-[GitHubActions(
-    "tests-pr-hotchocolate",
-    GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(Test) },
-    ImportGitHubTokenAs = nameof(GitHubToken),
-    AutoGenerate = false)]
+[Notifications]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild

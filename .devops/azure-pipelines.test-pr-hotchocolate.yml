@@ -27,7 +27,11 @@ stages:
             displayName: "Run Tests"
             continueOnError: true
             inputs:
-              script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)' 
+            env:
+              NUKE_TOKEN: $(NUKE_TOKEN)
+              NUKE_FUNCTIONS_HOST: $(NUKE_FUNCTIONS_HOST)
+                
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:
