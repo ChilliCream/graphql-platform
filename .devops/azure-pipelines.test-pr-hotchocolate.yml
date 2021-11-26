@@ -6,6 +6,9 @@ trigger:
 pr:
   - main
 
+variables:
+  - group: Nuke
+
 stages:
   - stage: ubuntu
     displayName: "Ubuntu 20.04"
