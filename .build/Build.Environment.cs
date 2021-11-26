@@ -1,13 +1,13 @@
-using Nuke.Common;
 using Nuke.Common.IO;
 
-partial class Build : NukeBuild
+partial class Build
 {
     const string Debug = "Debug";
     const string Release = "Release";
     const string Net50 = "net5.0";
+    const string Net60 = "net6.0";
 
-    int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
+    readonly int DegreeOfParallelism = System.Environment.ProcessorCount * 2;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath AllSolutionFile => SourceDirectory / "All.sln";
@@ -22,9 +22,6 @@ partial class Build : NukeBuild
     AbsolutePath CoverageReportDirectory => OutputDirectory / "coberage-reports";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
 
-    string ChangelogFile => RootDirectory / "CHANGELOG.md";
-
-    AbsolutePath StrawberryShakeNuSpec => SourceDirectory / "StrawberryShake" / "CodeGeneration" / "src" / "MSBuild" / "StrawberryShake.nuspec";
     AbsolutePath StarWarsTemplateNuSpec => RootDirectory / "templates" / "StarWars" / "HotChocolate.Templates.StarWars.nuspec";
 
     AbsolutePath StarWarsProj => RootDirectory / "templates" / "StarWars" / "content" / "StarWars.csproj";
