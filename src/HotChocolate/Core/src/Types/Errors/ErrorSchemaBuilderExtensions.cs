@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types;
+using HotChocolate.Types.Errors;
 
 namespace HotChocolate;
 
@@ -48,5 +49,5 @@ public static class ErrorSchemaBuilderExtensions
     public static ISchemaBuilder AddErrorInterfaceType(
         this ISchemaBuilder schemaBuilder,
         Type type) =>
-        schemaBuilder.SetContextData(ErrorSchemaContextData.ErrorType, type);
+        schemaBuilder.SetContextData(ErrorContextData.ErrorType, type);
 }

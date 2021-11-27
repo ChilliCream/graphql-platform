@@ -6,7 +6,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.ErrorSchemaContextData;
 using static HotChocolate.Types.Errors.ErrorContextData;
 
 #nullable enable
