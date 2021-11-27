@@ -3,7 +3,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Errors;
 
-public static class ThrowHelper
+internal static class ThrowHelper
 {
     public static Exception TypeInspectorCouldNotBeLoaded(IType type) =>
         new SchemaException(SchemaErrorBuilder.New()
