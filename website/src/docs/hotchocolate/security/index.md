@@ -46,8 +46,23 @@ With GraphQL, we give the consumer of our API the ability to drill into our data
 
 [Learn more about query depth validation rules](/docs/hotchocolate/security/query-depth). -->
 
-# Operation Complexity
+# Operation complexity
 
 With technologies like REST, it was easy to scale servers and measure the impact of a single request on our server infrastructure. With GraphQL, we need to do a bit more to enforce that requests have a consistent impact on our servers. Hot Chocolate can track the cost of fields and deny the execution of requests that exceed the allowed impact on our system.
 
 [Learn more about the operation complexity analyzer](/docs/hotchocolate/security/operation-complexity).
+
+# FIPS compliance
+
+Per default Hot Chocolate uses MD5 to create a unique document hash. Since MD5 is not FIPS compliant, this might lead to issues, if you are trying to run Hot Chocolate on a device that is in FIPS compliance mode.
+
+Fortunately, we offer the option to use the FIPS compliant SHA256 hashing algorithm to create document hashes.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddSha256DocumentHashProvider();
+}
+```
+
+[Learn more about document hashing providers](/docs/hotchocolate/performance/persisted-queries#hashing-algorithms)
