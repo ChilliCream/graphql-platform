@@ -28,7 +28,7 @@ static HotChocolate.Types.PayloadObjectFieldDescriptorExtension.Payload(this Hot
 ~HotChocolate.Types.ErrorAttribute.ErrorAttribute(System.Type errorType) -> void
 ~HotChocolate.Types.ErrorAttribute.ErrorType.get -> System.Type
 ~HotChocolate.Types.Errors.IPayloadErrorFactory<TError, TException>
-~HotChocolate.Types.Errors.IPayloadErrorFactory<TError, TException>.CreateErrorFrom(TException ex) -> TError
+~HotChocolate.Types.Errors.IPayloadErrorFactory<TError, TException>.CreateErrorFrom(TException exception) -> TError
 ~HotChocolate.Types.IArgumentDescriptor.ConfigureContextData(System.Action<HotChocolate.ExtensionData> configure) -> HotChocolate.Types.IArgumentDescriptor
 ~override HotChocolate.Types.ErrorAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext context, HotChocolate.Types.IObjectFieldDescriptor descriptor, System.Reflection.MemberInfo member) -> void
 ~static HotChocolate.ErrorSchemaBuilderExtensions.AddErrorInterfaceType(this HotChocolate.ISchemaBuilder schemaBuilder, System.Type type) -> HotChocolate.ISchemaBuilder
