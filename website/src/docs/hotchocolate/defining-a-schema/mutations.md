@@ -200,3 +200,310 @@ services
     .AddGraphQLServer()
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
+
+# Input & Payload
+In GraphQL it is best practice to have a single argument on mutations called `input` and each mutation should return a payload object. 
+
+```graphql
+type Mutation {
+  updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
+}
+
+input UpdateUserNameInput {
+  userId: ID!
+  username: String!
+}
+
+type UpdateUserNamePayload {
+  user: User
+}
+```
+
+Following this pattern helps to keep the schema evolvable, but requires a lot of boiler plate code to realize. 
+HotChocolate has built in helpers for inputs and payloads to minimize boiler plate code.
+
+The schema above could just be defined with this code:
+
+```csharp
+public class Mutation 
+{
+  [Input]
+  [Payload]
+  public User? UpdateUserNameAsync([ID] Guid userId, string username)
+  {
+    //...
+  }
+}
+```
+
+## Defining payloads
+
+To define a payload you can either annotate the resolver with `[Payload(...)]` or use `.Payload(..)` if you use code first types.
+
+The `Payload` middleware is optimized for the use case of a single field on the payload. 
+If you need more than one field, you should define your custom payload object. 
+The name of the field that holds the result, can be configured with the `FieldName` parameter of the attribute/extension-method. 
+By default the name is the name of the returned runtime type. You can also override the type name with the `TypeName` parameter.
+
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Mutation
+{
+    [Payload("customPayloadField", TypeName = "CustomTypeName")] // <-------------
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Mutation
+{
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+
+public class MutationType : ObjectType<Mutation>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Mutation> descriptor)
+    {
+        descriptor
+          .Field(f => f.CreateUserAsync(default, default, default, default))
+          .Payload("customPayloadField", "CustomTypeName");
+    }
+}
+```
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Currently only supported in Code First and Annotation Based
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+The configuration above emits the following schema: 
+
+```graphql
+type CustomTypeName {
+  customPayloadField: User
+}
+```
+
+## Defining inputs
+
+The `[Input]` annotation or the `.Input` extension method, can be used to combine arguments in a input object. 
+By default all parameters of a method are combined into a input object and a argument is added.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Mutation
+{
+    [Input]
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Mutation
+{
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+
+public class MutationType : ObjectType<Mutation>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Mutation> descriptor)
+    {
+        descriptor
+          .Field(f => f.CreateUserAsync(default, default, default, default))
+          .Input();
+    }
+}
+```
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Currently only supported in Code First and Annotation Based
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+
+The default name of the argument is `input`. You can configure this with the `name` parameter.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Mutation
+{
+    [Input("custom")]
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Mutation
+{
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+
+public class MutationType : ObjectType<Mutation>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Mutation> descriptor)
+    {
+        descriptor
+          .Field(f => f.CreateUserAsync(default, default, default, default))
+          .Input("custom");
+    }
+}
+```
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Currently only supported in Code First and Annotation Based
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+The configuration above emits the following schema: 
+
+```graphql
+type Mutation {
+  createUser(custom: CreateUserCustomInput): CreateUserPayload
+}
+
+type CreateUserPayload {
+  user: User
+}
+
+input CreateUserCustomInput {
+  username: String!
+  name: String!
+  lastName: String!
+}
+```
+
+You can also define the `Input` annotation on arguments directly and define multiple inputs.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Mutation
+{
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        [Input("a")] string username,
+        [Input("a")] string name,
+        [Input("b")] string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class Mutation
+{
+    public User CreateUserAsync(
+        [Service] IUserService service,
+        string username,
+        string name,
+        string lastName)
+        => userSerivce.CreateUser(username, name, lastName);
+}
+
+public class MutationType : ObjectType<Mutation>
+{
+    protected override void Configure(
+        IObjectTypeDescriptor<Mutation> descriptor)
+    {
+        descriptor
+          .Field(f => f.CreateUserAsync(default, default, default, default))
+          .Argument("username", x => x.Input("a"))
+          .Argument("name", x => x.Input("a"))
+          .Argument("lastName", x => x.Input("b"))
+          .Input();
+    }
+}
+```
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```csharp
+// Currently only supported in Code First and Annotation Based
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+The configuration above emits the following schema: 
+
+```graphql
+type Mutation {
+  createUser(a: CreateUserAInput, b: CreateUserBInput): CreateUserPayload
+}
+
+type CreateUserPayload {
+  user: User
+}
+
+input CreateUserAInput {
+  username: String!
+  name: String!
+}
+input CreateUserBInput {
+  lastName: String!
+}
+```

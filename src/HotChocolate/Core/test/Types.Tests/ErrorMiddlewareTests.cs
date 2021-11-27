@@ -387,14 +387,14 @@ public class ErrorMiddlewareTests
         : IPayloadErrorFactory<CustomError, InvalidOperationException>,
           IPayloadErrorFactory<CustomNullRef, NullReferenceException>
     {
-        public CustomError CreateErrorFrom(InvalidOperationException ex)
+        public CustomError CreateErrorFrom(InvalidOperationException exception)
         {
-            return new CustomError(ex);
+            return new CustomError(exception);
         }
 
-        public CustomNullRef CreateErrorFrom(NullReferenceException ex)
+        public CustomNullRef CreateErrorFrom(NullReferenceException exception)
         {
-            return new CustomNullRef(ex);
+            return new CustomNullRef(exception);
         }
     }
 
