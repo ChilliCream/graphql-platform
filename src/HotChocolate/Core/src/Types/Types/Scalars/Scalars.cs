@@ -33,6 +33,11 @@ public static class Scalars
         { typeof(byte[]), typeof(ByteArrayType) },
         { typeof(NameString), typeof(NameType) },
         { typeof(TimeSpan), typeof(TimeSpanType) },
+
+        #if NET6_0_OR_GREATER
+        { typeof(DateOnly), typeof(DateType) },
+        { typeof(TimeOnly), typeof(TimeSpanType) },
+        #endif
     };
 
     private static readonly Dictionary<NameString, Type> _nameLookup = new()

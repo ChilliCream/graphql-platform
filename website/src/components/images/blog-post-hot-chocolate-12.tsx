@@ -14,7 +14,7 @@ export const BlogPostHotChocolate12: FC = () => {
         sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
-          gatsbyImageData(layout: CONSTRAINED, width: 1200)
+          gatsbyImageData(layout: CONSTRAINED, width: 1200, quality: 100)
         }
       }
     }
