@@ -1,4 +1,7 @@
 using System;
+using System.Globalization;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.MongoDb.Filters;
 
 namespace HotChocolate.Data.MongoDb
 {
@@ -14,5 +17,21 @@ namespace HotChocolate.Data.MongoDb
                     .SetCode(ErrorCodes.Data.NoPagingationProviderFound)
                     .Build());
         }
+
+        public static InvalidOperationException Filtering_MongoDbCombinator_QueueEmpty(
+            MongoDbFilterCombinator combinator) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                MongoDbResources.Filtering_MongoDbCombinator_QueueEmpty,
+                combinator.GetType()));
+
+        public static InvalidOperationException Filtering_MongoDbCombinator_InvalidCombinator(
+            MongoDbFilterCombinator combinator,
+            FilterCombinator operation) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                MongoDbResources.Filtering_MongoDbCombinator_InvalidCombinator,
+                combinator.GetType(),
+                operation.ToString()));
     }
 }

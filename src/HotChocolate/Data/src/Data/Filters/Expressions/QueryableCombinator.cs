@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterCombinator combinator,
             [NotNullWhen(true)] out Expression combined)
         {
-            if (operations.Count < 1)
+            if (operations.Count == 0)
             {
                 throw ThrowHelper.Filtering_QueryableCombinator_QueueEmpty(this);
             }
