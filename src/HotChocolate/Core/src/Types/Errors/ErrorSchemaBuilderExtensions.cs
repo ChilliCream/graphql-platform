@@ -1,11 +1,12 @@
 using System;
-using HotChocolate;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace HotChocolate;
 
-public static partial class RequestExecutorBuilderExtensions
+/// <summary>
+/// Common extensions to configure the schema with a common error interface
+/// </summary>
+public static class ErrorSchemaBuilderExtensions
 {
     /// <summary>
     /// Defines the common interface that all errors implement.
@@ -15,8 +16,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
     /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
-    /// <param name="builder">
-    /// The request executor builder
+    /// <param name="schemaBuilder">
+    /// The schema builder
     /// </param>
     /// <typeparam name="T">
     /// The type that is used as the common interface
@@ -24,9 +25,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <returns>j
     /// The schema builder
     /// </returns>
-    public static IRequestExecutorBuilder AddErrorInterfaceType<T>(
-        this IRequestExecutorBuilder builder) =>
-        builder.ConfigureSchema(x => x.AddErrorInterfaceType<T>());
+    public static ISchemaBuilder AddErrorInterfaceType<T>(this ISchemaBuilder schemaBuilder) =>
+        schemaBuilder.AddErrorInterfaceType(typeof(T));
 
     /// <summary>
     /// Defines the common interface that all errors implement.
@@ -36,17 +36,17 @@ public static partial class RequestExecutorBuilderExtensions
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
     /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
-    /// <param name="builder">
-    /// The request executor builder
+    /// <param name="schemaBuilder">
+    /// The schema builder
     /// </param>
     /// <param name="type">
     /// The type that is used as the common interface
     /// </param>
     /// <returns>
-    /// The request executor builder
+    /// The schema builder
     /// </returns>
-    public static IRequestExecutorBuilder AddErrorInterfaceType(
-        this IRequestExecutorBuilder builder,
+    public static ISchemaBuilder AddErrorInterfaceType(
+        this ISchemaBuilder schemaBuilder,
         Type type) =>
-        builder.ConfigureSchema(x => x.AddErrorInterfaceType(type));
+        schemaBuilder.SetContextData(ErrorSchemaContextData.ErrorType, type);
 }
