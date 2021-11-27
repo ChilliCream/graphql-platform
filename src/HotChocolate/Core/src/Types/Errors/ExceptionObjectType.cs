@@ -2,7 +2,9 @@ using System;
 
 namespace HotChocolate.Types.Errors;
 
-internal class ExceptionObjectType<T> : ObjectType<T> where T : Exception
+internal class ExceptionObjectType<T>
+    : ObjectType<T>
+    where T : Exception
 {
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
@@ -16,7 +18,7 @@ internal class ExceptionObjectType<T> : ObjectType<T> where T : Exception
         descriptor.Ignore(x => x.TargetSite);
         descriptor.Ignore(x => x.GetBaseException());
         descriptor.Field(x => x.Message).Type<NonNullType<StringType>>();
-        descriptor.Implements<ErrorInterfaceType>();
+        descriptor.Extend().Definition.ContextData.MarkAsError();
     }
 
     private static string GetNameFromException()

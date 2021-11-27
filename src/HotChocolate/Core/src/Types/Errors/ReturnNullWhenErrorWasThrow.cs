@@ -2,29 +2,28 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Errors
+namespace HotChocolate.Types.Errors;
+
+internal class ReturnNullWhenErrorWasThrow
 {
-    internal class ReturnNullWhenErrorWasThrow
+    private readonly FieldDelegate _next;
+
+    public ReturnNullWhenErrorWasThrow(FieldDelegate next)
     {
-        private readonly FieldDelegate _next;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+    }
 
-        public ReturnNullWhenErrorWasThrow(FieldDelegate next)
+    public ValueTask InvokeAsync(IMiddlewareContext context)
+    {
+        var parent = context.Parent<object?>();
+
+        if (parent == ErrorMiddleware.ErrorObject || parent is null)
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
+            context.Result = null;
+            return default;
         }
 
-        public ValueTask InvokeAsync(IMiddlewareContext context)
-        {
-            var parent = context.Parent<object?>();
-
-            if (parent == ErrorMiddleware.ErrorObject || parent is null)
-            {
-                context.Result = null;
-                return default;
-            }
-
-            return _next(context);
-        }
+        return _next(context);
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
 
 #nullable enable
 
@@ -40,13 +41,7 @@ internal static class ErrorFactoryCompiler
             };
         }
 
-        throw new SchemaException(
-            SchemaErrorBuilder
-                .New()
-                .SetMessage(
-                    "The error type {0} does not expose any error factory.",
-                    errorType.FullName ?? errorType.Name)
-                .Build());
+        throw ThrowHelper.TypeDoesNotExposeErrorFactory(errorType);
     }
 
     private static bool TryCreateFactoryFromException(
@@ -74,16 +69,18 @@ internal static class ErrorFactoryCompiler
         MethodInfo getTypeMethod = typeof(Expression)
             .GetMethods()
             .Single(t =>
-                t.Name.EqualsOrdinal("GetType") &&
+                t.Name.EqualsOrdinal(nameof(GetType)) &&
                 t.GetParameters().Length == 0);
 
-        ParameterExpression exception = Expression.Parameter(typeof(Exception), "ex");
+        const string ex = nameof(ex);
+
+        ParameterExpression exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
         List<ErrorDefinition> errorDefinitions = new();
 
         Expression? instance = null;
         foreach (var methodInfo in errorType
-                     .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)
+                     .GetMethods(Public | Static | Instance)
                      .Where(x => x.Name == "CreateErrorFrom"))
         {
             ParameterInfo[] parameters = methodInfo.GetParameters();
@@ -134,19 +131,21 @@ internal static class ErrorFactoryCompiler
         Type errorType,
         [NotNullWhen(true)] out ErrorDefinition? definition)
     {
+        const string ex = nameof(ex);
+        const string obj = nameof(obj);
+
         MethodInfo getTypeMethod = typeof(Expression)
             .GetMethods()
             .Single(t =>
-                StringExtensions.EqualsOrdinal(t.Name, "GetType") &&
+                t.Name.EqualsOrdinal(nameof(GetType)) &&
                 t.GetParameters().Length == 0);
 
-        ParameterExpression exception = Expression.Parameter(typeof(Exception), "ex");
+        ParameterExpression exception = Expression.Parameter(typeof(Exception), ex);
         Expression nullValue = Expression.Constant(null, typeof(object));
-        ParameterExpression variable = Expression.Variable(typeof(object), "obj");
+        ParameterExpression variable = Expression.Variable(typeof(object), obj);
         Expression? previous = null;
 
-        foreach (var constructor in errorType.GetConstructors(
-                     BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+        foreach (var constructor in errorType.GetConstructors(Public | NonPublic | Instance))
         {
             ParameterInfo[] parameters = constructor.GetParameters();
             if (parameters.Length == 1 &&

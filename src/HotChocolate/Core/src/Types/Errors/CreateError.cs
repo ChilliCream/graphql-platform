@@ -2,7 +2,6 @@
 
 #nullable enable
 
-namespace HotChocolate.Types.Errors
-{
-    internal delegate object? CreateError(Exception exception);
-}
+namespace HotChocolate.Types.Errors;
+
+internal delegate object? CreateError(Exception exception);

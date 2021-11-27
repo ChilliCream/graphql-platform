@@ -1,20 +1,19 @@
 using System;
 
-namespace HotChocolate.Types.Errors
+namespace HotChocolate.Types.Errors;
+
+internal class ErrorDefinition
 {
-    internal class ErrorDefinition
+    public ErrorDefinition(Type runtimeType, Type schemaType, CreateError factory)
     {
-        public ErrorDefinition(Type runtimeType, Type schemaType, CreateError factory)
-        {
-            RuntimeType = runtimeType;
-            SchemaType = schemaType;
-            Factory = factory;
-        }
-
-        public Type SchemaType { get; }
-
-        public Type RuntimeType { get; }
-
-        public CreateError Factory { get; }
+        RuntimeType = runtimeType;
+        SchemaType = schemaType;
+        Factory = factory;
     }
+
+    public Type SchemaType { get; }
+
+    public Type RuntimeType { get; }
+
+    public CreateError Factory { get; }
 }

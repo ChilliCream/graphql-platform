@@ -1431,6 +1431,12 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory {
+            get {
+                return ResourceManager.GetString("ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory", resourceCulture);
+            }
+        }
+        
         internal static string ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch {
             get {
                 return ResourceManager.GetString("ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch", resourceCulture);

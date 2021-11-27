@@ -1,11 +1,10 @@
-namespace HotChocolate.Types.Errors
+namespace HotChocolate.Types.Errors;
+
+internal class ErrorInterfaceType : InterfaceType
 {
-    internal class ErrorInterfaceType : InterfaceType
+    protected override void Configure(IInterfaceTypeDescriptor descriptor)
     {
-        protected override void Configure(IInterfaceTypeDescriptor descriptor)
-        {
-            descriptor.Name("Error");
-            descriptor.Field("message").Type<NonNullType<StringType>>();
-        }
+        descriptor.Name("Error");
+        descriptor.Field("message").Type<NonNullType<StringType>>();
     }
 }

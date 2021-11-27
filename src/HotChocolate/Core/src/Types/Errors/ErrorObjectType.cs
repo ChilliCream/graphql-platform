@@ -19,9 +19,8 @@ internal class ErrorObjectType<T> : ObjectType<T>
 
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
-        descriptor.Implements<ErrorInterfaceType>();
-
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
+        descriptor.Extend().Definition.ContextData.MarkAsError();
     }
 
     private void RewriteMessageFieldToNonNullableStringType(ObjectTypeDefinition definition)
