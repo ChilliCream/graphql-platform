@@ -1,4 +1,7 @@
 using System;
+using System.Globalization;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Neo4J.Filtering;
 
 namespace HotChocolate.Data.Neo4J
 {
@@ -36,5 +39,22 @@ namespace HotChocolate.Data.Neo4J
                     .SetCode(ErrorCodes.Data.NoPagingationProviderFound)
                     .Build());
         }
+
+        public static InvalidOperationException Filtering_Neo4JFilterCombinator_QueueEmpty(
+            Neo4JFilterCombinator combinator) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                Neo4JResources.Filtering_Neo4JCombinator_QueueEmpty,
+                combinator.GetType()));
+
+        public static InvalidOperationException Filtering_Neo4JFilterCombinator_InvalidCombinator(
+            Neo4JFilterCombinator combinator,
+            FilterCombinator operation) =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                Neo4JResources.Filtering_Neo4JCombinator_InvalidCombinator,
+                combinator.GetType(),
+                operation.ToString()));
+
     }
 }
