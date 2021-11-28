@@ -188,5 +188,17 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration
             AssertStarWarsResult(
                 CreateIntegrationTest(),
                 FileResource.Open("IntrospectionQuery.graphql"));
+
+        [Fact]
+        public void PrefixedFieldsWithUnderscore() =>
+            AssertResult(
+                CreateIntegrationTest(),
+                skipWarnings: true,
+                @"query GetExample {
+                    _example
+                }",
+                @"type Query {
+                    _example: String!
+                }");
     }
 }
