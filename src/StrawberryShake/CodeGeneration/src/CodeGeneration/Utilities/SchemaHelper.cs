@@ -72,6 +72,10 @@ namespace StrawberryShake.CodeGeneration.Utilities
                                 scalar.Name.Value,
                                 scalar.Description?.Value));
                         }
+                        else if (scalar.Name.Value == ScalarNames.Any)
+                        {
+                            builder.AddType(new AnyType());
+                        }
                     }
 
                     builder.AddDocument(document);
@@ -81,8 +85,9 @@ namespace StrawberryShake.CodeGeneration.Utilities
             AddDefaultScalarInfos(builder, leafTypes);
 
             return builder
-                .SetSchema(d => d.Extend().OnBeforeCreate(
-                    c => c.ContextData.Add(_typeInfosKey, typeInfos)))
+                .SetSchema(d => d.Extend()
+                    .OnBeforeCreate(
+                        c => c.ContextData.Add(_typeInfosKey, typeInfos)))
                 .TryAddTypeInterceptor(
                     new LeafTypeInterceptor(leafTypes))
                 .TryAddTypeInterceptor(
@@ -105,8 +110,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             foreach (ScalarTypeExtensionNode scalarTypeExtension in scalarTypeExtensions)
             {
                 if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                        scalarTypeExtension.Name.Value,
+                        out LeafTypeInfo scalarInfo))
                 {
                     var runtimeType = GetRuntimeType(scalarTypeExtension);
                     var serializationType = GetSerializationType(scalarTypeExtension);
@@ -132,8 +137,8 @@ namespace StrawberryShake.CodeGeneration.Utilities
             foreach (EnumTypeExtensionNode scalarTypeExtension in enumTypeExtensions)
             {
                 if (!leafTypes.TryGetValue(
-                    scalarTypeExtension.Name.Value,
-                    out LeafTypeInfo scalarInfo))
+                        scalarTypeExtension.Name.Value,
+                        out LeafTypeInfo scalarInfo))
                 {
                     var runtimeType = GetRuntimeType(scalarTypeExtension);
                     var serializationType = GetSerializationType(scalarTypeExtension);
