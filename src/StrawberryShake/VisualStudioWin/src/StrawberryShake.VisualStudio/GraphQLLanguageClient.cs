@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -7,10 +6,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Newtonsoft.Json.Linq;
 using StrawberryShake.VisualStudio.Utilities;
 using StreamJsonRpc;
 
@@ -30,7 +27,6 @@ namespace StrawberryShake.VisualStudio
 
         public GraphQLLanguageClient()
         {
-            // MiddleLayer = new LanguageMiddleware(() => _rpc);
             _rootDirectory = Path.GetDirectoryName(GetType().Assembly.Location);
             _languageServer = Path.Combine(_rootDirectory, "Resources", "language-server-win.exe");
         }
@@ -47,18 +43,20 @@ namespace StrawberryShake.VisualStudio
 
         public object CustomMessageTarget => _messageHandler;
 
+        public bool ShowNotificationOnInitializeFailed => true;
+
         public async Task<Connection> ActivateAsync(CancellationToken cancellationToken)
         {
             await Microsoft.VisualStudio.Shell.ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dte = (EnvDTE.DTE)Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.GetService(typeof(EnvDTE.DTE));
+
             if(dte.Solution is { FullName: { Length: > 0 } })
             {
                 string solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
                 await BuildServerConfigAsync(solutionDir);
                 _messageHandler.RootDirectory = solutionDir;
             }
-
 
             await Task.Yield();
 
@@ -114,50 +112,11 @@ namespace StrawberryShake.VisualStudio
 #pragma warning disable VSTHRD106 // Use InvokeAsync to raise async events
         private void BeginStop() =>
             Task.Run(async () => await StopAsync(this, EventArgs.Empty).ConfigureAwait(false));
+
+        public Task<InitializationFailureContext> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
+        {
+            throw new NotImplementedException();
+        }
 #pragma warning restore VSTHRD106 // Use InvokeAsync to raise async events
-    }
-
-    public class LanguageMiddleware : ILanguageClientMiddleLayer
-    {
-        private readonly Func<JsonRpc> _rpc;
-
-        public LanguageMiddleware(Func<JsonRpc> rpc)
-        {
-            _rpc = rpc;
-        }
-
-        public bool CanHandle(string methodName)
-        {
-            return true;
-        }
-
-        public async Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
-        {
-            string s = methodParam.ToString();
-            await sendNotification(methodParam);
-        }
-
-        public Task<JToken> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken>> sendRequest)
-        {
-            return sendRequest(methodParam);
-        }
-
-        public class TextDocumentDidOpenRequest
-        {
-            public TextDocument TextDocument { get; set; }
-        }
-
-        public class TextDocument
-        {
-            public Uri Uri { get; set; }
-        }
-
-        private class State
-        {
-            private readonly ConcurrentDictionary<Uri, string> _config = new ConcurrentDictionary<Uri, string>();
-
-           // public 
-        }
-
     }
 }
