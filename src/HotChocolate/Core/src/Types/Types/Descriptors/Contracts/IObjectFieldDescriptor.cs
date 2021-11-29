@@ -131,7 +131,7 @@ public interface IObjectFieldDescriptor
         Type? resultType);
 
     /// <summary>
-    /// Resolve a value using the <paramref name="propertyOrMethod"/> 
+    /// Resolve a value using the <paramref name="propertyOrMethod"/>
     /// member selector on <typeparamref name="TResolver"/>.
     /// </summary>
     /// </summary>
@@ -162,6 +162,4 @@ public interface IObjectFieldDescriptor
     IObjectFieldDescriptor Directive(
         NameString name,
         params ArgumentNode[] arguments);
-
-    IObjectFieldDescriptor ConfigureContextData(Action<ExtensionData> configure);
 }

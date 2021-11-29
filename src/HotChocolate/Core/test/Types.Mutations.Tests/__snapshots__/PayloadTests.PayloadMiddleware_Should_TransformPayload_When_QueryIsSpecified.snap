@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "createFoo": {
+      "foo": {
+        "bar": "Bar"
+      },
+      "query": {
+        "foo": {
+          "bar": "Bar"
+        }
+      }
+    }
+  }
+}

@@ -138,13 +138,10 @@ namespace HotChocolate.Data.Sorting.Expressions
                 return visitorContext;
             }
 
-            descriptor.ConfigureContextData(
-                contextData =>
-                {
-                    contextData[ContextVisitSortArgumentKey] =
-                        (VisitSortArgument)VisitSortArgumentExecutor;
-                    contextData[ContextArgumentNameKey] = argumentName;
-                });
+            ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+            var argumentKey = (VisitSortArgument)VisitSortArgumentExecutor;
+            contextData[ContextVisitSortArgumentKey] = argumentKey;
+            contextData[ContextArgumentNameKey] = argumentName;
         }
     }
 
