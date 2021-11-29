@@ -289,7 +289,7 @@ public class ErrorMiddlewareTests
     {
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQL()
-            .AddMutations()
+            .EnableMutationConvention()
             .AddQueryType(x =>
             {
                 x.Name("Query");

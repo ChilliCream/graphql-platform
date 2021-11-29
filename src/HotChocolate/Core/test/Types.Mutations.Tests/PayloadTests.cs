@@ -18,7 +18,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .AddMutations()
+                .EnableMutationConvention()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -50,7 +50,7 @@ public class PayloadTests
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddQueryFieldToMutationPayloads()
-                .AddMutations()
+                .EnableMutationConvention()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -86,7 +86,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<CustomTypeName>()
-                .AddMutations()
+                .EnableMutationConvention()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -104,7 +104,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<DefaultMutation>()
-                .AddMutations()
+                .EnableMutationConvention()
                 .BuildRequestExecutorAsync();
 
         // Act

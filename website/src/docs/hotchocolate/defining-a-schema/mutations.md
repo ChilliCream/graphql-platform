@@ -10,8 +10,8 @@ GraphQL defines mutations as top-level fields on the mutation type. Meaning only
 
 ```sdl
 type Mutation {
-  addBook(input: AddBookInput!): AddBookPayload!
-  publishBook(input: PublishBookInput!): PublishBookPayload!
+ addBook(input: AddBookInput!): AddBookPayload!
+ publishBook(input: PublishBookInput!): PublishBookPayload!
 }
 ```
 
@@ -116,19 +116,19 @@ public class Startup
             .AddGraphQLServer()
             .AddDocumentFromString(@"
                 type Mutation {
-                  addBook(input: BookInput): Book
+                    addBook(input: BookInput): Book
                 }
 
                 input BookInput {
-                  title: String
-                  author: String
+                    title: String
+                    author: String
                 }
 
                 type Book {
-                  title: String
-                  author: String
+                    title: String
+                    author: String
                 }
-            ")
+                ")
             .BindComplexType<Mutation>();
     }
 }
@@ -184,11 +184,11 @@ public class DefaultTransactionScopeHandler : ITransactionScopeHandler
         return new DefaultTransactionScope(
             context,
             new TransactionScope(
-                TransactionScopeOption.Required,
-                new TransactionOptions
-                {
-                    IsolationLevel = IsolationLevel.ReadCommitted
-                }));
+            TransactionScopeOption.Required,
+            new TransactionOptions
+            {
+                IsolationLevel = IsolationLevel.ReadCommitted
+            }));
     }
 }
 ```
@@ -201,8 +201,9 @@ services
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 
-# Input & Payload
-In GraphQL it is best practice to have a single argument on mutations called `input` and each mutation should return a payload object. 
+# Conventions
+
+In GraphQL, it is best practice to have a single argument on mutations called `input`, and each mutation should return a payload object.
 
 ```graphql
 type Mutation {
@@ -219,32 +220,43 @@ type UpdateUserNamePayload {
 }
 ```
 
-Following this pattern helps to keep the schema evolvable, but requires a lot of boiler plate code to realize. 
-HotChocolate has built in helpers for inputs and payloads to minimize boiler plate code.
+Following this pattern helps to keep the schema evolvable but requires a lot of boilerplate code to realize.
 
-The schema above could just be defined with this code:
+HotChocolate has built-in conventions for inputs and payloads to minimize boilerplate code.
+
+The HotChocolate mutation conventions are opt-in and can be enabled like the following:
 
 ```csharp
-public class Mutation 
+service
+    .AddGraphQLServer()
+    .EnableMutationConventions()
+    ...
+```
+
+With the mutation conventions enabled, we can define the above with a single mutation class.
+
+```csharp
+public class Mutation
 {
-  [Input]
-  [Payload]
-  public User? UpdateUserNameAsync([ID] Guid userId, string username)
-  {
+    [Input]
+    [Payload]
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
+    {
     //...
-  }
+    }
 }
 ```
 
 ## Defining payloads
 
-To define a payload you can either annotate the resolver with `[Payload(...)]` or use `.Payload(..)` if you use code first types.
+To define a payload, you can either annotate the resolver with `[Payload(...)]` or use `.Payload(..)` if you use the code-first approach.
 
-The `Payload` middleware is optimized for the use case of a single field on the payload. 
-If you need more than one field, you should define your custom payload object. 
-The name of the field that holds the result, can be configured with the `FieldName` parameter of the attribute/extension-method. 
-By default the name is the name of the returned runtime type. You can also override the type name with the `TypeName` parameter.
+The `Payload` middleware is optimized for the use case of a single field on the payload.
 
+If you need more than one field, you should define your custom payload object.
+
+The field's name that holds the result can be configured with the `FieldName` parameter of the attribute/extension method.
+By default, the field name is the name of the returned runtime type. You can override the type name with the `TypeName` parameter.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -282,11 +294,12 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUserAsync(default, default, default, default))
-          .Payload("customPayloadField", "CustomTypeName");
+            .Field(f => f.CreateUserAsync(default, default, default, default))
+            .Payload("customPayloadField", "CustomTypeName");
     }
 }
 ```
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -297,7 +310,7 @@ public class MutationType : ObjectType<Mutation>
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The configuration above emits the following schema: 
+The configuration above emits the following schema:
 
 ```graphql
 type CustomTypeName {
@@ -307,8 +320,9 @@ type CustomTypeName {
 
 ## Defining inputs
 
-The `[Input]` annotation or the `.Input` extension method, can be used to combine arguments in a input object. 
-By default all parameters of a method are combined into a input object and a argument is added.
+The `[Input]` annotation or the `.Input()` extension method can combine arguments in an input object.
+
+By default, all method parameters are combined into a single input object.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -346,11 +360,12 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUserAsync(default, default, default, default))
-          .Input();
+            .Field(f => f.CreateUserAsync(default, default, default, default))
+            .Input();
     }
 }
 ```
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -360,7 +375,6 @@ public class MutationType : ObjectType<Mutation>
 
 </ExampleTabs.Schema>
 </ExampleTabs>
-
 
 The default name of the argument is `input`. You can configure this with the `name` parameter.
 
@@ -400,11 +414,12 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUserAsync(default, default, default, default))
-          .Input("custom");
+            .Field(f => f.CreateUserAsync(default, default, default, default))
+            .Input("custom");
     }
 }
 ```
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -415,7 +430,7 @@ public class MutationType : ObjectType<Mutation>
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The configuration above emits the following schema: 
+The configuration above emits the following schema:
 
 ```graphql
 type Mutation {
@@ -470,14 +485,15 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUserAsync(default, default, default, default))
-          .Argument("username", x => x.Input("a"))
-          .Argument("name", x => x.Input("a"))
-          .Argument("lastName", x => x.Input("b"))
-          .Input();
+            .Field(f => f.CreateUserAsync(default, default, default, default))
+            .Argument("username", x => x.Input("a"))
+            .Argument("name", x => x.Input("a"))
+            .Argument("lastName", x => x.Input("b"))
+            .Input();
     }
 }
 ```
+
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
@@ -488,7 +504,7 @@ public class MutationType : ObjectType<Mutation>
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The configuration above emits the following schema: 
+The configuration above emits the following schema:
 
 ```graphql
 type Mutation {

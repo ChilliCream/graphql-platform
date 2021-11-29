@@ -4,12 +4,32 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class MutationRequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddMutations(this IRequestExecutorBuilder builder)
+    /// <summary>
+    /// Enables mutation conventions which will simplify creating GraphQL mutations.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder
+    /// </param>
+    /// <returns>
+    /// The request executor builder
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is null.
+    /// </exception>
+    public static IRequestExecutorBuilder EnableMutationConvention(
+        this IRequestExecutorBuilder builder)
     {
-        builder.TryAddTypeInterceptor<ErrorTypeInterceptor>();
-        builder.TryAddTypeInterceptor<InputArgumentTypeInterceptor>();
-        builder.TryAddTypeInterceptor<PayloadTypeInterceptor>();
-        builder.Services.AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>();
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder
+            .TryAddTypeInterceptor<ErrorTypeInterceptor>()
+            .TryAddTypeInterceptor<InputArgumentTypeInterceptor>()
+            .TryAddTypeInterceptor<PayloadTypeInterceptor>()
+            .Services
+            .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>();
 
         return builder;
     }
@@ -28,7 +48,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// <typeparam name="T">
     /// The type that is used as the common interface
     /// </typeparam>
-    /// <returns>j
+    /// <returns>
     /// The schema builder
     /// </returns>
     public static IRequestExecutorBuilder AddErrorInterfaceType<T>(
