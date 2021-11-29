@@ -78,9 +78,12 @@ public static class InputDescriptorExtensions
     public static IArgumentDescriptor Input(
         this IArgumentDescriptor descriptor,
         string argumentName = "input",
-        string? typeName = null) =>
-        descriptor.ConfigureContextData(
-            x => x.Add(InputContextData.Input, new InputContextData(typeName, argumentName)));
+        string? typeName = null)
+    {
+        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        contextData[InputContextData.Input] = new InputContextData(typeName, argumentName);
+        return descriptor;
+    }
 
     /// <summary>
     /// The <c>.Input()</c> method can be used to combine arguments in a
@@ -194,7 +197,10 @@ public static class InputDescriptorExtensions
     public static IObjectFieldDescriptor Input(
         this IObjectFieldDescriptor descriptor,
         string argumentName = "input",
-        string? typeName = null) =>
-        descriptor.ConfigureContextData(
-            x => x.Add(InputContextData.Input, new InputContextData(typeName, argumentName)));
+        string? typeName = null)
+    {
+        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        contextData[InputContextData.Input] = new InputContextData(typeName, argumentName);
+        return descriptor;
+    }
 }
