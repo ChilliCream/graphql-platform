@@ -56,14 +56,14 @@ public class BsonType : ScalarType
     }
 
     /// <inheritdoc />
-    public override bool IsInstanceOfType(IValueNode literal)
+    public override bool IsInstanceOfType(IValueNode valueSyntax)
     {
-        if (literal is null)
+        if (valueSyntax is null)
         {
-            throw new ArgumentNullException(nameof(literal));
+            throw new ArgumentNullException(nameof(valueSyntax));
         }
 
-        switch (literal)
+        switch (valueSyntax)
         {
             case StringValueNode:
             case IntValueNode:
@@ -130,22 +130,22 @@ public class BsonType : ScalarType
     }
 
     /// <inheritdoc />
-    public override object? ParseLiteral(IValueNode literal)
+    public override object? ParseLiteral(IValueNode valueSyntax)
     {
-        return ParseLiteralToBson(literal);
+        return ParseLiteralToBson(valueSyntax);
     }
 
     /// <inheritdoc />
-    public override IValueNode ParseValue(object? val)
+    public override IValueNode ParseValue(object? runtimeValue)
     {
-        if (val is null)
+        if (runtimeValue is null)
         {
             return NullValueNode.Default;
         }
 
-        if (val is not BsonValue value)
+        if (runtimeValue is not BsonValue value)
         {
-            value = BsonTypeMapper.MapToBsonValue(val);
+            value = BsonTypeMapper.MapToBsonValue(runtimeValue);
         }
 
         switch (value)
@@ -217,7 +217,7 @@ public class BsonType : ScalarType
             return new StringValueNode(c);
         }
 
-        throw ThrowHelper.Bson_CouldNotParseValue(this, val);
+        throw ThrowHelper.Bson_CouldNotParseValue(this, runtimeValue);
     }
 
     /// <inheritdoc />
