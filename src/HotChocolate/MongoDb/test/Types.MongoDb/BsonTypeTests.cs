@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
-using NuGet.Frameworks;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -15,6 +14,21 @@ namespace HotChocolate.Types;
 
 public class BsonTypeTests
 {
+    [Fact]
+    public async Task Output_Should_BindAllRuntimeTypes()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddBsonType()
+            .AddQueryType<OutputQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        // assert
+        executor.Schema.Print().MatchSnapshot();
+    }
+
     [Fact]
     public async Task Output_Should_MatchSnapshot_When_BsonDocument()
     {

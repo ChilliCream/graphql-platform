@@ -43,8 +43,10 @@ public class BsonType : ScalarType
         Description = description;
     }
 
+    /// <inheritdoc />
     public override Type RuntimeType => typeof(BsonValue);
 
+    /// <inheritdoc />
     protected override void OnCompleteType(
         ITypeCompletionContext context,
         IDictionary<string, object?> contextData)
@@ -53,6 +55,7 @@ public class BsonType : ScalarType
         base.OnCompleteType(context, contextData);
     }
 
+    /// <inheritdoc />
     public override bool IsInstanceOfType(IValueNode literal)
     {
         if (literal is null)
@@ -127,11 +130,13 @@ public class BsonType : ScalarType
         }
     }
 
+    /// <inheritdoc />
     public override object? ParseLiteral(IValueNode literal)
     {
         return ParseLiteralToBson(literal);
     }
 
+    /// <inheritdoc />
     public override IValueNode ParseValue(object? val)
     {
         if (val is null)
@@ -221,6 +226,7 @@ public class BsonType : ScalarType
         throw ThrowHelper.Bson_CouldNotParseValue(this, val);
     }
 
+    /// <inheritdoc />
     public override IValueNode ParseResult(object? resultValue) =>
         ParseValue(resultValue);
 
@@ -335,6 +341,7 @@ public class BsonType : ScalarType
         }
     }
 
+    /// <inheritdoc />
     public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
     {
         object? elementValue;
