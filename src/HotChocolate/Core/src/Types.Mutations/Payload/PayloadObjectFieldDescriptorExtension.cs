@@ -107,7 +107,10 @@ public static class PayloadObjectFieldDescriptorExtension
     public static IObjectFieldDescriptor Payload(
         this IObjectFieldDescriptor descriptor,
         string? fieldName = null,
-        string? typeName = null) =>
-        descriptor.ConfigureContextData(
-            x => x.Add(PayloadContextData.Payload, new PayloadContextData(fieldName, typeName)));
+        string? typeName = null)
+    {
+        ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+        contextData[PayloadContextData.Payload] = new PayloadContextData(fieldName, typeName);
+        return descriptor;
+    }
 }
