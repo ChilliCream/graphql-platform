@@ -679,32 +679,6 @@ public class BsonTypeTests
     }
 
     [Fact]
-    public async Task Input_Value_ArgumentKind()
-    {
-        // arrange
-        ISchema schema = SchemaBuilder.New()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Type<BsonType>()
-                .Argument("input", a => a.Type<BsonType>())
-                .Resolve(ctx => ctx.ArgumentKind("input").ToString()))
-            .Create();
-
-        IRequestExecutor executor = schema.MakeExecutable();
-
-        // act
-        IExecutionResult result = await executor.ExecuteAsync(
-            QueryRequestBuilder.New()
-                .SetQuery("query ($foo: Bson) { foo(input: $foo) }")
-                .SetVariableValue("foo", new BsonDocument { { "a", "b" } })
-                .Create());
-
-        // assert
-        result.ToJson().MatchSnapshot();
-    }
-
-    [Fact]
     public async Task Input_Value_Boolean_As_Variable()
     {
         // arrange
