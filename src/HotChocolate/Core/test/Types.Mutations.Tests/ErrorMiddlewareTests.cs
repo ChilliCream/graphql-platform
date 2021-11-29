@@ -12,17 +12,16 @@ namespace HotChocolate.Types.Errors.Tests;
 public class ErrorMiddlewareTests
 {
     private const string _query = @"
-             query {
-                throw {
-                    errors {
-                        __typename
-                        ... on Error {
-                            message
-                        }
-                    }
+    query {
+        throw {
+            errors {
+                __typename
+                ... on Error {
+                    message
                 }
-             }
-            ";
+            }
+        }
+    }";
 
     [Fact]
     public async Task ErrorMiddleware_Should_CatchException_WhenRegistered()

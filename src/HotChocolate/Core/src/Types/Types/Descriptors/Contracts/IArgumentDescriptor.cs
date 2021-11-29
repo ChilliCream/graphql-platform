@@ -40,6 +40,4 @@ public interface IArgumentDescriptor
         where T : class, new();
 
     IArgumentDescriptor Directive(NameString name, params ArgumentNode[] arguments);
-
-    IArgumentDescriptor ConfigureContextData(Action<ExtensionData> configure);
 }

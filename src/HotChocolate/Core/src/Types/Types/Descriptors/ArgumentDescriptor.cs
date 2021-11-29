@@ -124,14 +124,6 @@ public class ArgumentDescriptor
         return this;
     }
 
-    /// <inheritdoc />
-    public new IArgumentDescriptor ConfigureContextData(
-        Action<ExtensionData> configure)
-    {
-        base.ConfigureContextData(configure);
-        return this;
-    }
-
     public new IArgumentDescriptor Directive<TDirective>(
         TDirective directiveInstance)
         where TDirective : class
