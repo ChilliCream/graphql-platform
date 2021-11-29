@@ -1,2 +1,0 @@
-static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddErrorInterfaceType(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder, System.Type! type) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
-static Microsoft.Extensions.DependencyInjection.RequestExecutorBuilderExtensions.AddErrorInterfaceType<T>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!

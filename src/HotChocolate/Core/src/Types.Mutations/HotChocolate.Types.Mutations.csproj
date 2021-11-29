@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.Mutations</PackageId>
+    <AssemblyName>HotChocolate.Types.Mutations</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>This package provides helpers for creating GraphQL mutations.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+</Project>

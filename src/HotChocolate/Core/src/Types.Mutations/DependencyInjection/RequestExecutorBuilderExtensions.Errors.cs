@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static partial class RequestExecutorBuilderExtensions
+public static class MutationRequestExecutorBuilderExtensions
 {
     /// <summary>
     /// Defines the common interface that all errors implement.
