@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Types;
 
 /// <summary>
@@ -13,8 +11,7 @@ namespace HotChocolate.Types;
 /// <typeparam name="TException">
 /// The exception that should be caught and translated
 /// </typeparam>
-public interface IPayloadErrorFactory<out TError, in TException>
-    where TException : Exception
+public interface IPayloadErrorFactory<in TException, out TError> where TException : Exception
 {
     /// <summary>
     /// Translates a exception of type <typeparamref name="TException"/> to a GraphQL error of

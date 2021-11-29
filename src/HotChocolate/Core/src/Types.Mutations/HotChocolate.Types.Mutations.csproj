@@ -16,10 +16,14 @@
     <Using Include="System.Collections.Generic" />
     <Using Include="System.Reflection" />
     <Using Include="System.Threading.Tasks" />
+    <Using Include="HotChocolate.Configuration" />
+    <Using Include="HotChocolate.Language" />
     <Using Include="HotChocolate.Internal" />
     <Using Include="HotChocolate.Types" />
     <Using Include="HotChocolate.Types.Descriptors" />
+    <Using Include="HotChocolate.Types.Descriptors.Definitions" />
     <Using Include="HotChocolate.Resolvers" />
+    <Using Include="HotChocolate.Utilities" />
   </ItemGroup>
 
   <ItemGroup>

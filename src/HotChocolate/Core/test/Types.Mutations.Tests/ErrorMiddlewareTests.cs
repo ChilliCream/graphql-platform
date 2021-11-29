@@ -372,8 +372,8 @@ public class ErrorMiddlewareTests
     }
 
     public class CustomErrorPayloadErrorFactory
-        : IPayloadErrorFactory<CustomError, InvalidOperationException>,
-          IPayloadErrorFactory<CustomNullRef, NullReferenceException>
+        : IPayloadErrorFactory<InvalidOperationException, CustomError>
+        , IPayloadErrorFactory<NullReferenceException, CustomNullRef>
     {
         public CustomError CreateErrorFrom(InvalidOperationException exception)
         {
@@ -410,9 +410,9 @@ public class ErrorMiddlewareTests
 
     public interface IUserError
     {
-        string Message { get; }
+        string? Message { get; }
 
-        string Code { get; }
+        string? Code { get; }
     }
 
     public class CustomError

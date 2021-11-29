@@ -18,6 +18,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -35,8 +36,7 @@ public class PayloadTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -50,6 +50,7 @@ public class PayloadTests
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddQueryFieldToMutationPayloads()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -72,8 +73,7 @@ public class PayloadTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -86,6 +86,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<CustomTypeName>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -103,6 +104,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<DefaultMutation>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act

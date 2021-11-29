@@ -18,6 +18,7 @@ namespace HotChocolate.Types
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<Query>()
+                    .AddMutations()
                     .BuildRequestExecutorAsync();
 
             // Act

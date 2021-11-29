@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
-using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 
 namespace HotChocolate.Types;

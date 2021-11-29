@@ -1,17 +1,12 @@
-using System;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-
 namespace HotChocolate.Types;
 
-internal class ReturnNullWhenErrorWasThrow
+internal sealed class ReturnNullWhenErrorWasThrown
 {
     private readonly FieldDelegate _next;
 
-    public ReturnNullWhenErrorWasThrow(FieldDelegate next)
+    public ReturnNullWhenErrorWasThrown(FieldDelegate next)
     {
-        _next = next ??
-            throw new ArgumentNullException(nameof(next));
+        _next = next ?? throw new ArgumentNullException(nameof(next));
     }
 
     public ValueTask InvokeAsync(IMiddlewareContext context)

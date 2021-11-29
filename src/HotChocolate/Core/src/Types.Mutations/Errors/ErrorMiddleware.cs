@@ -1,10 +1,8 @@
-using HotChocolate.Resolvers;
-
 namespace HotChocolate.Types;
 
-internal class ErrorMiddleware
+internal sealed class ErrorMiddleware
 {
-    public static string MiddlewareIdentifier = "HotChocolate.Types.Errors.ErrorMiddleware";
+    public const string MiddlewareIdentifier = "HotChocolate.Types.Errors.ErrorMiddleware";
 
     public static readonly object ErrorObject = new();
 

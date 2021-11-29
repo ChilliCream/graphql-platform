@@ -20,7 +20,7 @@ type InvalidOperationError implements Error {
 }
 
 type Query {
-  foo: Foo
+  foo: Foo!
 }
 
 union FooError = CustomError | InvalidOperationError

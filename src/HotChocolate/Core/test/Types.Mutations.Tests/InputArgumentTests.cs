@@ -17,6 +17,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -32,8 +33,7 @@ public class InputArgumentTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -45,23 +45,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMultiple>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A"", baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A"", baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -73,6 +73,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryDifferentArgs>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -88,8 +89,7 @@ public class InputArgumentTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -101,23 +101,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMember>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A"", baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A"", baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -129,23 +129,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMixed>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(bar: {bar: ""A""} baz:{ baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(bar: {bar: ""A""} baz:{ baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -157,23 +157,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeNameOnRoot>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A"", baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A"", baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -185,23 +185,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeNameOnRootAndOnParameters>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A"", baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A"", baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -213,23 +213,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeJustOne>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A"", baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A"", baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -241,23 +241,23 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeMultiple>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(a: {bar: ""A""},b: { baz: ""C""}) {
-                            bar
-                        }
+                {
+                    createFoo(a: {bar: ""A""},b: { baz: ""C""}) {
+                        bar
                     }
-                ");
+                }
+            ");
 
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -272,6 +272,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryCollidingNames>()
+                .AddMutations()
                 .BuildRequestExecutorAsync();
         });
 

@@ -6,13 +6,6 @@ namespace HotChocolate.Types;
 
 internal static class ThrowHelper
 {
-    public static Exception TypeInspectorCouldNotBeLoaded(IType type) =>
-        new SchemaException(SchemaErrorBuilder.New()
-            .SetMessage(
-                MutationResources.ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded,
-                type.GetType().FullName)
-            .Build());
-
     public static Exception MessageWasNotDefinedOnError(IType type, Type runtimeType) =>
         new SchemaException(SchemaErrorBuilder.New()
             .SetMessage(

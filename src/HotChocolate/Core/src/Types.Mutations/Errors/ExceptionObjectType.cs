@@ -1,10 +1,6 @@
-using System;
-
 namespace HotChocolate.Types;
 
-internal class ExceptionObjectType<T>
-    : ObjectType<T>
-    where T : Exception
+internal class ExceptionObjectType<T> : ObjectType<T> where T : Exception
 {
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
@@ -23,8 +19,9 @@ internal class ExceptionObjectType<T>
 
     private static string GetNameFromException()
     {
-        string name = typeof(T).Name;
+        var name = typeof(T).Name;
         const string exceptionSuffix = nameof(Exception);
+        
         if (name.EndsWith(exceptionSuffix))
         {
             return $"{name.Substring(0, name.Length - exceptionSuffix.Length)}Error";

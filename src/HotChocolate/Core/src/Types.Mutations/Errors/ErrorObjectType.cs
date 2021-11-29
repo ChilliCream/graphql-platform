@@ -1,7 +1,4 @@
 using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -9,32 +6,31 @@ namespace HotChocolate.Types;
 
 internal class ErrorObjectType<T> : ObjectType<T>
 {
-    private ITypeInspector? _typeInspector;
-
-    protected sealed override ObjectTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
-    {
-        _typeInspector = context.TypeInspector;
-        return base.CreateDefinition(context);
-    }
-
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {
         descriptor.Extend().OnBeforeCreate(RewriteMessageFieldToNonNullableStringType);
         descriptor.Extend().Definition.ContextData.MarkAsError();
     }
 
-    private void RewriteMessageFieldToNonNullableStringType(ObjectTypeDefinition definition)
+    private void RewriteMessageFieldToNonNullableStringType(
+        IDescriptorContext context,
+        ObjectTypeDefinition definition)
     {
-        if (_typeInspector is null)
+        // if a user provides his/her own error interface we will not rewrite the message type
+        // and the user is responsible for ensuring that type and interface align.
+        if (context.ContextData.ContainsKey(ErrorContextData.ErrorType))
         {
-            throw ThrowHelper.TypeInspectorCouldNotBeLoaded(this);
+            return;
         }
 
+        // if the error interface is the standard error interface it must provide a message
+        // filed.
         if (definition.Fields.FirstOrDefault(f => f.Name == "message") is not { } messageField)
         {
             throw ThrowHelper.MessageWasNotDefinedOnError(this, definition.RuntimeType);
         }
 
-        messageField.Type = _typeInspector.GetTypeRef(typeof(NonNullType<StringType>));
+        // we will ensure that the error message type is correct.
+        messageField.Type = TypeReference.Parse("String!");
     }
 }

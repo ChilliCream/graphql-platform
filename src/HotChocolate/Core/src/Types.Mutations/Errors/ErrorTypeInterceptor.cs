@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Types.ErrorContextData;
+using static HotChocolate.Types.ErrorMiddleware;
+using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
 #nullable enable
 
@@ -68,30 +63,26 @@ internal class ErrorTypeInterceptor : TypeInterceptor
                 {
                     d.Name(field.Name.ToTypeName(suffix: "Error"));
 
-                    d.Extend()
-                        .OnBeforeCreate(unionDef =>
+                    d.Extend().OnBeforeCreate(unionDef =>
+                    {
+                        foreach (ErrorDefinition def in definitions)
                         {
-                            foreach (ErrorDefinition def in definitions)
-                            {
-                                ExtendedTypeReference typeRef = discoveryContext
-                                    .TypeInspector
-                                    .GetTypeRef(def.SchemaType);
+                            ExtendedTypeReference typeRef = discoveryContext
+                                .TypeInspector
+                                .GetTypeRef(def.SchemaType);
 
-                                unionDef.Types.Add(typeRef);
-                            }
-                        });
+                            unionDef.Types.Add(typeRef);
+                        }
+                    });
                 });
 
                 _needsErrorField.Add((field.Type!, errorUnion));
 
-                IReadOnlyList<CreateError> factories =
-                    definitions.Select(t => t.Factory).ToArray();
+                FieldMiddleware middleware = Create<ErrorMiddleware>(
+                    (typeof(IReadOnlyList<CreateError>),
+                        definitions.Select(t => t.Factory).ToArray()));
 
-                FieldMiddleware middleware =
-                    FieldClassMiddlewareFactory.Create<ErrorMiddleware>(
-                        (typeof(IReadOnlyList<CreateError>), factories));
-
-                field.MiddlewareDefinitions.Insert(0, new(middleware));
+                field.MiddlewareDefinitions.Insert(0, new(middleware, key: MiddlewareIdentifier));
 
                 var unionTypeRef = new SchemaTypeReference(errorUnion);
                 discoveryContext.Dependencies.Add(new(unionTypeRef));
@@ -130,7 +121,7 @@ internal class ErrorTypeInterceptor : TypeInterceptor
                 foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                 {
                     FieldMiddleware? middleware = FieldClassMiddlewareFactory
-                        .Create<ReturnNullWhenErrorWasThrow>();
+                        .Create<ReturnNullWhenErrorWasThrown>();
                     field.MiddlewareDefinitions.Insert(0, new(middleware));
                     field.Type = RewriteTypeToNullableType(field, firstContext.TypeInspector);
                 }
