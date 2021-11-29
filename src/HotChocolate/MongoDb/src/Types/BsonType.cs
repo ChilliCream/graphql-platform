@@ -329,6 +329,10 @@ public class BsonType : ScalarType
                 resultValue = null;
                 return false;
 
+            case IValueNode literal:
+                resultValue = ParseLiteral(literal);
+                return true;
+
             default:
                 resultValue = null;
                 return false;

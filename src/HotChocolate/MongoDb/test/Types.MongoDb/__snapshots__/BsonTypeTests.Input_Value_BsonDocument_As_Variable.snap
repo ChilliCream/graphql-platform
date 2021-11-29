@@ -1,24 +1,5 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Bson cannot serialize the given value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 22
-        }
-      ],
-      "path": [
-        "foo"
-      ],
-      "extensions": {
-        "actualValue": "{ a: \u0022b\u0022 }",
-        "actualType": "HotChocolate.Language.ObjectValueNode",
-        "code": "EXEC_INVALID_LEAF_VALUE"
-      }
-    }
-  ],
   "data": {
-    "foo": null
+    "foo": "{ \u0022a\u0022 : \u0022b\u0022 }"
   }
 }

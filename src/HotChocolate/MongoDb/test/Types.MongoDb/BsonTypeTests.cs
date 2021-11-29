@@ -304,7 +304,7 @@ public class BsonTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<BsonType>()
-                .Resolve(_ => new Foo()))
+                .Resolve(_ => new BsonDocument() { { "foo", "bar" } }))
             .Create();
 
         IRequestExecutor executor = schema.MakeExecutable();
@@ -325,7 +325,7 @@ public class BsonTypeTests
                 .Name("Query")
                 .Field("foo")
                 .Type<BsonType>()
-                .Resolve(_ => new List<Foo> { new() }))
+                .Resolve(_ => new BsonArray(){ new BsonDocument() }))
             .Create();
 
         IRequestExecutor executor = schema.MakeExecutable();

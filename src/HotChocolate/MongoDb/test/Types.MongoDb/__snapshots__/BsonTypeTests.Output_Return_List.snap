@@ -1,24 +1,7 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Bson cannot serialize the given value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "foo"
-      ],
-      "extensions": {
-        "actualValue": "System.Collections.Generic.List\u00601[HotChocolate.Types.BsonTypeTests\u002BFoo]",
-        "actualType": "System.Collections.Generic.List\u00601[[HotChocolate.Types.BsonTypeTests\u002BFoo, HotChocolate.Types.MongoDb.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "code": "EXEC_INVALID_LEAF_VALUE"
-      }
-    }
-  ],
   "data": {
-    "foo": null
+    "foo": [
+      {}
+    ]
   }
 }
