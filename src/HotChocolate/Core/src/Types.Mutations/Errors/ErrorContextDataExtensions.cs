@@ -1,6 +1,6 @@
-using static HotChocolate.Types.Errors.ErrorContextData;
+using static HotChocolate.Types.ErrorContextData;
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal static class ErrorContextDataExtensions
 {

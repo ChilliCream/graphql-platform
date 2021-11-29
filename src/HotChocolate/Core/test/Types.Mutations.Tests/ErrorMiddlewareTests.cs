@@ -1,27 +1,27 @@
 using System;
-using HotChocolate.Execution;
-using Xunit;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
+using Xunit;
 
-namespace HotChocolate.Types.Errors.Tests;
+namespace HotChocolate.Types;
 
 public class ErrorMiddlewareTests
 {
     private const string _query = @"
-    query {
-        throw {
-            errors {
-                __typename
-                ... on Error {
-                    message
+        query {
+            throw {
+                errors {
+                    __typename
+                    ... on Error {
+                        message
+                    }
                 }
             }
-        }
-    }";
+        }";
 
     [Fact]
     public async Task ErrorMiddleware_Should_CatchException_WhenRegistered()
@@ -38,8 +38,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -58,8 +57,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -78,8 +76,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -103,8 +100,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -123,8 +119,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -143,8 +138,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -163,8 +157,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -183,8 +176,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -203,8 +195,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -223,8 +214,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -256,8 +246,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -289,8 +278,7 @@ public class ErrorMiddlewareTests
         // Assert
         res.ToJson().MatchSnapshot();
         SnapshotFullName fullName = Snapshot.FullName();
-        SnapshotFullName snapshotName =
-            new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
         executor.Schema.Print().MatchSnapshot(snapshotName);
     }
 
@@ -301,12 +289,13 @@ public class ErrorMiddlewareTests
     {
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQL()
+            .AddMutations()
             .AddQueryType(x =>
             {
                 x.Name("Query");
                 IObjectFieldDescriptor field = x.Field("throw")
                     .Type<ObjectType<Payload>>()
-                    .Resolver(ctx =>
+                    .Resolve(_ =>
                     {
                         throwError();
                         return new Payload();
@@ -416,7 +405,6 @@ public class ErrorMiddlewareTests
 
         public string Message { get; }
 
-        [GraphQLNonNullType]
         public string Code => "CODE";
     }
 

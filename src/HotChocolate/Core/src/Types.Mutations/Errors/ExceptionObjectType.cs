@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal class ExceptionObjectType<T>
     : ObjectType<T>

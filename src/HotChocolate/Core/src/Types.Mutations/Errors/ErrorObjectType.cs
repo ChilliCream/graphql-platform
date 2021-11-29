@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal class ErrorObjectType<T> : ObjectType<T>
 {

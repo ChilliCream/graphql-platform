@@ -1,12 +1,19 @@
-using System;
-using HotChocolate;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class MutationRequestExecutorBuilderExtensions
 {
+    public static IRequestExecutorBuilder AddMutations(this IRequestExecutorBuilder builder)
+    {
+        builder.TryAddTypeInterceptor<ErrorTypeInterceptor>();
+        builder.TryAddTypeInterceptor<InputArgumentTypeInterceptor>();
+        builder.TryAddTypeInterceptor<PayloadTypeInterceptor>();
+        builder.Services.AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>();
+
+        return builder;
+    }
+
     /// <summary>
     /// Defines the common interface that all errors implement.
     /// To specify the interface you can either provide a interface runtime type or a HotChocolate

@@ -6,11 +6,11 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Errors.ErrorContextData;
+using static HotChocolate.Types.ErrorContextData;
 
 #nullable enable
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal class ErrorTypeInterceptor : TypeInterceptor
 {
@@ -28,9 +28,7 @@ internal class ErrorTypeInterceptor : TypeInterceptor
         {
             Type type =
                 discoveryContext.ContextData.TryGetValue(ErrorType, out var errorType) &&
-                errorType is Type t
-                    ? t
-                    : typeof(ErrorInterfaceType);
+                errorType is Type t ? t : typeof(ErrorInterfaceType);
 
             if (!discoveryContext.TypeInspector.IsSchemaType(type))
             {
@@ -60,7 +58,7 @@ internal class ErrorTypeInterceptor : TypeInterceptor
 
         _objectTypes.Add(objectType);
 
-        foreach (var field in objectTypeDefinition.Fields)
+        foreach (ObjectFieldDefinition field in objectTypeDefinition.Fields)
         {
             if (!field.IsIntrospectionField &&
                 field.ContextData.TryGetValue(ErrorDefinitions, out var value) &&

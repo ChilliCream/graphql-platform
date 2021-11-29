@@ -9,7 +9,7 @@ using static System.Linq.Expressions.Expression;
 
 #nullable enable
 
-namespace HotChocolate.Types.Input
+namespace HotChocolate.Types
 {
     internal class InputParameterExpressionBuilder : IParameterExpressionBuilder
     {

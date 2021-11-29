@@ -10,6 +10,17 @@
     <RootNamespace>HotChocolate.Types</RootNamespace>
     <Description>This package provides helpers for creating GraphQL mutations.</Description>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Threading.Tasks" />
+    <Using Include="HotChocolate.Internal" />
+    <Using Include="HotChocolate.Types" />
+    <Using Include="HotChocolate.Types.Descriptors" />
+    <Using Include="HotChocolate.Resolvers" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />

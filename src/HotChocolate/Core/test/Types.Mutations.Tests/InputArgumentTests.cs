@@ -5,7 +5,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Errors.Tests;
+namespace HotChocolate.Types;
 
 public class InputArgumentTests
 {

@@ -6,7 +6,7 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Tests
+namespace HotChocolate.Types
 {
     public class CombineInputErrorPayloadTests
     {

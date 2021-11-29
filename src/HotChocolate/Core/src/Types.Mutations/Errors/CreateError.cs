@@ -1,7 +1,3 @@
-﻿using System;
-
-#nullable enable
-
-namespace HotChocolate.Types.Errors;
+﻿namespace HotChocolate.Types;
 
 internal delegate object? CreateError(Exception exception);

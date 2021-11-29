@@ -6,9 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Payload;
+namespace HotChocolate.Types;
 
-internal class PayloadInterceptor : TypeInterceptor
+internal class PayloadTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,

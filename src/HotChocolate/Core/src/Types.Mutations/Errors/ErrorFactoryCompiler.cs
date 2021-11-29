@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Utilities;
 using static System.Reflection.BindingFlags;
 
-#nullable enable
-
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal static class ErrorFactoryCompiler
 {
@@ -79,9 +74,9 @@ internal static class ErrorFactoryCompiler
         List<ErrorDefinition> errorDefinitions = new();
 
         Expression? instance = null;
-        foreach (var methodInfo in errorType
-                     .GetMethods(Public | Static | Instance)
-                     .Where(x => x.Name == "CreateErrorFrom"))
+        foreach (MethodInfo methodInfo in errorType
+            .GetMethods(Public | Static | Instance)
+            .Where(x => x.Name == "CreateErrorFrom"))
         {
             ParameterInfo[] parameters = methodInfo.GetParameters();
 
@@ -111,7 +106,7 @@ internal static class ErrorFactoryCompiler
                     createError = Expression.Call(instance, methodInfo, castedException);
                 }
 
-                ConditionalExpression? checkAndCreate = Expression.Condition(
+                ConditionalExpression checkAndCreate = Expression.Condition(
                     test,
                     Expression.Convert(createError, typeof(object)),
                     Expression.Convert(nullValue, typeof(object)));
@@ -145,7 +140,8 @@ internal static class ErrorFactoryCompiler
         ParameterExpression variable = Expression.Variable(typeof(object), obj);
         Expression? previous = null;
 
-        foreach (var constructor in errorType.GetConstructors(Public | NonPublic | Instance))
+        foreach (ConstructorInfo constructor in
+            errorType.GetConstructors(Public | NonPublic | Instance))
         {
             ParameterInfo[] parameters = constructor.GetParameters();
             if (parameters.Length == 1 &&
@@ -160,26 +156,19 @@ internal static class ErrorFactoryCompiler
                 Expression castedException = Expression.Convert(exception, expectedException);
                 Expression createError = Expression.New(constructor, castedException);
 
-                if (previous is null)
-                {
-                    previous = Expression.IfThenElse(
+                previous =
+                    Expression.IfThenElse(
                         test,
                         Expression.Assign(variable, createError),
-                        Expression.Assign(variable, nullValue));
-                }
-                else
-                {
-                    previous = Expression.IfThenElse(
-                        test,
-                        Expression.Assign(variable, createError),
-                        Expression.Assign(variable, previous));
-                }
+                        previous is null
+                            ? Expression.Assign(variable, nullValue)
+                            : Expression.Assign(variable, previous));
             }
         }
 
         if (previous is not null)
         {
-            CreateError? factory = Expression.Lambda<CreateError>(
+            CreateError factory = Expression.Lambda<CreateError>(
                     Expression.Block(
                         new[]
                         {

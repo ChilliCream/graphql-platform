@@ -5,9 +5,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Input;
+namespace HotChocolate.Types;
 
-internal class InputArgumentInterceptor : TypeInterceptor
+internal class InputArgumentTypeInterceptor : TypeInterceptor
 {
     public override void OnBeforeRegisterDependencies(
         ITypeDiscoveryContext discoveryContext,

@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Errors;
-using static HotChocolate.Types.Errors.ErrorContextData;
+using static HotChocolate.Types.ErrorContextData;
 
 #nullable enable
 
@@ -363,7 +362,7 @@ public static class ErrorObjectFieldDescriptorExtensions
             IReadOnlyList<ErrorDefinition>
                 definitions = ErrorFactoryCompiler.Compile(errorType);
 
-            if (!d.ContextData.TryGetValue(ErrorDefinitions, out object? value) ||
+            if (!d.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
                 !(value is List<ErrorDefinition> errorFactories))
             {
                 errorFactories = new List<ErrorDefinition>();
@@ -372,7 +371,7 @@ public static class ErrorObjectFieldDescriptorExtensions
 
             errorFactories.AddRange(definitions);
 
-            foreach (var definition in definitions)
+            foreach (ErrorDefinition definition in definitions)
             {
                 ExtendedTypeReference typeRef =
                     c.TypeInspector.GetTypeRef(definition.SchemaType);

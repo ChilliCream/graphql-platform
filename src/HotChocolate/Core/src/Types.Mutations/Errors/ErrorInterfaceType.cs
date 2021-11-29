@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal class ErrorInterfaceType : InterfaceType
 {

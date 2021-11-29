@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal class ErrorMiddleware
 {

@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Input;
+namespace HotChocolate.Types;
 
 internal class InputContextData
 {

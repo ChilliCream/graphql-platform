@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Payload;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// <see cref="Payload"/> is used as a data transform structure for the execution engine and

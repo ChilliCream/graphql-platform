@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 internal static class ErrorContextData
 {

@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types.Errors;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Defines a error factory that translates exceptions into GraphQL errors.

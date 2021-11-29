@@ -1,8 +1,6 @@
 using System;
-using HotChocolate.Types;
-using HotChocolate.Types.Errors;
 
-namespace HotChocolate;
+namespace HotChocolate.Types;
 
 /// <summary>
 /// Common extensions to configure the schema with a common error interface

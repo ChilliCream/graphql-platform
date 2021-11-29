@@ -3,7 +3,7 @@ using HotChocolate.Resolvers;
 
 #nullable enable
 
-namespace HotChocolate.Types.Payload;
+namespace HotChocolate.Types;
 
 internal class PayloadMiddleware
 {

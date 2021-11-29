@@ -1,5 +1,3 @@
-using HotChocolate.Types.Input;
-
 #nullable enable
 
 namespace HotChocolate.Types;
