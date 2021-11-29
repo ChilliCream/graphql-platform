@@ -1,0 +1,24 @@
+﻿{
+  "errors": [
+    {
+      "message": "Bson cannot serialize the given value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "foo"
+      ],
+      "extensions": {
+        "actualValue": "HotChocolate.Types.BsonTypeTests\u002BFoo",
+        "actualType": "HotChocolate.Types.BsonTypeTests\u002BFoo",
+        "code": "EXEC_INVALID_LEAF_VALUE"
+      }
+    }
+  ],
+  "data": {
+    "foo": null
+  }
+}
