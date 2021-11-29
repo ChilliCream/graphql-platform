@@ -104,7 +104,6 @@ public class BsonType : ScalarType
                 return new BsonBoolean(bvn.Value);
 
             case ListValueNode lvn:
-
                 BsonValue?[] values = new BsonValue[lvn.Items.Count];
                 for (var i = 0; i < lvn.Items.Count; i++)
                 {
@@ -114,8 +113,8 @@ public class BsonType : ScalarType
                 return new BsonArray(values);
 
             case ObjectValueNode ovn:
-                BsonDocument document = new BsonDocument();
-                foreach (var field in ovn.Fields)
+                BsonDocument document = new();
+                foreach (ObjectFieldNode field in ovn.Fields)
                 {
                     document.Add(field.Name.Value, ParseLiteralToBson(field.Value));
                 }
@@ -188,12 +187,10 @@ public class BsonType : ScalarType
 
         if (value is BsonDocument doc)
         {
-            var fields = new List<ObjectFieldNode>();
-            foreach (var field in doc)
+            List<ObjectFieldNode> fields = new();
+            foreach (BsonElement field in doc)
             {
-                fields.Add(new ObjectFieldNode(
-                    field.Name,
-                    ParseValue(field.Value)));
+                fields.Add(new ObjectFieldNode(field.Name, ParseValue(field.Value)));
             }
 
             return new ObjectValueNode(fields);
@@ -201,7 +198,7 @@ public class BsonType : ScalarType
 
         if (value is BsonArray arr)
         {
-            var valueList = new List<IValueNode>();
+            List<IValueNode> valueList = new();
             foreach (BsonValue element in arr)
             {
                 valueList.Add(ParseValue(element));
@@ -213,12 +210,9 @@ public class BsonType : ScalarType
         var mappedValue = BsonTypeMapper.MapToDotNetValue(value);
         Type type = mappedValue.GetType();
 
-        if (type.IsValueType && _converter.TryConvert(
-                type,
-                typeof(string),
-                mappedValue,
-                out object? converted)
-            && converted is string c)
+        if (type.IsValueType &&
+            _converter.TryConvert(type, typeof(string), mappedValue, out object? converted) &&
+            converted is string c)
         {
             return new StringValueNode(c);
         }
