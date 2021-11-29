@@ -159,7 +159,7 @@ public class InputAttribute : DescriptorAttribute
     }
 
     /// <inheritdoc />
-    protected internal override void TryConfigure(
+    protected override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
         ICustomAttributeProvider element)

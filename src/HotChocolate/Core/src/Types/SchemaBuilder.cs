@@ -10,9 +10,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Interceptors;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Utilities;
-using HotChocolate.Types.Errors;
-using HotChocolate.Types.Input;
-using HotChocolate.Types.Payload;
 
 #nullable enable
 
@@ -38,10 +35,7 @@ public partial class SchemaBuilder : ISchemaBuilder
         typeof(IntrospectionTypeInterceptor),
         typeof(InterfaceCompletionTypeInterceptor),
         typeof(CostTypeInterceptor),
-        typeof(MiddlewareValidationTypeInterceptor),
-        typeof(InputArgumentInterceptor),
-        typeof(PayloadInterceptor),
-        typeof(ErrorTypeInterceptor)
+        typeof(MiddlewareValidationTypeInterceptor)
     };
     private SchemaOptions _options = new();
     private IsOfTypeFallback? _isOfType;

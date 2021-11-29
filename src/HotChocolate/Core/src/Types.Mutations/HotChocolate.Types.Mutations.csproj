@@ -16,4 +16,19 @@
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\MutationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MutationResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\MutationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MutationResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
