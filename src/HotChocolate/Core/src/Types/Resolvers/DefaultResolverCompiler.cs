@@ -35,8 +35,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
-    private readonly List<IParameterContextBuilder> _parameterContextBuilders;
-    private readonly IParameterContextBuilder? _parameterContextBuilder;
+    private readonly List<IParameterFieldConfiguration> _parameterFieldConfigurations;
     private readonly ImplicitArgumentParameterExpressionBuilder _defaultExprBuilder = new();
 
     public DefaultResolverCompiler(
@@ -55,8 +54,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new ScopedServiceParameterExpressionBuilder(),
         };
 
-        var parameterContextBuilders = new List<IParameterContextBuilder>();
-
         if (customParameterExpressionBuilders is not null)
         {
             // then we will add custom parameter expression builder and
@@ -64,11 +61,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             foreach (IParameterExpressionBuilder builder in customParameterExpressionBuilders)
             {
                 parameterExpressionBuilders.Add(builder);
-
-                if (builder is IParameterContextBuilder contextBuilder)
-                {
-                    parameterContextBuilders.Add(contextBuilder);
-                }
             }
         }
 
@@ -86,9 +78,18 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         parameterExpressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         parameterExpressionBuilders.Add(new PathParameterExpressionBuilder());
 
+        var parameterFieldConfigurations = new List<IParameterFieldConfiguration>();
+
+        foreach (IParameterExpressionBuilder builder in parameterExpressionBuilders)
+        {
+            if (builder is IParameterFieldConfiguration configuration)
+            {
+                parameterFieldConfigurations.Add(configuration);
+            }
+        }
+
         _parameterExpressionBuilders = parameterExpressionBuilders;
-        _parameterContextBuilders = parameterContextBuilders;
-        _parameterContextBuilder = parameterContextBuilders.FirstOrDefault();
+        _parameterFieldConfigurations = parameterFieldConfigurations;
     }
 
     /// <inheritdoc />
@@ -229,7 +230,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     /// <inheritdoc />
-    public void BuildResolverContextData(
+    public void ApplyConfiguration(
         ParameterInfo[] parameters,
         ObjectFieldDescriptor fieldDescriptor)
     {
@@ -238,36 +239,13 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             throw new ArgumentNullException(nameof(parameters));
         }
 
-        if (fieldDescriptor is null)
-        {
-            throw new ArgumentNullException(nameof(fieldDescriptor));
-        }
-
-        if (_parameterContextBuilders.Count == 0)
-        {
-            return;
-        }
-
-        if (_parameterContextBuilders.Count == 1)
+        foreach (IParameterFieldConfiguration configuration in _parameterFieldConfigurations)
         {
             foreach (ParameterInfo parameter in parameters)
             {
-                if (_parameterContextBuilder!.CanHandle(parameter))
+                if (configuration.CanHandle(parameter))
                 {
-                    _parameterContextBuilder.BuildContextData(parameter, fieldDescriptor);
-                }
-            }
-
-            return;
-        }
-
-        foreach (IParameterContextBuilder contextBuilder in _parameterContextBuilders)
-        {
-            foreach (ParameterInfo parameter in parameters)
-            {
-                if (contextBuilder.CanHandle(parameter))
-                {
-                    contextBuilder.BuildContextData(parameter, fieldDescriptor);
+                    configuration.ApplyConfiguration(parameter, fieldDescriptor);
                 }
             }
         }

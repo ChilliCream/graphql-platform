@@ -8,9 +8,9 @@ using static HotChocolate.Data.Internal.EntityFrameworkContextData;
 
 namespace HotChocolate.Data.Internal;
 
-internal sealed class PooledDbContextParameterExpressionBuilder<TDbContext>
+internal sealed class PooledDbConfigurationParameterExpressionBuilder<TDbContext>
     : IParameterExpressionBuilder
-    , IParameterContextBuilder
+    , IParameterConfigurationBuilder
     where TDbContext : DbContext
 {
     private readonly IParameterExpressionBuilder _innerBuilder =
@@ -26,8 +26,8 @@ internal sealed class PooledDbContextParameterExpressionBuilder<TDbContext>
     public Expression Build(ParameterInfo parameter, Expression context)
         => _innerBuilder.Build(parameter, context);
 
-    public void BuildContextData(ParameterInfo parameter, ObjectFieldDescriptor fieldDescriptor)
-        => fieldDescriptor.Extend()
+    public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
+        => descriptor.Extend()
             .Definition
             .ContextData[DbContextType] = typeof(TDbContext);
 }

@@ -127,7 +127,7 @@ public interface IResolverCompiler : IDisposable
     /// <param name="fieldDescriptor">
     /// The field descriptor.
     /// </param>
-    void BuildResolverContextData(
+    void ApplyConfiguration(
         ParameterInfo[] parameters,
         ObjectFieldDescriptor fieldDescriptor);
 }

@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Internal;
 
@@ -12,28 +13,29 @@ namespace HotChocolate.Internal;
 /// </summary>
 public sealed class CustomServiceParameterExpressionBuilder<TService>
     : IParameterExpressionBuilder
+    , IParameterFieldConfiguration
+    where TService : class
 {
-    private readonly Type _serviceType;
-    private readonly ServiceParameterExpressionBuilder _internalBuilder = new();
+    private static readonly Type _serviceType = typeof(TService);
+    private readonly ServiceKind _kind;
 
-    /// <summary>
-    /// Initializes a new instance of
-    /// <see cref="CustomServiceParameterExpressionBuilder{TService}"/>.
-    /// </summary>
-    public CustomServiceParameterExpressionBuilder()
+    public CustomServiceParameterExpressionBuilder(ServiceKind kind = ServiceKind.Default)
     {
-        _serviceType = typeof(TService);
+        _kind = kind;
     }
 
     ArgumentKind IParameterExpressionBuilder.Kind
-        => _internalBuilder.Kind;
+        => ArgumentKind.Service;
 
     bool IParameterExpressionBuilder.IsPure
-        => _internalBuilder.IsPure;
+        => _kind is ServiceKind.Default;
 
     public bool CanHandle(ParameterInfo parameter)
-        => _serviceType == parameter.ParameterType;
+        => parameter.ParameterType == _serviceType;
+
+    public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
+        => ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, _kind);
 
     public Expression Build(ParameterInfo parameter, Expression context)
-        => _internalBuilder.Build(parameter, context);
+        => ServiceExpressionHelper.Build(parameter, context, _kind);
 }

@@ -10,16 +10,16 @@ using static HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions;
 
 namespace HotChocolate.Data.Internal;
 
-internal sealed class ScopedDbContextParameterExpressionBuilder<TDbContext>
+internal sealed class ScopedDbConfigurationParameterExpressionBuilder<TDbContext>
     : IParameterExpressionBuilder
-    , IParameterContextBuilder
+    , IParameterConfigurationBuilder
     where TDbContext : DbContext
 {
     private readonly DbContextScope _scope;
     private readonly IParameterExpressionBuilder _innerBuilder =
         new CustomServiceParameterExpressionBuilder<TDbContext>();
 
-    public ScopedDbContextParameterExpressionBuilder(DbContextScope scope)
+    public ScopedDbConfigurationParameterExpressionBuilder(DbContextScope scope)
     {
         _scope = scope;
     }
@@ -34,15 +34,15 @@ internal sealed class ScopedDbContextParameterExpressionBuilder<TDbContext>
     public Expression Build(ParameterInfo parameter, Expression context)
         => _innerBuilder.Build(parameter, context);
 
-    public void BuildContextData(ParameterInfo parameter, ObjectFieldDescriptor fieldDescriptor)
+    public void ApplyConfiguration(ParameterInfo parameter, ObjectFieldDescriptor descriptor)
     {
         if (_scope is DbContextScope.Request)
         {
-            fieldDescriptor.Extend().Definition.IsParallelExecutable = false;
+            descriptor.Extend().Definition.IsParallelExecutable = false;
         }
         else if (_scope is DbContextScope.Field)
         {
-            fieldDescriptor.Extend().OnBeforeNaming(
+            descriptor.Extend().OnBeforeNaming(
                 (_, d) =>
                 {
                     FieldMiddlewareDefinition placeholder =

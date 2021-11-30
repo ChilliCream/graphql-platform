@@ -148,7 +148,7 @@ public class ObjectFieldDescriptor
     {
         if (!_argumentsInitialized && Parameters.Count > 0)
         {
-            Context.ResolverCompiler.BuildResolverContextData(
+            Context.ResolverCompiler.ApplyConfiguration(
                 _parameterInfos,
                 this);
 

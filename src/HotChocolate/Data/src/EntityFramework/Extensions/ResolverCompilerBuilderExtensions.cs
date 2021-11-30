@@ -23,7 +23,7 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
 
         builder.Services
             .AddSingleton<IParameterExpressionBuilder,
-                PooledDbContextParameterExpressionBuilder<TDbContext>>();
+                PooledDbConfigurationParameterExpressionBuilder<TDbContext>>();
         builder.TryAddTypeInterceptor<PooledDbContextTypeInterceptor>();
         return builder;
     }
@@ -34,7 +34,7 @@ public static class EntityFrameworkRequestExecutorBuilderExtensions
         where TDbContext : DbContext
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new ScopedDbContextParameterExpressionBuilder<TDbContext>(scope));
+            new ScopedDbConfigurationParameterExpressionBuilder<TDbContext>(scope));
         return builder;
     }
 }
