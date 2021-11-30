@@ -11,11 +11,8 @@ internal class LegacyScopedServiceParameterExpressionBuilder : IParameterExpress
     public bool IsPure => false;
 
     public bool CanHandle(ParameterInfo parameter)
-        => parameter.ParameterType == typeof(ScopedServiceAttribute);
+        => parameter.IsDefined(typeof(ScopedServiceAttribute));
 
     public Expression Build(ParameterInfo parameter, Expression context)
-    {
-        ServiceExpressionHelper.TryGetServiceKind(parameter, out ServiceKind kind);
-        return ServiceExpressionHelper.Build(parameter, context, kind);
-    }
+        => ServiceExpressionHelper.Build(parameter, context, ServiceKind.Pooled);
 }

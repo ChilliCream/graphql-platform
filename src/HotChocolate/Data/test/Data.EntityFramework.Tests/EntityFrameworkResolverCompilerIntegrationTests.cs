@@ -52,12 +52,13 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .BuildServiceProvider()
             .CreateScope();
 
-        await scope.ServiceProvider.ExecuteRequestAsync(
+        IExecutionResult result = await scope.ServiceProvider.ExecuteRequestAsync(
             QueryRequestBuilder.New()
                 .SetQuery("{ books { title } }")
                 .SetServices(scope.ServiceProvider)
-                .Create())
-            .MatchSnapshotAsync();
+                .Create());
+
+        result.ToJson().MatchSnapshot();
     }
 
     [Fact]
