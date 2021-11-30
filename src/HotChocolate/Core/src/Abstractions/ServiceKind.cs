@@ -16,7 +16,7 @@ public enum ServiceKind
     Default,
 
     /// <summary>
-    /// The service will will be retrieved from the <see cref=" IServiceProvider" />
+    /// The service will will be retrieved from the <see cref="IServiceProvider" />
     /// but can only accessed by a single resolver at a time.
     /// Example for such service is for instance the Entity
     /// Framework DbContext when scoped on the request.
@@ -24,8 +24,8 @@ public enum ServiceKind
     Synchronised,
 
     /// <summary>
-    /// A service that is rent0ed for each resolver execution.
-    /// Pooled service need to be registered as <see cref="ObjectPool{T}"/>
+    /// A service is rented for each resolver execution.
+    /// Pooled services need to be registered as <see cref="ObjectPool{T}"/>
     /// on the resolver's <see cref=" IServiceProvider" />.
     /// </summary>
     Pooled,
