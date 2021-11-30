@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Data.Internal;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
@@ -10,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using static HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions;
 using static HotChocolate.WellKnownMiddleware;
 
-namespace HotChocolate.Data.Internal;
+namespace HotChocolate.Data;
 
 internal sealed class DbContextParameterExpressionBuilder<TDbContext>
     : IParameterExpressionBuilder
