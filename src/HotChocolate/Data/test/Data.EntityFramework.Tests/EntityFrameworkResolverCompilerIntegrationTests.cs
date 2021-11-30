@@ -22,9 +22,16 @@ public class EntityFrameworkResolverCompilerIntegrationTests
         using AuthorFixture authorFixture = new();
 
         var contextFactory = new Mock<IDbContextFactory<BookContext>>();
+
+#if NET6_0_OR_GREATER
         contextFactory
             .Setup(t => t.CreateDbContextAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.FromResult(authorFixture.Context));
+#else
+        contextFactory
+            .Setup(t => t.CreateDbContext())
+            .Returns(authorFixture.Context);
+#endif
 
         await new ServiceCollection()
             .AddSingleton(contextFactory.Object)
