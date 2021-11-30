@@ -26,10 +26,16 @@ namespace HotChocolate.Types
             descriptor.Extend().Definition.MiddlewareDefinitions.Add(
                 new(next => async context =>
                 {
+#if NET6_0_OR_GREATER
                     await using TDbContext dbContext = await context.Services
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
                         .CreateDbContextAsync()
                         .ConfigureAwait(false);
+#else
+                    using TDbContext dbContext = context.Services
+                        .GetRequiredService<IDbContextFactory<TDbContext>>()
+                        .CreateDbContext();
+#endif
 
                     try
                     {
