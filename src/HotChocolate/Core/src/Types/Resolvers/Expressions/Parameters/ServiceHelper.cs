@@ -10,7 +10,11 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-public class ServiceHelper
+/// <summary>
+/// The service helper configures the object fields with middleware to handle
+/// various service behaviours like pooled services.
+/// </summary>
+internal static class ServiceHelper
 {
     private const BindingFlags _flags = BindingFlags.NonPublic | BindingFlags.Static;
     private static readonly MethodInfo _usePooledService =

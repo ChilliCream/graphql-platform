@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Data;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -13,12 +12,8 @@ namespace HotChocolate.Types
 {
     public static class EntityFrameworkObjectFieldDescriptorExtensions
     {
-        private const BindingFlags _bindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
         private static readonly Type _valueTask = typeof(ValueTask<>);
         private static readonly Type _task = typeof(Task<>);
-        private static readonly MethodInfo _useDbContextMethod =
-            typeof(EntityFrameworkObjectFieldDescriptorExtensions)
-                .GetMethod(nameof(UseDbContextInternal), _bindingFlags)!;
 
         public static IObjectFieldDescriptor UseDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
