@@ -46,27 +46,32 @@ namespace HotChocolate.Types
                 throw new ArgumentException("Could not find the InputAttribute", nameof(parameter));
             }
 
-            Expression argumentValue =
-                Call(context,
-                    _getArgumentValue,
-                    Convert(Constant(attribute.ArgumentName), typeof(NameString)));
+            ParameterExpression variable =
+                Variable(typeof(Dictionary<string, object>), "val");
 
-            Expression expr =
+            return Block(new[]
+                {
+                    variable
+                },
+                Assign(
+                    variable,
+                    Call(context,
+                        _getArgumentValue,
+                        Convert(Constant(attribute.ArgumentName), typeof(NameString)))),
                 Condition(
                     And(
-                        NotEqual(argumentValue, _null),
+                        NotEqual(variable, _null),
                         Call(
-                            argumentValue,
+                            variable,
                             _containsKey,
                             Constant(parameter.Name!))),
                     // if
                     Convert(
-                        Property(argumentValue, _getValue, Constant(parameter.Name)),
+                        Property(variable, _getValue, Constant(parameter.Name)),
                         parameter.ParameterType),
                     // else
-                    Convert(_null, parameter.ParameterType));
-
-            return expr;
+                    Convert(_null, parameter.ParameterType))
+            );
         }
     }
 }
