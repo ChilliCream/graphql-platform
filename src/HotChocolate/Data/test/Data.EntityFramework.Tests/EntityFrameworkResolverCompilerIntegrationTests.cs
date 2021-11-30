@@ -58,7 +58,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
                 .SetServices(scope.ServiceProvider)
                 .Create());
 
-        result.ToJson().MatchSnapshot();
+        result.MatchSnapshot();
     }
 
     [Fact]
