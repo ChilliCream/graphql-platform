@@ -1,11 +1,9 @@
-using System;
-using Nuke.Common;
 using Nuke.Common.Git;
 using Nuke.Common.Tools.GitVersion;
 
-partial class Build : NukeBuild
+partial class Build
 {
     [GitRepository] readonly GitRepository GitRepository;
-    [GitVersion(Framework = Net50)] readonly GitVersion GitVersion;
+    [GitVersion(Framework = Net60)] readonly GitVersion GitVersion;
 }
 

@@ -383,14 +383,6 @@ public class ObjectFieldDescriptor
         return this;
     }
 
-    /// <inheritdoc />
-    public new IObjectFieldDescriptor ConfigureContextData(
-        Action<ExtensionData> configure)
-    {
-        base.ConfigureContextData(configure);
-        return this;
-    }
-
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         NameString fieldName) =>
