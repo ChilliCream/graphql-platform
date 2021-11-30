@@ -8,7 +8,7 @@ namespace HotChocolate.Internal;
 /// <summary>
 /// This interface represents an expression builder to resolver resolver parameter values.
 /// </summary>
-public interface IParameterExpressionBuilder
+public interface IParameterExpressionBuilder : IParameterHandler
 {
     /// <summary>
     /// Defines the argument kind that is handled by this builder.
@@ -20,21 +20,6 @@ public interface IParameterExpressionBuilder
     /// for pure resolvers.
     /// </summary>
     bool IsPure { get; }
-
-    /// <summary>
-    /// Checks if this expression builder can handle the following parameter.
-    /// </summary>
-    /// <param name="parameter">
-    /// The parameter that needs to be resolved.
-    /// </param>
-    /// <param name="source">
-    /// The runtime type of the object that is being resolved.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if the parameter can be handled by this expression builder;
-    /// otherwise <c>false</c>.
-    /// </returns>
-    bool CanHandle(ParameterInfo parameter);
 
     /// <summary>
     /// Builds an expression that resolves a resolver parameter.
