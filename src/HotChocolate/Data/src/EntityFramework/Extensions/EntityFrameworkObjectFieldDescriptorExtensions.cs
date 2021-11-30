@@ -13,11 +13,12 @@ namespace HotChocolate.Types
 {
     public static class EntityFrameworkObjectFieldDescriptorExtensions
     {
+        private const BindingFlags _bindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
         private static readonly Type _valueTask = typeof(ValueTask<>);
         private static readonly Type _task = typeof(Task<>);
         private static readonly MethodInfo _useDbContextMethod =
             typeof(EntityFrameworkObjectFieldDescriptorExtensions)
-                .GetMethod("UseDbContextInternal", BindingFlags.NonPublic | BindingFlags.Static)!;
+                .GetMethod(nameof(UseDbContextInternal), _bindingFlags)!;
 
         public static IObjectFieldDescriptor UseDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
@@ -50,10 +51,7 @@ namespace HotChocolate.Types
 
             descriptor
                 .Extend()
-                .OnBeforeNaming((_, d) =>
-                {
-                    AddCompletionMiddleware(d, placeholder);
-                });
+                .OnBeforeNaming((_, d) => AddCompletionMiddleware(d, placeholder));
 
             return descriptor;
         }
