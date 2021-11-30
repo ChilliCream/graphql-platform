@@ -91,6 +91,10 @@
               {
                 "path": "relay",
                 "title": "Relay"
+              },
+              {
+                "path": "errors",
+                "title": "Errors"
               }
             ]
           },

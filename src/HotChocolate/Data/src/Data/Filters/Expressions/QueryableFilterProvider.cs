@@ -146,13 +146,10 @@ namespace HotChocolate.Data.Filters.Expressions
                 return visitorContext;
             }
 
-            descriptor.ConfigureContextData(
-                contextData =>
-                {
-                    contextData[ContextVisitFilterArgumentKey] =
-                        (VisitFilterArgument)VisitFilterArgumentExecutor;
-                    contextData[ContextArgumentNameKey] = argumentName;
-                });
+            ExtensionData contextData = descriptor.Extend().Definition.ContextData;
+            var argumentKey = (VisitFilterArgument)VisitFilterArgumentExecutor;
+            contextData[ContextVisitFilterArgumentKey] = argumentKey;
+            contextData[ContextArgumentNameKey] = argumentName;
         }
     }
 }

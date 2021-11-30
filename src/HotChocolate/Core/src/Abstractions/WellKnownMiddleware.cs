@@ -49,4 +49,19 @@ public static class WellKnownMiddleware
     /// This key identifies the ToList middleware.
     /// </summary>
     public const string ToList = "HotChocolate.Data.EF.ToList";
+
+    /// <summary>
+    /// The key identifies the resolver service scope middleware.
+    /// </summary>
+    public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
+
+    /// <summary>
+    /// This key identifies a pooled service middleware.
+    /// </summary>
+    public const string PooledService = "HotChocolate.Resolvers.PooledService";
+
+    /// <summary>
+    /// This key identifies a resolver service middleware.
+    /// </summary>
+    public const string ResolverService = "HotChocolate.Resolvers.ResolverService";
 }
