@@ -63,7 +63,7 @@ public class Query
         IResolverContext resolverContext,
         CancellationToken ct) =>
         await context.Authors
-            .ApplyCursorPaginationAsync(resolverContext, cancellationToken:ct);
+            .ApplyCursorPaginationAsync(resolverContext, cancellationToken: ct);
 
     [UseDbContext(typeof(BookContext))]
     [UseOffsetPaging(IncludeTotalCount = true)]
@@ -74,7 +74,7 @@ public class Query
         IResolverContext resolverContext,
         CancellationToken ct) =>
         await context.Authors
-            .ApplyOffsetPaginationAsync(resolverContext, cancellationToken:ct);
+            .ApplyOffsetPaginationAsync(resolverContext, cancellationToken: ct);
 }
 
 public class QueryTask

@@ -10,39 +10,39 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class IntegrationTests : IClassFixture<AuthorFixture>
 {
-    public class IntegrationTests : IClassFixture<AuthorFixture>
+    private readonly Author[] _authors;
+
+    public IntegrationTests(AuthorFixture authorFixture)
     {
-        private readonly Author[] _authors;
+        _authors = authorFixture.Authors;
+    }
 
-        public IntegrationTests(AuthorFixture authorFixture)
-        {
-            _authors = authorFixture.Authors;
-        }
+    [Fact]
+    public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Resolve(_authors.AsExecutable())
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Resolve(_authors.AsExecutable())
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -50,34 +50,34 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Type<ObjectType<Author>>()
-                        .Resolve(_authors.Take(1).AsExecutable())
-                        .UseSingleOrDefault()
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_OnlyOneItem_When_SingleOrDefault()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Type<ObjectType<Author>>()
+                    .Resolve(_authors.Take(1).AsExecutable())
+                    .UseSingleOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -85,34 +85,34 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Type<ObjectType<Author>>()
-                        .Resolve(_authors.AsExecutable())
-                        .UseSingleOrDefault()
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Type<ObjectType<Author>>()
+                    .Resolve(_authors.AsExecutable())
+                    .UseSingleOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -120,34 +120,34 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultZero()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Type<ObjectType<Author>>()
-                        .Resolve(_authors.Take(0).AsExecutable())
-                        .UseSingleOrDefault()
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultZero()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Type<ObjectType<Author>>()
+                    .Resolve(_authors.Take(0).AsExecutable())
+                    .UseSingleOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -155,34 +155,34 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Type<ObjectType<Author>>()
-                        .Resolve(_authors.AsExecutable())
-                        .UseFirstOrDefault()
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Type<ObjectType<Author>>()
+                    .Resolve(_authors.AsExecutable())
+                    .UseFirstOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -190,34 +190,34 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefaultZero()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(
-                    x => x
-                        .Name("Query")
-                        .Field("executable")
-                        .Type<ObjectType<Author>>()
-                        .Resolve(_authors.Take(0).AsExecutable())
-                        .UseFirstOrDefault()
-                        .UseProjection()
-                        .UseFiltering()
-                        .UseSorting())
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefaultZero()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(
+                x => x
+                    .Name("Query")
+                    .Field("executable")
+                    .Type<ObjectType<Author>>()
+                    .Resolve(_authors.Take(0).AsExecutable())
+                    .UseFirstOrDefault()
+                    .UseProjection()
+                    .UseFiltering()
+                    .UseSorting())
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     executable {
                         name
@@ -225,28 +225,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         edges {
@@ -261,28 +262,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -297,28 +299,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         edges {
@@ -334,28 +337,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -369,28 +373,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         edges {
@@ -407,28 +412,29 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -443,29 +449,30 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task
-            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<PagingAndProjection>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task
+        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<PagingAndProjection>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -481,30 +488,31 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task
-            ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(c => c.Name("Query"))
-                .AddTypeExtension<PagingAndProjectionExtension>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task
+        ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(c => c.Name("Query"))
+            .AddTypeExtension<PagingAndProjectionExtension>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -520,31 +528,32 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task
-            ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .EnableRelaySupport()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType(c => c.Name("Query"))
-                .AddTypeExtension<PagingAndProjectionExtension>()
-                .AddObjectType<Book>(x =>
-                    x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
-                .BuildRequestExecutorAsync();
+    [Fact]
+    [Obsolete]
+    public async Task
+        ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .EnableRelaySupport()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType(c => c.Name("Query"))
+            .AddTypeExtension<PagingAndProjectionExtension>()
+            .AddObjectType<Book>(x =>
+                x.ImplementsNode().IdField(x => x.Id).ResolveNode(x => default!))
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books {
                         nodes {
@@ -554,24 +563,24 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task CreateSchema_CodeFirst_AsyncQueryable()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddQueryType<FooType>()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task CreateSchema_CodeFirst_AsyncQueryable()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddQueryType<FooType>()
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     foos(where: { qux: {eq: ""a""}}) {
                         qux
@@ -579,26 +588,26 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task CreateSchema_OnDifferentScope()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering("Foo")
-                .AddSorting("Foo")
-                .AddProjections("Foo")
-                .AddQueryType<DifferentScope>()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task CreateSchema_OnDifferentScope()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering("Foo")
+            .AddSorting("Foo")
+            .AddProjections("Foo")
+            .AddQueryType<DifferentScope>()
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books(where: { title: {eq: ""BookTitle""}}) {
                         nodes { title }
@@ -606,26 +615,26 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task Execute_And_OnRoot()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering("Foo")
-                .AddSorting("Foo")
-                .AddProjections("Foo")
-                .AddQueryType<DifferentScope>()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task Execute_And_OnRoot()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering("Foo")
+            .AddSorting("Foo")
+            .AddProjections("Foo")
+            .AddQueryType<DifferentScope>()
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 query GetBooks($title: String) {
                     books(where: {
                             and: [
@@ -636,28 +645,28 @@ namespace HotChocolate.Data
                         nodes { title }
                     }
                 }",
-                new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task Execute_And_OnRoot_Reverse()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering("Foo")
-                .AddSorting("Foo")
-                .AddProjections("Foo")
-                .AddQueryType<DifferentScope>()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task Execute_And_OnRoot_Reverse()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering("Foo")
+            .AddSorting("Foo")
+            .AddProjections("Foo")
+            .AddQueryType<DifferentScope>()
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 query GetBooks($title: String) {
                     books(where: {
                             and: [
@@ -668,28 +677,28 @@ namespace HotChocolate.Data
                         nodes { title }
                     }
                 }",
-                new Dictionary<string, object?> { ["title"] = "BookTitle" });
+            new Dictionary<string, object?> { ["title"] = "BookTitle" });
 
-            // assert
-            executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
-            result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
-        }
+        // assert
+        executor.Schema.Print().MatchSnapshot(new SnapshotNameExtension("Schema"));
+        result.ToJson().MatchSnapshot(new SnapshotNameExtension("Result"));
+    }
 
-        [Fact]
-        public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task ExecuteAsync_Should_ArgumentAndFirstOrDefault_When_Executed()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<FirstOrDefaulQuery>()
+            .BuildRequestExecutorAsync();
 
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(
-                @"
+        // act
+        IExecutionResult result = await executor.ExecuteAsync(
+            @"
                 {
                     books(book: {id: 1, authorId: 0}) {
                         title
@@ -697,125 +706,125 @@ namespace HotChocolate.Data
                 }
                 ");
 
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task
-            Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+    [Fact]
+    public async Task
+        Schema_Should_Generate_WhenMutationInputHasManyToManyRelationshipWithOutputType()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<FirstOrDefaulQuery>()
+            .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = executor.Schema.Print();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task
+        Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddFiltering()
+            .AddSorting()
+            .AddProjections()
+            .AddQueryType<FirstOrDefaulQuery>()
+            .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = executor.Schema.Print();
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    public class FooType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_ManyToMany>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = executor.Schema.Print();
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task
-            Schema_Should_Generate_WhenMutationInputHasManyToOneRelationshipWithOutputType()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddFiltering()
-                .AddSorting()
-                .AddProjections()
-                .AddQueryType<FirstOrDefaulQuery>()
-                .AddMutationType<FirstOrDefaultMutation_ManyToOne>()
-                .BuildRequestExecutorAsync();
-
-            // act
-            var result = executor.Schema.Print();
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        public class FooType : ObjectType
-        {
-            protected override void Configure(IObjectTypeDescriptor descriptor)
-            {
-                descriptor
-                    .Field("foos")
-                    .Type<ListType<ObjectType<Bar>>>()
-                    .Resolve(_ =>
+            descriptor
+                .Field("foos")
+                .Type<ListType<ObjectType<Bar>>>()
+                .Resolve(_ =>
+                {
+                    IQueryable<Bar> data = new Bar[]
                     {
-                        IQueryable<Bar> data = new Bar[]
-                        {
                             Bar.Create("a"),
                             Bar.Create("b")
-                        }.AsQueryable();
-                        return Task.FromResult(data);
-                    })
-                    .UseFiltering();
-            }
+                    }.AsQueryable();
+                    return Task.FromResult(data);
+                })
+                .UseFiltering();
         }
+    }
 
-        public class Bar
+    public class Bar
+    {
+        public string? Qux { get; set; }
+
+        public static Bar Create(string qux) => new() { Qux = qux };
+    }
+
+    public class PagingAndProjection
+    {
+        [UsePaging]
+        [UseProjection]
+        public IQueryable<Book> GetBooks() => new[]
         {
-            public string Qux { get; set; }
-
-            public static Bar Create(string qux) => new() { Qux = qux };
-        }
-
-        public class PagingAndProjection
-        {
-            [UsePaging]
-            [UseProjection]
-            public IQueryable<Book> GetBooks() => new[]
-            {
                 new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
             }.AsQueryable();
-        }
+    }
 
-        [ExtendObjectType("Query")]
-        public class PagingAndProjectionExtension
+    [ExtendObjectType("Query")]
+    public class PagingAndProjectionExtension
+    {
+        [UsePaging]
+        [UseProjection]
+        [UseFiltering]
+        [UseSorting]
+        public IQueryable<Book> GetBooks() => new[]
         {
-            [UsePaging]
-            [UseProjection]
-            [UseFiltering]
-            [UseSorting]
-            public IQueryable<Book> GetBooks() => new[]
-            {
                 new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
             }.AsQueryable();
-        }
+    }
 
-        public class DifferentScope
+    public class DifferentScope
+    {
+        [UsePaging]
+        [UseProjection(Scope = "Foo")]
+        [UseFiltering(Scope = "Foo")]
+        [UseSorting(Scope = "Foo")]
+        public IQueryable<Book> GetBooks() => new[]
         {
-            [UsePaging]
-            [UseProjection(Scope = "Foo")]
-            [UseFiltering(Scope = "Foo")]
-            [UseSorting(Scope = "Foo")]
-            public IQueryable<Book> GetBooks() => new[]
-            {
                 new Book { Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" } }
             }.AsQueryable();
-        }
+    }
 
-        public class BookInput
-        {
-            public int Id { get; set; }
+    public class BookInput
+    {
+        public int Id { get; set; }
 
-        }
+    }
 
-        public class FirstOrDefaulQuery
-        {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Book> GetBooks(Book book) => new[]
-                {
+    public class FirstOrDefaulQuery
+    {
+        [UseFirstOrDefault, UseProjection]
+        public IQueryable<Book> GetBooks(Book book) => new[]
+            {
                     new Book
                     {
                         Id = 1, Title = "BookTitle", Author = new Author { Name = "Author" }
@@ -825,25 +834,24 @@ namespace HotChocolate.Data
                         Id = 2, Title = "BookTitle2", Author = new Author { Name = "Author2" }
                     }
                 }.AsQueryable()
-                .Where(x => x.Id == book.Id);
-        }
+            .Where(x => x.Id == book.Id);
+    }
 
-        public class FirstOrDefaultMutation_ManyToMany
+    public class FirstOrDefaultMutation_ManyToMany
+    {
+        [UseFirstOrDefault, UseProjection]
+        public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
         {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> AddPublisher(Publisher publisher) => new[]
-            {
                 new Author { Name = "Author", Publishers = new List<Publisher> { publisher } }
             }.AsQueryable();
-        }
+    }
 
-        public class FirstOrDefaultMutation_ManyToOne
+    public class FirstOrDefaultMutation_ManyToOne
+    {
+        [UseFirstOrDefault, UseProjection]
+        public IQueryable<Author> AddBook(Book book) => new[]
         {
-            [UseFirstOrDefault, UseProjection]
-            public IQueryable<Author> AddBook(Book book) => new[]
-            {
                 new Author { Name = "Author", Books = new List<Book> { book } }
             }.AsQueryable();
-        }
     }
 }

@@ -5,38 +5,37 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+internal static class RelayIdFilterFieldExtensions
 {
-    internal static class RelayIdFilterFieldExtensions
+    private static IdSerializer? _idSerializer;
+
+    internal static IFilterOperationFieldDescriptor ID(
+        this IFilterOperationFieldDescriptor descriptor)
     {
-        private static IdSerializer? _idSerializer;
-
-        internal static IFilterOperationFieldDescriptor ID(
-            this IFilterOperationFieldDescriptor descriptor)
+        if (descriptor is null)
         {
-            if (descriptor is null)
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor
+            .Extend()
+            .OnBeforeCompletion((c, d) =>
             {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+                d.Formatters.Push(CreateSerializer(c));
+            });
 
-            descriptor
-                .Extend()
-                .OnBeforeCompletion((c, d) =>
-                {
-                    d.Formatters.Push(CreateSerializer(c));
-                });
+        return descriptor;
+    }
 
-            return descriptor;
-        }
+    private static IInputValueFormatter CreateSerializer(
+        ITypeCompletionContext completionContext)
+    {
+        IIdSerializer serializer =
+            completionContext.Services.GetService<IIdSerializer>() ??
+            (_idSerializer ??= new IdSerializer());
 
-        private static IInputValueFormatter CreateSerializer(
-            ITypeCompletionContext completionContext)
-        {
-            IIdSerializer serializer =
-                completionContext.Services.GetService<IIdSerializer>() ??
-                (_idSerializer ??= new IdSerializer());
-
-            return new FilterGlobalIdInputValueFormatter(serializer);
-        }
+        return new FilterGlobalIdInputValueFormatter(serializer);
     }
 }

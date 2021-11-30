@@ -1,11 +1,11 @@
 using System;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class AuthorFixture : IDisposable
 {
-    public class AuthorFixture : IDisposable
+    public Author[] Authors { get; } =
     {
-        public Author[] Authors { get; } =
-        {
             new Author
             {
                 Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } }
@@ -17,8 +17,7 @@ namespace HotChocolate.Data
             new Author { Id = 3, Name = "Baz", Books = { new Book { Id = 3, Title = "Baz1" } } }
         };
 
-        public void Dispose()
-        {
-        }
+    public void Dispose()
+    {
     }
 }

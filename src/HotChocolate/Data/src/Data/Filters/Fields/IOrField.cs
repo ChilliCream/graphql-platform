@@ -1,11 +1,10 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public interface IOrField
+    : IInputField
+    , IHasRuntimeType
 {
-    public interface IOrField
-        : IInputField
-        , IHasRuntimeType
-    {
-        new IFilterInputType DeclaringType { get; }
-    }
+    new IFilterInputType DeclaringType { get; }
 }
