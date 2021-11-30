@@ -9,7 +9,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal static class ServiceExpressionHelper
+/// <summary>
+/// Provides helpers for service expression builders.
+/// </summary>
+public static class ServiceExpressionHelper
 {
     private const string _service = nameof(IPureResolverContext.Service);
     private const string _fromServicesAttribute = "FromServicesAttribute";
@@ -29,11 +32,24 @@ internal static class ServiceExpressionHelper
     private static readonly MethodInfo _getScopedStateWithDefault =
         typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.GetScopedStateWithDefault))!;
 
+    /// <summary>
+    /// Applies the service configurations.
+    /// </summary>
     public static void ApplyConfiguration(
         ParameterInfo parameter,
         ObjectFieldDescriptor descriptor,
         ServiceKind serviceKind)
     {
+        if (parameter is null)
+        {
+            throw new ArgumentNullException(nameof(parameter));
+        }
+
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
         switch (serviceKind)
         {
             case ServiceKind.Default:
@@ -57,12 +73,25 @@ internal static class ServiceExpressionHelper
         }
     }
 
+    /// <summary>
+    /// Builds the service expression.
+    /// </summary>
     public static Expression Build(
         ParameterInfo parameter,
         Expression context,
         ServiceKind serviceKind)
     {
-        return serviceKind is ServiceKind.Default
+        if (parameter is null)
+        {
+            throw new ArgumentNullException(nameof(parameter));
+        }
+
+        if (context is null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        return serviceKind is ServiceKind.Default or ServiceKind.Synchronised
             ? BuildDefaultService(parameter, context)
             : BuildLocalService(parameter, context);
     }
@@ -111,7 +140,7 @@ internal static class ServiceExpressionHelper
     {
         if (parameter.IsDefined(typeof(ServiceAttribute)))
         {
-            kind = parameter.GetCustomAttribute<ServiceAttribute>().Kind;
+            kind = parameter.GetCustomAttribute<ServiceAttribute>()!.Kind;
             return true;
         }
 

@@ -76,6 +76,7 @@ public static class ResolverContextExtensions
         {
             return casted;
         }
+
         return default;
     }
 

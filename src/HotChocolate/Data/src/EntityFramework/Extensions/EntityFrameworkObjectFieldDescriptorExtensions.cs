@@ -58,14 +58,7 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
-        internal static void UseDbContext(
-            ObjectFieldDefinition definition,
-            Type dbContextType)
-            => _useDbContextMethod
-                .MakeGenericMethod(dbContextType)
-                .Invoke(null, new object?[] { definition });
-
-        private static void UseDbContextInternal<TDbContext>(
+        internal static void UseDbContext<TDbContext>(
             ObjectFieldDefinition definition)
             where TDbContext : DbContext
         {
@@ -101,7 +94,7 @@ namespace HotChocolate.Types
         }
 
         internal static void AddCompletionMiddleware(
-            ObjectFieldDefinition definition, 
+            ObjectFieldDefinition definition,
             FieldMiddlewareDefinition placeholderMiddleware)
         {
             if (definition.ResultType is null)

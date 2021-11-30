@@ -815,4 +815,7 @@ Type: `{0}`</value>
   <data name="ConnectionType_Nodes_Description" xml:space="preserve">
     <value>A flattened list of the nodes.</value>
   </data>
+  <data name="ServiceHelper_UseResolverServiceInternal_Order" xml:space="preserve">
+    <value>The middleware order is invalid since the service scope is missing.</value>
+  </data>
 </root>

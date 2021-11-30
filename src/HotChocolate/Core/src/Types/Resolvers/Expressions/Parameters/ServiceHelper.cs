@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters;
 
-internal class ServiceHelper
+public class ServiceHelper
 {
     private const BindingFlags _flags = BindingFlags.NonPublic | BindingFlags.Static;
     private static readonly MethodInfo _usePooledService =
@@ -23,6 +24,11 @@ internal class ServiceHelper
         => _usePooledService
             .MakeGenericMethod(serviceType)
             .Invoke(null, new object?[] {definition});
+
+    internal static void UsePooledService<TService>(
+        ObjectFieldDefinition definition)
+        where TService : class
+        => UsePooledServiceInternal<TService>(definition);
 
     private static void UsePooledServiceInternal<TService>(
         ObjectFieldDefinition definition)
@@ -44,7 +50,7 @@ internal class ServiceHelper
                     }
                     finally
                     {
-                        objectPool.Return(service);
+                        objectPool.Return(service!);
                     }
                 },
                 isRepeatable: true,
@@ -92,8 +98,15 @@ internal class ServiceHelper
         FieldMiddlewareDefinition serviceMiddleware =
             new(next => async context =>
                 {
-                    IServiceScope scope = context.GetLocalValue<IServiceScope>(
+                    IServiceScope? scope = context.GetLocalValue<IServiceScope>(
                         WellKnownContextData.ResolverServiceScope);
+
+                    if (scope is null)
+                    {
+                        throw new InvalidOperationException(
+                            TypeResources.ServiceHelper_UseResolverServiceInternal_Order);
+                    }
+
                     TService service = scope.ServiceProvider.GetRequiredService<TService>();
                     context.SetLocalValue(scopedServiceName, service);
                     await next(context).ConfigureAwait(false);

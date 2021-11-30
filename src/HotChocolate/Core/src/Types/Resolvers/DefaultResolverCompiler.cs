@@ -52,6 +52,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             new LocalStateParameterExpressionBuilder(),
             new EventMessageParameterExpressionBuilder(),
             new ScopedServiceParameterExpressionBuilder(),
+            new LegacyScopedServiceParameterExpressionBuilder()
         };
 
         if (customParameterExpressionBuilders is not null)
@@ -239,13 +240,14 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             throw new ArgumentNullException(nameof(parameters));
         }
 
-        foreach (IParameterFieldConfiguration configuration in _parameterFieldConfigurations)
+        foreach (ParameterInfo parameter in parameters)
         {
-            foreach (ParameterInfo parameter in parameters)
+            foreach (IParameterFieldConfiguration configuration in _parameterFieldConfigurations)
             {
                 if (configuration.CanHandle(parameter))
                 {
                     configuration.ApplyConfiguration(parameter, fieldDescriptor);
+                    break;
                 }
             }
         }

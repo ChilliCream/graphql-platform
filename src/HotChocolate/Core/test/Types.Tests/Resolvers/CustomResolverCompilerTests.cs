@@ -59,6 +59,7 @@ namespace HotChocolate.Resolvers
                     .AddGraphQL()
                     .AddQueryType<QueryWellKnownService>()
                     .RegisterService<SayHelloService>(ServiceKind.Synchronised)
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
 
             Assert.False(executor.Schema.QueryType.Fields["sayHello"].IsParallelExecutable);

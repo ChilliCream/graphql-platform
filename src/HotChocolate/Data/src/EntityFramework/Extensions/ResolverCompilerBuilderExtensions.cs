@@ -12,29 +12,31 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class EntityFrameworkRequestExecutorBuilderExtensions
 {
-    public static IRequestExecutorBuilder AddPooledDbContext<TDbContext>(
-        this IRequestExecutorBuilder builder)
-        where TDbContext : DbContext
-    {
-        if (builder is null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
-
-        builder.Services
-            .AddSingleton<IParameterExpressionBuilder,
-                PooledDbConfigurationParameterExpressionBuilder<TDbContext>>();
-        builder.TryAddTypeInterceptor<PooledDbContextTypeInterceptor>();
-        return builder;
-    }
-
-    public static IRequestExecutorBuilder AddScopedDbContext<TDbContext>(
+    /// <summary>
+    /// Registers a well-known <see cref="DbContext"/> with the resolver compiler.
+    /// The <see cref="DbContext"/> does no longer need any annotation in the resolver.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="kind">
+    /// The <see cref="DbContext"/> kind defines the way a <see cref="DbContext"/> is injected
+    /// and handled by the execution engine.
+    /// </param>
+    /// <typeparam name="TDbContext">
+    /// The <see cref="DbContext"/> type.
+    /// </typeparam>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+    /// and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder RegisterDbContext<TDbContext>(
         this IRequestExecutorBuilder builder,
-        DbContextScope scope = DbContextScope.Request)
+        DbContextKind kind = DbContextKind.Synchronized)
         where TDbContext : DbContext
     {
         builder.Services.AddSingleton<IParameterExpressionBuilder>(
-            new ScopedDbConfigurationParameterExpressionBuilder<TDbContext>(scope));
+            new DbContextParameterExpressionBuilder<TDbContext>(kind));
         return builder;
     }
 }

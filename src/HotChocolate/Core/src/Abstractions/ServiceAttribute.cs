@@ -19,5 +19,9 @@ public sealed class ServiceAttribute : Attribute
         Kind = kind;
     }
 
+    /// <summary>
+    /// Gets the service kind which specifies the way the service
+    /// shall be injected and handled by the execution engine.
+    /// </summary>
     public ServiceKind Kind { get; }
 }

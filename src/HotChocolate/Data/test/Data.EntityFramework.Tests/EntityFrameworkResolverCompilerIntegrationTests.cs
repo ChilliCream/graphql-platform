@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Data.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
@@ -29,7 +30,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddSingleton(contextFactory.Object)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AddPooledDbContext<BookContext>()
+            .RegisterDbContext<BookContext>(DbContextKind.Pooled)
             .ExecuteRequestAsync("{ books { title } }")
             .MatchSnapshotAsync();
     }
@@ -45,7 +46,8 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AddScopedDbContext<BookContext>(DbContextScope.Request)
+            .RegisterDbContext<BookContext>(DbContextKind.Synchronized)
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
             .Services
             .BuildServiceProvider()
             .CreateScope();
@@ -69,7 +71,7 @@ public class EntityFrameworkResolverCompilerIntegrationTests
             .AddScoped(_ => authorFixture.Context)
             .AddGraphQL()
             .AddQueryType<Query>()
-            .AddScopedDbContext<BookContext>(DbContextScope.Field)
+            .RegisterDbContext<BookContext>(DbContextKind.Resolver)
             .Services
             .BuildServiceProvider();
 
