@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
@@ -262,6 +265,38 @@ public class InputArgumentTests
     }
 
     [Fact]
+    public async Task InputArgumentMiddleware_Should_MergeFormatter_When_UsedWithId()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryId>()
+                .EnableMutationConvention()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        string id = new IdSerializer()
+            .Serialize("Item", Guid.Parse("5ea909ec-ae00-4d00-8f96-afe0e8bdcad2"));
+
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                query Foo($id: ID!){
+                    createFoo(input: {
+                        bar: $id
+                    })
+                }
+            ",
+                new Dictionary<string, object?>() { ["id"] = id });
+
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
+
+    [Fact]
     public async Task InputArgumentMiddleware_Should_Throw_WhenTypeNamesCollide()
     {
         // Arrange
@@ -368,5 +403,12 @@ public class InputArgumentTests
             [Input(TypeName = "FirstOne")] string bar,
             [Input(TypeName = "SecondOne")] string baz) =>
             new(bar + baz);
+    }
+
+    public class QueryId
+    {
+        [ID("Item")]
+        [Input]
+        public Guid CreateFoo([ID("Item")] Guid bar) => bar;
     }
 }

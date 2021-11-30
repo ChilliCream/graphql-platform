@@ -84,4 +84,9 @@ public static class WellKnownContextData
     /// The key for setting root instances.
     /// </summary>
     public const string RootInstance = "HotChocolate.Types.RootInstance";
+
+    /// <summary>
+    /// The key identifies the resolver scope on the local context.
+    /// </summary>
+    public const string ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope";
 }
