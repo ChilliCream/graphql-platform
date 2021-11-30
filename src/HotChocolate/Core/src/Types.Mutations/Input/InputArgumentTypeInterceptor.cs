@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -132,13 +133,14 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
         definition.DefaultValue = argumentDefinition.DefaultValue;
         definition.Ignore = argumentDefinition.Ignore;
         definition.RuntimeDefaultValue = argumentDefinition.RuntimeDefaultValue;
-
+        definition.RuntimeType = argumentDefinition.Parameter.ParameterType;
         definition.ContextData.AddRange(argumentDefinition.ContextData);
         definition.Formatters.AddRange(argumentDefinition.Formatters);
 
         if (argumentDefinition.HasConfigurations)
         {
-            definition.Configurations.AddRange(argumentDefinition.Configurations);
+            definition.Configurations.AddRange(
+                argumentDefinition.Configurations.Select(x => x.Copy(definition)));
         }
 
         if (argumentDefinition.HasDependencies)

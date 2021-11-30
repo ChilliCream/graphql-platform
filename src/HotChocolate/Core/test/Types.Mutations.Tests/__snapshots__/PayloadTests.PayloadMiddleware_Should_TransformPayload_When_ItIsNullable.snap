@@ -1,0 +1,10 @@
+﻿{
+  "data": {
+    "nullableNumber": {
+      "foo": null
+    },
+    "nullableNumberNoName": {
+      "int": null
+    }
+  }
+}
