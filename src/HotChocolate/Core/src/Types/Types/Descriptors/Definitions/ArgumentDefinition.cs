@@ -42,6 +42,8 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
 
     public ParameterInfo? Parameter { get; set; }
 
+    public Type? RuntimeType { get; set; }
+
     public IList<IInputValueFormatter> Formatters =>
         _formatters ??= new List<IInputValueFormatter>();
 
