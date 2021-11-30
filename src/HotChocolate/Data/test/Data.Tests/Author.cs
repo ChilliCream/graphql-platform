@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class Author
 {
-    public class Author
-    {
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        public string? Name { get; set; }
+    public string? Name { get; set; }
 
-        public virtual ICollection<Book> Books { get; set; } =
-            new List<Book>();
+    public virtual ICollection<Book> Books { get; set; } =
+        new List<Book>();
 
-        public virtual ICollection<Publisher> Publishers { get; set; } =
-            new List<Publisher>();
-    }
+    public virtual ICollection<Publisher> Publishers { get; set; } =
+        new List<Publisher>();
 }

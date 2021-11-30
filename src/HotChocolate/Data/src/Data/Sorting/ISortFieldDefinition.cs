@@ -1,13 +1,12 @@
 using System.Reflection;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Sorting
-{
-    public interface ISortFieldDefinition
-        : IHasScope
-    {
-        public MemberInfo? Member { get; }
+namespace HotChocolate.Data.Sorting;
 
-        public ISortFieldHandler? Handler { get; }
-    }
+public interface ISortFieldDefinition
+    : IHasScope
+{
+    public MemberInfo? Member { get; }
+
+    public ISortFieldHandler? Handler { get; }
 }

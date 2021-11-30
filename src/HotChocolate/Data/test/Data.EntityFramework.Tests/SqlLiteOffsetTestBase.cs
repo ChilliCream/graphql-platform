@@ -18,7 +18,7 @@ public class SqlLiteOffsetTestBase
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
 
-        var set = dbContext.Set<TResult>();
+        DbSet<TResult>? set = dbContext.Set<TResult>();
 
         foreach (TResult result in results)
         {

@@ -5,12 +5,12 @@ using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionSortingTests
 {
-    public class QueryableProjectionSortingTests
+    private static readonly Bar[] _barEntities =
     {
-        private static readonly Bar[] _barEntities =
-        {
             new Bar
             {
                 Foo = new Foo
@@ -49,8 +49,8 @@ namespace HotChocolate.Data.Projections
             }
         };
 
-        private static readonly BarNullable[] _barNullableEntities =
-        {
+    private static readonly BarNullable[] _barNullableEntities =
+    {
             new BarNullable
             {
                 Foo = new FooNullable
@@ -154,20 +154,20 @@ namespace HotChocolate.Data.Projections
             }
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new SchemaCache();
 
-        [Fact]
-        public async Task Create_DeepFilterObjectTwoProjections()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+    [Fact]
+    public async Task Create_DeepFilterObjectTwoProjections()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 foo {
@@ -185,96 +185,23 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_ListObjectDifferentLevelProjection()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+    [Fact]
+    public async Task Create_ListObjectDifferentLevelProjection()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
-                        {
-                            root {
-                                foo {
-                                    barString
-                                    objectArray(
-                                        order: {
-                                            foo: {
-                                                barShort: ASC
-                                            }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
-                                        }
-                                    }
-                                }
-                            }
-                        }")
-                    .Create());
-
-            res1.MatchSqlSnapshot();
-        }
-
-        [Fact]
-        public async Task Create_DeepFilterObjectTwoProjections_Nullable()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(
-                _barNullableEntities,
-                OnModelCreatingNullable);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
-                        {
-                            root {
-                                foo {
-                                    objectArray(
-                                        order: {
-                                            foo: {
-                                                barShort: ASC
-                                            }
-                                        }) {
-                                        foo {
-                                            barString
-                                            barShort
-                                        }
-                                    }
-                                }
-                            }
-                        }")
-                    .Create());
-
-            res1.MatchSqlSnapshot();
-        }
-
-        [Fact]
-        public async Task Create_ListObjectDifferentLevelProjection_Nullable()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(
-                _barNullableEntities,
-                OnModelCreatingNullable);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 foo {
@@ -293,114 +220,186 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        public static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
-            modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
-            modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
-        }
+    [Fact]
+    public async Task Create_DeepFilterObjectTwoProjections_Nullable()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(
+            _barNullableEntities,
+            OnModelCreatingNullable);
 
-        public static void OnModelCreatingNullable(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<FooNullable>().HasMany(x => x.ObjectArray);
-            modelBuilder.Entity<FooNullable>().HasOne(x => x.NestedObject);
-            modelBuilder.Entity<BarNullable>().HasOne(x => x.Foo);
-            modelBuilder.Entity<FooDeep>();
-        }
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                foo {
+                                    objectArray(
+                                        order: {
+                                            foo: {
+                                                barShort: ASC
+                                            }
+                                        }) {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                .Create());
 
-        public class Foo
-        {
-            public int Id { get; set; }
+        res1.MatchSqlSnapshot();
+    }
 
-            public short BarShort { get; set; }
+    [Fact]
+    public async Task Create_ListObjectDifferentLevelProjection_Nullable()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(
+            _barNullableEntities,
+            OnModelCreatingNullable);
 
-            public string BarString { get; set; } = string.Empty;
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                foo {
+                                    barString
+                                    objectArray(
+                                        order: {
+                                            foo: {
+                                                barShort: ASC
+                                            }
+                                        }) {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                .Create());
 
-            public BarEnum BarEnum { get; set; }
+        res1.MatchSqlSnapshot();
+    }
 
-            public bool BarBool { get; set; }
+    public static void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
+        modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
+        modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
+    }
 
-            [UseFiltering]
-            [UseSorting]
-            public List<BarDeep> ObjectArray { get; set; }
+    public static void OnModelCreatingNullable(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<FooNullable>().HasMany(x => x.ObjectArray);
+        modelBuilder.Entity<FooNullable>().HasOne(x => x.NestedObject);
+        modelBuilder.Entity<BarNullable>().HasOne(x => x.Foo);
+        modelBuilder.Entity<FooDeep>();
+    }
 
-            public BarDeep NestedObject { get; set; }
-        }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-        public class FooDeep
-        {
-            public int Id { get; set; }
+        public short BarShort { get; set; }
 
-            public short BarShort { get; set; }
+        public string BarString { get; set; } = string.Empty;
 
-            public string BarString { get; set; } = string.Empty;
-        }
+        public BarEnum BarEnum { get; set; }
 
-        public class FooNullable
-        {
-            public int Id { get; set; }
+        public bool BarBool { get; set; }
 
-            public short? BarShort { get; set; }
+        [UseFiltering]
+        [UseSorting]
+        public List<BarDeep>? ObjectArray { get; set; }
 
-            public string? BarString { get; set; }
+        public BarDeep? NestedObject { get; set; }
+    }
 
-            public BarEnum? BarEnum { get; set; }
+    public class FooDeep
+    {
+        public int Id { get; set; }
 
-            public bool? BarBool { get; set; }
+        public short BarShort { get; set; }
 
-            public List<BarDeepNullable?>? ObjectArray { get; set; }
+        public string BarString { get; set; } = string.Empty;
+    }
 
-            public BarDeepNullable? NestedObject { get; set; }
-        }
+    public class FooNullable
+    {
+        public int Id { get; set; }
 
-        public class Bar
-        {
-            public int Id { get; set; }
+        public short? BarShort { get; set; }
 
-            public Foo Foo { get; set; }
-        }
+        public string? BarString { get; set; }
 
-        public class BarDeep
-        {
-            public int Id { get; set; }
+        public BarEnum? BarEnum { get; set; }
 
-            public FooDeep Foo { get; set; }
-        }
+        public bool? BarBool { get; set; }
 
-        public class BarDeepNullable
-        {
-            public int Id { get; set; }
+        public List<BarDeepNullable?>? ObjectArray { get; set; }
 
-            public FooDeep Foo { get; set; }
-        }
+        public BarDeepNullable? NestedObject { get; set; }
+    }
 
-        public class BarNullable
-        {
-            public int Id { get; set; }
+    public class Bar
+    {
+        public int Id { get; set; }
 
-            public FooNullable? Foo { get; set; }
-        }
+        public Foo? Foo { get; set; }
+    }
 
-        public class FooDeepNullable
-        {
-            public int Id { get; set; }
+    public class BarDeep
+    {
+        public int Id { get; set; }
 
-            public short BarShort { get; set; }
+        public FooDeep? Foo { get; set; }
+    }
 
-            public string BarString { get; set; } = string.Empty;
-        }
+    public class BarDeepNullable
+    {
+        public int Id { get; set; }
 
-        public enum BarEnum
-        {
-            FOO,
-            BAR,
-            BAZ,
-            QUX
-        }
+        public FooDeep? Foo { get; set; }
+    }
+
+    public class BarNullable
+    {
+        public int Id { get; set; }
+
+        public FooNullable? Foo { get; set; }
+    }
+
+    public class FooDeepNullable
+    {
+        public int Id { get; set; }
+
+        public short BarShort { get; set; }
+
+        public string BarString { get; set; } = string.Empty;
+    }
+
+    public enum BarEnum
+    {
+        FOO,
+        BAR,
+        BAZ,
+        QUX
     }
 }
