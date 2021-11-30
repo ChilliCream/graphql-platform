@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
 using static HotChocolate.Properties.TypeResources;
@@ -35,46 +35,60 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
     private readonly Dictionary<ParameterInfo, IParameterExpressionBuilder> _cache = new();
     private readonly List<IParameterExpressionBuilder> _parameterExpressionBuilders;
+    private readonly List<IParameterContextBuilder> _parameterContextBuilders;
+    private readonly IParameterContextBuilder? _parameterContextBuilder;
     private readonly ImplicitArgumentParameterExpressionBuilder _defaultExprBuilder = new();
 
     public DefaultResolverCompiler(
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
         // explicit internal expression builders will be added first.
-        var list = new List<IParameterExpressionBuilder>
-            {
-                new ParentParameterExpressionBuilder(),
-                new ServiceParameterExpressionBuilder(),
-                new ArgumentParameterExpressionBuilder(),
-                new GlobalStateParameterExpressionBuilder(),
-                new ScopedStateParameterExpressionBuilder(),
-                new LocalStateParameterExpressionBuilder(),
-                new EventMessageParameterExpressionBuilder(),
-                new ScopedServiceParameterExpressionBuilder(),
-            };
+        var parameterExpressionBuilders = new List<IParameterExpressionBuilder>
+        {
+            new ParentParameterExpressionBuilder(),
+            new ServiceParameterExpressionBuilder(),
+            new ArgumentParameterExpressionBuilder(),
+            new GlobalStateParameterExpressionBuilder(),
+            new ScopedStateParameterExpressionBuilder(),
+            new LocalStateParameterExpressionBuilder(),
+            new EventMessageParameterExpressionBuilder(),
+            new ScopedServiceParameterExpressionBuilder(),
+        };
+
+        var parameterContextBuilders = new List<IParameterContextBuilder>();
 
         if (customParameterExpressionBuilders is not null)
         {
             // then we will add custom parameter expression builder and
             // give the user a chance to override our implicit expression builder.
-            list.AddRange(customParameterExpressionBuilders);
+            foreach (IParameterExpressionBuilder builder in customParameterExpressionBuilders)
+            {
+                parameterExpressionBuilders.Add(builder);
+
+                if (builder is IParameterContextBuilder contextBuilder)
+                {
+                    parameterContextBuilders.Add(contextBuilder);
+                }
+            }
         }
 
         // then we add the internal implicit expression builder.
-        list.Add(new DocumentParameterExpressionBuilder());
-        list.Add(new CancellationTokenParameterExpressionBuilder());
-        list.Add(new ResolverContextParameterExpressionBuilder());
-        list.Add(new PureResolverContextParameterExpressionBuilder());
-        list.Add(new SchemaParameterExpressionBuilder());
-        list.Add(new SelectionParameterExpressionBuilder());
-        list.Add(new FieldSyntaxParameterExpressionBuilder());
-        list.Add(new ObjectTypeParameterExpressionBuilder());
-        list.Add(new OperationParameterExpressionBuilder());
-        list.Add(new FieldParameterExpressionBuilder());
-        list.Add(new ClaimsPrincipalParameterExpressionBuilder());
-        list.Add(new PathParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new DocumentParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new CancellationTokenParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new PureResolverContextParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new SchemaParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new SelectionParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new OperationParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new FieldParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
+        parameterExpressionBuilders.Add(new PathParameterExpressionBuilder());
 
-        _parameterExpressionBuilders = list;
+        _parameterExpressionBuilders = parameterExpressionBuilders;
+        _parameterContextBuilders = parameterContextBuilders;
+        _parameterContextBuilder = parameterContextBuilders.FirstOrDefault();
     }
 
     /// <inheritdoc />
@@ -108,7 +122,12 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         Type sourceType,
         Type? resolverType = null)
     {
-        resolverType ??= sourceType;
+        if (lambda is null)
+        {
+            throw new ArgumentNullException(nameof(lambda));
+        }
+
+        resolverType ??= sourceType ?? throw new ArgumentNullException(nameof(sourceType));
 
         Expression owner = CreateResolverOwner(_context, sourceType, resolverType);
         Expression resolver = Invoke(lambda, owner);
@@ -162,6 +181,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         Type? sourceType = null,
         Type? resolverType = null)
     {
+        if (member is null)
+        {
+            throw new ArgumentNullException(nameof(member));
+        }
+
         sourceType ??= member.ReflectedType ?? member.DeclaringType!;
         resolverType ??= sourceType;
 
@@ -185,6 +209,11 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         ParameterInfo[] parameters,
         IParameterExpressionBuilder[]? parameterExpressionBuilders = null)
     {
+        if (parameters is null)
+        {
+            throw new ArgumentNullException(nameof(parameters));
+        }
+
         foreach (ParameterInfo parameter in parameters)
         {
             IParameterExpressionBuilder builder =
@@ -195,6 +224,51 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             if (builder.Kind == ArgumentKind.Argument)
             {
                 yield return parameter;
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public void BuildResolverContextData(
+        ParameterInfo[] parameters,
+        ObjectFieldDescriptor fieldDescriptor)
+    {
+        if (parameters is null)
+        {
+            throw new ArgumentNullException(nameof(parameters));
+        }
+
+        if (fieldDescriptor is null)
+        {
+            throw new ArgumentNullException(nameof(fieldDescriptor));
+        }
+
+        if (_parameterContextBuilders.Count == 0)
+        {
+            return;
+        }
+
+        if (_parameterContextBuilders.Count == 1)
+        {
+            foreach (ParameterInfo parameter in parameters)
+            {
+                if (_parameterContextBuilder!.CanHandle(parameter))
+                {
+                    _parameterContextBuilder.BuildContextData(parameter, fieldDescriptor);
+                }
+            }
+
+            return;
+        }
+
+        foreach (IParameterContextBuilder contextBuilder in _parameterContextBuilders)
+        {
+            foreach (ParameterInfo parameter in parameters)
+            {
+                if (contextBuilder.CanHandle(parameter))
+                {
+                    contextBuilder.BuildContextData(parameter, fieldDescriptor);
+                }
             }
         }
     }
@@ -370,7 +444,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         return parameterResolvers;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private IParameterExpressionBuilder GetParameterExpressionBuilder(
         ParameterInfo parameter,
         IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
@@ -401,7 +474,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             if (builder.CanHandle(parameter))
             {
 #if NETSTANDARD
-                    _cache[parameter] = builder;
+                _cache[parameter] = builder;
 #else
                 _cache.TryAdd(parameter, builder);
 #endif

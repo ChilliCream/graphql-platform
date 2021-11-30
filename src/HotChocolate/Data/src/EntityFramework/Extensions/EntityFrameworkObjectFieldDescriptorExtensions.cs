@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Data;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -14,21 +15,25 @@ namespace HotChocolate.Types
     {
         private static readonly Type _valueTask = typeof(ValueTask<>);
         private static readonly Type _task = typeof(Task<>);
+        private static readonly MethodInfo _useDbContextMethod =
+            typeof(EntityFrameworkObjectFieldDescriptorExtensions)
+                .GetMethod("UseDbContextInternal", BindingFlags.NonPublic | BindingFlags.Static)!;
 
         public static IObjectFieldDescriptor UseDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
             where TDbContext : DbContext
         {
-            string scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
+            var scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
             FieldMiddlewareDefinition placeholder =
                 new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
 
             descriptor.Extend().Definition.MiddlewareDefinitions.Add(
                 new(next => async context =>
                 {
-                    await using TDbContext dbContext = context.Services
+                    await using TDbContext dbContext = await context.Services
                         .GetRequiredService<IDbContextFactory<TDbContext>>()
-                        .CreateDbContext();
+                        .CreateDbContextAsync()
+                        .ConfigureAwait(false);
 
                     try
                     {
@@ -47,33 +52,82 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeNaming((_, d) =>
                 {
-                    if (d.ResultType is null)
-                    {
-                        d.MiddlewareDefinitions.Remove(placeholder);
-                        return;
-                    }
-
-                    if (TryExtractEntityType(d.ResultType, out Type? entityType))
-                    {
-                        Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
-                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
-                        d.MiddlewareDefinitions[index] =
-                            new(Create(middleware), key: WellKnownMiddleware.ToList);
-                        return;
-                    }
-
-                    if (IsExecutable(d.ResultType))
-                    {
-                        Type middleware = typeof(ExecutableMiddleware);
-                        var index = d.MiddlewareDefinitions.IndexOf(placeholder);
-                        d.MiddlewareDefinitions[index] =
-                            new(Create(middleware), key: WellKnownMiddleware.ToList);
-                    }
-
-                    d.MiddlewareDefinitions.Remove(placeholder);
+                    AddCompletionMiddleware(d, placeholder);
                 });
 
             return descriptor;
+        }
+
+        internal static void UseDbContext(
+            ObjectFieldDefinition definition,
+            Type dbContextType)
+            => _useDbContextMethod
+                .MakeGenericMethod(dbContextType)
+                .Invoke(null, new object?[] { definition });
+
+        private static void UseDbContextInternal<TDbContext>(
+            ObjectFieldDefinition definition)
+            where TDbContext : DbContext
+        {
+            var scopedServiceName = typeof(TDbContext).FullName ?? typeof(TDbContext).Name;
+
+            FieldMiddlewareDefinition placeholderMiddleware =
+                new(_ => _ => throw new NotSupportedException(), key: WellKnownMiddleware.ToList);
+
+            FieldMiddlewareDefinition contextMiddleware =
+                new(next => async context =>
+                    {
+                        await using TDbContext dbContext = await context.Services
+                            .GetRequiredService<IDbContextFactory<TDbContext>>()
+                            .CreateDbContextAsync()
+                            .ConfigureAwait(false);
+
+                        try
+                        {
+                            context.SetLocalValue(scopedServiceName, dbContext);
+                            await next(context).ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            context.RemoveLocalValue(scopedServiceName);
+                        }
+                    },
+                    key: WellKnownMiddleware.DbContext);
+
+            definition.MiddlewareDefinitions.Insert(0, placeholderMiddleware);
+            definition.MiddlewareDefinitions.Insert(0, contextMiddleware);
+
+            AddCompletionMiddleware(definition, placeholderMiddleware);
+        }
+
+        internal static void AddCompletionMiddleware(
+            ObjectFieldDefinition definition, 
+            FieldMiddlewareDefinition placeholderMiddleware)
+        {
+            if (definition.ResultType is null)
+            {
+                definition.MiddlewareDefinitions.Remove(placeholderMiddleware);
+                return;
+            }
+
+            if (TryExtractEntityType(definition.ResultType, out Type? entityType))
+            {
+                Type middleware = typeof(ToListMiddleware<>).MakeGenericType(entityType);
+                var index = definition.MiddlewareDefinitions.IndexOf(placeholderMiddleware);
+                definition.MiddlewareDefinitions[index] =
+                    new(Create(middleware), key: WellKnownMiddleware.ToList);
+                return;
+            }
+
+            if (IsExecutable(definition.ResultType))
+            {
+                Type middleware = typeof(ExecutableMiddleware);
+                var index = definition.MiddlewareDefinitions.IndexOf(placeholderMiddleware);
+                definition.MiddlewareDefinitions[index] =
+                    new(Create(middleware), key: WellKnownMiddleware.ToList);
+            }
+
+            definition.MiddlewareDefinitions.Remove(placeholderMiddleware);
         }
 
         private static bool TryExtractEntityType(

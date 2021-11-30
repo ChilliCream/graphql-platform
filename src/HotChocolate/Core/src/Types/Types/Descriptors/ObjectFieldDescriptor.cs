@@ -20,6 +20,7 @@ public class ObjectFieldDescriptor
     , IObjectFieldDescriptor
 {
     private bool _argumentsInitialized;
+    private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
@@ -60,7 +61,8 @@ public class ObjectFieldDescriptor
 
         if (member is MethodInfo m)
         {
-            Parameters = m.GetParameters().ToDictionary(t => new NameString(t.Name!));
+            _parameterInfos = m.GetParameters();
+            Parameters = _parameterInfos.ToDictionary(t => new NameString(t.Name!));
             Definition.ResultType = m.ReturnType;
         }
         else if (member is PropertyInfo p)
@@ -144,12 +146,17 @@ public class ObjectFieldDescriptor
 
     private void CompleteArguments(ObjectFieldDefinition definition)
     {
-        if (!_argumentsInitialized && Parameters.Any())
+        if (!_argumentsInitialized && Parameters.Count > 0)
         {
+            Context.ResolverCompiler.BuildResolverContextData(
+                _parameterInfos,
+                this);
+
             FieldDescriptorUtilities.DiscoverArguments(
                 Context,
                 definition.Arguments,
                 definition.Member);
+
             _argumentsInitialized = true;
         }
     }

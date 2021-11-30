@@ -88,4 +88,32 @@ public static class ResolverCompilerBuilderExtensions
                 CustomServiceParameterExpressionBuilder<TService>>();
         return builder;
     }
+
+    /// <summary>
+    /// Marks types as well-known scoped services that no longer need the
+    /// <see cref="ScopedServiceAttribute"/> annotation.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IResolverCompilerBuilder"/>.
+    /// </param>
+    /// <typeparam name="TService">
+    /// The well-known scoped service type.
+    /// </typeparam>
+    /// <returns>
+    /// An <see cref="IResolverCompilerBuilder"/> that can be used to configure to
+    /// chain in more configuration.
+    /// </returns>
+    public static IResolverCompilerBuilder AddScopedService<TService>(
+        this IResolverCompilerBuilder builder)
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.RequestExecutorBuilder.Services
+            .TryAddParameterExpressionBuilder<
+                CustomServiceScopeParameterExpressionBuilder<TService>>();
+        return builder;
+    }
 }
