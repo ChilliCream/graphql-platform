@@ -36,8 +36,7 @@ namespace HotChocolate.Types
             // Assert
             res.ToJson().MatchSnapshot();
             SnapshotFullName fullName = Snapshot.FullName();
-            SnapshotFullName snapshotName =
-                new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+            SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
             executor.Schema.Print().MatchSnapshot(snapshotName);
         }
 
@@ -49,6 +48,7 @@ namespace HotChocolate.Types
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryWithException>()
+                    .EnableMutationConvention()
                     .BuildRequestExecutorAsync();
 
             // Act
@@ -67,8 +67,7 @@ namespace HotChocolate.Types
             // Assert
             res.ToJson().MatchSnapshot();
             SnapshotFullName fullName = Snapshot.FullName();
-            SnapshotFullName snapshotName =
-                new SnapshotFullName(fullName.Filename + "_schema", fullName.FolderPath);
+            SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
             executor.Schema.Print().MatchSnapshot(snapshotName);
         }
 
@@ -86,15 +85,16 @@ namespace HotChocolate.Types
         {
             [Error(typeof(InvalidOperationException))]
             [Payload("foo")]
-            public Foo CreateFoo([Input] string bar) => new Foo(bar);
+            public Foo CreateFoo([Input] string bar)
+                => new Foo(bar);
         }
 
         public class QueryWithException
         {
             [Error(typeof(InvalidOperationException))]
             [Payload("foo")]
-            public Foo CreateFoo([Input] string bar) =>
-                throw new InvalidOperationException();
+            public Foo CreateFoo([Input] string bar)
+                => throw new InvalidOperationException();
         }
     }
 }

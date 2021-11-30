@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -11,6 +12,8 @@ namespace HotChocolate.Types.Helpers;
 
 public static class FieldDescriptorUtilities
 {
+    private static HashSet<NameString>? _names = new();
+
     public static void AddExplicitFields<TMember, TField>(
         IEnumerable<TField> fieldDefinitions,
         Func<TField, TMember?> resolveMember,
@@ -65,7 +68,7 @@ public static class FieldDescriptorUtilities
     {
         if (fieldBindingType != typeof(object))
         {
-            List<TMember> members = descriptor.Context.TypeInspector
+            var members = descriptor.Context.TypeInspector
                 .GetMembers(fieldBindingType, includeIgnoredMembers)
                 .OfType<TMember>()
                 .ToList();
@@ -100,21 +103,34 @@ public static class FieldDescriptorUtilities
 
         if (member is MethodInfo method)
         {
-            var processed = new HashSet<NameString>(
-                arguments.Select(t => t.Name));
+            var processedNames = Interlocked.Exchange(ref _names, null) ?? new();
 
-            foreach (ParameterInfo parameter in
-                context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
+            try
             {
-                ArgumentDefinition argumentDefinition =
-                    ArgumentDescriptor
-                        .New(context, parameter)
-                        .CreateDefinition();
-
-                if (processed.Add(argumentDefinition.Name))
+                foreach (ArgumentDefinition argument in arguments)
                 {
-                    arguments.Add(argumentDefinition);
+                    processedNames.Add(argument.Name);
                 }
+
+                foreach (ParameterInfo parameter in
+                    context.ResolverCompiler.GetArgumentParameters(method.GetParameters()))
+                {
+                    ArgumentDefinition argumentDefinition =
+                        ArgumentDescriptor
+                            .New(context, parameter)
+                            .CreateDefinition();
+
+                    if (processedNames.Add(argumentDefinition.Name))
+                    {
+                        arguments.Add(argumentDefinition);
+                    }
+                }
+            }
+            finally
+            {
+                processedNames.Clear();
+
+                Interlocked.CompareExchange(ref _names, processedNames, null);
             }
         }
     }
