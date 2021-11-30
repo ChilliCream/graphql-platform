@@ -119,15 +119,13 @@ public interface IResolverCompiler : IDisposable
         IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
 
     /// <summary>
-    /// Builds context data for the resolver.
+    /// Applies filed configuration dependencies for the specified parameters.
     /// </summary>
     /// <param name="parameters">
-    /// The method parameters.
+    /// The resolver method parameters.
     /// </param>
-    /// <param name="fieldDescriptor">
+    /// <param name="descriptor">
     /// The field descriptor.
     /// </param>
-    void ApplyConfiguration(
-        ParameterInfo[] parameters,
-        ObjectFieldDescriptor fieldDescriptor);
+    void ApplyConfiguration(ParameterInfo[] parameters, ObjectFieldDescriptor descriptor);
 }

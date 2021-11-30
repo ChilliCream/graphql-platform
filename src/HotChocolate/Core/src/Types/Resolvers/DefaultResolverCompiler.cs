@@ -233,7 +233,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     /// <inheritdoc />
     public void ApplyConfiguration(
         ParameterInfo[] parameters,
-        ObjectFieldDescriptor fieldDescriptor)
+        ObjectFieldDescriptor descriptor)
     {
         if (parameters is null)
         {
@@ -246,7 +246,7 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
             {
                 if (configuration.CanHandle(parameter))
                 {
-                    configuration.ApplyConfiguration(parameter, fieldDescriptor);
+                    configuration.ApplyConfiguration(parameter, descriptor);
                     break;
                 }
             }
