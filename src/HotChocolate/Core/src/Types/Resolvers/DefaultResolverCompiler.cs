@@ -41,6 +41,10 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     public DefaultResolverCompiler(
         IEnumerable<IParameterExpressionBuilder>? customParameterExpressionBuilders)
     {
+        var custom = customParameterExpressionBuilders is not null
+            ? new List<IParameterExpressionBuilder>(customParameterExpressionBuilders)
+            : new List<IParameterExpressionBuilder>();
+
         // explicit internal expression builders will be added first.
         var parameterExpressionBuilders = new List<IParameterExpressionBuilder>
         {
@@ -59,9 +63,12 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         {
             // then we will add custom parameter expression builder and
             // give the user a chance to override our implicit expression builder.
-            foreach (IParameterExpressionBuilder builder in customParameterExpressionBuilders)
+            foreach (IParameterExpressionBuilder builder in custom)
             {
-                parameterExpressionBuilders.Add(builder);
+                if (!builder.IsDefaultHandler)
+                {
+                    parameterExpressionBuilders.Add(builder);
+                }
             }
         }
 
@@ -78,6 +85,19 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         parameterExpressionBuilders.Add(new FieldParameterExpressionBuilder());
         parameterExpressionBuilders.Add(new ClaimsPrincipalParameterExpressionBuilder());
         parameterExpressionBuilders.Add(new PathParameterExpressionBuilder());
+
+        if (customParameterExpressionBuilders is not null)
+        {
+            // last we will add all custom default handlers. This will give these handlers a chance
+            // to apply logic only on arguments.
+            foreach (IParameterExpressionBuilder builder in custom)
+            {
+                if (builder.IsDefaultHandler)
+                {
+                    parameterExpressionBuilders.Add(builder);
+                }
+            }
+        }
 
         var parameterFieldConfigurations = new List<IParameterFieldConfiguration>();
 
