@@ -11,7 +11,7 @@ namespace StrawberryShake.Tools
 
             foreach (var argument in arguments)
             {
-                var argumentParts = argument?.Trim().Split("=");
+                var argumentParts = argument?.Trim().Split("=", 2);
                 if (argumentParts?.Length != 2)
                 {
                     continue;
