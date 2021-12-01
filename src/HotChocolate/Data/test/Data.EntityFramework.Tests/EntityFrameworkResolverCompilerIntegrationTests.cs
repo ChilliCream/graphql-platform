@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Data.Internal;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using Microsoft.EntityFrameworkCore;

@@ -10,6 +10,8 @@ internal class LegacyScopedServiceParameterExpressionBuilder : IParameterExpress
 
     public bool IsPure => false;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ScopedServiceAttribute));
 

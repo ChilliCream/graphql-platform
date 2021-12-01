@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Data;
-using HotChocolate.Data.Internal;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Internal;
 using Microsoft.EntityFrameworkCore;

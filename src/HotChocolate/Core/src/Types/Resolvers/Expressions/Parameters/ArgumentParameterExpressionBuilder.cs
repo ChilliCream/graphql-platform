@@ -49,6 +49,8 @@ internal class ArgumentParameterExpressionBuilder : IParameterExpressionBuilder
 
     public bool IsPure => true;
 
+    public bool IsDefaultHandler => true;
+
     public virtual bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(ArgumentAttribute));
 

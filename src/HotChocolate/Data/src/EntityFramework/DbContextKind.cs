@@ -2,7 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Data.Internal;
+namespace HotChocolate.Data;
 
 /// <summary>
 /// Represents the way a <see cref="DbContext"/> is injected and handled by the execution engine.

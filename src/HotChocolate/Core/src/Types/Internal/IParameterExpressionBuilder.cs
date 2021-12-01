@@ -22,6 +22,11 @@ public interface IParameterExpressionBuilder : IParameterHandler
     bool IsPure { get; }
 
     /// <summary>
+    /// Specifies that this handler is run after all non-default handlers.
+    /// </summary>
+    bool IsDefaultHandler { get; }
+
+    /// <summary>
     /// Builds an expression that resolves a resolver parameter.
     /// </summary>
     /// <param name="parameter">

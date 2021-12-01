@@ -23,6 +23,8 @@ internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBui
 
     public bool IsPure => true;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => typeof(ISchema) == parameter.ParameterType ||
            typeof(Schema) == parameter.ParameterType;

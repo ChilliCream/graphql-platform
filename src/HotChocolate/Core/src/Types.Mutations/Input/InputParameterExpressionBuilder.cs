@@ -25,9 +25,11 @@ namespace HotChocolate.Types
 
         private static readonly Expression _null = Constant(null);
 
-        public ArgumentKind Kind => ArgumentKind.Argument;
+        public ArgumentKind Kind => ArgumentKind.Custom;
 
         public bool IsPure => true;
+
+        public bool IsDefaultHandler => true;
 
         public bool CanHandle(ParameterInfo parameter)
         {

@@ -26,6 +26,8 @@ public sealed class CustomServiceParameterExpressionBuilder<TService>
     ArgumentKind IParameterExpressionBuilder.Kind
         => ArgumentKind.Service;
 
+    bool IParameterExpressionBuilder.IsDefaultHandler => false;
+
     bool IParameterExpressionBuilder.IsPure
         => _kind is ServiceKind.Default;
 

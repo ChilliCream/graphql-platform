@@ -16,7 +16,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is null.
     /// </exception>
-    public static IRequestExecutorBuilder EnableMutationConvention(
+    public static IRequestExecutorBuilder EnableMutationConventions(
         this IRequestExecutorBuilder builder)
     {
         if (builder is null)
