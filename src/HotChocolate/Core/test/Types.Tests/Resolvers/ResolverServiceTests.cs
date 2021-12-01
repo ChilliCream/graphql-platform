@@ -103,7 +103,7 @@ public class ResolverServiceTests
 
     public class QuerySynchronizedService
     {
-        public string SayHello([Service(ServiceKind.Synchronised)] SayHelloService service)
+        public string SayHello([Service(ServiceKind.Synchronized)] SayHelloService service)
             => service.SayHello();
     }
 
