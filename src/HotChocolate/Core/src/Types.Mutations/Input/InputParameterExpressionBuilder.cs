@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
-using HotChocolate.Internal;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Properties;
-using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
 
 #nullable enable
@@ -27,7 +21,7 @@ namespace HotChocolate.Types
 
         private static readonly Expression _null = Constant(null);
 
-        public ArgumentKind Kind => ArgumentKind.Custom;
+        public ArgumentKind Kind => ArgumentKind.Argument;
 
         public bool IsPure => true;
 
@@ -75,13 +69,5 @@ namespace HotChocolate.Types
                     Convert(_null, parameter.ParameterType))
             );
         }
-    }
-
-    internal class InputArgumentParameterExpressionBuilder : InputParameterExpressionBuilder
-    {
-        public override bool IsDefaultHandler => true;
-
-        public override bool CanHandle(ParameterInfo parameter)
-            => parameter.Member.IsDefined(typeof(InputAttribute));
     }
 }

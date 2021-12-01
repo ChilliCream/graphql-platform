@@ -28,12 +28,11 @@ public class InputArgumentTests
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A""}) {
+                        bar
                     }
-                ");
+                }");
 
         // Assert
         res.ToJson().MatchSnapshot();
