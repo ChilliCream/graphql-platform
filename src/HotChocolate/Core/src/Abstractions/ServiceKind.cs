@@ -21,7 +21,7 @@ public enum ServiceKind
     /// Example for such service is for instance the Entity
     /// Framework DbContext when scoped on the request.
     /// </summary>
-    Synchronised,
+    Synchronized,
 
     /// <summary>
     /// A service is rented for each resolver execution.

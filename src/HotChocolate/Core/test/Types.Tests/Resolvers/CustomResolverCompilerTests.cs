@@ -58,7 +58,7 @@ namespace HotChocolate.Resolvers
                     .AddSingleton<SayHelloService>()
                     .AddGraphQL()
                     .AddQueryType<QueryWellKnownService>()
-                    .RegisterService<SayHelloService>(ServiceKind.Synchronised)
+                    .RegisterService<SayHelloService>(ServiceKind.Synchronized)
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
 

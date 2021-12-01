@@ -55,7 +55,7 @@ public static class ServiceExpressionHelper
             case ServiceKind.Default:
                 return;
 
-            case ServiceKind.Synchronised:
+            case ServiceKind.Synchronized:
                 descriptor.Extend().Definition.IsParallelExecutable = false;
                 break;
 
@@ -91,7 +91,7 @@ public static class ServiceExpressionHelper
             throw new ArgumentNullException(nameof(context));
         }
 
-        return serviceKind is ServiceKind.Default or ServiceKind.Synchronised
+        return serviceKind is ServiceKind.Default or ServiceKind.Synchronized
             ? BuildDefaultService(parameter, context)
             : BuildLocalService(parameter, context);
     }

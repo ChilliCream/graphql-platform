@@ -25,7 +25,7 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
         {
             DbContextKind.Pooled => ServiceKind.Pooled,
             DbContextKind.Resolver => ServiceKind.Resolver,
-            _ => ServiceKind.Synchronised
+            _ => ServiceKind.Synchronized
         };
     }
 
@@ -46,7 +46,7 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
                 UseDbContext<TDbContext>(descriptor.Extend().Definition);
                 break;
 
-            case ServiceKind.Synchronised:
+            case ServiceKind.Synchronized:
                 ServiceExpressionHelper.ApplyConfiguration(parameter, descriptor, _kind);
                 break;
 
