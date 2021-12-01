@@ -18,7 +18,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -50,7 +50,7 @@ public class PayloadTests
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddQueryFieldToMutationPayloads()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -86,7 +86,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<CustomTypeName>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -104,7 +104,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<DefaultMutation>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -122,7 +122,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<MutationTask>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -168,7 +168,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<MutationNullable>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -200,7 +200,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<MutationRenamed>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act

@@ -17,6 +17,8 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpr
 
     public bool IsPure => true;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(ClaimsPrincipal);
 

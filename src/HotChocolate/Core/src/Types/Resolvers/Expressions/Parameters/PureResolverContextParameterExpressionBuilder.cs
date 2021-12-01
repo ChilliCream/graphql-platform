@@ -14,6 +14,8 @@ internal sealed class PureResolverContextParameterExpressionBuilder
 
     public bool IsPure => true;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => typeof(IPureResolverContext) == parameter.ParameterType;
 

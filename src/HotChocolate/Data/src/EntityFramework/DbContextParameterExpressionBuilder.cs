@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Data.Internal;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Types.Descriptors;
@@ -33,6 +32,8 @@ internal sealed class DbContextParameterExpressionBuilder<TDbContext>
     public ArgumentKind Kind => ArgumentKind.Service;
 
     public bool IsPure => false;
+
+    public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
         => parameter.ParameterType == typeof(TDbContext);

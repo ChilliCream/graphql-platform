@@ -26,6 +26,8 @@ internal abstract class LambdaParameterExpressionBuilder<TContext, TValue>
 
     public bool IsPure { get; }
 
+    public bool IsDefaultHandler => false;
+
     public abstract bool CanHandle(ParameterInfo parameter);
 
     public virtual Expression Build(ParameterInfo parameter, Expression context)

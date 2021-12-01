@@ -1,8 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -26,8 +22,7 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
 
             string? fieldInputName = null;
             string? fieldInputTypeName = null;
-            if (
-                field.ContextData.TryGetValue(InputContextData.Input, out object? contextObj) &&
+            if (field.ContextData.TryGetValue(InputContextData.Input, out var contextObj) &&
                 contextObj is InputContextData context)
             {
                 fieldInputName = context.ArgumentName;
@@ -57,7 +52,7 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
                 if (argumentInputName is not null)
                 {
                     arguments ??= new Dictionary<string, ArgumentReference>();
-                    if (!arguments.TryGetValue(argumentInputName, out var reference))
+                    if (!arguments.TryGetValue(argumentInputName, out ArgumentReference? reference))
                     {
                         reference = new ArgumentReference(
                             fieldInputTypeName,
@@ -90,7 +85,7 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
                 continue;
             }
 
-            foreach (var argument in arguments)
+            foreach (KeyValuePair<string, ArgumentReference> argument in arguments)
             {
                 if (field.Type is null)
                 {
@@ -111,7 +106,8 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
                     new InputObjectType(x =>
                     {
                         x.Name(typeName);
-                        foreach (var argumentDefinition in argument.Value.ArgumentDefinitions)
+                        foreach (ArgumentDefinition argumentDefinition in
+                            argument.Value.ArgumentDefinitions)
                         {
                             MergeFieldWithArgument(
                                 x.Field(argumentDefinition.Name),
@@ -133,7 +129,7 @@ internal class InputArgumentTypeInterceptor : TypeInterceptor
         definition.DefaultValue = argumentDefinition.DefaultValue;
         definition.Ignore = argumentDefinition.Ignore;
         definition.RuntimeDefaultValue = argumentDefinition.RuntimeDefaultValue;
-        definition.RuntimeType = argumentDefinition.Parameter.ParameterType;
+        definition.RuntimeType = argumentDefinition.Parameter?.ParameterType;
         definition.ContextData.AddRange(argumentDefinition.ContextData);
         definition.Formatters.AddRange(argumentDefinition.Formatters);
 

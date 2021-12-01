@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
@@ -20,18 +22,17 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
         IExecutionResult res = await executor
             .ExecuteAsync(@"
-                    {
-                        createFoo(input: {bar: ""A""}) {
-                            bar
-                        }
+                {
+                    createFoo(input: {bar: ""A""}) {
+                        bar
                     }
-                ");
+                }");
 
         // Assert
         res.ToJson().MatchSnapshot();
@@ -48,7 +49,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMultiple>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -76,7 +77,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryDifferentArgs>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -104,7 +105,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMember>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -132,7 +133,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryMixed>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -160,7 +161,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeNameOnRoot>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -188,7 +189,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeNameOnRootAndOnParameters>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -216,7 +217,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeJustOne>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -244,7 +245,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryTypeMultiple>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -272,7 +273,7 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryId>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -307,12 +308,25 @@ public class InputArgumentTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryCollidingNames>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
         });
 
         // Assert
         exception.Message.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Ensure_That_CancellationToken_Are_Not_Inferred_As_Input()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryTypeWithCancellationToken>()
+            .EnableMutationConventions()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
     }
 
     public class Foo
@@ -377,6 +391,16 @@ public class InputArgumentTests
             [Input(TypeName = "ThisIsTheInputType")] string bar,
             [Input(TypeName = "ThisIsTheInputType")]
             string baz) =>
+            new(bar + baz);
+    }
+
+    public class QueryTypeWithCancellationToken
+    {
+        [Input]
+        public Foo CreateFoo(
+            string bar,
+            string baz,
+            CancellationToken cancellationToken = default) =>
             new(bar + baz);
     }
 

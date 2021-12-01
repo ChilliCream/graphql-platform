@@ -18,7 +18,7 @@ namespace HotChocolate.Types
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<Query>()
-                    .EnableMutationConvention()
+                    .EnableMutationConventions()
                     .BuildRequestExecutorAsync();
 
             // Act
@@ -48,7 +48,7 @@ namespace HotChocolate.Types
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryWithException>()
-                    .EnableMutationConvention()
+                    .EnableMutationConventions()
                     .BuildRequestExecutorAsync();
 
             // Act
