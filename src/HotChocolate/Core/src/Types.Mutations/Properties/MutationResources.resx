@@ -32,4 +32,7 @@
     <value>Could not find a unique type name for input type of the argument {0} on field {1}. The type name {2} collides with {3}.
 Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "{2}")` on type {4} for naming collisions.</value>
   </data>
+  <data name="InputParameterExpressionBuilder_Build_NoAttribute" xml:space="preserve">
+    <value>Could not find the InputAttribute</value>
+  </data>
 </root>

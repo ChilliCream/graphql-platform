@@ -29,7 +29,8 @@ public static class MutationRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<InputArgumentTypeInterceptor>()
             .TryAddTypeInterceptor<PayloadTypeInterceptor>()
             .Services
-            .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>();
+            .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>()
+            .AddSingleton<IParameterExpressionBuilder, InputArgumentParameterExpressionBuilder>();
 
         return builder;
     }

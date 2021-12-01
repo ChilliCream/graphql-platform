@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Properties;
 using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
 
@@ -18,7 +19,8 @@ namespace HotChocolate.Types
                 x => x.ArgumentValue<Dictionary<string, object>>(default));
 
         private static readonly MethodInfo _containsKey =
-            ReflectionUtils.ExtractMethod<Dictionary<string, object>>(x => x.ContainsKey(default!));
+            ReflectionUtils.ExtractMethod<Dictionary<string, object>>(
+                x => x.ContainsKey(default!));
 
         private static readonly PropertyInfo _getValue =
             typeof(Dictionary<string, object>).GetProperty("Item")!;
@@ -29,14 +31,10 @@ namespace HotChocolate.Types
 
         public bool IsPure => true;
 
-        public bool IsDefaultHandler => true;
+        public virtual bool IsDefaultHandler => false;
 
-        public bool CanHandle(ParameterInfo parameter)
-        {
-            InputAttribute? attribute = parameter.GetCustomAttribute<InputAttribute>() ??
-                parameter.Member.GetCustomAttribute<InputAttribute>();
-            return attribute is not null;
-        }
+        public virtual bool CanHandle(ParameterInfo parameter)
+            => parameter.IsDefined(typeof(InputAttribute));
 
         public Expression Build(ParameterInfo parameter, Expression context)
         {
@@ -45,7 +43,9 @@ namespace HotChocolate.Types
 
             if (attribute is null)
             {
-                throw new ArgumentException("Could not find the InputAttribute", nameof(parameter));
+                throw new ArgumentException(
+                    MutationResources.InputParameterExpressionBuilder_Build_NoAttribute,
+                    nameof(parameter));
             }
 
             ParameterExpression variable =
@@ -75,5 +75,13 @@ namespace HotChocolate.Types
                     Convert(_null, parameter.ParameterType))
             );
         }
+    }
+
+    internal class InputArgumentParameterExpressionBuilder : InputParameterExpressionBuilder
+    {
+        public override bool IsDefaultHandler => true;
+
+        public override bool CanHandle(ParameterInfo parameter)
+            => parameter.Member.IsDefined(typeof(InputAttribute));
     }
 }
