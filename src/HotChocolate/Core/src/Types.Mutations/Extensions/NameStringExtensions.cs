@@ -1,7 +1,4 @@
-using System;
 using System.Text;
-
-#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -28,7 +25,7 @@ namespace HotChocolate.Types
                     .Append(parameterName.Substring(1));
             }
 
-            string typeName = typeNameBuilder.ToString();
+            var typeName = typeNameBuilder.ToString();
 
             if (typeName.EndsWith(suffix, StringComparison.InvariantCulture))
             {

@@ -71,7 +71,7 @@ public class PayloadAttribute : ObjectFieldDescriptorAttribute
     /// The name of the field in the payload
     /// <code>
     /// type CreateUserPayload {
-    ///    thesIsTheFieldName: User
+    ///    thisIsTheFieldName: User
     /// }
     /// </code>
     /// </summary>

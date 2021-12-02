@@ -26,7 +26,7 @@ public static class MutationRequestExecutorBuilderExtensions
 
         builder
             .TryAddTypeInterceptor<ErrorTypeInterceptor>()
-            .TryAddTypeInterceptor<InputArgumentTypeInterceptor>()
+            .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()
             .TryAddTypeInterceptor<PayloadTypeInterceptor>()
             .Services
             .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>()
