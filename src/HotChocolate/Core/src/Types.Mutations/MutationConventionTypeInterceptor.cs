@@ -1,4 +1,5 @@
 using System.Linq;
+using static HotChocolate.Types.Descriptors.TypeReference;
 
 #nullable enable
 
@@ -63,53 +64,66 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
 
                 Options mutationOptions = rootOptions;
 
-                if (defLookup.TryGetValue(mutationField, out MutationContextData? contextData) ||
-                    nameLookup.TryGetValue(mutationField.Name, out contextData))
+                if (defLookup.TryGetValue(mutationField, out MutationContextData? cd) ||
+                    nameLookup.TryGetValue(mutationField.Name, out cd))
                 {
-                    mutationOptions = CreateOptions(contextData, mutationOptions);
-                    unprocessed.Remove(contextData);
+                    mutationOptions = CreateOptions(cd, mutationOptions);
+                    unprocessed.Remove(cd);
                 }
 
                 if (mutationOptions.Apply)
                 {
-                    var inputTypeName = mutationOptions.FormatInputTypeName(mutationField.Name);
-                    InputObjectType inputType = CreateInputType(inputTypeName, mutationField);
-                    RegisterType(inputType);
-                    mutationField.Arguments.Clear();
-                    mutationField.Arguments.Add(
-                        new ArgumentDefinition(
-                            mutationOptions.InputArgumentName,
-                            type: TypeReference.Parse($"{inputTypeName}!")));
-
-                    ITypeReference? typeRef = mutationField.Type;
-                    var payloadTypeName = mutationOptions.FormatPayloadTypeName(mutationField.Name);
-
-                    if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
-                        !_typeRegistry.TryGetType(typeRef, out RegisteredType? registration))
-                    {
-                        // TODO : ERROR
-                        throw new SchemaException(
-                            SchemaErrorBuilder.New()
-                                .SetMessage("Cannot Resolve PayLoad Type")
-                                .Build());
-                    }
-
-                    ObjectType payloadType;
-                    if (registration.Type.Name.Equals(payloadTypeName))
-                    {
-                        payloadType = (ObjectType)registration.Type; // TODO : this can also be something else like a interface.
-                    }
-                    else
-                    {
-                        var payloadFieldName = contextData?.PayloadFieldName ??
-                            _context.Naming.FormatFieldName(registration.Type.Name);
-                        payloadType = CreatePayloadType(payloadTypeName, payloadFieldName, mutationField.Type);
-                        RegisterType(payloadType);
-                        mutationField.Type = TypeReference.Parse($"{payloadTypeName}!");
-                    }
+                    TryApplyInputConvention(mutationField, mutationOptions);
+                    TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
             }
         }
+    }
+
+    private void TryApplyInputConvention(ObjectFieldDefinition mutation, Options options)
+    {
+        var inputTypeName = options.FormatInputTypeName(mutation.Name);
+
+        if (_typeRegistry.NameRefs.ContainsKey(inputTypeName))
+        {
+            return;
+        }
+
+        InputObjectType inputType = CreateInputType(inputTypeName, mutation);
+        RegisterType(inputType);
+
+        mutation.Arguments.Clear();
+        mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
+    }
+
+    private RegisteredType? TryApplyPayloadConvention(
+        ObjectFieldDefinition mutation,
+        string? payloadFieldName,
+        Options options)
+    {
+        ITypeReference? typeRef = mutation.Type;
+        var payloadTypeName = options.FormatPayloadTypeName(mutation.Name);
+
+        if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+            !_typeRegistry.TryGetType(typeRef, out RegisteredType? registration))
+        {
+            // TODO : ERROR
+            throw new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("Cannot Resolve PayLoad Type")
+                    .Build());
+        }
+
+        if (registration.Type.Name.Equals(payloadTypeName))
+        {
+            return registration.Type is ObjectType ? registration : null;
+        }
+
+        payloadFieldName ??= _context.Naming.FormatFieldName(registration.Type.Name);
+        ObjectType type = CreatePayloadType(payloadTypeName, payloadFieldName, mutation.Type);
+        registration = RegisterType(type);
+        mutation.Type = Parse($"{payloadTypeName}!");
+        return registration;
     }
 
     private static InputObjectType CreateInputType(

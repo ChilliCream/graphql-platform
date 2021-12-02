@@ -18,7 +18,32 @@ public class AnnotationBasedMutations
         await new ServiceCollection()
             .AddGraphQL()
             .AddMutationType<SimpleMutation>()
-            .AddMutationConventions(new() {ApplyToAllMutations = true})
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_Defaults()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutation>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    InputArgumentName = "inputArgument",
+                    InputTypeNamePattern = "{MutationName}In",
+                    PayloadTypeNamePattern = "{MutationName}Out",
+                    ApplyToAllMutations = true
+                })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -32,7 +57,11 @@ public class AnnotationBasedMutations
         await new ServiceCollection()
             .AddGraphQL()
             .AddMutationType<SimpleMutationAttribute>()
-            .AddMutationConventions(new() {ApplyToAllMutations = true})
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -47,6 +76,48 @@ public class AnnotationBasedMutations
             .AddGraphQL()
             .AddMutationType<SimpleMutationAttribute>()
             .AddMutationConventions()
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Attribute_OptOut()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationAttributeOptOut>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Override_Payload()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationPayloadOverride>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Override_Input()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationInputOverride>()
+            .AddMutationConventions(true)
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
@@ -73,17 +144,32 @@ public class AnnotationBasedMutations
         }
     }
 
-    public class SimpleMutationAttributeExplicit
+    public class SimpleMutationAttributeOptOut
     {
-        [Mutation(
-            Enabled = true,
-            InputTypeName = "InputTypeName",
-            InputArgumentName = "inputArgumentName",
-            PayloadTypeName = "PayloadTypeName",
-            PayloadFieldName = "payloadFieldName")]
+        [Mutation(Enabled = false)]
         public string DoSomething(string something)
         {
             throw new Exception();
         }
     }
+
+    public class SimpleMutationPayloadOverride
+    {
+        public DoSomethingPayload DoSomething(string something)
+        {
+            throw new Exception();
+        }
+    }
+
+    public record DoSomethingPayload(string MyResult1, string MyResult2);
+
+    public class SimpleMutationInputOverride
+    {
+        public string DoSomething(DoSomethingInput something)
+        {
+            throw new Exception();
+        }
+    }
+
+    public record DoSomethingInput(string MyInput1, string MyInput2);
 }

@@ -10,6 +10,31 @@ public static class MutationRequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The request executor builder
     /// </param>
+    /// <param name="applyToAllMutations">
+    /// Defines if the mutation convention defaults shall be applied to all mutations.
+    /// </param>
+    /// <returns>
+    /// The request executor builder
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="builder"/> is null.
+    /// </exception>
+    public static IRequestExecutorBuilder AddMutationConventions(
+        this IRequestExecutorBuilder builder,
+        bool applyToAllMutations = false)
+        => AddMutationConventions(
+            builder,
+            new MutationConventionOptions
+            {
+                ApplyToAllMutations = applyToAllMutations
+            });
+
+    /// <summary>
+    /// Enables mutation conventions which will simplify creating GraphQL mutations.
+    /// </summary>
+    /// <param name="builder">
+    /// The request executor builder
+    /// </param>
     /// <param name="options">
     /// The mutation convention options.
     /// </param>
@@ -21,7 +46,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddMutationConventions(
         this IRequestExecutorBuilder builder,
-        MutationConventionOptions options = default)
+        MutationConventionOptions options)
     {
         if (builder is null)
         {
@@ -31,10 +56,7 @@ public static class MutationRequestExecutorBuilderExtensions
         builder
             .ConfigureSchema(c => c.ContextData[MutationContextDataKeys.Options] = options)
             .TryAddTypeInterceptor<ErrorTypeInterceptor>()
-            .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()
-            .Services
-            .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>()
-            .AddSingleton<IParameterExpressionBuilder, InputArgumentParameterExpressionBuilder>();
+            .TryAddTypeInterceptor<MutationConventionTypeInterceptor>();
 
         return builder;
     }
