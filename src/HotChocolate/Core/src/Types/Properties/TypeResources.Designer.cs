@@ -1424,5 +1424,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ServiceHelper_UseResolverServiceInternal_Order", resourceCulture);
             }
         }
+        
+        internal static string DefaultNamingConventions_FormatFieldName_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("DefaultNamingConventions_FormatFieldName_EmptyOrNull", resourceCulture);
+            }
+        }
     }
 }

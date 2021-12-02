@@ -10,14 +10,18 @@ public static class MutationRequestExecutorBuilderExtensions
     /// <param name="builder">
     /// The request executor builder
     /// </param>
+    /// <param name="options">
+    /// The mutation convention options.
+    /// </param>
     /// <returns>
     /// The request executor builder
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="builder"/> is null.
     /// </exception>
-    public static IRequestExecutorBuilder EnableMutationConventions(
-        this IRequestExecutorBuilder builder)
+    public static IRequestExecutorBuilder AddMutationConventions(
+        this IRequestExecutorBuilder builder,
+        MutationConventionOptions options = default)
     {
         if (builder is null)
         {
@@ -25,9 +29,9 @@ public static class MutationRequestExecutorBuilderExtensions
         }
 
         builder
+            .ConfigureSchema(c => c.ContextData[MutationContextDataKeys.Options] = options)
             .TryAddTypeInterceptor<ErrorTypeInterceptor>()
             .TryAddTypeInterceptor<MutationConventionTypeInterceptor>()
-            .TryAddTypeInterceptor<PayloadTypeInterceptor>()
             .Services
             .AddSingleton<IParameterExpressionBuilder, InputParameterExpressionBuilder>()
             .AddSingleton<IParameterExpressionBuilder, InputArgumentParameterExpressionBuilder>();

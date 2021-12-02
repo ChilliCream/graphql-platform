@@ -6,17 +6,26 @@ namespace HotChocolate.Types;
 
 internal class MutationConventionTypeInterceptor : TypeInterceptor
 {
+    private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
+    private TypeReferenceResolver _typeReferenceResolver = default!;
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ObjectTypeDefinition? _mutationTypeDef;
 
     internal override void InitializeContext(
         IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
         _context = context;
+        _typeInitializer = typeInitializer;
+        _typeRegistry = typeRegistry;
+        _typeLookup = typeLookup;
+        _typeReferenceResolver = typeReferenceResolver;
     }
 
     public override void OnAfterCompleteTypeNames()
@@ -24,12 +33,13 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         _mutations = _context.ContextData.GetMutationFields();
     }
 
-    public override void OnAfterCompleteName(
+    internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
+        OperationType operationType,
         IDictionary<string, object?> contextData)
     {
-        if (completionContext.IsMutationType ?? false)
+        if (operationType == OperationType.Mutation)
         {
             _mutationTypeDef = (ObjectTypeDefinition)definition;
         }
@@ -46,6 +56,11 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
 
             foreach (ObjectFieldDefinition mutationField in _mutationTypeDef.Fields)
             {
+                if (mutationField.IsIntrospectionField)
+                {
+                    continue;
+                }
+
                 Options mutationOptions = rootOptions;
 
                 if (defLookup.TryGetValue(mutationField, out MutationContextData? contextData) ||
@@ -59,111 +74,131 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                 {
                     var inputTypeName = mutationOptions.FormatInputTypeName(mutationField.Name);
                     InputObjectType inputType = CreateInputType(inputTypeName, mutationField);
-                    RegisterType(inputType, inputTypeName);
+                    RegisterType(inputType);
+                    mutationField.Arguments.Clear();
+                    mutationField.Arguments.Add(
+                        new ArgumentDefinition(
+                            mutationOptions.InputArgumentName,
+                            type: TypeReference.Parse($"{inputTypeName}!")));
 
-                    var payloadTypeName = mutationOptions.FormatInputTypeName(mutationField.Name);
-                    INamedOutputType resultType =
+                    ITypeReference? typeRef = mutationField.Type;
+                    var payloadTypeName = mutationOptions.FormatPayloadTypeName(mutationField.Name);
 
+                    if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
+                        !_typeRegistry.TryGetType(typeRef, out RegisteredType? registration))
+                    {
+                        // TODO : ERROR
+                        throw new SchemaException(
+                            SchemaErrorBuilder.New()
+                                .SetMessage("Cannot Resolve PayLoad Type")
+                                .Build());
+                    }
 
-                    CreatePayloadType(payloadTypeName);
-
-
+                    ObjectType payloadType;
+                    if (registration.Type.Name.Equals(payloadTypeName))
+                    {
+                        payloadType = (ObjectType)registration.Type; // TODO : this can also be something else like a interface.
+                    }
+                    else
+                    {
+                        var payloadFieldName = contextData?.PayloadFieldName ??
+                            _context.Naming.FormatFieldName(registration.Type.Name);
+                        payloadType = CreatePayloadType(payloadTypeName, payloadFieldName, mutationField.Type);
+                        RegisterType(payloadType);
+                        mutationField.Type = TypeReference.Parse($"{payloadTypeName}!");
+                    }
                 }
-
-
             }
         }
     }
 
     private static InputObjectType CreateInputType(
         string typeName,
-        ObjectFieldDefinition field)
+        ObjectFieldDefinition fieldDef)
     {
-        var inputObject = new InputObjectTypeDefinition(typeName);
+        var inputObjectDef = new InputObjectTypeDefinition(typeName);
 
-        foreach (ArgumentDefinition argument in field.Arguments)
+        foreach (ArgumentDefinition argumentDef in fieldDef.Arguments)
         {
-            var inputField = new InputFieldDefinition();
-            argument.CopyTo(inputField);
-            inputObject.Fields.Add(inputField);
+            var inputFieldDef = new InputFieldDefinition();
+            argumentDef.CopyTo(inputFieldDef);
+            inputObjectDef.Fields.Add(inputFieldDef);
         }
 
-        return InputObjectType.CreateUnsafe(inputObject);
+        return InputObjectType.CreateUnsafe(inputObjectDef);
     }
 
     private static ObjectType CreatePayloadType(
-        string typeName)
+        string typeName,
+        string fieldName,
+        ITypeReference fieldTypeReference)
     {
+        var objectDef = new ObjectTypeDefinition(typeName);
 
+        var fieldDef = new ObjectFieldDefinition(
+            fieldName,
+            type: fieldTypeReference, // TODO : ensure this is nullable
+            pureResolver: ctx => ctx.Parent<object?>());
+        objectDef.Fields.Add(fieldDef);
+
+        return ObjectType.CreateUnsafe(objectDef);
     }
 
     private static Options CreateOptions(
-        IDictionary<string, object?> contextData,
-        Options parent = default)
+        IDictionary<string, object?> contextData)
     {
         if (contextData.TryGetValue(MutationContextDataKeys.Options, out var value) &&
             value is MutationConventionOptions options)
         {
             return new Options(
-                options.InputTypeNamePattern ?? parent.InputTypeNamePattern,
-                options.InputArgumentName ?? parent.InputArgumentName,
-                options.PayloadTypeNamePattern ?? parent.PayloadTypeNamePattern,
-                options.PayloadErrorsFieldName ?? parent.PayloadErrorsFieldName,
-                options.ApplyToAllMutations ?? parent.Apply);
+                options.InputTypeNamePattern,
+                options.InputArgumentName,
+                options.PayloadTypeNamePattern,
+                options.PayloadErrorsFieldName,
+                options.ApplyToAllMutations);
         }
 
-        return parent;
+        return new Options(null, null, null, null, null);
     }
 
     private static Options CreateOptions(
         MutationContextData contextData,
         Options parent = default)
-        => new(
+    {
+        return new Options(
             contextData.InputTypeName ?? parent.InputTypeNamePattern,
             contextData.InputArgumentName ?? parent.InputArgumentName,
-            contextData.PayloadTypeName?? parent.PayloadTypeNamePattern,
+            contextData.PayloadTypeName ?? parent.PayloadTypeNamePattern,
             parent.PayloadErrorsFieldName,
             contextData.Enabled);
+    }
 
-    private void RegisterType(TypeSystemObjectBase type, NameString typeName)
+    private RegisteredType RegisterType(TypeSystemObjectBase type)
     {
-        var inputTypeReg = new RegisteredType(
-            type,
-            false,
-            _typeRegistry,
-            _typeLookup,
-            _context,
-            new TypeInterceptor(),
-            null);
-
-        _typeRegistry.Register(inputTypeReg);
-        _typeRegistry.Register(typeName, inputTypeReg);
-        inputTypeReg.Type.CompleteName(inputTypeReg);
+        RegisteredType registeredType = _typeInitializer.InitializeType(type);
+        _typeInitializer.CompleteTypeName(registeredType);
+        return registeredType;
     }
 
     private readonly ref struct Options
     {
-        public Options()
-        {
-            InputTypeNamePattern = MutationConventionOptionDefaults.InputTypeNamePattern;
-            InputArgumentName = MutationConventionOptionDefaults.InputArgumentName;
-            PayloadTypeNamePattern = MutationConventionOptionDefaults.PayloadTypeNamePattern;
-            PayloadErrorsFieldName = MutationConventionOptionDefaults.PayloadErrorsFieldName;
-            Apply = MutationConventionOptionDefaults.ApplyToAllMutations;
-        }
-
         public Options(
-            string inputTypeNamePattern,
-            string inputArgumentName,
-            string payloadTypeNamePattern,
-            string payloadErrorsFieldName,
-            bool apply)
+            string? inputTypeNamePattern,
+            string? inputArgumentName,
+            string? payloadTypeNamePattern,
+            string? payloadErrorsFieldName,
+            bool? apply)
         {
-            InputTypeNamePattern = inputTypeNamePattern;
-            InputArgumentName = inputArgumentName;
-            PayloadTypeNamePattern = payloadTypeNamePattern;
-            PayloadErrorsFieldName = payloadErrorsFieldName;
-            Apply = apply;
+            InputTypeNamePattern = inputTypeNamePattern ??
+                MutationConventionOptionDefaults.InputTypeNamePattern;
+            InputArgumentName = inputArgumentName ??
+                MutationConventionOptionDefaults.InputArgumentName;
+            PayloadTypeNamePattern = payloadTypeNamePattern ??
+                MutationConventionOptionDefaults.PayloadTypeNamePattern;
+            PayloadErrorsFieldName = payloadErrorsFieldName ??
+                MutationConventionOptionDefaults.PayloadErrorsFieldName;
+            Apply = apply ??
+                MutationConventionOptionDefaults.ApplyToAllMutations;
         }
 
         public string InputTypeNamePattern { get; }

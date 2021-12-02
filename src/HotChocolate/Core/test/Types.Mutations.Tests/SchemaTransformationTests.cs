@@ -17,7 +17,7 @@ namespace HotChocolate.Types
             ISchema schema = await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .EnableMutationConventions()
+                .AddMutationConventions()
                 .BuildSchemaAsync();
 
             // assert

@@ -1,8 +1,16 @@
 namespace HotChocolate.Types;
 
-public class Mutationttribute : ObjectFieldDescriptorAttribute
+public class MutationAttribute : ObjectFieldDescriptorAttribute
 {
-    public bool Enabled { get; set; } = true;
+    /// <summary>
+    /// The type name of the argument of the field
+    /// <code>
+    /// type Mutation {
+    ///   createUser(input: ThisIsTheTypeName): CreateUserPayload
+    /// }
+    /// </code>
+    /// </summary>
+    public string? InputTypeName { get; set; }
 
     /// <summary>
     /// The name of the argument of the field
@@ -15,14 +23,14 @@ public class Mutationttribute : ObjectFieldDescriptorAttribute
     public string? InputArgumentName { get; set; }
 
     /// <summary>
-    /// The type name of the argument of the field
+    /// The type name of the field in the payload
     /// <code>
-    /// type Mutation {
-    ///   createUser(input: ThisIsTheTypeName): CreateUserPayload
+    /// type ThisIsTheTypeName {
+    ///    user: User
     /// }
     /// </code>
     /// </summary>
-    public string? InputTypeName { get; set; }
+    public string? PayloadTypeName { get; set; }
 
     /// <summary>
     /// The name of the field in the payload
@@ -34,15 +42,7 @@ public class Mutationttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string? PayloadFieldName { get; set; }
 
-    /// <summary>
-    /// The type name of the field in the payload
-    /// <code>
-    /// type ThisIsTheTypeName {
-    ///    user: User
-    /// }
-    /// </code>
-    /// </summary>
-    public string? PayloadTypeName { get; set; }
+    public bool Enabled { get; set; } = true;
 
     public override void OnConfigure(
         IDescriptorContext context,
@@ -54,10 +54,10 @@ public class Mutationttribute : ObjectFieldDescriptorAttribute
             c.ContextData
                 .GetMutationFields()
                 .Add(new(d,
-                    InputArgumentName,
                     InputTypeName,
-                    PayloadFieldName,
+                    InputArgumentName,
                     PayloadTypeName,
+                    PayloadFieldName,
                     Enabled));
         });
     }

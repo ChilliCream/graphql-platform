@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -30,10 +29,12 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
                 null,
-                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None);
+                t => t is FooType ? RootTypeKind.Query : RootTypeKind.None,
+                () => null,
+                new SchemaOptions());
 
             // act
-            typeInitializer.Initialize(() => null, new SchemaOptions());
+            typeInitializer.Initialize();
 
             // assert
             var exists = typeRegistry.TryGetType(
@@ -84,10 +85,12 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
+                },
+                () => null,
+                new SchemaOptions());
 
             // act
-            typeInitializer.Initialize(() => null, new SchemaOptions());
+            typeInitializer.Initialize();
 
             // assert
             var exists = typeRegistry.TryGetType(
@@ -138,10 +141,12 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
+                },
+                null!,
+                new SchemaOptions());
 
             // act
-            void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
+            void Action() => typeInitializer.Initialize();
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);
@@ -172,10 +177,12 @@ namespace HotChocolate.Configuration
                         ObjectType<Foo> => RootTypeKind.Query,
                         _ => RootTypeKind.None
                     };
-                });
+                },
+                () => null,
+                null!);
 
             // act
-            void Action() => typeInitializer.Initialize(() => null, null!);
+            void Action() => typeInitializer.Initialize();
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);

@@ -28,4 +28,18 @@ public interface INamingConventions : IConvention
     bool IsDeprecated(MemberInfo member, out string? reason);
 
     bool IsDeprecated(object value, out string? reason);
+
+    /// <summary>
+    /// Formats a fieldName to abide by the current field naming convention.
+    /// </summary>
+    /// <param name="fieldName">
+    /// The field name that needs formatting.
+    /// </param>
+    /// <returns>
+    /// Returns a name string that has the correct naming format.
+    /// </returns>
+    /// <exception cref="ArgumentException">
+    /// The field is <c>null</c> or <see cref="string.Empty"/>.
+    /// </exception>
+    NameString FormatFieldName(string fieldName);
 }
