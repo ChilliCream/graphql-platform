@@ -45,5 +45,5 @@ public static class ErrorSchemaBuilderExtensions
     public static ISchemaBuilder AddErrorInterfaceType(
         this ISchemaBuilder schemaBuilder,
         Type type) =>
-        schemaBuilder.SetContextData(ErrorContextData.ErrorType, type);
+        schemaBuilder.SetContextData(ErrorContextDataKeys.ErrorType, type);
 }

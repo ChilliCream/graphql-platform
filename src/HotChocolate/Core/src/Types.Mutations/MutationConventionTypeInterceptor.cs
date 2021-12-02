@@ -7,6 +7,7 @@ namespace HotChocolate.Types;
 internal class MutationConventionTypeInterceptor : TypeInterceptor
 {
     private TypeRegistry _typeRegistry = default!;
+    private TypeLookup _typeLookup = default!;
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ObjectTypeDefinition? _mutationTypeDef;
@@ -58,9 +59,13 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                 {
                     var inputTypeName = mutationOptions.FormatInputTypeName(mutationField.Name);
                     InputObjectType inputType = CreateInputType(inputTypeName, mutationField);
+                    RegisterType(inputType, inputTypeName);
 
                     var payloadTypeName = mutationOptions.FormatInputTypeName(mutationField.Name);
-                    
+                    INamedOutputType resultType =
+
+
+                    CreatePayloadType(payloadTypeName);
 
 
                 }
@@ -84,6 +89,12 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         return InputObjectType.CreateUnsafe(inputObject);
+    }
+
+    private static ObjectType CreatePayloadType(
+        string typeName)
+    {
+
     }
 
     private static Options CreateOptions(
@@ -113,6 +124,22 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
             contextData.PayloadTypeName?? parent.PayloadTypeNamePattern,
             parent.PayloadErrorsFieldName,
             contextData.Enabled);
+
+    private void RegisterType(TypeSystemObjectBase type, NameString typeName)
+    {
+        var inputTypeReg = new RegisteredType(
+            type,
+            false,
+            _typeRegistry,
+            _typeLookup,
+            _context,
+            new TypeInterceptor(),
+            null);
+
+        _typeRegistry.Register(inputTypeReg);
+        _typeRegistry.Register(typeName, inputTypeReg);
+        inputTypeReg.Type.CompleteName(inputTypeReg);
+    }
 
     private readonly ref struct Options
     {

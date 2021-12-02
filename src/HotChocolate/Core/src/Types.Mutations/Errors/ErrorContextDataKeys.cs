@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-internal static class ErrorContextData
+internal static class ErrorContextDataKeys
 {
     /// <summary>
     /// Stores the definition of the errors on the context data

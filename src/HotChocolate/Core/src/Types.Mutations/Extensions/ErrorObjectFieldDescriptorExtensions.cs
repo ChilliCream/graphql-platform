@@ -1,4 +1,4 @@
-using static HotChocolate.Types.ErrorContextData;
+using static HotChocolate.Types.ErrorContextDataKeys;
 
 #nullable enable
 

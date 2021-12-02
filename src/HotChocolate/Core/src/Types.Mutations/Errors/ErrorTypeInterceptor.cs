@@ -1,5 +1,5 @@
 using System.Linq;
-using static HotChocolate.Types.ErrorContextData;
+using static HotChocolate.Types.ErrorContextDataKeys;
 using static HotChocolate.Types.ErrorMiddleware;
 using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
@@ -7,7 +7,7 @@ using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
 namespace HotChocolate.Types;
 
-internal class ErrorTypeInterceptor : TypeInterceptor
+internal sealed class ErrorTypeInterceptor : TypeInterceptor
 {
     private readonly List<(ITypeReference, UnionType)> _needsErrorField = new();
     private readonly HashSet<ObjectType> _objectTypes = new();
@@ -120,8 +120,7 @@ internal class ErrorTypeInterceptor : TypeInterceptor
             {
                 foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
                 {
-                    FieldMiddleware? middleware = FieldClassMiddlewareFactory
-                        .Create<ReturnNullWhenErrorWasThrown>();
+                    FieldMiddleware? middleware = Create<ReturnNullWhenErrorWasThrown>();
                     field.MiddlewareDefinitions.Insert(0, new(middleware));
                     field.Type = RewriteTypeToNullableType(field, firstContext.TypeInspector);
                 }
@@ -131,7 +130,7 @@ internal class ErrorTypeInterceptor : TypeInterceptor
                 descriptor
                     .Type(new ListType(new NonNullType(unionType)))
                     .Resolve(ctx => ctx.ScopedContextData
-                        .TryGetValue(ErrorContextData.Errors, out var value)
+                        .TryGetValue(Errors, out var value)
                         ? value
                         : null);
 

@@ -48,7 +48,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedValue(ErrorContextData.Errors, errors);
+            context.SetScopedValue(ErrorContextDataKeys.Errors, errors);
             context.Result = ErrorObject;
         }
         catch (Exception ex)
@@ -69,7 +69,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedValue(ErrorContextData.Errors,
+            context.SetScopedValue(ErrorContextDataKeys.Errors,
                 new[]
                 {
                     error
