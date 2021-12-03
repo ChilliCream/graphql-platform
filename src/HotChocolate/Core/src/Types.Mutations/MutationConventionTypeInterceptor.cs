@@ -44,7 +44,7 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
     {
         if (operationType == OperationType.Mutation)
         {
-            _mutationTypeDef = (ObjectTypeDefinition)definition;
+            _mutationTypeDef = (ObjectTypeDefinition)definition!;
         }
     }
 
@@ -101,7 +101,7 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                         mutationField.Member.ReflectedType ??
                         mutationField.Member.DeclaringType,
                         mutationField.ResolverType,
-                        new []{ new InputParameterExpressionBuilder(_parameters) });
+                        new[] { new InputParameterExpressionBuilder(_parameters) });
                 }
             }
         }
@@ -119,9 +119,6 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         InputObjectType inputType = CreateInputType(inputTypeName, mutation);
         RegisterType(inputType);
 
-        mutation.Arguments.Clear();
-        mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
-
         if (mutation is {Resolver: null, PureResolver: null})
         {
             MemberInfo? resolverMember = mutation.ResolverMember ?? mutation.Member;
@@ -138,6 +135,9 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                 _mutationFields.Add(mutation);
             }
         }
+
+        mutation.Arguments.Clear();
+        mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
     }
 
     private RegisteredType? TryApplyPayloadConvention(
@@ -164,7 +164,7 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         }
 
         payloadFieldName ??= _context.Naming.FormatFieldName(registration.Type.Name);
-        ObjectType type = CreatePayloadType(payloadTypeName, payloadFieldName, mutation.Type);
+        ObjectType type = CreatePayloadType(payloadTypeName, payloadFieldName, mutation.Type!);
         registration = RegisterType(type);
         mutation.Type = Parse($"{payloadTypeName}!");
         return registration;

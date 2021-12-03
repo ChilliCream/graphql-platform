@@ -40,7 +40,7 @@ public class AnnotationBasedMutations
             .ModifyOptions(o => o.StrictValidation = false)
             .ExecuteRequestAsync(
                 @"mutation {
-                    doSomething(input: { Something: ""abc"" }) {
+                    doSomething(input: { something: ""abc"" }) {
                         string
                     }
                 }")
