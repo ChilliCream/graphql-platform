@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Types.Properties {
     using System;
-
-
+    
+    
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class MutationResources {
-
+        
         private static System.Resources.ResourceManager resourceMan;
-
+        
         private static System.Globalization.CultureInfo resourceCulture;
-
+        
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal MutationResources() {
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Properties {
                 return resourceMan;
             }
         }
-
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,28 +44,34 @@ namespace HotChocolate.Types.Properties {
                 resourceCulture = value;
             }
         }
-
+        
         internal static string ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded {
             get {
                 return ResourceManager.GetString("ThrowHelper_ErrorObjectType_TypeInspectorCouldNotBeLoaded", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError {
             get {
                 return ResourceManager.GetString("ThrowHelper_ErrorObjectType_MessageWasNotDefinedOnError", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory {
             get {
                 return ResourceManager.GetString("ThrowHelper_ErrorFactoryCompiler_TypeDoesNotExposeErrorFactory", resourceCulture);
             }
         }
-
+        
         internal static string ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch {
             get {
                 return ResourceManager.GetString("ThrowHelper_InputMiddleware_ArgumentTypeNameMissMatch", resourceCulture);
+            }
+        }
+        
+        internal static string InputParameterExpressionBuilder_Build_NoAttribute {
+            get {
+                return ResourceManager.GetString("InputParameterExpressionBuilder_Build_NoAttribute", resourceCulture);
             }
         }
     }

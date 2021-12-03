@@ -18,7 +18,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -50,7 +50,7 @@ public class PayloadTests
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .AddQueryFieldToMutationPayloads()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -86,7 +86,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<CustomTypeName>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -104,7 +104,7 @@ public class PayloadTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddMutationType<DefaultMutation>()
-                .EnableMutationConvention()
+                .EnableMutationConventions()
                 .BuildRequestExecutorAsync();
 
         // Act
@@ -113,9 +113,135 @@ public class PayloadTests
         executor.Schema.Print().MatchSnapshot();
     }
 
+    [Fact]
+    public async Task PayloadMiddleware_Should_TransformPayload_When_ItIsATask()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<MutationTask>()
+                .EnableMutationConventions()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                    mutation {
+                        createTask {
+                            foo {
+                                bar
+                            }
+                        }
+                        createValueTask {
+                            foo {
+                                bar
+                            }
+                        }
+                        createTaskNoName {
+                            foo {
+                                bar
+                            }
+                        }
+                        createValueTaskNoName {
+                            foo {
+                                bar
+                            }
+                        }
+                    }
+                ");
+
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
+
+    [Fact]
+    public async Task PayloadMiddleware_Should_TransformPayload_When_ItIsNullable()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<MutationNullable>()
+                .EnableMutationConventions()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                    mutation {
+                        nullableNumber {
+                            foo
+                        }
+                        nullableNumberNoName {
+                            int
+                        }
+                    }
+                ");
+
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
+
+    [Fact]
+    public async Task PayloadMiddleware_Should_TransformPayload_When_ObjectIsNamed()
+    {
+        // Arrange
+        IRequestExecutor executor =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .AddMutationType<MutationRenamed>()
+                .EnableMutationConventions()
+                .BuildRequestExecutorAsync();
+
+        // Act
+        IExecutionResult res = await executor
+            .ExecuteAsync(@"
+                    mutation {
+                        createBaz {
+                            baz {
+                                bar
+                            }
+                        }
+                    }
+                ");
+
+        // Assert
+        res.ToJson().MatchSnapshot();
+        SnapshotFullName fullName = Snapshot.FullName();
+        SnapshotFullName snapshotName = new(fullName.Filename + "_schema", fullName.FolderPath);
+        executor.Schema.Print().MatchSnapshot(snapshotName);
+    }
+
     public class Foo
     {
         public Foo(string bar)
+        {
+            Bar = bar;
+        }
+
+        public string Bar { get; set; }
+    }
+
+    public class MutationRenamed
+    {
+        [Payload]
+        public BazDto CreateBaz() => new BazDto("Bar");
+    }
+
+    [GraphQLName("Baz")]
+    public class BazDto
+    {
+        public BazDto(string bar)
         {
             Bar = bar;
         }
@@ -144,5 +270,29 @@ public class PayloadTests
     {
         [Payload("foo")]
         public Foo CreateFoo() => new Foo("Bar");
+    }
+
+    public class MutationTask
+    {
+        [Payload("foo")]
+        public Task<Foo> CreateTask() => Task.FromResult(new Foo("Bar"));
+
+        [Payload("foo")]
+        public ValueTask<Foo> CreateValueTask() => new(new Foo("Bar"));
+
+        [Payload]
+        public Task<Foo> CreateTaskNoName() => Task.FromResult(new Foo("Bar"));
+
+        [Payload]
+        public ValueTask<Foo> CreateValueTaskNoName() => new(new Foo("Bar"));
+    }
+
+    public class MutationNullable
+    {
+        [Payload("foo")]
+        public int? NullableNumber() => null;
+
+        [Payload]
+        public int? NullableNumberNoName() => null;
     }
 }

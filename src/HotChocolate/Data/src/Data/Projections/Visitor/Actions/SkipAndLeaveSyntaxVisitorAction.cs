@@ -1,7 +1,6 @@
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class SkipAndLeaveSelectionVisitorAction : ISelectionVisitorAction
 {
-    public class SkipAndLeaveSelectionVisitorAction : ISelectionVisitorAction
-    {
-        public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.SkipAndLeave;
-    }
+    public SelectionVisitorActionKind Kind => SelectionVisitorActionKind.SkipAndLeave;
 }

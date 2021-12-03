@@ -33,6 +33,7 @@ public static class ResolverCompilerBuilderExtensions
     /// An <see cref="IResolverCompilerBuilder"/> that can be used to configure to
     /// chain in more configuration.
     /// </returns>
+    [Obsolete("Implement IParameterExpressionBuilder")]
     public static IResolverCompilerBuilder AddParameter<T>(
         this IResolverCompilerBuilder builder,
         Expression<Func<IResolverContext, T>> expression,
@@ -75,17 +76,47 @@ public static class ResolverCompilerBuilderExtensions
     /// An <see cref="IResolverCompilerBuilder"/> that can be used to configure to
     /// chain in more configuration.
     /// </returns>
+    [Obsolete("Use RegisterService on the IRequestExecutorBuilder")]
     public static IResolverCompilerBuilder AddService<TService>(
         this IResolverCompilerBuilder builder)
+        where TService : class
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
         }
 
-        builder.RequestExecutorBuilder.Services
-            .TryAddParameterExpressionBuilder<
-                CustomServiceParameterExpressionBuilder<TService>>();
+        builder.RequestExecutorBuilder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new CustomServiceParameterExpressionBuilder<TService>());
+        return builder;
+    }
+
+    /// <summary>
+    /// Marks types as well-known scoped services that no longer need the
+    /// <see cref="ScopedServiceAttribute"/> annotation.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IResolverCompilerBuilder"/>.
+    /// </param>
+    /// <typeparam name="TService">
+    /// The well-known scoped service type.
+    /// </typeparam>
+    /// <returns>
+    /// An <see cref="IResolverCompilerBuilder"/> that can be used to configure to
+    /// chain in more configuration.
+    /// </returns>
+    [Obsolete("Use RegisterService on the IRequestExecutorBuilder")]
+    public static IResolverCompilerBuilder AddScopedService<TService>(
+        this IResolverCompilerBuilder builder)
+        where TService : class
+    {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
+        builder.RequestExecutorBuilder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new CustomServiceParameterExpressionBuilder<TService>());
         return builder;
     }
 }

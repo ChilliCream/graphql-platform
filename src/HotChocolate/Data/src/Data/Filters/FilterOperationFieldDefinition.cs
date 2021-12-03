@@ -1,8 +1,7 @@
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class FilterOperationFieldDefinition
+    : FilterFieldDefinition
 {
-    public class FilterOperationFieldDefinition
-        : FilterFieldDefinition
-    {
-        public int Id { get; set; }
-    }
+    public int Id { get; set; }
 }

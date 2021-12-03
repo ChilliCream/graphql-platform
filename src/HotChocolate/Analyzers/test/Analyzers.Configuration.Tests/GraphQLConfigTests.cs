@@ -1,8 +1,7 @@
-using HotChocolate.Analyzers.Configuration;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace Analyzers.Tests
+namespace HotChocolate.Analyzers.Configuration
 {
     public class GraphQLConfigTests
     {

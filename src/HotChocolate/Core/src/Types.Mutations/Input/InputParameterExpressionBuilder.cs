@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
-using HotChocolate.Internal;
-using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
+using HotChocolate.Types.Properties;
 using static System.Linq.Expressions.Expression;
 
 #nullable enable
@@ -18,7 +13,8 @@ namespace HotChocolate.Types
                 x => x.ArgumentValue<Dictionary<string, object>>(default));
 
         private static readonly MethodInfo _containsKey =
-            ReflectionUtils.ExtractMethod<Dictionary<string, object>>(x => x.ContainsKey(default!));
+            ReflectionUtils.ExtractMethod<Dictionary<string, object>>(
+                x => x.ContainsKey(default!));
 
         private static readonly PropertyInfo _getValue =
             typeof(Dictionary<string, object>).GetProperty("Item")!;
@@ -29,12 +25,10 @@ namespace HotChocolate.Types
 
         public bool IsPure => true;
 
-        public bool CanHandle(ParameterInfo parameter)
-        {
-            InputAttribute? attribute = parameter.GetCustomAttribute<InputAttribute>() ??
-                parameter.Member.GetCustomAttribute<InputAttribute>();
-            return attribute is not null;
-        }
+        public virtual bool IsDefaultHandler => false;
+
+        public virtual bool CanHandle(ParameterInfo parameter)
+            => parameter.IsDefined(typeof(InputAttribute));
 
         public Expression Build(ParameterInfo parameter, Expression context)
         {
@@ -43,30 +37,37 @@ namespace HotChocolate.Types
 
             if (attribute is null)
             {
-                throw new ArgumentException("Could not find the InputAttribute", nameof(parameter));
+                throw new ArgumentException(
+                    MutationResources.InputParameterExpressionBuilder_Build_NoAttribute,
+                    nameof(parameter));
             }
 
-            Expression argumentValue =
-                Call(context,
-                    _getArgumentValue,
-                    Convert(Constant(attribute.ArgumentName), typeof(NameString)));
+            ParameterExpression variable =
+                Variable(typeof(Dictionary<string, object>), "val");
 
-            Expression expr =
+            return Block(new[]
+                {
+                    variable
+                },
+                Assign(
+                    variable,
+                    Call(context,
+                        _getArgumentValue,
+                        Convert(Constant(attribute.ArgumentName), typeof(NameString)))),
                 Condition(
                     And(
-                        NotEqual(argumentValue, _null),
+                        NotEqual(variable, _null),
                         Call(
-                            argumentValue,
+                            variable,
                             _containsKey,
                             Constant(parameter.Name!))),
                     // if
                     Convert(
-                        Property(argumentValue, _getValue, Constant(parameter.Name)),
+                        Property(variable, _getValue, Constant(parameter.Name)),
                         parameter.ParameterType),
                     // else
-                    Convert(_null, parameter.ParameterType));
-
-            return expr;
+                    Convert(_null, parameter.ParameterType))
+            );
         }
     }
 }
