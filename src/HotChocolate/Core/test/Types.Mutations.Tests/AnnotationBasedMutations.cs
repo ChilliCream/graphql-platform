@@ -29,6 +29,25 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Inferred_Execute()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutation>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { Something: ""abc"" }) {
+                        string
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_Defaults()
     {
         Snapshot.FullName();
@@ -140,9 +159,7 @@ public class AnnotationBasedMutations
     public class SimpleMutation
     {
         public string DoSomething(string something)
-        {
-            throw new Exception();
-        }
+            => something;
     }
 
     public class SimpleMutationAttribute

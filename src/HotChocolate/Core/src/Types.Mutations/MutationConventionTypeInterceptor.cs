@@ -7,7 +7,8 @@ namespace HotChocolate.Types;
 
 internal class MutationConventionTypeInterceptor : TypeInterceptor
 {
-    private Dictionary<ParameterInfo, NameString> _parameters = new();
+    private readonly Dictionary<ParameterInfo, NameString> _parameters = new();
+    private readonly List<ObjectFieldDefinition> _mutationFields = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
@@ -78,6 +79,31 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
             }
+
+            foreach (ObjectFieldDefinition mutationField in _mutationFields)
+            {
+                if (mutationField.ResolverMember is not null)
+                {
+                    mutationField.Resolvers = _context.ResolverCompiler.CompileResolve(
+                        mutationField.ResolverMember,
+                        mutationField.SourceType ??
+                        mutationField.Member?.ReflectedType ??
+                        mutationField.Member?.DeclaringType ??
+                        typeof(object),
+                        mutationField.ResolverType,
+                        new []{ new InputParameterExpressionBuilder(_parameters) });
+                }
+                else if (mutationField.Member is not null)
+                {
+                    mutationField.Resolvers = _context.ResolverCompiler.CompileResolve(
+                        mutationField.Member,
+                        mutationField.SourceType ??
+                        mutationField.Member.ReflectedType ??
+                        mutationField.Member.DeclaringType,
+                        mutationField.ResolverType,
+                        new []{ new InputParameterExpressionBuilder(_parameters) });
+                }
+            }
         }
     }
 
@@ -95,6 +121,23 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
 
         mutation.Arguments.Clear();
         mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
+
+        if (mutation is {Resolver: null, PureResolver: null})
+        {
+            MemberInfo? resolverMember = mutation.ResolverMember ?? mutation.Member;
+            if (resolverMember is not null)
+            {
+                foreach (ArgumentDefinition argument in mutation.Arguments)
+                {
+                    if (argument.Parameter is not null)
+                    {
+                        _parameters[argument.Parameter] = options.InputArgumentName;
+                    }
+                }
+
+                _mutationFields.Add(mutation);
+            }
+        }
     }
 
     private RegisteredType? TryApplyPayloadConvention(

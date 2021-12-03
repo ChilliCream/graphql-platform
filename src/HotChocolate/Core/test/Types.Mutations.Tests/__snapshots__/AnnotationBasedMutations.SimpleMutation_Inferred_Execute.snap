@@ -1,0 +1,20 @@
+﻿{
+  "errors": [
+    {
+      "message": "The specified input object field \u0060Something\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 42
+        }
+      ],
+      "path": [
+        "doSomething"
+      ],
+      "extensions": {
+        "field": "Something",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
+      }
+    }
+  ]
+}
