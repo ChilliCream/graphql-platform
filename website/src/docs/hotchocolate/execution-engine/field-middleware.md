@@ -2,19 +2,51 @@
 title: Field middleware
 ---
 
-TODO introduce field middleware
+The field middleware is one of the fundamental components in Hot Chocolate. It allows you to create reuseable logic that can be run before or after a field resolver. Field middleware is composable, so you can specify multiple middleware and they will be executed in order. The field resolver is always the last element in this middleware chain.
 
-# Execution order
+Each field middleware only knows about the next element in the chain and can choose to
 
-TODO diagram, data middleware, why order matters
+- execute logic before it
+- execute logic after all later components (including the field resolver) have been run
+- not execute the next component
+
+Each field middleware also has access to an `IMiddlewareContext`. It implements the `IResolverContext` interface so you can use all of the `IResolverContext` APIs in your middleware, similarly to how you would use them in your resolver. There are also some special properties like the `Result`, which holds the resolver or middleware computed result.
+
+# Middleware order
+
+If you have used Hot Chocolate's data middleware before you might have encountered warnings about the order of middleware. The order is important, since it determines in which order the middleware are executed, e.g. in which order the resolver result is being processed.
+
+Take the `UsePagination` and `UseFiltering` middleware for example: Does it make sense to first paginate and then filter? No. It should first be filtered and then paginated. That's why the correct order is `UsePagination` > `UseFiltering`.
+
+```csharp
+descriptor
+    .UsePagination()
+    .UseFiltering()
+    .Resolve(context =>
+    {
+        // Omitted code for brevity
+    });
+```
+
+But hold up, isn't this the opposite order of what we've just described?
+
+Lets visualize the middleware chain to understand why it is indeed the correct order.
+
+```mermaid
+sequenceDiagram
+    UsePagination->>UseFiltering: next(context)
+    UseFiltering->>Resolver: next(context)
+    Resolver->>UseFiltering: Result of the Resolver
+    UseFiltering->>UsePagination: Result of UseFiltering
+```
+
+As you can see the result of the resolver flows backwards through the middleware. So the middleware is first invoked in the order they were defined, but the result produced by the last middleware, the field resolver, is sent back to first middleware in reverse order.
 
 # Definition
 
-Field middleware can be defined either as a delegate or as a separate type. In both cases we gain access to a `FieldDelegate` (`next`) and the `IMiddlewareContext` (`context`).
+Field middleware can be defined either as a delegate or as a separate type. In both cases we gain access to a `FieldDelegate`, which allows us to invoke the next middleware, and the `IMiddlewareContext`.
 
-The `IMiddleware` context implements the `IResolverContext` interface so you can use all of the `IResolverContext` APIs in your middleware, similarly to how you would use them in your resolver code.
-
-By awaiting the `FieldDelegate` we are waiting on all other field middleware that might come after the current middleware as well as the actual field resolver, computing the result of the field.
+By awaiting the `FieldDelegate` we are waiting for the completion of all of the middleware that might come after the current middleware, including the actual field resolver.
 
 ## Field middleware delegate
 
@@ -29,14 +61,14 @@ public class QueryType : ObjectType
             .Field("example")
             .Use(next => async context =>
             {
-                // code up here is executed before the following middleware
+                // Code up here is executed before the following middleware
                 // and the actual field resolver
 
-                // this invokes the next middleware
+                // This invokes the next middleware
                 // or if we are at the last middleware the field resolver
                 await next(context);
 
-                // code down here is executed after all later middleware 
+                // Code down here is executed after all later middleware
                 // and the actual field resolver has finished executing
             })
             .Resolve(context =>
@@ -56,7 +88,8 @@ You can simply create an extension method for the `IObjectFieldDescriptor`.
 ```csharp
 public static class MyMiddlewareObjectFieldDescriptorExtension
 {
-    public static IObjectFieldDescriptor UseMyMiddleware(this IObjectFieldDescriptor descriptor)
+    public static IObjectFieldDescriptor UseMyMiddleware(
+        this IObjectFieldDescriptor descriptor)
     {
         descriptor
             .Use(next => async context =>
@@ -115,13 +148,13 @@ public class MyMiddleware
         // or if we are at the last middleware the field resolver
         await _next(context);
 
-        // Code down here is executed after all later middleware 
+        // Code down here is executed after all later middleware
         // and the actual field resolver has finished executing
     }
 }
 ```
 
-If you need to access services you can either inject them via the constructor, if they are singleton, or as an argument of the `InvokeAsync` method, if they for example have a scoped lifetime.
+If you need to access services you can either inject them via the constructor, if they are singleton, or as an argument of the `InvokeAsync` method, if they have a scoped or transient lifetime.
 
 ```csharp
 public class MyMiddleware
@@ -135,14 +168,15 @@ public class MyMiddleware
         _singletonService = singletonService;
     }
 
-    public async Task InvokeAsync(IMiddlewareContext context, IMyScopedService scopedService)
+    public async Task InvokeAsync(IMiddlewareContext context,
+        IMyScopedService scopedService)
     {
         // Omitted code for brevity
     }
 }
 ```
 
-The ability to add additional arguments to the `InvokeAsync` is the reason why there isn't a contract like an interface or a base class for field middleware.
+The ability to add additional arguments to the `InvokeAsync` method is the reason why there isn't a contract like an interface or a base class for field middleware.
 
 ### Usage
 
@@ -164,16 +198,16 @@ public class QueryType : ObjectType
 }
 ```
 
-If you need to pass an additional custom argument to the middleware you can do so using the factory overload of the `Use<T>`.
+While an extension method like `UseMyMiddleware` on the `IObjectFieldDescriptor` doesn't make as much sense for `Use<MyMiddleware>` in contrast to the middleware delegate, we still recommend creating one as shown [here](#reusing-the-middleware-delegate). The reason being that you can make changes to this middleware more easily in the future without potentially having to change all places this middleware is being used in.
+
+If you need to pass an additional custom argument to the middleware you can do so using the factory overload of the `Use` method.
 
 ```csharp
 descriptor
     .Field("example")
-    .Use((services, next) => new MyMiddleware(next, "custom", 
-        services.GetRequiredService<FooBar>()));
+    .Use((provider, next) => new MyMiddleware(next, "custom",
+        provider.GetRequiredService<FooBar>()));
 ```
-
-While an extension method like `UseMyMiddleware` doesn't make as much sense for `Use<MyMiddleware>` in contrast to the middleware delegate, we still recommend creating one as shown [here](#reusing-the-middleware-delegate). The reason being that you can make changes to this middleware more easily in the future without potentially having to change all places this middleware is being used.
 
 # Usage as an attribute
 
@@ -184,7 +218,7 @@ You can create a new attribute inheriting from `ObjectFieldDescriptorAttribute` 
 ```csharp
 public class UseMyMiddlewareAttribute : ObjectFieldDescriptorAttribute
 {
-    public override void OnConfigure(IDescriptorContext context, 
+    public override void OnConfigure(IDescriptorContext context,
         IObjectFieldDescriptor descriptor, MemberInfo member)
     {
         descriptor.UseMyMiddleware();
@@ -229,9 +263,13 @@ descriptor
     });
 ```
 
+A middleware can also set or override the result by assigning the `context.Result` property.
+
+> Note: The field resolver will only execute if no result has been produced by one of the preceding field middleware. If any middleware has set the `Result` property on the `IMiddlewareContext`, the field resolver will be skipped.
+
 # Short-circuiting
 
-In some cases we might want to short-circuit the execution of field middleware / the field resolver. For this we can simply not await the `FieldDelegate`.
+In some cases we might want to short-circuit the execution of field middleware / the field resolver. For this we can simply not call the `FieldDelegate` (`next`).
 
 ```csharp
 descriptor
@@ -241,7 +279,8 @@ descriptor
         {
             context.Result = dict[context.Field.Name];
 
-            // We are not executing any of the later middleware or the field resolver
+            // We are not executing any of the later middleware
+            // or the field resolver
             return Task.CompletedTask;
         }
         else
