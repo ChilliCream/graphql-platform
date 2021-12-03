@@ -123,6 +123,20 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task MultipleArgumentMutation_Inferred()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MultipleArgumentMutation>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -172,4 +186,12 @@ public class AnnotationBasedMutations
     }
 
     public record DoSomethingInput(string MyInput1, string MyInput2);
+
+    public class MultipleArgumentMutation
+    {
+        public string DoSomething(string something1, string something2)
+        {
+            throw new Exception();
+        }
+    }
 }

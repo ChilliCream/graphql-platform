@@ -7,6 +7,7 @@ namespace HotChocolate.Types;
 
 internal class MutationConventionTypeInterceptor : TypeInterceptor
 {
+    private Dictionary<ParameterInfo, NameString> _parameters = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
