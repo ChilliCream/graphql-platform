@@ -203,7 +203,7 @@ services
 
 # Conventions
 
-> ⚠️ Experimental Warning: This feature is not yet finished and only available in previews. The API is not finalizied and will change until its release.
+> ⚠️ Experimental Warning: This feature is not yet finished and only available in previews. The API is not finalized and will change until its release.
 
 In GraphQL, it is best practice to have a single argument on mutations called `input`, and each mutation should return a payload object.
 
