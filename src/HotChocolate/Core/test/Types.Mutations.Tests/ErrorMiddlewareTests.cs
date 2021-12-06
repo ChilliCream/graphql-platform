@@ -427,7 +427,7 @@ public class ErrorMiddlewareTests
 
     public class CustomException : Exception
     {
-        public string Message => "Customer Exception";
+        public override string Message => "Customer Exception";
     }
 
     public class Payload

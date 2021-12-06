@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Types;
 
-public class CodeFirstMutations
+public class SchemaFirstMutations
 {
     [Fact]
     public async Task SimpleMutation_Inferred()
@@ -16,14 +16,11 @@ public class CodeFirstMutations
 
         await new ServiceCollection()
             .AddGraphQL()
-            .AddMutationType(d =>
-            {
-                d.Name("Mutation");
-                d.Field("doSomething")
-                    .Argument("a", a => a.Type<StringType>())
-                    .Type<StringType>()
-                    .Resolve("Abc");
-            })
+            .AddDocumentFromString(@"
+                type Mutation {
+                    doSomething(something: String) : String
+                }")
+            .BindRuntimeType<Mutation>()
             .AddMutationConventions(
                 new MutationConventionOptions
                 {
@@ -41,21 +38,30 @@ public class CodeFirstMutations
 
         await new ServiceCollection()
             .AddGraphQL()
-            .AddMutationType(d =>
-            {
-                d.Name("Mutation");
-                d.Field("doSomething")
-                    .Argument("a", a => a.Type<StringType>())
-                    .Type<StringType>()
-                    .Resolve(ctx => ctx.ArgumentValue<string?>("a"));
-            })
+            .AddDocumentFromString(@"
+                type Mutation {
+                    doSomething(something: String) : String
+                }")
+            .AddResolver("Mutation", "doSomething", ctx => ctx.ArgumentValue<string?>("something"))
+            .BindRuntimeType<Mutation>()
             .AddMutationConventions(
                 new MutationConventionOptions
                 {
                     ApplyToAllMutations = true
                 })
             .ModifyOptions(o => o.StrictValidation = false)
-            .ExecuteRequestAsync("mutation { doSomething(a: \"abc\") { string } }")
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { something: ""abc"" }) {
+                        string
+                    }
+                }")
             .MatchSnapshotAsync();
+    }
+
+    public class Mutation
+    {
+        public string? DoSomething(string? something)
+            => something;
     }
 }

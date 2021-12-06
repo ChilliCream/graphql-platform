@@ -1,20 +1,21 @@
 using System.Linq;
+using static HotChocolate.WellKnownMiddleware;
 using static HotChocolate.Types.Descriptors.TypeReference;
+using static HotChocolate.Resolvers.FieldClassMiddlewareFactory;
 
 #nullable enable
 
 namespace HotChocolate.Types;
 
-internal class MutationConventionTypeInterceptor : TypeInterceptor
+internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 {
-    private readonly Dictionary<ParameterInfo, NameString> _parameters = new();
-    private readonly List<ObjectFieldDefinition> _mutationFields = new();
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
     private TypeReferenceResolver _typeReferenceResolver = default!;
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
+    private ITypeCompletionContext _completionContext = default!;
     private ObjectTypeDefinition? _mutationTypeDef;
 
     internal override void InitializeContext(
@@ -42,9 +43,14 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {
-        if (operationType == OperationType.Mutation)
+        if (operationType is OperationType.Mutation)
         {
             _mutationTypeDef = (ObjectTypeDefinition)definition!;
+        }
+
+        if (_completionContext is null)
+        {
+            _completionContext = completionContext;
         }
     }
 
@@ -79,31 +85,6 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
             }
-
-            foreach (ObjectFieldDefinition mutationField in _mutationFields)
-            {
-                if (mutationField.ResolverMember is not null)
-                {
-                    mutationField.Resolvers = _context.ResolverCompiler.CompileResolve(
-                        mutationField.ResolverMember,
-                        mutationField.SourceType ??
-                        mutationField.Member?.ReflectedType ??
-                        mutationField.Member?.DeclaringType ??
-                        typeof(object),
-                        mutationField.ResolverType,
-                        new []{ new InputParameterExpressionBuilder(_parameters) });
-                }
-                else if (mutationField.Member is not null)
-                {
-                    mutationField.Resolvers = _context.ResolverCompiler.CompileResolve(
-                        mutationField.Member,
-                        mutationField.SourceType ??
-                        mutationField.Member.ReflectedType ??
-                        mutationField.Member.DeclaringType,
-                        mutationField.ResolverType,
-                        new[] { new InputParameterExpressionBuilder(_parameters) });
-                }
-            }
         }
     }
 
@@ -119,25 +100,39 @@ internal class MutationConventionTypeInterceptor : TypeInterceptor
         InputObjectType inputType = CreateInputType(inputTypeName, mutation);
         RegisterType(inputType);
 
-        if (mutation is {Resolver: null, PureResolver: null})
-        {
-            MemberInfo? resolverMember = mutation.ResolverMember ?? mutation.Member;
-            if (resolverMember is not null)
-            {
-                foreach (ArgumentDefinition argument in mutation.Arguments)
-                {
-                    if (argument.Parameter is not null)
-                    {
-                        _parameters[argument.Parameter] = options.InputArgumentName;
-                    }
-                }
+        var resolverArguments = new List<ResolverArgument>();
 
-                _mutationFields.Add(mutation);
-            }
+        foreach (ArgumentDefinition argument in mutation.Arguments)
+        {
+            Type runtimeType = argument.RuntimeType ??
+                argument.Parameter?.ParameterType ??
+                typeof(object);
+
+            IInputValueFormatter? formatter =
+                argument.Formatters.Count switch
+                {
+                    0 => null,
+                    1 => argument.Formatters[0],
+                    _ => new AggregateInputValueFormatter(argument.Formatters)
+                };
+
+            resolverArguments.Add(new ResolverArgument(
+                argument.Name,
+                new FieldCoordinate(inputTypeName, argument.Name),
+                _completionContext.GetType<IInputType>(argument.Type!),
+                runtimeType,
+                argument.DefaultValue,
+                formatter));
         }
+
+        FieldMiddleware middleware =
+            Create<MutationConventionMiddleware>(
+                (typeof(string), options.InputArgumentName),
+                (typeof(IReadOnlyList<ResolverArgument>), resolverArguments));
 
         mutation.Arguments.Clear();
         mutation.Arguments.Add(new(options.InputArgumentName, type: Parse($"{inputTypeName}!")));
+        mutation.MiddlewareDefinitions.Insert(0, new(middleware, key: MutationConvention));
     }
 
     private RegisteredType? TryApplyPayloadConvention(

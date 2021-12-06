@@ -8,7 +8,14 @@ namespace HotChocolate.Types;
 /// Represents an input field. Input fields can be arguments of fields
 /// or fields of an input objects.
 /// </summary>
-public interface IInputField : IField
+public interface IInputField : IField, IInputFieldInfo
+{
+}
+
+/// <summary>
+/// This interface aggregates the most important attributes of a field
+/// </summary>
+public interface IInputFieldInfo : IHasName, IHasFieldCoordinate, IHasRuntimeType
 {
     /// <summary>
     /// Gets the type of this input field.

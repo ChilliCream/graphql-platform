@@ -13,6 +13,21 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+    <InternalsVisibleTo Include="HotChocolate.Validation" />
+    <InternalsVisibleTo Include="HotChocolate.Types.CursorPagination" />
+    
+    <!--Legacy Support-->
+    <InternalsVisibleTo Include="HotChocolate.Types.Filters" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Sorting" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Selections" />
+
+    <!--Tests-->
+    <InternalsVisibleTo Include="HotChocolate.Types.Filters.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Types.Sorting.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.AspNetCore.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Filters.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Sorting.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Data.Projections.Tests" />
   </ItemGroup>
 
   <ItemGroup>
