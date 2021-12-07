@@ -16,9 +16,12 @@ internal sealed class MutationConventionMiddleware
         string inputArgumentName,
         IReadOnlyList<ResolverArgument> resolverArguments)
     {
-        _next = next;
-        _inputArgumentName = inputArgumentName;
-        _resolverArguments = resolverArguments;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _inputArgumentName = inputArgumentName ??
+            throw new ArgumentNullException(nameof(inputArgumentName));
+        _resolverArguments = resolverArguments ??
+            throw new ArgumentNullException(nameof(resolverArguments));
     }
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
