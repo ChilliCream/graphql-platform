@@ -66,9 +66,6 @@ public abstract class DescriptorBase<T>
         return Definition;
     }
 
-    public void ConfigureContextData(Action<ExtensionData> configure)
-        => configure(Definition.ContextData);
-
     protected virtual void OnCreateDefinition(T definition)
     {
     }

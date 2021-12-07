@@ -18,6 +18,8 @@ public abstract class CustomParameterExpressionBuilder : IParameterExpressionBui
 
     bool IParameterExpressionBuilder.IsPure => false;
 
+    bool IParameterExpressionBuilder.IsDefaultHandler => false;
+
     /// <summary>
     /// Checks if this expression builder can handle the following parameter.
     /// </summary>

@@ -23,6 +23,8 @@ internal sealed class CancellationTokenParameterExpressionBuilder : IParameterEx
 
     public bool IsPure => false;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => typeof(CancellationToken) == parameter.ParameterType;
 

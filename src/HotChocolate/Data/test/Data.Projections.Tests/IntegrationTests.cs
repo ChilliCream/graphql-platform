@@ -7,24 +7,24 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data
-{
-    public class IntegrationTests
-    {
-        [Fact]
-        public async Task Projection_Should_NotBreakProjections_When_ExtensionsFieldRequested()
-        {
-            // arrange
-            // act
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddTypeExtension<FooExtensions>()
-                .AddProjections()
-                .BuildRequestExecutorAsync();
+namespace HotChocolate.Data;
 
-            // assert
-            IExecutionResult result = await executor.ExecuteAsync(@"
+public class IntegrationTests
+{
+    [Fact]
+    public async Task Projection_Should_NotBreakProjections_When_ExtensionsFieldRequested()
+    {
+        // arrange
+        // act
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<FooExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // assert
+        IExecutionResult result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -33,23 +33,23 @@ namespace HotChocolate.Data
             }
             ");
 
-            result.ToJson().MatchSnapshot();
-        }
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
-        {
-            // arrange
-            // act
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddTypeExtension<FooExtensions>()
-                .AddProjections()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task Projection_Should_NotBreakProjections_When_ExtensionsListRequested()
+    {
+        // arrange
+        // act
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<FooExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
 
-            // assert
-            IExecutionResult result = await executor.ExecuteAsync(@"
+        // assert
+        IExecutionResult result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -58,23 +58,23 @@ namespace HotChocolate.Data
             }
             ");
 
-            result.ToJson().MatchSnapshot();
-        }
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Projection_Should_NotBreakProjections_When_ExtensionsObjectListRequested()
-        {
-            // arrange
-            // act
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddTypeExtension<FooExtensions>()
-                .AddProjections()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task Projection_Should_NotBreakProjections_When_ExtensionsObjectListRequested()
+    {
+        // arrange
+        // act
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<FooExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
 
-            // assert
-            IExecutionResult result = await executor.ExecuteAsync(@"
+        // assert
+        IExecutionResult result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -85,23 +85,23 @@ namespace HotChocolate.Data
             }
             ");
 
-            result.ToJson().MatchSnapshot();
-        }
+        result.ToJson().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Projection_Should_NotBreakProjections_When_ExtensionsObjectRequested()
-        {
-            // arrange
-            // act
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddTypeExtension<FooExtensions>()
-                .AddProjections()
-                .BuildRequestExecutorAsync();
+    [Fact]
+    public async Task Projection_Should_NotBreakProjections_When_ExtensionsObjectRequested()
+    {
+        // arrange
+        // act
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddTypeExtension<FooExtensions>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
 
-            // assert
-            IExecutionResult result = await executor.ExecuteAsync(@"
+        // assert
+        IExecutionResult result = await executor.ExecuteAsync(@"
             {
                 foos {
                     bar
@@ -112,40 +112,39 @@ namespace HotChocolate.Data
             }
             ");
 
-            result.ToJson().MatchSnapshot();
-        }
+        result.ToJson().MatchSnapshot();
     }
+}
 
-    public class Query
+public class Query
+{
+    [UseProjection]
+    public IQueryable<Foo> Foos => new Foo[]
     {
-        [UseProjection]
-        public IQueryable<Foo> Foos => new Foo[]
-        {
             new() { Bar = "A" },
             new() { Bar = "B" }
-        }.AsQueryable();
-    }
+    }.AsQueryable();
+}
 
-    [ExtendObjectType(typeof(Foo))]
-    public class FooExtensions
+[ExtendObjectType(typeof(Foo))]
+public class FooExtensions
+{
+    public string Baz => "baz";
+
+    public IEnumerable<string> Qux => new[]
     {
-        public string Baz => "baz";
-
-        public IEnumerable<string> Qux => new[]
-        {
             "baz"
         };
 
-        public IEnumerable<Foo> NestedList => new[]
-        {
+    public IEnumerable<Foo> NestedList => new[]
+    {
             new Foo() { Bar = "C" }
         };
 
-        public Foo Nested => new() { Bar = "C" };
-    }
+    public Foo Nested => new() { Bar = "C" };
+}
 
-    public class Foo
-    {
-        public string Bar { get; set; }
-    }
+public class Foo
+{
+    public string? Bar { get; set; }
 }

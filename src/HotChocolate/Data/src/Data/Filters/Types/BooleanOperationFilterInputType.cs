@@ -1,15 +1,14 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public class BooleanOperationFilterInputType
+    : FilterInputType
 {
-    public class BooleanOperationFilterInputType
-        : FilterInputType
+    protected override void Configure(IFilterInputTypeDescriptor descriptor)
     {
-        protected override void Configure(IFilterInputTypeDescriptor descriptor)
-        {
-            descriptor.Operation(DefaultFilterOperations.Equals).Type<BooleanType>();
-            descriptor.Operation(DefaultFilterOperations.NotEquals).Type<BooleanType>();
-            descriptor.AllowAnd(false).AllowOr(false);
-        }
+        descriptor.Operation(DefaultFilterOperations.Equals).Type<BooleanType>();
+        descriptor.Operation(DefaultFilterOperations.NotEquals).Type<BooleanType>();
+        descriptor.AllowAnd(false).AllowOr(false);
     }
 }
