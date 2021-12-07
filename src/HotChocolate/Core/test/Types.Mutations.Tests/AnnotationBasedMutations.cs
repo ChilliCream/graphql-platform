@@ -317,7 +317,12 @@ public class AnnotationBasedMutations
         }
     }
 
-    public record DoSomethingPayload(string MyResult1, string MyResult2);
+    public class DoSomethingPayload
+    {
+        public string MyResult1 { get; set; }
+
+        public string MyResult2 { get; set; }
+    }
 
     public class SimpleMutationInputOverride
     {
@@ -327,7 +332,12 @@ public class AnnotationBasedMutations
         }
     }
 
-    public record DoSomethingInput(string MyInput1, string MyInput2);
+    public class DoSomethingInput
+    {
+        public string MyInput1 { get; set; }
+
+        public string MyInput2 { get; set; }
+    }
 
     public class MultipleArgumentMutation
     {
