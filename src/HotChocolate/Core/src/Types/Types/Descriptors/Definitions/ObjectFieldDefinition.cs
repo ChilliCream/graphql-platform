@@ -346,7 +346,7 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
 
                 if (nonRepeatable > 1)
                 {
-                    string[] keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+                    var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
                     int i = 0, ki = 0;
 
                     do

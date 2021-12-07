@@ -99,7 +99,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 // next we check for specific mutation configuration overrides.
                 // if a user provided specific mutation settings they will take
-                // precedence over global and iferred settings.
+                // precedence over global and inferred settings.
                 if (defLookup.TryGetValue(mutationField, out MutationContextData? cd) ||
                     nameLookup.TryGetValue(mutationField.Name, out cd))
                 {
@@ -402,11 +402,10 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             true);
     }
 
-    private RegisteredType RegisterType(TypeSystemObjectBase type)
+    private void RegisterType(TypeSystemObjectBase type)
     {
         RegisteredType registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
-        return registeredType;
     }
 
     private ITypeReference EnsureNullable(ITypeReference typeRef)
@@ -418,26 +417,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             return typeRef;
         }
 
-        return TypeReference.Create(CreateTypeNode(nt.Type));
+        return Create(CreateTypeNode(nt.Type));
     }
 
     private ITypeNode CreateTypeNode(IType type)
-    {
-        if (type is NonNullType nnt)
+        => type switch
         {
-            return new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.Type));
-        }
-        else if (type is ListType lt)
-        {
-            return new ListTypeNode((INullableTypeNode)CreateTypeNode(lt.ElementType));
-        }
-        else if (type is INamedType nt)
-        {
-            return new NamedTypeNode(nt.Name);
-        }
-
-        throw new NotSupportedException("Type is not supported.");
-    }
+            NonNullType nnt => new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.Type)),
+            ListType lt => new ListTypeNode((INullableTypeNode)CreateTypeNode(lt.ElementType)),
+            INamedType nt => new NamedTypeNode(nt.Name),
+            _ => throw new NotSupportedException("Type is not supported.")
+        };
 
     private readonly ref struct Options
     {

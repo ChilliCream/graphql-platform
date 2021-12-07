@@ -26,7 +26,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// The type name of the field in the payload
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): ThisIsTheTypeName
+    ///   createUser(input: CreateUserCustomInput): ThisIsTheTypeName
     /// }
     /// </code>
     /// </summary>
@@ -36,7 +36,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// The name of the field in the payload type that represents our data.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {
@@ -51,7 +51,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// The name of the error union type for this mutation.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {
@@ -66,7 +66,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// The name of the errors field name on the payload type.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {
@@ -81,7 +81,7 @@ public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
     /// Overrides a the global <see cref="MutationConventionOptions.ApplyToAllMutations" />
     /// setting on a specific mutation.
     /// </summary>
-    public bool Disable { get; set; } = false;
+    public bool Disable { get; set; }
 
     protected override void OnConfigure(
         IDescriptorContext context,
