@@ -186,7 +186,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
         => descriptor.Error(ErrorType);
 }
 
-#if NET6_0_OR_GREATER
+#if EXPERIMENTAL
 /// <summary>
 /// The <see cref="ErrorAttribute{T}"/> registers a middleware that will catch all exceptions of
 /// type <see cref="ErrorAttribute{T}.ErrorType"/> on mutations.
