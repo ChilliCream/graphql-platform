@@ -29,6 +29,63 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutationExtension_Inferred()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<SimpleMutationExtension>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutationExtension_Inferred_Execute()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<SimpleMutationExtension>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { something: ""abc"" }) {
+                        string
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_MutationAttributeOnQuery()
+    {
+        async Task Error() 
+            => await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryWithMutationAnnotation>()
+                .AddMutationType<SimpleMutation>()
+                .AddMutationConventions(true)
+                .BuildSchemaAsync();
+
+        await Assert.ThrowsAsync<SchemaException>(Error);
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_Execute()
     {
         Snapshot.FullName();
@@ -223,6 +280,13 @@ public class AnnotationBasedMutations
             => something;
     }
 
+    [ExtendObjectType("Mutation")]
+    public class SimpleMutationExtension
+    {
+        public string DoSomething(string something)
+            => something;
+    }
+
     public class SimpleMutationAttribute
     {
         [Mutation(
@@ -296,5 +360,11 @@ public class AnnotationBasedMutations
     public class Custom2Exception : Exception
     {
         public override string Message => "Hello2";
+    }
+
+    public class QueryWithMutationAnnotation
+    {
+        [Mutation]
+        public string GetFoo() => "foo";
     }
 }

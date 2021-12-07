@@ -110,7 +110,15 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 }
             }
 
-            // TODO: if we have unprocessed mutations we need to throw here!
+            if (unprocessed.Count > 0)
+            {
+                // TODO : error helper
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage("There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.")
+                        .SetExtension("fields", unprocessed.Select(t => t.Definition.Name).ToArray())
+                        .Build());
+            }
         }
     }
 
