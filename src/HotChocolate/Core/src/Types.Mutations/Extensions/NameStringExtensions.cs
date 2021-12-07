@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         {
             if (!name.HasValue || name is { Value: { Length: <1 } })
             {
-                return "";
+                return string.Empty;
             }
 
             StringBuilder typeNameBuilder = new StringBuilder()

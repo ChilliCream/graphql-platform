@@ -48,6 +48,24 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Inferred_With_Single_Error()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationWithSingleError>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_Defaults()
     {
         Snapshot.FullName();
@@ -210,5 +228,17 @@ public class AnnotationBasedMutations
         {
             throw new Exception();
         }
+    }
+
+    public class SimpleMutationWithSingleError
+    {
+        [Error<CustomException>]
+        public string DoSomething(string something)
+            => throw new CustomException();
+    }
+
+    public class CustomException : Exception
+    {
+        public override string Message => "Hello";
     }
 }

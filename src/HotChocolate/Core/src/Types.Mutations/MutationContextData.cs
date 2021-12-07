@@ -8,6 +8,7 @@ internal class MutationContextData
         string? inputArgumentName,
         string? payloadFieldName,
         string? payloadTypeName,
+        string? errorTypeNamePattern,
         bool enabled)
     {
         Definition = definition;
@@ -15,6 +16,7 @@ internal class MutationContextData
         InputArgumentName = inputArgumentName;
         PayloadFieldName = payloadFieldName;
         PayloadTypeName = payloadTypeName;
+        PayloadErrorTypeName = PayloadErrorTypeName;
         Enabled = enabled;
     }
 
@@ -29,6 +31,8 @@ internal class MutationContextData
     public string? PayloadFieldName { get; }
 
     public string? PayloadTypeName { get; }
+
+    public string? PayloadErrorTypeName { get; }
 
     public bool Enabled { get; }
 }

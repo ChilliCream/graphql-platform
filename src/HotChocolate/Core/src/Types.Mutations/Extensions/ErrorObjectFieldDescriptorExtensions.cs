@@ -355,8 +355,7 @@ public static class ErrorObjectFieldDescriptorExtensions
 
         void ConfigureField(IDescriptorContext c, ObjectFieldDefinition d)
         {
-            IReadOnlyList<ErrorDefinition>
-                definitions = ErrorFactoryCompiler.Compile(errorType);
+            IReadOnlyList<ErrorDefinition> definitions = ErrorFactoryCompiler.Compile(errorType);
 
             if (!d.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
                 !(value is List<ErrorDefinition> errorFactories))
@@ -369,8 +368,7 @@ public static class ErrorObjectFieldDescriptorExtensions
 
             foreach (ErrorDefinition definition in definitions)
             {
-                ExtendedTypeReference typeRef =
-                    c.TypeInspector.GetTypeRef(definition.SchemaType);
+                ExtendedTypeReference typeRef = c.TypeInspector.GetTypeRef(definition.SchemaType);
                 d.Dependencies.Add(new TypeDependency(typeRef));
             }
         }

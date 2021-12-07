@@ -42,6 +42,8 @@ public class MutationAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string? PayloadFieldName { get; set; }
 
+    public string? PayloadErrorTypeName { get; set; }
+
     public bool Enabled { get; set; } = true;
 
     public override void OnConfigure(
@@ -58,6 +60,7 @@ public class MutationAttribute : ObjectFieldDescriptorAttribute
                     InputArgumentName,
                     PayloadTypeName,
                     PayloadFieldName,
+                    PayloadErrorTypeName,
                     Enabled));
         });
     }

@@ -10,6 +10,8 @@ internal static class MutationConventionOptionDefaults
 
     public const string PayloadTypeNamePattern = $"{{{MutationName}}}Payload";
 
+    public const string ErrorTypeNamePattern = $"{{{MutationName}}}Error";
+
     public const string PayloadErrorsFieldName = "errors";
 
     public const bool ApplyToAllMutations = false;

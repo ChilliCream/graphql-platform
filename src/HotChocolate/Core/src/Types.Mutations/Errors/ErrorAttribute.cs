@@ -181,7 +181,12 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
+        => descriptor.Error(ErrorType);
+}
+
+public class ErrorAttribute<TError> : ErrorAttribute
+{
+    public ErrorAttribute() : base(typeof(TError))
     {
-        descriptor.Error(ErrorType);
     }
 }

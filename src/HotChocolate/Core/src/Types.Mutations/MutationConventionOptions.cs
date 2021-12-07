@@ -8,6 +8,8 @@ public struct MutationConventionOptions
 
     public string? PayloadTypeNamePattern { get; set; }
 
+    public string? PayloadErrorTypeNamePattern { get; set; }
+
     public string? PayloadErrorsFieldName { get; set; }
 
     public bool? ApplyToAllMutations { get; set; }
