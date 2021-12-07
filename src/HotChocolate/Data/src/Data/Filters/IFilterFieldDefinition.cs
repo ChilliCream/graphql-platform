@@ -1,13 +1,12 @@
 using System.Reflection;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public interface IFilterFieldDefinition
 {
-    public interface IFilterFieldDefinition
-    {
-        MemberInfo? Member { get; }
+    MemberInfo? Member { get; }
 
-        IFilterFieldHandler? Handler { get; }
+    IFilterFieldHandler? Handler { get; }
 
-        string? Scope { get; }
-    }
+    string? Scope { get; }
 }

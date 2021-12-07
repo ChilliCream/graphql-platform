@@ -83,9 +83,9 @@ public class Argument : FieldBase<ArgumentDefinition>, IInputField
         }
 
         base.OnCompleteField(context, declaringMember, definition);
-        ;
+
         Type = context.GetType<IInputType>(definition.Type!);
-        _runtimeType = definition.Parameter?.ParameterType!;
+        _runtimeType = definition.RuntimeType ?? definition.Parameter?.ParameterType!;
         _runtimeType = CompleteRuntimeType(Type, _runtimeType, out var isOptional);
         DefaultValue = CompleteDefaultValue(context, definition, Type, Coordinate);
         IsOptional = isOptional;

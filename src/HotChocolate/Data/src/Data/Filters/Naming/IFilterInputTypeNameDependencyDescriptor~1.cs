@@ -1,13 +1,12 @@
 using System;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Filters
-{
-    public interface IFilterInputTypeNameDependencyDescriptor<T>
-    {
-        IFilterInputTypeDescriptor<T> DependsOn<TDependency>()
-            where TDependency : IType;
+namespace HotChocolate.Data.Filters;
 
-        IFilterInputTypeDescriptor<T> DependsOn(Type schemaType);
-    }
+public interface IFilterInputTypeNameDependencyDescriptor<T>
+{
+    IFilterInputTypeDescriptor<T> DependsOn<TDependency>()
+        where TDependency : IType;
+
+    IFilterInputTypeDescriptor<T> DependsOn(Type schemaType);
 }

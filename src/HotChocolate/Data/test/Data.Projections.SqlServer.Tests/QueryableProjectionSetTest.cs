@@ -5,12 +5,12 @@ using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionISetTests
 {
-    public class QueryableProjectionISetTests
+    private static readonly Bar[] _barEntities =
     {
-        private static readonly Bar[] _barEntities =
-        {
             new Bar
             {
                 Foo = new Foo
@@ -45,20 +45,20 @@ namespace HotChocolate.Data.Projections
             }
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new SchemaCache();
 
-        [Fact]
-        public async Task Create_DeepFilterObjectTwoProjections()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+    [Fact]
+    public async Task Create_DeepFilterObjectTwoProjections()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 foo {
@@ -71,23 +71,23 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_ListObjectDifferentLevelProjection()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+    [Fact]
+    public async Task Create_ListObjectDifferentLevelProjection()
+    {
+        // arrange
+        IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 foo {
@@ -101,97 +101,96 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        public static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Foo>().HasMany(x => x.ObjectSet);
-            modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
-            modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
-        }
+    public static void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Foo>().HasMany(x => x.ObjectSet);
+        modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
+        modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
+    }
 
-        public class Foo
-        {
-            public int Id { get; set; }
+    public class Foo
+    {
+        public int Id { get; set; }
 
-            public short BarShort { get; set; }
+        public short BarShort { get; set; }
 
-            public string BarString { get; set; } = string.Empty;
+        public string BarString { get; set; } = string.Empty;
 
-            public BarEnum BarEnum { get; set; }
+        public BarEnum BarEnum { get; set; }
 
-            public bool BarBool { get; set; }
+        public bool BarBool { get; set; }
 
-            [UseFiltering]
-            public ISet<BarDeep> ObjectSet { get; set; }
+        [UseFiltering]
+        public ISet<BarDeep>? ObjectSet { get; set; }
 
-            public BarDeep NestedObject { get; set; }
-        }
+        public BarDeep? NestedObject { get; set; }
+    }
 
-        public class FooDeep
-        {
-            public int Id { get; set; }
+    public class FooDeep
+    {
+        public int Id { get; set; }
 
-            public short BarShort { get; set; }
+        public short BarShort { get; set; }
 
-            public string BarString { get; set; } = string.Empty;
-        }
+        public string BarString { get; set; } = string.Empty;
+    }
 
-        public class FooNullable
-        {
-            public int Id { get; set; }
+    public class FooNullable
+    {
+        public int Id { get; set; }
 
-            public short? BarShort { get; set; }
+        public short? BarShort { get; set; }
 
-            public string? BarString { get; set; }
+        public string? BarString { get; set; }
 
-            public BarEnum? BarEnum { get; set; }
+        public BarEnum? BarEnum { get; set; }
 
-            public bool? BarBool { get; set; }
+        public bool? BarBool { get; set; }
 
-            [UseFiltering]
-            public ISet<BarNullableDeep?>? ObjectSet { get; set; }
+        [UseFiltering]
+        public ISet<BarNullableDeep?>? ObjectSet { get; set; }
 
-            public BarNullableDeep? NestedObject { get; set; }
-        }
+        public BarNullableDeep? NestedObject { get; set; }
+    }
 
-        public class Bar
-        {
-            public int Id { get; set; }
+    public class Bar
+    {
+        public int Id { get; set; }
 
-            public Foo Foo { get; set; }
-        }
+        public Foo? Foo { get; set; }
+    }
 
-        public class BarDeep
-        {
-            public int Id { get; set; }
+    public class BarDeep
+    {
+        public int Id { get; set; }
 
-            public FooDeep Foo { get; set; }
-        }
+        public FooDeep? Foo { get; set; }
+    }
 
-        public class BarNullableDeep
-        {
-            public int Id { get; set; }
+    public class BarNullableDeep
+    {
+        public int Id { get; set; }
 
-            public FooDeep? Foo { get; set; }
-        }
+        public FooDeep? Foo { get; set; }
+    }
 
-        public class BarNullable
-        {
-            public int Id { get; set; }
+    public class BarNullable
+    {
+        public int Id { get; set; }
 
-            public FooNullable? Foo { get; set; }
-        }
+        public FooNullable? Foo { get; set; }
+    }
 
-        public enum BarEnum
-        {
-            FOO,
-            BAR,
-            BAZ,
-            QUX
-        }
+    public enum BarEnum
+    {
+        FOO,
+        BAR,
+        BAZ,
+        QUX
     }
 }
