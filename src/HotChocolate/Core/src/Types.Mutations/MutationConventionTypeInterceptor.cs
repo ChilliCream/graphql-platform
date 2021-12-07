@@ -116,6 +116,11 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
     private void TryApplyInputConvention(ObjectFieldDefinition mutation, Options options)
     {
+        if (mutation.Arguments.Count is 0)
+        {
+            return;
+        }
+
         var inputTypeName = options.FormatInputTypeName(mutation.Name);
 
         if (_typeRegistry.NameRefs.ContainsKey(inputTypeName))

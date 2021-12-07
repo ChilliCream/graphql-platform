@@ -7,7 +7,7 @@ type SimpleMutationAttribute {
 }
 
 type payloadFieldName {
-  PayloadTypeName: String!
+  PayloadTypeName: String
 }
 
 input InputTypeName {

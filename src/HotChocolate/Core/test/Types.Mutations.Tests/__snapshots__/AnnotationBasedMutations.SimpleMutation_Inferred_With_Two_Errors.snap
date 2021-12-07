@@ -15,7 +15,7 @@ type CustomError implements Error {
 }
 
 type DoSomethingPayload {
-  string: String!
+  string: String
   errors: [DoSomethingError!]
 }
 

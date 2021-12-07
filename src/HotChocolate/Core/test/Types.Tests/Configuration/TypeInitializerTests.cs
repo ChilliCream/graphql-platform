@@ -126,7 +126,8 @@ namespace HotChocolate.Configuration
                 typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
-            var typeInitializer = new TypeInitializer(
+            // act
+            void Action() => new TypeInitializer(
                 context,
                 typeRegistry,
                 new List<ITypeReference>
@@ -145,9 +146,6 @@ namespace HotChocolate.Configuration
                 null!,
                 new SchemaOptions());
 
-            // act
-            void Action() => typeInitializer.Initialize();
-
             // assert
             Assert.Throws<ArgumentNullException>(Action);
         }
@@ -162,7 +160,8 @@ namespace HotChocolate.Configuration
                 typeInterceptor: typeInterceptor);
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
 
-            var typeInitializer = new TypeInitializer(
+            // act
+            void Action() => new TypeInitializer(
                 context,
                 typeRegistry,
                 new List<ITypeReference>
@@ -180,9 +179,6 @@ namespace HotChocolate.Configuration
                 },
                 () => null,
                 null!);
-
-            // act
-            void Action() => typeInitializer.Initialize();
 
             // assert
             Assert.Throws<ArgumentNullException>(Action);

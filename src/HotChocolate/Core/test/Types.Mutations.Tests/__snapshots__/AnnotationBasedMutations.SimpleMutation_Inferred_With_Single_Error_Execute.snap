@@ -1,22 +1,12 @@
 ﻿{
-  "errors": [
-    {
-      "message": "String cannot serialize the given value.",
-      "locations": [
+  "data": {
+    "doSomething": {
+      "string": null,
+      "errors": [
         {
-          "line": 3,
-          "column": 25
+          "message": "Hello"
         }
-      ],
-      "path": [
-        "doSomething",
-        "string"
-      ],
-      "extensions": {
-        "actualValue": "System.Object",
-        "actualType": "System.Object",
-        "code": "EXEC_INVALID_LEAF_VALUE"
-      }
+      ]
     }
-  ]
+  }
 }

@@ -11,7 +11,7 @@ type CustomError implements Error {
 }
 
 type DoSomethingOut {
-  string: String!
+  string: String
   errors: [DoSomethingFault!]
 }
 

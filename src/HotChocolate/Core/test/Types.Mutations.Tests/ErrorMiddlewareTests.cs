@@ -12,7 +12,7 @@ namespace HotChocolate.Types;
 public class ErrorMiddlewareTests
 {
     private const string _query = @"
-        query {
+        mutation {
             throw {
                 errors {
                     __typename
@@ -230,7 +230,7 @@ public class ErrorMiddlewareTests
 
         // Act
         IExecutionResult res = await executor.ExecuteAsync(@"
-             query {
+            mutation {
                 throw {
                     errors {
                         __typename
@@ -240,8 +240,7 @@ public class ErrorMiddlewareTests
                         }
                     }
                 }
-             }
-            ");
+            }");
 
         // Assert
         res.ToJson().MatchSnapshot();
@@ -262,7 +261,7 @@ public class ErrorMiddlewareTests
 
         // Act
         IExecutionResult res = await executor.ExecuteAsync(@"
-             query {
+            mutation {
                 throw {
                     errors {
                         __typename
@@ -272,8 +271,7 @@ public class ErrorMiddlewareTests
                         }
                     }
                 }
-             }
-            ");
+            }");
 
         // Assert
         res.ToJson().MatchSnapshot();
@@ -289,10 +287,10 @@ public class ErrorMiddlewareTests
     {
         IRequestExecutorBuilder builder = new ServiceCollection()
             .AddGraphQL()
-            .AddMutationConventions()
-            .AddQueryType(x =>
+            .AddMutationConventions(true)
+            .AddMutationType(x =>
             {
-                x.Name("Query");
+                x.Name("Mutation");
                 IObjectFieldDescriptor field = x.Field("throw")
                     .Type<ObjectType<Payload>>()
                     .Resolve(_ =>
@@ -301,7 +299,8 @@ public class ErrorMiddlewareTests
                         return new Payload();
                     });
                 configureField(field);
-            });
+            })
+            .ModifyOptions(o => o.StrictValidation = false);
 
         configureSchema?.Invoke(builder);
 
