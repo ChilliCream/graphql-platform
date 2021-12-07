@@ -66,19 +66,62 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Inferred_With_Single_Error_Execute()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationWithSingleError>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { something: ""abc"" }) {
+                        string
+                        errors {
+                            ... on CustomError {
+                                message
+                            }
+                        }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task SimpleMutation_Inferred_With_Two_Errors()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<SimpleMutationWithTwoErrors>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_Defaults()
     {
         Snapshot.FullName();
 
         await new ServiceCollection()
             .AddGraphQL()
-            .AddMutationType<SimpleMutation>()
+            .AddMutationType<SimpleMutationWithSingleError>()
             .AddMutationConventions(
                 new MutationConventionOptions
                 {
                     InputArgumentName = "inputArgument",
                     InputTypeNamePattern = "{MutationName}In",
                     PayloadTypeNamePattern = "{MutationName}Out",
+                    PayloadErrorTypeNamePattern = "{MutationName}Fault",
                     ApplyToAllMutations = true
                 })
             .ModifyOptions(o => o.StrictValidation = false)
@@ -237,8 +280,21 @@ public class AnnotationBasedMutations
             => throw new CustomException();
     }
 
+    public class SimpleMutationWithTwoErrors
+    {
+        [Error<CustomException>]
+        [Error<Custom2Exception>]
+        public string DoSomething(string something)
+            => throw new CustomException();
+    }
+
     public class CustomException : Exception
     {
         public override string Message => "Hello";
+    }
+
+    public class Custom2Exception : Exception
+    {
+        public override string Message => "Hello2";
     }
 }

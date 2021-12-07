@@ -223,7 +223,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         ObjectType type = CreatePayloadType(
             payloadTypeName,
-            new(payloadFieldName, mutation.Type!),
+            new(payloadFieldName, EnsureNullable(mutation.Type!)),
             errorField);
         RegisterType(type);
 
@@ -260,7 +260,17 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         var dataFieldDef = new ObjectFieldDefinition(
             data.Name,
             type: data.Type,
-            pureResolver: ctx => ctx.Parent<object?>());
+            pureResolver: ctx =>
+            {
+                var parent = ctx.Parent<object?>();
+
+                if (ReferenceEquals(ErrorMiddleware.ErrorObject, parent))
+                {
+                    return null;
+                }
+
+                return parent;
+            });
         objectDef.Fields.Add(dataFieldDef);
 
         // if the mutation has domain errors we will add the errors
@@ -371,6 +381,36 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         RegisteredType registeredType = _typeInitializer.InitializeType(type);
         _typeInitializer.CompleteTypeName(registeredType);
         return registeredType;
+    }
+
+    private ITypeReference EnsureNullable(ITypeReference typeRef)
+    {
+        IType type = _completionContext.GetType<IType>(typeRef);
+
+        if (type is not NonNullType nt)
+        {
+            return typeRef;
+        }
+
+        return TypeReference.Create(CreateTypeNode(nt.Type));
+    }
+
+    private ITypeNode CreateTypeNode(IType type)
+    {
+        if (type is NonNullType nnt)
+        {
+            return new NonNullTypeNode((INullableTypeNode)CreateTypeNode(nnt.Type));
+        }
+        else if (type is ListType lt)
+        {
+            return new ListTypeNode((INullableTypeNode)CreateTypeNode(lt.ElementType));
+        }
+        else if (type is INamedType nt)
+        {
+            return new NamedTypeNode(nt.Name);
+        }
+
+        throw new NotSupportedException("Type is not supported.");
     }
 
     private readonly ref struct Options
