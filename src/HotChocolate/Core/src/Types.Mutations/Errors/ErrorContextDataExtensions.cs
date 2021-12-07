@@ -10,6 +10,6 @@ internal static class ErrorContextDataExtensions
         return extensionData;
     }
 
-    public static bool IsError(this ExtensionData extensionData) =>
-        extensionData.ContainsKey(IsErrorType);
+    public static bool IsError(this ExtensionData extensionData)
+        => extensionData.ContainsKey(IsErrorType);
 }

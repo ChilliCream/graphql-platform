@@ -2,8 +2,6 @@ namespace HotChocolate.Types;
 
 internal sealed class ErrorMiddleware
 {
-    public const string MiddlewareIdentifier = "HotChocolate.Types.Errors.ErrorMiddleware";
-
     public static readonly object ErrorObject = new();
 
     private readonly FieldDelegate _next;

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace HotChocolate.Types;
 
-internal class ErrorObjectType<T> : ObjectType<T>
+internal sealed class ErrorObjectType<T> : ObjectType<T>
 {
     protected override void Configure(IObjectTypeDescriptor<T> descriptor)
     {

@@ -8,7 +8,9 @@ public static class ErrorObjectFieldDescriptorExtensions
 {
     /// <summary>
     /// The <c>.Error&lt;TError>()</c> extension method registers a middleware that will catch
-    /// all exceptions of type <typeparamref name="TError"/>. By annotating the attribute the
+    /// all exceptions of type <typeparamref name="TError"/> on mutations.
+    ///
+    /// By applying the error extension to a mutation field the
     /// response type of the annotated resolver, will be automatically extended by a field of
     /// type <c>errors:[Error!]</c>. This field will return errors that are caught by the
     /// middleware. All the other fields on this type will be rewritten to nullable types.
@@ -178,8 +180,10 @@ public static class ErrorObjectFieldDescriptorExtensions
         Error(descriptor, typeof(TError));
 
     /// <summary>
-    /// The <c>.Error()</c> extension method registers a middleware that will catch all
-    /// exceptions of type <paramref name="errorType"/>. By annotating the attribute the
+    /// The <c>.Error&lt;TError>()</c> extension method registers a middleware that will catch
+    /// all exceptions of type <typeparamref name="TError"/> on mutations.
+    ///
+    /// By applying the error extension to a mutation field the
     /// response type of the annotated resolver, will be automatically extended by a field of
     /// type <c>errors:[Error!]</c>. This field will return errors that are caught by the
     /// middleware. All the other fields on this type will be rewritten to nullable types.

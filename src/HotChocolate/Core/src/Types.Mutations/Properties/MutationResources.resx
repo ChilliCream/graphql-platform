@@ -3,7 +3,7 @@
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
-      
+
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -34,5 +34,11 @@ Check the attribute `[Input(TypeName= "{2}")]` or the method `.Input(typeName: "
   </data>
   <data name="InputParameterExpressionBuilder_Build_NoAttribute" xml:space="preserve">
     <value>Could not find the InputAttribute</value>
+  </data>
+  <data name="ThrowHelper_CannotResolvePayloadType" xml:space="preserve">
+    <value>Cannot Resolve PayLoad Type</value>
+  </data>
+  <data name="ThrowHelper_NonMutationFields" xml:space="preserve">
+    <value>There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.</value>
   </data>
 </root>

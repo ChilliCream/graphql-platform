@@ -13,7 +13,6 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
     private TypeInitializer _typeInitializer = default!;
     private TypeRegistry _typeRegistry = default!;
     private TypeLookup _typeLookup = default!;
-    private TypeReferenceResolver _typeReferenceResolver = default!;
     private IDescriptorContext _context = default!;
     private List<MutationContextData> _mutations = default!;
     private ITypeCompletionContext _completionContext = default!;
@@ -31,7 +30,6 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         _typeInitializer = typeInitializer;
         _typeRegistry = typeRegistry;
         _typeLookup = typeLookup;
-        _typeReferenceResolver = typeReferenceResolver;
     }
 
     public override void OnBeforeRegisterDependencies(
@@ -39,11 +37,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
-        // first we need to get a handle on the error interface.  
-        if (_errorInterfaceTypeRef is null)
-        {
-            _errorInterfaceTypeRef = CreateErrorTypeRef(discoveryContext);
-        }
+        // first we need to get a handle on the error interface.
+        _errorInterfaceTypeRef ??= CreateErrorTypeRef(discoveryContext);
 
         // we will use the error interface and implement it with each error type.
         if (definition is ObjectTypeDefinition objectTypeDef)
@@ -70,10 +65,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         // we need to capture a completion context to resolve types.
         // any context will do.
-        if (_completionContext is null)
-        {
-            _completionContext = completionContext;
-        }
+        _completionContext ??= completionContext;
     }
 
     public override void OnAfterMergeTypeExtensions()
@@ -91,11 +83,23 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             {
                 if (mutationField.IsIntrospectionField)
                 {
+                    // we skip over any introspection fields like `__typename`
                     continue;
                 }
 
                 Options mutationOptions = rootOptions;
 
+                // if the mutation has any error attributes we will interpret that as an opt-in
+                // to the mutation conventions.
+                if (mutationField.ContextData.ContainsKey(ErrorDefinitions) &&
+                    !mutationOptions.Apply)
+                {
+                    mutationOptions = CreateErrorOptions(mutationOptions);
+                }
+
+                // next we check for specific mutation configuration overrides.
+                // if a user provided specific mutation settings they will take
+                // precedence over global and iferred settings.
                 if (defLookup.TryGetValue(mutationField, out MutationContextData? cd) ||
                     nameLookup.TryGetValue(mutationField.Name, out cd))
                 {
@@ -105,6 +109,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
                 if (mutationOptions.Apply)
                 {
+                    // if the mutation options indicate that we shall apply the mutation
+                    // conventions we will start rewriting the field.
                     TryApplyInputConvention(mutationField, mutationOptions);
                     TryApplyPayloadConvention(mutationField, cd?.PayloadFieldName, mutationOptions);
                 }
@@ -112,12 +118,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
             if (unprocessed.Count > 0)
             {
-                // TODO : error helper
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("There are mutation annotations on non mutation fields. The mutation conventions can only be applied to fields of the mutation type.")
-                        .SetExtension("fields", unprocessed.Select(t => t.Definition.Name).ToArray())
-                        .Build());
+                throw ThrowHelper.NonMutationFields(unprocessed);
             }
         }
     }
@@ -185,14 +186,11 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         ITypeReference? typeRef = mutation.Type;
         var payloadTypeName = options.FormatPayloadTypeName(mutation.Name);
 
+        // we ensure that we can resolve the mutation result type.
         if (!_typeLookup.TryNormalizeReference(typeRef!, out typeRef) ||
             !_typeRegistry.TryGetType(typeRef, out RegisteredType? registration))
         {
-            // TODO : ERROR
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage("Cannot Resolve PayLoad Type")
-                    .Build());
+            throw ThrowHelper.CannotResolvePayloadType();
         }
 
         // if the mutation result type matches the payload type name pattern
@@ -208,18 +206,21 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         IReadOnlyList<ErrorDefinition> errorDefinitions = GetErrorDefinitions(mutation);
         FieldDef? errorField = null;
 
-        // if this mutation has error definitions we will create the error middleware, 
-        // the payload error type and the error field definition that will be exposed 
+        // if this mutation has error definitions we will create the error middleware,
+        // the payload error type and the error field definition that will be exposed
         // on the payload.
         if (errorDefinitions.Count > 0)
         {
-            string errorTypeName = options.FormatErrorTypeName(mutation.Name);
+            // create error type
+            var errorTypeName = options.FormatErrorTypeName(mutation.Name);
             RegisterType(CreateErrorType(errorTypeName, errorDefinitions));
-            var errorListTypeRef = TypeReference.Parse($"[{errorTypeName}!]");
-            errorField = new(options.PayloadErrorsFieldName, errorListTypeRef);
+            SyntaxTypeReference errorListTypeRef = Parse($"[{errorTypeName}!]");
+            errorField = new FieldDef(options.PayloadErrorsFieldName, errorListTypeRef);
 
-            var errorFactories = errorDefinitions.Select(t => t.Factory).ToArray();
+            // collect error factories for middleware
+            CreateError[] errorFactories = errorDefinitions.Select(t => t.Factory).ToArray();
 
+            // create middleware
             var errorMiddleware =
                 new FieldMiddlewareDefinition(
                     Create<ErrorMiddleware>(
@@ -230,7 +231,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             mutation.MiddlewareDefinitions.Insert(0, errorMiddleware);
         }
 
-        // lastly we will create the mutation payload and replace with it the current mutation 
+        // lastly we will create the mutation payload and replace with it the current mutation
         // result type.
         payloadFieldName ??= _context.Naming.FormatFieldName(registration.Type.Name);
 
@@ -242,7 +243,7 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
 
         mutation.Type = Parse($"{payloadTypeName}!");
 
-        // we mustn't forget to drop the error definitions at this point since we do not 
+        // we mustn't forget to drop the error definitions at this point since we do not
         // want to preserve them on the actual schema field.
         mutation.ContextData.Remove(ErrorDefinitions);
     }
@@ -387,6 +388,18 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             contextData.PayloadErrorTypeName ?? parent.PayloadErrorTypeNamePattern,
             parent.PayloadErrorsFieldName,
             contextData.Enabled);
+    }
+
+    private static Options CreateErrorOptions(
+        Options parent = default)
+    {
+        return new Options(
+            parent.InputTypeNamePattern,
+            parent.InputArgumentName,
+            parent.PayloadTypeNamePattern,
+            parent.PayloadErrorTypeNamePattern,
+            parent.PayloadErrorsFieldName,
+            true);
     }
 
     private RegisteredType RegisterType(TypeSystemObjectBase type)
