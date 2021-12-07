@@ -483,4 +483,3 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
         public ITypeReference Type { get; }
     }
 }
-
