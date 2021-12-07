@@ -74,7 +74,7 @@ public class AnnotationBasedMutations
     [Fact]
     public async Task SimpleMutation_Inferred_MutationAttributeOnQuery()
     {
-        async Task Error() 
+        async Task Error()
             => await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<QueryWithMutationAnnotation>()
@@ -302,7 +302,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationAttributeOptOut
     {
-        [Mutation(Enabled = false)]
+        [Mutation(Disable = true)]
         public string DoSomething(string something)
         {
             throw new Exception();

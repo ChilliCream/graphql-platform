@@ -4,8 +4,34 @@ using static HotChocolate.Types.ErrorContextDataKeys;
 
 namespace HotChocolate.Types;
 
-public static class ErrorObjectFieldDescriptorExtensions
+public static class MutationObjectFieldDescriptorExtensions
 {
+    public static IObjectFieldDescriptor UseMutation(
+        this IObjectFieldDescriptor descriptor,
+        MutationFieldOptions options = default)
+    {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        descriptor.Extend().OnBeforeNaming((c, d) =>
+        {
+            c.ContextData
+                .GetMutationFields()
+                .Add(new(d,
+                    options.InputTypeName,
+                    options.InputArgumentName,
+                    options.PayloadTypeName,
+                    options.PayloadFieldName,
+                    options.PayloadErrorTypeName,
+                    options.PayloadErrorsFieldName,
+                    !options.Disable));
+        });
+
+        return descriptor;
+    }
+
     /// <summary>
     /// The <c>.Error&lt;TError>()</c> extension method registers a middleware that will catch
     /// all exceptions of type <typeparamref name="TError"/> on mutations.
@@ -353,6 +379,16 @@ public static class ErrorObjectFieldDescriptorExtensions
         this IObjectFieldDescriptor descriptor,
         Type errorType)
     {
+        if (descriptor is null)
+        {
+            throw new ArgumentNullException(nameof(descriptor));
+        }
+
+        if (errorType is null)
+        {
+            throw new ArgumentNullException(nameof(errorType));
+        }
+
         descriptor.Extend().OnBeforeCreate(ConfigureField);
 
         return descriptor;

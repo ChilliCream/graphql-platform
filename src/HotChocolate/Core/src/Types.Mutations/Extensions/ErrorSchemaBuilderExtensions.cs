@@ -11,7 +11,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder
@@ -31,7 +31,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder

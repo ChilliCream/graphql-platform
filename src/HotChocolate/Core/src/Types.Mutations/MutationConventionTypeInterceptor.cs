@@ -385,8 +385,8 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
             contextData.InputTypeName ?? parent.InputTypeNamePattern,
             contextData.InputArgumentName ?? parent.InputArgumentName,
             contextData.PayloadTypeName ?? parent.PayloadTypeNamePattern,
-            contextData.PayloadErrorTypeName ?? parent.PayloadErrorTypeNamePattern,
-            parent.PayloadErrorsFieldName,
+            contextData.PayloadPayloadErrorTypeName ?? parent.PayloadErrorTypeNamePattern,
+            contextData.PayloadErrorsFieldName ?? parent.PayloadErrorsFieldName,
             contextData.Enabled);
     }
 

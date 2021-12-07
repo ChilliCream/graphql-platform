@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -66,7 +67,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="builder">
     /// The request executor builder
@@ -87,7 +88,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="builder">
     /// The request executor builder
