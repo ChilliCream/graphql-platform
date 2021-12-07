@@ -339,15 +339,15 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationWithSingleError
     {
-        [Error<CustomException>]
+        [Error(typeof(CustomException))]
         public string DoSomething(string something)
             => throw new CustomException();
     }
 
     public class SimpleMutationWithTwoErrors
     {
-        [Error<CustomException>]
-        [Error<Custom2Exception>]
+        [Error(typeof(CustomException))]
+        [Error(typeof(Custom2Exception))]
         public string DoSomething(string something)
             => throw new CustomException();
     }
