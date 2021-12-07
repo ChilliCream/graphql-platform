@@ -179,7 +179,7 @@ public class ErrorAttribute : ObjectFieldDescriptorAttribute
     public Type ErrorType { get; }
 
     /// <inheritdoc />
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

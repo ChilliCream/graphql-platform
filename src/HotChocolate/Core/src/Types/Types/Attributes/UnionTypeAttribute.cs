@@ -31,7 +31,7 @@ public sealed class UnionTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IUnionTypeDescriptor descriptor,
         Type type)

@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// <value>The sort type</value>
         public Type? SortType { get; set; }
 
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

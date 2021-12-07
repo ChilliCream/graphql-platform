@@ -39,7 +39,7 @@ public sealed class UseSortingAttribute : ObjectFieldDescriptorAttribute
     /// <value>The name of the scope</value>
     public string? Scope { get; set; }
 
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

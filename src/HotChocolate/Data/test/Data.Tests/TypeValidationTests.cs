@@ -126,7 +126,7 @@ public class TypeValidationTests
 
     public class UseSomeOtherAttribute : ObjectFieldDescriptorAttribute
     {
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

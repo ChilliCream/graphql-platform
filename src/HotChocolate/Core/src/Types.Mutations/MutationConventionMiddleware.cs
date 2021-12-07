@@ -25,7 +25,7 @@ internal sealed class MutationConventionMiddleware
     }
 
     public ValueTask InvokeAsync(IMiddlewareContext context)
-        => InvokeInternalAsync(((MiddlewareContext)context));
+        => InvokeInternalAsync((MiddlewareContext)context);
 
     private async ValueTask InvokeInternalAsync(MiddlewareContext context)
     {
@@ -41,7 +41,7 @@ internal sealed class MutationConventionMiddleware
         {
             input.TryGetValue(argument.Name, out var value);
 
-            inputLiteral.TryGetValue(argument.Name, out var valueLiteral);
+            inputLiteral.TryGetValue(argument.Name, out IValueNode? valueLiteral);
             valueLiteral ??= NullValueNode.Default;
 
             if (!valueLiteral.TryGetValueKind(out ValueKind kind))

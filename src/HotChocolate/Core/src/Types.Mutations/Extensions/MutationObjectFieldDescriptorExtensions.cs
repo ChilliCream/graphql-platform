@@ -6,7 +6,7 @@ namespace HotChocolate.Types;
 
 public static class MutationObjectFieldDescriptorExtensions
 {
-    public static IObjectFieldDescriptor UseMutation(
+    public static IObjectFieldDescriptor UseMutationConvention(
         this IObjectFieldDescriptor descriptor,
         MutationFieldOptions options = default)
     {

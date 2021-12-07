@@ -289,7 +289,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationAttribute
     {
-        [Mutation(
+        [UseMutationConvention(
             InputTypeName = "InputTypeName",
             InputArgumentName = "inputArgumentName",
             PayloadTypeName = "PayloadTypeName",
@@ -302,7 +302,7 @@ public class AnnotationBasedMutations
 
     public class SimpleMutationAttributeOptOut
     {
-        [Mutation(Disable = true)]
+        [UseMutationConvention(Disable = true)]
         public string DoSomething(string something)
         {
             throw new Exception();
@@ -374,7 +374,7 @@ public class AnnotationBasedMutations
 
     public class QueryWithMutationAnnotation
     {
-        [Mutation]
+        [UseMutationConvention]
         public string GetFoo() => "foo";
     }
 }

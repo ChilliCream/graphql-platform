@@ -25,7 +25,7 @@ public sealed class UseProjectionAttribute
     public string? Scope { get; set; }
 
     /// <inheritdoc />
-    public override void OnConfigure(
+    protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Neo4J
             _statement = statement;
         }
 
-        public override void OnConfigure(
+        protected override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
