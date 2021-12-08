@@ -122,7 +122,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? data)
     {
-        if (data is { } && data.Count > 0)
+        if (data is { Count: > 0 })
         {
             writer.WritePropertyName(_data);
 
@@ -139,7 +139,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
-        if (errors is { } && errors.Count > 0)
+        if (errors is { Count: > 0 })
         {
             writer.WritePropertyName(_errors);
 
@@ -169,7 +169,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
     private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
     {
-        if (locations is { } && locations.Count > 0)
+        if (locations is { Count: > 0 })
         {
             writer.WritePropertyName(_locations);
 
@@ -251,7 +251,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
-        if (dict is { } && dict.Count > 0)
+        if (dict is { Count: > 0 })
         {
             writer.WritePropertyName(_extensions);
             WriteDictionary(writer, dict);

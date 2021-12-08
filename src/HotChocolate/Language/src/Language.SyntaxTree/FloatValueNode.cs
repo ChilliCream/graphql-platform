@@ -67,7 +67,7 @@ namespace HotChocolate.Language
             Format = format;
         }
 
-        public SyntaxKind Kind { get; } = SyntaxKind.FloatValue;
+        public SyntaxKind Kind => SyntaxKind.FloatValue;
 
         public Location? Location { get; }
 
@@ -247,7 +247,7 @@ namespace HotChocolate.Language
                 return _floatValue.Value;
             }
 
-            char format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
+            var format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
             if (Utf8Parser.TryParse(AsSpan(), out float value, out _, format))
             {
                 _floatValue = value;
@@ -281,7 +281,7 @@ namespace HotChocolate.Language
                 return _decimalValue.Value;
             }
 
-            char format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
+            var format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
             if (Utf8Parser.TryParse(AsSpan(), out decimal value, out _, format))
             {
                 _decimalValue = value;
@@ -296,7 +296,7 @@ namespace HotChocolate.Language
             if (_memory.IsEmpty)
             {
                 Span<byte> buffer = stackalloc byte[32];
-                int written = 0;
+                int written;
 
                 if (_floatValue.HasValue)
                 {

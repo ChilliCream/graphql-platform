@@ -66,7 +66,6 @@ public class MiddlewareBase : IDisposable
     {
         response.ContentType = _resultSerializer.GetContentType(result);
         response.StatusCode = (int)(statusCode ?? _resultSerializer.GetStatusCode(result));
-
         await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
     }
 
@@ -77,7 +76,7 @@ public class MiddlewareBase : IDisposable
         GraphQLRequest request,
         OperationType[]? allowedOperations = null)
     {
-        QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+        var requestBuilder = QueryRequestBuilder.From(request);
         requestBuilder.SetAllowedOperations(allowedOperations);
 
         await requestInterceptor.OnCreateAsync(

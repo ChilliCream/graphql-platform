@@ -93,8 +93,7 @@ public class HttpGetMiddleware : MiddlewareBase
             // in any case we will have a valid GraphQL result at this point that can be written
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
-            await WriteResultAsync(context.Response, result, statusCode,
-                context.RequestAborted);
+            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
         }
         finally
         {
@@ -105,10 +104,7 @@ public class HttpGetMiddleware : MiddlewareBase
                 await asyncDisposable.DisposeAsync();
             }
 
-            if (result is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            result?.Dispose();
         }
     }
 }

@@ -33,7 +33,7 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type))
+        if (context.Types.TryPeek(out IType? type))
         {
             INamedType namedType = type.NamedType();
 
