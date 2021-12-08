@@ -16,7 +16,7 @@ namespace HotChocolate.Data.Neo4J
 
         public string[] Labels { get; }
 
-        protected override void OnConfigure(
+        public override void OnConfigure(
             IDescriptorContext context,
             IObjectTypeDescriptor descriptor,
             Type type)

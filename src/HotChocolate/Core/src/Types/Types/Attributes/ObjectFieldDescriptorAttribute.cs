@@ -10,8 +10,7 @@ namespace HotChocolate.Types;
     AttributeTargets.Property | AttributeTargets.Method,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class ObjectFieldDescriptorAttribute
-    : DescriptorAttribute
+public abstract class ObjectFieldDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,
@@ -25,7 +24,7 @@ public abstract class ObjectFieldDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member);

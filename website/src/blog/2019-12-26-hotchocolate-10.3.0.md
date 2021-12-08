@@ -90,7 +90,7 @@ Our solution to this are descriptor attributes which act as a kind of an interce
 ```csharp
 public sealed class ToUpperAttribute : ObjectFieldDescriptorAttribute
 {
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

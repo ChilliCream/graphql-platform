@@ -41,7 +41,7 @@ public sealed class UseFilteringAttribute : ObjectFieldDescriptorAttribute
     public string? Scope { get; set; }
 
     /// <inheritdoc />
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

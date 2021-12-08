@@ -32,7 +32,7 @@ public sealed class EnumTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
         Type type)

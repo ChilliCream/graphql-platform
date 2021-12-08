@@ -25,7 +25,7 @@ public abstract class EnumTypeDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IEnumTypeDescriptor descriptor,
         Type type);

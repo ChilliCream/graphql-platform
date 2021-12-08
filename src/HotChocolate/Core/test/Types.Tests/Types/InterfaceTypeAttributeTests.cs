@@ -109,7 +109,7 @@ namespace HotChocolate.Types
 
             public object DefaultValue { get; }
 
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IArgumentDescriptor descriptor,
                 ParameterInfo parameter)
@@ -127,7 +127,7 @@ namespace HotChocolate.Types
         public class PropertyAddContextDataAttribute
             : InterfaceFieldDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IInterfaceFieldDescriptor descriptor,
                 MemberInfo member)
@@ -146,7 +146,7 @@ namespace HotChocolate.Types
         public class InterfaceAddFieldAttribute
             : InterfaceTypeDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IInterfaceTypeDescriptor descriptor,
                 Type type)

@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Neo4J
 
         public RelationshipDirection Direction { get; } = RelationshipDirection.Outgoing;
 
-        protected override void OnConfigure(
+        public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

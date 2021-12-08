@@ -14,7 +14,7 @@ namespace HotChocolate.Types;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
 public sealed class SerialAttribute : ObjectFieldDescriptorAttribute
 {
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member) =>

@@ -31,7 +31,7 @@ public sealed class InputObjectTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
         Type type)

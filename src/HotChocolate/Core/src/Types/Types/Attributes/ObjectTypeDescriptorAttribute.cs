@@ -25,7 +25,7 @@ public abstract class ObjectTypeDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type);

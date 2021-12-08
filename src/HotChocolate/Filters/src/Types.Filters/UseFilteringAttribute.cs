@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// <value>The filter type</value>
         public Type? FilterType { get; set; }
 
-        protected override void OnConfigure(
+        public override void OnConfigure(
             IDescriptorContext context,
             IObjectFieldDescriptor descriptor,
             MemberInfo member)

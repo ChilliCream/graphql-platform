@@ -25,7 +25,7 @@ public abstract class InterfaceFieldDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IInterfaceFieldDescriptor descriptor,
         MemberInfo member);

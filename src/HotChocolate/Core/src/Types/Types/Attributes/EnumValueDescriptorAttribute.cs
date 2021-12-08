@@ -25,7 +25,7 @@ public abstract class EnumValueDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IEnumValueDescriptor descriptor,
         FieldInfo field);

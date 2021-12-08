@@ -31,7 +31,7 @@ public sealed class InterfaceTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IInterfaceTypeDescriptor descriptor,
         Type type)

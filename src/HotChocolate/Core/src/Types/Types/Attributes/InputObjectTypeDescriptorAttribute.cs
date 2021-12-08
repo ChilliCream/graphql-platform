@@ -25,7 +25,7 @@ public abstract class InputObjectTypeDescriptorAttribute
         }
     }
 
-    protected abstract void OnConfigure(
+    public abstract void OnConfigure(
         IDescriptorContext context,
         IInputObjectTypeDescriptor descriptor,
         Type type);

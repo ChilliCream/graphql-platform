@@ -36,7 +36,7 @@ public sealed class ObjectTypeAttribute
 
     bool ITypeAttribute.IsTypeExtension => false;
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

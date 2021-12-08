@@ -133,7 +133,7 @@ namespace HotChocolate.Types
         public class RenameFieldAttribute
             : InputFieldDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IInputFieldDescriptor descriptor,
                 MemberInfo member)
@@ -157,7 +157,7 @@ namespace HotChocolate.Types
         public class RenameTypeAttribute
             : InputObjectTypeDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IInputObjectTypeDescriptor descriptor,
                 Type type)

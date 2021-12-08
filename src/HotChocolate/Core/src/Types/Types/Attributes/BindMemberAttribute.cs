@@ -30,7 +30,7 @@ public sealed class BindMemberAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public bool Replace { get; set; } = true;
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

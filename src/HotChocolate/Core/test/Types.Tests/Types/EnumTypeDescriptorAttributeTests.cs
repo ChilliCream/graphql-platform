@@ -59,7 +59,7 @@ namespace HotChocolate.Types
         public class RenameValueAttribute
             : EnumValueDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IEnumValueDescriptor descriptor,
                 FieldInfo field)
@@ -87,7 +87,7 @@ namespace HotChocolate.Types
         public class RenameTypeAttribute
             : EnumTypeDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IEnumTypeDescriptor descriptor,
                 Type type)

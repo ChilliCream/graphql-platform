@@ -30,7 +30,7 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
     /// </summary>
     public Type? NodeResolverType { get; set; }
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectTypeDescriptor descriptor,
         Type type)

@@ -44,7 +44,7 @@ namespace HotChocolate.Types
 
         public class SetNameAttribute : UnionTypeDescriptorAttribute
         {
-            protected override void OnConfigure(
+            public override void OnConfigure(
                 IDescriptorContext context,
                 IUnionTypeDescriptor descriptor,
                 Type type)

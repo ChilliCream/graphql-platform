@@ -18,7 +18,7 @@ public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
         Order = order;
     }
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)

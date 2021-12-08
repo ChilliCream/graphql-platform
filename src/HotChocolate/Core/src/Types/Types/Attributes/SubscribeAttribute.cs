@@ -45,7 +45,7 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     /// </summary>
     public string? With { get; set; }
 
-    protected override void OnConfigure(
+    public override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo member)
