@@ -1,5 +1,9 @@
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Represent the mutation convention field option that allows to override the global convention
+/// settings on a per field basis.
+/// </summary>
 public struct MutationFieldOptions
 {
     /// <summary>
@@ -26,7 +30,7 @@ public struct MutationFieldOptions
     /// The type name of the field in the payload
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): ThisIsTheTypeName
+    ///   createUser(input: CreateUserCustomInput): ThisIsTheTypeName
     /// }
     /// </code>
     /// </summary>
@@ -36,7 +40,7 @@ public struct MutationFieldOptions
     /// The name of the field in the payload type that represents our data.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {
@@ -51,7 +55,7 @@ public struct MutationFieldOptions
     /// The name of the error union type for this mutation.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {
@@ -66,7 +70,7 @@ public struct MutationFieldOptions
     /// The name of the errors field name on the payload type.
     /// <code>
     /// type Mutation {
-    ///   createUser(thisIsTheArgumentName: CreateUserCustomInput): CreateUserPayload
+    ///   createUser(input: CreateUserCustomInput): CreateUserPayload
     /// }
     ///
     /// type CreateUserPayload {

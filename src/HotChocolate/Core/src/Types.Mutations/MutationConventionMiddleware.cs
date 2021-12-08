@@ -5,6 +5,10 @@ using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// This middleware ensures that the rewritten argument structure is remapped so that the
+/// resolver can request the arguments in the original structure.
+/// </summary>
 internal sealed class MutationConventionMiddleware
 {
     private readonly FieldDelegate _next;

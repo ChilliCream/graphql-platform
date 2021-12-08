@@ -3,6 +3,10 @@ using HotChocolate.Types;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Provides global configuration methods for mutation conventions to the
+/// <see cref="IRequestExecutorBuilder"/>.
+/// </summary>
 public static class MutationRequestExecutorBuilderExtensions
 {
     /// <summary>

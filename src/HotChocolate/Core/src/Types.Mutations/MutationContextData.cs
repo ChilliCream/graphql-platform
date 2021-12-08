@@ -1,5 +1,9 @@
 namespace HotChocolate.Types;
 
+/// <summary>
+/// This internal data structure is used to store the effective mutation options of a field
+/// on the context so that the type interceptor can access them.
+/// </summary>
 internal class MutationContextData
 {
     public MutationContextData(
