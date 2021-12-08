@@ -416,14 +416,14 @@ public class QueryableProjectionFilterTests
     {
         public int Id { get; set; }
 
-        public Foo? Foo { get; set; }
+        public Foo Foo { get; set; } = default!;
     }
 
     public class BarDeep
     {
         public int Id { get; set; }
 
-        public FooDeep? Foo { get; set; }
+        public FooDeep Foo { get; set; } = default!;
     }
 
     public class BarNullableDeep

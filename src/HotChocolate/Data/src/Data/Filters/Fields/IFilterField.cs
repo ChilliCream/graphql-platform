@@ -4,9 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters;
 
-public interface IFilterField
-    : IInputField
-    , IHasRuntimeType
+public interface IFilterField : IInputField
 {
     /// <summary>
     /// The type which declares this field.

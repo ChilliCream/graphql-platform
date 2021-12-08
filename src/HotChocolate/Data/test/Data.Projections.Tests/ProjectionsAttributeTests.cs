@@ -100,6 +100,6 @@ public class ProjectionAttributeTests
 
     public class Foo
     {
-        public string? Bar { get; set; }
+        public string Bar { get; set; } = default!;
     }
 }

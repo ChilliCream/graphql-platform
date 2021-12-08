@@ -43,18 +43,23 @@ public class FilterConventionScopeTests
     {
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
-            descriptor.Field("foos").Resolve(new Foo[0].AsQueryable()).UseFiltering();
-            descriptor.Field("foosBar").Resolve(new Foo[0].AsQueryable()).UseFiltering("Bar");
+            descriptor.Field("foos")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering();
+
+            descriptor.Field("foosBar")
+                .Resolve(Array.Empty<Foo>().AsQueryable())
+                .UseFiltering("Bar");
         }
     }
 
     public class Query1
     {
         [UseFiltering]
-        public IQueryable<Foo> Foos() => new Foo[0].AsQueryable();
+        public IQueryable<Foo> Foos() => Array.Empty<Foo>().AsQueryable();
 
         [UseFiltering(Scope = "Bar")]
-        public IQueryable<Foo> FoosBar() => new Foo[0].AsQueryable();
+        public IQueryable<Foo> FoosBar() => Array.Empty<Foo>().AsQueryable();
     }
 
     public class BarFilterConvention : FilterConvention
@@ -66,42 +71,8 @@ public class FilterConventionScopeTests
         }
     }
 
-
-    public class TestOperationFilterInputType : StringOperationFilterInputType
-    {
-        protected override void Configure(IFilterInputTypeDescriptor descriptor)
-        {
-            descriptor.Operation(DefaultFilterOperations.Equals).Type<StringType>();
-            descriptor.AllowAnd(false).AllowOr(false);
-        }
-    }
-
-    public class FailingCombinator
-        : FilterOperationCombinator<FilterVisitorContext<string>, string>
-    {
-        public override bool TryCombineOperations(
-            FilterVisitorContext<string> context,
-            Queue<string> operations,
-            FilterCombinator combinator,
-            out string combined)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class Foo
     {
-        public string? Bar { get; set; }
-    }
-
-    public class FooFilterInput
-        : FilterInputType<Foo>
-    {
-        protected override void Configure(
-            IFilterInputTypeDescriptor<Foo> descriptor)
-        {
-            descriptor.Field(t => t.Bar);
-            descriptor.AllowAnd(false).AllowOr(false);
-        }
+        public string Bar { get; set; } = default!;
     }
 }
