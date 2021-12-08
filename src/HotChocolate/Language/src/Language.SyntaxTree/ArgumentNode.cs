@@ -4,6 +4,9 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
+    /// <summary>
+    /// This syntax node represents a argument value of a <see cref="FieldNode"/>.
+    /// </summary>
     public sealed class ArgumentNode : ISyntaxNode
     {
         public ArgumentNode(string name, string value)
