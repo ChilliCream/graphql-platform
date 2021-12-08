@@ -1,7 +1,8 @@
 namespace HotChocolate.Types;
 
 /// <summary>
-///
+/// By annotating a mutation with this attribute one can override the global
+/// mutation convention settings on a per mutation basis.
 /// </summary>
 public class UseMutationConventionAttribute : ObjectFieldDescriptorAttribute
 {
