@@ -5,7 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types;
 
 /// <summary>
-/// This interface aggregates the most important attributes of a field.
+/// This interface aggregates the most important attributes of a input-field.
 /// </summary>
 public interface IInputFieldInfo : IHasName, IHasFieldCoordinate, IHasRuntimeType
 {
