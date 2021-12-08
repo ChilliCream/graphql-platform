@@ -511,13 +511,13 @@ namespace HotChocolate.Data.Filters.Spatial.Expressions
             public class Foo
             {
                 [GraphQLType(typeof(GeometryType))]
-                public Geometry Bar { get; set; }
+                public Geometry Bar { get; set; } = default!;
             }
 
             public class FooNullable
             {
                 [GraphQLType(typeof(GeometryType))]
-                public Geometry Bar { get; set; }
+                public Geometry Bar { get; set; } = default!;
             }
 
             public class FooFilterType

@@ -666,7 +666,6 @@ HotChocolate.ScopedStateAttribute.Key.get -> string?
 HotChocolate.ScopedStateAttribute.ScopedStateAttribute() -> void
 HotChocolate.ScopedStateAttribute.ScopedStateAttribute(string! key) -> void
 HotChocolate.ServiceAttribute
-HotChocolate.ServiceAttribute.ServiceAttribute() -> void
 HotChocolate.SetState
 HotChocolate.SetState<T>
 HotChocolate.SingleValueExtensionData

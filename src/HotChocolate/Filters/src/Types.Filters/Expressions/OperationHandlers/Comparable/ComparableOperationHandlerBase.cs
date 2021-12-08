@@ -6,8 +6,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Filters.Expressions
 {
     [Obsolete("Use HotChocolate.Data.")]
-    public abstract class ComparableOperationHandlerBase
-       : IExpressionOperationHandler
+    public abstract class ComparableOperationHandlerBase : IExpressionOperationHandler
     {
         public bool TryHandle(
             FilterOperation operation,
@@ -36,7 +35,7 @@ namespace HotChocolate.Types.Filters.Expressions
             expression = null;
             return false;
 
-            object ParseValue()
+            object? ParseValue()
             {
                 var parsedValue = context.InputParser.ParseLiteral(value, type);
 
@@ -55,7 +54,7 @@ namespace HotChocolate.Types.Filters.Expressions
         protected abstract bool TryCreateExpression(
             FilterOperation operation,
             Expression property,
-            Func<object> parseValue,
+            Func<object?> parseValue,
             [NotNullWhen(true)] out Expression? expression);
     }
 }

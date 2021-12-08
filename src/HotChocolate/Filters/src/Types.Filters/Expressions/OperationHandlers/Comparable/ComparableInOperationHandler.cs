@@ -7,8 +7,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Filters.Expressions
 {
     [Obsolete("Use HotChocolate.Data.")]
-    public sealed class ComparableInOperationHandler
-        : IExpressionOperationHandler
+    public sealed class ComparableInOperationHandler : IExpressionOperationHandler
     {
         public bool TryHandle(
             FilterOperation operation,
@@ -50,7 +49,7 @@ namespace HotChocolate.Types.Filters.Expressions
             expression = null;
             return false;
 
-            object ParseValue()
+            object? ParseValue()
             {
                 var parsedValue = context.InputParser.ParseLiteral(value, type);
                 Type elementType = type.ElementType().ToRuntimeType();

@@ -149,7 +149,7 @@ public class QueryableProjectionSortingTests
                     BarBool = false,
                     BarEnum = BarEnum.FOO,
                     BarString = "testdtest",
-                    ObjectArray = null
+                    ObjectArray = default!
                 }
             }
         };

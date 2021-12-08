@@ -204,7 +204,7 @@ public class QueryableProjectionUnionTypeTests
     }
 
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    protected static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AbstractType>()
             .HasDiscriminator<string>("d")
@@ -212,7 +212,7 @@ public class QueryableProjectionUnionTypeTests
             .HasValue<Foo>("foo");
     }
 
-    public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    protected static void ConfigureSchema(ISchemaBuilder schemaBuilder)
     {
         schemaBuilder
             .AddType(new ObjectType<Foo>())

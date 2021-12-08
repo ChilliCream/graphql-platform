@@ -19,7 +19,7 @@ public class SortVisitorTestBase
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 
     protected IRequestExecutor CreateSchema<TEntity, T>(
-        TEntity?[] entities,
+        TEntity[] entities,
         SortConvention? convention = null,
         Action<ISchemaBuilder>? configure = null)
         where TEntity : class
@@ -27,7 +27,7 @@ public class SortVisitorTestBase
     {
         convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities!);
+        Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities!);
 
         ISchemaBuilder builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)

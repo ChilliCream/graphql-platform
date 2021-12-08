@@ -1,4 +1,6 @@
 HotChocolate.ErrorSchemaBuilderExtensions
+HotChocolate.Types.Descriptors.Definitions.ArgumentDefinition.RuntimeType.get -> System.Type?
+HotChocolate.Types.Descriptors.Definitions.ArgumentDefinition.RuntimeType.set -> void
 HotChocolate.Types.ErrorAttribute
 HotChocolate.Types.ErrorObjectFieldDescriptorExtensions
 HotChocolate.Types.InputAttribute
@@ -19,8 +21,6 @@ HotChocolate.Types.PayloadAttribute.TypeName.set -> void
 HotChocolate.Types.PayloadObjectFieldDescriptorExtension
 override HotChocolate.Types.InputAttribute.TryConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IDescriptor! descriptor, System.Reflection.ICustomAttributeProvider! element) -> void
 override HotChocolate.Types.PayloadAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void
-static HotChocolate.Types.ErrorObjectFieldDescriptorExtensions.Error(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Type! errorType) -> HotChocolate.Types.IObjectFieldDescriptor!
-static HotChocolate.Types.ErrorObjectFieldDescriptorExtensions.Error<TError>(this HotChocolate.Types.IObjectFieldDescriptor! descriptor) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.InputDescriptorExtensions.Input(this HotChocolate.Types.IArgumentDescriptor! descriptor, string! argumentName = "input", string? typeName = null) -> HotChocolate.Types.IArgumentDescriptor!
 static HotChocolate.Types.InputDescriptorExtensions.Input(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, string! argumentName = "input", string? typeName = null) -> HotChocolate.Types.IObjectFieldDescriptor!
 static HotChocolate.Types.PayloadObjectFieldDescriptorExtension.Payload(this HotChocolate.Types.IObjectFieldDescriptor! descriptor, string? fieldName = null, string? typeName = null) -> HotChocolate.Types.IObjectFieldDescriptor!

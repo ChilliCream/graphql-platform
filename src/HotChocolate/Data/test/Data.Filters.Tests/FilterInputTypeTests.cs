@@ -311,7 +311,7 @@ public class FilterInputTypeTest
 
         // assert
         Assert.NotNull(type);
-        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
+        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type?.Fields["id"]).Handler);
     }
 
     [Fact]
@@ -331,9 +331,9 @@ public class FilterInputTypeTest
         // assert
         Assert.NotNull(type);
         Assert.IsType<CustomHandler>(
-            Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
+            Assert.IsType<FilterField>(type?.Fields["friends"]).Handler);
         Assert.IsType<QueryableDefaultFieldHandler>(
-            Assert.IsType<FilterField>(type.Fields["name"]).Handler);
+            Assert.IsType<FilterField>(type?.Fields["name"]).Handler);
     }
 
     [Fact]
@@ -455,9 +455,9 @@ public class FilterInputTypeTest
 
     public class InterfaceImpl1 : ITest
     {
-        public string? Prop { get; set; }
+        public string Prop { get; set; } = default!;
 
-        public string? Prop2 { get; set; }
+        public string Prop2 { get; set; } = default!;
     }
 
     public class IgnoreTest

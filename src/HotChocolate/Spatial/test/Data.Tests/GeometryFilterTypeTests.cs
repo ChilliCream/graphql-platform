@@ -123,7 +123,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
 
         public class Foo
         {
-            public string Bar { get; set; }
+            public string Bar { get; set; } = default!;
         }
 
         public class Query
@@ -137,13 +137,14 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
             public int Id { get; set; }
 
             [GraphQLNonNullType]
-            public string Title { get; set; }
+            public string Title { get; set; } = default!;
 
             public int Pages { get; set; }
+
             public int Chapters { get; set; }
 
             [GraphQLNonNullType]
-            public Author Author { get; set; }
+            public Author Author { get; set; } = default!;
         }
 
         public class Author
@@ -152,7 +153,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
             public int Id { get; set; }
 
             [GraphQLNonNullType]
-            public string Name { get; set; }
+            public string Name { get; set; } = default!;
         }
     }
 }

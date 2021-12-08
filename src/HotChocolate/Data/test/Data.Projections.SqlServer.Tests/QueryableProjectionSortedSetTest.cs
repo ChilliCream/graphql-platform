@@ -106,7 +106,7 @@ public class QueryableProjectionSortedSetTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    protected static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectSet);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);

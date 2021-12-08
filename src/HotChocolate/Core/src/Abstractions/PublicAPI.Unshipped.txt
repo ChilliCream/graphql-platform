@@ -1,0 +1,8 @@
+const HotChocolate.WellKnownContextData.ResolverServiceScope = "HotChocolate.Resolvers.ServiceScope" -> string!
+HotChocolate.ServiceAttribute.Kind.get -> HotChocolate.ServiceKind
+HotChocolate.ServiceAttribute.ServiceAttribute(HotChocolate.ServiceKind kind = HotChocolate.ServiceKind.Default) -> void
+HotChocolate.ServiceKind
+HotChocolate.ServiceKind.Default = 0 -> HotChocolate.ServiceKind
+HotChocolate.ServiceKind.Pooled = 2 -> HotChocolate.ServiceKind
+HotChocolate.ServiceKind.Resolver = 3 -> HotChocolate.ServiceKind
+HotChocolate.ServiceKind.Synchronized = 1 -> HotChocolate.ServiceKind

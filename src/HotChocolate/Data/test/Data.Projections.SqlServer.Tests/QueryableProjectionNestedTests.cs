@@ -136,7 +136,7 @@ public class QueryableProjectionNestedTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    protected static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
         modelBuilder.Entity<Bar>().Ignore(x => x.NotSettable);
