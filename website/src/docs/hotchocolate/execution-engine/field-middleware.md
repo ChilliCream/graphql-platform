@@ -220,12 +220,18 @@ You can create a new attribute inheriting from `ObjectFieldDescriptorAttribute` 
 ```csharp
 public class UseMyMiddlewareAttribute : ObjectFieldDescriptorAttribute
 {
+    public UseMyMiddlewareAttribute([CallerLineNumber] int order = 0)
+    {
+        Order = order;
+    }
+
     public override void OnConfigure(IDescriptorContext context,
         IObjectFieldDescriptor descriptor, MemberInfo member)
     {
         descriptor.UseMyMiddleware();
     }
 }
+
 ```
 
 The attribute can then be used like the following.
