@@ -11,10 +11,9 @@ public class QueryableFilterVisitorInterfacesTests
 {
     private static readonly BarInterface[] _barEntities =
     {
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "a" } },
-            new BarInterface { Test = new InterfaceImpl1 { Prop = "b" } }
-        };
-
+        new() { Test = new InterfaceImpl1 { Prop = "a" } },
+        new() { Test = new InterfaceImpl1 { Prop = "b" } }
+    };
 
     private readonly SchemaCache _cache;
 
