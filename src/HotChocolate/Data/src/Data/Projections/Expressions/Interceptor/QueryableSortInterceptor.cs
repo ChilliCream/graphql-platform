@@ -14,8 +14,7 @@ using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableSortInterceptor
-    : IProjectionFieldInterceptor<QueryableProjectionContext>
+public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
     public bool CanHandle(ISelection selection) =>
         selection.Field.Member is PropertyInfo propertyInfo &&
@@ -40,7 +39,7 @@ public class QueryableSortInterceptor
                     context.Context,
                     out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
             coercedArgs.TryGetValue(argumentName, out ArgumentValue? argumentValue) &&
-            argumentValue.Argument.Type is ListType lt &&
+            argumentValue.Type is ListType lt &&
             lt.ElementType is NonNullType nn &&
             nn.NamedType() is ISortInputType sortInputType &&
             argumentValue.ValueLiteral is { } valueNode &&

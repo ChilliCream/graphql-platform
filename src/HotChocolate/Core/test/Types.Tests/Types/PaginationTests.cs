@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                     await new ServiceCollection()
                         .AddGraphQL()
                         .AddQueryType<QueryType>()
-                        .SetPagingOptions(new PagingOptions {DefaultPageSize = 50})
+                        .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
                         .Services
                         .BuildServiceProvider()
                         .GetRequestExecutorAsync(cancellationToken: ct);

@@ -1631,6 +1631,7 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public void Inferred_Interfaces_From_Type_Extensions_Are_Merged()
         {
@@ -1651,6 +1652,7 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public void Interfaces_From_Type_Extensions_Are_Merged()
         {
@@ -1841,7 +1843,7 @@ namespace HotChocolate.Types
         public class Bar
         {
             [GraphQLNonNullType]
-            public string Baz { get; set; }
+            public string Baz { get; set; } = default!;
         }
 #nullable disable
 
@@ -2043,7 +2045,7 @@ namespace HotChocolate.Types
             public string GetFoo() => throw new NotImplementedException();
         }
 
-        #nullable enable
+#nullable enable
 
         public class InferNonNullTypesWithResolveWith : ObjectType
         {

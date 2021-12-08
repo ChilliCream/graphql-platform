@@ -301,21 +301,21 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public int Id { get; set; }
 
-        public List<AbstractType>? List { get; set; }
+        public List<AbstractType> List { get; set; } = default!;
     }
 
     public class NestedObject
     {
         public int Id { get; set; }
 
-        public AbstractType? Nested { get; set; }
+        public AbstractType Nested { get; set; } = default!;
     }
 
     public class Foo : AbstractType
     {
         public new int Id { get; set; }
 
-        public string? FooProp { get; set; }
+        public string FooProp { get; set; } = default!;
     }
 
     [InterfaceType]
@@ -323,7 +323,7 @@ public class QueryableProjectionInterfaceTypeTests
     {
         public int Id { get; set; }
 
-        public string? Name { get; set; }
+        public string Name { get; set; } = default!;
     }
 
     public class Bar : AbstractType

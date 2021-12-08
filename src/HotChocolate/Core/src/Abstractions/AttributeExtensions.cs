@@ -22,7 +22,7 @@ internal static class AttributeExtensions
         }
 
         TypeInfo typeInfo = type.GetTypeInfo();
-        string name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
+        var name = typeInfo.IsDefined(typeof(GraphQLNameAttribute), false)
             ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : GetFromType(typeInfo);
 
@@ -36,7 +36,7 @@ internal static class AttributeExtensions
             throw new ArgumentNullException(nameof(property));
         }
 
-        string name = property.IsDefined(
+        var name = property.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? property.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : NormalizeName(property.Name);
@@ -51,7 +51,7 @@ internal static class AttributeExtensions
             throw new ArgumentNullException(nameof(method));
         }
 
-        string name = method.IsDefined(
+        var name = method.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? method.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : NormalizeMethodName(method);
@@ -66,7 +66,7 @@ internal static class AttributeExtensions
             throw new ArgumentNullException(nameof(parameter));
         }
 
-        string name = parameter.IsDefined(
+        var name = parameter.IsDefined(
             typeof(GraphQLNameAttribute), false)
             ? parameter.GetCustomAttribute<GraphQLNameAttribute>()!.Name
             : NormalizeName(parameter.Name!);
@@ -97,7 +97,7 @@ internal static class AttributeExtensions
 
     private static string NormalizeMethodName(MethodInfo method)
     {
-        string name = method.Name;
+        var name = method.Name;
 
         if (name.StartsWith(_get, StringComparison.Ordinal)
             && name.Length > _get.Length)
@@ -140,7 +140,7 @@ internal static class AttributeExtensions
             typeof(GraphQLDescriptionAttribute),
             false))
         {
-            GraphQLDescriptionAttribute attribute =
+            var attribute =
                 (GraphQLDescriptionAttribute)
                     attributeProvider.GetCustomAttributes(
                         typeof(GraphQLDescriptionAttribute),
@@ -181,7 +181,7 @@ internal static class AttributeExtensions
     {
         if (type.GetTypeInfo().IsGenericType)
         {
-            string name = type.GetTypeInfo()
+            var name = type.GetTypeInfo()
                 .GetGenericTypeDefinition()
                 .Name;
 

@@ -64,4 +64,14 @@ public static class WellKnownMiddleware
     /// This key identifies a resolver service middleware.
     /// </summary>
     public const string ResolverService = "HotChocolate.Resolvers.ResolverService";
+
+    /// <summary>
+    /// This key identifies the mutation convention middleware.
+    /// </summary>
+    public const string MutationArguments = "HotChocolate.Types.Mutations.Arguments";
+
+    /// <summary>
+    /// This key identifies the mutation convention middleware.
+    /// </summary>
+    public const string MutationErrors = "HotChocolate.Types.Mutations.Errors";
 }

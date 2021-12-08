@@ -29,8 +29,7 @@ public abstract class Path : IEquatable<Path>
     {
         if (index < 0)
         {
-            // TODO : ThrowHelper
-            throw new ArgumentException();
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
 
         return new IndexerPathSegment(this, index);
