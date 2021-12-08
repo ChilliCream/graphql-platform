@@ -71,14 +71,14 @@ public class FilterAttributeTests
         [UseFiltering]
         public IEnumerable<Foo> Foos { get; } = new[]
         {
-                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
-                new Foo { Bar = "ba", Baz = 1 },
-                new Foo { Bar = "ca", Baz = 2 },
-                new Foo { Bar = "ab", Baz = 2 },
-                new Foo { Bar = "ac", Baz = 2 },
-                new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null!, Baz = 0 }
-            };
+            new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+            new Foo { Bar = "ba", Baz = 1 },
+            new Foo { Bar = "ca", Baz = 2 },
+            new Foo { Bar = "ab", Baz = 2 },
+            new Foo { Bar = "ac", Baz = 2 },
+            new Foo { Bar = "ad", Baz = 2 },
+            new Foo { Bar = null!, Baz = 0 }
+        };
     }
 
     public class Query2
@@ -134,7 +134,7 @@ public class FilterAttributeTests
 
     public class Foo
     {
-        public string? Bar { get; set; }
+        public string Bar { get; set; } = default!;
 
         [GraphQLType(typeof(NonNullType<IntType>))]
         public long Baz { get; set; }

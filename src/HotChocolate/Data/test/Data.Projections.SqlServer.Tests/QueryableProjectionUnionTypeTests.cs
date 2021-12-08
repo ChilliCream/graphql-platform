@@ -223,19 +223,19 @@ public class QueryableProjectionUnionTypeTests
     {
         public int Id { get; set; }
 
-        public List<AbstractType>? List { get; set; }
+        public List<AbstractType> List { get; set; } = default!;
     }
 
     public class NestedObject
     {
         public int Id { get; set; }
 
-        public AbstractType? Nested { get; set; }
+        public AbstractType Nested { get; set; } = default!;
     }
 
     public class Foo : AbstractType
     {
-        public string? FooProp { get; set; }
+        public string FooProp { get; set; } = default!;
     }
 
     [UnionType]
@@ -243,11 +243,11 @@ public class QueryableProjectionUnionTypeTests
     {
         public int Id { get; set; }
 
-        public string? Name { get; set; }
+        public string Name { get; set; } = default!;
     }
 
     public class Bar : AbstractType
     {
-        public string? BarProp { get; set; }
+        public string BarProp { get; set; } = default!;
     }
 }

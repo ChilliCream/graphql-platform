@@ -21,4 +21,13 @@
   <data name="ObjectId_Type_Description" xml:space="preserve">
     <value>The ObjectId scalar type represents a 12 byte ObjectId, represented as UTF-8 character sequences.</value>
   </data>
+  <data name="Bson_Type_Description" xml:space="preserve">
+    <value>BSON is a binary format in which zero or more ordered key/value pairs are stored as a single entity. The results are returned as JSON objects</value>
+  </data>
+  <data name="Bson_Type_CouldNotParseValue" xml:space="preserve">
+    <value>Could not parse value {0}</value>
+  </data>
+  <data name="Bson_Type_CouldNotParseLiteral" xml:space="preserve">
+    <value>Could not parse literal {0}</value>
+  </data>
 </root>

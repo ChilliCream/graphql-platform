@@ -448,7 +448,8 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         ParameterInfo parameter,
         IParameterExpressionBuilder[] fieldParameterExpressionBuilders)
     {
-        if (_cache.TryGetValue(parameter, out IParameterExpressionBuilder? cached))
+        if (fieldParameterExpressionBuilders.Length == 0 &&
+            _cache.TryGetValue(parameter, out IParameterExpressionBuilder? cached))
         {
             return cached;
         }
