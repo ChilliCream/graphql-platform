@@ -9,7 +9,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.WellKnownMiddleware;
 
 #nullable enable
@@ -20,9 +19,9 @@ public static class PagingHelper
 {
     public static IObjectFieldDescriptor UsePaging(
         IObjectFieldDescriptor descriptor,
-        Type? entityType = null,
-        GetPagingProvider? resolvePagingProvider = null,
-        PagingOptions options = default)
+        Type? entityType,
+        GetPagingProvider resolvePagingProvider,
+        PagingOptions options)
     {
         if (descriptor is null)
         {
@@ -166,7 +165,7 @@ public static class PagingHelper
         [NotNullWhen(true)] out Type? namedType)
     {
         if (member is not null &&
-            typeInspector.GetReturnType(member) is IExtendedType returnType &&
+            typeInspector.GetReturnType(member) is { } returnType &&
             typeInspector.TryCreateTypeInfo(returnType, out ITypeInfo? typeInfo))
         {
             namedType = typeInfo.NamedType;

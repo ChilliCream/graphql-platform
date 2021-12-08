@@ -2,8 +2,6 @@ namespace HotChocolate.Types;
 
 internal sealed class ErrorMiddleware
 {
-    public const string MiddlewareIdentifier = "HotChocolate.Types.Errors.ErrorMiddleware";
-
     public static readonly object ErrorObject = new();
 
     private readonly FieldDelegate _next;
@@ -48,7 +46,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedValue(ErrorContextData.Errors, errors);
+            context.SetScopedValue(ErrorContextDataKeys.Errors, errors);
             context.Result = ErrorObject;
         }
         catch (Exception ex)
@@ -69,7 +67,7 @@ internal sealed class ErrorMiddleware
                 throw;
             }
 
-            context.SetScopedValue(ErrorContextData.Errors,
+            context.SetScopedValue(ErrorContextDataKeys.Errors,
                 new[]
                 {
                     error

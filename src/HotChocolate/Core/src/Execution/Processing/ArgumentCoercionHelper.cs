@@ -43,18 +43,18 @@ public static class ArgumentCoercionHelper
         {
             if (argument.IsFinal)
             {
-                args.Add(argument.Argument.Name, argument);
+                args.Add(argument.Name, argument);
             }
             else
             {
                 IValueNode literal = VariableRewriter.Rewrite(
                     argument.ValueLiteral!,
                     argument.Type,
-                    argument.Argument.DefaultValue,
+                    argument.DefaultValue,
                     resolverContext.Variables);
 
-                args.Add(argument.Argument.Name, new ArgumentValue(
-                    argument.Argument,
+                args.Add(argument.Name, new ArgumentValue(
+                    argument,
                     literal.TryGetValueKind(out ValueKind kind)
                         ? kind
                         : ValueKind.Unknown,

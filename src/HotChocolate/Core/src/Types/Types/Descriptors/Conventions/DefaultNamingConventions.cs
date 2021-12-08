@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -22,12 +23,11 @@ public class DefaultNamingConventions
 
     public DefaultNamingConventions(IDocumentationProvider documentation)
     {
-        _documentation = documentation
-            ?? throw new ArgumentNullException(nameof(documentation));
+        _documentation = documentation ??
+            throw new ArgumentNullException(nameof(documentation));
     }
 
-    protected IDocumentationProvider DocumentationProvider =>
-        _documentation;
+    protected IDocumentationProvider DocumentationProvider => _documentation;
 
     /// <inheritdoc />
     public virtual NameString GetTypeName(Type type)
@@ -324,5 +324,20 @@ public class DefaultNamingConventions
 
         reason = null;
         return false;
+    }
+
+    /// <inheritdoc />
+    public NameString FormatFieldName(string fieldName)
+    {
+        if (string.IsNullOrEmpty(fieldName))
+        {
+            throw new ArgumentException(
+                TypeResources.DefaultNamingConventions_FormatFieldName_EmptyOrNull,
+                nameof(fieldName));
+        }
+
+        return fieldName.Length > 1
+            ? fieldName.Substring(0, 1).ToLowerInvariant() + fieldName.Substring(1)
+            : fieldName.ToLowerInvariant();
     }
 }

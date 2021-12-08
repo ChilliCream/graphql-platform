@@ -11,7 +11,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder
@@ -22,8 +22,8 @@ public static class ErrorSchemaBuilderExtensions
     /// <returns>j
     /// The schema builder
     /// </returns>
-    public static ISchemaBuilder AddErrorInterfaceType<T>(this ISchemaBuilder schemaBuilder) =>
-        schemaBuilder.AddErrorInterfaceType(typeof(T));
+    public static ISchemaBuilder AddErrorInterfaceType<T>(this ISchemaBuilder schemaBuilder)
+        => schemaBuilder.AddErrorInterfaceType(typeof(T));
 
     /// <summary>
     /// Defines the common interface that all errors implement.
@@ -31,7 +31,7 @@ public static class ErrorSchemaBuilderExtensions
     /// interface schema type.
     ///
     /// This has to be used together with <see cref="ErrorAttribute"/>  or
-    /// <see cref="ErrorObjectFieldDescriptorExtensions.Error"/>
+    /// <see cref="MutationObjectFieldDescriptorExtensions.Error"/>
     /// </summary>
     /// <param name="schemaBuilder">
     /// The schema builder
@@ -44,6 +44,6 @@ public static class ErrorSchemaBuilderExtensions
     /// </returns>
     public static ISchemaBuilder AddErrorInterfaceType(
         this ISchemaBuilder schemaBuilder,
-        Type type) =>
-        schemaBuilder.SetContextData(ErrorContextData.ErrorType, type);
+        Type type)
+        => schemaBuilder.SetContextData(ErrorContextDataKeys.ErrorType, type);
 }

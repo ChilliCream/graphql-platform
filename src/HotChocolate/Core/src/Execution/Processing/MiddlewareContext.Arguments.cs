@@ -90,7 +90,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         // runtime version we can skip over parsing it.
         if (!argument.IsFinal)
         {
-            value = _parser.ParseLiteral(argument.ValueLiteral!, argument.Argument, typeof(T));
+            value = _parser.ParseLiteral(argument.ValueLiteral!, argument, typeof(T));
         }
 
         if (value is null)
@@ -111,7 +111,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             throw ResolverContext_LiteralsNotSupported(
                 _selection.SyntaxNode,
                 Path,
-                argument.Argument.Name,
+                argument.Name,
                 typeof(T));
         }
 
@@ -119,7 +119,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
         throw ResolverContext_CannotConvertArgument(
             _selection.SyntaxNode,
             Path,
-            argument.Argument.Name,
+            argument.Name,
             typeof(T));
     }
 }
