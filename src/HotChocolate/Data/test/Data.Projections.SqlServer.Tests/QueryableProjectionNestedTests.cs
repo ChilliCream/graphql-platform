@@ -154,7 +154,7 @@ public class QueryableProjectionNestedTests
     {
         public int Id { get; set; }
 
-        public Foo? Foo { get; set; }
+        public Foo Foo { get; set; } = default!;
 
         public Foo NotSettable { get; } = new() { BarString = "Worked" };
 
@@ -162,12 +162,12 @@ public class QueryableProjectionNestedTests
 
         public Foo[] NotSettableList { get; } =
         {
-                new() { BarString = "Worked" }
-            };
+            new() { BarString = "Worked" }
+        };
 
         public Foo[] MethodList() => new[]
         {
-                new Foo() { BarString = "Worked" }
-            };
+            new Foo { BarString = "Worked" }
+        };
     }
 }

@@ -91,10 +91,6 @@
               {
                 "path": "relay",
                 "title": "Relay"
-              },
-              {
-                "path": "errors",
-                "title": "Errors"
               }
             ]
           },
@@ -137,6 +133,20 @@
               {
                 "path": "projections",
                 "title": "Projections"
+              }
+            ]
+          },
+          {
+            "path": "execution-engine",
+            "title": "Execution Engine",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field middleware"
               }
             ]
           },

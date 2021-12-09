@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -155,7 +154,7 @@ internal partial class MiddlewareContext
             {
                 value = _parentContext._parser.ParseLiteral(
                     argument.ValueLiteral!,
-                    argument.Argument,
+                    argument,
                     typeof(T));
             }
 
@@ -177,7 +176,7 @@ internal partial class MiddlewareContext
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
                 throw ResolverContext_LiteralsNotSupported(
-                    _selection.SyntaxNode, _path, argument.Argument.Name, typeof(T));
+                    _selection.SyntaxNode, _path, argument.Name, typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -204,7 +203,7 @@ internal partial class MiddlewareContext
 
             // we are unable to convert the argument to the request type.
             throw ResolverContext_CannotConvertArgument(
-                _selection.SyntaxNode, _path, argument.Argument.Name, typeof(T));
+                _selection.SyntaxNode, _path, argument.Name, typeof(T));
         }
     }
 }
