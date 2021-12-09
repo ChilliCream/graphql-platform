@@ -59,15 +59,28 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(errors));
             }
 
-            var message = new StringBuilder("Multiple errors occured:");
-
-            foreach (var error in errors)
+            if (errors.Length == 0)
             {
-                message.Append("- ");
-                message.AppendLine(error.Message);
+                Message = "Unknown error occurred";
+            }
+            else if (errors.Length == 1)
+            {
+                Message = errors[0].Message;
+            }
+            else
+            {
+                var message = new StringBuilder("Multiple errors occurred:");
+
+                foreach (IClientError error in errors)
+                {
+                    message.AppendLine();
+                    message.Append("- ");
+                    message.Append(error.Message);
+                }
+
+                Message = message.ToString();
             }
 
-            Message = message.ToString();
             Errors = errors;
         }
 
