@@ -91,6 +91,40 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task Ensure_That_Directive_Middleware_Play_Nice()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType()
+            .AddTypeExtension<SimpleMutationExtension>()
+            .AddDirectiveType(new DirectiveType(d =>
+            {
+                d.Name("foo");
+                d.Location(DirectiveLocation.Field);
+                d.Use(next => async context =>
+                {
+                    // this is just a dummy middleware
+                    await next(context);
+                });
+            }))
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { something: ""abc"" }) @foo {
+                        string
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutation_Inferred_MutationAttributeOnQuery()
     {
         async Task Error()
