@@ -5,6 +5,7 @@
 
 type DoSomethingPayload {
   string: String
+  query: Query!
 }
 
 type Query {

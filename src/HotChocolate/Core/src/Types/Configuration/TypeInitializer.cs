@@ -202,7 +202,8 @@ internal class TypeInitializer
         _interceptor.OnAfterCompleteTypeNames();
     }
 
-    internal RegisteredType InitializeType(TypeSystemObjectBase type)
+    internal RegisteredType InitializeType(
+        TypeSystemObjectBase type)
     {
         var typeReg = new RegisteredType(
             type,
@@ -210,7 +211,7 @@ internal class TypeInitializer
             _typeRegistry,
             _typeLookup,
             _context,
-            new TypeInterceptor(),
+            _interceptor,
             null);
 
         typeReg.References.Add(TypeReference.Create(type));
