@@ -18,8 +18,7 @@ public delegate QueryableFilterContext VisitFilterArgument(
 [return: NotNullIfNotNull("input")]
 public delegate object? ApplyFiltering(IResolverContext context, object? input);
 
-public class QueryableFilterProvider
-    : FilterProvider<QueryableFilterContext>
+public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 {
     public static readonly string ContextArgumentNameKey = "FilterArgumentName";
     public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);

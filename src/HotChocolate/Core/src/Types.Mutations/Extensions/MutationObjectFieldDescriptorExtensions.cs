@@ -415,7 +415,7 @@ public static class MutationObjectFieldDescriptorExtensions
             IReadOnlyList<ErrorDefinition> definitions = ErrorFactoryCompiler.Compile(errorType);
 
             if (!d.ContextData.TryGetValue(ErrorDefinitions, out var value) ||
-                !(value is List<ErrorDefinition> errorFactories))
+                value is not List<ErrorDefinition> errorFactories)
             {
                 errorFactories = new List<ErrorDefinition>();
                 d.ContextData[ErrorDefinitions] = errorFactories;

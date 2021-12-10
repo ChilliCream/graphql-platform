@@ -4,6 +4,17 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
+    /// <summary>
+    /// A field describes one discrete piece of information available to 
+    /// request within a selection set.
+    /// 
+    /// Some fields describe complex data or relationships to other data. 
+    /// In order to further explore this data, a field may itself contain 
+    /// a selection set, allowing for deeply nested requests. 
+    /// 
+    /// All GraphQL operations must specify their selections down to fields 
+    /// which return scalar values to ensure an unambiguously shaped response.
+    /// </summary>
     public sealed class FieldNode
         : NamedSyntaxNode
         , ISelectionNode

@@ -95,7 +95,7 @@ public class ObjectTypeDefinition
     public IBindableList<ObjectFieldDefinition> Fields { get; } =
         new BindableList<ObjectFieldDefinition>();
 
-    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         List<ITypeSystemMemberConfiguration>? configs = null;
 

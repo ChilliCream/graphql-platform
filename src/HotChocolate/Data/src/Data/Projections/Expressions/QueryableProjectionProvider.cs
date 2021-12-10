@@ -10,8 +10,7 @@ namespace HotChocolate.Data.Projections.Expressions;
 
 public delegate object? ApplyProjection(IResolverContext context, object? input);
 
-public class QueryableProjectionProvider
-    : ProjectionProvider
+public class QueryableProjectionProvider : ProjectionProvider
 {
     public static readonly string ContextApplyProjectionKey = nameof(ApplyProjection);
     public const string SkipProjectionKey = "SkipProjection";

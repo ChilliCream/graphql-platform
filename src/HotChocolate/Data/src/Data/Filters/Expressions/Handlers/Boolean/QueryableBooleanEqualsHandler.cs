@@ -18,7 +18,7 @@ public class QueryableBooleanEqualsHandler
         QueryableFilterContext context,
         IFilterOperationField field,
         IValueNode value,
-        object parsedValue)
+        object? parsedValue)
     {
         Expression property = context.GetInstance();
         return FilterExpressionBuilder.Equals(property, parsedValue);

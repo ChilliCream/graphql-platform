@@ -32,5 +32,8 @@ namespace HotChocolate.Language
 
         /// <inheritdoc />
         public abstract string ToString(bool indented);
+
+        /// <inheritdoc />
+        public abstract override string ToString();
     }
 }

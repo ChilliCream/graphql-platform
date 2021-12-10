@@ -36,7 +36,7 @@ public class EnumTypeDefinition : TypeDefinitionBase<EnumTypeDefinitionNode>
     public IBindableList<EnumValueDefinition> Values { get; } =
         new BindableList<EnumValueDefinition>();
 
-    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         List<ITypeSystemMemberConfiguration>? configs = null;
 
