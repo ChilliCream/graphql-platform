@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Resolvers;
 
 #nullable enable
 
@@ -20,7 +21,7 @@ internal sealed class ArgumentMap : IArgumentMap
         {
             foreach (ArgumentValue argument in arguments.Values)
             {
-                if (!argument.IsFinal)
+                if (!argument.IsFullyCoerced)
                 {
                     IsFinal = false;
                 }

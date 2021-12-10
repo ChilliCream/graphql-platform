@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -11,83 +12,74 @@ namespace HotChocolate.Types.Relay;
 internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 {
     private const string _defaultFieldName = "query";
-    private readonly Dictionary<IType, TypeInfo> _types = new();
+    private readonly HashSet<NameString> _payloads = new();
 
-    public override void OnAfterCompleteName(
+    private ITypeCompletionContext _context = default!;
+    private ObjectType? _queryType;
+    private ObjectFieldDefinition _queryField = default!;
+    private ObjectTypeDefinition? _mutationDefinition;
+
+    internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
         DefinitionBase? definition,
+        OperationType operationType,
         IDictionary<string, object?> contextData)
     {
-        if (completionContext.Type is ObjectType objectType &&
-            definition is ObjectTypeDefinition objectTypeDefinition)
+        _context ??= completionContext;
+
+        switch (operationType)
         {
-            var typeInfo = new TypeInfo(completionContext, objectType, objectTypeDefinition);
-            _types.Add(typeInfo.Type, typeInfo);
+            case OperationType.Query:
+                _queryType = (ObjectType)completionContext.Type;
+                break;
+
+            case OperationType.Mutation:
+                _mutationDefinition = (ObjectTypeDefinition)definition;
+                break;
         }
     }
 
-    public override void OnAfterMergeTypeExtensions()
+    public override void OnBeforeCompleteTypes()
     {
-        TypeInfo query = _types.Values.FirstOrDefault(t => t.IsQuery);
-        TypeInfo mutation = _types.Values.FirstOrDefault(t => t.IsMutation);
-
-        if (query is { Context: not null } && mutation is { Context: not null })
+        if (_queryType is not null && _mutationDefinition is not null)
         {
-            MutationPayloadOptions options = query.Context.DescriptorContext.GetMutationPayloadOptions();
-            options.QueryFieldName ??= _defaultFieldName;
+            MutationPayloadOptions options = _context.DescriptorContext.GetMutationPayloadOptions();
 
-            foreach (ObjectFieldDefinition field in mutation.Definition.Fields)
+            ITypeReference queryType = TypeReference.Parse($"{_queryType.Name}!");
+
+            _queryField= new ObjectFieldDefinition(
+                options.QueryFieldName ?? _defaultFieldName,
+                type: queryType,
+                resolver: ctx => new(ctx.GetQueryRoot<object>()));
+
+            foreach (ObjectFieldDefinition field in _mutationDefinition.Fields)
             {
-                if (field.Type is not null &&
-                    mutation.Context.TryGetType(field.Type, out IType? type) &&
-                    type.NamedType() is ObjectType objectType &&
-                    options.MutationPayloadPredicate.Invoke(objectType) &&
-                    _types.TryGetValue(objectType, out TypeInfo payload))
+                if (!field.IsIntrospectionField &&
+                    _context.TryGetType(field.Type, out IType? returnType) &&
+                    returnType.NamedType() is ObjectType payloadType &&
+                    options.MutationPayloadPredicate.Invoke(payloadType))
                 {
-                    TryAddQueryField(payload, query, options.QueryFieldName.Value);
+                    _payloads.Add(payloadType.Name);
                 }
             }
         }
     }
 
-    private void TryAddQueryField(TypeInfo payload, TypeInfo query, NameString queryFieldName)
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        if (payload.Definition.Fields.Any(t => t.Name.Equals(queryFieldName)))
+        if (completionContext.Type is ObjectType objectType &&
+            definition is ObjectTypeDefinition objectTypeDef &&
+            _payloads.Contains(objectType.Name))
         {
-            return;
+            if (objectTypeDef.Fields.Any(t => t.Name.Equals(_queryField.Name)))
+            {
+                return;
+            }
+
+            objectTypeDef.Fields.Add(_queryField);
         }
-
-        var descriptor = ObjectFieldDescriptor.New(
-            payload.Context.DescriptorContext,
-            queryFieldName);
-
-        descriptor
-            .Type(new NonNullType(query.Type))
-            .Resolve(ctx => ctx.GetQueryRoot<object>());
-
-        payload.Definition.Fields.Add(descriptor.CreateDefinition());
-    }
-
-    private readonly struct TypeInfo
-    {
-        public TypeInfo(
-            ITypeCompletionContext context,
-            ObjectType type,
-            ObjectTypeDefinition definition)
-        {
-            Context = context;
-            Type = type;
-            Definition = definition;
-        }
-
-        public ITypeCompletionContext Context { get; }
-
-        public ObjectType Type { get; }
-
-        public ObjectTypeDefinition Definition { get; }
-
-        public bool IsQuery => Context.IsQueryType ?? false;
-
-        public bool IsMutation => Context.IsMutationType ?? false;
     }
 }

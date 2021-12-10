@@ -123,7 +123,7 @@ internal partial class MiddlewareContext
                 throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, _path, name);
             }
 
-            return argument.IsImplicit
+            return argument.IsDefaultValue
                 ? Optional<T>.Empty(CoerceArgumentValue<T>(argument))
                 : new Optional<T>(CoerceArgumentValue<T>(argument));
         }
@@ -150,7 +150,7 @@ internal partial class MiddlewareContext
 
             // if the argument is final and has an already coerced
             // runtime version we can skip over parsing it.
-            if (!argument.IsFinal)
+            if (!argument.IsFullyCoerced)
             {
                 value = _parentContext._parser.ParseLiteral(
                     argument.ValueLiteral!,
