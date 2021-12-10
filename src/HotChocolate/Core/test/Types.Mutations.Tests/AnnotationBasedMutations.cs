@@ -29,6 +29,25 @@ public class AnnotationBasedMutations
     }
 
     [Fact]
+    public async Task SimpleMutation_Inferred_With_QueryField()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("abc").Resolve("def"))
+            .AddMutationType<SimpleMutation>()
+            .AddMutationConventions(
+                new MutationConventionOptions
+                {
+                    ApplyToAllMutations = true
+                })
+            .AddQueryFieldToMutationPayloads()
+            .BuildSchemaAsync()
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public async Task SimpleMutationExtension_Inferred()
     {
         Snapshot.FullName();

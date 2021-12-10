@@ -28,18 +28,15 @@ internal sealed class MutationConventionMiddleware
             throw new ArgumentNullException(nameof(resolverArguments));
     }
 
-    public ValueTask InvokeAsync(IMiddlewareContext context)
-        => InvokeInternalAsync((MiddlewareContext)context);
-
-    private async ValueTask InvokeInternalAsync(MiddlewareContext context)
+    public async ValueTask InvokeAsync(IMiddlewareContext context)
     {
         var input = context.ArgumentValue<IDictionary<string, object?>>(_inputArgumentName);
         var inputLiteral = context.ArgumentLiteral<ObjectValueNode>(_inputArgumentName)
             .Fields.ToDictionary(t => t.Name.Value, t => t.Value);
-        var inputArgument = context.Arguments[_inputArgumentName];
 
-        var preservedArguments = context.Arguments;
         var arguments = new Dictionary<NameString, ArgumentValue>();
+        var preservedArguments = context.ReplaceArguments(arguments);
+        var inputArgument = preservedArguments[_inputArgumentName];
 
         foreach (ResolverArgument argument in _resolverArguments)
         {
@@ -58,20 +55,19 @@ internal sealed class MutationConventionMiddleware
                 new ArgumentValue(
                     argument,
                     kind,
-                    inputArgument.IsFinal,
-                    inputArgument.IsImplicit,
+                    inputArgument.IsFullyCoerced,
+                    inputArgument.IsDefaultValue,
                     value,
                     valueLiteral));
         }
 
         try
         {
-            context.Arguments = arguments;
             await _next(context);
         }
         finally
         {
-            context.Arguments = preservedArguments;
+            context.ReplaceArguments(preservedArguments);
         }
     }
 }
