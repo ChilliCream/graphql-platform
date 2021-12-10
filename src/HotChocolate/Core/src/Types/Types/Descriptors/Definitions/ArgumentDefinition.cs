@@ -47,7 +47,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     public IList<IInputValueFormatter> Formatters =>
         _formatters ??= new List<IInputValueFormatter>();
 
-    internal IReadOnlyList<IInputValueFormatter> GetFormatters()
+    public IReadOnlyList<IInputValueFormatter> GetFormatters()
     {
         if (_formatters is null)
         {

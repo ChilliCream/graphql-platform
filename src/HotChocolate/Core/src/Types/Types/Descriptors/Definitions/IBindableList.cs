@@ -2,6 +2,12 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
+/// <summary>
+/// A list that also exposes the binding behavior.
+/// </summary>
+/// <typeparam name="T">
+/// The element type.
+/// </typeparam>
 public interface IBindableList<T> : IList<T>, IReadOnlyList<T>
 {
     /// <summary>

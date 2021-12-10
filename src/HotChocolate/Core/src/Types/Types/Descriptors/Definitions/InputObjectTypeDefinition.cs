@@ -46,7 +46,7 @@ public class InputObjectTypeDefinition : TypeDefinitionBase<InputObjectTypeDefin
     /// </summary>
     public Action<object, object?[]>? GetFieldData { get; set; }
 
-    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         List<ITypeSystemMemberConfiguration>? configs = null;
 

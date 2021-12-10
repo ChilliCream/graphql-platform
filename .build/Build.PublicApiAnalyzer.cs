@@ -11,6 +11,7 @@ using Nuke.Common.Tools.DotNet;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.Git.GitTasks;
 using static Helpers;
+using Nuke.Common.ProjectModel;
 
 partial class Build
 {
@@ -28,11 +29,19 @@ partial class Build
         {
             TryDelete(PublicApiSolutionFile);
 
-            DotNetBuildSonarSolution(
-                PublicApiSolutionFile,
-                include: file =>
-                    !Path.GetFileNameWithoutExtension(file)
-                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
+            DotNetBuildSonarSolution(AllSolutionFile);
+
+            var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
+                .AllProjects
+                .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("test", StringComparison.OrdinalIgnoreCase))
+                .Select(t => Path.GetDirectoryName(t.Path)!)
+                .ToArray();
+
+            DotNetBuildSonarSolution(PublicApiSolutionFile, projectFiles);
 
             DotNetBuild(c => c
                 .SetProjectFile(PublicApiSolutionFile)
@@ -47,11 +56,19 @@ partial class Build
         {
             TryDelete(PublicApiSolutionFile);
 
-            DotNetBuildSonarSolution(
-                PublicApiSolutionFile,
-                include: file =>
-                    !Path.GetFileNameWithoutExtension(file)
-                        .EndsWith("tests", StringComparison.OrdinalIgnoreCase));
+            DotNetBuildSonarSolution(AllSolutionFile);
+
+            var projectFiles = ProjectModelTasks.ParseSolution(AllSolutionFile)
+                .AllProjects
+                .Where(t => t.GetProperty<string>("AddPublicApiAnalyzers") != "false")
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("tests", StringComparison.OrdinalIgnoreCase))
+                .Where(t => !Path.GetDirectoryName(t.Path)
+                    .EndsWith("test", StringComparison.OrdinalIgnoreCase))
+                .Select(t => Path.GetDirectoryName(t.Path)!)
+                .ToArray();
+
+            DotNetBuildSonarSolution(PublicApiSolutionFile, projectFiles);
 
             // last we run the actual dotnet format command.
             DotNet($@"format ""{PublicApiSolutionFile}"" analyzers --diagnostics=RS0016", workingDirectory: RootDirectory);
