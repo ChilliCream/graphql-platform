@@ -9,6 +9,7 @@ using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;

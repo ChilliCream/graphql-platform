@@ -41,7 +41,7 @@ public static class ArgumentCoercionHelper
 
         foreach (ArgumentValue argument in arguments.Values)
         {
-            if (argument.IsFinal)
+            if (argument.IsFullyCoerced)
             {
                 args.Add(argument.Name, argument);
             }
@@ -58,8 +58,8 @@ public static class ArgumentCoercionHelper
                     literal.TryGetValueKind(out ValueKind kind)
                         ? kind
                         : ValueKind.Unknown,
-                    argument.IsFinal,
-                    argument.IsImplicit,
+                    argument.IsFullyCoerced,
+                    argument.IsDefaultValue,
                     null,
                     literal));
             }

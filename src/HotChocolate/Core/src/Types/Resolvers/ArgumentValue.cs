@@ -2,36 +2,71 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing;
+namespace HotChocolate.Resolvers;
 
+/// <summary>
+/// Represents an argument value withing the field execution pipeline.
+/// </summary>
 public sealed class ArgumentValue : IInputFieldInfo
 {
     private readonly IInputFieldInfo _argument;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentValue"/>.
+    /// </summary>
+    /// <param name="argument">The argument.</param>
+    /// <param name="kind">
+    /// The value kind.
+    /// </param>
+    /// <param name="isFullyCoerced">
+    /// Specifies if this value is final or if it needs to be coerced during field execution..
+    /// Values with variables for instance need coercion during field execution.
+    /// </param>
+    /// <param name="isDefaultValue">
+    /// Defines if the provided value represents the argument default value and was not explicitly
+    /// provided by the user.
+    /// </param>
+    /// <param name="value">
+    /// The runtime value representation.
+    /// </param>
+    /// <param name="valueLiteral">
+    /// The syntax value representation.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="argument"/> or <param name="valueLiteral"></param> is <c>null</c>.
+    /// </exception>
     public ArgumentValue(
         IInputFieldInfo argument,
         ValueKind kind,
-        bool isFinal,
-        bool isImplicit,
+        bool isFullyCoerced,
+        bool isDefaultValue,
         object? value,
         IValueNode valueLiteral)
     {
         _argument = argument ?? throw new ArgumentNullException(nameof(argument));
         Kind = kind;
-        IsFinal = isFinal;
-        IsImplicit = isImplicit;
+        IsFullyCoerced = isFullyCoerced;
+        IsDefaultValue = isDefaultValue;
         HasError = false;
         Error = null;
         Value = value;
         ValueLiteral = valueLiteral ?? throw new ArgumentNullException(nameof(valueLiteral));
     }
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ArgumentValue"/>.
+    /// </summary>
+    /// <param name="argument">The argument.</param>
+    /// <param name="error">The argument value error.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="argument"/> or <param name="error"></param> is <c>null</c>.
+    /// </exception>
     public ArgumentValue(IInputFieldInfo argument, IError error)
     {
         _argument = argument ?? throw new ArgumentNullException(nameof(argument));
         Error = error ?? throw new ArgumentNullException(nameof(error));
         HasError = true;
-        IsFinal = true;
+        IsFullyCoerced = true;
         Kind = null;
         Value = null;
         ValueLiteral = null;
@@ -67,20 +102,27 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// </summary>
     public IInputValueFormatter? Formatter => _argument.Formatter;
 
+    /// <summary>
+    /// Specifies the value structure.
+    /// </summary>
     public ValueKind? Kind { get; }
 
     /// <summary>
     /// Defines if this argument value is fully coerced and
-    /// need no post processing.
+    /// needs no post processing.
     /// </summary>
-    public bool IsFinal { get; }
+    public bool IsFullyCoerced { get; }
 
     /// <summary>
-    /// Defines if this argument value has errors.
+    /// Defines if this argument value has errors that will
+    /// be thrown during field execution.
     /// </summary>
     public bool HasError { get; }
 
-    public bool IsImplicit { get; }
+    /// <summary>
+    /// Defines if the value was inferred from the default value.
+    /// </summary>
+    public bool IsDefaultValue { get; }
 
     /// <summary>
     /// Gets the runtime value representation of this argument.

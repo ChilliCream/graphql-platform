@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -47,7 +48,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
             throw ResolverContext_ArgumentDoesNotExist(_selection.SyntaxNode, Path, name);
         }
 
-        return argument.IsImplicit
+        return argument.IsDefaultValue
             ? Optional<T>.Empty(CoerceArgumentValue<T>(argument))
             : new Optional<T>(CoerceArgumentValue<T>(argument));
     }
@@ -88,7 +89,7 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         // if the argument is final and has an already coerced
         // runtime version we can skip over parsing it.
-        if (!argument.IsFinal)
+        if (!argument.IsFullyCoerced)
         {
             value = _parser.ParseLiteral(argument.ValueLiteral!, argument, typeof(T));
         }
@@ -121,5 +122,18 @@ internal partial class MiddlewareContext : IMiddlewareContext
             Path,
             argument.Name,
             typeof(T));
+    }
+
+    public IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues)
+    {
+        if (argumentValues is null)
+        {
+            throw new ArgumentNullException(nameof(argumentValues));
+        }
+
+        IReadOnlyDictionary<NameString, ArgumentValue> original = Arguments;
+        Arguments = argumentValues;
+        return original;
     }
 }
