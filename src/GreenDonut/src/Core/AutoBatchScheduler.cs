@@ -14,7 +14,15 @@ namespace GreenDonut
         /// <param name="dispatch">
         /// The job that is being scheduled.
         /// </param>
-        public void Schedule(Func<ValueTask> dispatch) => dispatch();
+        public void Schedule(Func<ValueTask> dispatch) 
+            => BeginDispatch(dispatch);
+
+        private void BeginDispatch(Func<ValueTask> dispatch)
+            => Task.Factory.StartNew(
+                async () => await dispatch().ConfigureAwait(false), 
+                default, 
+                TaskCreationOptions.DenyChildAttach, 
+                TaskScheduler.Default);
 
         /// <summary>
         /// Gets the default instance if the <see cref="AutoBatchScheduler"/>.

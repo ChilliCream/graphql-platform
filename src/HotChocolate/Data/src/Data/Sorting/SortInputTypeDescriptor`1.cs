@@ -11,165 +11,164 @@ using HotChocolate.Types.Helpers;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+public class SortInputTypeDescriptor<T>
+    : SortInputTypeDescriptor
+    , ISortInputTypeDescriptor<T>
 {
-    public class SortInputTypeDescriptor<T>
-        : SortInputTypeDescriptor
-        , ISortInputTypeDescriptor<T>
+    protected internal SortInputTypeDescriptor(
+        IDescriptorContext context,
+        Type entityType,
+        string? scope)
+        : base(context, entityType, scope)
     {
-        protected internal SortInputTypeDescriptor(
-            IDescriptorContext context,
-            Type entityType,
-            string? scope)
-            : base(context, entityType, scope)
+    }
+
+    protected internal SortInputTypeDescriptor(
+        IDescriptorContext context,
+        string? scope)
+        : base(context, scope)
+    {
+    }
+
+    protected internal SortInputTypeDescriptor(
+        IDescriptorContext context,
+        SortInputTypeDefinition definition,
+        string? scope)
+        : base(context, definition, scope)
+    {
+    }
+
+    protected override void OnCompleteFields(
+        IDictionary<NameString, SortFieldDefinition> fields,
+        ISet<MemberInfo> handledProperties)
+    {
+        if (Definition.Fields.IsImplicitBinding() &&
+            Definition.EntityType is { })
         {
+            FieldDescriptorUtilities.AddImplicitFields(
+                this,
+                Definition.EntityType,
+                p => SortFieldDescriptor
+                    .New(Context, Definition.Scope, p)
+                    .CreateDefinition(),
+                fields,
+                handledProperties,
+                include: (members, member) => member is PropertyInfo &&
+                    !handledProperties.Contains(member) &&
+                    !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
         }
 
-        protected internal SortInputTypeDescriptor(
-            IDescriptorContext context,
-            string? scope)
-            : base(context, scope)
-        {
-        }
+        base.OnCompleteFields(fields, handledProperties);
+    }
 
-        protected internal SortInputTypeDescriptor(
-            IDescriptorContext context,
-            SortInputTypeDefinition definition,
-            string? scope)
-            : base(context, definition, scope)
-        {
-        }
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> Name(NameString value)
+    {
+        base.Name(value);
+        return this;
+    }
 
-        protected override void OnCompleteFields(
-            IDictionary<NameString, SortFieldDefinition> fields,
-            ISet<MemberInfo> handledProperties)
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> Description(string? value)
+    {
+        base.Description(value);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior)
+    {
+        base.BindFields(bindingBehavior);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> BindFieldsExplicitly()
+    {
+        base.BindFieldsExplicitly();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> BindFieldsImplicitly()
+    {
+        base.BindFieldsImplicitly();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
+    {
+        if (property.ExtractMember() is PropertyInfo m)
         {
-            if (Definition.Fields.IsImplicitBinding() &&
-                Definition.EntityType is {})
+            SortFieldDescriptor? fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Member == m);
+
+            if (fieldDescriptor is null)
             {
-                FieldDescriptorUtilities.AddImplicitFields(
-                    this,
-                    Definition.EntityType,
-                    p => SortFieldDescriptor
-                        .New(Context, Definition.Scope, p)
-                        .CreateDefinition(),
-                    fields,
-                    handledProperties,
-                    include: (members, member) => member is PropertyInfo &&
-                        !handledProperties.Contains(member) &&
-                        !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
+                fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
+                Fields.Add(fieldDescriptor);
             }
 
-            base.OnCompleteFields(fields, handledProperties);
+            return fieldDescriptor;
         }
 
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
+        throw new ArgumentException(
+            SortInputTypeDescriptor_Field_OnlyProperties,
+            nameof(property));
+    }
 
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> Description(string? value)
-        {
-            base.Description(value);
-            return this;
-        }
+    /// <inheritdoc />
+    public new ISortInputTypeDescriptor<T> Ignore(NameString name)
+    {
+        base.Ignore(name);
+        return this;
+    }
 
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior)
+    /// <inheritdoc />
+    public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property)
+    {
+        if (property.ExtractMember() is PropertyInfo p)
         {
-            base.BindFields(bindingBehavior);
-            return this;
-        }
+            SortFieldDescriptor? fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Member == p);
 
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> BindFieldsExplicitly()
-        {
-            base.BindFieldsExplicitly();
-            return this;
-        }
-
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> BindFieldsImplicitly()
-        {
-            base.BindFieldsImplicitly();
-            return this;
-        }
-
-        /// <inheritdoc />
-        public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo m)
+            if (fieldDescriptor is null)
             {
-                SortFieldDescriptor? fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == m);
-
-                if (fieldDescriptor is null)
-                {
-                    fieldDescriptor = SortFieldDescriptor.New(Context, Definition.Scope, m);
-                    Fields.Add(fieldDescriptor);
-                }
-
-                return fieldDescriptor;
+                fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Definition.Scope, p);
+                Fields.Add(fieldDescriptor);
             }
 
-            throw new ArgumentException(
-                SortInputTypeDescriptor_Field_OnlyProperties,
-                nameof(property));
-        }
-
-        /// <inheritdoc />
-        public new ISortInputTypeDescriptor<T> Ignore(NameString name)
-        {
-            base.Ignore(name);
             return this;
         }
 
-        /// <inheritdoc />
-        public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                SortFieldDescriptor? fieldDescriptor =
-                    Fields.FirstOrDefault(t => t.Definition.Member == p);
+        throw new ArgumentException(
+            SortInputTypeDescriptor_Field_OnlyProperties,
+            nameof(property));
+    }
 
-                if (fieldDescriptor is null)
-                {
-                    fieldDescriptor = IgnoreSortFieldDescriptor.New(Context, Definition.Scope, p);
-                    Fields.Add(fieldDescriptor);
-                }
+    public new ISortInputTypeDescriptor<T> Directive<TDirective>(
+        TDirective directive)
+        where TDirective : class
+    {
+        base.Directive(directive);
+        return this;
+    }
 
-                return this;
-            }
+    public new ISortInputTypeDescriptor<T> Directive<TDirective>()
+        where TDirective : class, new()
+    {
+        base.Directive<TDirective>();
+        return this;
+    }
 
-            throw new ArgumentException(
-                SortInputTypeDescriptor_Field_OnlyProperties,
-                nameof(property));
-        }
-
-        public new ISortInputTypeDescriptor<T> Directive<TDirective>(
-            TDirective directive)
-            where TDirective : class
-        {
-            base.Directive(directive);
-            return this;
-        }
-
-        public new ISortInputTypeDescriptor<T> Directive<TDirective>()
-            where TDirective : class, new()
-        {
-            base.Directive<TDirective>();
-            return this;
-        }
-
-        public new ISortInputTypeDescriptor<T> Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            base.Directive(name, arguments);
-            return this;
-        }
+    public new ISortInputTypeDescriptor<T> Directive(
+        NameString name,
+        params ArgumentNode[] arguments)
+    {
+        base.Directive(name, arguments);
+        return this;
     }
 }

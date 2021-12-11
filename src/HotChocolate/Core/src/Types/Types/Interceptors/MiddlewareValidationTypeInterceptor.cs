@@ -7,173 +7,172 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Types.Interceptors
+namespace HotChocolate.Types.Interceptors;
+
+internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
+    public override bool CanHandle(ITypeSystemObjectContext context)
+        => context.DescriptorContext.Options.ValidatePipelineOrder &&
+           context.Type is ObjectType;
+
+    public override void OnValidateType(
+        ITypeSystemObjectContext validationContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        public override bool CanHandle(ITypeSystemObjectContext context)
-            => context.DescriptorContext.Options.ValidatePipelineOrder &&
-               context.Type is ObjectType;
-
-        public override void OnValidateType(
-            ITypeSystemObjectContext validationContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        if (definition is ObjectTypeDefinition objectTypeDef)
         {
-            if (definition is ObjectTypeDefinition objectTypeDef)
+            foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
             {
-                foreach (ObjectFieldDefinition field in objectTypeDef.Fields)
+                if (field.MiddlewareDefinitions.Count > 1)
                 {
-                    if (field.MiddlewareDefinitions.Count > 1)
-                    {
-                        ValidatePipeline(
-                            validationContext.Type,
-                            new FieldCoordinate(validationContext.Type.Name, field.Name),
-                            field.SyntaxNode,
-                            field.MiddlewareDefinitions);
-                    }
+                    ValidatePipeline(
+                        validationContext.Type,
+                        new FieldCoordinate(validationContext.Type.Name, field.Name),
+                        field.SyntaxNode,
+                        field.MiddlewareDefinitions);
+                }
+            }
+        }
+    }
+
+    private void ValidatePipeline(
+        ITypeSystemObject type,
+        FieldCoordinate field,
+        ISyntaxNode? syntaxNode,
+        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+    {
+        var usePaging = false;
+        var useProjections = false;
+        var useFiltering = false;
+        var useSorting = false;
+        var error = false;
+
+        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        {
+            if (definition.Key is not null)
+            {
+                switch (definition.Key)
+                {
+                    case WellKnownMiddleware.DbContext:
+                        if (usePaging || useProjections || useFiltering || useSorting)
+                        {
+                            error = true;
+                        }
+                        break;
+
+                    case WellKnownMiddleware.Paging:
+                        if (useProjections || useFiltering || useSorting)
+                        {
+                            error = true;
+                            break;
+                        }
+                        usePaging = true;
+                        break;
+
+                    case WellKnownMiddleware.Projection:
+                        if (useFiltering || useSorting)
+                        {
+                            error = true;
+                            break;
+                        }
+                        useProjections = true;
+                        break;
+
+                    case WellKnownMiddleware.Filtering:
+                        useFiltering = true;
+                        break;
+
+                    case WellKnownMiddleware.Sorting:
+                        useSorting = true;
+                        break;
                 }
             }
         }
 
-        private void ValidatePipeline(
-            ITypeSystemObject type,
-            FieldCoordinate field,
-            ISyntaxNode? syntaxNode,
-            IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        if (error)
         {
-            var usePaging = false;
-            var useProjections = false;
-            var useFiltering = false;
-            var useSorting = false;
-            var error = false;
+            throw new SchemaException(
+                ErrorHelper.MiddlewareOrderInvalid(
+                    field,
+                    type,
+                    syntaxNode,
+                    PrintPipeline(middlewareDefinitions)));
+        }
+    }
 
-            foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+    private string PrintPipeline(
+        IList<FieldMiddlewareDefinition> middlewareDefinitions)
+    {
+        var sb = new StringBuilder();
+        var next = false;
+        var other = false;
+
+        foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+        {
+            if (definition.Key is not null)
             {
-                if (definition.Key is not null)
+                switch (definition.Key)
                 {
-                    switch (definition.Key)
-                    {
-                        case WellKnownMiddleware.DbContext:
-                            if (usePaging || useProjections || useFiltering || useSorting)
-                            {
-                                error = true;
-                            }
-                            break;
+                    case WellKnownMiddleware.DbContext:
+                        other = false;
+                        PrintNext();
+                        sb.Append("UseDbContext");
+                        break;
 
-                        case WellKnownMiddleware.Paging:
-                            if (useProjections || useFiltering || useSorting)
-                            {
-                                error = true;
-                                break;
-                            }
-                            usePaging = true;
-                            break;
+                    case WellKnownMiddleware.Paging:
+                        other = false;
+                        PrintNext();
+                        sb.Append("UsePaging");
+                        break;
 
-                        case WellKnownMiddleware.Projection:
-                            if (useFiltering || useSorting)
-                            {
-                                error = true;
-                                break;
-                            }
-                            useProjections = true;
-                            break;
+                    case WellKnownMiddleware.Projection:
+                        other = false;
+                        PrintNext();
+                        sb.Append("UseProjection");
+                        break;
 
-                        case WellKnownMiddleware.Filtering:
-                            useFiltering = true;
-                            break;
+                    case WellKnownMiddleware.Filtering:
+                        other = false;
+                        PrintNext();
+                        sb.Append("UseFiltering");
+                        break;
 
-                        case WellKnownMiddleware.Sorting:
-                            useSorting = true;
-                            break;
-                    }
+                    case WellKnownMiddleware.Sorting:
+                        other = false;
+                        PrintNext();
+                        sb.Append("UseSorting");
+                        break;
+
+                    default:
+                        PrintOther();
+                        break;
                 }
             }
-
-            if (error)
+            else
             {
-                throw new SchemaException(
-                    ErrorHelper.MiddlewareOrderInvalid(
-                        field,
-                        type,
-                        syntaxNode,
-                        PrintPipeline(middlewareDefinitions)));
+                PrintOther();
+            }
+
+            next = true;
+        }
+
+        return sb.ToString();
+
+        void PrintNext()
+        {
+            if (next)
+            {
+                sb.Append(" -> ");
             }
         }
 
-        private string PrintPipeline(
-            IList<FieldMiddlewareDefinition> middlewareDefinitions)
+        void PrintOther()
         {
-            var sb = new StringBuilder();
-            var next = false;
-            var other = false;
-
-            foreach (FieldMiddlewareDefinition definition in middlewareDefinitions)
+            if (!other)
             {
-                if (definition.Key is not null)
-                {
-                    switch (definition.Key)
-                    {
-                        case WellKnownMiddleware.DbContext:
-                            other = false;
-                            PrintNext();
-                            sb.Append("UseDbContext");
-                            break;
-
-                        case WellKnownMiddleware.Paging:
-                            other = false;
-                            PrintNext();
-                            sb.Append("UsePaging");
-                            break;
-
-                        case WellKnownMiddleware.Projection:
-                            other = false;
-                            PrintNext();
-                            sb.Append("UseProjection");
-                            break;
-
-                        case WellKnownMiddleware.Filtering:
-                            other = false;
-                            PrintNext();
-                            sb.Append("UseFiltering");
-                            break;
-
-                        case WellKnownMiddleware.Sorting:
-                            other = false;
-                            PrintNext();
-                            sb.Append("UseSorting");
-                            break;
-
-                        default:
-                            PrintOther();
-                            break;
-                    }
-                }
-                else
-                {
-                    PrintOther();
-                }
-
-                next = true;
-            }
-
-            return sb.ToString();
-
-            void PrintNext()
-            {
-                if (next)
-                {
-                    sb.Append(" -> ");
-                }
-            }
-
-            void PrintOther()
-            {
-                if (!other)
-                {
-                    sb.Append("...");
-                    other = true;
-                }
+                sb.Append("...");
+                other = true;
             }
         }
     }

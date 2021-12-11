@@ -3,71 +3,70 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal sealed class ResultObjectBuffer<T> where T : class
 {
-    internal sealed class ResultObjectBuffer<T> where T : class
+    private readonly int _capacity;
+    private readonly IPooledObjectPolicy<T> _policy;
+    private readonly T?[] _buffer;
+    private int _index;
+
+    public ResultObjectBuffer(int capacity, IPooledObjectPolicy<T> policy)
     {
-        private readonly int _capacity;
-        private readonly IPooledObjectPolicy<T> _policy;
-        private readonly T?[] _buffer;
-        private int _index;
+        _capacity = capacity;
+        _policy = policy;
+        _buffer = new T[capacity];
+    }
 
-        public ResultObjectBuffer(int capacity, IPooledObjectPolicy<T> policy)
+    public T Pop()
+    {
+        if (TryPop(out T? obj))
         {
-            _capacity = capacity;
-            _policy = policy;
-            _buffer = new T[capacity];
+            return obj;
         }
+        throw new InvalidOperationException("Buffer is used up.");
+    }
 
-        public T Pop()
+    public bool TryPop([NotNullWhen(true)] out T? obj)
+    {
+        var nextIndex = _index++;
+        if (nextIndex < _capacity)
         {
-            if (TryPop(out T? obj))
+            if (_buffer[nextIndex] is { } o)
             {
-                return obj;
-            }
-            throw new InvalidOperationException("Buffer is used up.");
-        }
-
-        public bool TryPop([NotNullWhen(true)] out T? obj)
-        {
-            var nextIndex = _index++;
-            if (nextIndex < _capacity)
-            {
-                if (_buffer[nextIndex] is { } o)
-                {
-                    obj = o;
-                    return true;
-                }
-
-                obj = _policy.Create();
-                _buffer[nextIndex] = obj;
+                obj = o;
                 return true;
             }
 
-            obj = null;
-            return false;
+            obj = _policy.Create();
+            _buffer[nextIndex] = obj;
+            return true;
         }
 
-        public void Reset()
+        obj = null;
+        return false;
+    }
+
+    public void Reset()
+    {
+        if (_index == 0)
         {
-            if (_index == 0)
-            {
-                return;
-            }
-
-            if (_index >= _capacity)
-            {
-                _index = _capacity;
-            }
-
-            for (var i = 0; i < _index; i++)
-            {
-                if (!_policy.Return(_buffer[i]!))
-                {
-                    _buffer[i] = null;
-                }
-            }
-            _index = 0;
+            return;
         }
+
+        if (_index >= _capacity)
+        {
+            _index = _capacity;
+        }
+
+        for (var i = 0; i < _index; i++)
+        {
+            if (!_policy.Return(_buffer[i]!))
+            {
+                _buffer[i] = null;
+            }
+        }
+        _index = 0;
     }
 }

@@ -1418,5 +1418,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ConnectionType_Nodes_Description", resourceCulture);
             }
         }
+        
+        internal static string ServiceHelper_UseResolverServiceInternal_Order {
+            get {
+                return ResourceManager.GetString("ServiceHelper_UseResolverServiceInternal_Order", resourceCulture);
+            }
+        }
+        
+        internal static string DefaultNamingConventions_FormatFieldName_EmptyOrNull {
+            get {
+                return ResourceManager.GetString("DefaultNamingConventions_FormatFieldName_EmptyOrNull", resourceCulture);
+            }
+        }
     }
 }

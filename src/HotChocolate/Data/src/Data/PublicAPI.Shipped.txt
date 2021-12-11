@@ -424,6 +424,9 @@ HotChocolate.Data.Filters.FilterVisitorContextExtensions
 HotChocolate.Data.Filters.IAndField
 HotChocolate.Data.Filters.IAndField.DeclaringType.get -> HotChocolate.Data.Filters.IFilterInputType!
 HotChocolate.Data.Filters.IComparableOperationFilterInputType
+HotChocolate.Data.Filters.IdOperationFilterInputType
+HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType() -> void
+HotChocolate.Data.Filters.IdOperationFilterInputType.IdOperationFilterInputType(System.Action<HotChocolate.Data.Filters.IFilterInputTypeDescriptor!>! configure) -> void
 HotChocolate.Data.Filters.IEnumOperationFilterInputType
 HotChocolate.Data.Filters.IFilterConvention
 HotChocolate.Data.Filters.IFilterConvention.ApplyConfigurations(HotChocolate.Types.Descriptors.ITypeReference! typeReference, HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
@@ -1235,16 +1238,21 @@ HotChocolate.Data.UseFilteringAttribute.Scope.get -> string?
 HotChocolate.Data.UseFilteringAttribute.Scope.set -> void
 HotChocolate.Data.UseFilteringAttribute.Type.get -> System.Type?
 HotChocolate.Data.UseFilteringAttribute.Type.set -> void
+HotChocolate.Data.UseFilteringAttribute.UseFilteringAttribute(System.Type? filterType = null, int order = 0) -> void
 HotChocolate.Data.UseFirstOrDefaultAttribute
+HotChocolate.Data.UseFirstOrDefaultAttribute.UseFirstOrDefaultAttribute(int order = 0) -> void
 HotChocolate.Data.UseProjectionAttribute
 HotChocolate.Data.UseProjectionAttribute.Scope.get -> string?
 HotChocolate.Data.UseProjectionAttribute.Scope.set -> void
+HotChocolate.Data.UseProjectionAttribute.UseProjectionAttribute(int order = 0) -> void
 HotChocolate.Data.UseSingleOrDefaultAttribute
+HotChocolate.Data.UseSingleOrDefaultAttribute.UseSingleOrDefaultAttribute(int order = 0) -> void
 HotChocolate.Data.UseSortingAttribute
 HotChocolate.Data.UseSortingAttribute.Scope.get -> string?
 HotChocolate.Data.UseSortingAttribute.Scope.set -> void
 HotChocolate.Data.UseSortingAttribute.Type.get -> System.Type?
 HotChocolate.Data.UseSortingAttribute.Type.set -> void
+HotChocolate.Data.UseSortingAttribute.UseSortingAttribute(System.Type? sortingType = null, int order = 0) -> void
 HotChocolate.FilterSchemaBuilderExtensions
 HotChocolate.ProjectionsSchemaBuilderExtensions
 HotChocolate.SortingSchemaBuilderExtensions
@@ -1368,6 +1376,7 @@ override HotChocolate.Data.Filters.FilterVisitorBase<TContext, T>.Leave(HotChoco
 override HotChocolate.Data.Filters.FilterVisitorBase<TContext, T>.Leave(HotChocolate.Language.ObjectValueNode! node, TContext! context) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
 override HotChocolate.Data.Filters.FilterVisitorBase<TContext>.Enter(HotChocolate.Language.ObjectFieldNode! node, TContext context) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
 override HotChocolate.Data.Filters.FilterVisitorBase<TContext>.Leave(HotChocolate.Language.ObjectFieldNode! node, TContext context) -> HotChocolate.Language.Visitors.ISyntaxVisitorAction!
+override HotChocolate.Data.Filters.IdOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
 override HotChocolate.Data.Filters.ListFilterInputType<T>.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
 override HotChocolate.Data.Filters.StringOperationFilterInputType.Configure(HotChocolate.Data.Filters.IFilterInputTypeDescriptor! descriptor) -> void
 override HotChocolate.Data.IsProjectedAttribute.OnConfigure(HotChocolate.Types.Descriptors.IDescriptorContext! context, HotChocolate.Types.IObjectFieldDescriptor! descriptor, System.Reflection.MemberInfo! member) -> void

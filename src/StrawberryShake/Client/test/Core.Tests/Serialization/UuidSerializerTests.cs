@@ -1,9 +1,7 @@
 using System;
-using StrawberryShake;
-using StrawberryShake.Serialization;
 using Xunit;
 
-namespace Core.Tests.Serialization
+namespace StrawberryShake.Serialization
 {
     public class UuidSerializerTests
     {

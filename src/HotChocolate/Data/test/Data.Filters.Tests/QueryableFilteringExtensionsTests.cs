@@ -11,134 +11,163 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Filtering
+namespace HotChocolate.Data.Filtering;
+
+public class QueryableFilteringExtensionsTests
 {
-    public class QueryableFilteringExtensionsTests
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
-            new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
+            new Foo { Bar = true, Baz = "a" },
+            new Foo { Bar = false, Baz = "b" }
         };
 
-        [Fact]
-        public async Task Extensions_Should_FilterQuery()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddFiltering()
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Extension_Should_BeTypeMissMatch()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddFiltering()
-                .CreateExecptionExecutor();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.MatchException();
-        }
-
-        [Fact]
-        public async Task Extension_Should_BeMissingMiddleware()
-        {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddFiltering()
-                .CreateExecptionExecutor();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ missingMiddleware { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.MatchException();
-        }
-
-        public class Query
-        {
-            [UseFiltering]
-            public IEnumerable<Foo> ShouldWork(IResolverContext context)
+    [Fact]
+    public async Task Test()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x =>
             {
-                return _fooEntities.Filter(context);
-            }
+                x.Name("Query");
+                x.Field("foo")
+                    .Type(new ObjectType(x => x.Name("A").Field("bar").Resolve("a")))
+                    .Resolve(new object());
+                x.Field("bar")
+                    .Type(new ObjectType(x => x.Name("B").Field("bar").Resolve("a")))
+                    .Resolve(new object());
+            })
+            .BuildRequestExecutorAsync();
 
-            [CatchErrorMiddleware]
-            [UseFiltering]
-            [AddTypeMissmatchMiddleware]
-            public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
-            {
-                return _fooEntities.Filter(context);
-            }
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Create());
 
-            [CatchErrorMiddleware]
-            public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
-            {
-                return _fooEntities.Filter(context);
-            }
-        }
+        // assert
+        res1.ToJson().MatchSnapshot();
+    }
 
-        public class Foo
+    [Fact]
+    public async Task Extensions_Should_FilterQuery()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddFiltering()
+            .BuildRequestExecutorAsync();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ shouldWork(where: {bar: {eq: true}}) { bar baz }}")
+                .Create());
+
+        // assert
+        res1.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Extension_Should_BeTypeMissMatch()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddFiltering()
+            .CreateExecptionExecutor();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ typeMissmatch(where: {bar: {eq: true}}) { bar baz }}")
+                .Create());
+
+        // assert
+        res1.MatchException();
+    }
+
+    [Fact]
+    public async Task Extension_Should_BeMissingMiddleware()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddFiltering()
+            .CreateExecptionExecutor();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ missingMiddleware { bar baz }}")
+                .Create());
+
+        // assert
+        res1.MatchException();
+    }
+
+    public class Query
+    {
+        [UseFiltering]
+        public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            public int Id { get; set; }
-
-            public bool Bar { get; set; }
-
-            public string Baz { get; set; }
-
-            public string Computed() => "Foo";
-
-            public string? NotSettable { get; }
+            return _fooEntities.Filter(context);
         }
 
-        public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+        [CatchErrorMiddleware]
+        [UseFiltering]
+        [AddTypeMissmatchMiddleware]
+        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
         {
-            public override void OnConfigure(
-                IDescriptorContext context,
-                IObjectFieldDescriptor descriptor,
-                MemberInfo member)
-            {
-                descriptor.Use(next => context =>
-                {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            QueryableFilterProvider.ContextApplyFilteringKey,
-                            CreateApplicatorAsync<Foo>());
-
-                    return next(context);
-                });
-            }
-
-            private static ApplyFiltering CreateApplicatorAsync<TEntityType>() =>
-                (context, input) => new object();
+            return _fooEntities.Filter(context);
         }
+
+        [CatchErrorMiddleware]
+        public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
+        {
+            return _fooEntities.Filter(context);
+        }
+    }
+
+    public class Foo
+    {
+        public int Id { get; set; }
+
+        public bool Bar { get; set; }
+
+        public string? Baz { get; set; }
+
+        public string Computed() => "Foo";
+
+        public string? NotSettable { get; }
+    }
+
+    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    {
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
+        {
+            descriptor.Use(next => context =>
+            {
+                context.LocalContextData =
+                    context.LocalContextData.SetItem(
+                        QueryableFilterProvider.ContextApplyFilteringKey,
+                        CreateApplicatorAsync<Foo>());
+
+                return next(context);
+            });
+        }
+
+        private static ApplyFiltering CreateApplicatorAsync<TEntityType>() =>
+            (context, input) => new object();
     }
 }

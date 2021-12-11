@@ -13,8 +13,8 @@ namespace HotChocolate.Data.Neo4J.Filtering
 {
     public class Neo4JFixture : Neo4jResource<Neo4JConfig>
     {
-        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>
-            _cache = new();
+        private readonly ConcurrentDictionary<(Type, object), Task<IRequestExecutor>> _cache =
+            new ConcurrentDictionary<(Type, object), Task<IRequestExecutor>>();
 
         public Task<IRequestExecutor> GetOrCreateSchema<T, TType>(string cypher)
             where T : class

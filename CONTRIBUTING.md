@@ -60,12 +60,18 @@ Core contributors will review your pull request and provide feedback.
 
 ## How to launch and build the solution
 
-We use [Nuke](https://nuke.build/) for build automation. It can be used to bootstrap you a complete solution file.
-Simply run build.ps1, build.sh or build.cmd and then in the src directory you can open up All.sln.
+We use [Nuke](https://nuke.build/) for build automation. 
 
-There are other available commands too. As setup in the [.build](./.build/) directory.
+To work on Hot Chocolate, you will need .NET 6, Node 14, and Yarn 1.x.
+
+After cloning the repository, run `init.sh` or `init.cmd`, which are located in the repository's root. The script files will create the `src/All.sln`, which can be used to develop in Visual Studio 2022 and higher or Rider 2021.3 EAP or higher.  It will also restore the packages for the documentation.
 
 Other more focused solution files exist if you want to narrow in on a particular part of the platform.
+The smaller solution files are great when working with VSCode.
+
+The documentation is located in the `website` directory and can be started with `yarn start`.
+
+There are other available commands too. As set up in the [.build](./.build/) directory.
 
 ## Code of conduct
 

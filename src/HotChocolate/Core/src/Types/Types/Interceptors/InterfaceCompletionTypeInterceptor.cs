@@ -7,215 +7,214 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace HotChocolate.Types.Interceptors
+namespace HotChocolate.Types.Interceptors;
+
+internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
 {
-    internal class InterfaceCompletionTypeInterceptor : TypeInterceptor
+    private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
+    private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
+    private readonly HashSet<Type> _interfaceRuntimeTypes = new();
+    private readonly HashSet<NameString> _completed = new();
+    private readonly HashSet<NameString> _completedFields = new();
+    private readonly Queue<InterfaceType> _backlog = new();
+
+    public override bool TriggerAggregations => true;
+
+    public override void OnAfterInitialize(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        private readonly Dictionary<ITypeSystemObject, TypeInfo> _typeInfos = new();
-        private readonly HashSet<Type> _allInterfaceRuntimeTypes = new();
-        private readonly HashSet<Type> _interfaceRuntimeTypes = new();
-        private readonly HashSet<NameString> _completed = new();
-        private readonly HashSet<NameString> _completedFields = new();
-        private readonly Queue<InterfaceType> _backlog = new();
-
-        public override bool TriggerAggregations => true;
-
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+        // we need to preserve the initialization context of all
+        // interface types and object types.
+        if (definition is IComplexOutputTypeDefinition typeDefinition)
         {
-            // we need to preserve the initialization context of all
-            // interface types and object types.
-            if (definition is IComplexOutputTypeDefinition typeDefinition)
-            {
-                _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
-            }
+            _typeInfos.Add(discoveryContext.Type, new(discoveryContext, typeDefinition));
+        }
+    }
+
+    public override void OnTypesInitialized(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        // after all types have been initialized we will index the runtime
+        // types of all interfaces.
+        foreach (TypeInfo interfaceTypeInfo in _typeInfos.Values
+            .Where(t => t.Definition.RuntimeType is { } rt &&
+                rt != typeof(object) &&
+                t.Definition is InterfaceTypeDefinition))
+        {
+            _allInterfaceRuntimeTypes.Add(interfaceTypeInfo.Definition.RuntimeType);
         }
 
-        public override void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        // we now will use the runtime types to infer interface usage ...
+        foreach (TypeInfo typeInfo in _typeInfos.Values.Where(IsRelevant))
         {
-            // after all types have been initialized we will index the runtime
-            // types of all interfaces.
-            foreach (TypeInfo interfaceTypeInfo in _typeInfos.Values
-                .Where(t => t.Definition.RuntimeType is { } rt &&
-                    rt != typeof(object) &&
-                    t.Definition is InterfaceTypeDefinition))
+            _interfaceRuntimeTypes.Clear();
+
+            TryInferInterfaceFromRuntimeType(
+                GetRuntimeType(typeInfo),
+                _allInterfaceRuntimeTypes,
+                _interfaceRuntimeTypes);
+
+            if (_interfaceRuntimeTypes.Count > 0)
             {
-                _allInterfaceRuntimeTypes.Add(interfaceTypeInfo.Definition.RuntimeType);
+                // if we detect that this type implements an interface,
+                // we will register it as a dependency.
+                foreach (TypeDependency? typeDependency in _interfaceRuntimeTypes.Select(
+                    t => new TypeDependency(
+                        TypeReference.Create(
+                            typeInfo.Context.TypeInspector.GetType(t),
+                            TypeContext.Output),
+                        TypeDependencyKind.Completed)))
+                {
+                    typeInfo.Context.Dependencies.Add(typeDependency);
+                    typeInfo.Definition.Interfaces.Add(typeDependency.TypeReference);
+                }
+            }
+        }
+    }
+
+    // defines if this type has a concrete runtime type.
+    private bool IsRelevant(TypeInfo typeInfo)
+    {
+        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef &&
+            objectDef.FieldBindingType != typeof(object))
+        {
+            return true;
+        }
+
+        Type? runtimeType = typeInfo.Definition.RuntimeType;
+        return runtimeType is not null && runtimeType != typeof(object);
+    }
+
+    private Type GetRuntimeType(TypeInfo typeInfo)
+    {
+        if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef)
+        {
+            return objectDef.FieldBindingType ?? typeof(object);
+        }
+
+        return typeInfo.Definition.RuntimeType;
+    }
+
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
+        {
+            _completed.Clear();
+            _completedFields.Clear();
+            _backlog.Clear();
+
+            foreach (ITypeReference? interfaceRef in typeDef.Interfaces)
+            {
+                if (completionContext.TryGetType(
+                    interfaceRef,
+                    out InterfaceType? interfaceType))
+                {
+                    _completed.Add(interfaceType.Name);
+                    _backlog.Enqueue(interfaceType);
+                }
             }
 
-            // we now will use the runtime types to infer interface usage ...
-            foreach (TypeInfo typeInfo in _typeInfos.Values.Where(IsRelevant))
+            foreach (InterfaceFieldDefinition? field in typeDef.Fields)
             {
-                _interfaceRuntimeTypes.Clear();
+                _completedFields.Add(field.Name);
+            }
 
-                TryInferInterfaceFromRuntimeType(
-                    GetRuntimeType(typeInfo),
-                    _allInterfaceRuntimeTypes,
-                    _interfaceRuntimeTypes);
+            CompleteInterfacesAndFields(typeDef);
+        }
 
-                if (_interfaceRuntimeTypes.Count > 0)
+        if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } } objectTypeDef)
+        {
+            _completed.Clear();
+            _completedFields.Clear();
+            _backlog.Clear();
+
+            foreach (ITypeReference? interfaceRef in objectTypeDef.Interfaces)
+            {
+                if (completionContext.TryGetType(
+                    interfaceRef,
+                    out InterfaceType? interfaceType))
                 {
-                    // if we detect that this type implements an interface,
-                    // we will register it as a dependency.
-                    foreach (var typeDependency in _interfaceRuntimeTypes.Select(
-                        t => new TypeDependency(
-                            TypeReference.Create(
-                                typeInfo.Context.TypeInspector.GetType(t),
-                                TypeContext.Output),
-                            TypeDependencyKind.Completed)))
+                    _completed.Add(interfaceType.Name);
+                    _backlog.Enqueue(interfaceType);
+                }
+            }
+
+            foreach (ObjectFieldDefinition? field in objectTypeDef.Fields)
+            {
+                _completedFields.Add(field.Name);
+            }
+
+            CompleteInterfacesAndFields(objectTypeDef);
+        }
+    }
+
+    private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
+    {
+        while (_backlog.Count > 0)
+        {
+            InterfaceType current = _backlog.Dequeue();
+            TypeInfo typeInfo = _typeInfos[current];
+            definition.Interfaces.Add(TypeReference.Create(current));
+
+            if (definition is InterfaceTypeDefinition interfaceDef)
+            {
+                foreach (InterfaceFieldDefinition? field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
+                {
+                    if (_completedFields.Add(field.Name))
                     {
-                        typeInfo.Context.Dependencies.Add(typeDependency);
-                        typeInfo.Definition.Interfaces.Add(typeDependency.TypeReference);
+                        interfaceDef.Fields.Add(field);
                     }
                 }
             }
-        }
 
-        // defines if this type has a concrete runtime type.
-        private bool IsRelevant(TypeInfo typeInfo)
+            foreach (InterfaceType? interfaceType in current.Implements)
+            {
+                if (_completed.Add(interfaceType.Name))
+                {
+                    _backlog.Enqueue(interfaceType);
+                }
+            }
+        }
+    }
+
+    private static void TryInferInterfaceFromRuntimeType(
+        Type runtimeType,
+        ICollection<Type> allInterfaces,
+        ICollection<Type> interfaces)
+    {
+        if (runtimeType == typeof(object))
         {
-            if (typeInfo.Definition is ObjectTypeDefinition {IsExtension: true} objectDef &&
-                objectDef.FieldBindingType != typeof(object))
-            {
-                return true;
-            }
-
-            Type? runtimeType = typeInfo.Definition.RuntimeType;
-            return runtimeType is not null && runtimeType != typeof(object);
+            return;
         }
 
-        private Type GetRuntimeType(TypeInfo typeInfo)
+        foreach (Type interfaceType in runtimeType.GetInterfaces())
         {
-            if (typeInfo.Definition is ObjectTypeDefinition { IsExtension: true } objectDef)
+            if (allInterfaces.Contains(interfaceType))
             {
-                return objectDef.FieldBindingType ?? typeof(object);
+                interfaces.Add(interfaceType);
             }
-
-            return typeInfo.Definition.RuntimeType;
         }
+    }
 
-        public override void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    private readonly struct TypeInfo
+    {
+        public TypeInfo(
+            ITypeDiscoveryContext context,
+            IComplexOutputTypeDefinition definition)
         {
-            if (definition is InterfaceTypeDefinition { Interfaces: { Count: > 0 } } typeDef)
-            {
-                _completed.Clear();
-                _completedFields.Clear();
-                _backlog.Clear();
-
-                foreach (var interfaceRef in typeDef.Interfaces)
-                {
-                    if (completionContext.TryGetType(
-                        interfaceRef,
-                        out InterfaceType? interfaceType))
-                    {
-                        _completed.Add(interfaceType.Name);
-                        _backlog.Enqueue(interfaceType);
-                    }
-                }
-
-                foreach (var field in typeDef.Fields)
-                {
-                    _completedFields.Add(field.Name);
-                }
-
-                CompleteInterfacesAndFields(typeDef);
-            }
-
-            if (definition is ObjectTypeDefinition { Interfaces: { Count: > 0 } }  objectTypeDef)
-            {
-                _completed.Clear();
-                _completedFields.Clear();
-                _backlog.Clear();
-
-                foreach (var interfaceRef in objectTypeDef.Interfaces)
-                {
-                    if (completionContext.TryGetType(
-                        interfaceRef,
-                        out InterfaceType? interfaceType))
-                    {
-                        _completed.Add(interfaceType.Name);
-                        _backlog.Enqueue(interfaceType);
-                    }
-                }
-
-                foreach (var field in objectTypeDef.Fields)
-                {
-                    _completedFields.Add(field.Name);
-                }
-
-                CompleteInterfacesAndFields(objectTypeDef);
-            }
+            Context = context;
+            Definition = definition;
         }
 
-        private void CompleteInterfacesAndFields(IComplexOutputTypeDefinition definition)
-        {
-            while(_backlog.Count > 0)
-            {
-                InterfaceType current = _backlog.Dequeue();
-                TypeInfo typeInfo = _typeInfos[current];
-                definition.Interfaces.Add(TypeReference.Create(current));
+        public ITypeDiscoveryContext Context { get; }
 
-                if (definition is InterfaceTypeDefinition interfaceDef)
-                {
-                    foreach (var field in ((InterfaceTypeDefinition)typeInfo.Definition).Fields)
-                    {
-                        if (_completedFields.Add(field.Name))
-                        {
-                            interfaceDef.Fields.Add(field);
-                        }
-                    }
-                }
+        public IComplexOutputTypeDefinition Definition { get; }
 
-                foreach (var interfaceType in current.Implements)
-                {
-                    if (_completed.Add(interfaceType.Name))
-                    {
-                        _backlog.Enqueue(interfaceType);
-                    }
-                }
-            }
-        }
-
-        private static void TryInferInterfaceFromRuntimeType(
-            Type runtimeType,
-            ICollection<Type> allInterfaces,
-            ICollection<Type> interfaces)
-        {
-            if (runtimeType == typeof(object))
-            {
-                return;
-            }
-
-            foreach (Type interfaceType in runtimeType.GetInterfaces())
-            {
-                if (allInterfaces.Contains(interfaceType))
-                {
-                    interfaces.Add(interfaceType);
-                }
-            }
-        }
-
-        private readonly struct TypeInfo
-        {
-            public TypeInfo(
-                ITypeDiscoveryContext context,
-                IComplexOutputTypeDefinition definition)
-            {
-                Context = context;
-                Definition = definition;
-            }
-
-            public ITypeDiscoveryContext Context { get; }
-
-            public IComplexOutputTypeDefinition  Definition { get; }
-
-            public override string? ToString() => Definition.Name;
-        }
+        public override string? ToString() => Definition.Name;
     }
 }

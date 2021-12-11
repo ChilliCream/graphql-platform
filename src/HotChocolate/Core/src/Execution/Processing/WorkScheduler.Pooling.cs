@@ -6,117 +6,115 @@ using HotChocolate.Execution.Processing.Plan;
 using HotChocolate.Fetching;
 using static HotChocolate.Execution.ThrowHelper;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal partial class WorkScheduler
 {
-    internal partial class WorkScheduler
+    private readonly object _sync = new();
+    private readonly WorkQueue _work = new();
+    private readonly WorkQueue _serial = new();
+    private readonly SuspendedWorkQueue _suspended = new();
+    private readonly QueryPlanStateMachine _stateMachine = new();
+    private readonly HashSet<int> _selections = new();
+
+    private readonly OperationContext _operationContext;
+    private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
+    private readonly ProcessingPause _pause = new();
+
+
+    private bool _processing;
+    private bool _completed;
+
+    private IRequestContext _requestContext = default!;
+    private IBatchDispatcher _batchDispatcher = default!;
+    private IErrorHandler _errorHandler = default!;
+    private IResultHelper _result = default!;
+    private IExecutionDiagnosticEvents _diagnosticEvents = default!;
+    private CancellationToken _requestAborted;
+
+    private bool _isInitialized;
+
+    public WorkScheduler(OperationContext operationContext)
     {
-        private readonly object _sync = new();
-        private readonly WorkQueue _work = new();
-        private readonly WorkQueue _serial = new();
-        private readonly SuspendedWorkQueue _suspended = new();
-        private readonly QueryPlanStateMachine _stateMachine = new();
-        private readonly HashSet<int> _selections = new();
+        _operationContext = operationContext;
+    }
 
-        private readonly OperationContext _operationContext;
-        private readonly DeferredWorkBacklog _deferredWorkBacklog = new();
-        private readonly Pause _pause;
+    public void Initialize(IBatchDispatcher batchDispatcher)
+    {
+        Clear();
 
-        private bool _processing;
-        private bool _completed;
+        _requestContext = _operationContext.RequestContext;
+        _errorHandler = _operationContext.ErrorHandler;
+        _result = _operationContext.Result;
+        _diagnosticEvents = _operationContext.DiagnosticEvents;
+        _requestAborted = _operationContext.RequestAborted;
+        _batchDispatcher = batchDispatcher;
 
-        private IRequestContext _requestContext = default!;
-        private IBatchDispatcher _batchDispatcher = default!;
-        private IErrorHandler _errorHandler = default!;
-        private IResultHelper _result = default!;
-        private IExecutionDiagnosticEvents _diagnosticEvents = default!;
-        private CancellationToken _requestAborted;
+        _stateMachine.Initialize(this, _operationContext.QueryPlan);
 
-        private bool _isInitialized;
+        _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
 
-        public WorkScheduler(OperationContext operationContext)
+        _isInitialized = true;
+    }
+
+    public void Clear()
+    {
+        lock (_sync)
         {
-            _operationContext = operationContext;
-            _pause = new(_sync);
+            TryContinue();
+
+            if (_batchDispatcher is not null)
+            {
+                _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                _batchDispatcher = default!;
+            }
+
+            _work.Clear();
+            _suspended.Clear();
+            _stateMachine.Clear();
+            _deferredWorkBacklog.Clear();
+            _selections.Clear();
+            _processing = false;
+            _completed = false;
+
+            _requestContext = default!;
+            _errorHandler = default!;
+            _result = default!;
+            _diagnosticEvents = default!;
+            _requestAborted = default;
+
+            _isInitialized = false;
         }
+    }
 
-        public void Initialize(IBatchDispatcher batchDispatcher)
+    public void Reset()
+    {
+        ResetStateMachine();
+    }
+
+    public void ResetStateMachine()
+    {
+        lock (_sync)
         {
-            Clear();
+            TryContinue();
 
-            _requestContext = _operationContext.RequestContext;
-            _errorHandler = _operationContext.ErrorHandler;
-            _result = _operationContext.Result;
-            _diagnosticEvents = _operationContext.DiagnosticEvents;
-            _requestAborted = _operationContext.RequestAborted;
-            _batchDispatcher = batchDispatcher;
-
+            _work.Clear();
+            _serial.Clear();
+            _suspended.Clear();
+            _stateMachine.Clear();
+            _selections.Clear();
             _stateMachine.Initialize(this, _operationContext.QueryPlan);
-            _requestContext.RequestAborted.Register(Cancel);
 
-            _batchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
-
-            _isInitialized = true;
+            _processing = false;
+            _completed = false;
         }
+    }
 
-        public void Clear()
+    private void AssertNotPooled()
+    {
+        if (!_isInitialized)
         {
-            lock (_sync)
-            {
-                _pause.TryContinueUnsafe();
-
-                if (_batchDispatcher is not null)
-                {
-                    _batchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-                    _batchDispatcher = default!;
-                }
-
-                _work.Clear();
-                _suspended.Clear();
-                _stateMachine.Clear();
-                _deferredWorkBacklog.Clear();
-                _selections.Clear();
-                _processing = false;
-                _completed = false;
-
-                _requestContext = default!;
-                _errorHandler = default!;
-                _result = default!;
-                _diagnosticEvents = default!;
-                _requestAborted = default;
-
-                _isInitialized = false;
-            }
-        }
-
-        public void Reset()
-        {
-            ResetStateMachine();
-        }
-
-        public void ResetStateMachine()
-        {
-            lock (_sync)
-            {
-                _pause.TryContinueUnsafe();
-
-                _work.Clear();
-                _serial.Clear();
-                _suspended.Clear();
-                _stateMachine.Clear();
-                _selections.Clear();
-                _stateMachine.Initialize(this, _operationContext.QueryPlan);
-
-                _processing = false;
-                _completed = false;
-            }
-        }
-
-        private void AssertNotPooled()
-        {
-            if (!_isInitialized)
-            {
-                throw Object_Not_Initialized();
-            }
+            throw Object_Not_Initialized();
         }
     }
 }

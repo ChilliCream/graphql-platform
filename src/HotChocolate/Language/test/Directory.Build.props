@@ -25,4 +25,8 @@
     <PackageReference Include="Snapshooter.Xunit" Version="0.5.2" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
 </Project>

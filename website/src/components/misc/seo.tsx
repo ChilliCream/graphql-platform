@@ -42,7 +42,7 @@ export const SEO: FC<SEOProps> = ({
           sourceInstanceName: { eq: "images" }
         ) {
           childImageSharp {
-            gatsbyImageData(layout: FIXED, width: 1200)
+            gatsbyImageData(layout: FIXED, width: 1200, quality: 100)
           }
         }
       }

@@ -5,29 +5,28 @@ using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class ObjectTypeParameterExpressionBuilder
+    : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectType>
 {
-    internal sealed class ObjectTypeParameterExpressionBuilder
-        : LambdaParameterExpressionBuilder<IPureResolverContext, IObjectType>
+    public ObjectTypeParameterExpressionBuilder()
+        : base(ctx => ctx.ObjectType)
     {
-        public ObjectTypeParameterExpressionBuilder()
-            : base(ctx => ctx.ObjectType)
-        {
-        }
+    }
 
-        public override ArgumentKind Kind => ArgumentKind.ObjectType;
+    public override ArgumentKind Kind => ArgumentKind.ObjectType;
 
-        public override bool CanHandle(ParameterInfo parameter)
-            => typeof(ObjectType) == parameter.ParameterType ||
-               typeof(IObjectType) == parameter.ParameterType;
+    public override bool CanHandle(ParameterInfo parameter)
+        => typeof(ObjectType) == parameter.ParameterType ||
+           typeof(IObjectType) == parameter.ParameterType;
 
-        public override Expression Build(ParameterInfo parameter, Expression context)
-        {
-            Expression expression = base.Build(parameter, context);
+    public override Expression Build(ParameterInfo parameter, Expression context)
+    {
+        Expression expression = base.Build(parameter, context);
 
-            return parameter.ParameterType == typeof(ObjectType)
-                ? Expression.Convert(expression, typeof(ObjectType))
-                : expression;
-        }
+        return parameter.ParameterType == typeof(ObjectType)
+            ? Expression.Convert(expression, typeof(ObjectType))
+            : expression;
     }
 }

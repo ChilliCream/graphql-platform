@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Types.Mutations" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Fetching\HotChocolate.Fetching.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />

@@ -1,9 +1,8 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public enum ApplyConfigurationOn
 {
-    public enum ApplyConfigurationOn
-    {
-        Create,
-        Naming,
-        Completion
-    }
+    Create,
+    Naming,
+    Completion
 }

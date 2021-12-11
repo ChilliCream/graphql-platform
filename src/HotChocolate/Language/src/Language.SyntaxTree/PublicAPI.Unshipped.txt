@@ -1,5 +1,0 @@
-HotChocolate.Language.IIntValueLiteral.ToSByte() -> sbyte
-HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, sbyte value) -> void
-HotChocolate.Language.IntValueNode.IntValueNode(sbyte value) -> void
-HotChocolate.Language.IntValueNode.WithValue(sbyte value) -> HotChocolate.Language.IntValueNode!
-HotChocolate.Language.IntValueNode.ToSByte() -> sbyte

@@ -18,17 +18,22 @@ export const SupportCard: FC<SupportCardProps> = ({
       <TopHalf>
         <Name>{name}</Name>
         <Description>{description}</Description>
-        <ContactUs href={`mailto:contact@chillicream.com?subject=${name} - Support`}>
+        <ContactUs
+          href={`mailto:contact@chillicream.com?subject=${name} - Support`}
+        >
           Contact Us
         </ContactUs>
       </TopHalf>
       <BottomHalf>
-        <Perks>{perks.map(perk => <Perk>{perk}</Perk>)}</Perks>
+        <Perks>
+          {perks.map((perk) => (
+            <Perk>{perk}</Perk>
+          ))}
+        </Perks>
       </BottomHalf>
     </Container>
   );
 };
-
 
 const ContactUs = styled.a`
   display: block;
@@ -45,10 +50,10 @@ const ContactUs = styled.a`
   font-weight: 600;
   border: 1px solid transparent;
   border-radius: 0.375rem;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
 
   :hover {
-    background-color: var(--brand-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 

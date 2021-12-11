@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPolygonInputTests
     {
-        private readonly ListValueNode _polygon = new(
+        private readonly ListValueNode _polygon = new(new ListValueNode(
             new ListValueNode(
                 new IntValueNode(30),
                 new IntValueNode(10)),
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(20)),
             new ListValueNode(
                 new IntValueNode(30),
-                new IntValueNode(10)));
+                new IntValueNode(10))));
 
         [Fact]
         public void ParseLiteral_Polygon_With_Single_Ring()

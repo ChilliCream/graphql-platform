@@ -2,14 +2,13 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+public interface ISelectionVariants
 {
-    public interface ISelectionVariants
-    {
-        SelectionSetNode SelectionSet { get; }
+    SelectionSetNode SelectionSet { get; }
 
-        IEnumerable<IObjectType> GetPossibleTypes();
+    IEnumerable<IObjectType> GetPossibleTypes();
 
-        ISelectionSet GetSelectionSet(IObjectType typeContext);
-    }
+    ISelectionSet GetSelectionSet(IObjectType typeContext);
 }

@@ -1,10 +1,9 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IBatchQueryResult
+    : IExecutionResult
+    , IResponseStream
 {
-    public interface IBatchQueryResult
-        : IExecutionResult
-        , IResponseStream
-    {
-    }
 }

@@ -1,19 +1,18 @@
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+/// <summary>
+/// Defines if middlewares are explicitly hosted through routing or of they are all
+/// included into one route.
+/// </summary>
+public enum MiddlewareRoutingType
 {
     /// <summary>
-    /// Defines if middlewares are explicitly hosted through routing or of they are all
-    /// included into one route.
+    /// Integrated into one route e.g. MapGraphQL()
     /// </summary>
-    public enum MiddlewareRoutingType
-    {
-        /// <summary>
-        /// Integrated into one route e.g. MapGraphQL()
-        /// </summary>
-        Integrated,
+    Integrated,
 
-        /// <summary>
-        /// Explicitly hosted e.g. MapGraphQLSchema()
-        /// </summary>
-        Explicit
-    }
+    /// <summary>
+    /// Explicitly hosted e.g. MapGraphQLSchema()
+    /// </summary>
+    Explicit
 }

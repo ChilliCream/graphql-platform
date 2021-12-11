@@ -7,27 +7,23 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBuilder
-    {
-        private static readonly PropertyInfo _schema;
+    private static readonly PropertyInfo _schema =
+        PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
 
-        static SchemaParameterExpressionBuilder()
-        {
-            _schema = PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
-            Debug.Assert(_schema is not null, "Schema property is missing." );
-        }
+    public ArgumentKind Kind => ArgumentKind.Schema;
 
-        public ArgumentKind Kind => ArgumentKind.Schema;
+    public bool IsPure => true;
 
-        public bool IsPure => true;
+    public bool IsDefaultHandler => false;
 
-        public bool CanHandle(ParameterInfo parameter)
-            => typeof(ISchema) == parameter.ParameterType ||
-               typeof(Schema) == parameter.ParameterType;
+    public bool CanHandle(ParameterInfo parameter)
+        => typeof(ISchema) == parameter.ParameterType ||
+           typeof(Schema) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Expression context)
-            => Expression.Convert(Expression.Property(context, _schema), parameter.ParameterType);
-    }
+    public Expression Build(ParameterInfo parameter, Expression context)
+        => Expression.Convert(Expression.Property(context, _schema), parameter.ParameterType);
 }

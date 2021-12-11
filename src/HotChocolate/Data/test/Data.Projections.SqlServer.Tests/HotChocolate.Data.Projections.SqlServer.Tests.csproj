@@ -3,7 +3,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Projections.SqlServer.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data.Projections</RootNamespace>
-    <TargetFrameworks>net6.0; net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-rc.2.21480.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
@@ -23,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0-rc.2.21480.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0-rc.2.21480.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0-rc.2.21480.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
   </ItemGroup>
 
 </Project>

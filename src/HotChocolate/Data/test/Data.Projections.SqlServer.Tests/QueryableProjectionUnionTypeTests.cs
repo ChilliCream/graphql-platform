@@ -7,24 +7,24 @@ using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionUnionTypeTests
 {
-    public class QueryableProjectionUnionTypeTests
+    private static readonly AbstractType[] _barEntities =
     {
-        private static readonly AbstractType[] _barEntities =
-        {
             new Bar { Name = "Bar", BarProp = "BarProp" },
             new Foo { Name = "Foo", FooProp = "FooProp" }
         };
 
-        private static readonly NestedObject[] _barNestedEntities =
-        {
+    private static readonly NestedObject[] _barNestedEntities =
+    {
             new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
             new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
         };
 
-        private static readonly NestedList[] _barListEntities =
-        {
+    private static readonly NestedList[] _barListEntities =
+    {
             new()
             {
                 List = new()
@@ -43,21 +43,21 @@ namespace HotChocolate.Data.Projections
             },
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new SchemaCache();
 
-        [Fact]
-        public async Task Create_Union()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Union()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 ... on Foo {
@@ -68,39 +68,39 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Union_Pagination()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema(_barEntities,
-                    OnModelCreating,
-                    configure: x =>
-                    {
-                        ConfigureSchema(x);
+    [Fact]
+    public async Task Create_Union_Pagination()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities,
+                OnModelCreating,
+                configure: x =>
+                {
+                    ConfigureSchema(x);
 
-                        var typeExtension =
-                            new ObjectTypeExtension<StubObject<AbstractType>>(
-                                y =>
-                                {
-                                    y.Name("Query");
-                                    y.Field(z => z.Root).UsePaging<UnionType<AbstractType>>();
-                                });
+                    var typeExtension =
+                        new ObjectTypeExtension<StubObject<AbstractType>>(
+                            y =>
+                            {
+                                y.Name("Query");
+                                y.Field(z => z.Root).UsePaging<UnionType<AbstractType>>();
+                            });
 
-                        x.AddType(typeExtension);
-                    });
+                    x.AddType(typeExtension);
+                });
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 nodes {
@@ -113,24 +113,24 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Union_Nested()
-        {
-            // arrange
-            IRequestExecutor tester = _cache
-                .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Union_Nested()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 nested {
@@ -143,24 +143,24 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Union_NestedList()
-        {
-            // arrange
-            IRequestExecutor tester = _cache
-                .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Union_NestedList()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 list {
@@ -173,56 +173,81 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        public static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<AbstractType>()
-                .HasDiscriminator<string>("d")
-                .HasValue<Bar>("bar")
-                .HasValue<Foo>("foo");
-        }
+    [Fact]
+    public async Task Create_Union_Without_Missing()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
-        public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
-        {
-            schemaBuilder
-                .AddType(new ObjectType<Foo>())
-                .AddType(new ObjectType<Bar>());
-        }
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                ... on Foo {
+                                    fooProp
+                                }
+                            }
+                        }")
+                .Create());
 
-        public class NestedList
-        {
-            public int Id { get; set; }
+        res1.MatchSqlSnapshot();
+    }
 
-            public List<AbstractType> List { get; set; }
-        }
 
-        public class NestedObject
-        {
-            public int Id { get; set; }
+    public static void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AbstractType>()
+            .HasDiscriminator<string>("d")
+            .HasValue<Bar>("bar")
+            .HasValue<Foo>("foo");
+    }
 
-            public AbstractType Nested { get; set; }
-        }
+    public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    {
+        schemaBuilder
+            .AddType(new ObjectType<Foo>())
+            .AddType(new ObjectType<Bar>());
+    }
 
-        public class Foo : AbstractType
-        {
-            public string FooProp { get; set; }
-        }
+    public class NestedList
+    {
+        public int Id { get; set; }
 
-        [UnionType]
-        public abstract class AbstractType
-        {
-            public int Id { get; set; }
+        public List<AbstractType> List { get; set; } = default!;
+    }
 
-            public string Name { get; set; }
-        }
+    public class NestedObject
+    {
+        public int Id { get; set; }
 
-        public class Bar : AbstractType
-        {
-            public string BarProp { get; set; }
-        }
+        public AbstractType Nested { get; set; } = default!;
+    }
+
+    public class Foo : AbstractType
+    {
+        public string FooProp { get; set; } = default!;
+    }
+
+    [UnionType]
+    public abstract class AbstractType
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = default!;
+    }
+
+    public class Bar : AbstractType
+    {
+        public string BarProp { get; set; } = default!;
     }
 }

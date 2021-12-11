@@ -1,15 +1,14 @@
 using System;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+public interface IFilterInputTypeDefinition
 {
-    public interface IFilterInputTypeDefinition
-    {
-        Type? EntityType { get; }
+    Type? EntityType { get; }
 
-        string? Scope { get; }
+    string? Scope { get; }
 
-        bool UseOr { get; }
+    bool UseOr { get; }
 
-        bool UseAnd { get; }
-    }
+    bool UseAnd { get; }
 }

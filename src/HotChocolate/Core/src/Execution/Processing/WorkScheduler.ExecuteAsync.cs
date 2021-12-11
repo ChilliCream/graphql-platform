@@ -1,120 +1,117 @@
 using System;
 using System.Buffers;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Processing.Tasks;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal partial class WorkScheduler
 {
-    internal partial class WorkScheduler
+    private readonly IExecutionTask?[] _buffer = new IExecutionTask?[16];
+
+    public async Task ExecuteAsync()
     {
-        private readonly IExecutionTask?[] _buffer = new IExecutionTask?[16];
+        _stateMachine.Start();
 
-        public async Task ExecuteAsync()
+        if (_suspended.HasWork)
         {
-            _stateMachine.Start();
+            _suspended.CopyTo(_work, _serial, _stateMachine);
+        }
 
-            if (_suspended.HasWork)
-            {
-                _suspended.CopyTo(_work, _serial, _stateMachine);
-            }
-
-            _processing = true;
-            IExecutionTask?[] buffer = _buffer;
+        IExecutionTask?[] buffer = _buffer;
 
 RESTART:
-            try
+        lock (_sync)
+        {
+            _processing = true;
+        }
+
+        _diagnosticEvents.StartProcessing(_requestContext);
+
+        try
+        {
+            do
             {
-                do
+                var work = TryTake(buffer);
+
+                if (work != 0)
                 {
-                    var work = TryTake(buffer);
-
-                    if (work != 0)
+                    if (!buffer[0]!.IsSerial)
                     {
-                        if (!buffer[0]!.IsSerial)
+                        for (var i = 0; i < work; i++)
                         {
-                            for (var i = 0; i < work; i++)
-                            {
-                                buffer[i]!.BeginExecute(_requestAborted);
-                                buffer[i] = null;
-                            }
-                        }
-                        else
-                        {
-                            try
-                            {
-                                _batchDispatcher.DispatchOnSchedule = true;
-
-                                for (var i = 0; i < work; i++)
-                                {
-                                    IExecutionTask task = buffer[i]!;
-                                    task.BeginExecute(_requestAborted);
-                                    await task.WaitForCompletionAsync(_requestAborted)
-                                        .ConfigureAwait(false);
-                                    buffer[i] = null;
-
-                                    if (_requestAborted.IsCancellationRequested)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                            finally
-                            {
-                                _batchDispatcher.DispatchOnSchedule = false;
-                            }
+                            buffer[i]!.BeginExecute(_requestAborted);
+                            buffer[i] = null;
                         }
                     }
                     else
                     {
-                        if (_work.HasRunningTasks || _serial.HasRunningTasks)
+                        try
                         {
-                            await Task.Yield();
+                            _batchDispatcher.DispatchOnSchedule = true;
+
+                            for (var i = 0; i < work; i++)
+                            {
+                                IExecutionTask task = buffer[i]!;
+                                task.BeginExecute(_requestAborted);
+                                await task.WaitForCompletionAsync(_requestAborted)
+                                    .ConfigureAwait(false);
+                                buffer[i] = null;
+                            }
                         }
-
-                        break;
+                        finally
+                        {
+                            _batchDispatcher.DispatchOnSchedule = false;
+                        }
                     }
-
-                } while (!_requestAborted.IsCancellationRequested);
-            }
-            catch (Exception ex)
-            {
-                if (!_requestAborted.IsCancellationRequested)
-                {
-                    HandleError(ex);
                 }
-            }
+                else
+                {
+                    break;
+                }
 
-            // if there is no more work we will try to scale down.
-            // Note: we always trigger this method, even if the request was canceled.
-            if (await TryStopProcessing() == false)
+            } while (!_requestAborted.IsCancellationRequested);
+        }
+        catch (Exception ex)
+        {
+            if (!_requestAborted.IsCancellationRequested)
             {
-                goto RESTART;
+                HandleError(ex);
             }
-
-            buffer.AsSpan().Clear();
-            _requestAborted.ThrowIfCancellationRequested();
         }
 
-        private void HandleError(Exception exception)
+        // if there is no more work we will try to scale down.
+        // Note: we always trigger this method, even if the request was canceled.
+        if (await TryStopProcessingAsync().ConfigureAwait(false) == false)
         {
-            IError error =
-                _errorHandler
-                    .CreateUnexpectedError(exception)
-                    .SetCode(ErrorCodes.Execution.TaskProcessingError)
-                    .Build();
+            goto RESTART;
+        }
 
-            error = _errorHandler.Handle(error);
+        buffer.AsSpan().Clear();
+        _requestAborted.ThrowIfCancellationRequested();
+    }
 
-            if (error is AggregateError aggregateError)
+    private void HandleError(Exception exception)
+    {
+        IError error =
+            _errorHandler
+                .CreateUnexpectedError(exception)
+                .SetCode(ErrorCodes.Execution.TaskProcessingError)
+                .Build();
+
+        error = _errorHandler.Handle(error);
+
+        if (error is AggregateError aggregateError)
+        {
+            foreach (IError? innerError in aggregateError.Errors)
             {
-                foreach (var innerError in aggregateError.Errors)
-                {
-                    _result.AddError(innerError);
-                }
+                _result.AddError(innerError);
             }
-            else
-            {
-                _result.AddError(error);
-            }
+        }
+        else
+        {
+            _result.AddError(error);
         }
     }
 }

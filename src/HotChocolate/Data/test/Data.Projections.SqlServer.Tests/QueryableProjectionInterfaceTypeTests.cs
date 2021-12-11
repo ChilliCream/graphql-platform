@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Data.Projections.Extensions;
@@ -7,24 +8,24 @@ using Microsoft.EntityFrameworkCore;
 using Xunit;
 using static HotChocolate.Data.Projections.ProjectionVisitorTestBase;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionInterfaceTypeTests
 {
-    public class QueryableProjectionInterfaceTypeTests
+    private static readonly AbstractType[] _barEntities =
     {
-        private static readonly AbstractType[] _barEntities =
-        {
             new Bar { Name = "Bar", BarProp = "BarProp" },
             new Foo { Name = "Foo", FooProp = "FooProp" }
         };
 
-        private static readonly NestedObject[] _barNestedEntities =
-        {
+    private static readonly NestedObject[] _barNestedEntities =
+    {
             new() { Nested = new Bar { Name = "Bar", BarProp = "BarProp" } },
             new() { Nested = new Foo { Name = "Foo", FooProp = "FooProp" } },
         };
 
-        private static readonly NestedList[] _barListEntities =
-        {
+    private static readonly NestedList[] _barListEntities =
+    {
             new()
             {
                 List = new()
@@ -43,21 +44,21 @@ namespace HotChocolate.Data.Projections
             },
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+    private readonly SchemaCache _cache = new SchemaCache();
 
-        [Fact]
-        public async Task Create_Interface()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Interface()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 name
@@ -69,39 +70,39 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Interface_Pagination()
-        {
-            // arrange
-            IRequestExecutor tester =
-                _cache.CreateSchema(_barEntities,
-                    OnModelCreating,
-                    configure: x =>
-                    {
-                        ConfigureSchema(x);
+    [Fact]
+    public async Task Create_Interface_Pagination()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities,
+                OnModelCreating,
+                configure: x =>
+                {
+                    ConfigureSchema(x);
 
-                        var typeExtension =
-                            new ObjectTypeExtension<StubObject<AbstractType>>(
-                                y =>
-                                {
-                                    y.Name("Query");
-                                    y.Field(z => z.Root).UsePaging<InterfaceType<AbstractType>>();
-                                });
+                    var typeExtension =
+                        new ObjectTypeExtension<StubObject<AbstractType>>(
+                            y =>
+                            {
+                                y.Name("Query");
+                                y.Field(z => z.Root).UsePaging<InterfaceType<AbstractType>>();
+                            });
 
-                        x.AddType(typeExtension);
-                    });
+                    x.AddType(typeExtension);
+                });
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 nodes {
@@ -115,24 +116,24 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Interface_Nested()
-        {
-            // arrange
-            IRequestExecutor tester = _cache
-                .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Interface_Nested()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(_barNestedEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 nested {
@@ -146,24 +147,24 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        [Fact]
-        public async Task Create_Interface_NestedList()
-        {
-            // arrange
-            IRequestExecutor tester = _cache
-                .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
+    [Fact]
+    public async Task Create_Interface_NestedList()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(_barListEntities, OnModelCreating, configure: ConfigureSchema);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
                         {
                             root {
                                 list {
@@ -177,62 +178,158 @@ namespace HotChocolate.Data.Projections
                                 }
                             }
                         }")
-                    .Create());
+                .Create());
 
-            res1.MatchSqlSnapshot();
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        public static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<AbstractType>()
-                .HasDiscriminator<string>("d")
-                .HasValue<Bar>("bar")
-                .HasValue<Foo>("foo");
-        }
+    [Fact]
+    public async Task Paging_Interface_List()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(
+                _barEntities,
+                OnModelCreating,
+                configure: ConfigureSchema,
+                schemaType: typeof(InterfaceType<AbstractType>),
+                usePaging: true);
 
-        public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
-        {
-            schemaBuilder
-                .AddType(new ObjectType<Foo>(
-                    x => x.Implements<InterfaceType<AbstractType>>()))
-                .AddType(new ObjectType<Bar>(
-                    x => x.Implements<InterfaceType<AbstractType>>()));
-        }
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                nodes {
+                                    name
+                                    ... on Foo {
+                                        fooProp
+                                    }
+                                    ... on Bar {
+                                        barProp
+                                    }
+                                }
+                            }
+                        }")
+                .Create());
 
-        public class NestedList
-        {
-            public int Id { get; set; }
+        res1.MatchSqlSnapshot();
+    }
 
-            public List<AbstractType> List { get; set; }
-        }
+    [Fact]
+    public async Task OffsetPaging_Interface_List()
+    {
+        // arrange
+        IRequestExecutor tester = _cache
+            .CreateSchema(
+                _barEntities,
+                OnModelCreating,
+                configure: ConfigureSchema,
+                schemaType: typeof(InterfaceType<AbstractType>),
+                useOffsetPaging: true);
 
-        public class NestedObject
-        {
-            public int Id { get; set; }
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                items {
+                                    name
+                                    ... on Foo {
+                                        fooProp
+                                    }
+                                    ... on Bar {
+                                        barProp
+                                    }
+                                }
+                            }
+                        }")
+                .Create());
 
-            public AbstractType Nested { get; set; }
-        }
+        res1.MatchSqlSnapshot();
+    }
 
-        public class Foo : AbstractType
-        {
-            public int Id { get; set; }
+    [Fact]
+    public async Task Create_Interface_Without_Missing()
+    {
+        // arrange
+        IRequestExecutor tester =
+            _cache.CreateSchema(_barEntities, OnModelCreating, configure: ConfigureSchema);
 
-            public string FooProp { get; set; }
-        }
+        // act
+        // assert
+        IExecutionResult res1 = await tester.ExecuteAsync(
+            QueryRequestBuilder.New()
+                .SetQuery(
+                    @"
+                        {
+                            root {
+                                ... on Foo {
+                                    fooProp
+                                }
+                            }
+                        }")
+                .Create());
 
-        [InterfaceType]
-        public abstract class AbstractType
-        {
-            public int Id { get; set; }
+        res1.MatchSqlSnapshot();
+    }
 
-            public string Name { get; set; }
-        }
+    public static void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AbstractType>()
+            .HasDiscriminator<string>("d")
+            .HasValue<Bar>("bar")
+            .HasValue<Foo>("foo");
+    }
 
-        public class Bar : AbstractType
-        {
-            public int Id { get; set; }
+    public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    {
+        schemaBuilder
+            .AddType(new ObjectType<Foo>(
+                x => x.Implements<InterfaceType<AbstractType>>()))
+            .AddType(new ObjectType<Bar>(
+                x => x.Implements<InterfaceType<AbstractType>>()));
+    }
 
-            public string BarProp { get; set; }
-        }
+    public class NestedList
+    {
+        public int Id { get; set; }
+
+        public List<AbstractType> List { get; set; } = default!;
+    }
+
+    public class NestedObject
+    {
+        public int Id { get; set; }
+
+        public AbstractType Nested { get; set; } = default!;
+    }
+
+    public class Foo : AbstractType
+    {
+        public new int Id { get; set; }
+
+        public string FooProp { get; set; } = default!;
+    }
+
+    [InterfaceType]
+    public abstract class AbstractType
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; } = default!;
+    }
+
+    public class Bar : AbstractType
+    {
+        public new int Id { get; set; }
+
+        public string? BarProp { get; set; }
     }
 }

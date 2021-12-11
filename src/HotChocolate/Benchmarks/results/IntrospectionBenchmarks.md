@@ -1,15 +1,30 @@
 ``` ini
 
-BenchmarkDotNet=v0.12.1, OS=macOS 12.0 (21A5506j) [Darwin 21.1.0]
+BenchmarkDotNet=v0.13.1, OS=macOS Monterey 12.1 (21C5031d) [Darwin 21.2.0]
 Intel Core i9-10910 CPU 3.60GHz, 1 CPU, 20 logical and 10 physical cores
-.NET Core SDK=5.0.400
-  [Host]     : .NET Core 5.0.9 (CoreCLR 5.0.921.35908, CoreFX 5.0.921.35908), X64 RyuJIT
-  DefaultJob : .NET Core 5.0.9 (CoreCLR 5.0.921.35908, CoreFX 5.0.921.35908), X64 RyuJIT
+.NET SDK=6.0.100
+  [Host]     : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
+  DefaultJob : .NET 5.0.12 (5.0.1221.52207), X64 RyuJIT
 
 
 ```
-|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Gen 2 | Allocated |
-|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|------:|----------:|
-|               Query_TypeName |   7.950 μs | 0.1333 μs | 0.1247 μs |   7.924 μs |    1 |  0.2594 |      - |     - |   2.77 KB |
-|          Query_Introspection | 895.865 μs | 3.3316 μs | 3.1164 μs | 896.054 μs |    2 | 22.4609 | 0.9766 |     - | 230.96 KB |
-| Query_Introspection_Prepared | 897.750 μs | 3.0161 μs | 2.6737 μs | 898.582 μs |    2 | 22.4609 | 0.9766 |     - | 229.63 KB |
+main
+|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
+|               Query_TypeName |   8.134 μs | 0.1533 μs | 0.1434 μs |   8.138 μs |    1 |  0.2289 |      - |      2 KB |
+|          Query_Introspection | 960.094 μs | 5.8602 μs | 5.4817 μs | 961.218 μs |    2 | 22.4609 | 0.9766 |    230 KB |
+| Query_Introspection_Prepared | 968.765 μs | 9.4212 μs | 8.8126 μs | 968.530 μs |    2 | 21.4844 | 0.9766 |    229 KB |
+
+12.2.1
+|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
+|               Query_TypeName |   8.100 μs | 0.0869 μs | 0.0770 μs |   8.104 μs |    1 |  0.2289 |      - |      2 KB |
+|          Query_Introspection | 969.357 μs | 2.5649 μs | 2.3992 μs | 969.569 μs |    2 | 22.4609 | 0.9766 |    230 KB |
+| Query_Introspection_Prepared | 958.411 μs | 3.8217 μs | 3.5748 μs | 958.212 μs |    2 | 21.4844 | 0.9766 |    229 KB |
+
+12.0.1
+|                       Method |       Mean |     Error |    StdDev |     Median | Rank |   Gen 0 |  Gen 1 | Allocated |
+|----------------------------- |-----------:|----------:|----------:|-----------:|-----:|--------:|-------:|----------:|
+|               Query_TypeName |   8.062 μs | 0.0536 μs | 0.0502 μs |   8.080 μs |    1 |  0.2594 |      - |      3 KB |
+|          Query_Introspection | 951.355 μs | 4.8614 μs | 4.3095 μs | 950.287 μs |    2 | 22.4609 | 0.9766 |    231 KB |
+| Query_Introspection_Prepared | 960.894 μs | 4.5215 μs | 4.2294 μs | 961.325 μs |    2 | 22.4609 | 0.9766 |    229 KB |

@@ -1,9 +1,8 @@
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Relay;
+
+/// <summary>
+/// Marker interface for relay node types.
+/// </summary>
+public interface INode
 {
-    /// <summary>
-    /// Marker interface for relay node types.
-    /// </summary>
-    public interface INode
-    {
-    }
 }

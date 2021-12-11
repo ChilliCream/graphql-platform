@@ -7,26 +7,27 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class CancellationTokenParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    internal sealed class CancellationTokenParameterExpressionBuilder : IParameterExpressionBuilder
+    private static readonly PropertyInfo _cancellationToken =
+        ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
+
+    static CancellationTokenParameterExpressionBuilder()
     {
-        private static readonly PropertyInfo _cancellationToken =
-            ContextType.GetProperty(nameof(IResolverContext.RequestAborted))!;
-
-        static CancellationTokenParameterExpressionBuilder()
-        {
-            Debug.Assert(_cancellationToken is not null, "RequestAborted property is missing." );
-        }
-
-        public ArgumentKind Kind => ArgumentKind.CancellationToken;
-
-        public bool IsPure => false;
-
-        public bool CanHandle(ParameterInfo parameter)
-            => typeof(CancellationToken) == parameter.ParameterType;
-
-        public Expression Build(ParameterInfo parameter, Expression context)
-            => Expression.Property(context, _cancellationToken);
+        Debug.Assert(_cancellationToken is not null, "RequestAborted property is missing.");
     }
+
+    public ArgumentKind Kind => ArgumentKind.CancellationToken;
+
+    public bool IsPure => false;
+
+    public bool IsDefaultHandler => false;
+
+    public bool CanHandle(ParameterInfo parameter)
+        => typeof(CancellationToken) == parameter.ParameterType;
+
+    public Expression Build(ParameterInfo parameter, Expression context)
+        => Expression.Property(context, _cancellationToken);
 }

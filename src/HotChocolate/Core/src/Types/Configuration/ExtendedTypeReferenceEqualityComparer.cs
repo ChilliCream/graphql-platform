@@ -7,83 +7,82 @@ using HotChocolate.Utilities;
 
 #nullable enable
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration;
+
+internal sealed class ExtendedTypeReferenceEqualityComparer
+    : IEqualityComparer<ExtendedTypeReference>
 {
-    internal sealed class ExtendedTypeReferenceEqualityComparer
-        : IEqualityComparer<ExtendedTypeReference>
+    public bool Equals([AllowNull] ExtendedTypeReference x, [AllowNull] ExtendedTypeReference y)
     {
-        public bool Equals([AllowNull] ExtendedTypeReference x, [AllowNull] ExtendedTypeReference y)
+        if (ReferenceEquals(x, y))
         {
-            if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
-            {
-                return false;
-            }
-
-            if (x.Context != y.Context
-                && x.Context != TypeContext.None
-                && y.Context != TypeContext.None)
-            {
-                return false;
-            }
-
-            if (!x.Scope.EqualsOrdinal(y.Scope))
-            {
-                return false;
-            }
-
-            return Equals(x.Type, y.Type);
+            return true;
         }
 
-        private static bool Equals([AllowNull] IExtendedType x, [AllowNull] IExtendedType y)
+        if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
         {
-            if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
-            {
-                return false;
-            }
-
-            return ReferenceEquals(x.Type, y.Type) && x.Kind == y.Kind;
+            return false;
         }
 
-        public int GetHashCode([DisallowNull] ExtendedTypeReference obj)
+        if (x.Context != y.Context
+            && x.Context != TypeContext.None
+            && y.Context != TypeContext.None)
         {
-            unchecked
-            {
-                var hashCode = GetHashCode(obj.Type);
-
-                if (obj.Scope is not null)
-                {
-                    hashCode ^= obj.GetHashCode() * 397;
-                }
-
-                return hashCode;
-            }
+            return false;
         }
 
-        private static int GetHashCode([DisallowNull] IExtendedType obj)
+        if (!x.Scope.EqualsOrdinal(y.Scope))
         {
-            unchecked
-            {
-                var hashCode = (obj.Type.GetHashCode() * 397)
-                   ^ (obj.Kind.GetHashCode() * 397);
-
-                for (var i = 0; i < obj.TypeArguments.Count; i++)
-                {
-                    hashCode ^= (GetHashCode(obj.TypeArguments[i]) * 397 * i);
-                }
-
-                return hashCode;
-            }
+            return false;
         }
 
+        return Equals(x.Type, y.Type);
     }
+
+    private static bool Equals([AllowNull] IExtendedType x, [AllowNull] IExtendedType y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+        {
+            return false;
+        }
+
+        return ReferenceEquals(x.Type, y.Type) && x.Kind == y.Kind;
+    }
+
+    public int GetHashCode([DisallowNull] ExtendedTypeReference obj)
+    {
+        unchecked
+        {
+            var hashCode = GetHashCode(obj.Type);
+
+            if (obj.Scope is not null)
+            {
+                hashCode ^= obj.GetHashCode() * 397;
+            }
+
+            return hashCode;
+        }
+    }
+
+    private static int GetHashCode([DisallowNull] IExtendedType obj)
+    {
+        unchecked
+        {
+            var hashCode = (obj.Type.GetHashCode() * 397)
+               ^ (obj.Kind.GetHashCode() * 397);
+
+            for (var i = 0; i < obj.TypeArguments.Count; i++)
+            {
+                hashCode ^= (GetHashCode(obj.TypeArguments[i]) * 397 * i);
+            }
+
+            return hashCode;
+        }
+    }
+
 }

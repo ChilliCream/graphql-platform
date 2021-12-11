@@ -47,11 +47,11 @@ const Page = styled.li`
   margin: 0 5px;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
 
   &.active,
   &:hover {
-    background-color: var(--brand-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 
