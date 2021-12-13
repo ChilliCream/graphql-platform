@@ -6,7 +6,6 @@ namespace HotChocolate.Data.Projections.Expressions;
 
 public static class TypeExtensions
 {
-    [Obsolete]
     public static Type UnwrapRuntimeType(this IType type) =>
         type switch
         {

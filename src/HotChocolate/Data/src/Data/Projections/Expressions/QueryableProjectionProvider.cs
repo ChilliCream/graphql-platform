@@ -24,7 +24,6 @@ public class QueryableProjectionProvider : ProjectionProvider
     {
     }
 
-    [Obsolete]
     public override FieldMiddleware CreateExecutor<TEntityType>()
     {
         ApplyProjection applyProjection = CreateApplicatorAsync<TEntityType>();
@@ -45,7 +44,6 @@ public class QueryableProjectionProvider : ProjectionProvider
         }
     }
 
-    [Obsolete]
     private static ApplyProjection CreateApplicatorAsync<TEntityType>()
     {
         return (context, input) =>

@@ -230,7 +230,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
     {
         // arrange
@@ -267,7 +266,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
     {
         // arrange
@@ -304,7 +302,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
     {
         // arrange
@@ -342,7 +339,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
     {
         // arrange
@@ -378,7 +374,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
     {
         // arrange
@@ -417,7 +412,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
     {
         // arrange
@@ -454,7 +448,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
@@ -493,7 +486,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
     {
@@ -534,7 +526,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {

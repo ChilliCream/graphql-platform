@@ -39,7 +39,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     protected virtual FilterVisitor<QueryableFilterContext, Expression> Visitor { get; } =
         new(new QueryableCombinator());
 
-    [Obsolete]
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
     {
         ApplyFiltering applyFilter = CreateApplicatorAsync<TEntityType>(argumentName);
@@ -58,7 +57,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    [Obsolete]
     private static ApplyFiltering CreateApplicatorAsync<TEntityType>(NameString argumentName)
     {
         return (context, input) =>

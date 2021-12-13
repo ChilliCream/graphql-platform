@@ -71,7 +71,6 @@ internal static class ThrowHelper
                 .SetExtension(nameof(filterProvider), filterProvider)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Filtering_FilteringWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -81,7 +80,6 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Filtering_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -294,7 +292,6 @@ internal static class ThrowHelper
                     type.Print())
                 .Build());
 
-    [Obsolete]
     public static SchemaException Sorting_SortingWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -304,7 +301,6 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Sorting_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -348,7 +344,6 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Projection_ProjectionWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
@@ -358,7 +353,6 @@ internal static class ThrowHelper
                 .SetExtension("typeName", context.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Projection_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
