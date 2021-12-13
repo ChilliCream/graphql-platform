@@ -336,6 +336,7 @@ public class FilterInputTypeTest
             Assert.IsType<FilterField>(type.Fields["name"]).Handler);
     }
 
+    [Fact]
     public void FilterInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
@@ -393,14 +394,14 @@ public class FilterInputTypeTest
 
     public class Foo
     {
-        public string? Bar { get; set; }
+        public string Bar { get; set; } = default!;
     }
 
     public class Bar
     {
-        public string? Baz { get; set; }
+        public string Baz { get; set; } = default!;
 
-        public string? Qux { get; set; }
+        public string Qux { get; set; } = default!;
     }
 
     public class Query
@@ -524,7 +525,7 @@ public class FilterInputTypeTest
 
     public class TestObject<T>
     {
-        public T? Root { get; set; }
+        public T Root { get; set; } = default!;
     }
 
     public class TestingType<T> : ObjectType<TestObject<T>>

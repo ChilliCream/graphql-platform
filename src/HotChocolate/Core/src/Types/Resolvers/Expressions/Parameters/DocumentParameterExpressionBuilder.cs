@@ -11,13 +11,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class DocumentParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    private static readonly PropertyInfo _document;
-
-    static DocumentParameterExpressionBuilder()
-    {
-        _document = ContextType.GetProperty(nameof(IResolverContext.Document))!;
-        Debug.Assert(_document is not null, "Document property is missing.");
-    }
+    private static readonly PropertyInfo _document =
+        ContextType.GetProperty(nameof(IResolverContext.Document))!;
 
     public ArgumentKind Kind => ArgumentKind.DocumentSyntax;
 

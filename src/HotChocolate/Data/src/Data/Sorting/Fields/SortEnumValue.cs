@@ -7,8 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting;
 
-public sealed class SortEnumValue
-    : ISortEnumValue
+public sealed class SortEnumValue : ISortEnumValue
 {
     private readonly DirectiveCollection _directives;
 
@@ -39,10 +38,9 @@ public sealed class SortEnumValue
             : (NameString)enumValueDefinition.Value.ToString();
         Description = enumValueDefinition.Description;
         DeprecationReason = enumValueDefinition.DeprecationReason;
-        IsDeprecated = !string.IsNullOrEmpty(
-            enumValueDefinition.DeprecationReason);
+        IsDeprecated = enumValueDefinition.IsDeprecated;
         Value = enumValueDefinition.Value;
-        ContextData = enumValueDefinition.ContextData;
+        ContextData = enumValueDefinition.GetContextData();
         Handler = enumValueDefinition.Handler;
         Operation = enumValueDefinition.Operation;
 

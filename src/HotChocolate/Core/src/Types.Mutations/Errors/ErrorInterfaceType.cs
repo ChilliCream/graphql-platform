@@ -1,6 +1,6 @@
 namespace HotChocolate.Types;
 
-internal class ErrorInterfaceType : InterfaceType
+internal sealed class ErrorInterfaceType : InterfaceType
 {
     protected override void Configure(IInterfaceTypeDescriptor descriptor)
     {

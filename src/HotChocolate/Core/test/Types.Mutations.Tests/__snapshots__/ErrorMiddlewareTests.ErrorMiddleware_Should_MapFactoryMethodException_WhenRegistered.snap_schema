@@ -1,5 +1,5 @@
 ﻿schema {
-  query: Query
+  mutation: Mutation
 }
 
 interface Error {
@@ -10,13 +10,17 @@ type CustomErrorWithFactory implements Error {
   message: String!
 }
 
-type Payload {
-  foo: String
-  errors: [ThrowError!]
+type Mutation {
+  throw: ThrowPayload!
 }
 
-type Query {
-  throw: Payload
+type Payload {
+  foo: String!
+}
+
+type ThrowPayload {
+  payload: Payload
+  errors: [ThrowError!]
 }
 
 union ThrowError = CustomErrorWithFactory

@@ -4,8 +4,10 @@ using HotChocolate.Language.Utilities;
 
 namespace HotChocolate.Language
 {
-    public sealed class ArgumentNode
-        : ISyntaxNode
+    /// <summary>
+    /// This syntax node represents a argument value of a <see cref="FieldNode"/>.
+    /// </summary>
+    public sealed class ArgumentNode : ISyntaxNode
     {
         public ArgumentNode(string name, string value)
             : this(null, new NameNode(name), new StringValueNode(value))
@@ -34,14 +36,19 @@ namespace HotChocolate.Language
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <inheritdoc />
         public SyntaxKind Kind { get; } = SyntaxKind.Argument;
 
+        /// <inheritdoc />
         public Location? Location { get; }
 
+        /// <inheritdoc />
         public NameNode Name { get; }
 
+        /// <inheritdoc />
         public IValueNode Value { get; }
 
+        /// <inheritdoc />
         public IEnumerable<ISyntaxNode> GetNodes()
         {
             yield return Name;
@@ -69,19 +76,43 @@ namespace HotChocolate.Language
         /// </returns>
         public string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+        /// <summary>
+        /// Creates a new node from the current instance and replaces the 
+        /// <see cref="Location" /> with <paramref name="location" />.
+        /// </summary>
+        /// <param name="location">
+        /// The location that shall be used to replace the current location.
+        /// </param>
+        /// <returns>
+        /// Returns the new node with the new <paramref name="location" />.
+        /// </returns>
         public ArgumentNode WithLocation(Location? location)
-        {
-            return new ArgumentNode(location, Name, Value);
-        }
+            => new ArgumentNode(location, Name, Value);
 
+        /// <summary>
+        /// Creates a new node from the current instance and replaces the 
+        /// <see cref="Name" /> with <paramref name="name" />.
+        /// </summary>
+        /// <param name="name">
+        /// The name that shall be used to replace the current name.
+        /// </param>
+        /// <returns>
+        /// Returns the new node with the new <paramref name="name" />.
+        /// </returns>
         public ArgumentNode WithName(NameNode name)
-        {
-            return new ArgumentNode(Location, name, Value);
-        }
+            => new ArgumentNode(Location, name, Value);
 
+        /// <summary>
+        /// Creates a new node from the current instance and replaces the 
+        /// <see cref="Value" /> with <paramref name="value" />.
+        /// </summary>
+        /// <param name="value">
+        /// The value that shall be used to replace the current value.
+        /// </param>
+        /// <returns>
+        /// Returns the new node with the new <paramref name="value" />.
+        /// </returns>
         public ArgumentNode WithValue(IValueNode value)
-        {
-            return new ArgumentNode(Location, Name, value);
-        }
+            => new ArgumentNode(Location, Name, value);
     }
 }

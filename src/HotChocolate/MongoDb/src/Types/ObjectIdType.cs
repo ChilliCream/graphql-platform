@@ -21,7 +21,6 @@ namespace HotChocolate.Types.MongoDb
                 MongoDbTypesResources.ObjectId_Type_Description,
                 BindingBehavior.Implicit)
         {
-            SpecifiedBy = new Uri("https://docs.mongodb.com/manual/reference/bson-types/#objectid");
         }
 
         /// <summary>
@@ -33,6 +32,7 @@ namespace HotChocolate.Types.MongoDb
             BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
+            SpecifiedBy = new Uri("https://docs.mongodb.com/manual/reference/bson-types/#objectid");
             Description = description;
         }
 

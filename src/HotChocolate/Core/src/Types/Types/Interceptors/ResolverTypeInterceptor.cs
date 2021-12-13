@@ -42,6 +42,9 @@ internal sealed class ResolverTypeInterceptor : TypeInterceptor
 
     internal override void InitializeContext(
         IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
         _context = context;

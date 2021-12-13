@@ -11,8 +11,6 @@ namespace HotChocolate.Types;
 
 public sealed class EnumValue : IEnumValue
 {
-    private readonly IDirectiveCollection _directives;
-
     public EnumValue(
         ITypeCompletionContext completionContext,
         EnumValueDefinition enumValueDefinition)
@@ -44,8 +42,10 @@ public sealed class EnumValue : IEnumValue
         Value = enumValueDefinition.RuntimeValue;
         ContextData = enumValueDefinition.GetContextData();
 
-        _directives = DirectiveCollection
-            .CreateAndComplete(completionContext, this, enumValueDefinition!.GetDirectives());
+        Directives = DirectiveCollection.CreateAndComplete(
+            completionContext,
+            this,
+            enumValueDefinition.GetDirectives());
     }
 
     public EnumValueDefinitionNode? SyntaxNode { get; }
@@ -60,7 +60,7 @@ public sealed class EnumValue : IEnumValue
 
     public object Value { get; }
 
-    public IDirectiveCollection Directives => _directives;
+    public IDirectiveCollection Directives { get; }
 
     public IReadOnlyDictionary<string, object?> ContextData { get; }
 }

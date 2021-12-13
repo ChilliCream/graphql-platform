@@ -637,7 +637,7 @@ public class QueryableFilterVisitorObjectTests
     {
         public int Id { get; set; }
 
-        public Foo? Foo { get; set; }
+        public Foo Foo { get; set; } = default!;
     }
 
     public class BarNullable

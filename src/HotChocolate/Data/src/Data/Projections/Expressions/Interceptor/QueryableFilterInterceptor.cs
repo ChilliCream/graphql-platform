@@ -9,14 +9,14 @@ using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableFilterInterceptor
-    : IProjectionFieldInterceptor<QueryableProjectionContext>
+public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
     public bool CanHandle(ISelection selection) =>
         selection.Field.Member is PropertyInfo propertyInfo &&
@@ -41,9 +41,8 @@ public class QueryableFilterInterceptor
                     context.Context,
                     out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
             coercedArgs.TryGetValue(argumentName, out ArgumentValue? argumentValue) &&
-            argumentValue.Argument.Type is IFilterInputType filterInputType &&
-            argumentValue.ValueLiteral is { } valueNode &&
-            valueNode is not NullValueNode)
+            argumentValue.Type is IFilterInputType filterInputType &&
+            argumentValue.ValueLiteral is { } valueNode and not NullValueNode)
         {
             QueryableFilterContext filterContext =
                 argumentVisitor(valueNode, filterInputType, false);
@@ -59,7 +58,7 @@ public class QueryableFilterInterceptor
                             nameof(Enumerable.Where),
                             new[] { filterInputType.EntityType.Source },
                             instance,
-                            (Expression)expression));
+                            expression));
                 }
                 else
                 {

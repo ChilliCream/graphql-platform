@@ -10,8 +10,7 @@ namespace HotChocolate.Types;
     AttributeTargets.Parameter,
     Inherited = true,
     AllowMultiple = true)]
-public abstract class ArgumentDescriptorAttribute
-    : DescriptorAttribute
+public abstract class ArgumentDescriptorAttribute : DescriptorAttribute
 {
     protected internal sealed override void TryConfigure(
         IDescriptorContext context,

@@ -8,14 +8,14 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers;
 
-public class QueryableSortInterceptor
-    : IProjectionFieldInterceptor<QueryableProjectionContext>
+public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryableProjectionContext>
 {
     public bool CanHandle(ISelection selection) =>
         selection.Field.Member is PropertyInfo propertyInfo &&
@@ -30,9 +30,9 @@ public class QueryableSortInterceptor
         IObjectField field = selection.Field;
         IReadOnlyDictionary<string, object?> contextData = field.ContextData;
 
-        if (contextData.TryGetValue(ContextArgumentNameKey, out object? arg) &&
+        if (contextData.TryGetValue(ContextArgumentNameKey, out var arg) &&
             arg is NameString argumentName &&
-            contextData.TryGetValue(ContextVisitSortArgumentKey, out object? argVisitor) &&
+            contextData.TryGetValue(ContextVisitSortArgumentKey, out var argVisitor) &&
             argVisitor is VisitSortArgument argumentVisitor &&
             context.Selection.Count > 0 &&
             context.Selection.Peek()
@@ -40,7 +40,7 @@ public class QueryableSortInterceptor
                     context.Context,
                     out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
             coercedArgs.TryGetValue(argumentName, out ArgumentValue? argumentValue) &&
-            argumentValue.Argument.Type is ListType lt &&
+            argumentValue.Type is ListType lt &&
             lt.ElementType is NonNullType nn &&
             nn.NamedType() is ISortInputType sortInputType &&
             argumentValue.ValueLiteral is { } valueNode &&

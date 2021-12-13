@@ -23,7 +23,7 @@ public class InputParser
         _dictToObjConverter = new(converter);
     }
 
-    public object? ParseLiteral(IValueNode value, IInputField field, Type? targetType = null)
+    public object? ParseLiteral(IValueNode value, IInputFieldInfo field, Type? targetType = null)
     {
         if (value is null)
         {
@@ -70,7 +70,7 @@ public class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputField? field)
+        IInputFieldInfo? field)
     {
         if (value.Kind == SyntaxKind.NullValue)
         {
@@ -114,7 +114,7 @@ public class InputParser
         Path path,
         int stack,
         bool defaults,
-        IInputField? field)
+        IInputFieldInfo? field)
     {
         if (resultValue.Kind == SyntaxKind.ListValue)
         {
@@ -277,7 +277,7 @@ public class InputParser
         IValueNode resultValue,
         ILeafType type,
         Path path,
-        IInputField? field)
+        IInputFieldInfo? field)
     {
         try
         {
@@ -510,7 +510,7 @@ public class InputParser
         return field.IsOptional ? new Optional(value, false) : value;
     }
 
-    private object? FormatValue(IInputField field, object? value)
+    private object? FormatValue(IInputFieldInfo field, object? value)
     {
         return field.Formatter is null || value is null
             ? value

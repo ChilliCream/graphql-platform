@@ -7,8 +7,7 @@ using System.Linq;
 
 namespace HotChocolate.Types.Descriptors.Definitions;
 
-public sealed class BindableList<T>
-    : IBindableList<T>
+public sealed class BindableList<T> : IBindableList<T>
 {
     private List<T>? _list;
 

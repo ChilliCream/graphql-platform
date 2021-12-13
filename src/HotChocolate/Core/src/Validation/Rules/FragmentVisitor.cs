@@ -115,7 +115,7 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ot &&
             ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
@@ -143,9 +143,9 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
     {
         context.Names.Add(node.Name.Value);
 
-        if (context.Schema.TryGetType(
+        if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType type))
+            out INamedOutputType? type))
         {
             if (type.IsCompositeType())
             {
@@ -182,9 +182,9 @@ internal sealed class FragmentVisitor : TypeDocumentValidatorVisitor
             return Continue;
         }
 
-        if (context.Schema.TryGetType(
+        if (context.Schema.TryGetType<INamedOutputType>(
             node.TypeCondition.Name.Value,
-            out INamedOutputType type))
+            out INamedOutputType? type))
         {
             if (type.IsCompositeType())
             {

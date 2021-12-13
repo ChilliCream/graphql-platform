@@ -16,7 +16,7 @@ public class QueryableStringInHandler : QueryableStringOperationHandler
         QueryableFilterContext context,
         IFilterOperationField field,
         IValueNode value,
-        object parsedValue)
+        object? parsedValue)
     {
         Expression property = context.GetInstance();
 

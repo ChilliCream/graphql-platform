@@ -13,7 +13,7 @@ public static class SelectionOptimizerHelper
         IDictionary<string, object?> contextData,
         ISelectionOptimizer optimizer)
     {
-        if (contextData.TryGetValue(_key, out object? value) &&
+        if (contextData.TryGetValue(_key, out var value) &&
             value is List<ISelectionOptimizer> optimizers &&
             !optimizers.Contains(optimizer))
         {

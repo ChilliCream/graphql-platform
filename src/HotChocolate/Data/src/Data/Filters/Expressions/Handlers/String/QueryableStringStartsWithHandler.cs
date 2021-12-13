@@ -17,7 +17,7 @@ public class QueryableStringStartsWithHandler : QueryableStringOperationHandler
         QueryableFilterContext context,
         IFilterOperationField field,
         IValueNode value,
-        object parsedValue)
+        object? parsedValue)
     {
         Expression property = context.GetInstance();
         return FilterExpressionBuilder.StartsWith(property, parsedValue);

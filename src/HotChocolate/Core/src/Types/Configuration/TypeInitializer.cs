@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration.Validation;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -23,6 +24,8 @@ internal class TypeInitializer
     private readonly TypeInterceptor _interceptor;
     private readonly IsOfTypeFallback? _isOfType;
     private readonly Func<TypeSystemObjectBase, RootTypeKind> _getTypeKind;
+    private readonly Func<ISchema> _schemaResolver;
+    private readonly IReadOnlySchemaOptions _options;
     private readonly TypeRegistry _typeRegistry;
     private readonly TypeLookup _typeLookup;
     private readonly TypeReferenceResolver _typeReferenceResolver;
@@ -36,7 +39,9 @@ internal class TypeInitializer
         TypeRegistry typeRegistry,
         IReadOnlyList<ITypeReference> initialTypes,
         IsOfTypeFallback? isOfType,
-        Func<TypeSystemObjectBase, RootTypeKind> getTypeKind)
+        Func<TypeSystemObjectBase, RootTypeKind> getTypeKind,
+        Func<ISchema> schemaResolver,
+        IReadOnlySchemaOptions options)
     {
         _context = descriptorContext ??
             throw new ArgumentNullException(nameof(descriptorContext));
@@ -47,6 +52,10 @@ internal class TypeInitializer
         _isOfType = isOfType;
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
+        _schemaResolver = schemaResolver ??
+            throw new ArgumentNullException(nameof(schemaResolver));
+        _options = options ??
+            throw new ArgumentNullException(nameof(options));
 
         _interceptor = descriptorContext.TypeInterceptor;
         ITypeInspector typeInspector = descriptorContext.TypeInspector;
@@ -54,25 +63,18 @@ internal class TypeInitializer
         _typeReferenceResolver = new TypeReferenceResolver(
             typeInspector, _typeRegistry, _typeLookup);
 
-        _interceptor.InitializeContext(descriptorContext, _typeReferenceResolver);
+        _interceptor.InitializeContext(
+            descriptorContext,
+            this,
+            _typeRegistry,
+            _typeLookup,
+            _typeReferenceResolver);
     }
 
     public IList<FieldMiddleware> GlobalComponents => _globalComps;
 
-    public void Initialize(
-        Func<ISchema> schemaResolver,
-        IReadOnlySchemaOptions options)
+    public void Initialize()
     {
-        if (schemaResolver is null)
-        {
-            throw new ArgumentNullException(nameof(schemaResolver));
-        }
-
-        if (options is null)
-        {
-            throw new ArgumentNullException(nameof(options));
-        }
-
         // first we are going to find and initialize all types that belong to our schema.
         DiscoverTypes();
 
@@ -82,7 +84,7 @@ internal class TypeInitializer
         RegisterImplicitInterfaceDependencies();
 
         // with all types (implicit and explicit) known we complete the type names.
-        CompleteNames(schemaResolver);
+        CompleteNames();
 
         // with the type names all known we can now build pairs to bring together types and
         // their type extensions.
@@ -101,7 +103,7 @@ internal class TypeInitializer
         {
             _errors.AddRange(SchemaValidator.Validate(
                 _typeRegistry.Types.Select(t => t.Type),
-                options));
+                _options));
         }
 
         if (_errors.Count > 0)
@@ -185,33 +187,11 @@ internal class TypeInitializer
         }
     }
 
-    private void CompleteNames(Func<ISchema> schemaResolver)
+    private void CompleteNames()
     {
-        bool CompleteName(RegisteredType registeredType)
-        {
-            registeredType.PrepareForCompletion(
-                _typeReferenceResolver,
-                schemaResolver,
-                _globalComps,
-                _isOfType);
-
-            registeredType.Type.CompleteName(registeredType);
-
-            if (registeredType.IsNamedType || registeredType.IsDirectiveType)
-            {
-                _typeRegistry.Register(registeredType.Type.Name, registeredType);
-            }
-
-            RootTypeKind kind = _getTypeKind(registeredType.Type);
-            registeredType.IsQueryType = kind == RootTypeKind.Query;
-            registeredType.IsMutationType = kind == RootTypeKind.Mutation;
-            registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
-            return true;
-        }
-
         _interceptor.OnBeforeCompleteTypeNames();
 
-        if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
+        if (ProcessTypes(TypeDependencyKind.Named, CompleteTypeName) &&
             _interceptor.TriggerAggregations)
         {
             _interceptor.OnTypesCompletedName(_typeRegistry.Types);
@@ -220,6 +200,66 @@ internal class TypeInitializer
         EnsureNoErrors();
 
         _interceptor.OnAfterCompleteTypeNames();
+    }
+
+    internal RegisteredType InitializeType(
+        TypeSystemObjectBase type)
+    {
+        var typeReg = new RegisteredType(
+            type,
+            false,
+            _typeRegistry,
+            _typeLookup,
+            _context,
+            _interceptor,
+            null);
+
+        typeReg.References.Add(TypeReference.Create(type));
+
+        _typeRegistry.Register(typeReg);
+        typeReg.Type.Initialize(typeReg);
+
+        return typeReg;
+    }
+
+    internal bool CompleteTypeName(RegisteredType registeredType)
+    {
+        registeredType.PrepareForCompletion(
+            _typeReferenceResolver,
+            _schemaResolver,
+            _globalComps,
+            _isOfType);
+
+        registeredType.Type.CompleteName(registeredType);
+
+        if (registeredType.IsNamedType || registeredType.IsDirectiveType)
+        {
+            _typeRegistry.Register(registeredType.Type.Name, registeredType);
+        }
+
+        RootTypeKind kind = _getTypeKind(registeredType.Type);
+        registeredType.IsQueryType = kind == RootTypeKind.Query;
+        registeredType.IsMutationType = kind == RootTypeKind.Mutation;
+        registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
+
+        if (kind is not RootTypeKind.None)
+        {
+            OperationType operationType = kind switch
+            {
+                RootTypeKind.Query => OperationType.Query,
+                RootTypeKind.Mutation => OperationType.Mutation,
+                RootTypeKind.Subscription => OperationType.Subscription,
+                _ => throw new NotSupportedException()
+            };
+
+            _interceptor.OnAfterResolveRootType(
+                registeredType,
+                ((ObjectType)registeredType.Type).Definition,
+                operationType,
+                _context.ContextData);
+        }
+
+        return true;
     }
 
     private void MergeTypeExtensions()
@@ -342,10 +382,6 @@ internal class TypeInitializer
             if (!registeredType.IsExtension)
             {
                 registeredType.Status = TypeStatus.Named;
-                RootTypeKind kind = _getTypeKind(registeredType.Type);
-                registeredType.IsQueryType = kind == RootTypeKind.Query;
-                registeredType.IsMutationType = kind == RootTypeKind.Mutation;
-                registeredType.IsSubscriptionType = kind == RootTypeKind.Subscription;
                 registeredType.Type.CompleteType(registeredType);
             }
             return true;
@@ -413,7 +449,7 @@ internal class TypeInitializer
             foreach (RegisteredType type in _typeRegistry.Types
                 .Where(t => !processed.Contains(t.References[0])))
             {
-                string name = type.Type.Name.HasValue
+                var name = type.Type.Name.HasValue
                     ? type.Type.Name.Value
                     : type.References[0].ToString()!;
 
@@ -557,12 +593,4 @@ internal class TypeInitializer
             throw new SchemaException(errors);
         }
     }
-}
-
-internal enum RootTypeKind
-{
-    Query,
-    Mutation,
-    Subscription,
-    None
 }

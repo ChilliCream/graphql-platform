@@ -74,6 +74,12 @@ public class EnumTypeExtension : NamedTypeExtensionBase<EnumTypeDefinition>
         }
     }
 
+    /// <summary>
+    /// Override this in order to specify the type configuration explicitly.
+    /// </summary>
+    /// <param name="descriptor">
+    /// The descriptor of this type lets you express the type configuration.
+    /// </param>
     protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
     protected override void OnRegisterDependencies(

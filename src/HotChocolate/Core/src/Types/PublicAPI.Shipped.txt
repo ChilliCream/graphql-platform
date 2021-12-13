@@ -1118,7 +1118,7 @@ HotChocolate.Internal.CustomParameterExpressionBuilder.CustomParameterExpression
 HotChocolate.Internal.CustomParameterExpressionBuilder<TArg>
 HotChocolate.Internal.CustomParameterExpressionBuilder<TArg>.CustomParameterExpressionBuilder(System.Linq.Expressions.Expression<System.Func<HotChocolate.Resolvers.IResolverContext!, TArg>!>! expression, System.Func<System.Reflection.ParameterInfo!, bool>! canHandle) -> void
 HotChocolate.Internal.CustomParameterExpressionBuilder<TArg>.CustomParameterExpressionBuilder(System.Linq.Expressions.Expression<System.Func<HotChocolate.Resolvers.IResolverContext!, TArg>!>! expression) -> void
-HotChocolate.Internal.CustomServiceParameterExpressionBuilder<TService>
+~HotChocolate.Internal.CustomServiceParameterExpressionBuilder<TService>
 HotChocolate.Internal.CustomServiceParameterExpressionBuilder<TService>.CustomServiceParameterExpressionBuilder() -> void
 HotChocolate.Internal.ExtendedTypeExtensions
 HotChocolate.Internal.ExtendedTypeId

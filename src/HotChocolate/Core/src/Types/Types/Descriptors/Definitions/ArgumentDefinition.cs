@@ -47,7 +47,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
     public IList<IInputValueFormatter> Formatters =>
         _formatters ??= new List<IInputValueFormatter>();
 
-    internal IReadOnlyList<IInputValueFormatter> GetFormatters()
+    public IReadOnlyList<IInputValueFormatter> GetFormatters()
     {
         if (_formatters is null)
         {
@@ -65,6 +65,7 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
         target.DefaultValue = DefaultValue;
         target.RuntimeDefaultValue = RuntimeDefaultValue;
         target.Parameter = Parameter;
+        target.RuntimeType = target.RuntimeType;
     }
 
     internal void MergeInto(ArgumentDefinition target)
@@ -90,6 +91,11 @@ public class ArgumentDefinition : FieldDefinitionBase<InputValueDefinitionNode>
         if (Parameter is not null)
         {
             target.Parameter = Parameter;
+        }
+
+        if (RuntimeType is not null)
+        {
+            target.RuntimeType = RuntimeType;
         }
     }
 }

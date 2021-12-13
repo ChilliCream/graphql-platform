@@ -62,6 +62,7 @@
   
   <!-- PublicApiAnalyzers -->
   <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' AND !$(MSBuildProjectName.Contains('.Tests')) AND !$(MSBuildProjectName.Contains('.Resources')) ">true</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' ">false</AddPublicApiAnalyzers>
     
