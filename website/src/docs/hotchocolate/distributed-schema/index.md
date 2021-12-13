@@ -86,7 +86,7 @@ graph TD;
 The major difference between schema federation and schema stitching is where the extensions are stored.
 In the federated approach, the schema extensions are defined on the federated service.
 The domain services push the schema on a cache (like Redis).
-The gateway is subscribed to changed from this cache and can hot reload the schema if the configuration of a domain service changes.
+The gateway is subscribed to changes from this cache and can hot reload the schema if the configuration of a domain service changes.
 It is also possible to set up federations in a pull setup.
 In this setup, the downstream services expose a field on their schema to fetch the stitching information.
 The gateway then fetches the federation information from the downstream service on startup.
