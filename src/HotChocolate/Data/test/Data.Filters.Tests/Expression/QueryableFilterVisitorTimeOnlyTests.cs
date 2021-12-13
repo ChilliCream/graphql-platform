@@ -1,12 +1,10 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
-public class QueryableFilterVisitorDateOnlyTests
+public class QueryableFilterVisitorTimeOnlyTests
     : FilterVisitorTestBase
 {
 #if NET6_0_OR_GREATER
@@ -15,17 +13,17 @@ public class QueryableFilterVisitorDateOnlyTests
     {
         // arrange
         IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ value: { eq: \"2020-12-12\" }}");
+            "{ value: { eq: \"23:59:59\" }}");
         ExecutorBuilder tester = CreateProviderTester(new FooFilterInput());
 
         // act
         Func<Foo, bool> func = tester.Build<Foo>(value);
 
         // assert
-        var a = new Foo { Value = new DateOnly(2020,12,12) };
+        var a = new Foo { Value = new TimeOnly(23, 59, 59) };
         Assert.True(func(a));
 
-        var b = new Foo { Value = new DateOnly(2020,12,13) };
+        var b = new Foo { Value = new TimeOnly(1, 59, 59) };
         Assert.False(func(b));
     }
 
@@ -34,7 +32,7 @@ public class QueryableFilterVisitorDateOnlyTests
     {
         // arrange
         IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-            "{ value: { neq: \"2020-12-12\" }}");
+            "{ value: { neq: \"23:59:59\" }}");
         ExecutorBuilder tester = CreateProviderTester(new FooFilterInput());
 
         // act
@@ -42,10 +40,10 @@ public class QueryableFilterVisitorDateOnlyTests
 
 
         // assert
-        var a = new Foo { Value = new DateOnly(2020,12,13) };
+        var a = new Foo { Value = new TimeOnly(1, 59, 59) };
         Assert.True(func(a));
 
-        var b = new Foo { Value = new DateOnly(2020,12,12)};
+        var b = new Foo { Value = new TimeOnly(23, 59, 59) };
         Assert.False(func(b));
     }
 
@@ -64,24 +62,25 @@ public class QueryableFilterVisitorDateOnlyTests
         var a = new FooNullable { Value = null };
         Assert.True(func(a));
 
-        var b = new FooNullable { Value = new DateOnly(2020,12,13) };
+        var b = new FooNullable { Value = new TimeOnly(23, 59, 59) };
         Assert.False(func(b));
     }
 
     public class Foo
     {
-        public DateOnly Value { get; set; }
+        public TimeOnly Value { get; set; }
     }
 
     public class FooNullable
     {
-        public DateOnly? Value { get; set; }
+        public TimeOnly? Value { get; set; }
     }
 
     public class FooFilterInput
         : FilterInputType<Foo>
     {
     }
+
     public class FooNullableFilterInput
         : FilterInputType<FooNullable>
     {
