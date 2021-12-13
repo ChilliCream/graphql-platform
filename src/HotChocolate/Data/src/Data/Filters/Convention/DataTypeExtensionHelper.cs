@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters;
 
@@ -165,7 +166,7 @@ internal static class DataTypeExtensionHelper
             else
             {
                 typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Equals(extensionField.Name));
+                    t => t.Name.Value.EqualsOrdinal(extensionField.Name));
             }
 
             if (typeField is null)
@@ -204,7 +205,7 @@ internal static class DataTypeExtensionHelper
             else
             {
                 typeField = typeFields.FirstOrDefault(
-                    t => t.Name.Equals(extensionField.Name));
+                    t => t.Name.Value.EqualsOrdinal(extensionField.Name));
             }
 
             if (typeField is null)
@@ -235,7 +236,7 @@ internal static class DataTypeExtensionHelper
         foreach (InputFieldDefinition? extensionField in extensionFields)
         {
             InputFieldDefinition? typeField = typeFields.FirstOrDefault(
-                t => t.Name.Equals(extensionField.Name));
+                t => t.Name.Value.EqualsOrdinal(extensionField.Name));
 
             if (typeField is null)
             {

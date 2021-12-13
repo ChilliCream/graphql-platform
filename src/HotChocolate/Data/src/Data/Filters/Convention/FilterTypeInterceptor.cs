@@ -34,7 +34,7 @@ public class FilterTypeInterceptor
 
             var descriptor = FilterInputTypeDescriptor.New(
                 discoveryContext.DescriptorContext,
-                def.EntityType,
+                def.EntityType!,
                 def.Scope);
 
             ApplyCorrectScope(def, discoveryContext);
@@ -74,7 +74,7 @@ public class FilterTypeInterceptor
 
             var descriptor = FilterInputTypeDescriptor.New(
                 completionContext.DescriptorContext,
-                def.EntityType,
+                def.EntityType!,
                 def.Scope);
 
             SchemaTypeReference typeReference = TypeReference.Create(

@@ -66,14 +66,14 @@ public class QueryableFilterVisitorInterfacesTests
         res3.MatchSnapshot("null");
     }
 
-    public static void Configure(ISchemaBuilder builder)
+    private static void Configure(ISchemaBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>(x => x.Implements<InterfaceType<Test>>());
         builder.AddObjectType<InterfaceImpl2>(x => x.Implements<InterfaceType<Test>>());
         builder.AddInterfaceType<Test>();
     }
 
-    public static void OnModelCreating(ModelBuilder builder)
+    private static void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Test>()
             .HasDiscriminator<string>("_t")

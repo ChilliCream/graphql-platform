@@ -11,7 +11,7 @@ public static class TypeExtensions
         {
             ListType t => t.ElementType().ToRuntimeType(),
             IPageType t => t.ItemType.UnwrapRuntimeType(),
-            IEdgeType t => t.EntityType.UnwrapRuntimeType(),
+            IEdgeType t => t.NodeType.UnwrapRuntimeType(),
             NonNullType t => t.InnerType().UnwrapRuntimeType(),
             INamedType t => t.ToRuntimeType(),
             _ => throw ThrowHelper.ProjectionVisitor_CouldNotUnwrapType(type)

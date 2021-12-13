@@ -63,10 +63,10 @@ public interface ISortInputTypeDescriptor<T>
     /// <summary>
     /// Defines a <see cref="SortField" /> that binds to the specified property.
     /// </summary>
-    /// <param name="property">
+    /// <param name="propertyOrMember">
     /// The property to which a sort field shall be bound.
     /// </param>
-    ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> property);
+    ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember);
 
     /// <summary>
     /// Ignore the specified property.
@@ -79,10 +79,10 @@ public interface ISortInputTypeDescriptor<T>
     /// <summary>
     /// Ignore the specified property.
     /// </summary>
-    /// <param  name="property">
+    /// <param  name="propertyOrMember">
     /// The property that shall be ignored.
     /// </param>
-    ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property);
+    ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember);
 
     /// <summary>
     /// Adds a directive to this sort input type.
@@ -93,8 +93,7 @@ public interface ISortInputTypeDescriptor<T>
     /// <typeparam name="TDirective">
     /// The type of the directive.
     /// </typeparam>
-    new ISortInputTypeDescriptor<T> Directive<TDirective>(
-        TDirective directive)
+    new ISortInputTypeDescriptor<T> Directive<TDirective>(TDirective directive)
         where TDirective : class;
 
     /// <summary>

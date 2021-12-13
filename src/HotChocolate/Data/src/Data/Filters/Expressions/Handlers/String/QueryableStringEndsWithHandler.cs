@@ -20,6 +20,12 @@ public class QueryableStringEndsWithHandler : QueryableStringOperationHandler
         object? parsedValue)
     {
         Expression property = context.GetInstance();
+
+        if (parsedValue is null)
+        {
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+        }
+
         return FilterExpressionBuilder.EndsWith(property, parsedValue);
     }
 }
