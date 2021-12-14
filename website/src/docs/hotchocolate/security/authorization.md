@@ -110,30 +110,30 @@ Specified on a type the `@authorize` directive will be applied to each field of 
 If we do not specify any arguments to the `@authorize` directive, it will only enforce that the requestor is authenticated, nothing more. If he is not and tries to access an authorized field, a GraphQL error will be raised and the field result set to `null`.
   
   > ⚠️ Note: Using the @authorize directive, all unauthorized requests by default will return status code 200 and a payload like this:
+   ```json
+   {
+     "errors": [
+       {
+         "message": "The current user is not authorized to access this resource.",
+         "locations": [
+           {
+             "line": 2,
+             "column": 3
+           }
+         ],
+         "path": [
+           "welcome"
+         ],
+         "extensions": {
+           "code": "AUTH_NOT_AUTHENTICATED"
+         }
+       }
+     ],
+     "data": {
+       "welcome": null
+     }
+   }
    ```
-  {
-  "errors": [
-    {
-      "message": "The current user is not authorized to access this resource.",
-      "locations": [
-        {
-          "line": 2,
-          "column": 3
-        }
-      ],
-      "path": [
-        "welcome"
-      ],
-      "extensions": {
-        "code": "AUTH_NOT_AUTHENTICATED"
-      }
-    }
-  ],
-  "data": {
-    "welcome": null
-  }
-}
-  ```
 
 ## Roles
 
