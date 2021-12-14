@@ -293,7 +293,7 @@ public class QueryableFilterVisitorListTests
         Assert.False(func(b));
         var c = new Foo { FooNested = null };
         Assert.False(func(c));
-        var d = new Foo { FooNested = new FooNested[] { null } };
+        var d = new Foo { FooNested = new FooNested[] { null! } };
         Assert.True(func(d));
     }
 
@@ -325,7 +325,7 @@ public class QueryableFilterVisitorListTests
         var c = new Foo { FooNested = null };
         Assert.False(func(c));
 
-        var d = new Foo { FooNested = new FooNested[] { null } };
+        var d = new Foo { FooNested = new FooNested[] { null! } };
         Assert.False(func(d));
     }
 
@@ -380,7 +380,7 @@ public class QueryableFilterVisitorListTests
         Func<FooSimple, bool> func = tester.Build<FooSimple>(value);
 
         // assert
-        var a = new FooSimple { Bar = new string[] { null, null, null } };
+        var a = new FooSimple { Bar = new string[] { null!, null!, null! } };
         Assert.True(func(a));
 
         var b = new FooSimple { Bar = new[] { "c", "d", "b" } };

@@ -21,6 +21,12 @@ public class QueryableStringNotEndsWithHandler : QueryableStringOperationHandler
         object? parsedValue)
     {
         Expression property = context.GetInstance();
+
+        if (parsedValue is null)
+        {
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+        }
+
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.EndsWith(property, parsedValue));
     }

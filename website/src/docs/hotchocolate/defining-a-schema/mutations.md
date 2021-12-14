@@ -203,12 +203,10 @@ services
 
 # Conventions
 
-> ⚠️ Experimental Warning: This feature is not yet finished and only available in previews. The API is not finalized and will change until its release.
-
 In GraphQL, it is best practice to have a single argument on mutations called `input`, and each mutation should return a payload object.
 The payload object allows to read the changes of the mutation or to access the domain errors caused by a mutation.
 
-```graphql
+```sdl
 type Mutation {
   updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
@@ -426,7 +424,7 @@ The HotChocolate schema is automatically rewritten, and an error middleware will
 
 The configuration above emits the following schema:
 
-```graphql
+```sdl
 type Mutation {
   updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
@@ -966,7 +964,7 @@ Lastly, we can customize the error interface we want to use with our mutation co
 
 By default, this error interface type is called `Error` and defines a non-nullable field `message`.
 
-```graphql
+```sdl
 interface Error {
   message: String!
 }

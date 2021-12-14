@@ -10,10 +10,10 @@ namespace HotChocolate.Data.Sorting;
 public class SortVisitorTestBase
 {
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
-        params TResult[] results)
+        params TResult?[] results)
         where TResult : class
     {
-        return ctx => results.AsQueryable();
+        return ctx => results.AsQueryable()!;
     }
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;

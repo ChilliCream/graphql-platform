@@ -1,4 +1,6 @@
+using System;
 using HotChocolate.Types;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -43,7 +45,11 @@ public class ComparableOperationInputTests
             .Create();
 
         // assert
+#if NET6_0_OR_GREATER
+        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
+#else
         schema.ToString().MatchSnapshot();
+#endif
     }
 
     [Fact]
@@ -65,7 +71,7 @@ public class ComparableOperationInputTests
             .Create();
 
         // assert
-        schema.ToString().MatchSnapshot();
+        schema.ToString().MatchSnapshot(new SnapshotNameExtension("NET6"));
     }
 
     public class FooFilterInput : FilterInputType
@@ -79,18 +85,40 @@ public class ComparableOperationInputTests
     public class Foo
     {
         public short BarShort { get; set; }
+
         public int BarInt { get; set; }
+
         public long BarLong { get; set; }
+
         public float BarFloat { get; set; }
+
         public double BarDouble { get; set; }
+
         public decimal BarDecimal { get; set; }
+
         public short? BarShortNullable { get; set; }
+
         public int? BarIntNullable { get; set; }
+
         public long? BarLongNullable { get; set; }
+
         public float? BarFloatNullable { get; set; }
+
         public double? BarDoubleNullable { get; set; }
+
         public decimal? BarDecimalNullable { get; set; }
+
         public FooBar FooBar { get; set; }
+
+#if NET6_0_OR_GREATER
+        public DateOnly DateOnly { get; set; }
+
+        public DateOnly? DateOnlyNullable { get; set; }
+
+        public TimeOnly TimeOnly { get; set; }
+
+        public TimeOnly? TimeOnlyNullable { get; set; }
+#endif
     }
 
     public enum FooBar

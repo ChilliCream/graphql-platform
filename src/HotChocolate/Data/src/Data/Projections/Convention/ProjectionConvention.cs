@@ -13,7 +13,7 @@ public class ProjectionConvention
     , IProjectionConvention
 {
     private Action<IProjectionConventionDescriptor>? _configure;
-    private IProjectionProvider _provider;
+    private IProjectionProvider _provider = default!;
 
     public const string IsProjectedKey = nameof(IsProjectedKey);
     public const string AlwaysProjectedFieldsKey = nameof(AlwaysProjectedFieldsKey);
@@ -56,9 +56,9 @@ public class ProjectionConvention
 
     protected override void Complete(IConventionContext context)
     {
-        if (Definition.Provider is null)
+        if (Definition?.Provider is null)
         {
-            throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
+            throw ProjectionConvention_NoProviderFound(GetType(), Definition?.Scope);
         }
 
         if (Definition.ProviderInstance is null)

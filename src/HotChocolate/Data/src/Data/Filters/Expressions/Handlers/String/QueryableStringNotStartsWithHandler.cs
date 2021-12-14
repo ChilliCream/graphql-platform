@@ -19,6 +19,11 @@ public class QueryableStringNotStartsWithHandler : QueryableStringOperationHandl
         IValueNode value,
         object? parsedValue)
     {
+        if (parsedValue is null)
+        {
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+        }
+
         Expression property = context.GetInstance();
         return FilterExpressionBuilder.Not(
             FilterExpressionBuilder.StartsWith(property, parsedValue));

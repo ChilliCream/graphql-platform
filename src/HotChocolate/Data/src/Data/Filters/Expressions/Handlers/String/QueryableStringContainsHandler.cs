@@ -21,6 +21,12 @@ public class QueryableStringContainsHandler : QueryableStringOperationHandler
         object? parsedValue)
     {
         Expression property = context.GetInstance();
+
+        if (parsedValue is null)
+        {
+            throw new GraphQLException(ErrorHelper.CreateNonNullError(field, value, context));
+        }
+
         return FilterExpressionBuilder.Contains(property, parsedValue);
     }
 }

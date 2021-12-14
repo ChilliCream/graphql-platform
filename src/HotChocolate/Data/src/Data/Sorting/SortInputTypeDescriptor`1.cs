@@ -99,9 +99,9 @@ public class SortInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
+    public ISortFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember)
     {
-        if (property.ExtractMember() is PropertyInfo m)
+        if (propertyOrMember.ExtractMember() is PropertyInfo m)
         {
             SortFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == m);
@@ -117,7 +117,7 @@ public class SortInputTypeDescriptor<T>
 
         throw new ArgumentException(
             SortInputTypeDescriptor_Field_OnlyProperties,
-            nameof(property));
+            nameof(propertyOrMember));
     }
 
     /// <inheritdoc />
@@ -128,9 +128,9 @@ public class SortInputTypeDescriptor<T>
     }
 
     /// <inheritdoc />
-    public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property)
+    public ISortInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember)
     {
-        if (property.ExtractMember() is PropertyInfo p)
+        if (propertyOrMember.ExtractMember() is PropertyInfo p)
         {
             SortFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Member == p);
@@ -146,7 +146,7 @@ public class SortInputTypeDescriptor<T>
 
         throw new ArgumentException(
             SortInputTypeDescriptor_Field_OnlyProperties,
-            nameof(property));
+            nameof(propertyOrMember));
     }
 
     public new ISortInputTypeDescriptor<T> Directive<TDirective>(
