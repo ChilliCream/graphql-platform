@@ -257,6 +257,8 @@ services
         })
 ```
 
+> Note: You can also partially opt-out of the convention by for instance crafting your own input type but letting the convention produce the payload.
+
 ## Errors
 
 The second part of this new mutation convention involves user errors. We did a lot of work investigating how we should enable errors or even what pattern we should follow. 

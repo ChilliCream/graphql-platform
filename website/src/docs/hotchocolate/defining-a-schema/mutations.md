@@ -223,7 +223,7 @@ type UpdateUserNamePayload {
 
 Following this pattern helps to keep the schema evolvable but requires a lot of boilerplate code to realize.
 
-## Introduction
+## Input and Payload
 
 HotChocolate has built-in conventions for mutations to minimize boilerplate code.
 
@@ -349,7 +349,7 @@ type Mutation {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Defining Errors
+## Errors
 
 The mutation conventions also allow you to create mutations that follow the error
 [stage 6a Pattern Marc-Andre Giroux layed out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
@@ -953,6 +953,15 @@ In many cases, we do not want to entirely opt-out but rather override the global
 
 ```csharp
 public UpdateUserNamePayload UpdateUserNameAsync(UpdateUserNameInput input)
+{
+    //...
+}
+```
+
+You can also partially opt-out:
+
+```csharp
+public User UpdateUserNameAsync(UpdateUserNameInput input)
 {
     //...
 }
