@@ -397,20 +397,64 @@ One last aspect before we move on to the next topic. We also thought about resul
 Users that build large schemas with Hot Chocolate from time to time have asked us to help them reduce the DI code they have to write for resolvers.
 
 ```csharp
-
+public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
+    ScheduleSessionInput input,
+    [Service] ISessionService sessionService,
+    [Service] ITopicEventSender eventSender)
+{
+    // code omitted for brevity
+}
 ```
 
 The above resolver gets injected a service we want to interact with within our resolver. We use this service in many resolvers throughout our solution, and having to repeatedly annotate our service with the attributes `[FromService]`, `[Service]` or `[ScopedService]` bloats our code.
 
 With our new version, you can now register this service as a well-known service on the schema. Wherever the resolver compiler finds this service type, it will generate a dependency injection code resolving it from the DI.
 
+**Registration:**
+
+```csharp
+services
+    .AddGraphQLServer()
+    .RegisterService<ISessionService>()
+    .RegisterService<ITopicEventReceiver>()
+    .RegisterService<ITopicEventSender>()
+    ...
+```
+
+**Resolver:**
+
+```csharp
+public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
+    ScheduleSessionInput input,
+    ISessionService sessionService,
+    ITopicEventSender eventSender)
+{
+    // code omitted for brevity
+}
+```
+
 But this is not where this feature stops. We also wanted to simplify handling services of different kinds. For instance, some services are not thread-safe and can only be accessed by a single resolver in a specific request at once. With the new well-known services feature, we can tell the execution engine about this fact and produce a query plan that will accommodate this.
 
-EXAMPLE
+```csharp
+services
+    .AddGraphQLServer()
+    .RegisterService<ISessionService>(ServiceKind.Synchronized)
+    .RegisterService<ITopicEventReceiver>()
+    .RegisterService<ITopicEventSender>()
+    ...
+```
 
 We also might be dealing with pooled services or objects. These can now also be registered as a service.
 
-EXAMPLE
+```csharp
+services
+    .AddGraphQLServer()
+    .RegisterService<ISessionService>(ServiceKind.Synchronized)
+    .RegisterService<HeavyObject>(ServiceKind.Pooled)
+    .RegisterService<ITopicEventReceiver>()
+    .RegisterService<ITopicEventSender>()
+    ...
+```
 
 We will, in this case, retrieve an `ObjectPool<TService>` from the DI, rent out the specified service or object from the pool and return it when the resolver is finished. The code you had to write to handle such complex cases is now reduced to a single registration line.
 
@@ -418,9 +462,17 @@ Last but not least, we also support now resolver level scoping, meaning you can 
 
 We also wanted to clean up the attributes around services and allow for the same capabilities through the service attribute. That is why we introduced the `ServiceKind` also on the attribute.
 
-EXAMPLE
+```csharp
+public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
+    ScheduleSessionInput input,
+    [Service(ServiceKind.Syncronized)] ISessionService sessionService,
+    [Service] ITopicEventSender eventSender)
+{
+    // code omitted for brevity
+}
+```
 
-Whether you are using well-known services registered at the schema level or services declared with the attribute, you have the same capabilities and this new streamlined experience.
+Whether you are using well-known services registered at the schema level or services declared with the attribute, you have the same capabilities and new a streamlined experience.
 
 # Entity Framework Improvements
 
@@ -430,7 +482,16 @@ By default, if you just use `services.AddDbContext<MyDbContext>()`, your context
 
 Like with the well-known services feature, we can now register a well-known DBContext on the schema level and tell the execution engine how this service shall be used. Since a scoped DBContext is the most common thing, we have decided to use it as the default whenever you register a well-known DBContext.
 
-EXAMPLE
+```csharp
+builder.Services
+    .AddDbContext<BookContext>(
+        (s, o) => o
+            .UseSqlite("Data Source=books.db")
+            .UseLoggerFactory(s.GetRequiredService<ILoggerFactory>()))
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .RegisterDbContext<BookContext>();
+```
 
 The DBContext can be registered as a well-known DBContext with three different behaviors.
 
@@ -438,7 +499,16 @@ The first and the default is `DbContextKind.Syncronized` which will ensure that 
 
 You also can use a pooled DBContext with the  `DbContextKind.Pooled`. In this case, we will wrap a middleware around your resolver that will retrieve the DBContext through the DBContextFactory, inject the DBContext in your resolver and dispose of it once the resolver pipeline is finished executing.
 
-EXAMPLE
+```csharp
+builder.Services
+    .AddPooledDbContextFactory<BookContext>(
+        (s, o) => o
+            .UseSqlite("Data Source=books.db")
+            .UseLoggerFactory(s.GetRequiredService<ILoggerFactory>()))
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .RegisterDbContext<BookContext>(kind: DbContextKind.Pooled);
+```
 
 The last way to use a well-known DBContext is as a resolver-level DBContext. In this case, we will treat it as a resolver-level service that is retrieved from a resolver service scope. With this, you essentially get a new DBContext per resolver without configuring anything special. 
 
@@ -458,10 +528,10 @@ We are still working on adding support for `DateOnly`, `TimeOnly`, and NodaTime 
 
 Work on 12.5 already is underway, and there are four notable things we are working on for this next iteration:
 
-Client Controlled Nullability (https://github.com/graphql/graphql-spec/pull/895)
-OneOf inputs and OneOf fields (https://github.com/graphql/graphql-spec/pull/825)
-OpenTelemetry and Elastic APM support
-Banana Cake Pop Themes
+- Client Controlled Nullability (https://github.com/graphql/graphql-spec/pull/895)
+- OneOf inputs and OneOf fields (https://github.com/graphql/graphql-spec/pull/825)
+- OpenTelemetry and Elastic APM support
+- Banana Cake Pop Themes
 
 You can have a look at the milestone here:
 https://github.com/ChilliCream/hotchocolate/milestone/72
@@ -472,4 +542,4 @@ Things are moving together and becoming more and more connected.
 
 We hope you all enjoy this new version of Hot Chocolate and have some great holidays.
 
- 
+Join us on https://slack.chillicream.com and chime into the discussion around GraphQL on .NET!
