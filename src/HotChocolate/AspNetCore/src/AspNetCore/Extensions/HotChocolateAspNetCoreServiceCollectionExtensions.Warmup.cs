@@ -12,6 +12,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
+    /// <param name="initializeOnStartupEnabled">If <see langword="true" />, then current GraphQL configuration is added to the warmup background service.</param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/> so that configuration can be chained.
     /// </returns>
@@ -19,11 +20,17 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// The <see cref="IRequestExecutorBuilder"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder InitializeOnStartup(
-        this IRequestExecutorBuilder builder)
+        this IRequestExecutorBuilder builder,
+        bool initializeOnStartupEnabled = true)
     {
         if (builder is null)
         {
             throw new ArgumentNullException(nameof(builder));
+        }
+
+        if (!initializeOnStartupEnabled)
+        {
+            return builder;
         }
 
         builder.Services.AddHostedService<ExecutorWarmupService>();
