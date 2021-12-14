@@ -265,7 +265,7 @@ public class AnnotationBasedMutations
         await new ServiceCollection()
             .AddGraphQL()
             .AddMutationType<SimpleMutationAttribute>()
-            .AddMutationConventions()
+            .AddMutationConventions(false)
             .ModifyOptions(o => o.StrictValidation = false)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
