@@ -23,7 +23,7 @@ In GraphQL, we have developed specific patterns around mutations. One foundation
 
 > By convention, mutations are named as verbs, their inputs are the name with "Input" appended at the end, and they return an object that is the name with "Payload" appended.
 
-```SDL
+```sdl
 type Mutation {
   renameUser(input: RenameUserInput!): RenameUserPayload!
 }
@@ -50,7 +50,7 @@ There are other reasons for this particular design. We, for instance, have a sin
 
 A separate payload object allows us to expose all affected objects by the mutation. So that the client can fetch all the affected data, it is interested in. Further, the payload allows us to expose the user errors through just another field to the client.
 
-```SDL
+```sdl
 type Mutation {
   renameUser(input: RenameUserInput!): RenameUserPayload!
 }
@@ -188,7 +188,7 @@ public class MutationType : ObjectType
 
 **Schema-First**:
 
-```SDL
+```sdl
 type Mutation {
   renameUser(userId: ID!, username: String!): User
 }
@@ -270,7 +270,7 @@ Easier Evolution
 
 But at the same time, it wasn't easy to implement since it came with many moving parts. This meant that we had to write repetitive code again to fulfill this error pattern.
 
-```SDL
+```sdl
 type Mutation {
   renameUser(input: RenameUserInput!): RenameUserPayload!
 }
@@ -325,7 +325,7 @@ public class Mutation
 
 The above code will translate to the following schema:
 
-```SDL
+```sdl
 type Mutation {
   renameUser(input: RenameUserInput!): RenameUserPayload!
 }
