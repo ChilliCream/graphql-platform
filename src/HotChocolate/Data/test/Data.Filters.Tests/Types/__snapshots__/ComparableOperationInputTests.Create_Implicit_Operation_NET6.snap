@@ -175,6 +175,7 @@ input ComparableNullableOfInt64OperationFilterInput {
   eq: Long
   neq: Long
   in: [Long]
+  nin: [Long]
   gt: Long
   ngt: Long
   gte: Long
