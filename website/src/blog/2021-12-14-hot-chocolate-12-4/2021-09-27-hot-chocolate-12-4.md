@@ -391,7 +391,7 @@ The error object shape defines the error type shape on our schema and ensures th
 
 You can read more about all of this in our [documentation](https://chillicream.com/docs/hotchocolate/defining-a-schema/mutations/#conventions). The documentation also outlines more variants to create user errors.
 
-One last aspect before we move on to the next topic. We also thought about result objects where a service we use does not use exceptions but already has error objects. Or F# code where we might have a union representing a result and its errors. We do not yet support these kinds of things but will further iterate on the current conventions to include these kinds in the future.
+One last aspect before we move on to the next topic. We also thought about result objects where a service we use does not use exceptions but already has error objects. Or F# code where we might have a union representing a result and its errors. We do not yet support these kinds of things but will further iterate on the current conventions to include these approaches towards results and errors in the future.
 
 # Dependency Injection Improvements
 
@@ -407,7 +407,7 @@ public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
 }
 ```
 
-The above resolver gets injected a service we want to interact with within our resolver. We use this service in many resolvers throughout our solution, and having to repeatedly annotate our service with the attributes `[FromService]`, `[Service]` or `[ScopedService]` bloats our code.
+The above resolver gets injected a service we want to interact with within our resolver. We use this service in many resolvers throughout our solution, and having to repeatedly to annotate our service with the attributes `[FromService]`, `[Service]` or `[ScopedService]` bloats our code.
 
 With our new version, you can now register this service as a well-known service on the schema. Wherever the resolver compiler finds this service type, it will generate a dependency injection code resolving it from the DI.
 
@@ -473,7 +473,7 @@ public async Task<ScheduleSessionPayload> ScheduleSessionAsync(
 }
 ```
 
-Whether you are using well-known services registered at the schema level or services declared with the attribute, you have the same capabilities and new a streamlined experience.
+Whether you are using well-known services registered at the schema level or services declared with the attribute, you have the same capabilities and a new streamlined experience.
 
 # Entity Framework Improvements
 
@@ -498,7 +498,7 @@ The DBContext can be registered as a well-known DBContext with three different b
 
 The first and the default is `DbContextKind.Syncronized` which will ensure that all resolvers that access such a DBContext synchronize their access through the query execution plan.
 
-You also can use a pooled DBContext with the  `DbContextKind.Pooled`. In this case, we will wrap a middleware around your resolver that will retrieve the DBContext through the DBContextFactory, inject the DBContext in your resolver and dispose of it once the resolver pipeline is finished executing.
+You also can use a pooled DBContext with the `DbContextKind.Pooled`. In this case, we will wrap a middleware around your resolver that will retrieve the DBContext through the DBContextFactory, inject the DBContext in your resolver and dispose of it once the resolver pipeline is finished executing.
 
 ```csharp
 builder.Services
@@ -521,9 +521,9 @@ We will further refine these features to integrate more use-cases and reduce the
 
 # DateOnly and TimeOnly
 
-One small note, we now support `DateOnly` and `TimeOnly`. They will now work with the current set of scalars.
+One small note, we now support `DateOnly` and `TimeOnly`. They will now work with the current set of scalars and also with HotChocolate.Data.
 
-We are still working on adding support for `DateOnly`, `TimeOnly`, and NodaTime to HotChocolate.Data.
+We are still working on adding support NodaTime to HotChocolate.Data so that you can write filters that use NodaTime object beneath.
 
 # Outlook
 
@@ -544,3 +544,5 @@ Things are moving together and becoming more and more connected.
 We hope you all enjoy this new version of Hot Chocolate and have some great holidays.
 
 Join us on https://slack.chillicream.com and chime into the discussion around GraphQL on .NET!
+
+> If you like our project help us by [starring it on GitHub](https://github.com/ChilliCream/hotchocolate/stargazers). A GitHub star is the easiest contribution you can give to an OSS project. Star the open source projects you use or love! 
