@@ -17,7 +17,7 @@ Today, we are releasing Hot Chocolate 12.4, which brings a lot of great new prod
 
 The main feature we worked on for this release was definitely the mutation conventions. The new convention will help minimize the effort to create well-defined mutations.
 
-What do I mean with well-defined mutations?
+**What do I mean with well-defined mutations?**
 
 In GraphQL, we have developed specific patterns around mutations. One foundational pattern is about the structure of mutations. It was initially developed by Facebook and belonged to the [Relay server specification](https://relay.dev/docs/v9.1.0/graphql-server-specification/#mutations).
 
@@ -40,15 +40,15 @@ type RenameUserPayload {
 
 Essentially, each mutation consists of three parts:
 
-The mutation resolver.
-The mutation payload.
-The mutation input.
+- The mutation resolver.
+- The mutation payload.
+- The mutation input.
 
-Each mutation has its own mutation payload and its own mutation input. This is done to keep a mutation evolvable over time. If we would instead share inputs or payloads with other mutations, we would break usage of our mutation the moment that other mutation needs to introduce, for instance, new required fields to the input. By giving each mutation its own set of input and payload, we can evolve the mutation without breaking other parts of our schema.
+Each mutation has its own mutation payload and its own mutation input. This is done to keep a mutation evolvable over time. If we instead share inputs or payloads with other mutations, we would quickly get stuck with our mutation design since changing one mutation will often break the other mutation. By giving each mutation its own set of input and payload, we can evolve each mutation without breaking the other.
 
-There are other reasons for this particular design. We, for instance, have a single input so that clients do not need to deconstruct the objects, and mutations do not end up with hundreds of arguments. By having a single input, the mutation clearly exposes what is required to execute it and makes it very simple for client applications to craft the input object.
+There are other reasons for this particular design. We, for instance, have a single input so that clients do not need to deconstruct their objects, and mutations do not end up with hundreds of arguments. The mutation clearly exposes what is required to execute it by having a single input. Further, it makes it very simple for client applications to craft the input object and pass it as a variable.
 
-A separate payload object allows us to expose all affected objects by the mutation. So that the client can fetch all the affected data, it is interested in. Further, the payload allows us to expose the user errors through just another field to the client.
+A separate payload object allows us to expose all affected objects by the mutation. So that the client can fetch all the affected data, it is interested in. Moreover, the payload allows us to expose user errors through just another field to the client on our payload.
 
 ```sdl
 type Mutation {
@@ -70,7 +70,7 @@ union RenameUserError = UserNameTakenError | InvalidUserNameError
 
 We can see that having this particular design of mutation is very beneficial for our schema over time and for the usage by our consumers.
 
-What was not so nice is that we needed so many types in C# itself to create a simple mutation. 
+What was not so nice is that we needed so many types in C# to create a simple mutation.  
 
 ```csharp
 public class Mutation
@@ -240,7 +240,7 @@ public class Mutation
 }
 ```
 
-Further, you can update the naming patterns to create the type names.
+Further, you can customize the naming patterns for creating the payload/input/error type names.
 
 ```csharp
 services
@@ -261,12 +261,13 @@ services
 
 The second part of this new mutation convention involves user errors. We did a lot of work investigating how we should enable errors or even what pattern we should follow. 
 
-Marc-Andre Giroux wrote a great blog post on the various error patterns in GraphQL and analyzed their pro and cons regarding evolvability and usability.
+Marc-Andre Giroux wrote a great [blog post](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) on the various error patterns in GraphQL and analyzed their pro and cons regarding evolvability and usability.
 
 The error stage 6a has all the pros we want:
-Expressive and Discoverable Schema
-Support for Multiple Errors
-Easier Evolution
+
+- Expressive and Discoverable Schema
+- Support for Multiple Errors
+- Easier Mutation Evolution
 
 But at the same time, it wasn't easy to implement since it came with many moving parts. This meant that we had to write repetitive code again to fulfill this error pattern.
 
@@ -358,7 +359,7 @@ interface Error {
 }
 ```
 
-Again, we know that we do not always want to expose our errors one to one with exceptions or even want to have more robust control of which information is exposed to the outside world. This is where we allow for error objects to substitute exceptions that are thrown.
+Again, we know that we do not always want to expose our errors one to one with exceptions or we even want to have more robust control of which information is exposed to the outside world. This is where we allow for error objects to substitute exceptions that are thrown.
 
 ```csharp
 public class Mutation
@@ -388,7 +389,7 @@ public class InvalidUserNameError
 
 The error object shape defines the error type shape on our schema and ensures that even if the exception is refactored to have more or less information, we do not accidentally expose information that we do not want to expose.
 
-You can read more about all of this in our [documentation](https://chillicream.com/docs/hotchocolate/defining-a-schema/mutations/#conventions).
+You can read more about all of this in our [documentation](https://chillicream.com/docs/hotchocolate/defining-a-schema/mutations/#conventions). The documentation also outlines more variants to create user errors.
 
 One last aspect before we move on to the next topic. We also thought about result objects where a service we use does not use exceptions but already has error objects. Or F# code where we might have a union representing a result and its errors. We do not yet support these kinds of things but will further iterate on the current conventions to include these kinds in the future.
 
