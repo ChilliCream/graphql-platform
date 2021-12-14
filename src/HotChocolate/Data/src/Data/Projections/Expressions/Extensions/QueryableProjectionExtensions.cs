@@ -49,7 +49,6 @@ public static class QueryableProjectExtensions
         IResolverContext context) =>
         ExecuteProject(enumerable, context, typeof(QueryableExecutable<T>));
 
-    [Obsolete]
     private static T ExecuteProject<T>(
         this T input,
         IResolverContext context,

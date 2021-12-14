@@ -49,7 +49,6 @@ public static class QueryableSortExtensions
         IResolverContext context) =>
         ExecuteSort(enumerable, context, typeof(QueryableExecutable<T>));
 
-    [Obsolete]
     private static T ExecuteSort<T>(
         this T input,
         IResolverContext context,

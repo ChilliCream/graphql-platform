@@ -311,7 +311,7 @@ public class FilterInputTypeTest
 
         // assert
         Assert.NotNull(type);
-        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type.Fields["id"]).Handler);
+        Assert.IsType<CustomHandler>(Assert.IsType<FilterField>(type!.Fields["id"]).Handler);
     }
 
     [Fact]
@@ -331,7 +331,7 @@ public class FilterInputTypeTest
         // assert
         Assert.NotNull(type);
         Assert.IsType<CustomHandler>(
-            Assert.IsType<FilterField>(type.Fields["friends"]).Handler);
+            Assert.IsType<FilterField>(type!.Fields["friends"]).Handler);
         Assert.IsType<QueryableDefaultFieldHandler>(
             Assert.IsType<FilterField>(type.Fields["name"]).Handler);
     }
@@ -444,8 +444,8 @@ public class FilterInputTypeTest
 
     public interface ITest
     {
-        public string Prop { get; set; }
-        public string Prop2 { get; set; }
+        public string? Prop { get; set; }
+        public string? Prop2 { get; set; }
     }
 
     public interface ITest<T>

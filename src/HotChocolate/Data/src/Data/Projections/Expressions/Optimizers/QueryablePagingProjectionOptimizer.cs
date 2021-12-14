@@ -71,7 +71,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
             internalSelection: true);
     }
 
-    private (string filedName, IObjectField field) TryGetObjectField(IPageType type)
+    private static (string filedName, IObjectField field) TryGetObjectField(IPageType type)
     {
         if (type.Fields.FirstOrDefault(x => x.Name.Value == "nodes") is { } nodes)
         {
@@ -105,7 +105,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "edges") is { } edgeSelection)
         {
-            foreach (ISelectionNode? edgeSubField in edgeSelection.SelectionSet.Selections)
+            foreach (ISelectionNode? edgeSubField in edgeSelection.SelectionSet!.Selections)
             {
                 if (edgeSubField is FieldNode edgeSubFieldNode &&
                     edgeSubFieldNode.Name.Value is "node" &&
@@ -128,7 +128,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "items") is { } itemSelection)
         {
-            foreach (ISelectionNode? nodeField in itemSelection.SelectionSet.Selections)
+            foreach (ISelectionNode? nodeField in itemSelection.SelectionSet!.Selections)
             {
                 selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
             }
@@ -142,7 +142,7 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         if (context.Fields.Values
             .FirstOrDefault(x => x.Field.Name == "nodes") is { } nodeSelection)
         {
-            foreach (ISelectionNode? nodeField in nodeSelection.SelectionSet.Selections)
+            foreach (ISelectionNode? nodeField in nodeSelection.SelectionSet!.Selections)
             {
                 selections.Add(CloneSelectionSetVisitor.Default.CloneSelectionNode(nodeField));
             }

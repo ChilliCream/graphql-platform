@@ -206,6 +206,7 @@ public class SortInputTypeTest
         builder.Create().Print().MatchSnapshot();
     }
 
+    [Fact]
     public void SortInputType_Should_IgnoreFieldWithoutCallingConvention()
     {
         // arrange
@@ -319,8 +320,8 @@ public class SortInputTypeTest
 
     public interface ITest
     {
-        public string Prop { get; set; }
-        public string Prop2 { get; set; }
+        public string? Prop { get; set; }
+        public string? Prop2 { get; set; }
     }
 
     public interface ITest<T>

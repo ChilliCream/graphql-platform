@@ -62,7 +62,7 @@ public class QueryableFilterVisitorInterfacesTests
         res3.MatchSnapshot("null");
     }
 
-    public static void Configure(ISchemaBuilder builder)
+    private static void Configure(ISchemaBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>();
         builder.AddObjectType<InterfaceImpl2>();

@@ -10,5 +10,5 @@ public class SortEnumTypeDefinition
 {
     public string? Scope { get; set; }
 
-    public Type EntityType { get; set; }
+    public Type EntityType { get; set; } = default!;
 }
