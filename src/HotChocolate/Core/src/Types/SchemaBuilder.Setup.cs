@@ -368,7 +368,6 @@ public partial class SchemaBuilder
 
             Schema schema = typeRegistry.Types
                 .Select(t => t.Type).OfType<Schema>().First();
-            Console.WriteLine("Types: " + typeRegistry.Types.Count);
 
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
