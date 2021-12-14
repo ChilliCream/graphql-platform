@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -7,6 +8,7 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -71,17 +73,15 @@ internal static class ThrowHelper
                 .SetExtension(nameof(filterProvider), filterProvider)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Filtering_FilteringWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(DataResources.Filtering_FilteringWasNotFound)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Filtering_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -93,8 +93,8 @@ internal static class ThrowHelper
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException FilterInterceptor_NoHandlerFoundForField(
@@ -133,8 +133,7 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Filtering.FilterObjectType)
                 .Build());
 
-    public static SchemaException FilterDescriptorContextExtensions_NoConvention(
-        string? scope) =>
+    public static SchemaException FilterDescriptorContextExtensions_NoConvention(string? scope) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
@@ -294,17 +293,15 @@ internal static class ThrowHelper
                     type.Print())
                 .Build());
 
-    [Obsolete]
     public static SchemaException Sorting_SortingWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(DataResources.Sorting_SortingWasNotFound)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Sorting_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -316,8 +313,8 @@ internal static class ThrowHelper
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException ProjectionProvider_NoHandlersConfigured(
@@ -348,17 +345,15 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Projection_ProjectionWasNotFound(IResolverContext context) =>
         new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(DataResources.Projection_ProjectionWasNotFound)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
-    [Obsolete]
     public static SchemaException Projection_TypeMissmatch(
         IResolverContext context,
         Type expectedType,
@@ -370,8 +365,8 @@ internal static class ThrowHelper
                     expectedType.FullName ?? expectedType.Name,
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
-                .SetExtension("fieldName", context.Field.Name)
-                .SetExtension("typeName", context.Field.Type.NamedType().Name)
+                .SetExtension("fieldName", context.Selection.Field.Name)
+                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
                 .Build());
 
     public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(
@@ -393,8 +388,8 @@ internal static class ThrowHelper
             CultureInfo.CurrentCulture,
             DataResources.Filtering_CouldNotParseValue,
             handler.GetType().Name,
+            valueNode.Print(),
             expectedType.Print(),
-            field.DeclaringType.Print(),
             field.Name,
             field.Type.Print()));
 
@@ -409,14 +404,14 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
-    public static InvalidOperationException QueryableFiltering_NoMemberDeclared(
-        IFilterField field) =>
-        new(string.Format(
-            CultureInfo.CurrentCulture,
-            DataResources.QueryableFiltering_NoMemberDeclared,
-            field.DeclaringType.Print(),
-            field.Name,
-            field.Type.Print()));
+    public static InvalidOperationException QueryableFiltering_NoMemberDeclared(IFilterField field)
+        =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.QueryableFiltering_NoMemberDeclared,
+                field.DeclaringType.Print(),
+                field.Name,
+                field.Type.Print()));
 
     public static InvalidOperationException Filtering_QueryableCombinator_QueueEmpty(
         QueryableCombinator combinator) =>
@@ -434,12 +429,12 @@ internal static class ThrowHelper
             combinator.GetType(),
             operation.ToString()));
 
-    public static InvalidOperationException ProjectionVisitor_MemberInvalid(
-        MemberInfo memberInfo) =>
-        new(string.Format(
-            CultureInfo.CurrentCulture,
-            DataResources.ProjectionVisitor_MemberInvalid,
-            memberInfo.GetType()));
+    public static InvalidOperationException ProjectionVisitor_MemberInvalid(MemberInfo memberInfo)
+        =>
+            new(string.Format(
+                CultureInfo.CurrentCulture,
+                DataResources.ProjectionVisitor_MemberInvalid,
+                memberInfo.GetType()));
 
     public static InvalidOperationException ProjectionVisitor_NoMemberFound() =>
         new(string.Format(
@@ -480,8 +475,7 @@ internal static class ThrowHelper
             field.Name,
             field.Type.Print()));
 
-    public static InvalidOperationException QueryableSorting_NoMemberDeclared(
-        ISortField field) =>
+    public static InvalidOperationException QueryableSorting_NoMemberDeclared(ISortField field) =>
         new(string.Format(
             CultureInfo.CurrentCulture,
             DataResources.QueryableSorting_NoMemberDeclared,
@@ -499,4 +493,18 @@ internal static class ThrowHelper
             CultureInfo.CurrentCulture,
             DataResources.ProjectionVisitor_CouldNotUnwrapType,
             type.Print()));
+
+    public static GraphQLException GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId()
+        => new(ErrorBuilder
+            .New()
+            .SetMessage(DataResources.GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId)
+            .Build());
+
+    public static GraphQLException GlobalIdInputValueFormatter_IdsHaveInvalidFormat(
+        IEnumerable<string?> ids)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                "The IDs `{0}` have an invalid format.",
+                string.Join(", ", ids))
+            .Build());
 }

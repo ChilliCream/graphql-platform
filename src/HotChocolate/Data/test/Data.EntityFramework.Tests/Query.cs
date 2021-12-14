@@ -19,7 +19,7 @@ public class Query
     [UseDbContext(typeof(BookContext))]
     public async Task<Author> GetAuthor(
         [ScopedService] BookContext context) =>
-        await context.Authors.FirstOrDefaultAsync();
+        (await context.Authors.FirstOrDefaultAsync())!;
 
     [UseDbContext(typeof(BookContext))]
     public Author? GetAuthorSync(
@@ -161,7 +161,7 @@ public class InvalidQuery
 
     [UseDbContext(typeof(object))]
     public async Task<Author> GetAuthor([ScopedService] BookContext context) =>
-        await context.Authors.FirstOrDefaultAsync();
+        (await context.Authors.FirstOrDefaultAsync())!;
 }
 
 public class QueryType : ObjectType

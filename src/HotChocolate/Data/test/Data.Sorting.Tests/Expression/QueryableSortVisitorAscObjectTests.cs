@@ -175,7 +175,7 @@ public class QueryableSortVisitorAscObjectTests
 
         for (var i = 0; i < expected.Length; i++)
         {
-            Assert.Equal(expected[i], sorted[i].Test.Prop);
+            Assert.Equal(expected[i], sorted[i].Test!.Prop);
         }
     }
 

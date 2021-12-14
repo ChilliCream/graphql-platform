@@ -13,13 +13,12 @@ public class ProjectionVisitor<TContext>
     : SelectionVisitor<TContext>
     where TContext : IProjectionVisitorContext
 {
-    [Obsolete]
     public virtual void Visit(TContext context)
     {
         SelectionSetNode selectionSet =
             context.Context.Selection.SyntaxNode.SelectionSet ?? throw new Exception();
         context.SelectionSetNodes.Push(selectionSet);
-        Visit(context.Context.Field, context);
+        Visit(context.Context.Selection.Field, context);
     }
 
     protected override TContext OnBeforeLeave(ISelection selection, TContext localContext)

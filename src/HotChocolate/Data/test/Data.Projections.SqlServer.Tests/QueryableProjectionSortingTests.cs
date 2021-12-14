@@ -11,148 +11,121 @@ public class QueryableProjectionSortingTests
 {
     private static readonly Bar[] _barEntities =
     {
-            new Bar
+        new Bar
+        {
+            Foo = new Foo
             {
-                Foo = new Foo
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = new List<BarDeep>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                    ObjectArray = new List<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                        new BarDeep { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
-                    }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 14,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    NestedObject =
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
-                    ObjectArray = new List<BarDeep>
-                    {
-                        new BarDeep { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
-                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
-                        new BarDeep { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
-                    }
+                    new BarDeep { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
                 }
             }
-        };
+        },
+        new Bar
+        {
+            Foo = new Foo
+            {
+                BarShort = 14,
+                BarBool = true,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                NestedObject =
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                ObjectArray = new List<BarDeep>
+                {
+                    new BarDeep { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    new BarDeep { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                }
+            }
+        }
+    };
 
     private static readonly BarNullable[] _barNullableEntities =
     {
-            new BarNullable
+        new BarNullable
+        {
+            Foo = new FooNullable
             {
-                Foo = new FooNullable
+                BarShort = 12,
+                BarBool = true,
+                BarEnum = BarEnum.BAR,
+                BarString = "testatest",
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = new List<BarDeepNullable?>
                 {
-                    BarShort = 12,
-                    BarBool = true,
-                    BarEnum = BarEnum.BAR,
-                    BarString = "testatest",
-                    NestedObject =
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                    ObjectArray = new List<BarDeepNullable?>
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
+                    new BarDeepNullable
                     {
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 1, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = null,
-                    BarBool = null,
-                    BarEnum = BarEnum.BAZ,
-                    BarString = "testbtest",
-                    NestedObject =
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                    ObjectArray = new List<BarDeepNullable?>
-                    {
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 1, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 14,
-                    BarBool = false,
-                    BarEnum = BarEnum.QUX,
-                    BarString = "testctest",
-                    NestedObject =
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                    ObjectArray = new List<BarDeepNullable?>
-                    {
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 1, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 12, BarString = "a" }
-                        },
-                        new BarDeepNullable
-                        {
-                            Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        }
-                    }
-                }
-            },
-            new BarNullable
-            {
-                Foo = new FooNullable
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testdtest",
-                    ObjectArray = null
+                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
+                    },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
                 }
             }
-        };
+        },
+        new BarNullable
+        {
+            Foo = new FooNullable
+            {
+                BarShort = null,
+                BarBool = null,
+                BarEnum = BarEnum.BAZ,
+                BarString = "testbtest",
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = new List<BarDeepNullable?>
+                {
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
+                    new BarDeepNullable
+                    {
+                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
+                    },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                }
+            }
+        },
+        new BarNullable
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 14,
+                BarBool = false,
+                BarEnum = BarEnum.QUX,
+                BarString = "testctest",
+                NestedObject =
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                ObjectArray = new List<BarDeepNullable?>
+                {
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 1, BarString = "a" } },
+                    new BarDeepNullable
+                    {
+                        Foo = new FooDeep { BarShort = 12, BarString = "a" }
+                    },
+                    new BarDeepNullable { Foo = new FooDeep { BarShort = 3, BarString = "a" } }
+                }
+            }
+        },
+        new BarNullable
+        {
+            Foo = new FooNullable
+            {
+                BarShort = 13,
+                BarBool = false,
+                BarEnum = BarEnum.FOO,
+                BarString = "testdtest",
+                ObjectArray = null!
+            }
+        }
+    };
 
     private readonly SchemaCache _cache = new SchemaCache();
 
@@ -298,16 +271,16 @@ public class QueryableProjectionSortingTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
         modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
     }
 
-    public static void OnModelCreatingNullable(ModelBuilder modelBuilder)
+    private static void OnModelCreatingNullable(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<FooNullable>().HasMany(x => x.ObjectArray);
+        modelBuilder.Entity<FooNullable>().HasMany<BarDeepNullable>(x => x.ObjectArray!);
         modelBuilder.Entity<FooNullable>().HasOne(x => x.NestedObject);
         modelBuilder.Entity<BarNullable>().HasOne(x => x.Foo);
         modelBuilder.Entity<FooDeep>();

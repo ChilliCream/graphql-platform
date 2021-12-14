@@ -53,7 +53,7 @@ public class QueryableFilterVisitorInterfacesTests : IClassFixture<SchemaCache>
         res2.MatchSnapshot("DESC");
     }
 
-    public static void Configure(ISchemaBuilder builder)
+    private static void Configure(ISchemaBuilder builder)
     {
         builder.AddObjectType<InterfaceImpl1>();
         builder.AddObjectType<InterfaceImpl2>();

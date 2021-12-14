@@ -39,7 +39,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
     protected virtual FilterVisitor<QueryableFilterContext, Expression> Visitor { get; } =
         new(new QueryableCombinator());
 
-    [Obsolete]
     public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
     {
         ApplyFiltering applyFilter = CreateApplicatorAsync<TEntityType>(argumentName);
@@ -58,14 +57,13 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
         }
     }
 
-    [Obsolete]
     private static ApplyFiltering CreateApplicatorAsync<TEntityType>(NameString argumentName)
     {
         return (context, input) =>
         {
             // next we get the filter argument. If the filter argument is already on the context
             // we use this. This enabled overriding the context with LocalContextData
-            IInputField argument = context.Field.Arguments[argumentName];
+            IInputField argument = context.Selection.Field.Arguments[argumentName];
             IValueNode filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
                 context.LocalContextData[ContextValueNodeKey] is IValueNode node
                     ? node
@@ -86,7 +84,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             }
 
             if (argument.Type is IFilterInputType filterInput &&
-                context.Field.ContextData.TryGetValue(
+                context.Selection.Field.ContextData.TryGetValue(
                     ContextVisitFilterArgumentKey,
                     out object? executorObj) &&
                 executorObj is VisitFilterArgument executor)

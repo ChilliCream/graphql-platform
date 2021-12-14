@@ -93,18 +93,11 @@ internal class FilterGlobalIdInputValueFormatter : IInputValueFormatter
             }
             catch
             {
-                throw new GraphQLException(
-                    ErrorBuilder.New()
-                        .SetMessage(
-                            "The IDs `{0}` have an invalid format.",
-                            string.Join(", ", stringEnumerable))
-                        .Build());
+                throw ThrowHelper
+                    .GlobalIdInputValueFormatter_IdsHaveInvalidFormat(stringEnumerable);
             }
         }
 
-        throw new GraphQLException(
-            ErrorBuilder.New()
-                .SetMessage("The specified value is not a valid ID value.")
-                .Build());
+        throw ThrowHelper.GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId();
     }
 }
