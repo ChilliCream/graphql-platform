@@ -1,8 +1,7 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public enum FloatFormat
 {
-    public enum FloatFormat
-    {
-        FixedPoint = 0,
-        Exponential = 1
-    }
+    FixedPoint = 0,
+    Exponential = 1
 }

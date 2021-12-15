@@ -4,77 +4,76 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace HotChocolate.Language.Utilities
+namespace HotChocolate.Language.Utilities;
+
+public static class SyntaxPrinter
 {
-    public static class SyntaxPrinter
+    private static readonly SyntaxSerializer _serializer =
+        new(new SyntaxSerializerOptions { Indented = true });
+    private static readonly SyntaxSerializer _serializerNoIndent =
+        new(new SyntaxSerializerOptions { Indented = false });
+
+    public static string Print(this ISyntaxNode node, bool indented = true)
     {
-        private static readonly SyntaxSerializer _serializer =
-            new(new SyntaxSerializerOptions { Indented = true });
-        private static readonly SyntaxSerializer _serializerNoIndent =
-            new(new SyntaxSerializerOptions { Indented = false });
+        StringSyntaxWriter writer = StringSyntaxWriter.Rent();
 
-        public static string Print(this ISyntaxNode node, bool indented = true)
+        try
         {
-            StringSyntaxWriter writer = StringSyntaxWriter.Rent();
-
-            try
+            if (indented)
             {
-                if (indented)
-                {
-                    _serializer.Serialize(node, writer);
-                }
-                else
-                {
-                    _serializerNoIndent.Serialize(node, writer);
-                }
-
-                return writer.ToString();
+                _serializer.Serialize(node, writer);
             }
-            finally
+            else
             {
-                StringSyntaxWriter.Return(writer);
+                _serializerNoIndent.Serialize(node, writer);
             }
+
+            return writer.ToString();
         }
-
-        public static async ValueTask PrintToAsync(
-            this ISyntaxNode node,
-            Stream stream,
-            bool indented = true,
-            CancellationToken cancellationToken = default)
+        finally
         {
+            StringSyntaxWriter.Return(writer);
+        }
+    }
+
+    public static async ValueTask PrintToAsync(
+        this ISyntaxNode node,
+        Stream stream,
+        bool indented = true,
+        CancellationToken cancellationToken = default)
+    {
 #if NETSTANDARD2_0
             using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #else
-            await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #endif
 
-            StringSyntaxWriter syntaxWriter = StringSyntaxWriter.Rent();
+        StringSyntaxWriter syntaxWriter = StringSyntaxWriter.Rent();
 
-            try
+        try
+        {
+            if (indented)
             {
-                if (indented)
-                {
-                    _serializer.Serialize(node, syntaxWriter);
-                }
-                else
-                {
-                    _serializerNoIndent.Serialize(node, syntaxWriter);
-                }
+                _serializer.Serialize(node, syntaxWriter);
+            }
+            else
+            {
+                _serializerNoIndent.Serialize(node, syntaxWriter);
+            }
 
 #if NETSTANDARD2_0 || NETSTANDARD2_1
                 await streamWriter
                     .WriteAsync(syntaxWriter.ToString())
                     .ConfigureAwait(false);
 #else
-                await streamWriter
-                    .WriteAsync(syntaxWriter.StringBuilder, cancellationToken)
-                    .ConfigureAwait(false);
+            await streamWriter
+                .WriteAsync(syntaxWriter.StringBuilder, cancellationToken)
+                .ConfigureAwait(false);
 #endif
-            }
-            finally
-            {
-                StringSyntaxWriter.Return(syntaxWriter);
-            }
+        }
+        finally
+        {
+            StringSyntaxWriter.Return(syntaxWriter);
         }
     }
 }
