@@ -144,4 +144,6 @@ public class Startup
 >
 > [Learn more about extending types](/docs/hotchocolate/defining-a-schema/extending-types)
 
-A query type is just a regular [object type](/docs/hotchocolate/defining-a-schema/object-types), so we can do everything we could do with an object type with the query type (this applies to all root types).
+A query type is just a regular object type, so everything that applies to an object type also applies to the query type (this is true for all root types).
+
+[Learn more about object types](/docs/hotchocolate/defining-a-schema/object-types)

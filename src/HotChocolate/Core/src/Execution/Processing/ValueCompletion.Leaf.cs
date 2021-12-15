@@ -3,56 +3,55 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ErrorHelper;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal static partial class ValueCompletion
 {
-    internal static partial class ValueCompletion
+    private static bool TryCompleteLeafValue(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        Path path,
+        IType fieldType,
+        object? result,
+        out object? completedResult)
     {
-        private static bool TryCompleteLeafValue(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            IType fieldType,
-            object? result,
-            out object? completedResult)
+        try
         {
-            try
-            {
-                var leafType = (ILeafType)fieldType;
-                Type runtimeType = leafType.RuntimeType;
+            var leafType = (ILeafType)fieldType;
+            Type runtimeType = leafType.RuntimeType;
 
-                if (!runtimeType.IsInstanceOfType(result) &&
-                    operationContext.Converter.TryConvert(runtimeType, result, out var c))
-                {
-                    result = c;
-                }
-
-                completedResult = leafType.Serialize(result);
-                return true;
-            }
-            catch (SerializationException ex)
+            if (!runtimeType.IsInstanceOfType(result) &&
+                operationContext.Converter.TryConvert(runtimeType, result, out var c))
             {
-                ReportError(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    InvalidLeafValue(ex, selection.SyntaxNode, path));
-            }
-            catch (Exception ex)
-            {
-                ReportError(
-                    operationContext,
-                    resolverContext,
-                    selection,
-                    UnexpectedLeafValueSerializationError(
-                        ex,
-                        operationContext.ErrorHandler,
-                        selection.SyntaxNode,
-                        path));
+                result = c;
             }
 
-            completedResult = null;
+            completedResult = leafType.Serialize(result);
             return true;
         }
+        catch (SerializationException ex)
+        {
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                InvalidLeafValue(ex, selection.SyntaxNode, path));
+        }
+        catch (Exception ex)
+        {
+            ReportError(
+                operationContext,
+                resolverContext,
+                selection,
+                UnexpectedLeafValueSerializationError(
+                    ex,
+                    operationContext.ErrorHandler,
+                    selection.SyntaxNode,
+                    path));
+        }
+
+        completedResult = null;
+        return true;
     }
 }

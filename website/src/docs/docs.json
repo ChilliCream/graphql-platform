@@ -137,6 +137,20 @@
             ]
           },
           {
+            "path": "execution-engine",
+            "title": "Execution Engine",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "field-middleware",
+                "title": "Field middleware"
+              }
+            ]
+          },
+          {
             "path": "integrations",
             "title": "Integrations",
             "items": [

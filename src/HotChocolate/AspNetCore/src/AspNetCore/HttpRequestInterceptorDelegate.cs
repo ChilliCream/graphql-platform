@@ -1,13 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Execution;
+using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore
-{
-    public delegate ValueTask HttpRequestInterceptorDelegate(
-        HttpContext context,
-        IRequestExecutor requestExecutor,
-        IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken);
-}
+namespace HotChocolate.AspNetCore;
+
+public delegate ValueTask HttpRequestInterceptorDelegate(
+    HttpContext context,
+    IRequestExecutor requestExecutor,
+    IQueryRequestBuilder requestBuilder,
+    CancellationToken cancellationToken);

@@ -1,11 +1,10 @@
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Types.Helpers
+namespace HotChocolate.Types.Helpers;
+
+internal interface IFieldCompletion
 {
-    internal interface IFieldCompletion
-    {
-        void CompleteField(
-            ITypeCompletionContext context,
-            ITypeSystemMember declaringMember);
-    }
+    void CompleteField(
+        ITypeCompletionContext context,
+        ITypeSystemMember declaringMember);
 }

@@ -5,19 +5,20 @@ using HotChocolate.Internal;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class PureResolverContextParameterExpressionBuilder
+    : IParameterExpressionBuilder
 {
-    internal sealed class PureResolverContextParameterExpressionBuilder
-        : IParameterExpressionBuilder
-    {
-        public ArgumentKind Kind => ArgumentKind.Context;
+    public ArgumentKind Kind => ArgumentKind.Context;
 
-        public bool IsPure => true;
+    public bool IsPure => true;
 
-        public bool CanHandle(ParameterInfo parameter)
-            => typeof(IPureResolverContext) == parameter.ParameterType;
+    public bool IsDefaultHandler => false;
 
-        public Expression Build(ParameterInfo parameter, Expression context)
-            => context;
-    }
+    public bool CanHandle(ParameterInfo parameter)
+        => typeof(IPureResolverContext) == parameter.ParameterType;
+
+    public Expression Build(ParameterInfo parameter, Expression context)
+        => context;
 }

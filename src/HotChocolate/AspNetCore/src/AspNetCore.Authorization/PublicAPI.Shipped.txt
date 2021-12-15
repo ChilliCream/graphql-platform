@@ -22,6 +22,17 @@ HotChocolate.AspNetCore.Authorization.AuthorizeDirective.Policy.get -> string?
 HotChocolate.AspNetCore.Authorization.AuthorizeDirective.Roles.get -> System.Collections.Generic.IReadOnlyList<string!>?
 HotChocolate.AspNetCore.Authorization.AuthorizeDirectiveType
 HotChocolate.AspNetCore.Authorization.AuthorizeDirectiveType.AuthorizeDirectiveType() -> void
+HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.AuthorizeResult.Allowed = 0 -> HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.AuthorizeResult.NoDefaultPolicy = 3 -> HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.AuthorizeResult.NotAllowed = 1 -> HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.AuthorizeResult.NotAuthenticated = 2 -> HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.AuthorizeResult.PolicyNotFound = 4 -> HotChocolate.AspNetCore.Authorization.AuthorizeResult
+HotChocolate.AspNetCore.Authorization.DefaultAuthorizationHandler
+HotChocolate.AspNetCore.Authorization.DefaultAuthorizationHandler.AuthorizeAsync(HotChocolate.Resolvers.IMiddlewareContext! context, HotChocolate.AspNetCore.Authorization.AuthorizeDirective! directive) -> System.Threading.Tasks.ValueTask<HotChocolate.AspNetCore.Authorization.AuthorizeResult>
+HotChocolate.AspNetCore.Authorization.DefaultAuthorizationHandler.DefaultAuthorizationHandler() -> void
+HotChocolate.AspNetCore.Authorization.IAuthorizationHandler
+HotChocolate.AspNetCore.Authorization.IAuthorizationHandler.AuthorizeAsync(HotChocolate.Resolvers.IMiddlewareContext! context, HotChocolate.AspNetCore.Authorization.AuthorizeDirective! directive) -> System.Threading.Tasks.ValueTask<HotChocolate.AspNetCore.Authorization.AuthorizeResult>
 HotChocolate.AuthorizeSchemaBuilderExtensions
 HotChocolate.Types.AuthorizeObjectFieldDescriptorExtensions
 HotChocolate.Types.AuthorizeObjectTypeDescriptorExtensions
@@ -43,4 +54,5 @@ static HotChocolate.Types.AuthorizeSchemaTypeDescriptorExtensions.Authorize(this
 static HotChocolate.Types.AuthorizeSchemaTypeDescriptorExtensions.Authorize(this HotChocolate.Types.ISchemaTypeDescriptor! self, string! policy) -> HotChocolate.Types.ISchemaTypeDescriptor!
 static HotChocolate.Types.AuthorizeSchemaTypeDescriptorExtensions.Authorize(this HotChocolate.Types.ISchemaTypeDescriptor! self) -> HotChocolate.Types.ISchemaTypeDescriptor!
 static Microsoft.Extensions.DependencyInjection.HotChocolateAuthorizeRequestExecutorBuilder.AddAuthorization(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
+static Microsoft.Extensions.DependencyInjection.HotChocolateAuthorizeRequestExecutorBuilder.AddAuthorizationHandler<T>(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!
 static Microsoft.Extensions.DependencyInjection.HotChocolateAuthorizeRequestExecutorBuilder.AddAuthorizeDirectiveType(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder! builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder!

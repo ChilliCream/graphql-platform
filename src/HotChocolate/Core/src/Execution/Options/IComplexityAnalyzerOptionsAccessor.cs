@@ -1,13 +1,12 @@
-namespace HotChocolate.Execution.Options
+namespace HotChocolate.Execution.Options;
+
+/// <summary>
+/// The complexity options accessor.
+/// </summary>
+public interface IComplexityAnalyzerOptionsAccessor
 {
     /// <summary>
-    /// The complexity options accessor.
+    /// Gets the complexity analyzer settings.
     /// </summary>
-    public interface IComplexityAnalyzerOptionsAccessor
-    {
-        /// <summary>
-        /// Gets the complexity analyzer settings.
-        /// </summary>
-        ComplexityAnalyzerSettings Complexity { get; }
-    }
+    ComplexityAnalyzerSettings Complexity { get; }
 }

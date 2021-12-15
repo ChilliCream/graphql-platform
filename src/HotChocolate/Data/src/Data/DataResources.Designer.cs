@@ -560,5 +560,17 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("ProjectionVisitor_CouldNotUnwrapType", resourceCulture);
             }
         }
+        
+        internal static string GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId {
+            get {
+                return ResourceManager.GetString("GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId", resourceCulture);
+            }
+        }
+        
+        internal static string GlobalIdInputValueFormatter_IdsHaveInvalidFormat {
+            get {
+                return ResourceManager.GetString("GlobalIdInputValueFormatter_IdsHaveInvalidFormat", resourceCulture);
+            }
+        }
     }
 }

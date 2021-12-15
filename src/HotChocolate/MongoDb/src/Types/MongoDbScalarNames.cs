@@ -11,5 +11,11 @@ namespace HotChocolate.Types.MongoDb
         /// sequences.
         /// </summary>
         public static readonly string ObjectId = nameof(ObjectId);
+
+        /// <summary>
+        /// The name of the Bson scalar type.
+        /// sequences.
+        /// </summary>
+        public static readonly string Bson = nameof(Bson);
     }
 }

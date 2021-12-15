@@ -1,6 +1,10 @@
 <Project>
 
   <PropertyGroup>
+    <IsMacOsArm Condition="'$(NETCoreSdkPortableRuntimeIdentifier)' == 'osx-arm64'">true</IsMacOsArm>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
     <NoWarn>$(NoWarn);CS0436;RS0026;RS0027;RS0041</NoWarn>
@@ -34,8 +38,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LibraryTargetFrameworks>net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
-    <TestTargetFrameworks>net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netcoreapp3.1</TestTargetFrameworks>
+    <LibraryTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0; netstandard2.0</LibraryTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TestTargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -56,6 +62,7 @@
   
   <!-- PublicApiAnalyzers -->
   <PropertyGroup>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' AND !$(MSBuildProjectName.Contains('.Tests')) AND !$(MSBuildProjectName.Contains('.Resources')) ">true</AddPublicApiAnalyzers>
     <AddPublicApiAnalyzers Condition=" '$(AddPublicApiAnalyzers)' == '' ">false</AddPublicApiAnalyzers>
     

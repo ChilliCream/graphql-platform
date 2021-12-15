@@ -1,13 +1,12 @@
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
-{
-    public sealed class KeepConnectionAliveMessage : OperationMessage
-    {
-        public KeepConnectionAliveMessage()
-            : base(MessageTypes.Connection.KeepAlive)
-        {
-        }
+namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
-        public static KeepConnectionAliveMessage Default { get; } =
-            new KeepConnectionAliveMessage();
+public sealed class KeepConnectionAliveMessage : OperationMessage
+{
+    public KeepConnectionAliveMessage()
+        : base(MessageTypes.Connection.KeepAlive)
+    {
     }
+
+    public static KeepConnectionAliveMessage Default { get; } =
+        new KeepConnectionAliveMessage();
 }

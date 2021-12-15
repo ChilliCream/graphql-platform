@@ -1,15 +1,14 @@
 #nullable enable
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+/// <summary>
+/// GraphQL type system members that can be scoped.
+/// </summary>
+public interface IHasScope
 {
     /// <summary>
-    /// GraphQL type system members that can be scoped.
+    /// Gets a scope name that was provided by an extension.
     /// </summary>
-    public interface IHasScope
-    {
-        /// <summary>
-        /// Gets a scope name that was provided by an extension.
-        /// </summary>
-        string? Scope { get; }
-    }
+    string? Scope { get; }
 }

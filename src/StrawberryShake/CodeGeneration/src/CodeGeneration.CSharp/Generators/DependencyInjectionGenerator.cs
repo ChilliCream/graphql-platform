@@ -45,6 +45,15 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             TypeNames.JsonSerializer
         };
 
+        private static readonly Dictionary<string, string> _alternativeTypeNames = new()
+        {
+            ["Uuid"] = TypeNames.UUIDSerializer,
+            ["Guid"] = TypeNames.UUIDSerializer,
+            ["URL"] = TypeNames.UrlSerializer,
+            ["Uri"] = TypeNames.UrlSerializer,
+            ["URI"] = TypeNames.UrlSerializer
+        };
+
         protected override void Generate(
             DependencyInjectionDescriptor descriptor,
             CSharpSyntaxGeneratorSettings settings,
@@ -454,6 +463,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
                     .AddGeneric(TypeNames.ISerializer)
                     .AddGeneric(serializer)
                     .AddArgument(_services);
+            }
+
+            foreach (var scalarTypes in descriptor.TypeDescriptors.OfType<ScalarTypeDescriptor>())
+            {
+                if (_alternativeTypeNames.TryGetValue(scalarTypes.Name.Value, out var serializer))
+                {
+                    body.AddMethodCall()
+                        .SetMethodName(TypeNames.AddSingleton)
+                        .AddGeneric(TypeNames.ISerializer)
+                        .AddArgument(_services)
+                        .AddArgument(MethodCallBuilder
+                            .Inline()
+                            .SetNew()
+                            .SetMethodName(serializer)
+                            .AddArgument(scalarTypes.Name.AsStringToken()));
+                }
             }
 
             var stringTypeInfo = new RuntimeTypeInfo(TypeNames.String);

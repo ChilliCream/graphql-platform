@@ -1,9 +1,8 @@
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public enum AllowedContentType
 {
-    public enum AllowedContentType
-    {
-        None,
-        Json,
-        Form
-    }
+    None,
+    Json,
+    Form
 }

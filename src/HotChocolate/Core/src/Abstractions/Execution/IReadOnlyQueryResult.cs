@@ -1,10 +1,7 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IReadOnlyQueryResult : IQueryResult
 {
-    // todo : deprecate this interface and use IQueryResult
-    public interface IReadOnlyQueryResult
-        : IQueryResult
-    {
-    }
 }

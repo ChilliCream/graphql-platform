@@ -1,2 +1,0 @@
-HotChocolate.Types.UsePagingAttribute.UsePagingAttribute(System.Type? type = null, int order = 0) -> void
-*REMOVED*HotChocolate.Types.UsePagingAttribute.UsePagingAttribute(System.Type? type = null) -> void

@@ -4,6 +4,7 @@ HotChocolate.Data.EntityFrameworkExecutable<T>
 HotChocolate.Data.EntityFrameworkExecutable<T>.EntityFrameworkExecutable(System.Linq.IQueryable<T>! queryable) -> void
 HotChocolate.Data.EntityFrameworkResolverContextExtensions
 HotChocolate.Data.UseDbContextAttribute
+HotChocolate.Data.UseDbContextAttribute.UseDbContextAttribute(System.Type! dbContext, int order = 0) -> void
 HotChocolate.Types.EntityFrameworkObjectFieldDescriptorExtensions
 override HotChocolate.Data.EntityFrameworkExecutable<T>.FirstOrDefaultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<object?>
 override HotChocolate.Data.EntityFrameworkExecutable<T>.Print() -> string!

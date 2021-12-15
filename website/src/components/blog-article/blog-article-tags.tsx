@@ -43,7 +43,7 @@ const Tag = styled.li`
   margin: 0 5px 5px 0;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
   font-size: 0.722em;
   letter-spacing: 0.05em;
   color: var(--text-color-contrast);

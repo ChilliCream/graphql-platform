@@ -7,26 +7,22 @@ using static HotChocolate.Resolvers.Expressions.Parameters.ParameterExpressionBu
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class DocumentParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    internal sealed class DocumentParameterExpressionBuilder : IParameterExpressionBuilder
-    {
-        private static readonly PropertyInfo _document;
+    private static readonly PropertyInfo _document =
+        ContextType.GetProperty(nameof(IResolverContext.Document))!;
 
-        static DocumentParameterExpressionBuilder()
-        {
-            _document = ContextType.GetProperty(nameof(IResolverContext.Document))!;
-            Debug.Assert(_document is not null, "Document property is missing." );
-        }
+    public ArgumentKind Kind => ArgumentKind.DocumentSyntax;
 
-        public ArgumentKind Kind => ArgumentKind.DocumentSyntax;
+    public bool IsPure => false;
 
-        public bool IsPure => false;
+    public bool IsDefaultHandler => false;
 
-        public bool CanHandle(ParameterInfo parameter)
-            => typeof(DocumentNode) == parameter.ParameterType;
+    public bool CanHandle(ParameterInfo parameter)
+        => typeof(DocumentNode) == parameter.ParameterType;
 
-        public Expression Build(ParameterInfo parameter, Expression context)
-            => Expression.Property(context, _document);
-    }
+    public Expression Build(ParameterInfo parameter, Expression context)
+        => Expression.Property(context, _document);
 }

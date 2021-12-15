@@ -18,6 +18,7 @@ const HotChocolate.ErrorCodes.Data.NoPagingationProviderFound = "HC0025" -> stri
 const HotChocolate.ErrorCodes.Data.SortingProjectionFailed = "HC0024" -> string!
 const HotChocolate.ErrorCodes.Execution.AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE" -> string!
 const HotChocolate.ErrorCodes.Execution.Canceled = "HC0049" -> string!
+const HotChocolate.ErrorCodes.Execution.CannotCastParent = "HC0053" -> string!
 const HotChocolate.ErrorCodes.Execution.CannotCreateRootValue = "HC0019" -> string!
 const HotChocolate.ErrorCodes.Execution.CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE" -> string!
 const HotChocolate.ErrorCodes.Execution.CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE" -> string!

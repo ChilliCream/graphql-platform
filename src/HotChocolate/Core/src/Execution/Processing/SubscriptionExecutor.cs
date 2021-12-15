@@ -6,111 +6,110 @@ using HotChocolate.Execution.Processing.Plan;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.ThrowHelper;
 
-namespace HotChocolate.Execution.Processing
-{
-    internal sealed partial class SubscriptionExecutor
-    {
-        private readonly ObjectPool<OperationContext> _operationContextPool;
-        private readonly QueryExecutor _queryExecutor;
-        private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+namespace HotChocolate.Execution.Processing;
 
-        public SubscriptionExecutor(
-            ObjectPool<OperationContext> operationContextPool,
-            QueryExecutor queryExecutor,
-            IExecutionDiagnosticEvents diagnosticEvents)
+internal sealed partial class SubscriptionExecutor
+{
+    private readonly ObjectPool<OperationContext> _operationContextPool;
+    private readonly QueryExecutor _queryExecutor;
+    private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+
+    public SubscriptionExecutor(
+        ObjectPool<OperationContext> operationContextPool,
+        QueryExecutor queryExecutor,
+        IExecutionDiagnosticEvents diagnosticEvents)
+    {
+        _operationContextPool = operationContextPool;
+        _queryExecutor = queryExecutor;
+        _diagnosticEvents = diagnosticEvents;
+    }
+
+    public async Task<IExecutionResult> ExecuteAsync(
+        IRequestContext requestContext,
+        QueryPlan queryPlan,
+        Func<object?> resolveQueryValue)
+    {
+        if (requestContext is null)
         {
-            _operationContextPool = operationContextPool;
-            _queryExecutor = queryExecutor;
-            _diagnosticEvents = diagnosticEvents;
+            throw new ArgumentNullException(nameof(requestContext));
         }
 
-        public async Task<IExecutionResult> ExecuteAsync(
-            IRequestContext requestContext,
-            QueryPlan queryPlan,
-            Func<object?> resolveQueryValue)
+        if (queryPlan is null)
         {
-            if (requestContext is null)
+            throw new ArgumentNullException(nameof(queryPlan));
+        }
+
+        if (requestContext.Operation is null || requestContext.Variables is null)
+        {
+            throw SubscriptionExecutor_ContextInvalidState();
+        }
+
+        ISelectionSet selectionSet = requestContext.Operation.GetRootSelectionSet();
+
+        if (selectionSet.Selections.Count != 1)
+        {
+            throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
+        }
+
+        if (selectionSet.Selections[0].Field.SubscribeResolver is null)
+        {
+            throw SubscriptionExecutor_NoSubscribeResolver();
+        }
+
+        Subscription? subscription = null;
+
+        try
+        {
+            subscription = await Subscription.SubscribeAsync(
+                _operationContextPool,
+                _queryExecutor,
+                requestContext,
+                queryPlan,
+                requestContext.Operation.RootType,
+                selectionSet,
+                resolveQueryValue,
+                _diagnosticEvents)
+                .ConfigureAwait(false);
+
+            return new SubscriptionResult(
+                subscription.ExecuteAsync,
+                null,
+                session: subscription,
+                contextData: new SingleValueExtensionData(
+                    WellKnownContextData.Subscription,
+                    subscription));
+        }
+        catch (GraphQLException ex)
+        {
+            if (subscription is not null)
             {
-                throw new ArgumentNullException(nameof(requestContext));
+                await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            if (queryPlan is null)
+            return new SubscriptionResult(null, ex.Errors);
+        }
+        catch (Exception ex)
+        {
+            requestContext.Exception = ex;
+            IErrorBuilder errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
+            IError error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
+
+            if (subscription is not null)
             {
-                throw new ArgumentNullException(nameof(queryPlan));
+                await subscription.DisposeAsync().ConfigureAwait(false);
             }
 
-            if (requestContext.Operation is null || requestContext.Variables is null)
+            return new SubscriptionResult(null, Unwrap(error));
+        }
+
+        IReadOnlyList<IError> Unwrap(IError error)
+        {
+            if (error is AggregateError aggregateError)
             {
-                throw SubscriptionExecutor_ContextInvalidState();
+                return aggregateError.Errors;
             }
 
-            ISelectionSet selectionSet = requestContext.Operation.GetRootSelectionSet();
-
-            if (selectionSet.Selections.Count != 1)
-            {
-                throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
-            }
-
-            if (selectionSet.Selections[0].Field.SubscribeResolver is null)
-            {
-                throw SubscriptionExecutor_NoSubscribeResolver();
-            }
-
-            Subscription? subscription = null;
-
-            try
-            {
-                subscription = await Subscription.SubscribeAsync(
-                    _operationContextPool,
-                    _queryExecutor,
-                    requestContext,
-                    queryPlan,
-                    requestContext.Operation.RootType,
-                    selectionSet,
-                    resolveQueryValue,
-                    _diagnosticEvents)
-                    .ConfigureAwait(false);
-
-                return new SubscriptionResult(
-                    subscription.ExecuteAsync,
-                    null,
-                    session: subscription,
-                    contextData: new SingleValueExtensionData(
-                        WellKnownContextData.Subscription,
-                        subscription));
-            }
-            catch (GraphQLException ex)
-            {
-                if (subscription is not null)
-                {
-                    await subscription.DisposeAsync().ConfigureAwait(false);
-                }
-
-                return new SubscriptionResult(null, ex.Errors);
-            }
-            catch (Exception ex)
-            {
-                requestContext.Exception = ex;
-                IErrorBuilder errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
-                IError error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
-
-                if (subscription is not null)
-                {
-                    await subscription.DisposeAsync().ConfigureAwait(false);
-                }
-
-                return new SubscriptionResult(null, Unwrap(error));
-            }
-
-            IReadOnlyList<IError> Unwrap(IError error)
-            {
-                if (error is AggregateError aggregateError)
-                {
-                    return aggregateError.Errors;
-                }
-                
-                return new[] { error };
-            }
+            return new[] { error };
         }
     }
 }

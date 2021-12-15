@@ -7,156 +7,155 @@ using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Validation;
-using static HotChocolate.WellKnownContextData;
 using static HotChocolate.Execution.ErrorHelper;
 using static HotChocolate.Execution.Pipeline.PipelineTools;
+using static HotChocolate.WellKnownContextData;
 
-namespace HotChocolate.Execution.Pipeline
+namespace HotChocolate.Execution.Pipeline;
+
+internal sealed class OperationComplexityMiddleware
 {
-    internal sealed class OperationComplexityMiddleware
+    private readonly RequestDelegate _next;
+    private readonly DocumentValidatorContextPool _contextPool;
+    private readonly ComplexityAnalyzerSettings _settings;
+    private readonly IComplexityAnalyzerCache _cache;
+    private readonly ComplexityAnalyzerCompilerVisitor _compiler;
+    private readonly VariableCoercionHelper _coercionHelper;
+
+    public OperationComplexityMiddleware(
+        RequestDelegate next,
+        DocumentValidatorContextPool contextPool,
+        IComplexityAnalyzerOptionsAccessor options,
+        IComplexityAnalyzerCache cache,
+        VariableCoercionHelper coercionHelper)
     {
-        private readonly RequestDelegate _next;
-        private readonly DocumentValidatorContextPool _contextPool;
-        private readonly ComplexityAnalyzerSettings _settings;
-        private readonly IComplexityAnalyzerCache _cache;
-        private readonly ComplexityAnalyzerCompilerVisitor _compiler;
-        private readonly VariableCoercionHelper _coercionHelper;
+        _next = next ??
+            throw new ArgumentNullException(nameof(next));
+        _contextPool = contextPool ??
+            throw new ArgumentNullException(nameof(contextPool));
+        _settings = options?.Complexity ??
+            throw new ArgumentNullException(nameof(options));
+        _cache = cache ??
+            throw new ArgumentNullException(nameof(cache));
+        _coercionHelper = coercionHelper ??
+            throw new ArgumentNullException(nameof(coercionHelper));
 
-        public OperationComplexityMiddleware(
-            RequestDelegate next,
-            DocumentValidatorContextPool contextPool,
-            IComplexityAnalyzerOptionsAccessor options,
-            IComplexityAnalyzerCache cache,
-            VariableCoercionHelper coercionHelper)
+        _compiler = new ComplexityAnalyzerCompilerVisitor(_settings);
+    }
+
+    public async ValueTask InvokeAsync(IRequestContext context)
+    {
+        if (!_settings.Enable || context.ContextData.ContainsKey(SkipComplexityAnalysis))
         {
-            _next = next ??
-                throw new ArgumentNullException(nameof(next));
-            _contextPool = contextPool ??
-                throw new ArgumentNullException(nameof(contextPool));
-            _settings = options?.Complexity ??
-                throw new ArgumentNullException(nameof(options));
-            _cache = cache ??
-                throw new ArgumentNullException(nameof(cache));
-            _coercionHelper = coercionHelper ??
-                throw new ArgumentNullException(nameof(coercionHelper));
-
-            _compiler = new ComplexityAnalyzerCompilerVisitor(_settings);
+            await _next(context).ConfigureAwait(false);
         }
-
-        public async ValueTask InvokeAsync(IRequestContext context)
+        else
         {
-            if (!_settings.Enable || context.ContextData.ContainsKey(SkipComplexityAnalysis))
+            if (context.DocumentId is not null &&
+                context.OperationId is not null &&
+                context.Document is not null)
             {
-                await _next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                if (context.DocumentId is not null &&
-                    context.OperationId is not null &&
-                    context.Document is not null)
+                string cacheId = context.CreateCacheId(context.OperationId);
+                DocumentNode document = context.Document;
+                OperationDefinitionNode operationDefinition =
+                    context.Operation?.Definition ??
+                    document.GetOperation(context.Request.OperationName);
+
+                if (!_cache.TryGetOperation(cacheId, out ComplexityAnalyzerDelegate? analyzer))
                 {
-                    string cacheId = context.CreateCacheId(context.OperationId);
-                    DocumentNode document = context.Document;
-                    OperationDefinitionNode operationDefinition =
-                        context.Operation?.Definition ??
-                        document.GetOperation(context.Request.OperationName);
+                    analyzer = CompileAnalyzer(context, document, operationDefinition);
+                }
 
-                    if (!_cache.TryGetOperation(cacheId, out ComplexityAnalyzerDelegate? analyzer))
-                    {
-                        analyzer = CompileAnalyzer(context, document, operationDefinition);
-                    }
+                CoerceVariables(
+                    context,
+                    _coercionHelper,
+                    operationDefinition.VariableDefinitions);
 
-                    CoerceVariables(
-                        context,
-                        _coercionHelper,
-                        operationDefinition.VariableDefinitions);
+                var complexity = analyzer(context.Services, context.Variables!);
+                var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
+                context.ContextData[_settings.ContextDataKey] = complexity;
 
-                    var complexity = analyzer(context.Services, context.Variables!);
-                    var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
-                    context.ContextData[_settings.ContextDataKey] = complexity;
-
-                    if (complexity <= maximumAllowedComplexity)
-                    {
-                        await _next(context).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        context.Result = MaxComplexityReached(complexity, _settings.MaximumAllowed);
-                    }
+                if (complexity <= maximumAllowedComplexity)
+                {
+                    await _next(context).ConfigureAwait(false);
                 }
                 else
                 {
-                    context.Result = StateInvalidForComplexityAnalyzer();
+                    context.Result = MaxComplexityReached(complexity, _settings.MaximumAllowed);
                 }
             }
-        }
-
-        private ComplexityAnalyzerDelegate CompileAnalyzer(
-            IRequestContext requestContext,
-            DocumentNode document,
-            OperationDefinitionNode operationDefinition)
-        {
-            DocumentValidatorContext validatorContext = _contextPool.Get();
-            ComplexityAnalyzerDelegate? operationAnalyzer = null;
-
-            try
+            else
             {
-                PrepareContext(requestContext, document, validatorContext);
+                context.Result = StateInvalidForComplexityAnalyzer();
+            }
+        }
+    }
 
-                _compiler.Visit(document, validatorContext);
-                var analyzers = (List<OperationComplexityAnalyzer>)validatorContext.List.Peek()!;
+    private ComplexityAnalyzerDelegate CompileAnalyzer(
+        IRequestContext requestContext,
+        DocumentNode document,
+        OperationDefinitionNode operationDefinition)
+    {
+        DocumentValidatorContext validatorContext = _contextPool.Get();
+        ComplexityAnalyzerDelegate? operationAnalyzer = null;
 
-                foreach (var analyzer in analyzers)
+        try
+        {
+            PrepareContext(requestContext, document, validatorContext);
+
+            _compiler.Visit(document, validatorContext);
+            var analyzers = (List<OperationComplexityAnalyzer>)validatorContext.List.Peek()!;
+
+            foreach (OperationComplexityAnalyzer? analyzer in analyzers)
+            {
+                if (analyzer.OperationDefinitionNode == operationDefinition)
                 {
-                    if (analyzer.OperationDefinitionNode == operationDefinition)
-                    {
-                        operationAnalyzer = analyzer.Analyzer;
-                    }
-
-                    _cache.TryAddOperation(
-                        requestContext.CreateCacheId(
-                            CreateOperationId(
-                                requestContext.DocumentId!,
-                                analyzer.OperationDefinitionNode.Name?.Value)),
-                        analyzer.Analyzer);
+                    operationAnalyzer = analyzer.Analyzer;
                 }
 
-                return operationAnalyzer!;
+                _cache.TryAddOperation(
+                    requestContext.CreateCacheId(
+                        CreateOperationId(
+                            requestContext.DocumentId!,
+                            analyzer.OperationDefinitionNode.Name?.Value)),
+                    analyzer.Analyzer);
             }
-            finally
-            {
-                validatorContext.Clear();
-                _contextPool.Return(validatorContext);
-            }
-        }
 
-        private void PrepareContext(
-            IRequestContext requestContext,
-            DocumentNode document,
-            DocumentValidatorContext validatorContext)
+            return operationAnalyzer!;
+        }
+        finally
         {
-            validatorContext.Schema = requestContext.Schema;
-
-            for (var i = 0; i < document.Definitions.Count; i++)
-            {
-                if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition)
-                {
-                    validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
-                }
-            }
-
-            validatorContext.ContextData = requestContext.ContextData;
+            validatorContext.Clear();
+            _contextPool.Return(validatorContext);
         }
+    }
 
-        private int GetMaximumAllowedComplexity(IRequestContext requestContext)
+    private void PrepareContext(
+        IRequestContext requestContext,
+        DocumentNode document,
+        DocumentValidatorContext validatorContext)
+    {
+        validatorContext.Schema = requestContext.Schema;
+
+        for (var i = 0; i < document.Definitions.Count; i++)
         {
-            if (requestContext.ContextData.TryGetValue(MaximumAllowedComplexity, out var value) &&
-                value is int allowedComplexity)
+            if (document.Definitions[i] is FragmentDefinitionNode fragmentDefinition)
             {
-                return allowedComplexity;
+                validatorContext.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;
             }
-
-            return _settings.MaximumAllowed;
         }
+
+        validatorContext.ContextData = requestContext.ContextData;
+    }
+
+    private int GetMaximumAllowedComplexity(IRequestContext requestContext)
+    {
+        if (requestContext.ContextData.TryGetValue(MaximumAllowedComplexity, out var value) &&
+            value is int allowedComplexity)
+        {
+            return allowedComplexity;
+        }
+
+        return _settings.MaximumAllowed;
     }
 }

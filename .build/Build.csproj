@@ -7,15 +7,20 @@
     <NoWarn>CS0649;CS0169</NoWarn>
     <NukeRootDirectory>..</NukeRootDirectory>
     <NukeScriptDirectory>..</NukeScriptDirectory>
+    <NukeTelemetryVersion>1</NukeTelemetryVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="5.1.2" />
-    <PackageDownload Include="GitVersion.Tool" Version="[5.6.3]" />
-    <PackageDownload Include="NuGet.CommandLine" Version="[5.5.1]" />
+    <PackageReference Include="Nuke.Common" Version="5.3.0" />
+    <PackageReference Include="Colorful.Console" Version="1.2.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageDownload Include="GitVersion.Tool" Version="[5.8.1]" />
+    <PackageDownload Include="NuGet.CommandLine" Version="[5.11.0]" />
     <PackageDownload Include="dotnet-sonarscanner" Version="[5.3.2]" />
-    <PackageDownload Include="OpenCover" Version="[4.7.922]" />
-    <PackageDownload Include="ReportGenerator" Version="[4.8.5]" />
+    <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
+    <PackageDownload Include="ReportGenerator" Version="[5.0.0]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
   </ItemGroup>
 

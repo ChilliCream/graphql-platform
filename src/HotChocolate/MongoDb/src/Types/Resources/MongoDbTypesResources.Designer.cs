@@ -9,21 +9,21 @@
 
 namespace HotChocolate.Types.MongoDb.Resources {
     using System;
-    
-    
+
+
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class MongoDbTypesResources {
-        
+
         private static System.Resources.ResourceManager resourceMan;
-        
+
         private static System.Globalization.CultureInfo resourceCulture;
-        
+
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal MongoDbTypesResources() {
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.MongoDb.Resources {
                 return resourceMan;
             }
         }
-        
+
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Globalization.CultureInfo Culture {
             get {
@@ -44,10 +44,28 @@ namespace HotChocolate.Types.MongoDb.Resources {
                 resourceCulture = value;
             }
         }
-        
+
         internal static string ObjectId_Type_Description {
             get {
                 return ResourceManager.GetString("ObjectId_Type_Description", resourceCulture);
+            }
+        }
+
+        internal static string Bson_Type_Description {
+            get {
+                return ResourceManager.GetString("Bson_Type_Description", resourceCulture);
+            }
+        }
+
+        internal static string Bson_Type_CouldNotParseValue {
+            get {
+                return ResourceManager.GetString("Bson_Type_CouldNotParseValue", resourceCulture);
+            }
+        }
+
+        internal static string Bson_Type_CouldNotParseLiteral {
+            get {
+                return ResourceManager.GetString("Bson_Type_CouldNotParseLiteral", resourceCulture);
             }
         }
     }
