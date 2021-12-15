@@ -1,26 +1,25 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class QuerySyntaxRewriterTests
 {
-    public class QuerySyntaxRewriterTests
+    [Fact]
+    public void RewriteEveryFieldOfTheQuery()
     {
-        [Fact]
-        public void RewriteEveryFieldOfTheQuery()
-        {
-            // arange
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                "{ foo { bar { baz } } }");
+        // arange
+        DocumentNode document = Utf8GraphQLParser.Parse(
+            "{ foo { bar { baz } } }");
 
-            // act
-            DocumentNode rewritten = document
-                .Rewrite<DirectiveQuerySyntaxRewriter, DirectiveNode>(
-                    new DirectiveNode("upper"));
+        // act
+        DocumentNode rewritten = document
+            .Rewrite<DirectiveQuerySyntaxRewriter, DirectiveNode>(
+                new DirectiveNode("upper"));
 
-            // assert
-            rewritten.ToString(false).MatchSnapshot();
-        }
+        // assert
+        rewritten.ToString(false).MatchSnapshot();
     }
 }

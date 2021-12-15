@@ -1,7 +1,6 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public interface ISyntaxVisitorAction
 {
-    public interface ISyntaxVisitorAction
-    {
-        SyntaxVisitorActionKind Kind { get; }
-    }
+    SyntaxVisitorActionKind Kind { get; }
 }
