@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -6,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Language.Utilities;
 
+/// <summary>
+/// This helper can serialize a GraphQL syntax tree into its string representation.
+/// </summary>
 public static class SyntaxPrinter
 {
     private static readonly SyntaxSerializer _serializer =
@@ -13,6 +15,14 @@ public static class SyntaxPrinter
     private static readonly SyntaxSerializer _serializerNoIndent =
         new(new SyntaxSerializerOptions { Indented = false });
 
+    /// <summary>
+    /// Prints a GraphQL syntax node`s string representation.
+    /// </summary>
+    /// <param name="node">The syntax node that shall be printed.</param>
+    /// <param name="indented">Specified if the printed string shall have indentations.</param>
+    /// <returns>
+    /// Returns the printed GraphQL syntax tree.
+    /// </returns>
     public static string Print(this ISyntaxNode node, bool indented = true)
     {
         StringSyntaxWriter writer = StringSyntaxWriter.Rent();
@@ -36,6 +46,16 @@ public static class SyntaxPrinter
         }
     }
 
+    /// <summary>
+    /// Prints a GraphQL syntax node`s string representation into a stream.
+    /// </summary>
+    /// <param name="node">The syntax node that shall be printed.</param>
+    /// <param name="stream">The stream to which the printed node shall be written to.</param>
+    /// <param name="indented">Specified if the printed string shall have indentations.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// Returns the printed GraphQL syntax tree.
+    /// </returns>
     public static async ValueTask PrintToAsync(
         this ISyntaxNode node,
         Stream stream,
@@ -43,12 +63,12 @@ public static class SyntaxPrinter
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0
-            using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #else
         await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #endif
 
-        StringSyntaxWriter syntaxWriter = StringSyntaxWriter.Rent();
+        var syntaxWriter = StringSyntaxWriter.Rent();
 
         try
         {

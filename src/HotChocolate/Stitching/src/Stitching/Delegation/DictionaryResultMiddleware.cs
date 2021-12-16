@@ -31,7 +31,7 @@ namespace HotChocolate.Stitching.Delegation
                 !context.Selection.Field.Directives.Contains(DirectiveNames.Computed) &&
                 context.Parent<object>() is IReadOnlyDictionary<string, object> dict)
             {
-                string responseName = context.Selection.SyntaxNode.Alias == null
+                var responseName = context.Selection.SyntaxNode.Alias == null
                     ? context.Selection.SyntaxNode.Name.Value
                     : context.Selection.SyntaxNode.Alias.Value;
 

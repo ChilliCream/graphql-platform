@@ -38,6 +38,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 228,

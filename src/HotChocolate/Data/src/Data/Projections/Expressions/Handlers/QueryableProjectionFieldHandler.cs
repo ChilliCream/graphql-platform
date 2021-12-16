@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Processing;
@@ -23,15 +21,9 @@ public class QueryableProjectionFieldHandler
         [NotNullWhen(true)] out ISelectionVisitorAction? action)
     {
         IObjectField field = selection.Field;
-
-        if (field.RuntimeType is null)
-        {
-            action = null;
-            return false;
-        }
-
         Expression nestedProperty;
         Type memberType;
+
         if (field.Member is PropertyInfo { CanWrite: true } propertyInfo)
         {
             memberType = propertyInfo.PropertyType;
@@ -61,7 +53,7 @@ public class QueryableProjectionFieldHandler
     {
         IObjectField field = selection.Field;
 
-        if (field.RuntimeType is null || field.Member is null)
+        if (field.Member is null)
         {
             action = null;
             return false;
@@ -70,7 +62,7 @@ public class QueryableProjectionFieldHandler
         // Deque last
         ProjectionScope<Expression> scope = context.PopScope();
 
-        if (!(scope is QueryableProjectionScope queryableScope))
+        if (scope is not QueryableProjectionScope queryableScope)
         {
             action = null;
             return false;

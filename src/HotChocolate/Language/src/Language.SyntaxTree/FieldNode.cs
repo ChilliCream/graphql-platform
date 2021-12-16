@@ -14,6 +14,8 @@ namespace HotChocolate.Language;
 /// 
 /// All GraphQL operations must specify their selections down to fields 
 /// which return scalar values to ensure an unambiguously shaped response.
+/// 
+/// Field : Alias? Name Arguments? Nullability? Directives? SelectionSet?
 /// </summary>
 public sealed class FieldNode
     : NamedSyntaxNode
@@ -23,28 +25,33 @@ public sealed class FieldNode
         Location? location,
         NameNode name,
         NameNode? alias,
+        INullabilityNode? required,
         IReadOnlyList<DirectiveNode> directives,
         IReadOnlyList<ArgumentNode> arguments,
         SelectionSetNode? selectionSet)
         : base(location, name, directives)
     {
         Alias = alias;
-        Arguments = arguments
-            ?? throw new ArgumentNullException(nameof(arguments));
+        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+        Required = required;
         SelectionSet = selectionSet;
     }
 
-    public override SyntaxKind Kind { get; } = SyntaxKind.Field;
+    /// <inheritdoc />
+    public override SyntaxKind Kind => SyntaxKind.Field;
 
     public NameNode? Alias { get; }
 
     public IReadOnlyList<ArgumentNode> Arguments { get; }
 
+    public INullabilityNode? Required { get; }
+
     public SelectionSetNode? SelectionSet { get; }
 
+    /// <inheritdoc />
     public override IEnumerable<ISyntaxNode> GetNodes()
     {
-        if (Alias is { })
+        if (Alias is not null)
         {
             yield return Alias;
         }
@@ -56,12 +63,17 @@ public sealed class FieldNode
             yield return argument;
         }
 
+        if (Required is not null)
+        {
+            yield return Required;
+        }
+
         foreach (DirectiveNode directive in Directives)
         {
             yield return directive;
         }
 
-        if (SelectionSet is { })
+        if (SelectionSet is not null)
         {
             yield return SelectionSet;
         }
@@ -88,41 +100,94 @@ public sealed class FieldNode
     /// </returns>
     public override string ToString(bool indented) => SyntaxPrinter.Print(this, indented);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Location" /> with <paramref name="location" />.
+    /// </summary>
+    /// <param name="location">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="location" />.
+    /// </returns>
     public FieldNode WithLocation(Location? location)
-    {
-        return new FieldNode(location, Name, Alias,
-            Directives, Arguments, SelectionSet);
-    }
+        => new(location, Name, Alias, Required, Directives, Arguments, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Name" /> with <paramref name="name" />.
+    /// </summary>
+    /// <param name="name">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="name" />.
+    /// </returns>
     public FieldNode WithName(NameNode name)
-    {
-        return new FieldNode(Location, name, Alias,
-            Directives, Arguments, SelectionSet);
-    }
+        => new(Location, name, Alias, Required, Directives, Arguments, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Alias" /> with <paramref name="alias" />.
+    /// </summary>
+    /// <param name="alias">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="alias" />.
+    /// </returns>
     public FieldNode WithAlias(NameNode? alias)
-    {
-        return new FieldNode(Location, Name, alias,
-            Directives, Arguments, SelectionSet);
-    }
+        => new(Location, Name, alias, Required, Directives, Arguments, SelectionSet);
 
-    public FieldNode WithDirectives(
-        IReadOnlyList<DirectiveNode> directives)
-    {
-        return new FieldNode(Location, Name, Alias,
-            directives, Arguments, SelectionSet);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Directives" /> with <paramref name="directives" />.
+    /// </summary>
+    /// <param name="directives">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="directives" />.
+    /// </returns>
+    public FieldNode WithDirectives(IReadOnlyList<DirectiveNode> directives)
+        => new(Location, Name, Alias, Required, directives, Arguments, SelectionSet);
 
-    public FieldNode WithArguments(
-        IReadOnlyList<ArgumentNode> arguments)
-    {
-        return new FieldNode(Location, Name, Alias,
-            Directives, arguments, SelectionSet);
-    }
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Arguments" /> with <paramref name="arguments" />.
+    /// </summary>
+    /// <param name="arguments">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="arguments" />.
+    /// </returns>
+    public FieldNode WithArguments(IReadOnlyList<ArgumentNode> arguments)
+        => new(Location, Name, Alias, Required, Directives, arguments, SelectionSet);
 
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="SelectionSet" /> with <paramref name="selectionSet" />.
+    /// </summary>
+    /// <param name="selectionSet">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="selectionSet" />.
+    /// </returns>
     public FieldNode WithSelectionSet(SelectionSetNode? selectionSet)
-    {
-        return new FieldNode(Location, Name, Alias,
-            Directives, Arguments, selectionSet);
-    }
+        => new(Location, Name, Alias, Required, Directives, Arguments, selectionSet);
+
+    /// <summary>
+    /// Creates a new node from the current instance and replaces the 
+    /// <see cref="Required" /> with <paramref name="required" />.
+    /// </summary>
+    /// <param name="required">
+    /// The location that shall be used to replace the current location.
+    /// </param>
+    /// <returns>
+    /// Returns the new node with the new <paramref name="required" />.
+    /// </returns>
+    public FieldNode WithRequired(INullabilityNode? required)
+        => new(Location, Name, Alias, required, Directives, Arguments, SelectionSet);
 }

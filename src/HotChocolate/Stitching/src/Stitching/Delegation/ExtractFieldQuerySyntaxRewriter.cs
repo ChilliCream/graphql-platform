@@ -66,8 +66,8 @@ namespace HotChocolate.Stitching.Delegation
             {
                 FieldNode field = RewriteField(syntaxNode, context);
 
-                if (selection.Field.Type.NamedType().IsLeafType() || 
-                    (field.SelectionSet is not null && 
+                if (selection.Field.Type.NamedType().IsLeafType() ||
+                    (field.SelectionSet is not null &&
                     field.SelectionSet.Selections.Count > 0))
                 {
                     syntaxNodes.Add(field);
@@ -374,6 +374,7 @@ namespace HotChocolate.Stitching.Delegation
                 null,
                 new NameNode(fieldName),
                 null,
+                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null
@@ -454,7 +455,7 @@ namespace HotChocolate.Stitching.Delegation
                 currentContext.TypeContext = type;
 
                 if (type.TryGetSourceDirective(
-                    context.Schema, 
+                    context.Schema,
                     out SourceDirective? sourceDirective))
                 {
                     current = current.WithTypeCondition(
