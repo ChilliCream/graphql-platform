@@ -1,3 +1,14 @@
+---
+path: "/blog/2021/12/14/hot-chocolate-12-4"
+date: "2021-12-16"
+title: "Client Controlled Nullability"
+tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
+featuredImage: "hot-chocolate-12-banner.png"
+author: Michael Staib
+authorUrl: https://github.com/michaelstaib
+authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+---
+
 With Hot Chocolate 12.5, we focus on new spec drafts, which we bring into the core as experimental features. Today we have released Hot Chocolate 12.5.0-preview.1 and with it the initial implementation of client-controlled nullability.
 
 This new RFC will introduce new query syntax to let the user override type nullability on fields and introduce error boundaries into GraphQL.
