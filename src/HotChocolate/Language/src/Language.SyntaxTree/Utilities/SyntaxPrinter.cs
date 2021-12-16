@@ -16,9 +16,9 @@ public static class SyntaxPrinter
         new(new SyntaxSerializerOptions { Indented = false });
 
     /// <summary>
-    /// Prints a GraphQL syntax tree`s string representation.
+    /// Prints a GraphQL syntax node`s string representation.
     /// </summary>
-    /// <param name="node">The node representing a single node or a syntax tree.</param>
+    /// <param name="node">The syntax node that shall be printed.</param>
     /// <param name="indented">Specified if the printed string shall have indentations.</param>
     /// <returns>
     /// Returns the printed GraphQL syntax tree.
@@ -46,6 +46,16 @@ public static class SyntaxPrinter
         }
     }
 
+    /// <summary>
+    /// Prints a GraphQL syntax node`s string representation into a stream.
+    /// </summary>
+    /// <param name="node">The syntax node that shall be printed.</param>
+    /// <param name="stream">The stream to which the printed node shall be written to.</param>
+    /// <param name="indented">Specified if the printed string shall have indentations.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// Returns the printed GraphQL syntax tree.
+    /// </returns>
     public static async ValueTask PrintToAsync(
         this ISyntaxNode node,
         Stream stream,
@@ -53,12 +63,12 @@ public static class SyntaxPrinter
         CancellationToken cancellationToken = default)
     {
 #if NETSTANDARD2_0
-            using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
+        using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #else
         await using var streamWriter = new StreamWriter(stream, Encoding.UTF8);
 #endif
 
-        StringSyntaxWriter syntaxWriter = StringSyntaxWriter.Rent();
+        var syntaxWriter = StringSyntaxWriter.Rent();
 
         try
         {
