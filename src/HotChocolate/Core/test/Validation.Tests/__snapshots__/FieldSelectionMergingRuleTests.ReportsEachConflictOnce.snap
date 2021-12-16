@@ -38,6 +38,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 522,
@@ -97,6 +98,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 440,
@@ -156,6 +158,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 336,
@@ -215,6 +218,7 @@
         "Value": "x"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 336,

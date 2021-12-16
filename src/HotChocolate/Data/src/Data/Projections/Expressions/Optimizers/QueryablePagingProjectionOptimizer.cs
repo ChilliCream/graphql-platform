@@ -47,12 +47,13 @@ public class QueryablePagingProjectionOptimizer : IProjectionOptimizer
         IPageType pageType,
         IReadOnlyList<ISelectionNode> selections)
     {
-        (string? fieldName, IObjectField? nodesField) = TryGetObjectField(pageType);
+        (var fieldName, IObjectField? nodesField) = TryGetObjectField(pageType);
 
         var combinedField = new FieldNode(
             null,
             new NameNode(fieldName),
             new NameNode(CombinedEdgeField),
+            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             new SelectionSetNode(selections));

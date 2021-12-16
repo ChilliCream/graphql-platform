@@ -141,22 +141,22 @@ namespace HotChocolate.Stitching.Delegation
             if (_additionalFields.Count == 0)
             {
                 return CreateDelegationQuery(
-                    targetSchema, 
-                    nameLookup, 
-                    _operation, 
-                    _path, 
+                    targetSchema,
+                    nameLookup,
+                    _operation,
+                    _path,
                     new[] { requestField });
             }
-            
+
             var fields = new List<FieldNode>();
             fields.Add(_requestField);
             fields.AddRange(_additionalFields);
 
             return CreateDelegationQuery(
-                targetSchema, 
-                nameLookup, 
-                _operation, 
-                _path, 
+                targetSchema,
+                nameLookup,
+                _operation,
+                _path,
                 fields);
         }
 
@@ -169,7 +169,7 @@ namespace HotChocolate.Stitching.Delegation
         {
             var usedVariables = new HashSet<string>();
             var fields = new List<FieldNode>();
-            
+
             foreach (FieldNode requestedField in requestedFields)
             {
                 IImmutableStack<SelectionPathComponent> currentPath = path;
@@ -261,6 +261,7 @@ namespace HotChocolate.Stitching.Delegation
                 null,
                 component.Name,
                 alias,
+                null,
                 requestedField.Directives,
                 arguments,
                 requestedField.SelectionSet
@@ -291,6 +292,7 @@ namespace HotChocolate.Stitching.Delegation
                 null,
                 next.Name,
                 aliasNode,
+                null,
                 Array.Empty<DirectiveNode>(),
                 RewriteVariableNames(next.Arguments).ToList(),
                 selectionSet

@@ -141,12 +141,12 @@ namespace HotChocolate.Execution
             IFieldSelection selection,
             ICollection<IFieldSelection> collected)
         {
-            if (selection.Field.Type.IsLeafType())
+            if (selection.Type.IsLeafType())
             {
                 collected.Add(selection);
             }
 
-            if (selection.Field.Type.NamedType() is ObjectType objectType)
+            if (selection.Type.NamedType() is ObjectType objectType)
             {
                 foreach (IFieldSelection child in context.GetSelections(
                     objectType, selection.SyntaxNode.SelectionSet))

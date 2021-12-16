@@ -47,6 +47,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -60,6 +61,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 93,
@@ -83,6 +85,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 122,
@@ -126,6 +129,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 171,
@@ -170,6 +174,7 @@
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 171,

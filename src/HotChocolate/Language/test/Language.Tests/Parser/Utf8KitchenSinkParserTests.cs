@@ -43,4 +43,22 @@ public class Utf8KitchenSinkParserTests
         document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
         document.MatchSnapshot();
     }
+
+    [Fact]
+    public void ParseFacebookKitchenSinkQueryNullability()
+    {
+        // arrange
+        var querySource =
+            FileResource.Open("kitchen-sink-nullability.graphql")
+                .NormalizeLineBreaks();
+        var parser = new Utf8GraphQLParser(
+            Encoding.UTF8.GetBytes(querySource));
+
+        // act
+        DocumentNode document = parser.Parse();
+
+        // assert
+        document.ToString().MatchSnapshot(new SnapshotNameExtension("sdl"));
+        document.MatchSnapshot();
+    }
 }

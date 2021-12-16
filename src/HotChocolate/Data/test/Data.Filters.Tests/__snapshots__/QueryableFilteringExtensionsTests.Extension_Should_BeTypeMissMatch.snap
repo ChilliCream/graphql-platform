@@ -115,6 +115,7 @@
             }
           }
         ],
+        "Required": null,
         "SelectionSet": {
           "Kind": "SelectionSet",
           "Location": {
@@ -128,6 +129,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 44,
@@ -151,6 +153,7 @@
               "Kind": "Field",
               "Alias": null,
               "Arguments": [],
+              "Required": null,
               "SelectionSet": null,
               "Location": {
                 "Start": 48,

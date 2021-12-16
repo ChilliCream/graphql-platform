@@ -252,6 +252,7 @@ public ref partial struct Utf8GraphQLParser
         }
 
         List<ArgumentNode> arguments = ParseArguments(false);
+        INullabilityNode? required = ParseRequiredStatus();
         List<DirectiveNode> directives = ParseDirectives(false);
         SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
@@ -264,10 +265,54 @@ public ref partial struct Utf8GraphQLParser
             location,
             name,
             alias,
+            required,
             directives,
             arguments,
             selectionSet
         );
+    }
+
+    private INullabilityNode? ParseRequiredStatus()
+    {
+        ListNullabilityNode? list = ParseListNullability();
+        INullabilityNode? modifier = ParseModifier(list);
+        return modifier ?? list;
+    }
+
+    private ListNullabilityNode? ParseListNullability()
+    {
+        if (_reader.Kind == TokenKind.LeftBracket)
+        {
+            TokenInfo start = Start();
+            _reader.Skip(TokenKind.LeftBracket);
+            INullabilityNode? element = ParseRequiredStatus();
+            _reader.Expect(TokenKind.RightBracket);
+            Location? location = CreateLocation(in start);
+            return new ListNullabilityNode(location, element);
+        }
+
+        return null;
+    }
+
+    private INullabilityNode? ParseModifier(ListNullabilityNode? listNullabilityNode)
+    {
+        if (_reader.Kind == TokenKind.QuestionMark)
+        {
+            TokenInfo start = Start();
+            _reader.Skip(TokenKind.QuestionMark);
+            Location? location = CreateLocation(in start);
+            return new OptionalModifierNode(location, listNullabilityNode);
+        }
+
+        if (_reader.Kind == TokenKind.Bang)
+        {
+            TokenInfo start = Start();
+            _reader.Skip(TokenKind.Bang);
+            Location? location = CreateLocation(in start);
+            return new RequiredModifierNode(location, listNullabilityNode);
+        }
+
+        return listNullabilityNode;
     }
 
     /// <summary>

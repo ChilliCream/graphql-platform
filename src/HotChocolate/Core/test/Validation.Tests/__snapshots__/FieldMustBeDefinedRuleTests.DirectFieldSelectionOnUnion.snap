@@ -30,6 +30,7 @@
         "Kind": "Field",
         "Alias": null,
         "Arguments": [],
+        "Required": null,
         "SelectionSet": null,
         "Location": {
           "Start": 240,
@@ -53,6 +54,7 @@
         "Kind": "Field",
         "Alias": null,
         "Arguments": [],
+        "Required": null,
         "SelectionSet": null,
         "Location": {
           "Start": 265,
