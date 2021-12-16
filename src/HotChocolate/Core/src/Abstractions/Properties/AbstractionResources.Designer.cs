@@ -200,5 +200,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure", resourceCulture);
+            }
+        }
     }
 }

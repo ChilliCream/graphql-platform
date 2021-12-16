@@ -38,6 +38,7 @@
         "Value": "fido"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 278,

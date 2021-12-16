@@ -79,7 +79,7 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.Filtering_FilteringWasNotFound)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException Filtering_TypeMissmatch(
@@ -94,7 +94,7 @@ internal static class ThrowHelper
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException FilterInterceptor_NoHandlerFoundForField(
@@ -299,7 +299,7 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.Sorting_SortingWasNotFound)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException Sorting_TypeMissmatch(
@@ -314,7 +314,7 @@ internal static class ThrowHelper
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
     public static SchemaException ProjectionProvider_NoHandlersConfigured(
@@ -351,10 +351,10 @@ internal static class ThrowHelper
                 .SetMessage(DataResources.Projection_ProjectionWasNotFound)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
-    public static SchemaException Projection_TypeMissmatch(
+    public static SchemaException Projection_TypeMismatch(
         IResolverContext context,
         Type expectedType,
         Type resultType) =>
@@ -366,7 +366,7 @@ internal static class ThrowHelper
                     resultType.FullName ?? resultType.Name)
                 .SetPath(context.Path)
                 .SetExtension("fieldName", context.Selection.Field.Name)
-                .SetExtension("typeName", context.Selection.Field.Type.NamedType().Name)
+                .SetExtension("typeName", context.Selection.Type.NamedType().Name)
                 .Build());
 
     public static InvalidOperationException PagingProjectionOptimizer_NotAPagingField(

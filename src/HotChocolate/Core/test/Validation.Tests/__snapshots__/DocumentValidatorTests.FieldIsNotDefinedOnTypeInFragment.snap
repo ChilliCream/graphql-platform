@@ -24,6 +24,7 @@
       "Kind": "Field",
       "Alias": null,
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 262,
@@ -78,6 +79,7 @@
         "Value": "barkVolume"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 380,

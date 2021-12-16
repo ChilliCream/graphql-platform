@@ -73,6 +73,7 @@ internal static partial class GraphQLConstants
     public const byte ForwardSlash = (byte)'/';
 
     public const byte Bang = (byte)'!';
+    public const byte QuestionMark = (byte)'?';
     public const byte Dollar = (byte)'$';
     public const byte Ampersand = (byte)'&';
     public const byte LeftParenthesis = (byte)'(';
@@ -96,61 +97,41 @@ internal static partial class GraphQLConstants
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this byte c)
-    {
-        return _isLetterOrDigitOrUnderscore[c];
-    }
+        => _isLetterOrDigitOrUnderscore[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrDigitOrUnderscore(this char c)
-    {
-        return _isLetterOrDigitOrUnderscore[(byte)c];
-    }
+        => _isLetterOrDigitOrUnderscore[(byte)c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this byte c)
-    {
-        return _isLetterOrUnderscore[c];
-    }
+        => _isLetterOrUnderscore[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLetterOrUnderscore(this char c)
-    {
-        return _isLetterOrUnderscore[(byte)c];
-    }
+        => _isLetterOrUnderscore[(byte)c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigit(this byte c)
-    {
-        return _isDigit[c];
-    }
+        => _isDigit[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDigitOrMinus(this byte c)
-    {
-        return _isDigitOrMinus[c];
-    }
+        => _isDigitOrMinus[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPunctuator(this byte c)
-    {
-        return _isPunctuator[c];
-    }
+        => _isPunctuator[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsValidEscapeCharacter(this byte c)
-    {
-        return _isEscapeCharacter[c];
-    }
+        => _isEscapeCharacter[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte EscapeCharacter(this byte c)
-    {
-        return _escapeCharacters[c];
-    }
+        => _escapeCharacters[c];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TokenKind PunctuatorKind(this byte c)
-    {
-        return _punctuatorKind[c];
-    }
+        => _punctuatorKind[c];
 }

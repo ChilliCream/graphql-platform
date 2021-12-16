@@ -16,34 +16,107 @@ public enum TokenKind : byte
     EndOfFile,
 
     /// <summary>
-    /// The bang token is used to specify
-    /// non null types and is represented by:
-    /// '!'.
+    /// !
     /// </summary>
     Bang,
 
     /// <summary>
-    /// The dollar token is used to specify variables
-    /// and variable declarations and is represented by:
-    /// '$'.
+    /// ?
+    /// </summary>
+    QuestionMark,
+
+    /// <summary>
+    /// $
     /// </summary>
     Dollar,
+
+    /// <summary>
+    /// &
+    /// </summary>
     Ampersand,
+
+    /// <summary>
+    /// (
+    /// </summary>
     LeftParenthesis,
+
+    /// <summary>
+    /// )
+    /// </summary>
     RightParenthesis,
+
+    /// <summary>
+    /// ...
+    /// </summary>
     Spread,
+
+    /// <summary>
+    /// :
+    /// </summary>
     Colon,
+
+    /// <summary>
+    /// =
+    /// </summary>
     Equal,
+
+    /// <summary>
+    /// @
+    /// </summary>
     At,
+
+    /// <summary>
+    /// [
+    /// </summary>
     LeftBracket,
+
+    /// <summary>
+    /// ]
+    /// </summary>
     RightBracket,
+
+    /// <summary>
+    /// {
+    /// </summary>
     LeftBrace,
+
+    /// <summary>
+    /// }
+    /// </summary>
     RightBrace,
+
+    /// <summary>
+    /// |
+    /// </summary>
     Pipe,
+
+    /// <summary>
+    /// A name token.
+    /// </summary>
     Name,
+
+    /// <summary>
+    /// A integer token.
+    /// </summary>
     Integer,
+
+    /// <summary>
+    /// A float token.
+    /// </summary>
     Float,
+
+    /// <summary>
+    /// A string token.
+    /// </summary>
     String,
+
+    /// <summary>
+    /// A block string token.
+    /// </summary>
     BlockString,
+
+    /// <summary>
+    /// A comment token.
+    /// </summary>
     Comment
 }
