@@ -74,7 +74,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Builders
 
             writer.WriteIndent();
 
-            writer.Write("public interface ");
+            writer.Write("public partial interface ");
             writer.WriteLine(Name);
 
             if (Implements.Count > 0)
