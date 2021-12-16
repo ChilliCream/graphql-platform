@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -6,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Language.Utilities;
 
+/// <summary>
+/// This helper can serialize a GraphQL syntax tree into its string representation.
+/// </summary>
 public static class SyntaxPrinter
 {
     private static readonly SyntaxSerializer _serializer =
@@ -13,6 +15,14 @@ public static class SyntaxPrinter
     private static readonly SyntaxSerializer _serializerNoIndent =
         new(new SyntaxSerializerOptions { Indented = false });
 
+    /// <summary>
+    /// Prints a GraphQL syntax tree`s string representation.
+    /// </summary>
+    /// <param name="node">The node representing a single node or a syntax tree.</param>
+    /// <param name="indented">Specified if the printed string shall have indentations.</param>
+    /// <returns>
+    /// Returns the printed GraphQL syntax tree.
+    /// </returns>
     public static string Print(this ISyntaxNode node, bool indented = true)
     {
         StringSyntaxWriter writer = StringSyntaxWriter.Rent();
