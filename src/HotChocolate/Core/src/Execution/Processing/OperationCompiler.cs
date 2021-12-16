@@ -128,7 +128,7 @@ public sealed partial class OperationCompiler
 
             // if the field of the selection returns a composite type we will traverse
             // the child selection-sets as well.
-            INamedType fieldType = selection.Field.Type.NamedType();
+            INamedType fieldType = selection.Type.NamedType();
             if (fieldType.IsCompositeType())
             {
                 if (selection.SelectionSet is null)
@@ -218,9 +218,11 @@ public sealed partial class OperationCompiler
 
         if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
         {
+            IType fieldType = field.Type.RewriteNullability(selection.Required);
+
             if ((selection.SelectionSet is null ||
                 selection.SelectionSet.Selections.Count == 0) &&
-                field.Type.NamedType().IsCompositeType())
+                fieldType.NamedType().IsCompositeType())
             {
                 throw OperationCompiler_NoCompositeSelections(selection);
             }
@@ -234,9 +236,9 @@ public sealed partial class OperationCompiler
                 Func<object, IAsyncEnumerable<object?>>? createStream = null;
                 var isStreamable = selection.IsStreamable();
 
-                if (field.MaybeStream || field.Type.IsListType() && isStreamable)
+                if (field.MaybeStream || fieldType.IsListType() && isStreamable)
                 {
-                    IType elementType = field.Type.ElementType();
+                    IType elementType = fieldType.ElementType();
 
                     if (elementType.IsCompositeType())
                     {
@@ -252,6 +254,7 @@ public sealed partial class OperationCompiler
                     GetNextId(),
                     context.Type,
                     field,
+                    fieldType,
                     selection.SelectionSet is not null
                         ? selection.WithSelectionSet(
                             selection.SelectionSet.WithSelections(

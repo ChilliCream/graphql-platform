@@ -38,6 +38,41 @@ public class Selection : ISelection
         SelectionExecutionStrategy? strategy = null,
         Func<object, IAsyncEnumerable<object?>>? createStream = null,
         bool isStreamable = false)
+        : this(
+            id,
+            declaringType,
+            field,
+            field.Type,
+            selection,
+            resolverPipeline,
+            pureResolver,
+            responseName,
+            arguments,
+            includeCondition,
+            internalSelection,
+            strategy,
+            createStream,
+            isStreamable)
+    {
+
+    }
+
+
+    public Selection(
+        int id,
+        IObjectType declaringType,
+        IObjectField field,
+        IType type,
+        FieldNode selection,
+        FieldDelegate? resolverPipeline,
+        PureFieldDelegate? pureResolver = null,
+        NameString? responseName = null,
+        IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
+        SelectionIncludeCondition? includeCondition = null,
+        bool internalSelection = false,
+        SelectionExecutionStrategy? strategy = null,
+        Func<object, IAsyncEnumerable<object?>>? createStream = null,
+        bool isStreamable = false)
     {
         if (resolverPipeline is null && pureResolver is null)
         {
@@ -51,6 +86,7 @@ public class Selection : ISelection
             ?? throw new ArgumentNullException(nameof(declaringType));
         Field = field
             ?? throw new ArgumentNullException(nameof(field));
+        Type = type;
         SyntaxNode = selection
             ?? throw new ArgumentNullException(nameof(selection));
         ResponseName = responseName ??
@@ -80,7 +116,7 @@ public class Selection : ISelection
 
         IsStreamable = isStreamable && createStream is not null;
         MaybeStream = Field.MaybeStream && createStream is not null;
-        IsList = Field.Type.IsListType();
+        IsList = type.IsListType();
 
         if (includeCondition is not null)
         {
@@ -103,6 +139,7 @@ public class Selection : ISelection
         _isReadOnly = selection._isReadOnly;
         DeclaringType = selection.DeclaringType;
         Field = selection.Field;
+        Type = selection.Type;
         SyntaxNode = selection.SyntaxNode;
         _selections = selection._selections;
         _syntaxNodes = selection._syntaxNodes;
@@ -132,10 +169,10 @@ public class Selection : ISelection
     // Note: this field was introduced to allow rewriting the type of a selection
     // in the operation compiler.
     /// <inheritdoc />
-    public IType Type => Field.Type;
+    public IType Type { get; }
 
     /// <inheritdoc />
-    public TypeKind TypeKind => Field.Type.Kind;
+    public TypeKind TypeKind => Type.Kind;
 
     /// <inheritdoc />
     public FieldNode SyntaxNode { get; private set; }

@@ -170,9 +170,9 @@ internal sealed class Operation : IPreparedOperation
         arguments[0] = new ArgumentNode("id", new IntValueNode(selection.Id));
         arguments[1] = new ArgumentNode("kind", new EnumValueNode(selection.Strategy));
 
-        if (selection.Field.Type.IsListType())
+        if (selection.Type.IsListType())
         {
-            if (selection.Field.Type.NamedType().IsLeafType())
+            if (selection.Type.NamedType().IsLeafType())
             {
                 arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF_LIST"));
             }
@@ -181,11 +181,11 @@ internal sealed class Operation : IPreparedOperation
                 arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE_LIST"));
             }
         }
-        else if (selection.Field.Type.IsCompositeType())
+        else if (selection.Type.IsCompositeType())
         {
             arguments[2] = new ArgumentNode("type", new EnumValueNode("COMPOSITE"));
         }
-        else if (selection.Field.Type.IsLeafType())
+        else if (selection.Type.IsLeafType())
         {
             arguments[2] = new ArgumentNode("type", new EnumValueNode("LEAF"));
         }
