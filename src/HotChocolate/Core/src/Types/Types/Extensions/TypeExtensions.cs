@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using static HotChocolate.Utilities.ThrowHelper;
+
+#nullable enable
 
 namespace HotChocolate.Types;
 
@@ -456,48 +459,112 @@ public static class TypeExtensions
 
     public static bool IsInstanceOfType(this IInputType type, IValueNode literal)
     {
-        if (type is null)
+        while (true)
         {
-            throw new ArgumentNullException(nameof(type));
-        }
-
-        if (literal is null)
-        {
-            throw new ArgumentNullException(nameof(literal));
-        }
-
-        if (literal.Kind == SyntaxKind.NullValue)
-        {
-            return type.Kind is not TypeKind.NonNull;
-        }
-
-        if (type.Kind == TypeKind.NonNull)
-        {
-            return IsInstanceOfType((IInputType)((NonNullType)type).Type, literal);
-        }
-
-        if (type.Kind == TypeKind.List)
-        {
-            if (literal.Kind == SyntaxKind.ListValue)
+            if (type is null)
             {
-                var list = (ListValueNode)literal;
-
-                if (list.Items.Count == 0)
-                {
-                    return true;
-                }
-
-                literal = list.Items[0];
+                throw new ArgumentNullException(nameof(type));
             }
 
-            return IsInstanceOfType((IInputType)((ListType)type).ElementType, literal);
-        }
+            if (literal is null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
 
-        if (type.Kind == TypeKind.InputObject)
+            if (literal.Kind is SyntaxKind.NullValue)
+            {
+                return type.Kind is not TypeKind.NonNull;
+            }
+
+            switch (type.Kind)
+            {
+                case TypeKind.NonNull:
+                    type = (IInputType)((NonNullType)type).Type;
+                    continue;
+
+                case TypeKind.List:
+                {
+                    if (literal.Kind is SyntaxKind.ListValue)
+                    {
+                        var list = (ListValueNode)literal;
+
+                        if (list.Items.Count == 0)
+                        {
+                            return true;
+                        }
+
+                        literal = list.Items[0];
+                    }
+
+                    type = (IInputType)((ListType)type).ElementType;
+                    continue;
+                }
+
+                case TypeKind.InputObject:
+                    return literal.Kind == SyntaxKind.ObjectValue;
+
+                default:
+                    return ((ILeafType)type).IsInstanceOfType(literal);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rewrites the type nullability according to the <paramref name="nullability"/> modifier.
+    /// </summary>
+    /// <param name="type">The type that shall be rewritten.</param>
+    /// <param name="nullability">The nullability modifier.</param>
+    /// <returns>
+    /// Returns the rewritten type.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// <paramref name="nullability"/> modifier does not match the
+    /// <paramref name="type"/> structure.
+    /// </exception>
+    public static IType RewriteNullability(this IType type, INullabilityNode? nullability)
+    {
+        if (nullability is null)
         {
-            return literal.Kind == SyntaxKind.ObjectValue;
+            return type;
         }
 
-        return ((ILeafType)type).IsInstanceOfType(literal);
+        switch (nullability.Kind)
+        {
+            case SyntaxKind.OptionalDesignator when type.Kind is TypeKind.NonNull:
+                return RewriteNullability(
+                    ((NonNullType)type).InnerType(),
+                    nullability.Element);
+
+            case SyntaxKind.OptionalDesignator:
+                return RewriteNullability(
+                    type,
+                    nullability.Element);
+
+            case SyntaxKind.RequiredDesignator when type.Kind is TypeKind.NonNull:
+                return new NonNullType(
+                    RewriteNullability(
+                        ((NonNullType)type).InnerType(),
+                        nullability.Element));
+
+            case SyntaxKind.RequiredDesignator:
+                return new NonNullType(
+                    RewriteNullability(
+                        type,
+                        nullability.Element));
+
+            case SyntaxKind.ListNullability when type.Kind is TypeKind.NonNull:
+                return new NonNullType(
+                    RewriteNullability(
+                        ((NonNullType)type).InnerType(),
+                        nullability));
+
+            case SyntaxKind.ListNullability when type.Kind is TypeKind.List:
+                return new ListType(RewriteNullability(
+                    ((ListType)type).InnerType(),
+                    nullability.Element));
+
+            default:
+                throw RewriteNullability_InvalidNullabilityStructure();
+        }
     }
 }

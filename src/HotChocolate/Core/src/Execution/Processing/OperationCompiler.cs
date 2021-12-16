@@ -232,7 +232,7 @@ public sealed partial class OperationCompiler
             else
             {
                 Func<object, IAsyncEnumerable<object?>>? createStream = null;
-                bool isStreamable = selection.IsStreamable();
+                var isStreamable = selection.IsStreamable();
 
                 if (field.MaybeStream || field.Type.IsListType() && isStreamable)
                 {
