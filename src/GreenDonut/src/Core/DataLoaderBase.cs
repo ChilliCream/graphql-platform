@@ -32,6 +32,7 @@ namespace GreenDonut
         private readonly string _cacheKeyType;
         private readonly int _maxBatchSize;
         private readonly ITaskCache? _cache;
+        private readonly IDisposable? _cacheSubscription;
         private readonly TaskCacheOwner? _cacheOwner;
         private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;
         private Batch<TKey>? _currentBatch;
@@ -70,6 +71,11 @@ namespace GreenDonut
             _batchScheduler = batchScheduler;
             _maxBatchSize = options.MaxBatchSize;
             _cacheKeyType = GetCacheKeyType(GetType());
+
+            if (_cache is not null && this is ITaskCacheObserver observer)
+            {
+                _cacheSubscription = TaskCacheSubscription.From(_cacheKeyType, _cache, observer);
+            }
         }
 
         /// <summary>
@@ -280,7 +286,7 @@ namespace GreenDonut
 
             async ValueTask StartDispatchingAsync()
             {
-                using(_diagnosticEvents.ExecuteBatch(this, batch.Keys))
+                using (_diagnosticEvents.ExecuteBatch(this, batch.Keys))
                 {
                     var buffer = new Result<TValue>[batch.Keys.Count];
 
@@ -434,10 +440,78 @@ namespace GreenDonut
                     _disposeTokenSource.Cancel();
                     _disposeTokenSource.Dispose();
                     _cacheOwner?.Dispose();
+                    _cacheSubscription?.Dispose();
                 }
 
                 _disposed = true;
             }
+        }
+
+        private class TaskCacheSubscription : IObserver<TaskCacheResult>
+        {
+            private readonly string _taskCacheKeyType;
+            private readonly ITaskCacheObserver _observer;
+            private readonly object _sync = new();
+            private readonly HashSet<object> _processed = new();
+
+            private TaskCacheSubscription(
+                string taskCacheKeyType,
+                ITaskCacheObserver observer)
+            {
+                _taskCacheKeyType = taskCacheKeyType;
+                _observer = observer;
+            }
+
+            public void OnCompleted()
+            {
+                // nothing to do on complete
+            }
+
+            public void OnError(Exception error)
+            {
+                // omit error
+            }
+
+            public void OnNext(TaskCacheResult value)
+            {
+                // if the result comes from the dataloader where it was published, we ignore the
+                // result
+                if (value.Key.Type == _taskCacheKeyType)
+                {
+                    return;
+                }
+
+                // if the observer cannot handle the result, we ignore the result
+                if (!_observer.CanHandle(value.Result))
+                {
+                    return;
+                }
+
+                // if the result was already processed, we can ignore the result
+                if (_processed.Contains(value.Result))
+                {
+                    return;
+                }
+
+                // the result seems to be not processed, so we add it to the hashset
+                lock (_sync)
+                {
+                    // if in the meantime the result was added, return
+                    if (!_processed.Add(value.Result))
+                    {
+                        return;
+                    }
+                }
+
+                // let the observer process the result
+                _observer.OnNext(value);
+            }
+
+            public static IDisposable From(
+                string keyType,
+                ITaskCache cache,
+                ITaskCacheObserver observer)
+                => cache.Subscribe(new TaskCacheSubscription(keyType, observer));
         }
     }
 }

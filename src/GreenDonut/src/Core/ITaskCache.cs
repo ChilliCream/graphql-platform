@@ -6,7 +6,7 @@ namespace GreenDonut
     /// <summary>
     /// A memorization cache for <c>DataLoader</c>.
     /// </summary>
-    public interface ITaskCache
+    public interface ITaskCache : IObservable<TaskCacheResult>
     {
         /// <summary>
         /// Gets the maximum size of the cache.
@@ -35,7 +35,7 @@ namespace GreenDonut
         /// <exception cref="ArgumentNullException">
         /// Throws if <paramref name="createTask"/> is <c>null</c>.
         /// </exception>
-        T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
+        Task<T> GetOrAddTask<T>(TaskCacheKey key, Func<Task<T>> createTask);
 
         /// <summary>
         /// Tries to add a single task to the cache. It does nothing if the
@@ -53,7 +53,7 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the add was successful.
         /// </returns>
-        bool TryAdd<T>(TaskCacheKey key, T value) where T : Task;
+        bool TryAdd<T>(TaskCacheKey key, Task<T> value);
 
         /// <summary>
         /// Tries to add a single task to the cache. It does nothing if the
@@ -71,7 +71,7 @@ namespace GreenDonut
         /// <returns>
         /// A value indicating whether the add was successful.
         /// </returns>
-        bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task;
+        bool TryAdd<T>(TaskCacheKey key, Func<Task<T>> createTask);
 
         /// <summary>
         /// Removes a specific task from the cache.

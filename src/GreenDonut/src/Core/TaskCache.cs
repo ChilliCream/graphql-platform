@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GreenDonut
@@ -12,7 +14,9 @@ namespace GreenDonut
     {
         private const int _minimumSize = 10;
         private readonly object _sync = new();
+        private readonly ReaderWriterLockSlim _observableSync = new();
         private readonly ConcurrentDictionary<TaskCacheKey, Entry> _map = new();
+        private readonly List<IObserver<TaskCacheResult>> _observers = new();
         private readonly int _size;
         private readonly int _order;
         private int _usage;
@@ -37,7 +41,7 @@ namespace GreenDonut
         public int Usage => _usage;
 
         /// <inheritdoc />
-        public T GetOrAddTask<T>(TaskCacheKey key, Func<T> createTask) where T : Task
+        public Task<T> GetOrAddTask<T>(TaskCacheKey key, Func<Task<T>> createTask)
         {
             if (key.Type is null)
             {
@@ -51,22 +55,23 @@ namespace GreenDonut
 
             var read = true;
 
-            Entry entry = _map.GetOrAdd(key, k =>
-            {
-                read = false;
-                return AddNewEntry(k, createTask());
-            });
+            Entry entry = _map.GetOrAdd(key,
+                k =>
+                {
+                    read = false;
+                    return AddNewEntry(k, createTask());
+                });
 
             if (read)
             {
                 TouchEntryUnsafe(entry);
             }
 
-            return (T)entry.Value;
+            return (Task<T>)entry.Value;
         }
 
         /// <inheritdoc />
-        public bool TryAdd<T>(TaskCacheKey key, T value) where T : Task
+        public bool TryAdd<T>(TaskCacheKey key, Task<T> value)
         {
             if (key.Type is null)
             {
@@ -80,37 +85,39 @@ namespace GreenDonut
 
             var read = true;
 
-            _map.GetOrAdd(key, k =>
-            {
-                read = false;
-                return AddNewEntry(k, value);
-            });
+            _map.GetOrAdd(key,
+                k =>
+                {
+                    read = false;
+                    return AddNewEntry(k, value);
+                });
 
             return !read;
         }
 
         /// <inheritdoc />
-        public bool TryAdd<T>(TaskCacheKey key, Func<T> createTask) where T : Task
+        public bool TryAdd<T>(TaskCacheKey key, Func<Task<T>> createTask)
         {
-          if (key.Type is null)
-          {
-            throw new ArgumentNullException(nameof(key));
-          }
+            if (key.Type is null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
 
-          if (createTask is null)
-          {
-            throw new ArgumentNullException(nameof(createTask));
-          }
+            if (createTask is null)
+            {
+                throw new ArgumentNullException(nameof(createTask));
+            }
 
-          var read = true;
+            var read = true;
 
-          _map.GetOrAdd(key, k =>
-          {
-            read = false;
-            return AddNewEntry(k, createTask());
-          });
+            _map.GetOrAdd(key,
+                k =>
+                {
+                    read = false;
+                    return AddNewEntry(k, createTask());
+                });
 
-          return !read;
+            return !read;
         }
 
         /// <inheritdoc />
@@ -135,20 +142,60 @@ namespace GreenDonut
             lock (_sync)
             {
                 _map.Clear();
+                _observers.Clear();
                 _head = null;
                 _usage = 0;
             }
         }
 
-        private Entry AddNewEntry(TaskCacheKey key, Task value)
+        /// <inheritdoc />
+        public IDisposable Subscribe(IObserver<TaskCacheResult> observer)
         {
+            // We enter the write lock so we do not modify the list concurrently
+            _observableSync.EnterWriteLock();
+            try
+            {
+                _observers.Add(observer);
+            }
+            finally
+            {
+                _observableSync.ExitWriteLock();
+            }
+
+            foreach (KeyValuePair<TaskCacheKey, Entry> entry in _map)
+            {
+                if (entry.Value.Result is not null)
+                {
+                    observer.OnNext(entry.Value.Result);
+                }
+            }
+
+            return new Unsubscriber(observer, Unsubscribe);
+        }
+
+        private Entry AddNewEntry<T>(TaskCacheKey key, Task<T> value)
+        {
+            Entry entry;
             lock (_sync)
             {
-                var entry = new Entry { Key = key, Value = value };
+                entry = new Entry { Key = key, Value = value };
                 AppendEntryUnsafe(entry);
                 ClearSpaceForNewEntryUnsafe();
-                return entry;
             }
+
+            value.ContinueWith(x =>
+            {
+                if (x.Result is null)
+                {
+                    return;
+                }
+
+                TaskCacheResult result = new(key, x.Result);
+                entry.Result = result;
+                Publish(result);
+            });
+
+            return entry;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -228,12 +275,61 @@ namespace GreenDonut
             return true;
         }
 
+
+        private void Publish(TaskCacheResult value)
+        {
+            // we enter the read lock so that multiple threads can publish their data in
+            // parallel
+            _observableSync.EnterReadLock();
+            try
+            {
+                for (var i = 0; i < _observers.Count; i++)
+                {
+                    _observers[i].OnNext(value);
+                }
+            }
+            finally
+            {
+                _observableSync.ExitReadLock();
+            }
+        }
+
+        private void Unsubscribe(IObserver<TaskCacheResult> observer)
+        {
+            _observableSync.EnterWriteLock();
+            try
+            {
+                _observers.Remove(observer);
+            }
+            finally
+            {
+                _observableSync.ExitWriteLock();
+            }
+        }
+
         private class Entry
         {
             public TaskCacheKey Key;
             public Task Value = default!;
             public Entry? Next;
             public Entry? Previous;
+            public TaskCacheResult? Result { get; set; }
+        }
+
+        private class Unsubscriber : IDisposable
+        {
+            private IObserver<TaskCacheResult> _observer;
+            private readonly Action<IObserver<TaskCacheResult>> _unsubscribe;
+
+            public Unsubscriber(
+                IObserver<TaskCacheResult> observer,
+                Action<IObserver<TaskCacheResult>> unsubscribe)
+            {
+                _observer = observer;
+                _unsubscribe = unsubscribe;
+            }
+
+            public void Dispose() => _unsubscribe(_observer);
         }
     }
 }
