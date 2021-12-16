@@ -11,14 +11,14 @@
       }
       field3!
       requiredField4: field4!
-      field5!
-      optionalField6: field6!
+      field5?
+      optionalField6: field6?
       unsetListItemsRequiredList: listField[]!
       requiredListItemsUnsetList: listField[!]
       requiredListItemsRequiredList: listField[!]!
-      unsetListItemsOptionalList: listField[]!
-      optionalListItemsUnsetList: listField[!]
-      optionalListItemsOptionalList: listField[!]!
+      unsetListItemsOptionalList: listField[]?
+      optionalListItemsUnsetList: listField[?]
+      optionalListItemsOptionalList: listField[?]?
       multidimensionalList: listField[[[!]!]!]!
       field7! {
         field8
@@ -26,10 +26,10 @@
       requiredField4: field7! {
         field8
       }
-      field9! {
+      field9? {
         field10
       }
-      optionalField9: field9! {
+      optionalField9: field9? {
         field10
       }
       field11[]! {
@@ -41,9 +41,9 @@
       unsetListItemsRequiredList: listField[]!
       requiredListItemsUnsetList: listField[!]
       requiredListItemsRequiredList: listField[!]!
-      unsetListItemsOptionalList: listField[]!
-      optionalListItemsUnsetList: listField[!]
-      optionalListItemsOptionalList: listField[!]!
+      unsetListItemsOptionalList: listField[]?
+      optionalListItemsUnsetList: listField[?]
+      optionalListItemsOptionalList: listField[?]?
       multidimensionalList: listField[[[!]!]!]!
     }
     ... @skip(unless: $foo) {

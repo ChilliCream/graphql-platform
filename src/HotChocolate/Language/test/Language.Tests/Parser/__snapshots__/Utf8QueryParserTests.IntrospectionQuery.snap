@@ -41,6 +41,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -54,6 +55,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -67,6 +69,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 62,
@@ -110,6 +113,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -123,6 +127,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 98,
@@ -166,6 +171,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -179,6 +185,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 138,
@@ -222,6 +229,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -275,6 +283,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -288,6 +297,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 208,
@@ -311,6 +321,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 219,
@@ -334,6 +345,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": {
                           "Kind": "SelectionSet",
                           "Location": {
@@ -387,6 +399,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 280,
@@ -410,6 +423,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 298,
@@ -433,6 +447,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 315,
@@ -530,6 +545,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 368,
@@ -553,6 +569,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 375,
@@ -576,6 +593,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 382,
@@ -629,6 +647,7 @@
                 }
               }
             ],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -642,6 +661,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 434,
@@ -665,6 +685,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 443,
@@ -688,6 +709,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -741,6 +763,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -794,6 +817,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 530,
@@ -817,6 +841,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 547,
@@ -860,6 +885,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -913,6 +939,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -996,6 +1023,7 @@
                 }
               }
             ],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -1009,6 +1037,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 685,
@@ -1032,6 +1061,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 694,
@@ -1055,6 +1085,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 710,
@@ -1078,6 +1109,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 727,
@@ -1121,6 +1153,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -1225,6 +1258,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 829,
@@ -1248,6 +1282,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 836,
@@ -1271,6 +1306,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -1324,6 +1360,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 878,
@@ -1398,6 +1435,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 925,
@@ -1421,6 +1459,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": null,
             "Location": {
               "Start": 932,
@@ -1444,6 +1483,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -1457,6 +1497,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 952,
@@ -1480,6 +1521,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 961,
@@ -1503,6 +1545,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -1516,6 +1559,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 985,
@@ -1539,6 +1583,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 996,
@@ -1562,6 +1607,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": {
                           "Kind": "SelectionSet",
                           "Location": {
@@ -1575,6 +1621,7 @@
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
+                              "Required": null,
                               "SelectionSet": null,
                               "Location": {
                                 "Start": 1024,
@@ -1598,6 +1645,7 @@
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
+                              "Required": null,
                               "SelectionSet": null,
                               "Location": {
                                 "Start": 1037,

@@ -47,6 +47,7 @@
             "Kind": "Field",
             "Alias": null,
             "Arguments": [],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -100,6 +101,7 @@
                       }
                     }
                   ],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 109,

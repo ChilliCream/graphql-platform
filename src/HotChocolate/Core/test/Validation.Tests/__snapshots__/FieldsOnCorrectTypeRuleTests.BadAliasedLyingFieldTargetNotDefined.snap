@@ -33,6 +33,7 @@
         "Value": "barkVolume"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": null,
       "Location": {
         "Start": 89,
