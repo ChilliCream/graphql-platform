@@ -228,7 +228,9 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
                             fieldB.ResponseName,
                             StringComparison.Ordinal))
                     {
-                        if (SameResponseShape(fieldA.Type, fieldB.Type))
+                        if (SameResponseShape(
+                            fieldA.Type.RewriteNullability(fieldA.Field.Required),
+                            fieldB.Type.RewriteNullability(fieldB.Field.Required)))
                         {
                             if (IsParentTypeAligned(fieldA, fieldB))
                             {
