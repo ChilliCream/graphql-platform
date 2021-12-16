@@ -298,6 +298,7 @@ public class Selection : ISelection
             first.Location,
             first.Name,
             first.Alias,
+            null,
             MergeDirectives(selections),
             first.Arguments,
             MergeSelections(first, selections));

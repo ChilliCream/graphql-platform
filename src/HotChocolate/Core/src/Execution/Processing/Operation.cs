@@ -158,6 +158,7 @@ internal sealed class Operation : IPreparedOperation
             null,
             selection.SyntaxNode.Name,
             selection.SyntaxNode.Alias,
+            null,
             directives,
             selection.SyntaxNode.Arguments,
             selectionSet);

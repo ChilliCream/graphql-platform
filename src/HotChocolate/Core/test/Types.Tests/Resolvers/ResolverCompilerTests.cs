@@ -505,6 +505,7 @@ namespace HotChocolate.Resolvers
                 null,
                 new NameNode("foo"),
                 null,
+                null,
                 Array.Empty<DirectiveNode>(),
                 Array.Empty<ArgumentNode>(),
                 null);
