@@ -531,37 +531,31 @@ public static class TypeExtensions
         switch (nullability.Kind)
         {
             case SyntaxKind.OptionalDesignator when type.Kind is TypeKind.NonNull:
-                return RewriteNullability(
-                    ((NonNullType)type).InnerType(),
-                    nullability.Element);
+                return RewriteNullability(type.InnerType(), nullability.Element);
 
             case SyntaxKind.OptionalDesignator:
-                return RewriteNullability(
-                    type,
-                    nullability.Element);
+                return RewriteNullability(type, nullability.Element);
 
             case SyntaxKind.RequiredDesignator when type.Kind is TypeKind.NonNull:
-                return new NonNullType(
-                    RewriteNullability(
-                        ((NonNullType)type).InnerType(),
-                        nullability.Element));
+                // we optimized this case to not allocate memory in the case that the type is
+                // already non-null and the inner type is either a named type or if the
+                // inner nullability modifier is null.
+                IType innerType = type.InnerType();
+                return nullability.Element is null || innerType.IsNamedType()
+                    // if the type is not a list type or if the nullability has no inner part
+                    // we do not recursively rewrite.
+                    ? type
+                    // in any other case it is a list and we will rewrite the inner parts
+                    : new NonNullType(RewriteNullability(innerType, nullability.Element));
 
             case SyntaxKind.RequiredDesignator:
-                return new NonNullType(
-                    RewriteNullability(
-                        type,
-                        nullability.Element));
+                return new NonNullType(RewriteNullability(type, nullability.Element));
 
             case SyntaxKind.ListNullability when type.Kind is TypeKind.NonNull:
-                return new NonNullType(
-                    RewriteNullability(
-                        ((NonNullType)type).InnerType(),
-                        nullability));
+                return new NonNullType(RewriteNullability(type.InnerType(), nullability));
 
             case SyntaxKind.ListNullability when type.Kind is TypeKind.List:
-                return new ListType(RewriteNullability(
-                    ((ListType)type).InnerType(),
-                    nullability.Element));
+                return new ListType(RewriteNullability(type.InnerType(), nullability.Element));
 
             default:
                 throw RewriteNullability_InvalidNullabilityStructure();
