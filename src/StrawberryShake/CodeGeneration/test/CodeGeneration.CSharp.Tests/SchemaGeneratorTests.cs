@@ -495,7 +495,7 @@ namespace StrawberryShake.CodeGeneration.CSharp
                     }
                 ",
                 "extend schema @key(fields: \"id\")",
-                FileResource.Open("UnderlinedFieldsInSchema.graphql"));
+                FileResource.Open("FieldsWithUnderlinePrefix.graphql"));
         }
     }
 }
