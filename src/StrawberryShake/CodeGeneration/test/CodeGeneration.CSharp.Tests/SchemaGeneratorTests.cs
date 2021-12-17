@@ -497,5 +497,21 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("FieldsWithUnderlinePrefix.graphql"));
         }
+
+        [Fact]
+        public void HasuraMutation()
+        {
+            AssertResult(
+                @"
+                     mutation insertPeople($people: [people_insert_input!]!) {
+                        insert_people(objects: $people)
+                        {
+                            affected_rows
+                        }
+                    }
+                ",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("HasuraSchema.graphql"));
+        }
     }
 }
