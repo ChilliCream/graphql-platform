@@ -55,7 +55,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
             foreach (ObjectFieldDefinition field in _mutationDefinition.Fields)
             {
                 if (!field.IsIntrospectionField &&
-                    _context.TryGetType(field.Type, out IType? returnType) &&
+                    _context.TryGetType(field.Type!, out IType? returnType) &&
                     returnType.NamedType() is ObjectType payloadType &&
                     options.MutationPayloadPredicate.Invoke(payloadType))
                 {

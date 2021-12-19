@@ -255,7 +255,7 @@ internal class TypeInitializer
 
             _interceptor.OnAfterResolveRootType(
                 registeredType,
-                ((ObjectType)registeredType.Type).Definition,
+                ((ObjectType)registeredType.Type).Definition!,
                 operationType,
                 _context.ContextData);
         }

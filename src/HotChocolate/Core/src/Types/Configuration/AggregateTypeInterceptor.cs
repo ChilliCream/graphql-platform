@@ -249,7 +249,7 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
+        DefinitionBase definition,
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {
