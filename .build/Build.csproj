@@ -22,6 +22,7 @@
     <PackageDownload Include="OpenCover" Version="[4.7.1221]" />
     <PackageDownload Include="ReportGenerator" Version="[5.0.0]" />
     <PackageDownload Include="xunit.runner.console" Version="[2.4.1]" />
+    <PackageDownload Include="Codecov.Tool" Version="[1.13.0]" />
   </ItemGroup>
 
 </Project>
