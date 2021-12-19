@@ -2,12 +2,12 @@
   mutation: SimpleMutationAttribute
 }
 
-type SimpleMutationAttribute {
-  doSomething(inputArgumentName: InputTypeName!): payloadFieldName!
+type PayloadTypeName {
+  payloadFieldName: String
 }
 
-type payloadFieldName {
-  PayloadTypeName: String
+type SimpleMutationAttribute {
+  doSomething(inputArgumentName: InputTypeName!): PayloadTypeName!
 }
 
 input InputTypeName {

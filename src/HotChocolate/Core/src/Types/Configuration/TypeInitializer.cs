@@ -49,7 +49,7 @@ internal class TypeInitializer
             throw new ArgumentNullException(nameof(typeRegistry));
         _initialTypes = initialTypes ??
             throw new ArgumentNullException(nameof(initialTypes));
-        _isOfType = isOfType;
+        _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
         _schemaResolver = schemaResolver ??
