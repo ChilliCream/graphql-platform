@@ -127,6 +127,13 @@ partial class Build
 
                     DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
                 }
+
+                Codecov(_ => _
+                    .SetToken(CodeCovToken)
+                    .SetFiles(coverageFiles)
+                    .SetRepositoryRoot(RootDirectory)
+                    .SetVerbose(true)
+                    .SetFramework(Net50));
             }
         });
 
