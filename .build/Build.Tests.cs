@@ -128,6 +128,11 @@ partial class Build
                     DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
                 }
 
+                var coverageFiles = Directory.GetFiles(
+                    TestResultDirectory,
+                    "*.xml",
+                    SearchOption.AllDirectories);
+
                 Codecov(_ => _
                     .SetToken(CodeCovToken)
                     .SetFiles(coverageFiles)
@@ -174,9 +179,9 @@ partial class Build
                 }
 
                 var coverageFiles = Directory.GetFiles(
-                TestResultDirectory,
-                "*.xml",
-                SearchOption.AllDirectories);
+                    TestResultDirectory,
+                    "*.xml",
+                    SearchOption.AllDirectories);
 
                 Codecov(_ => _
                     .SetToken(CodeCovToken)
