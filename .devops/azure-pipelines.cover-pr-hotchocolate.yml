@@ -27,7 +27,7 @@ stages:
             displayName: "Run Tests"
             continueOnError: true
             inputs:
-              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase) --CodeCovToken $(CCT)'
           - task: PublishBuildArtifacts@1
             displayName: "Upload Test Results"
             inputs:

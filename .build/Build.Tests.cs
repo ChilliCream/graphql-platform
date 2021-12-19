@@ -165,6 +165,18 @@ partial class Build
 
                     DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
                 }
+
+                var coverageFiles = Directory.GetFiles(
+                TestResultDirectory,
+                "*.xml",
+                SearchOption.AllDirectories);
+
+                Codecov(_ => _
+                    .SetToken(CodeCovToken)
+                    .SetFiles(coverageFiles)
+                    .SetRepositoryRoot(RootDirectory)
+                    .SetVerbose(true)
+                    .SetFramework(Net50));
             }
         });
 
