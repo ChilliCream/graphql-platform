@@ -19,8 +19,8 @@ internal class MutationContextData
         Definition = definition;
         InputTypeName = inputTypeName;
         InputArgumentName = inputArgumentName;
-        PayloadFieldName = payloadFieldName;
         PayloadTypeName = payloadTypeName;
+        PayloadFieldName = payloadFieldName;
         PayloadPayloadErrorTypeName = payloadErrorTypeName;
         PayloadErrorsFieldName = payloadErrorsFieldName;
         Enabled = enabled;
