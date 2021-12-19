@@ -143,9 +143,11 @@ partial class Build
             Codecov(_ => _
                 .SetToken(CodeCovToken)
                 .SetFiles(coverageFiles)
+                .SetRepositoryRoot(RootDirectory)
+                .SetVerbose(true)
                 .SetFramework(Net50));
 
-            if (DevOpsPipeLine is { })
+            if (DevOpsPipeLine is not null)
             {
                 string uploadDir = Path.Combine(RootDirectory, "mismatch");
 
