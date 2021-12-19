@@ -35,7 +35,7 @@ stages:
               pathtoPublish: "output/test-results"
       - job: Codecov
         displayName: "Publish"
-        dependsOn: [Test, Pack]
+        dependsOn: [Test]
         steps:
           - task: DownloadBuildArtifacts@0
             displayName: "Download Packages"
