@@ -6,6 +6,9 @@ trigger:
 pr:
   - main
 
+variables:
+  CCT: $(CodeCovToken)
+
 stages:
   - stage: ubuntu
     displayName: "Ubuntu 20.04"
@@ -42,4 +45,4 @@ stages:
           - task: CmdLine@2
             displayName: "Push Packages to NuGet"
             inputs:
-              script: './build.cmd ReportCodecov --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd ReportCodecov --skip --test-partition $(System.JobPositionInPhase) --CodeCovToken $(CCT)'
