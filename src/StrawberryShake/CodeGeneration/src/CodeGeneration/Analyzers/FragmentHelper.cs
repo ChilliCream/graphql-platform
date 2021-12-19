@@ -103,7 +103,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // We will check for a cached version of this type to have essentially one instance
             // for each type.
-            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
+            if (context.TryGetModel(fragmentNode.Fragment.Name, out OutputTypeModel? typeModel))
             {
                 return typeModel;
             }
@@ -128,7 +128,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.SelectionSet,
                 fields,
                 new[] {@interface});
-            context.RegisterModel(name, typeModel);
+            context.RegisterModel(fragmentNode.Fragment.Name, typeModel);
 
             return typeModel;
         }
@@ -156,6 +156,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetInterfaceName(fragmentNode.Fragment.Name),
                 fragmentNode.Fragment.SelectionSet);
 
+            string typeName = $"I{fragmentNode.Fragment.Name}";
+
             ISet<string> implementedFields = levels.Peek();
 
             IReadOnlyList<OutputTypeModel> implements =
@@ -169,7 +171,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // We will check for a cached version of this type to have essentially one instance
             // for each type.
-            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
+            if (context.TryGetModel(typeName , out OutputTypeModel? typeModel))
             {
                 foreach (var model in implements)
                 {
@@ -226,7 +228,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.SelectionSet,
                 CreateFields(fragmentNode, implementedFields, path),
                 implements);
-            context.RegisterModel(name, typeModel);
+            context.RegisterModel(typeName , typeModel);
 
             return typeModel;
         }
@@ -237,7 +239,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path)
         {
             // the fragment type is a complex type we will generate a interface with fields.
-            if (fragmentNode.Fragment.TypeCondition is INamedOutputType type && 
+            if (fragmentNode.Fragment.TypeCondition is INamedOutputType type &&
                 type.IsCompositeType())
             {
                 var fieldMap = new OrderedDictionary<string, FieldSelection>();
