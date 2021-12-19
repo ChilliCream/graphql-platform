@@ -142,17 +142,8 @@ partial class Build
 
             Codecov(_ => _
                 .SetToken(CodeCovToken)
-                .SetFiles(coverageFiles));
-
-            if (DevOpsPipeLine is { })
-            {
-                CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
-                    DevOpsPipeLine.PublishCodeCoverage(
-                        AzurePipelinesCodeCoverageToolType.Cobertura,
-                        x,
-                        CoverageReportDirectory,
-                        Directory.GetFiles(CoverageReportDirectory, "*.htm")));
-            }
+                .SetFiles(coverageFiles)
+                .SetFramework(Net50));
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
