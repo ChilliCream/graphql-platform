@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Codecov;
 using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
 
 partial class Build
@@ -115,6 +118,31 @@ partial class Build
                 .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
                 .SetTargetDirectory(CoverageReportDirectory)
                 .SetAssemblyFilters("-*Tests"));
+
+            if (DevOpsPipeLine is { })
+            {
+                CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
+                    DevOpsPipeLine.PublishCodeCoverage(
+                        AzurePipelinesCodeCoverageToolType.Cobertura,
+                        x,
+                        CoverageReportDirectory,
+                        Directory.GetFiles(CoverageReportDirectory, "*.htm")));
+            }
+        });
+
+    Target ReportCodecov => _ => _.DependsOn(Restore)
+        .DependsOn(Cover)
+        .Consumes(Cover)
+        .Executes(() =>
+        {
+            var coverageFiles = Directory.GetFiles(
+                TestResultDirectory,
+                "*.xml",
+                SearchOption.AllDirectories);
+
+            Codecov(_ => _
+                .SetToken(CodeCovToken)
+                .SetFiles(coverageFiles));
 
             if (DevOpsPipeLine is { })
             {

@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  - main
+
+stages:
+  - stage: ubuntu
+    displayName: "Ubuntu 20.04"
+    dependsOn: []
+    pool:
+      vmImage: "ubuntu-20.04"
+    jobs:
+      - job: Test
+        displayName: "Test"
+        dependsOn: []
+        continueOnError: true
+        strategy:
+          parallel: 4
+        steps:
+          - task: CmdLine@2
+            displayName: "Run Tests"
+            continueOnError: true
+            inputs:
+              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
+          - task: PublishBuildArtifacts@1
+            displayName: "Upload Test Results"
+            inputs:
+              artifactName: test-results
+              pathtoPublish: "output/test-results"
+      - job: Codecov
+        displayName: "Publish"
+        dependsOn: [Test, Pack]
+        steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: "Download Packages"
+            inputs:
+              artifactName: "test-results"
+              downloadPath: "$(Build.Repository.LocalPath)/output/test-results"
+          - task: CmdLine@2
+            displayName: "Push Packages to NuGet"
+            inputs:
+              script: './build.cmd ReportCodecov --skip --test-partition $(System.JobPositionInPhase)'
