@@ -21,7 +21,7 @@ internal sealed class QueryFieldTypeInterceptor : TypeInterceptor
 
     internal override void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
+        DefinitionBase definition,
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {
