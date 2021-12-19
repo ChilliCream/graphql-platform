@@ -17,6 +17,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
+using System;
 
 partial class Build
 {
@@ -139,6 +140,12 @@ partial class Build
                 TestResultDirectory,
                 "*.xml",
                 SearchOption.AllDirectories);
+
+            Console.WriteLine("Files:");
+            foreach (string s in coverageFiles)
+            {
+                Console.WriteLine(s);
+            }
 
             Codecov(_ => _
                 .SetToken(CodeCovToken)
