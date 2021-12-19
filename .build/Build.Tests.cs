@@ -144,6 +144,27 @@ partial class Build
                 .SetToken(CodeCovToken)
                 .SetFiles(coverageFiles)
                 .SetFramework(Net50));
+
+            if (DevOpsPipeLine is { })
+            {
+                string uploadDir = Path.Combine(RootDirectory, "mismatch");
+
+                if (!Directory.Exists(uploadDir))
+                {
+                    Directory.CreateDirectory(uploadDir);
+                }
+
+                foreach (string mismatchDir in Directory.GetDirectories(
+                    RootDirectory, "__mismatch__", SearchOption.AllDirectories))
+                {
+                    foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
+                    {
+                        File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
+                    }
+                }
+
+                DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
+            }
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
