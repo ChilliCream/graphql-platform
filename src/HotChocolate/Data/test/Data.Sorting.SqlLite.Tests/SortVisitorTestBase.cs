@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Sorting;
 public class SortVisitorTestBase
 {
     private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
-        params TResult[] results)
+        params TResult?[] results)
         where TResult : class
     {
         var dbContext = new DatabaseContext<TResult>();
@@ -22,10 +22,13 @@ public class SortVisitorTestBase
 
         DbSet<TResult> set = dbContext.Set<TResult>();
 
-        foreach (TResult result in results)
+        foreach (TResult? result in results)
         {
-            set.Add(result);
-            dbContext.SaveChanges();
+            if (result is not null)
+            {
+                set.Add(result);
+                dbContext.SaveChanges();
+            }
         }
 
         return ctx => dbContext.Data.AsQueryable();
@@ -41,7 +44,7 @@ public class SortVisitorTestBase
     {
         convention ??= new SortConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-        Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities!);
+        Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities);
 
         ISchemaBuilder builder = SchemaBuilder.New()
             .AddConvention<ISortConvention>(convention)
@@ -50,13 +53,15 @@ public class SortVisitorTestBase
                 c =>
                 {
                     ApplyConfigurationToField<TEntity, T>(
-                        c.Name("Query").Field("root").Resolve(resolver), false);
+                        c.Name("Query").Field("root").Resolve(resolver),
+                        false);
 
                     ApplyConfigurationToField<TEntity, T>(
                         c.Name("Query")
                             .Field("rootExecutable")
                             .Resolve(
-                                ctx => resolver(ctx).AsExecutable()), false);
+                                ctx => resolver(ctx).AsExecutable()),
+                        false);
                 });
 
         ISchema? schema = builder.Create();

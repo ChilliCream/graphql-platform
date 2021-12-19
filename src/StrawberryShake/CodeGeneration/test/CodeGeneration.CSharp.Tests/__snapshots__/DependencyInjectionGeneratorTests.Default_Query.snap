@@ -152,7 +152,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetPersonResult
+    public partial interface IGetPersonResult
     {
         public global::Foo.Bar.IGetPerson_Person? Person
         {
@@ -162,7 +162,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetPerson_Person
+    public partial interface IGetPerson_Person
     {
         public global::System.String Name
         {
@@ -172,7 +172,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetPerson_Person_Person : IGetPerson_Person
+    public partial interface IGetPerson_Person_Person : IGetPerson_Person
     {
     }
 
@@ -291,7 +291,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetPersonQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetPersonQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetPersonResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetPersonResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -319,7 +319,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetPersonQuery GetPerson
         {

@@ -21,7 +21,8 @@ public class FilterVisitorTestBase
                         .Field("foo")
                         .Type<StringType>()
                         .Resolve("bar"))
-            .AddType(type);
+            .AddType(type)
+            .AddType(new TimeSpanType(TimeSpanFormat.DotNet));
 
         builder.Create();
 

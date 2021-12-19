@@ -251,7 +251,7 @@ public class QueryableFirstOrDefaultTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
         modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);

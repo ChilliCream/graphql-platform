@@ -1,338 +1,337 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+[Obsolete("This is replaced by the new schema printer.")]
+internal static class DocumentWriterExtensions
 {
-    [Obsolete("This is replaced by the new schema printer.")]
-    internal static class DocumentWriterExtensions
+    public static void WriteMany<T>(
+        this DocumentWriter writer,
+        IEnumerable<T> items,
+        Action<T, DocumentWriter> action)
     {
-        public static void WriteMany<T>(
-            this DocumentWriter writer,
-            IEnumerable<T> items,
-            Action<T, DocumentWriter> action)
-        {
-            WriteMany(writer, items, action, ", ");
-        }
+        WriteMany(writer, items, action, ", ");
+    }
 
-        public static void WriteMany<T>(
-            this DocumentWriter writer,
-            IEnumerable<T> items,
-            Action<T, DocumentWriter> action,
-            string separator)
+    public static void WriteMany<T>(
+        this DocumentWriter writer,
+        IEnumerable<T> items,
+        Action<T, DocumentWriter> action,
+        string separator)
+    {
+        if (items.Any())
         {
-            if (items.Any())
+            action(items.First(), writer);
+
+            foreach (T item in items.Skip(1))
             {
-                action(items.First(), writer);
-
-                foreach (T item in items.Skip(1))
-                {
-                    writer.Write(separator);
-                    action(item, writer);
-                }
+                writer.Write(separator);
+                action(item, writer);
             }
         }
+    }
 
-        public static void WriteMany<T>(
-            this DocumentWriter writer,
-            IEnumerable<T> items,
-            Action<T, DocumentWriter> action,
-            Action<DocumentWriter> separator)
+    public static void WriteMany<T>(
+        this DocumentWriter writer,
+        IEnumerable<T> items,
+        Action<T, DocumentWriter> action,
+        Action<DocumentWriter> separator)
+    {
+        if (items.Any())
         {
-            if (items.Any())
-            {
-                action(items.First(), writer);
+            action(items.First(), writer);
 
-                foreach (T item in items.Skip(1))
-                {
-                    separator(writer);
-                    action(item, writer);
-                }
+            foreach (T item in items.Skip(1))
+            {
+                separator(writer);
+                action(item, writer);
             }
         }
+    }
 
-        public static void WriteValue(
-            this DocumentWriter writer,
-            IValueNode node)
+    public static void WriteValue(
+        this DocumentWriter writer,
+        IValueNode node)
+    {
+        if (node is null)
         {
-            if (node is null)
-            {
-                return;
-            }
-
-            switch (node)
-            {
-                case IntValueNode value:
-                    WriteIntValue(writer, value);
-                    break;
-                case FloatValueNode value:
-                    WriteFloatValue(writer, value);
-                    break;
-                case StringValueNode value:
-                    WriteStringValue(writer, value);
-                    break;
-                case BooleanValueNode value:
-                    WriteBooleanValue(writer, value);
-                    break;
-                case EnumValueNode value:
-                    WriteEnumValue(writer, value);
-                    break;
-                case NullValueNode value:
-                    WriteNullValue(writer, value);
-                    break;
-                case ListValueNode value:
-                    WriteListValue(writer, value);
-                    break;
-                case ObjectValueNode value:
-                    WriteObjectValue(writer, value);
-                    break;
-                case VariableNode value:
-                    WriteVariable(writer, value);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
+            return;
         }
 
-        public static void WriteIntValue(
-            this DocumentWriter writer,
-            IntValueNode node)
+        switch (node)
         {
-            writer.Write(node.Value);
+            case IntValueNode value:
+                WriteIntValue(writer, value);
+                break;
+            case FloatValueNode value:
+                WriteFloatValue(writer, value);
+                break;
+            case StringValueNode value:
+                WriteStringValue(writer, value);
+                break;
+            case BooleanValueNode value:
+                WriteBooleanValue(writer, value);
+                break;
+            case EnumValueNode value:
+                WriteEnumValue(writer, value);
+                break;
+            case NullValueNode value:
+                WriteNullValue(writer, value);
+                break;
+            case ListValueNode value:
+                WriteListValue(writer, value);
+                break;
+            case ObjectValueNode value:
+                WriteObjectValue(writer, value);
+                break;
+            case VariableNode value:
+                WriteVariable(writer, value);
+                break;
+            default:
+                throw new NotSupportedException();
         }
+    }
 
-        public static void WriteFloatValue(
-            this DocumentWriter writer,
-            FloatValueNode node)
-        {
-            writer.Write(node.Value);
-        }
+    public static void WriteIntValue(
+        this DocumentWriter writer,
+        IntValueNode node)
+    {
+        writer.Write(node.Value);
+    }
 
-        public static void WriteStringValue(
-            this DocumentWriter writer,
-            StringValueNode node)
+    public static void WriteFloatValue(
+        this DocumentWriter writer,
+        FloatValueNode node)
+    {
+        writer.Write(node.Value);
+    }
+
+    public static void WriteStringValue(
+        this DocumentWriter writer,
+        StringValueNode node)
+    {
+        if (node.Block)
         {
-            if (node.Block)
+            writer.Write("\"\"\"");
+
+            var lines = node.Value
+                .Replace("\"\"\"", "\\\"\"\"")
+                .Replace("\r", string.Empty)
+                .Split('\n');
+
+            foreach (var line in lines)
             {
-                writer.Write("\"\"\"");
-
-                var lines = node.Value
-                    .Replace("\"\"\"", "\\\"\"\"")
-                    .Replace("\r", string.Empty)
-                    .Split('\n');
-
-                foreach (var line in lines)
-                {
-                    writer.WriteLine();
-                    writer.WriteIndentation();
-                    writer.Write(line);
-                }
-
                 writer.WriteLine();
                 writer.WriteIndentation();
-                writer.Write("\"\"\"");
-            }
-            else
-            {
-                writer.Write($"\"{WriteEscapeCharacters(node.Value)}\"");
-            }
-        }
-
-
-        private static string WriteEscapeCharacters(string input)
-        {
-            var stringBuilder = new StringBuilder();
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                char c = input[i];
-                WriteEscapeCharacter(stringBuilder, in c);
+                writer.Write(line);
             }
 
-            return stringBuilder.ToString();
+            writer.WriteLine();
+            writer.WriteIndentation();
+            writer.Write("\"\"\"");
+        }
+        else
+        {
+            writer.Write($"\"{WriteEscapeCharacters(node.Value)}\"");
+        }
+    }
+
+
+    private static string WriteEscapeCharacters(string input)
+    {
+        var stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < input.Length; i++)
+        {
+            char c = input[i];
+            WriteEscapeCharacter(stringBuilder, in c);
         }
 
-        private static void WriteEscapeCharacter(
-            StringBuilder stringBuilder, in char c)
+        return stringBuilder.ToString();
+    }
+
+    private static void WriteEscapeCharacter(
+        StringBuilder stringBuilder, in char c)
+    {
+        switch (c)
         {
-            switch (c)
-            {
-                case '"':
-                    WriteEscapeCharacterHelper(stringBuilder, '"');
-                    break;
-                case '\\':
-                    WriteEscapeCharacterHelper(stringBuilder, '\\');
-                    break;
-                case '/':
-                    WriteEscapeCharacterHelper(stringBuilder, '/');
-                    break;
-                case '\b':
-                    WriteEscapeCharacterHelper(stringBuilder, 'b');
-                    break;
-                case '\f':
-                    WriteEscapeCharacterHelper(stringBuilder, 'f');
-                    break;
-                case '\n':
-                    WriteEscapeCharacterHelper(stringBuilder, 'n');
-                    break;
-                case '\r':
-                    WriteEscapeCharacterHelper(stringBuilder, 'r');
-                    break;
-                case '\t':
-                    WriteEscapeCharacterHelper(stringBuilder, 't');
-                    break;
-                default:
-                    stringBuilder.Append(c);
-                    break;
-            }
+            case '"':
+                WriteEscapeCharacterHelper(stringBuilder, '"');
+                break;
+            case '\\':
+                WriteEscapeCharacterHelper(stringBuilder, '\\');
+                break;
+            case '/':
+                WriteEscapeCharacterHelper(stringBuilder, '/');
+                break;
+            case '\b':
+                WriteEscapeCharacterHelper(stringBuilder, 'b');
+                break;
+            case '\f':
+                WriteEscapeCharacterHelper(stringBuilder, 'f');
+                break;
+            case '\n':
+                WriteEscapeCharacterHelper(stringBuilder, 'n');
+                break;
+            case '\r':
+                WriteEscapeCharacterHelper(stringBuilder, 'r');
+                break;
+            case '\t':
+                WriteEscapeCharacterHelper(stringBuilder, 't');
+                break;
+            default:
+                stringBuilder.Append(c);
+                break;
         }
+    }
 
-        private static void WriteEscapeCharacterHelper(
-           StringBuilder stringBuilder, in char c)
+    private static void WriteEscapeCharacterHelper(
+       StringBuilder stringBuilder, in char c)
+    {
+        stringBuilder.Append('\\');
+        stringBuilder.Append(c);
+    }
+
+    public static void WriteBooleanValue(
+        this DocumentWriter writer,
+        BooleanValueNode node)
+    {
+        writer.Write(node.Value.ToString().ToLowerInvariant());
+    }
+
+    public static void WriteEnumValue(
+        this DocumentWriter writer,
+        EnumValueNode node)
+    {
+        writer.Write(node.Value);
+    }
+
+    public static void WriteNullValue(
+        this DocumentWriter writer,
+        NullValueNode node)
+    {
+        writer.Write("null");
+    }
+
+    public static void WriteListValue(
+        this DocumentWriter writer,
+        ListValueNode node)
+    {
+        writer.Write("[ ");
+        writer.WriteMany(node.Items, (n, w) => w.WriteValue(n));
+        writer.Write(" ]");
+    }
+
+    public static void WriteObjectValue(
+        this DocumentWriter writer,
+        ObjectValueNode node)
+    {
+        writer.Write("{ ");
+        writer.WriteMany(node.Fields, (n, w) => w.WriteObjectField(n));
+        writer.Write(" }");
+    }
+
+    public static void WriteObjectField(
+        this DocumentWriter writer,
+        ObjectFieldNode node)
+    {
+        writer.WriteField(node.Name, node.Value);
+    }
+
+    public static void WriteVariable(
+        this DocumentWriter writer,
+        VariableNode node)
+    {
+        writer.Write('$');
+        writer.Write(node.Name.Value);
+    }
+
+    public static void WriteField(
+        this DocumentWriter writer,
+        NameNode name,
+        IValueNode value)
+    {
+        writer.Write(name.Value);
+        writer.Write(": ");
+        writer.WriteValue(value);
+    }
+
+    public static void WriteArgument(
+        this DocumentWriter writer,
+        ArgumentNode node)
+    {
+        writer.WriteField(node.Name, node.Value);
+    }
+
+    public static void WriteType(
+        this DocumentWriter writer,
+        ITypeNode node)
+    {
+        switch (node)
         {
-            stringBuilder.Append('\\');
-            stringBuilder.Append(c);
+            case NonNullTypeNode value:
+                writer.WriteNonNullType(value);
+                break;
+            case ListTypeNode value:
+                writer.WriteListType(value);
+                break;
+            case NamedTypeNode value:
+                writer.WriteNamedType(value);
+                break;
+            default:
+                throw new NotSupportedException();
         }
+    }
 
-        public static void WriteBooleanValue(
-            this DocumentWriter writer,
-            BooleanValueNode node)
+    public static void WriteNonNullType(
+        this DocumentWriter writer,
+        NonNullTypeNode node)
+    {
+        writer.WriteType(node.Type);
+        writer.Write('!');
+    }
+
+    public static void WriteListType(
+        this DocumentWriter writer,
+        ListTypeNode node)
+    {
+        writer.Write('[');
+        writer.WriteType(node.Type);
+        writer.Write(']');
+    }
+
+    public static void WriteNamedType(
+        this DocumentWriter writer,
+        NamedTypeNode node)
+    {
+        writer.WriteName(node.Name);
+    }
+
+    public static void WriteName(
+        this DocumentWriter writer,
+        NameNode node)
+    {
+        writer.Write(node.Value);
+    }
+
+    public static void WriteDirective(
+        this DocumentWriter writer,
+        DirectiveNode node)
+    {
+        writer.Write('@');
+
+        writer.WriteName(node.Name);
+
+        if (node.Arguments.Any())
         {
-            writer.Write(node.Value.ToString().ToLowerInvariant());
-        }
+            writer.Write('(');
 
-        public static void WriteEnumValue(
-            this DocumentWriter writer,
-            EnumValueNode node)
-        {
-            writer.Write(node.Value);
-        }
+            writer.WriteMany(node.Arguments, (n, w) => w.WriteArgument(n));
 
-        public static void WriteNullValue(
-            this DocumentWriter writer,
-            NullValueNode node)
-        {
-            writer.Write("null");
-        }
-
-        public static void WriteListValue(
-            this DocumentWriter writer,
-            ListValueNode node)
-        {
-            writer.Write("[ ");
-            writer.WriteMany(node.Items, (n, w) => w.WriteValue(n));
-            writer.Write(" ]");
-        }
-
-        public static void WriteObjectValue(
-            this DocumentWriter writer,
-            ObjectValueNode node)
-        {
-            writer.Write("{ ");
-            writer.WriteMany(node.Fields, (n, w) => w.WriteObjectField(n));
-            writer.Write(" }");
-        }
-
-        public static void WriteObjectField(
-            this DocumentWriter writer,
-            ObjectFieldNode node)
-        {
-            writer.WriteField(node.Name, node.Value);
-        }
-
-        public static void WriteVariable(
-            this DocumentWriter writer,
-            VariableNode node)
-        {
-            writer.Write('$');
-            writer.Write(node.Name.Value);
-        }
-
-        public static void WriteField(
-            this DocumentWriter writer,
-            NameNode name,
-            IValueNode value)
-        {
-            writer.Write(name.Value);
-            writer.Write(": ");
-            writer.WriteValue(value);
-        }
-
-        public static void WriteArgument(
-            this DocumentWriter writer,
-            ArgumentNode node)
-        {
-            writer.WriteField(node.Name, node.Value);
-        }
-
-        public static void WriteType(
-            this DocumentWriter writer,
-            ITypeNode node)
-        {
-            switch (node)
-            {
-                case NonNullTypeNode value:
-                    writer.WriteNonNullType(value);
-                    break;
-                case ListTypeNode value:
-                    writer.WriteListType(value);
-                    break;
-                case NamedTypeNode value:
-                    writer.WriteNamedType(value);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        public static void WriteNonNullType(
-            this DocumentWriter writer,
-            NonNullTypeNode node)
-        {
-            writer.WriteType(node.Type);
-            writer.Write('!');
-        }
-
-        public static void WriteListType(
-            this DocumentWriter writer,
-            ListTypeNode node)
-        {
-            writer.Write('[');
-            writer.WriteType(node.Type);
-            writer.Write(']');
-        }
-
-        public static void WriteNamedType(
-            this DocumentWriter writer,
-            NamedTypeNode node)
-        {
-            writer.WriteName(node.Name);
-        }
-
-        public static void WriteName(
-            this DocumentWriter writer,
-            NameNode node)
-        {
-            writer.Write(node.Value);
-        }
-
-        public static void WriteDirective(
-            this DocumentWriter writer,
-            DirectiveNode node)
-        {
-            writer.Write('@');
-
-            writer.WriteName(node.Name);
-
-            if (node.Arguments.Any())
-            {
-                writer.Write('(');
-
-                writer.WriteMany(node.Arguments, (n, w) => w.WriteArgument(n));
-
-                writer.Write(')');
-            }
+            writer.Write(')');
         }
     }
 }

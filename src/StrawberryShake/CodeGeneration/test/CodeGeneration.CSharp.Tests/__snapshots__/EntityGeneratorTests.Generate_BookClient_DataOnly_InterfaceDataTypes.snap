@@ -241,7 +241,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomethingResult
+    public partial interface ISearchSomethingResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.ISearchSomething_Prints?>? Prints
         {
@@ -251,7 +251,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Prints
+    public partial interface ISearchSomething_Prints
     {
         public global::System.String Isbn
         {
@@ -261,7 +261,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Prints_Book : ISearchSomething_Prints
+    public partial interface ISearchSomething_Prints_Book : ISearchSomething_Prints
     {
         public global::System.String Title
         {
@@ -271,7 +271,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomething_Prints_Magazine : ISearchSomething_Prints
+    public partial interface ISearchSomething_Prints_Magazine : ISearchSomething_Prints
     {
         public global::System.String? CoverImageUrl
         {
@@ -403,7 +403,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISearchSomethingQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ISearchSomethingQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISearchSomethingResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -431,7 +431,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.ISearchSomethingQuery SearchSomething
         {

@@ -455,7 +455,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFooResult
+    public partial interface IGetFooResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFoo_Foo?>? Foo
         {
@@ -465,13 +465,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo
+    public partial interface IGetFoo_Foo
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Baz : IGetFoo_Foo
+    public partial interface IGetFoo_Foo_Baz : IGetFoo_Foo
     {
         public global::System.String? Id
         {
@@ -481,7 +481,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Quox : IGetFoo_Foo
+    public partial interface IGetFoo_Foo_Quox : IGetFoo_Foo
     {
         public global::System.String? Foo
         {
@@ -491,7 +491,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Baz2 : IGetFoo_Foo
+    public partial interface IGetFoo_Foo_Baz2 : IGetFoo_Foo
     {
         public global::System.String? Id
         {
@@ -501,7 +501,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Quox2 : IGetFoo_Foo
+    public partial interface IGetFoo_Foo_Quox2 : IGetFoo_Foo
     {
         public global::System.String? Foo
         {
@@ -666,7 +666,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFooQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetFooQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFooResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFooResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -694,7 +694,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData
     /// Represents the EntityIdOrDataClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IEntityIdOrDataClient
+    public partial interface IEntityIdOrDataClient
     {
         global::StrawberryShake.CodeGeneration.CSharp.Integration.EntityIdOrData.IGetFooQuery GetFoo
         {

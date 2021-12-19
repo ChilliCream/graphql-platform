@@ -100,4 +100,10 @@ public interface ISchemaOptions : IReadOnlySchemaOptions
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
     new bool StrictRuntimeTypeValidation { get; set; }
+
+    /// <summary>
+    /// Defines a delegate that determines if a runtime
+    /// is an instance of an <see cref="ObjectType{T}"/>.
+    /// </summary>
+    new IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
 }

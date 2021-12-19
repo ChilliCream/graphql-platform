@@ -280,7 +280,7 @@ public class QueryableProjectionInterfaceTypeTests
         res1.MatchSqlSnapshot();
     }
 
-    public static void OnModelCreating(ModelBuilder modelBuilder)
+    private static void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AbstractType>()
             .HasDiscriminator<string>("d")
@@ -288,7 +288,7 @@ public class QueryableProjectionInterfaceTypeTests
             .HasValue<Foo>("foo");
     }
 
-    public static void ConfigureSchema(ISchemaBuilder schemaBuilder)
+    private static void ConfigureSchema(ISchemaBuilder schemaBuilder)
     {
         schemaBuilder
             .AddType(new ObjectType<Foo>(

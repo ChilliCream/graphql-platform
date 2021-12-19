@@ -366,10 +366,7 @@ public partial class SchemaBuilder
                         .Build());
             }
 
-            Schema schema = typeRegistry.Types
-                .Select(t => t.Type).OfType<Schema>().First();
-            Console.WriteLine("Types: " + typeRegistry.Types.Count);
-
+            Schema schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
             context.SchemaInterceptor.OnAfterCreate(context, schema);

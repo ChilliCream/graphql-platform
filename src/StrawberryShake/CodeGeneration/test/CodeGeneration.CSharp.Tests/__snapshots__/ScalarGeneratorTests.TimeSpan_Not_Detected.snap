@@ -230,7 +230,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessionsResult
+    public partial interface IGetSessionsResult
     {
         public global::Foo.Bar.IGetSessions_Sessions? Sessions
         {
@@ -243,7 +243,7 @@ namespace Foo.Bar
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessions_Sessions
+    public partial interface IGetSessions_Sessions
     {
         /// <summary>
         /// A flattened list of the nodes.
@@ -259,13 +259,13 @@ namespace Foo.Bar
     /// A connection to a list of items.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessions_Sessions_SessionConnection : IGetSessions_Sessions
+    public partial interface IGetSessions_Sessions_SessionConnection : IGetSessions_Sessions
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessions_Sessions_Nodes
+    public partial interface IGetSessions_Sessions_Nodes
     {
         public global::System.String Title
         {
@@ -275,7 +275,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessions_Sessions_Nodes_Session : IGetSessions_Sessions_Nodes
+    public partial interface IGetSessions_Sessions_Nodes_Session : IGetSessions_Sessions_Nodes
     {
     }
 
@@ -403,7 +403,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetSessionsQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetSessionsQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetSessionsResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetSessionsResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -431,7 +431,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetSessionsQuery GetSessions
         {

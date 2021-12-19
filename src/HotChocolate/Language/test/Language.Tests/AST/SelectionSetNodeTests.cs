@@ -4,21 +4,22 @@ using System.Linq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class SelectionSetNodeTests
 {
-    public class SelectionSetNodeTests
+    [Fact]
+    public void CreateSelectionSet()
     {
-        [Fact]
-        public void CreateSelectionSet()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -26,28 +27,29 @@ namespace HotChocolate.Language
                 )
             };
 
-            // act
-            var selectionSet = new SelectionSetNode
-            (
-                location,
-                selections
-            );
+        // act
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-        [Fact]
-        public void WithLocation()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void WithLocation()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -55,30 +57,73 @@ namespace HotChocolate.Language
                 )
             };
 
-            var selectionSet = new SelectionSetNode
+        var selectionSet = new SelectionSetNode
+        (
+            null,
+            selections
+        );
+
+        // act
+        selectionSet = selectionSet.WithLocation(location);
+
+        // assert
+        selectionSet.MatchSnapshot();
+    }
+
+    [Fact]
+    public void AddSelection()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
+            {
+                new FieldNode
+                (
+                    null,
+                    new NameNode("bar"),
+                    null,
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    Array.Empty<ArgumentNode>(),
+                    null
+                )
+            };
+
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
+
+        // act
+        selectionSet = selectionSet.AddSelection(
+            new FieldNode
             (
                 null,
-                selections
-            );
+                new NameNode("baz"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null
+            ));
 
-            // act
-            selectionSet = selectionSet.WithLocation(location);
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
-
-        [Fact]
-        public void AddSelection()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void AddSelections()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -86,39 +131,41 @@ namespace HotChocolate.Language
                 )
             };
 
-            var selectionSet = new SelectionSetNode
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
+
+        // act
+        selectionSet = selectionSet.AddSelections(
+            new FieldNode
             (
-                location,
-                selections
-            );
+                null,
+                new NameNode("baz"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null
+            ));
 
-            // act
-            selectionSet = selectionSet.AddSelection(
-                new FieldNode
-                (
-                    null,
-                    new NameNode("baz"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null
-                ));
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
-
-        [Fact]
-        public void AddSelections()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void AddSelections_Two()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -126,88 +173,51 @@ namespace HotChocolate.Language
                 )
             };
 
-            var selectionSet = new SelectionSetNode
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
+
+        // act
+        selectionSet = selectionSet.AddSelections(
+            new FieldNode
             (
-                location,
-                selections
-            );
+                null,
+                new NameNode("baz"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null
+            ),
+            new FieldNode
+            (
+                null,
+                new NameNode("qux"),
+                null,
+                null,
+                Array.Empty<DirectiveNode>(),
+                Array.Empty<ArgumentNode>(),
+                null
+            ));
 
-            // act
-            selectionSet = selectionSet.AddSelections(
-                new FieldNode
-                (
-                    null,
-                    new NameNode("baz"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null
-                ));
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
-
-        [Fact]
-        public void AddSelections_Two()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void RemoveSelection()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
                     null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null
-                )
-            };
-
-            var selectionSet = new SelectionSetNode
-            (
-                location,
-                selections
-            );
-
-            // act
-            selectionSet = selectionSet.AddSelections(
-                new FieldNode
-                (
-                    null,
-                    new NameNode("baz"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null
-                ),
-                new FieldNode
-                (
-                    null,
-                    new NameNode("qux"),
-                    null,
-                    Array.Empty<DirectiveNode>(),
-                    Array.Empty<ArgumentNode>(),
-                    null
-                ));
-
-            // assert
-            selectionSet.MatchSnapshot();
-        }
-
-        [Fact]
-        public void RemoveSelection()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
-            {
-                new FieldNode
-                (
-                    null,
-                    new NameNode("bar"),
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -218,37 +228,39 @@ namespace HotChocolate.Language
                     null,
                     new NameNode("baz"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
                 )
             };
 
-            var selectionSet = new SelectionSetNode
-            (
-                location,
-                selections
-            );
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
 
-            // act
-            selectionSet = selectionSet.RemoveSelection(
-                selectionSet.Selections.First());
+        // act
+        selectionSet = selectionSet.RemoveSelection(
+            selectionSet.Selections.First());
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-        [Fact]
-        public void RemoveSelections()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void RemoveSelections()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
+                    null,
                     null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
@@ -259,67 +271,69 @@ namespace HotChocolate.Language
                     null,
                     new NameNode("baz"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
                 )
             };
 
-            var selectionSet = new SelectionSetNode
-            (
-                location,
-                selections
-            );
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
 
-            // act
-            selectionSet = selectionSet.RemoveSelections(
-                selectionSet.Selections.First());
+        // act
+        selectionSet = selectionSet.RemoveSelections(
+            selectionSet.Selections.First());
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
+        // assert
+        selectionSet.MatchSnapshot();
+    }
 
-        [Fact]
-        public void WithSelections()
-        {
-            // arrange
-            Location location = AstTestHelper.CreateDummyLocation();
-            var selections = new List<ISelectionNode>
+    [Fact]
+    public void WithSelections()
+    {
+        // arrange
+        Location location = AstTestHelper.CreateDummyLocation();
+        var selections = new List<ISelectionNode>
             {
                 new FieldNode
                 (
                     null,
                     new NameNode("bar"),
                     null,
+                    null,
                     Array.Empty<DirectiveNode>(),
                     Array.Empty<ArgumentNode>(),
                     null
                 )
             };
 
-            var selectionSet = new SelectionSetNode
-            (
-                location,
-                selections
-            );
+        var selectionSet = new SelectionSetNode
+        (
+            location,
+            selections
+        );
 
-            // act
-            selectionSet = selectionSet.WithSelections(
-                new List<ISelectionNode>
-                {
+        // act
+        selectionSet = selectionSet.WithSelections(
+            new List<ISelectionNode>
+            {
                     new FieldNode
                     (
                         null,
                         new NameNode("baz"),
                         null,
+                        null,
                         Array.Empty<DirectiveNode>(),
                         Array.Empty<ArgumentNode>(),
                         null
                     )
-                });
+            });
 
-            // assert
-            selectionSet.MatchSnapshot();
-        }
+        // assert
+        selectionSet.MatchSnapshot();
     }
 }

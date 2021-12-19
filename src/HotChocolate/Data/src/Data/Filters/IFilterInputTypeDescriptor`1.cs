@@ -63,10 +63,10 @@ public interface IFilterInputTypeDescriptor<T>
     /// <summary>
     /// Defines a <see cref="FilterField" /> that binds to the specified property.
     /// </summary>
-    /// <param name="property">
+    /// <param name="propertyOrMember">
     /// The property to which a filter field shall be bound.
     /// </param>
-    IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> property);
+    IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> propertyOrMember);
 
     /// <summary>
     /// Ignore the specified property.
@@ -87,10 +87,10 @@ public interface IFilterInputTypeDescriptor<T>
     /// <summary>
     /// Ignore the specified property.
     /// </summary>
-    /// <param  name="property">
+    /// <param  name="propertyOrMember">
     /// The property that shall be ignored.
     /// </param>
-    IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property);
+    IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> propertyOrMember);
 
     /// <summary>
     /// Defines if OR-combinators are allowed for this filter.
@@ -117,8 +117,7 @@ public interface IFilterInputTypeDescriptor<T>
     /// <typeparam name="TDirective">
     /// The type of the directive.
     /// </typeparam>
-    new IFilterInputTypeDescriptor<T> Directive<TDirective>(
-        TDirective directive)
+    new IFilterInputTypeDescriptor<T> Directive<TDirective>(TDirective directive)
         where TDirective : class;
 
     /// <summary>

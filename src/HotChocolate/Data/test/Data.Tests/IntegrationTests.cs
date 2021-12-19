@@ -230,14 +230,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothMiddlewaresAreApplied()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -267,14 +266,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_BothAreAppliedAndProvided()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -304,14 +302,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragment()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -342,14 +339,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragment()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -378,14 +374,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_EdgesFragmentNested()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -417,14 +412,13 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentNested()
     {
         // arrange
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -454,7 +448,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField()
     {
@@ -462,7 +455,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType<PagingAndProjection>()
@@ -493,7 +486,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_NodesFragmentContainsProjectedField_With_Extensions()
     {
@@ -501,7 +493,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))
@@ -534,7 +526,6 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
-    [Obsolete]
     public async Task
         ExecuteAsync_Should_ProjectAndPage_When_AliasIsSameAsAlwaysProjectedField()
     {
@@ -542,7 +533,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         IRequestExecutor executor = await new ServiceCollection()
             .AddGraphQL()
             .AddFiltering()
-            .EnableRelaySupport()
+            .AddGlobalObjectIdentification()
             .AddSorting()
             .AddProjections()
             .AddQueryType(c => c.Name("Query"))

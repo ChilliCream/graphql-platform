@@ -203,12 +203,10 @@ services
 
 # Conventions
 
-> ⚠️ Experimental Warning: This feature is not yet finished and only available in previews. The API is not finalized and will change until its release.
-
 In GraphQL, it is best practice to have a single argument on mutations called `input`, and each mutation should return a payload object.
 The payload object allows to read the changes of the mutation or to access the domain errors caused by a mutation.
 
-```graphql
+```sdl
 type Mutation {
   updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
@@ -225,7 +223,7 @@ type UpdateUserNamePayload {
 
 Following this pattern helps to keep the schema evolvable but requires a lot of boilerplate code to realize.
 
-## Introduction
+## Input and Payload
 
 HotChocolate has built-in conventions for mutations to minimize boilerplate code.
 
@@ -351,7 +349,7 @@ type Mutation {
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-## Defining Errors
+## Errors
 
 The mutation conventions also allow you to create mutations that follow the error
 [stage 6a Pattern Marc-Andre Giroux layed out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
@@ -426,7 +424,7 @@ The HotChocolate schema is automatically rewritten, and an error middleware will
 
 The configuration above emits the following schema:
 
-```graphql
+```sdl
 type Mutation {
   updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
@@ -960,13 +958,22 @@ public UpdateUserNamePayload UpdateUserNameAsync(UpdateUserNameInput input)
 }
 ```
 
+You can also partially opt-out:
+
+```csharp
+public User UpdateUserNameAsync(UpdateUserNameInput input)
+{
+    //...
+}
+```
+
 ### Custom error interface
 
 Lastly, we can customize the error interface we want to use with our mutation convention. The error interface is shared across all error types that the schema defines and provides the minimum shape that all errors have to fulfill.
 
 By default, this error interface type is called `Error` and defines a non-nullable field `message`.
 
-```graphql
+```sdl
 interface Error {
   message: String!
 }

@@ -2,34 +2,27 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Utilities;
+using static System.Reflection.BindingFlags;
 
 namespace HotChocolate.Data.Filters.Expressions;
 
 public static class FilterExpressionBuilder
 {
+#pragma warning disable CA1307
     private static readonly MethodInfo _startsWith =
-        typeof(string).GetMethods().Single(m =>
-            m.Name.Equals(nameof(string.StartsWith))
-            && m.GetParameters().Length == 1
-            && m.GetParameters().Single().ParameterType == typeof(string));
+        ReflectionUtils.ExtractMethod<string>(x => x.StartsWith(default(string)!));
 
     private static readonly MethodInfo _endsWith =
-        typeof(string).GetMethods().Single(m =>
-            m.Name.Equals(nameof(string.EndsWith))
-            && m.GetParameters().Length == 1
-            && m.GetParameters().Single().ParameterType == typeof(string));
+        ReflectionUtils.ExtractMethod<string>(x => x.EndsWith(default(string)!));
 
     private static readonly MethodInfo _contains =
-        typeof(string).GetMethods().Single(m =>
-            m.Name.Equals(nameof(string.Contains))
-            && m.GetParameters().Length == 1
-            && m.GetParameters().Single().ParameterType == typeof(string));
+        ReflectionUtils.ExtractMethod<string>(x => x.Contains(default(string)!));
+#pragma warning restore CA1307
 
     private static readonly MethodInfo _createAndConvert =
         typeof(FilterExpressionBuilder)
-            .GetMethod(
-                nameof(FilterExpressionBuilder.CreateAndConvertParameter),
-                BindingFlags.NonPublic | BindingFlags.Static)!;
+            .GetMethod(nameof(CreateAndConvertParameter), NonPublic | Static)!;
 
     private static readonly MethodInfo _anyMethod =
         typeof(Enumerable)
@@ -50,37 +43,30 @@ public static class FilterExpressionBuilder
         Expression.Constant(null, typeof(object));
 
     public static Expression Not(Expression expression)
-    {
-        return Expression.Not(expression);
-    }
+        => Expression.Not(expression);
 
     public static Expression Equals(
         Expression property,
         object? value)
-    {
-        return Expression.Equal(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.Equal(property, CreateParameter(value, property.Type));
 
     public static Expression NotEquals(
         Expression property,
         object? value)
-    {
-        return Expression.NotEqual(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.NotEqual(property, CreateParameter(value, property.Type));
 
     public static Expression In(
         Expression property,
         Type genericType,
-        object parsedValue)
+        object? parsedValue)
     {
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Contains),
-            new Type[] { genericType },
+            new Type[]
+            {
+                genericType
+            },
             Expression.Constant(parsedValue),
             property);
     }
@@ -88,84 +74,58 @@ public static class FilterExpressionBuilder
     public static Expression GreaterThan(
         Expression property,
         object value)
-    {
-        return Expression.GreaterThan(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.GreaterThan(property, CreateParameter(value, property.Type));
 
     public static Expression GreaterThanOrEqual(
         Expression property,
         object value)
-    {
-        return Expression.GreaterThanOrEqual(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.GreaterThanOrEqual(property, CreateParameter(value, property.Type));
 
     public static Expression LowerThan(
         Expression property,
         object value)
-    {
-        return Expression.LessThan(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.LessThan(property, CreateParameter(value, property.Type));
 
     public static Expression LowerThanOrEqual(
         Expression property,
         object value)
-    {
-        return Expression.LessThanOrEqual(
-            property,
-            CreateParameter(value, property.Type));
-    }
+        => Expression.LessThanOrEqual(property, CreateParameter(value, property.Type));
 
     public static Expression StartsWith(
         Expression property,
         object value)
-    {
-        return Expression.AndAlso(
+        => Expression.AndAlso(
             Expression.NotEqual(property, _null),
             Expression.Call(
                 property,
                 _startsWith,
                 CreateParameter(value, property.Type)));
-    }
 
     public static Expression EndsWith(
         Expression property,
         object value)
-    {
-        return Expression.AndAlso(
+        => Expression.AndAlso(
             Expression.NotEqual(property, _null),
             Expression.Call(
                 property,
                 _endsWith,
                 CreateParameter(value, property.Type)));
-    }
 
     public static Expression Contains(
         Expression property,
         object value)
-    {
-        return Expression.AndAlso(
+        => Expression.AndAlso(
             Expression.NotEqual(property, _null),
             Expression.Call(
                 property,
                 _contains,
                 CreateParameter(value, property.Type)));
-    }
 
     public static Expression NotNull(Expression expression)
-    {
-        return Expression.NotEqual(expression, _null);
-    }
+        => Expression.NotEqual(expression, _null);
 
     public static Expression NotNullAndAlso(Expression property, Expression condition)
-    {
-        return Expression.AndAlso(NotNull(property), condition);
-    }
+        => Expression.AndAlso(NotNull(property), condition);
 
     public static Expression Any(
         Type type,
@@ -181,11 +141,13 @@ public static class FilterExpressionBuilder
         Type type,
         Expression property,
         LambdaExpression lambda)
-    {
-        return Expression.Call(
+        => Expression.Call(
             _anyWithParameter.MakeGenericMethod(type),
-            new Expression[] { property, lambda });
-    }
+            new Expression[]
+            {
+                property,
+                lambda
+            });
 
     public static Expression Any(
         Type type,
@@ -193,24 +155,28 @@ public static class FilterExpressionBuilder
     {
         return Expression.Call(
             _anyMethod.MakeGenericMethod(type),
-            new Expression[] { property });
+            new Expression[]
+            {
+                property
+            });
     }
 
     public static Expression All(
         Type type,
         Expression property,
         LambdaExpression lambda)
-    {
-        return Expression.Call(
+        => Expression.Call(
             _allMethod.MakeGenericMethod(type),
-            new Expression[] { property, lambda });
-    }
+            new Expression[]
+            {
+                property,
+                lambda
+            });
 
     public static Expression NotContains(
         Expression property,
         object value)
-    {
-        return Expression.OrElse(
+        => Expression.OrElse(
             Expression.Equal(
                 property,
                 _null),
@@ -218,7 +184,6 @@ public static class FilterExpressionBuilder
                 property,
                 _contains,
                 CreateParameter(value, property.Type))));
-    }
 
     private static Expression CreateAndConvertParameter<T>(object value)
     {
@@ -227,8 +192,11 @@ public static class FilterExpressionBuilder
     }
 
     private static Expression CreateParameter(object? value, Type type)
-    {
-        return (Expression)_createAndConvert
-            .MakeGenericMethod(type).Invoke(null, new[] { value })!;
-    }
+        => (Expression)_createAndConvert
+            .MakeGenericMethod(type)
+            .Invoke(null,
+                new[]
+                {
+                    value
+                })!;
 }

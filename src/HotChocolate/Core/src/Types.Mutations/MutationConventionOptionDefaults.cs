@@ -14,5 +14,5 @@ internal static class MutationConventionOptionDefaults
 
     public const string PayloadErrorsFieldName = "errors";
 
-    public const bool ApplyToAllMutations = false;
+    public const bool ApplyToAllMutations = true;
 }

@@ -1062,6 +1062,46 @@ namespace HotChocolate.Validation
                 }");
         }
 
+        [Fact]
+        public void ConflictingDifferingResponse()
+        {
+            ExpectErrors(@"
+                {
+                    catOrDog {
+                        ... conflictingDifferingResponses
+                    }
+                }
+
+                fragment conflictingDifferingResponses on Pet {
+                    ... on Dog {
+                        someValue: nickname
+                    }
+                    ... on Cat {
+                        someValue: nickname!
+                    }
+                }");
+        }
+
+        [Fact]
+        public void MergeableNullabilityChange()
+        {
+            ExpectValid(@"
+                {
+                    catOrDog {
+                        ... conflictingDifferingResponses
+                    }
+                }
+
+                fragment conflictingDifferingResponses on Pet {
+                    ... on Dog {
+                        someValue: nickname!
+                    }
+                    ... on Cat {
+                        someValue: nickname!
+                    }
+                }");
+        }
+
         private static readonly ISchema TestSchema =
             SchemaBuilder.New()
                 .AddDocumentFromString(@"

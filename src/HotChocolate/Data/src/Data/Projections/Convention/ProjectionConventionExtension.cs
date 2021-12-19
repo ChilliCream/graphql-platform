@@ -7,7 +7,6 @@ public class ProjectionConventionExtension
     : ConventionExtension<ProjectionConventionDefinition>
 {
     private Action<IProjectionConventionDescriptor>? _configure;
-    private IProjectionProvider _provider;
 
     protected ProjectionConventionExtension()
     {

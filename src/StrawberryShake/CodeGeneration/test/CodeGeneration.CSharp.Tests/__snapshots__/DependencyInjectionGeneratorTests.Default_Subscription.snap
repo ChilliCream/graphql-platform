@@ -152,7 +152,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnPersonResult
+    public partial interface IOnPersonResult
     {
         public global::Foo.Bar.IOnPerson_OnPerson? OnPerson
         {
@@ -162,7 +162,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnPerson_OnPerson
+    public partial interface IOnPerson_OnPerson
     {
         public global::System.String Name
         {
@@ -172,7 +172,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnPerson_OnPerson_Person : IOnPerson_OnPerson
+    public partial interface IOnPerson_OnPerson_Person : IOnPerson_OnPerson
     {
     }
 
@@ -285,7 +285,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnPersonSubscription : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IOnPersonSubscription : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.IObservable<global::StrawberryShake.IOperationResult<IOnPersonResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -312,7 +312,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IOnPersonSubscription OnPerson
         {

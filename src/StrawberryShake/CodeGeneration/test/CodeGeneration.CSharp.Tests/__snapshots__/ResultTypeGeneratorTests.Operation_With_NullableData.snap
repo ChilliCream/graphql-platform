@@ -281,7 +281,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdatedResult
+    public partial interface IOnFooUpdatedResult
     {
         public global::Foo.Bar.IOnFooUpdated_OnFooUpdated OnFooUpdated
         {
@@ -291,7 +291,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdated_OnFooUpdated
+    public partial interface IOnFooUpdated_OnFooUpdated
     {
         public global::System.String Action
         {
@@ -306,13 +306,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdated_OnFooUpdated_FooNotification : IOnFooUpdated_OnFooUpdated
+    public partial interface IOnFooUpdated_OnFooUpdated_FooNotification : IOnFooUpdated_OnFooUpdated
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdated_OnFooUpdated_Data
+    public partial interface IOnFooUpdated_OnFooUpdated_Data
     {
         public global::System.String BarGUID
         {
@@ -357,7 +357,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdated_OnFooUpdated_Data_FooNotificationData : IOnFooUpdated_OnFooUpdated_Data
+    public partial interface IOnFooUpdated_OnFooUpdated_Data_FooNotificationData : IOnFooUpdated_OnFooUpdated_Data
     {
     }
 
@@ -494,7 +494,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnFooUpdatedSubscription : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IOnFooUpdatedSubscription : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.IObservable<global::StrawberryShake.IOperationResult<IOnFooUpdatedResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -521,7 +521,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IOnFooUpdatedSubscription OnFooUpdated
         {

@@ -5,179 +5,179 @@ using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class Utf8ReaderTests
 {
-    public class Utf8ReaderTests
+    [Fact]
+    public void Read_Two_NameTokens()
     {
-        [Fact]
-        public void Read_Two_NameTokens()
+        var source = new ReadOnlySpan<byte>(
+            Encoding.UTF8.GetBytes("type foo"));
+        var lexer = new Utf8GraphQLReader(source);
+
+        Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
+
+        Assert.True(lexer.Read());
+        Assert.Equal(TokenKind.Name, lexer.Kind);
+        Assert.Equal("type",
+            Encoding.UTF8.GetString(lexer.Value.ToArray()));
+
+        Assert.True(lexer.Read());
+        Assert.Equal(TokenKind.Name, lexer.Kind);
+        Assert.Equal("foo",
+            Encoding.UTF8.GetString(lexer.Value.ToArray()));
+
+        Assert.False(lexer.Read());
+        Assert.Equal(TokenKind.EndOfFile, lexer.Kind);
+    }
+
+    [Fact]
+    public void Read_NameBraceTokens()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            var source = new ReadOnlySpan<byte>(
-                Encoding.UTF8.GetBytes("type foo"));
-            var lexer = new Utf8GraphQLReader(source);
-
-            Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
-
-            Assert.True(lexer.Read());
-            Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("type",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
-
-            Assert.True(lexer.Read());
-            Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("foo",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
-
-            Assert.False(lexer.Read());
-            Assert.Equal(TokenKind.EndOfFile, lexer.Kind);
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_NameBraceTokens()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_Comment()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            "{ #test me foo bar \n me }");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_Comment()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_StringValue()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            "{ me(a: \"Abc¢def\\n\") }");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                "{ #test me foo bar \n me }");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_StringValue()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_BlockStringValue()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            "{ me(a: \"\"\"\n     Abcdef\n\"\"\") }");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                "{ me(a: \"Abc¢def\\n\") }");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_BlockStringValue()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_KitchenSinkQuery()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks());
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                "{ me(a: \"\"\"\n     Abcdef\n\"\"\") }");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_KitchenSinkQuery()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_BlockString_SkipEscapes()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            "abc \"\"\"def\\\"\"\"\"\"\" ghi");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks());
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_BlockString_SkipEscapes()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Read_String_SkipEscapes()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(
+            "abc \"def\\\"\" ghi");
+
+        // act
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
+
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                "abc \"\"\"def\\\"\"\"\"\"\" ghi");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
 
-        [Fact]
-        public void Read_String_SkipEscapes()
+        // assert
+        tokens.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Skip_Boml()
+    {
+        // arrange
+        byte[] sourceText = new[]
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(
-                "abc \"def\\\"\" ghi");
-
-            // act
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
-
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            tokens.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Skip_Boml()
-        {
-            // arrange
-            byte[] sourceText = new[]
-            {
                 (byte)239,
                 (byte)187,
                 (byte)191,
@@ -187,33 +187,32 @@ namespace HotChocolate.Language
             };
 
 
-            var tokens = new List<SyntaxTokenInfo>();
-            var reader = new Utf8GraphQLReader(sourceText);
+        var tokens = new List<SyntaxTokenInfo>();
+        var reader = new Utf8GraphQLReader(sourceText);
 
-            while (reader.Read())
-            {
-                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
-            }
-
-            // assert
-            Assert.Collection(tokens,
-                t => Assert.Equal(TokenKind.Name, t.Kind));
-        }
-
-        [Fact]
-        public void OneGraph_Schema()
+        while (reader.Read())
         {
-            // arrange
-            byte[] sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
-
-            // act
-            var reader = new Utf8GraphQLReader(sourceText);
-            while (reader.Read())
-            {
-            }
-
-            // assert
-            // the document was lexed without syntax exception
+            tokens.Add(SyntaxTokenInfo.FromReader(in reader));
         }
+
+        // assert
+        Assert.Collection(tokens,
+            t => Assert.Equal(TokenKind.Name, t.Kind));
+    }
+
+    [Fact]
+    public void OneGraph_Schema()
+    {
+        // arrange
+        byte[] sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
+
+        // act
+        var reader = new Utf8GraphQLReader(sourceText);
+        while (reader.Read())
+        {
+        }
+
+        // assert
+        // the document was lexed without syntax exception
     }
 }

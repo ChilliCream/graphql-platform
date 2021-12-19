@@ -1,7 +1,6 @@
-namespace HotChocolate.Language
-{
-    public class DirectiveNodeTests
-    {
+namespace HotChocolate.Language;
 
-    }
+public class DirectiveNodeTests
+{
+
 }
