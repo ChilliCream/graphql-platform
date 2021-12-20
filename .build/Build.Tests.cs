@@ -40,7 +40,11 @@ partial class Build
 
     const int TestPartitionCount = 4;
 
+    const int CoverPartitionCount = 6;
+
     [Partition(TestPartitionCount)] readonly Partition TestPartition;
+
+    [Partition(CoverPartitionCount)] readonly Partition CoverPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
@@ -71,18 +75,14 @@ partial class Build
             }
             finally
             {
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
+                UploadTestsAndMismatches();
             }
         });
 
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(TestPartitionCount)
+        .Partition(CoverPartitionCount)
         .Executes(() =>
         {
             try
@@ -101,113 +101,23 @@ partial class Build
             }
             finally
             {
-                if (DevOpsPipeLine is not null)
-                {
-                    TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
-
-                    string uploadDir = Path.Combine(RootDirectory, "mismatch");
-
-                    if (!Directory.Exists(uploadDir))
-                    {
-                        Directory.CreateDirectory(uploadDir);
-                    }
-
-                    foreach (string mismatchDir in Directory.GetDirectories(
-                        RootDirectory, "__mismatch__", SearchOption.AllDirectories))
-                    {
-                        foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
-                        {
-                            File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
-                        }
-                    }
-
-                    DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
-                }
+                UploadTestsAndMismatches();
 
                 var coverageFiles = Directory.GetFiles(
                     TestResultDirectory,
                     "*.xml",
                     SearchOption.AllDirectories);
 
-                Codecov(_ => _
-                    .SetToken(CodeCovToken)
-                    .SetFiles(coverageFiles)
-                    .SetRepositoryRoot(RootDirectory)
-                    .SetVerbose(true)
-                    .SetFramework(Net50));
-            }
-        });
-
-    Target ReportCoverage => _ => _.DependsOn(Restore)
-        .DependsOn(Cover)
-        .Consumes(Cover)
-        .Executes(() =>
-        {
-            try
-            {
-                ReportGenerator(_ => _
-                    .SetReports(TestResultDirectory / "*.xml")
-                    .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
-                    .SetTargetDirectory(CoverageReportDirectory)
-                    .SetAssemblyFilters("-*Tests"));
-            }
-            finally
-            {
-                if (DevOpsPipeLine is not null)
+                for (int i = 0; i < coverageFiles.Length; i++)
                 {
-                    string uploadDir = Path.Combine(RootDirectory, "mismatch");
-
-                    if (!Directory.Exists(uploadDir))
-                    {
-                        Directory.CreateDirectory(uploadDir);
-                    }
-
-                    foreach (string mismatchDir in Directory.GetDirectories(
-                        RootDirectory, "__mismatch__", SearchOption.AllDirectories))
-                    {
-                        foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
-                        {
-                            File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
-                        }
-                    }
-
-                    DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
+                    Codecov(_ => _
+                        .SetToken(CodeCovToken)
+                        .SetRepositoryRoot(RootDirectory)
+                        .SetVerbose(true)
+                        .SetFramework(Net50)
+                        .CombineWith(_ => _.SetFiles(coverageFiles[i])));
                 }
-
-                var coverageFiles = Directory.GetFiles(
-                    TestResultDirectory,
-                    "*.xml",
-                    SearchOption.AllDirectories);
-
-                Codecov(_ => _
-                    .SetToken(CodeCovToken)
-                    .SetFiles(coverageFiles)
-                    .SetRepositoryRoot(RootDirectory)
-                    .SetVerbose(true)
-                    .SetFramework(Net50));
             }
-        });
-
-    Target ReportCodecov => _ => _.DependsOn(Restore)
-        .DependsOn(Cover)
-        .Consumes(Cover)
-        .Executes(() =>
-        {
-            var coverageFiles = Directory.GetFiles(
-                TestResultDirectory,
-                "*.xml",
-                SearchOption.AllDirectories);
-
-            Codecov(_ => _
-                .SetToken(CodeCovToken)
-                .SetFiles(coverageFiles)
-                .SetRepositoryRoot(RootDirectory)
-                .SetVerbose(true)
-                .SetFramework(Net50));
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
@@ -248,4 +158,35 @@ partial class Build
             .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
+
+    void UploadTestsAndMismatches()
+    {
+        if (DevOpsPipeLine is not null)
+        {
+            TestResultDirectory.GlobFiles("*.trx")
+                .ForEach(x =>
+                    DevOpsPipeLine.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+
+            string uploadDir = Path.Combine(RootDirectory, "mismatch");
+
+            if (!Directory.Exists(uploadDir))
+            {
+                Directory.CreateDirectory(uploadDir);
+            }
+
+            foreach (string mismatchDir in Directory.GetDirectories(
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
+            {
+                foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
+                {
+                    File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
+                }
+            }
+
+            DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
+        }
+    }
 }
