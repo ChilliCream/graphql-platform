@@ -57,8 +57,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 OperationType,
                 Path.New(OperationName));
 
-        public SelectionSetVariants CollectFields(
-            FieldSelection fieldSelection) =>
+        public SelectionSetVariants CollectFields(FieldSelection fieldSelection) =>
             CollectFields(
                 fieldSelection.SyntaxNode.SelectionSet!,
                 (INamedOutputType)fieldSelection.Field.Type.NamedType(),
@@ -142,8 +141,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             }
         }
 
-        public NameString ResolveTypeName(
-            NameString proposedName)
+        public NameString ResolveTypeName(NameString proposedName)
         {
             if (_takenNames.Add(proposedName))
             {
