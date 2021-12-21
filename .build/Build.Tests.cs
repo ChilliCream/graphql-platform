@@ -40,17 +40,13 @@ partial class Build
 
     const int TestPartitionCount = 4;
 
-    const int CoverPartitionCount = 6;
-
     [Partition(TestPartitionCount)] readonly Partition TestPartition;
-
-    [Partition(CoverPartitionCount)] readonly Partition CoverPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where(t => !ExcludedTests.Contains(t.Name)));
 
-    IEnumerable<Project> CoverProjects => CoverPartition.GetCurrent(
+    IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where(t => !ExcludedCover.Contains(t.Name)));
 
@@ -82,7 +78,7 @@ partial class Build
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(CoverPartitionCount)
+        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             try
