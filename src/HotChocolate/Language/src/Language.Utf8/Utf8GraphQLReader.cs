@@ -201,7 +201,7 @@ ReadNameToken_Next:
     /// <summary>
     /// Reads punctuator tokens as specified in
     /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
-    /// one of ! $ ( ) ... : = @ [ ] { | }
+    /// one of ! $ ( ) ... . : = @ [ ] { | }
     /// additionally the reader will tokenize ampersands.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -213,20 +213,33 @@ ReadNameToken_Next:
 
         if (code == GraphQLConstants.Dot)
         {
-            if (_graphQLData[_position] is GraphQLConstants.Dot
-                && _graphQLData[_position + 1] is GraphQLConstants.Dot)
+            if (_graphQLData[_position] is GraphQLConstants.Dot)
             {
-                _position += 2;
-                _end = _position;
-                _kind = TokenKind.Spread;
+                if (_graphQLData[_position + 1] is GraphQLConstants.Dot)
+                {
+                    _position += 2;
+                    _end = _position;
+                    _kind = TokenKind.Spread;
+                }
+                else
+                {
+                    _position--;
+                    throw new SyntaxException(this,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            Reader_InvalidToken,
+                            TokenKind.Spread));
+                }
             }
-            else
+            else if (_graphQLData[_position].IsDigit())
             {
                 _position--;
                 throw new SyntaxException(this,
-                    string.Format(CultureInfo.InvariantCulture,
-                        Reader_InvalidToken,
-                        TokenKind.Spread));
+                    string.Format(CultureInfo.InvariantCulture, Reader_UnexpectedDigitAfterDot));
+            }
+            else
+            {
+                _kind = TokenKind.Dot;
             }
         }
         else

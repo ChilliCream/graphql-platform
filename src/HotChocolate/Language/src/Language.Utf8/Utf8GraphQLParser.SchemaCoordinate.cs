@@ -1,0 +1,52 @@
+using System.Runtime.CompilerServices;
+
+namespace HotChocolate.Language;
+
+// Implements the parsing rules in the Operations section.
+public ref partial struct Utf8GraphQLParser
+{
+    /// <summary>
+    /// Parses a schema coordinate.
+    /// <see cref="SchemaCoordinateNode"  />:
+    /// SchemaCoordinate :
+    ///  - Name
+    ///  - Name . Name
+    ///  - Name . Name ( Name : )
+    ///  - @ Name
+    ///  - @ Name ( Name : )
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private SchemaCoordinateNode ParseSchemaCoordinate()
+    {
+        TokenInfo start = Start();
+
+        bool ofDirective = SkipAt();
+        NameNode name = ParseName();
+        NameNode? memberName = null;
+        NameNode? argumentName = null;
+
+        if (SkipDot())
+        {
+            memberName = ParseName();
+        }
+
+        if (_reader.Kind == TokenKind.LeftParenthesis)
+        {
+            MoveNext();
+            argumentName = ParseName();
+            ExpectColon();
+            ExpectRightParenthesis();
+        }
+
+        Location? location = CreateLocation(in start);
+
+        return new SchemaCoordinateNode
+        (
+            location,
+            ofDirective,
+            name,
+            memberName,
+            argumentName
+        );
+    }
+}
