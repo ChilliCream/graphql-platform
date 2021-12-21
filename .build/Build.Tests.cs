@@ -79,7 +79,6 @@ partial class Build
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             try
@@ -99,22 +98,11 @@ partial class Build
             finally
             {
                 UploadTestsAndMismatches();
-
-                var coverageFiles = Directory.GetFiles(
-                    TestResultDirectory,
-                    "*.xml",
-                    SearchOption.AllDirectories);
-
                 var stopwatch = Stopwatch.StartNew();
                 Codecov(_ => _
                     .SetToken(CodeCovToken)
-                    .SetRepositoryRoot(RootDirectory)
                     .SetVerbose(true)
-                    .SetFramework(Net50)
-                    .CombineWith(
-                        coverageFiles,
-                        (_, v) =>  _.SetFiles(v)),
-                    degreeOfParallelism: DegreeOfParallelism);
+                    .SetFramework(Net50));
                 Console.WriteLine(stopwatch.Elapsed.ToString());
             }
         });

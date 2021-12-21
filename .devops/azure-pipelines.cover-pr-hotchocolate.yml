@@ -20,8 +20,6 @@ stages:
         displayName: "Test"
         dependsOn: []
         continueOnError: true
-        strategy:
-          parallel: 4
         steps:
           - task: CmdLine@2
             displayName: "Run Tests"
