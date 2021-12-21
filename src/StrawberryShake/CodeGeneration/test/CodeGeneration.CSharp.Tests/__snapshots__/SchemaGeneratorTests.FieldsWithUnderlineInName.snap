@@ -911,7 +911,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_b
+    public partial interface IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification_bwr_ImportSpecification : IGetBwr_TimeSeries_Bwr_TimeSeries_Nodes_ImportSpecification
     {
     }
 

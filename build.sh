@@ -41,7 +41,6 @@ else
     DOTNET_DIRECTORY="$TEMP_DIRECTORY/dotnet-unix"
 
     # install older frameworks for tests
-    "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "2.1.816" --no-path
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "3.1.409" --no-path
     "$DOTNET_INSTALL_FILE" --install-dir "$DOTNET_DIRECTORY" --version "5.0.401" --no-path
 
