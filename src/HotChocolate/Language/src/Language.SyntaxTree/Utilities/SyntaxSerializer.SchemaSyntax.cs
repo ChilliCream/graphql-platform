@@ -220,6 +220,30 @@ public sealed partial class SyntaxSerializer
         VisitInputObjectTypeDefinitionBase(node, writer);
     }
 
+    private void VisitSchemaCoordinate(
+        SchemaCoordinateNode node,
+        ISyntaxWriter writer)
+    {
+        if (node.OfDirective)
+        {
+            writer.Write("@");
+        }
+
+        writer.WriteName(node.Name);
+        if (node.MemberName is not null)
+        {
+            writer.Write(".");
+            writer.WriteName(node.MemberName);
+        }
+
+        if (node.ArgumentName is not null)
+        {
+            writer.Write("(");
+            writer.WriteName(node.ArgumentName);
+            writer.Write(":)");
+        }
+    }
+
     private void VisitInputObjectTypeDefinitionBase(
         InputObjectTypeDefinitionNodeBase node,
         ISyntaxWriter writer)

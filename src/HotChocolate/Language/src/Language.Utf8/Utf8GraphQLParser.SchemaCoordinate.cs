@@ -27,6 +27,11 @@ public ref partial struct Utf8GraphQLParser
 
         if (SkipDot())
         {
+            if (ofDirective)
+            {
+                throw Unexpected(TokenKind.Dot);
+            }
+
             memberName = ParseName();
         }
 

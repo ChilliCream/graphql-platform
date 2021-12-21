@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
 
@@ -42,9 +43,21 @@ public sealed class SchemaCoordinateNode : ISyntaxNode
         NameNode? memberName,
         NameNode? argumentName)
     {
+        if (ofDirective && memberName is not null)
+        {
+            throw ThrowHelper
+                .SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate(nameof(memberName));
+        }
+
+        if (!ofDirective && memberName is null && argumentName is not null)
+        {
+            throw ThrowHelper
+                .SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName(nameof(memberName));
+        }
+
         Location = location;
         OfDirective = ofDirective;
-        Name = name;
+        Name = name ?? throw new ArgumentNullException(nameof(name));
         MemberName = memberName;
         ArgumentName = argumentName;
     }
@@ -84,6 +97,7 @@ public sealed class SchemaCoordinateNode : ISyntaxNode
         {
             yield return MemberName;
         }
+
         if (ArgumentName is not null)
         {
             yield return ArgumentName;
