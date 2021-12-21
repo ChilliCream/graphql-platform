@@ -99,19 +99,28 @@ partial class Build
             finally
             {
                 UploadTestsAndMismatches();
+            }
+        });
 
-                var coverageFiles = Directory.GetFiles(
-                    TestResultDirectory,
-                    "*.xml",
-                    SearchOption.AllDirectories);
+    Target ReportCoverage => _ => _.DependsOn(Restore)
+        .DependsOn(Cover)
+        .Consumes(Cover)
+        .Executes(() =>
+        {
+            ReportGenerator(_ => _
+                .SetReports(TestResultDirectory / "*.xml")
+                .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetAssemblyFilters("-*Tests"));
 
-                var stopwatch = Stopwatch.StartNew();
-                Codecov(_ => _
-                    .SetToken(CodeCovToken)
-                    .SetFiles(coverageFiles)
-                    .SetVerbose(true)
-                    .SetFramework(Net50));
-                Console.WriteLine(stopwatch.Elapsed.ToString());
+            if (DevOpsPipeLine is not null)
+            {
+                CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
+                    DevOpsPipeLine.PublishCodeCoverage(
+                        AzurePipelinesCodeCoverageToolType.Cobertura,
+                        x,
+                        CoverageReportDirectory,
+                        Directory.GetFiles(CoverageReportDirectory, "*.htm")));
             }
         });
 
@@ -138,7 +147,6 @@ partial class Build
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
-            .SetFramework(Net60) // TODO : REMOVE
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
