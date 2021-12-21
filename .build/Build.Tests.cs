@@ -144,6 +144,7 @@ partial class Build
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
+            .SetFramework(Net60)
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
