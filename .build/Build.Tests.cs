@@ -50,7 +50,7 @@ partial class Build
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where(t => !ExcludedTests.Contains(t.Name)));
 
-    IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
+    IEnumerable<Project> CoverProjects => CoverPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where(t => !ExcludedCover.Contains(t.Name)));
 
@@ -134,6 +134,7 @@ partial class Build
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
+            .SetGl
             .SetFramework(Net60)
             .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
