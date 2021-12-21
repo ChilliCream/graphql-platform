@@ -137,7 +137,7 @@ partial class Build
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
-            .SetExcludeByFile("*.Generated.cs,**/*.Test/*.cs,**/*.Tests/*.cs")
+            .SetExcludeByFile("*.Generated.cs")
             .SetFramework(Net60)
             .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
