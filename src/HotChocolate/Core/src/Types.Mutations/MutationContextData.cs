@@ -10,8 +10,8 @@ internal class MutationContextData
         ObjectFieldDefinition definition,
         string? inputTypeName,
         string? inputArgumentName,
-        string? payloadFieldName,
         string? payloadTypeName,
+        string? payloadFieldName,
         string? payloadErrorTypeName,
         string? payloadErrorsFieldName,
         bool enabled)
@@ -19,8 +19,8 @@ internal class MutationContextData
         Definition = definition;
         InputTypeName = inputTypeName;
         InputArgumentName = inputArgumentName;
-        PayloadFieldName = payloadFieldName;
         PayloadTypeName = payloadTypeName;
+        PayloadFieldName = payloadFieldName;
         PayloadPayloadErrorTypeName = payloadErrorTypeName;
         PayloadErrorsFieldName = payloadErrorsFieldName;
         Enabled = enabled;

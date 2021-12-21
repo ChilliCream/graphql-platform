@@ -157,7 +157,7 @@ namespace Foo.Bar
     /// Root type pro read operace nemovizor API.
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetListingsCountResult
+    public partial interface IGetListingsCountResult
     {
         /// <summary>
         /// Vyhledávání mezi inzeráty
@@ -170,7 +170,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IListingsPayload
+    public partial interface IListingsPayload
     {
         public global::System.Int32 Count
         {
@@ -180,13 +180,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetListingsCount_Listings : IListingsPayload
+    public partial interface IGetListingsCount_Listings : IListingsPayload
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetListingsCount_Listings_ListingsPayload : IGetListingsCount_Listings
+    public partial interface IGetListingsCount_Listings_ListingsPayload : IGetListingsCount_Listings
     {
     }
 
@@ -308,7 +308,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetListingsCountQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetListingsCountQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetListingsCountResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetListingsCountResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -336,7 +336,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetListingsCountQuery GetListingsCount
         {

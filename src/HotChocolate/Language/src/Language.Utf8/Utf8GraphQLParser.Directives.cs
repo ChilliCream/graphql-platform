@@ -1,106 +1,105 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public ref partial struct Utf8GraphQLParser
 {
-    public ref partial struct Utf8GraphQLParser
+    private static readonly List<DirectiveNode> _emptyDirectives = new();
+
+    private DirectiveDefinitionNode ParseDirectiveDefinition()
     {
-        private static readonly List<DirectiveNode> _emptyDirectives = new();
+        TokenInfo start = Start();
 
-        private DirectiveDefinitionNode ParseDirectiveDefinition()
+        StringValueNode? description = ParseDescription();
+
+        ExpectDirectiveKeyword();
+        ExpectAt();
+
+        NameNode name = ParseName();
+        List<InputValueDefinitionNode> arguments =
+            ParseArgumentDefinitions();
+
+        var isRepeatable = SkipRepeatableKeyword();
+        ExpectOnKeyword();
+
+        List<NameNode> locations = ParseDirectiveLocations();
+
+        Location? location = CreateLocation(in start);
+
+        return new DirectiveDefinitionNode
+        (
+            location,
+            name,
+            description,
+            isRepeatable,
+            arguments,
+            locations
+        );
+    }
+
+    private List<NameNode> ParseDirectiveLocations()
+    {
+        var list = new List<NameNode>();
+
+        // skip optional leading pipe.
+        SkipPipe();
+
+        do
         {
-            TokenInfo start = Start();
+            list.Add(ParseDirectiveLocation());
+        }
+        while (SkipPipe());
 
-            StringValueNode? description = ParseDescription();
+        return list;
+    }
 
-            ExpectDirectiveKeyword();
-            ExpectAt();
+    private NameNode ParseDirectiveLocation()
+    {
+        TokenKind kind = _reader.Kind;
+        NameNode name = ParseName();
 
-            NameNode name = ParseName();
-            List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions();
-
-            var isRepeatable = SkipRepeatableKeyword();
-            ExpectOnKeyword();
-
-            List<NameNode> locations = ParseDirectiveLocations();
-
-            Location? location = CreateLocation(in start);
-
-            return new DirectiveDefinitionNode
-            (
-                location,
-                name,
-                description,
-                isRepeatable,
-                arguments,
-                locations
-            );
+        if (DirectiveLocation.IsValidName(name.Value))
+        {
+            return name;
         }
 
-        private List<NameNode> ParseDirectiveLocations()
+        throw Unexpected(kind);
+    }
+
+    private List<DirectiveNode> ParseDirectives(bool isConstant)
+    {
+        if (_reader.Kind == TokenKind.At)
         {
-            var list = new List<NameNode>();
+            var list = new List<DirectiveNode>();
 
-            // skip optional leading pipe.
-            SkipPipe();
-
-            do
+            while (_reader.Kind == TokenKind.At)
             {
-                list.Add(ParseDirectiveLocation());
+                list.Add(ParseDirective(isConstant));
             }
-            while (SkipPipe());
 
             return list;
         }
 
-        private NameNode ParseDirectiveLocation()
-        {
-            TokenKind kind = _reader.Kind;
-            NameNode name = ParseName();
+        return _emptyDirectives;
+    }
 
-            if (DirectiveLocation.IsValidName(name.Value))
-            {
-                return name;
-            }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private DirectiveNode ParseDirective(bool isConstant)
+    {
+        TokenInfo start = Start();
 
-            throw Unexpected(kind);
-        }
+        ExpectAt();
+        NameNode name = ParseName();
+        List<ArgumentNode> arguments = ParseArguments(isConstant);
 
-        private List<DirectiveNode> ParseDirectives(bool isConstant)
-        {
-            if (_reader.Kind == TokenKind.At)
-            {
-                var list = new List<DirectiveNode>();
+        Location? location = CreateLocation(in start);
 
-                while (_reader.Kind == TokenKind.At)
-                {
-                    list.Add(ParseDirective(isConstant));
-                }
-
-                return list;
-            }
-
-            return _emptyDirectives;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private DirectiveNode ParseDirective(bool isConstant)
-        {
-            TokenInfo start = Start();
-
-            ExpectAt();
-            NameNode name = ParseName();
-            List<ArgumentNode> arguments = ParseArguments(isConstant);
-
-            Location? location = CreateLocation(in start);
-
-            return new DirectiveNode
-            (
-                location,
-                name,
-                arguments
-            );
-        }
+        return new DirectiveNode
+        (
+            location,
+            name,
+            arguments
+        );
     }
 }

@@ -79,7 +79,7 @@ public partial class ObjectType
     {
         if (_isOfType is null)
         {
-            if (context.IsOfType != null)
+            if (context.IsOfType is not null)
             {
                 IsOfTypeFallback isOfType = context.IsOfType;
                 _isOfType = (ctx, obj) => isOfType(this, ctx, obj);

@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Neo4J.Projections
 
             selection.Field.ContextData.TryGetValue(
                 nameof(Neo4JRelationshipAttribute),
-                out object? relationship);
+                out var relationship);
 
             if (relationship is Neo4JRelationshipAttribute rel)
             {

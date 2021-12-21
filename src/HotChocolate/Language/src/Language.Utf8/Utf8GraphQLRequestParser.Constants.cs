@@ -1,21 +1,21 @@
 using System;
 
-namespace HotChocolate.Language
-{
-    public ref partial struct Utf8GraphQLRequestParser
-    {
-        private const byte _o = (byte)'o';
-        private const byte _n = (byte)'n';
-        private const byte _q = (byte)'q';
-        private const byte _v = (byte)'v';
-        private const byte _e = (byte)'e';
-        private const byte _t = (byte)'t';
-        private const byte _i = (byte)'i';
-        private const byte _p = (byte)'p';
+namespace HotChocolate.Language;
 
-        // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
-        private static ReadOnlySpan<byte> OperationName => new[]
-        {
+public ref partial struct Utf8GraphQLRequestParser
+{
+    private const byte _o = (byte)'o';
+    private const byte _n = (byte)'n';
+    private const byte _q = (byte)'q';
+    private const byte _v = (byte)'v';
+    private const byte _e = (byte)'e';
+    private const byte _t = (byte)'t';
+    private const byte _i = (byte)'i';
+    private const byte _p = (byte)'p';
+
+    // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
+    private static ReadOnlySpan<byte> OperationName => new[]
+    {
             (byte)'o',
             (byte)'p',
             (byte)'e',
@@ -31,8 +31,8 @@ namespace HotChocolate.Language
             (byte)'e'
         };
 
-        private static ReadOnlySpan<byte> Query => new[]
-        {
+    private static ReadOnlySpan<byte> Query => new[]
+    {
             (byte)'q',
             (byte)'u',
             (byte)'e',
@@ -40,8 +40,8 @@ namespace HotChocolate.Language
             (byte)'y'
         };
 
-        private static ReadOnlySpan<byte> Variables => new[]
-        {
+    private static ReadOnlySpan<byte> Variables => new[]
+    {
             (byte)'v',
             (byte)'a',
             (byte)'r',
@@ -53,8 +53,8 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static ReadOnlySpan<byte> Extensions => new[]
-        {
+    private static ReadOnlySpan<byte> Extensions => new[]
+    {
             (byte)'e',
             (byte)'x',
             (byte)'t',
@@ -67,22 +67,22 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static ReadOnlySpan<byte> Type => new[]
-        {
+    private static ReadOnlySpan<byte> Type => new[]
+    {
             (byte)'t',
             (byte)'y',
             (byte)'p',
             (byte)'e'
         };
 
-        private static ReadOnlySpan<byte> Id => new[]
-        {
+    private static ReadOnlySpan<byte> Id => new[]
+    {
             (byte)'i',
             (byte)'d'
         };
 
-        private static ReadOnlySpan<byte> Payload => new[]
-        {
+    private static ReadOnlySpan<byte> Payload => new[]
+    {
             (byte)'p',
             (byte)'a',
             (byte)'y',
@@ -91,5 +91,4 @@ namespace HotChocolate.Language
             (byte)'a',
             (byte)'d'
         };
-    }
 }

@@ -63,6 +63,7 @@
                 }
               }
             ],
+            "Required": null,
             "SelectionSet": {
               "Kind": "SelectionSet",
               "Location": {
@@ -76,6 +77,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": null,
                   "Location": {
                     "Start": 43,
@@ -99,6 +101,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -112,6 +115,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 71,
@@ -155,6 +159,7 @@
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
+                  "Required": null,
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
@@ -168,6 +173,7 @@
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
+                        "Required": null,
                         "SelectionSet": null,
                         "Location": {
                           "Start": 104,
@@ -228,6 +234,7 @@
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
+                              "Required": null,
                               "SelectionSet": null,
                               "Location": {
                                 "Start": 152,
@@ -291,6 +298,7 @@
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
+                              "Required": null,
                               "SelectionSet": null,
                               "Location": {
                                 "Start": 209,

@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public interface INullableTypeNode
+    : ITypeNode
 {
-    public interface INullableTypeNode
-        : ITypeNode
-    {
-    }
 }

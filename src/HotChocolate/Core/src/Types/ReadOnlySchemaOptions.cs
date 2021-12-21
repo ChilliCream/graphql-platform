@@ -45,6 +45,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         DefaultResolverStrategy = options.DefaultResolverStrategy;
         ValidatePipelineOrder = options.ValidatePipelineOrder;
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
+        DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
     }
 
     /// <summary>
@@ -134,4 +135,10 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// Defines if the runtime types of types shall be validated.
     /// </summary>
     public bool StrictRuntimeTypeValidation { get; }
+
+    /// <summary>
+    /// Defines a delegate that determines if a runtime
+    /// is an instance of an <see cref="ObjectType{T}"/>.
+    /// </summary>
+    public IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
 }

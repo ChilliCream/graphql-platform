@@ -6,14 +6,17 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 #if NETCOREAPP2_1
 using Snapshooter;
 #endif
 using Snapshooter.Xunit;
 using Xunit;
+using Xunit.Sdk;
 
 namespace HotChocolate.Types
 {
@@ -1659,7 +1662,7 @@ namespace HotChocolate.Types
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
                 .AddDocumentFromString("extend type Some implements Node { id: ID! }")
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1671,7 +1674,7 @@ namespace HotChocolate.Types
         {
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: [[Some]] } type Some { foo: String }")
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
                 .Create()
                 .ToString()
                 .MatchSnapshot();
@@ -1802,6 +1805,29 @@ namespace HotChocolate.Types
                 .Create()
                 .Print()
                 .MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Override_Instance_Check_With_Options()
+        {
+            Snapshot.FullName();
+            
+            var globalCheck = false;
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .ModifyOptions(o => o.DefaultIsOfTypeCheck = (objectType, context, value) =>
+                {
+                    globalCheck = true;
+                    return true;
+                })
+                .AddQueryType(t => t.Field("abc").Type("Foo").Resolve(new object()))
+                .AddInterfaceType(t => t.Name("Foo").Field("abc").Type("String"))
+                .AddObjectType(t => t.Name("Bar").Implements("Foo").Field("abc").Type("String").Resolve("abc"))
+                .ExecuteRequestAsync("{ abc { abc } }")
+                .MatchSnapshotAsync();
+
+            Assert.True(globalCheck);
         }
 
         public class GenericFoo<T>

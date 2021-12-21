@@ -1,9 +1,8 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public enum OperationType
 {
-    public enum OperationType
-    {
-        Query = 0,
-        Mutation = 1,
-        Subscription = 2
-    }
+    Query = 0,
+    Mutation = 1,
+    Subscription = 2
 }

@@ -13,6 +13,7 @@ namespace StrawberryShake.CodeGeneration.Utilities
             null,
             new NameNode(WellKnownNames.TypeName),
             null,
+            null,
             Array.Empty<DirectiveNode>(),
             Array.Empty<ArgumentNode>(),
             null);
