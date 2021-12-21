@@ -18,6 +18,7 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
 using System;
+using System.Diagnostics;
 
 partial class Build
 {
@@ -104,13 +105,19 @@ partial class Build
                     "*.xml",
                     SearchOption.AllDirectories);
 
+                var stopwatch = Stopwatch.StartNew();
                 Codecov(_ => _
                     .SetToken(CodeCovToken)
                     .SetRepositoryRoot(RootDirectory)
                     .SetVerbose(true)
                     .SetFramework(Net50)
-                    .CombineWith(coverageFiles.Chunk(2), (_, v) => _.SetFiles(v[0], v[1])),
+                    .CombineWith(
+                        coverageFiles.Chunk(2),
+                        (_, v) => v.Length < 2
+                            ? _.SetFiles(v[0])
+                            : _.SetFiles(v[0], v[1])),
                     degreeOfParallelism: DegreeOfParallelism);
+                Console.WriteLine(stopwatch.Elapsed.ToString());
             }
         });
 
