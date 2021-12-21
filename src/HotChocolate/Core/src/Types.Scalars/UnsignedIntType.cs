@@ -21,7 +21,7 @@ public class UnsignedIntType : IntegerTypeBase<uint>
     public UnsignedIntType(
         NameString name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, uint.MinValue, uint.MaxValue, bind)
     {
         Description = description;

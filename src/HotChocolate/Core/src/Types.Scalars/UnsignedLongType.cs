@@ -24,7 +24,7 @@ public class UnsignedLongType : IntegerTypeBase<ulong>
     public UnsignedLongType(
         NameString name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, ulong.MinValue, ulong.MaxValue, bind)
     {
         Description = description;
