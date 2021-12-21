@@ -34,10 +34,14 @@ partial class Build
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(
-                c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetTest(
+                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+            }
+            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
