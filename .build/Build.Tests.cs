@@ -112,10 +112,8 @@ partial class Build
                     .SetVerbose(true)
                     .SetFramework(Net50)
                     .CombineWith(
-                        coverageFiles.Chunk(2),
-                        (_, v) => v.Length < 2
-                            ? _.SetFiles(v[0])
-                            : _.SetFiles(v[0], v[1])),
+                        coverageFiles,
+                        (_, v) =>  _.SetFiles(v)),
                     degreeOfParallelism: DegreeOfParallelism);
                 Console.WriteLine(stopwatch.Elapsed.ToString());
             }
@@ -144,7 +142,7 @@ partial class Build
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
-            .SetFramework(Net60)
+            .SetFramework(Net60) // TODO : REMOVE
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
