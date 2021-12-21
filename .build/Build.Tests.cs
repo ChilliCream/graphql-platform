@@ -104,15 +104,13 @@ partial class Build
                     "*.xml",
                     SearchOption.AllDirectories);
 
-                for (int i = 0; i < coverageFiles.Length; i++)
-                {
-                    Codecov(_ => _
-                        .SetToken(CodeCovToken)
-                        .SetRepositoryRoot(RootDirectory)
-                        .SetVerbose(true)
-                        .SetFramework(Net50)
-                        .CombineWith(_ => _.SetFiles(coverageFiles[i])));
-                }
+                Codecov(_ => _
+                    .SetToken(CodeCovToken)
+                    .SetRepositoryRoot(RootDirectory)
+                    .SetVerbose(true)
+                    .SetFramework(Net50)
+                    .CombineWith(coverageFiles.Chunk(2), (_, v) => _.SetFiles(v[0], v[1])),
+                    degreeOfParallelism: DegreeOfParallelism);
             }
         });
 
