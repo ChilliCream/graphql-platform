@@ -1,9 +1,10 @@
 using System.Text;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8PunctuatorTokenReaderTests
+public class PunctuatorTokenReaderTests
 {
     [Fact]
     public void ReadBangToken()
@@ -87,6 +88,23 @@ public class Utf8PunctuatorTokenReaderTests
     public void ReadSpreadToken()
     {
         ReadToken("...", TokenKind.Spread);
+    }
+
+    [InlineData("..!")]
+    [InlineData("..1")]
+    [InlineData(".._")]
+    [InlineData("..a")]
+    [Theory]
+    public void SpreadExpected(string s)
+    {
+        // arrange
+        byte[] source = Encoding.UTF8.GetBytes(s);
+
+        // act
+        void Fail() => new Utf8GraphQLReader(source).Read();
+
+        // assert
+        Assert.Throws<SyntaxException>(Fail).Message.MatchSnapshot();
     }
 
     private void ReadToken(char code, TokenKind kind)

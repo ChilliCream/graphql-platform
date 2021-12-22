@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8SchemaCoordinateParserTests
+public class SchemaCoordinateParserTests
 {
     [Fact]
     public void ParseName()

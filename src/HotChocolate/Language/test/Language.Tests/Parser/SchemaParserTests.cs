@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8SchemaParserTests
+public class SchemaParserTests
 {
     [Fact]
     public void ParserSimpleObjectType()

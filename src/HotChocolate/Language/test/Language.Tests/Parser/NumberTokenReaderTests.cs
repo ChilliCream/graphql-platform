@@ -1,9 +1,10 @@
 using System.Text;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8NumberTokenReaderTests
+public class NumberTokenReaderTests
 {
     [InlineData("1234.123", true)]
     [InlineData("-1234.123", true)]
@@ -30,5 +31,18 @@ public class Utf8NumberTokenReaderTests
         Assert.Equal(1, reader.Column);
         Assert.Equal(0, reader.Start);
         Assert.Equal(sourceBody.Length, reader.End);
+    }
+
+    [Fact]
+    public void InvalidNumberToken()
+    {
+        // arrange
+        byte[] source = Encoding.UTF8.GetBytes(".1");
+
+        // act
+        void Fail() => new Utf8GraphQLReader(source).Read();
+
+        // assert
+        Assert.Throws<SyntaxException>(Fail).Message.MatchSnapshot();
     }
 }

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8GraphQLRequestParserTests
+public class GraphQLRequestParserTests
 {
     [Fact]
     public void Utf8GraphQLRequestParser_Parse()
