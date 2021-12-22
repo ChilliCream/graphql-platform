@@ -1,10 +1,25 @@
-using System.Runtime.CompilerServices;
-
 namespace HotChocolate.Language;
 
 // Implements the parsing rules in the Operations section.
 public ref partial struct Utf8GraphQLParser
 {
+    /// <summary>
+    /// Parses a single schema coordinate.
+    /// <see cref="SchemaCoordinateNode"  />:
+    /// SchemaCoordinate :
+    ///  - Name
+    ///  - Name . Name
+    ///  - Name . Name ( Name : )
+    ///  - @ Name
+    ///  - @ Name ( Name : )
+    /// </summary>
+    private SchemaCoordinateNode ParseSingleSchemaCoordinate()
+    {
+        SchemaCoordinateNode node = ParseSchemaCoordinate();
+        Expect(TokenKind.EndOfFile);
+        return node;
+    }
+
     /// <summary>
     /// Parses a schema coordinate.
     /// <see cref="SchemaCoordinateNode"  />:

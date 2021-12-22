@@ -128,15 +128,7 @@ public ref partial struct Utf8GraphQLParser
             string sourceText) =>
             Parse(
                 sourceText,
-                parser =>
-                {
-                    var coordinate = parser.ParseSchemaCoordinate();
-                    if (parser._reader.Read() == true)
-                    {
-                        throw new Exception();
-                    }
-                    return coordinate;
-                });
+                parser => parser.ParseSingleSchemaCoordinate());
 
         /// <summary>
         /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
@@ -145,7 +137,7 @@ public ref partial struct Utf8GraphQLParser
             ReadOnlySpan<byte> sourceText) =>
             Parse(
                 sourceText,
-                parser => parser.ParseSchemaCoordinate());
+                parser => parser.ParseSingleSchemaCoordinate());
 
         /// <summary>
         /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)

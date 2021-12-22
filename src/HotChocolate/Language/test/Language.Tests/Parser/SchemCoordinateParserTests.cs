@@ -36,6 +36,20 @@ public class SchemaCoordinateParserTests
     }
 
     [Fact]
+    public void ParseNameNameName()
+    {
+        // arrange
+        string sourceText = "Name.Name.Name";
+        byte[] source = Encoding.UTF8.GetBytes(sourceText);
+
+        // act
+        void Fail() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
+
+        // assert
+        Assert.Throws<SyntaxException>(Fail);
+    }
+
+    [Fact]
     public void ParseNameAndMemberNameAndArg()
     {
         // arrange
