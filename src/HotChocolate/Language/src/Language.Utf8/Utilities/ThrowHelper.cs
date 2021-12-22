@@ -64,7 +64,7 @@ internal static class ThrowHelper
         new SyntaxException(reader, LangUtf8Resources.Reader_UnexpectedDigitAfterDot);
 
     public static SyntaxException Reader_InvalidToken(
-        Utf8GraphQLReader reader, 
+        Utf8GraphQLReader reader,
         TokenKind expected) =>
         new SyntaxException(
             reader,

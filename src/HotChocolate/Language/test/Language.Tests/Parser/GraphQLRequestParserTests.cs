@@ -647,9 +647,9 @@ public class GraphQLRequestParserTests
         Assert.Throws<SyntaxException>(
             () =>
             {
-                    // arrange
-                    var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
-                    .NormalizeLineBreaks());
+                // arrange
+                var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
+                .NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,
@@ -657,8 +657,8 @@ public class GraphQLRequestParserTests
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
-                    // act
-                    requestParser.Parse();
+                // act
+                requestParser.Parse();
             });
     }
 
@@ -669,9 +669,9 @@ public class GraphQLRequestParserTests
         Assert.Throws<SyntaxException>(
             () =>
             {
-                    // arrange
-                    var source = Encoding.UTF8.GetBytes("{ }"
-                    .NormalizeLineBreaks());
+                // arrange
+                var source = Encoding.UTF8.GetBytes("{ }"
+                .NormalizeLineBreaks());
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,
@@ -679,8 +679,8 @@ public class GraphQLRequestParserTests
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
-                    // act
-                    requestParser.Parse();
+                // act
+                requestParser.Parse();
             });
     }
 
@@ -691,8 +691,8 @@ public class GraphQLRequestParserTests
         Assert.Throws<ArgumentException>(
             () =>
             {
-                    // arrange
-                    var source = Encoding.UTF8.GetBytes(string.Empty);
+                // arrange
+                var source = Encoding.UTF8.GetBytes(string.Empty);
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,
@@ -700,8 +700,8 @@ public class GraphQLRequestParserTests
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
-                    // act
-                    requestParser.Parse();
+                // act
+                requestParser.Parse();
             });
     }
 
@@ -712,8 +712,8 @@ public class GraphQLRequestParserTests
         Assert.Throws<SyntaxException>(
             () =>
             {
-                    // arrange
-                    var source = Encoding.UTF8.GetBytes(" ");
+                // arrange
+                var source = Encoding.UTF8.GetBytes(" ");
                 var parserOptions = new ParserOptions();
                 var requestParser = new Utf8GraphQLRequestParser(
                     source,
@@ -721,8 +721,8 @@ public class GraphQLRequestParserTests
                     new DocumentCache(),
                     new Sha256DocumentHashProvider());
 
-                    // act
-                    requestParser.Parse();
+                // act
+                requestParser.Parse();
             });
     }
 
