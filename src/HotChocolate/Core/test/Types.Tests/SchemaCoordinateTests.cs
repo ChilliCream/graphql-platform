@@ -335,6 +335,20 @@ public class SchemaCoordinateTests
         Assert.Throws<InvalidSchemaCoordinateException>(Fail).Message.MatchSnapshot();
     }
 
+
+    [Fact]
+    public void GetMember_Invalid_DirectiveName()
+    {
+        // arrange
+        ISchema schema = CreateSchema();
+
+        // act
+        void Fail() => schema.GetMember("@foo123");
+
+        // assert
+        Assert.Throws<InvalidSchemaCoordinateException>(Fail).Message.MatchSnapshot();
+    }
+
     [Fact]
     public void TryGetMember_ObjectType()
     {
