@@ -8,6 +8,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate;
 
+/// <summary>
+/// Provides extension methods to <see cref="ISchema"/>.
+/// </summary>
 public static class SchemaExtensions
 {
     /// <summary>
@@ -33,6 +36,25 @@ public static class SchemaExtensions
         }
     }
 
+    /// <summary>
+    /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// </param>
+    /// <param name="coordinateString">
+    /// A string representing a schema coordinate.
+    /// </param>
+    /// <param name="member">
+    /// The resolved type system member.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a type system member was found with the given 
+    /// <paramref name="coordinateString"/>; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c>.
+    /// </exception>
     public static bool TryGetMember(
         this ISchema schema,
         string coordinateString,
@@ -47,6 +69,25 @@ public static class SchemaExtensions
         return false;
     }
 
+    /// <summary>
+    /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// </param>
+    /// <param name="coordinate">
+    /// A schema coordinate.
+    /// </param>
+    /// <param name="member">
+    /// The resolved type system member.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a type system member was found with the given 
+    /// <paramref name="coordinate"/>; otherwise, <c>false</c>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c>.
+    /// </exception>
     public static bool TryGetMember(
         this ISchema schema,
         SchemaCoordinate coordinate,
@@ -56,7 +97,7 @@ public static class SchemaExtensions
         {
             throw new ArgumentNullException(nameof(schema));
         }
-        
+
         if (coordinate.OfDirective)
         {
             if (schema.TryGetDirectiveType(coordinate.Name, out var directive))
@@ -136,11 +177,52 @@ public static class SchemaExtensions
         return false;
     }
 
+    /// <summary>
+    /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// </param>
+    /// <param name="coordinateString">
+    /// A string representing a schema coordinate.
+    /// </param>
+    /// <returns>
+    /// Returns the resolved type system member.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="SyntaxException">
+    /// The <paramref name="coordinateString"/> has invalid syntax.
+    /// </exception>
+    /// <exception cref="InvalidSchemaCoordinateException">
+    /// Unable to resolve a type system member with the 
+    /// specified <paramref name="coordinateString"/>.
+    /// </exception>
     public static ITypeSystemMember GetMember(
         this ISchema schema,
         string coordinateString)
         => GetMember(schema, SchemaCoordinate.Parse(coordinateString));
 
+    /// <summary>
+    /// Gets a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema on which the <paramref name="member"/> shall be resolved.
+    /// </param>
+    /// <param name="coordinate">
+    /// A schema coordinate.
+    /// </param>
+    /// <returns>
+    /// Returns the resolved type system member.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="schema"/> is <c>null</c>.
+    /// </exception>
+    /// <exception cref="InvalidSchemaCoordinateException">
+    /// Unable to resolve a type system member with the 
+    /// specified <paramref name="coordinateString"/>.
+    /// </exception>
     public static ITypeSystemMember GetMember(
         this ISchema schema,
         SchemaCoordinate coordinate)
@@ -275,15 +357,4 @@ public static class SchemaExtensions
                 coordinate.Name.Value),
             coordinate);
     }
-}
-
-public class InvalidSchemaCoordinateException : Exception
-{
-    public InvalidSchemaCoordinateException(string message, SchemaCoordinate coordinate)
-        : base(message)
-    {
-        Coordinate = coordinate;
-    }
-
-    public SchemaCoordinate Coordinate { get; }
 }
