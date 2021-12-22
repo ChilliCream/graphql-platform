@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using TypeThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -246,21 +247,10 @@ public static class SchemaExtensions
                     return arg;
                 }
 
-                throw new InvalidSchemaCoordinateException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Argument `{0}` was not found on directive `@{1}`.",
-                        coordinate.ArgumentName.Value,
-                        coordinate.Name),
-                    coordinate);
+                throw TypeThrowHelper.Schema_GetMember_DirectiveArgumentNotFound(coordinate);
             }
 
-            throw new InvalidSchemaCoordinateException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Directive `@{1}` not found.",
-                    coordinate.Name),
-                coordinate);
+            throw TypeThrowHelper.Schema_GetMember_DirectiveNotFound(coordinate);
         }
 
         if (schema.TryGetType<INamedType>(coordinate.Name, out var type))

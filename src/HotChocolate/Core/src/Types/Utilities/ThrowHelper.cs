@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
@@ -405,4 +406,23 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RewriteNullability_InvalidNullabilityStructure()
         => new(AbstractionResources.ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_DirectiveArgumentNotFound(
+        SchemaCoordinate coordinate)
+        => new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Argument `{0}` was not found on directive `@{1}`.",
+                coordinate.ArgumentName!.Value,
+                coordinate.Name),
+            coordinate);
+
+    public static InvalidSchemaCoordinateException Schema_GetMember_DirectiveNotFound(
+        SchemaCoordinate coordinate)
+        => throw new InvalidSchemaCoordinateException(
+            string.Format(
+                CultureInfo.InvariantCulture,
+                "Directive `@{1}` not found.",
+                coordinate.Name),
+            coordinate);
 }
