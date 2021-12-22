@@ -1037,15 +1037,22 @@ namespace Foo.Bar
             return _people_ConstraintFormatter.Format(input);
         }
 
-        private global::System.Object? FormatUpdate_columns(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column> input)
+        private global::System.Object? FormatUpdate_columns(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column>? input)
         {
-            var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
-            foreach (var input_elm in input)
+            if (input is null)
             {
-                input_list.Add(_people_Update_ColumnFormatter.Format(input_elm));
+                return input;
             }
+            else
+            {
+                var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                foreach (var input_elm in input)
+                {
+                    input_list.Add(_people_Update_ColumnFormatter.Format(input_elm));
+                }
 
-            return input_list;
+                return input_list;
+            }
         }
 
         private global::System.Object? FormatWhere(global::Foo.Bar.People_bool_exp? input)
@@ -1112,9 +1119,12 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Constraint.GetHashCode();
-                foreach (var Update_columns_elm in Update_columns)
+                if (Update_columns != null)
                 {
-                    hash ^= 397 * Update_columns_elm.GetHashCode();
+                    foreach (var Update_columns_elm in Update_columns)
+                    {
+                        hash ^= 397 * Update_columns_elm.GetHashCode();
+                    }
                 }
 
                 if (Where != null)
@@ -1128,7 +1138,7 @@ namespace Foo.Bar
 
         private global::Foo.Bar.People_constraint _value_constraint;
         private global::System.Boolean _set_constraint;
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column> _value_update_Columns;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column>? _value_update_Columns;
         private global::System.Boolean _set_update_Columns;
         private global::Foo.Bar.People_bool_exp? _value_where;
         private global::System.Boolean _set_where;
@@ -1143,7 +1153,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_on_conflictInfo.IsConstraintSet => _set_constraint;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column> Update_columns
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column>? Update_columns
         {
             get => _value_update_Columns;
             set
@@ -3172,15 +3182,22 @@ namespace Foo.Bar
             return _cars_ConstraintFormatter.Format(input);
         }
 
-        private global::System.Object? FormatUpdate_columns(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column> input)
+        private global::System.Object? FormatUpdate_columns(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column>? input)
         {
-            var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
-            foreach (var input_elm in input)
+            if (input is null)
             {
-                input_list.Add(_cars_Update_ColumnFormatter.Format(input_elm));
+                return input;
             }
+            else
+            {
+                var input_list = new global::System.Collections.Generic.List<global::System.Object?>();
+                foreach (var input_elm in input)
+                {
+                    input_list.Add(_cars_Update_ColumnFormatter.Format(input_elm));
+                }
 
-            return input_list;
+                return input_list;
+            }
         }
 
         private global::System.Object? FormatWhere(global::Foo.Bar.Cars_bool_exp? input)
@@ -3247,9 +3264,12 @@ namespace Foo.Bar
             {
                 int hash = 5;
                 hash ^= 397 * Constraint.GetHashCode();
-                foreach (var Update_columns_elm in Update_columns)
+                if (Update_columns != null)
                 {
-                    hash ^= 397 * Update_columns_elm.GetHashCode();
+                    foreach (var Update_columns_elm in Update_columns)
+                    {
+                        hash ^= 397 * Update_columns_elm.GetHashCode();
+                    }
                 }
 
                 if (Where != null)
@@ -3263,7 +3283,7 @@ namespace Foo.Bar
 
         private global::Foo.Bar.Cars_constraint _value_constraint;
         private global::System.Boolean _set_constraint;
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column> _value_update_Columns;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column>? _value_update_Columns;
         private global::System.Boolean _set_update_Columns;
         private global::Foo.Bar.Cars_bool_exp? _value_where;
         private global::System.Boolean _set_where;
@@ -3278,7 +3298,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_on_conflictInfo.IsConstraintSet => _set_constraint;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column> Update_columns
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column>? Update_columns
         {
             get => _value_update_Columns;
             set

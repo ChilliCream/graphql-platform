@@ -24,8 +24,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 directive.Arguments.Count == 1 &&
                 directive.Arguments[0] is
                 {
-                    Name: {Value: "fragment"},
-                    Value: StringValueNode {Value: {Length: > 0}} sv
+                    Name: { Value: "fragment" },
+                    Value: StringValueNode { Value: { Length: > 0 } } sv
                 })
             {
                 return sv.Value;
@@ -73,7 +73,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 Fragment? objectFragment =
                     list
-                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?
+                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())
+                        ?
                         .Fragment;
 
                 if (objectFragment is not null)
@@ -103,7 +104,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // We will check for a cached version of this type to have essentially one instance
             // for each type.
-            if (context.TryGetModel(fragmentNode.Fragment.Name, out OutputTypeModel? typeModel))
+            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
             {
                 return typeModel;
             }
@@ -127,8 +128,11 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 fields,
-                new[] {@interface});
-            context.RegisterModel(fragmentNode.Fragment.Name, typeModel);
+                new[]
+                {
+                    @interface
+                });
+            context.RegisterModel(name, typeModel);
 
             return typeModel;
         }
@@ -156,8 +160,6 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetInterfaceName(fragmentNode.Fragment.Name),
                 fragmentNode.Fragment.SelectionSet);
 
-            string typeName = $"I{fragmentNode.Fragment.Name}";
-
             ISet<string> implementedFields = levels.Peek();
 
             IReadOnlyList<OutputTypeModel> implements =
@@ -171,7 +173,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
             // We will check for a cached version of this type to have essentially one instance
             // for each type.
-            if (context.TryGetModel(typeName , out OutputTypeModel? typeModel))
+            if (context.TryGetModel(name, out OutputTypeModel? typeModel))
             {
                 foreach (var model in implements)
                 {
@@ -228,7 +230,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.SelectionSet,
                 CreateFields(fragmentNode, implementedFields, path),
                 implements);
-            context.RegisterModel(typeName , typeModel);
+            context.RegisterModel(name, typeModel);
 
             return typeModel;
         }
@@ -281,14 +283,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path)
         {
             foreach (var inlineFragment in fragmentNode.Nodes.Where(
-                t => t.Fragment.Kind == FragmentKind.Inline &&
-                     t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
+                         t => t.Fragment.Kind == FragmentKind.Inline &&
+                             t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
             {
                 CollectFields(inlineFragment, outputType, fields, path);
             }
 
             foreach (FieldNode selection in
-                fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
+                     fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
             {
                 FieldCollector.ResolveFieldSelection(selection, outputType, path, fields);
             }
@@ -363,7 +365,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var implements = new List<OutputTypeModel>();
 
             foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
-                t => t.Fragment.Kind == FragmentKind.Named))
+                         t => t.Fragment.Kind == FragmentKind.Named))
             {
                 // we create a new field level with the fields that are implemented by this level.
                 var fields = new HashSet<string>();
