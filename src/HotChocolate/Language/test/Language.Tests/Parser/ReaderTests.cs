@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8ReaderTests
+public class ReaderTests
 {
     [Fact]
     public void Read_Two_NameTokens()

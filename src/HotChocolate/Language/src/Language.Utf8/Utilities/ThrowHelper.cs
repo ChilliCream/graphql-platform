@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language;
 
@@ -58,4 +59,17 @@ internal static class ThrowHelper
                 "Unexpected token found `{0}` " +
                 "while expecting a scalar value.",
                 reader.Kind));
+
+    public static SyntaxException Reader_UnexpectedDigitAfterDot(Utf8GraphQLReader reader) =>
+        new SyntaxException(reader, LangUtf8Resources.Reader_UnexpectedDigitAfterDot);
+
+    public static SyntaxException Reader_InvalidToken(
+        Utf8GraphQLReader reader,
+        TokenKind expected) =>
+        new SyntaxException(
+            reader,
+            string.Format(
+                CultureInfo.InvariantCulture,
+                LangUtf8Resources.Reader_InvalidToken,
+                expected));
 }

@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8SchemaCoordinateParserTests
+public class SchemaCoordinateParserTests
 {
     [Fact]
     public void ParseName()
@@ -77,24 +77,6 @@ public class Utf8SchemaCoordinateParserTests
         result.MatchSnapshot();
     }
 
-    [Fact(Skip = "Do we need to reject this, if so how?")]
-    public void RejectsNameNameName()
-    {
-        // arrange
-        string sourceText = "Name.Name.Name";
-        byte[] source = Encoding.UTF8.GetBytes(sourceText);
-
-        // act
-        Exception ex = Record.Exception(() =>
-        {
-            Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(source);
-        });
-
-        // assert
-        SyntaxException syntaxException = Assert.IsType<SyntaxException>(ex);
-        syntaxException.Message.MatchSnapshot();
-    }
-
     [Theory]
     [InlineData("MyType.field(arg: value)")]
     [InlineData("@myDirective.field")]
@@ -111,5 +93,18 @@ public class Utf8SchemaCoordinateParserTests
 
         // assert
         Assert.IsType<SyntaxException>(ex);
+    }
+
+    [InlineData(null)]
+    [InlineData("")]
+    [Theory]
+    public void ParseSourceTextIsEmptyOrNull(string s)
+    {
+        // arrange;
+        // act
+        void Fail() => Utf8GraphQLParser.Syntax.ParseSchemaCoordinate(s);
+
+        // assert
+        Assert.Equal("sourceText", Assert.Throws<ArgumentException>(Fail).ParamName);
     }
 }

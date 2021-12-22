@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8QueryParserTests
+public class QueryParserTests
 {
     [Fact]
     public void ParseSimpleShortHandFormQuery()

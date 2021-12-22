@@ -49,13 +49,14 @@ internal class TypeInitializer
             throw new ArgumentNullException(nameof(typeRegistry));
         _initialTypes = initialTypes ??
             throw new ArgumentNullException(nameof(initialTypes));
-        _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
         _getTypeKind = getTypeKind ??
             throw new ArgumentNullException(nameof(getTypeKind));
         _schemaResolver = schemaResolver ??
             throw new ArgumentNullException(nameof(schemaResolver));
         _options = options ??
             throw new ArgumentNullException(nameof(options));
+
+        _isOfType = isOfType ?? options.DefaultIsOfTypeCheck;
 
         _interceptor = descriptorContext.TypeInterceptor;
         ITypeInspector typeInspector = descriptorContext.TypeInspector;
@@ -254,7 +255,7 @@ internal class TypeInitializer
 
             _interceptor.OnAfterResolveRootType(
                 registeredType,
-                ((ObjectType)registeredType.Type).Definition,
+                ((ObjectType)registeredType.Type).Definition!,
                 operationType,
                 _context.ContextData);
         }

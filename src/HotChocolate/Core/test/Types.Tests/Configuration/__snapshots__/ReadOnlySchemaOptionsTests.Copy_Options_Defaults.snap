@@ -15,5 +15,6 @@
   "AllowInlining": true,
   "DefaultResolverStrategy": "Parallel",
   "ValidatePipelineOrder": true,
-  "StrictRuntimeTypeValidation": false
+  "StrictRuntimeTypeValidation": false,
+  "DefaultIsOfTypeCheck": null
 }

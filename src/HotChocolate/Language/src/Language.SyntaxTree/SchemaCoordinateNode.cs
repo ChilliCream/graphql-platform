@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language.Utilities;
+using static HotChocolate.Language.Utilities.ThrowHelper;
 
 namespace HotChocolate.Language;
 
@@ -45,14 +46,12 @@ public sealed class SchemaCoordinateNode : ISyntaxNode
     {
         if (ofDirective && memberName is not null)
         {
-            throw ThrowHelper
-                .SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate(nameof(memberName));
+            throw SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate(nameof(memberName));
         }
 
         if (!ofDirective && memberName is null && argumentName is not null)
         {
-            throw ThrowHelper
-                .SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName(nameof(memberName));
+            throw SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName(nameof(memberName));
         }
 
         Location = location;

@@ -15,7 +15,6 @@ public ref partial struct Utf8GraphQLParser
     ///  - @ Name
     ///  - @ Name ( Name : )
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SchemaCoordinateNode ParseSchemaCoordinate()
     {
         TokenInfo start = Start();

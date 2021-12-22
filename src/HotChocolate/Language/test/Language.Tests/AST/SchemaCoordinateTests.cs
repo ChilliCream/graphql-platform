@@ -207,7 +207,7 @@ public class SchemaCoordinateTests
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        var rewrittenNode = node.WithLocation(location);
+        SchemaCoordinateNode rewrittenNode = node.WithLocation(location);
 
         // assert
         Assert.Equal(location, rewrittenNode.Location);
@@ -222,7 +222,7 @@ public class SchemaCoordinateTests
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        var rewrittenNode = node.WithName(newName);
+        SchemaCoordinateNode rewrittenNode = node.WithName(newName);
 
         // assert
         Assert.Equal(newName, rewrittenNode.Name);
@@ -237,7 +237,7 @@ public class SchemaCoordinateTests
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        var rewrittenNode = node.WithMemberName(memberName);
+        SchemaCoordinateNode rewrittenNode = node.WithMemberName(memberName);
 
         // assert
         Assert.Equal(memberName, rewrittenNode.MemberName);
@@ -253,7 +253,7 @@ public class SchemaCoordinateTests
         var node = new SchemaCoordinateNode(null, false, name, memberName, null);
 
         // act
-        var rewrittenNode = node.WithArgumentName(argumentName);
+        SchemaCoordinateNode rewrittenNode = node.WithArgumentName(argumentName);
 
         // assert
         Assert.Equal(argumentName, rewrittenNode.ArgumentName);
@@ -267,7 +267,7 @@ public class SchemaCoordinateTests
         var node = new SchemaCoordinateNode(null, false, name, null, null);
 
         // act
-        var rewrittenNode = node.WithOfDirective(true);
+        SchemaCoordinateNode rewrittenNode = node.WithOfDirective(true);
 
         // assert
         Assert.True(rewrittenNode.OfDirective);

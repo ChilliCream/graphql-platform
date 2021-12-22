@@ -10,6 +10,7 @@ internal static class TokenPrinter
             { TokenKind.StartOfFile, "<SOF>" },
             { TokenKind.EndOfFile, "<EOF>" },
             { TokenKind.Bang, "!" },
+            { TokenKind.QuestionMark, "?" },
             { TokenKind.Dollar, "$" },
             { TokenKind.Ampersand, "&" },
             { TokenKind.LeftParenthesis, "(" },
