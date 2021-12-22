@@ -101,7 +101,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
 
         public void RegisterType(INamedType type)
         {
-            if (type is ILeafType leafType && !_typeModels.ContainsKey(type.Name))
+            if (type is ILeafType leafType && _typeModels.Values.All(x => x.Type.Name != type.Name))
             {
                 _typeModels.Add(
                     leafType.Name,
