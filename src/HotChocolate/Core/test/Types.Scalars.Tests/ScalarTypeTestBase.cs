@@ -239,10 +239,10 @@ public class ScalarTypeTestBase
         // arrange
         // act
         IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<TDefaultClass>()
-                .AddType<TType>()
-                .BuildRequestExecutorAsync();
+            .AddGraphQL()
+            .AddQueryType<TDefaultClass>()
+            .AddType<TType>()
+            .BuildRequestExecutorAsync();
 
         // assert
         executor.Schema.Print().MatchSnapshot();
