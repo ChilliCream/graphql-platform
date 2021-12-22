@@ -821,4 +821,11 @@ Type: `{0}`</value>
   <data name="DefaultNamingConventions_FormatFieldName_EmptyOrNull" xml:space="preserve">
     <value>The fieldName cannot be null or empty.</value>
   </data>
+  <data name="OneOfDirectiveType_Description" xml:space="preserve">
+    <value>The `@oneOf` directive is used within the type system definition language
+ to indicate:
+
+ - an Input Object is a Oneof Input Object, or
+ - an Object Type's Field is a Oneof Field.</value>
+  </data>
 </root>

@@ -1430,5 +1430,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DefaultNamingConventions_FormatFieldName_EmptyOrNull", resourceCulture);
             }
         }
+        
+        internal static string OneOfDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("OneOfDirectiveType_Description", resourceCulture);
+            }
+        }
     }
 }
