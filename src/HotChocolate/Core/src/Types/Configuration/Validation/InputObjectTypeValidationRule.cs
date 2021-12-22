@@ -1,17 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
-#nullable enable
-
 namespace HotChocolate.Configuration.Validation;
 
-/// <summary>
-/// Implements the object type validation defined in the spec.
-/// http://spec.graphql.org/draft/#sec-Objects.Type-Validation
-/// </summary>
-internal class ObjectTypeValidationRule : ISchemaValidationRule
+public class InputObjectTypeValidationRule : ISchemaValidationRule
 {
     public void Validate(
         IReadOnlyList<ITypeSystemObject> typeSystemObjects,
@@ -20,11 +15,23 @@ internal class ObjectTypeValidationRule : ISchemaValidationRule
     {
         if (options.StrictValidation)
         {
-            foreach (ObjectType type in typeSystemObjects.OfType<ObjectType>())
+            foreach (InputObjectType type in typeSystemObjects.OfType<InputObjectType>())
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
-                EnsureInterfacesAreCorrectlyImplemented(type, errors);
+            }
+        }
+    }
+
+    private static void EnsureOneOfFieldsAreValid(
+        InputObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        if (type.Directives.Contains(WellKnownDirectives.OneOf))
+        {
+            if (type.Fields.Any(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null))
+            {
+                // error 
             }
         }
     }
