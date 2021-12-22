@@ -1,6 +1,5 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public interface ISyntaxVisitorContext
 {
-    public interface ISyntaxVisitorContext
-    {
-    }
 }

@@ -453,7 +453,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             .ToList(),
                         enumTypeModel.Description);
 
-                    leafTypeDescriptors.Add(leafType.Name, descriptor);
+                    leafTypeDescriptors.Add(leafType.Type.Name, descriptor);
                 }
                 else
                 {
@@ -462,7 +462,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                         model.Schema.GetOrCreateTypeInfo(leafType.RuntimeType),
                         model.Schema.GetOrCreateTypeInfo(leafType.SerializationType));
 
-                    leafTypeDescriptors.Add(leafType.Name, descriptor);
+                    leafTypeDescriptors.Add(leafType.Type.Name, descriptor);
                 }
             }
         }

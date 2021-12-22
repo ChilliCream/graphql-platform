@@ -247,7 +247,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonlyResult
+    public partial interface IReadonlyResult
     {
         public global::Foo.Bar.IReadonly_Readonly? Readonly
         {
@@ -262,7 +262,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonly_Readonly
+    public partial interface IReadonly_Readonly
     {
         public global::System.String? Abstract
         {
@@ -272,13 +272,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonly_Readonly_readonly : IReadonly_Readonly
+    public partial interface IReadonly_Readonly_readonly : IReadonly_Readonly
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonly_ReadonlyEntity
+    public partial interface IReadonly_ReadonlyEntity
     {
         public global::System.String? Id
         {
@@ -293,7 +293,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonly_ReadonlyEntity_readonlyEntity : IReadonly_ReadonlyEntity
+    public partial interface IReadonly_ReadonlyEntity_readonlyEntity : IReadonly_ReadonlyEntity
     {
     }
 
@@ -561,7 +561,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IReadonlyQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IReadonlyQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IReadonlyResult>> ExecuteAsync(global::Foo.Bar.Abstract input, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IReadonlyResult>> Watch(global::Foo.Bar.Abstract input, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -589,7 +589,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IReadonlyQuery Readonly
         {

@@ -22,8 +22,7 @@ public abstract class QueryableTakeHandlerInterceptor
     }
 
     public bool CanHandle(ISelection selection) =>
-        selection.Field.Member is PropertyInfo propertyInfo &&
-        propertyInfo.CanWrite &&
+        selection.Field.Member is PropertyInfo { CanWrite: true } &&
         selection.Field.ContextData.ContainsKey(_contextDataKey);
 
     public void BeforeProjection(
@@ -32,7 +31,7 @@ public abstract class QueryableTakeHandlerInterceptor
     {
         IObjectField? field = selection.Field;
         if (field.ContextData.ContainsKey(_contextDataKey) &&
-            selection.Field.Type.InnerType() is ListType lt &&
+            selection.Type.InnerType() is ListType lt &&
             lt.ElementType.InnerType() is { } elementType)
         {
             Expression instance = context.PopInstance();

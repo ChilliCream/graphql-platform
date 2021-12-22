@@ -159,7 +159,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMutResult
+    public partial interface ICreateReviewMutResult
     {
         public global::Foo.Bar.ICreateReviewMut_CreateReview CreateReview
         {
@@ -169,7 +169,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMut_CreateReview
+    public partial interface ICreateReviewMut_CreateReview
     {
         public global::System.Int32 Stars
         {
@@ -184,7 +184,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMut_CreateReview_Review : ICreateReviewMut_CreateReview
+    public partial interface ICreateReviewMut_CreateReview_Review : ICreateReviewMut_CreateReview
     {
     }
 
@@ -498,7 +498,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ICreateReviewMutMutation : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ICreateReviewMutMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> ExecuteAsync(global::Foo.Bar.Episode episode, global::Foo.Bar.ReviewInput review, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ICreateReviewMutResult>> Watch(global::Foo.Bar.Episode episode, global::Foo.Bar.ReviewInput review, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -526,7 +526,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.ICreateReviewMutMutation CreateReviewMut
         {

@@ -5,6 +5,8 @@ partial class Build
 {
     [Parameter] readonly string GitHubToken;
 
+    [Parameter] readonly string CodeCovToken;
+
     /// <summary>
     /// ChilliCream/hotchocolate
     /// </summary>

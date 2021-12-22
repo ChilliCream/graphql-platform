@@ -71,7 +71,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
 
             // if no filter is defined we can stop here and yield back control.
             var skipFiltering =
-            context.LocalContextData.TryGetValue(SkipFilteringKey, out object? skip) &&
+            context.LocalContextData.TryGetValue(SkipFilteringKey, out var skip) &&
             skip is true;
 
             // ensure filtering is only applied once
@@ -86,7 +86,7 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
             if (argument.Type is IFilterInputType filterInput &&
                 context.Selection.Field.ContextData.TryGetValue(
                     ContextVisitFilterArgumentKey,
-                    out object? executorObj) &&
+                    out var executorObj) &&
                 executorObj is VisitFilterArgument executor)
             {
                 var inMemory =

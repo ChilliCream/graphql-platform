@@ -38,6 +38,7 @@
         "Value": "catOrDog"
       },
       "Arguments": [],
+      "Required": null,
       "SelectionSet": {
         "Kind": "SelectionSet",
         "Location": {

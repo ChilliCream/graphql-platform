@@ -402,4 +402,7 @@ internal static class ThrowHelper
                 .Build(),
             type,
             path);
+
+    public static InvalidOperationException RewriteNullability_InvalidNullabilityStructure()
+        => new(AbstractionResources.ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure);
 }

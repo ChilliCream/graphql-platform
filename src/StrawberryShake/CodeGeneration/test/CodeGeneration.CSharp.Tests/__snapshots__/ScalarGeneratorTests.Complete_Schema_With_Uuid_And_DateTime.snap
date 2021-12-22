@@ -283,7 +283,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpensesResult
+    public partial interface IAllExpensesResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IAllExpenses_Expense?>? Expense
         {
@@ -293,7 +293,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpenses_Expense
+    public partial interface IAllExpenses_Expense
     {
         public global::System.Guid Id
         {
@@ -333,13 +333,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpenses_Expense_Expense : IAllExpenses_Expense
+    public partial interface IAllExpenses_Expense_Expense : IAllExpenses_Expense
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpenses_Expense_Tags
+    public partial interface IAllExpenses_Expense_Tags
     {
         public global::System.String? Name
         {
@@ -349,7 +349,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpenses_Expense_Tags_Tag : IAllExpenses_Expense_Tags
+    public partial interface IAllExpenses_Expense_Tags_Tag : IAllExpenses_Expense_Tags
     {
     }
 
@@ -576,7 +576,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IAllExpensesQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IAllExpensesQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IAllExpensesResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IAllExpensesResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -604,7 +604,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IAllExpensesQuery AllExpenses
         {

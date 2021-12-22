@@ -159,7 +159,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnReviewSubResult
+    public partial interface IOnReviewSubResult
     {
         public global::Foo.Bar.IOnReviewSub_OnReview OnReview
         {
@@ -169,7 +169,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnReviewSub_OnReview
+    public partial interface IOnReviewSub_OnReview
     {
         public global::System.Int32 Stars
         {
@@ -184,7 +184,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnReviewSub_OnReview_Review : IOnReviewSub_OnReview
+    public partial interface IOnReviewSub_OnReview_Review : IOnReviewSub_OnReview
     {
     }
 
@@ -291,7 +291,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IOnReviewSubSubscription : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IOnReviewSubSubscription : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.IObservable<global::StrawberryShake.IOperationResult<IOnReviewSubResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
@@ -318,7 +318,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IOnReviewSubSubscription OnReviewSub
         {

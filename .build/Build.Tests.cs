@@ -1,19 +1,24 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Codecov;
 using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
+using System;
+using System.Diagnostics;
 
 partial class Build
 {
@@ -67,11 +72,7 @@ partial class Build
             }
             finally
             {
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
+                UploadTestsAndMismatches();
             }
         });
 
@@ -97,11 +98,7 @@ partial class Build
             }
             finally
             {
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
+                UploadTestsAndMismatches();
             }
         });
 
@@ -116,7 +113,7 @@ partial class Build
                 .SetTargetDirectory(CoverageReportDirectory)
                 .SetAssemblyFilters("-*Tests"));
 
-            if (DevOpsPipeLine is { })
+            if (DevOpsPipeLine is not null)
             {
                 CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
                     DevOpsPipeLine.PublishCodeCoverage(
@@ -165,4 +162,35 @@ partial class Build
             .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
+
+    void UploadTestsAndMismatches()
+    {
+        if (DevOpsPipeLine is not null)
+        {
+            TestResultDirectory.GlobFiles("*.trx")
+                .ForEach(x =>
+                    DevOpsPipeLine.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+
+            string uploadDir = Path.Combine(RootDirectory, "mismatch");
+
+            if (!Directory.Exists(uploadDir))
+            {
+                Directory.CreateDirectory(uploadDir);
+            }
+
+            foreach (string mismatchDir in Directory.GetDirectories(
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
+            {
+                foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
+                {
+                    File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
+                }
+            }
+
+            DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
+        }
+    }
 }

@@ -1,7 +1,7 @@
 using System;
-using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using ChilliCream.Testing;
 using Newtonsoft.Json;
@@ -9,355 +9,355 @@ using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public class Utf8GraphQLRequestParserTests
 {
-    public class Utf8GraphQLRequestParserTests
+    [Fact]
+    public void Utf8GraphQLRequestParser_Parse()
     {
-        [Fact]
-        public void Utf8GraphQLRequestParser_Parse()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
-
-            // act
-            IReadOnlyList<GraphQLRequest> batch =
-                Utf8GraphQLRequestParser.Parse(source);
-
-            // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryId);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
-
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
-
-        [Fact]
-        public void Utf8GraphQLRequestParser_ParseJson()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
-
-            // act
-            object obj = Utf8GraphQLRequestParser.ParseJson(source);
-
-            // assert
-            obj.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Utf8GraphQLRequestParser_ParseJson_FromString()
-        {
-            // arrange
-            var json = JsonConvert.SerializeObject(
-                new GraphQLRequestDto
-                {
-                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
-                }).NormalizeLineBreaks();
-
-            // act
-            object obj = Utf8GraphQLRequestParser.ParseJson(json);
-
-            // assert
-            obj.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Utf8GraphQLRequestParser_ParseJsonObject()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
-
-            // act
-            IReadOnlyDictionary<string, object> obj =
-                Utf8GraphQLRequestParser.ParseJsonObject(source);
-
-            // assert
-            obj.MatchSnapshot();
-        }
-
-        [Fact]
-        public void Utf8GraphQLRequestParser_ParseJsonObject_FromString()
-        {
-            // arrange
-            var json = JsonConvert.SerializeObject(
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
                 new GraphQLRequestDto
                 {
                     Query = FileResource.Open("kitchen-sink.graphql")
                         .NormalizeLineBreaks()
-                }).NormalizeLineBreaks();
+                }).NormalizeLineBreaks());
 
-            // act
-            IReadOnlyDictionary<string, object> obj =
-                Utf8GraphQLRequestParser.ParseJsonObject(json);
+        // act
+        IReadOnlyList<GraphQLRequest> batch =
+            Utf8GraphQLRequestParser.Parse(source);
 
-            // assert
-            obj.MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.QueryId);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
 
-        [Fact]
-        public void Parse_Kitchen_Sink_Query_No_Cache()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
 
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source, parserOptions);
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
-
-            // assert
-            Assert.Collection(batch,
-                r =>
+    [Fact]
+    public void Utf8GraphQLRequestParser_ParseJson()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
                 {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryId);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks()
+                }).NormalizeLineBreaks());
 
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
+        // act
+        object obj = Utf8GraphQLRequestParser.ParseJson(source);
 
-        [Fact]
-        public void Parse_Kitchen_Sink_Query_With_Russian_Characters()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
+        // assert
+        obj.MatchSnapshot();
+    }
 
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source, parserOptions);
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+    [Fact]
+    public void Utf8GraphQLRequestParser_ParseJson_FromString()
+    {
+        // arrange
+        var json = JsonConvert.SerializeObject(
+            new GraphQLRequestDto
+            {
+                Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks()
+            }).NormalizeLineBreaks();
 
-            // assert
-            Assert.Collection(batch,
-                r =>
+        // act
+        object obj = Utf8GraphQLRequestParser.ParseJson(json);
+
+        // assert
+        obj.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Utf8GraphQLRequestParser_ParseJsonObject()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
                 {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryId);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks()
+                }).NormalizeLineBreaks());
 
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
+        // act
+        IReadOnlyDictionary<string, object> obj =
+            Utf8GraphQLRequestParser.ParseJsonObject(source);
 
-        [Fact]
-        public void Parse_Kitchen_Sink_Query_With_Russian_Escaped_Characters()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                FileResource.Open("russian_utf8_escape_characters.json")
-                    .NormalizeLineBreaks());
+        // assert
+        obj.MatchSnapshot();
+    }
 
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source, parserOptions);
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
-
-            // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryId);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
-
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
-
-        [Fact]
-        public void Parse_Kitchen_Sink_Query_With_Cache()
-        {
-            // arrange
-            var request = new GraphQLRequestDto
+    [Fact]
+    public void Utf8GraphQLRequestParser_ParseJsonObject_FromString()
+    {
+        // arrange
+        var json = JsonConvert.SerializeObject(
+            new GraphQLRequestDto
             {
                 Query = FileResource.Open("kitchen-sink.graphql")
                     .NormalizeLineBreaks()
-            };
+            }).NormalizeLineBreaks();
 
-            var buffer = Encoding.UTF8.GetBytes(request.Query);
-            var expectedHash = Convert.ToBase64String(
-                SHA1.Create().ComputeHash(buffer));
+        // act
+        IReadOnlyDictionary<string, object> obj =
+            Utf8GraphQLRequestParser.ParseJsonObject(json);
 
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(request
-                    ).NormalizeLineBreaks());
+        // assert
+        obj.MatchSnapshot();
+    }
 
-            var cache = new DocumentCache();
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                new ParserOptions(),
-                cache,
-                new Sha1DocumentHashProvider());
-
-            IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
-
-            cache.TryAddDocument(first[0].QueryId, first[0].Query);
-
-            // act
-            requestParser = new Utf8GraphQLRequestParser(
-                source,
-                new ParserOptions(),
-                cache,
-                new Sha1DocumentHashProvider());
-
-            IReadOnlyList<GraphQLRequest> second = requestParser.Parse();
-
-            // assert
-            Assert.Equal(first[0].Query, second[0].Query);
-            Assert.Collection(second,
-                r =>
+    [Fact]
+    public void Parse_Kitchen_Sink_Query_No_Cache()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
                 {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks()
+                }).NormalizeLineBreaks());
 
-                    Assert.Equal(expectedHash, r.QueryId);
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source, parserOptions);
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
-        [Fact]
-        public void Parse_Skip_Custom_Property()
-        {
-            // arrange
-            var request = new CustomGraphQLRequestDto
+        // assert
+        Assert.Collection(batch,
+            r =>
             {
-                CustomProperty = "FooBar",
-                Query = FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks()
-            };
+                Assert.Null(r.OperationName);
+                Assert.Null(r.QueryId);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
 
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(request
-                    ).NormalizeLineBreaks());
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
 
-            var buffer = Encoding.UTF8.GetBytes(request.Query);
-            var expectedHash = Convert.ToBase64String(
-                SHA1.Create().ComputeHash(buffer));
-
-            var cache = new DocumentCache();
-
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                new ParserOptions(),
-                cache,
-                new Sha1DocumentHashProvider());
-
-            // act
-            IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
-
-            // assert
-            Assert.Collection(result,
-                r =>
+    [Fact]
+    public void Parse_Kitchen_Sink_Query_With_Russian_Characters()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
                 {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
+                    Query = FileResource.Open("russian-literals.graphql").NormalizeLineBreaks()
+                }).NormalizeLineBreaks());
 
-                    Assert.Equal(expectedHash, r.QueryId);
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source, parserOptions);
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
-        [Fact]
-        public void Parse_Id_As_Name()
-        {
-            // arrange
-            var request = new RelayGraphQLRequestDto
+        // assert
+        Assert.Collection(batch,
+            r =>
             {
-                Id = "FooBar",
-                Query = FileResource.Open("kitchen-sink.graphql")
-                    .NormalizeLineBreaks()
-            };
+                Assert.Null(r.OperationName);
+                Assert.Null(r.QueryId);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
 
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(request
-                    ).NormalizeLineBreaks());
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
 
-            var buffer = Encoding.UTF8.GetBytes(request.Query);
-            var expectedHash = Convert.ToBase64String(
-                SHA1.Create().ComputeHash(buffer));
+    [Fact]
+    public void Parse_Kitchen_Sink_Query_With_Russian_Escaped_Characters()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            FileResource.Open("russian_utf8_escape_characters.json")
+                .NormalizeLineBreaks());
 
-            var cache = new DocumentCache();
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source, parserOptions);
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                new ParserOptions(),
-                cache,
-                new Sha1DocumentHashProvider());
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.QueryId);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
 
-            // act
-            IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
 
-            // assert
-            Assert.Collection(result,
-                r =>
-                {
-                    Assert.Null(r.OperationName);
-                    Assert.Null(r.Variables);
-                    Assert.Null(r.Extensions);
-
-                    Assert.Equal("FooBar", r.QueryId);
-                    Assert.Equal(expectedHash, r.QueryHash);
-                    r.Query!.ToString(true).MatchSnapshot();
-                });
-        }
-
-        [Fact]
-        public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
+    [Fact]
+    public void Parse_Kitchen_Sink_Query_With_Cache()
+    {
+        // arrange
+        var request = new GraphQLRequestDto
         {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
+            Query = FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks()
+        };
+
+        var buffer = Encoding.UTF8.GetBytes(request.Query);
+        var expectedHash = Convert.ToBase64String(
+            SHA1.Create().ComputeHash(buffer));
+
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(request
+                ).NormalizeLineBreaks());
+
+        var cache = new DocumentCache();
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            new ParserOptions(),
+            cache,
+            new Sha1DocumentHashProvider());
+
+        IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
+
+        cache.TryAddDocument(first[0].QueryId, first[0].Query);
+
+        // act
+        requestParser = new Utf8GraphQLRequestParser(
+            source,
+            new ParserOptions(),
+            cache,
+            new Sha1DocumentHashProvider());
+
+        IReadOnlyList<GraphQLRequest> second = requestParser.Parse();
+
+        // assert
+        Assert.Equal(first[0].Query, second[0].Query);
+        Assert.Collection(second,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
+
+                Assert.Equal(expectedHash, r.QueryId);
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
+
+    [Fact]
+    public void Parse_Skip_Custom_Property()
+    {
+        // arrange
+        var request = new CustomGraphQLRequestDto
+        {
+            CustomProperty = "FooBar",
+            Query = FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks()
+        };
+
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(request
+                ).NormalizeLineBreaks());
+
+        var buffer = Encoding.UTF8.GetBytes(request.Query);
+        var expectedHash = Convert.ToBase64String(
+            SHA1.Create().ComputeHash(buffer));
+
+        var cache = new DocumentCache();
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            new ParserOptions(),
+            cache,
+            new Sha1DocumentHashProvider());
+
+        // act
+        IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+
+        // assert
+        Assert.Collection(result,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
+
+                Assert.Equal(expectedHash, r.QueryId);
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
+
+    [Fact]
+    public void Parse_Id_As_Name()
+    {
+        // arrange
+        var request = new RelayGraphQLRequestDto
+        {
+            Id = "FooBar",
+            Query = FileResource.Open("kitchen-sink.graphql")
+                .NormalizeLineBreaks()
+        };
+
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(request
+                ).NormalizeLineBreaks());
+
+        var buffer = Encoding.UTF8.GetBytes(request.Query);
+        var expectedHash = Convert.ToBase64String(
+            SHA1.Create().ComputeHash(buffer));
+
+        var cache = new DocumentCache();
+
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            new ParserOptions(),
+            cache,
+            new Sha1DocumentHashProvider());
+
+        // act
+        IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+
+        // assert
+        Assert.Collection(result,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Null(r.Variables);
+                Assert.Null(r.Extensions);
+
+                Assert.Equal("FooBar", r.QueryId);
+                Assert.Equal(expectedHash, r.QueryHash);
+                r.Query!.ToString(true).MatchSnapshot();
+            });
+    }
+
+    [Fact]
+    public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
+                {
+                    Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
+                    Id = "ABC",
+                    OperationName = "DEF",
+                    Variables = new Dictionary<string, object>
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
-                        Id = "ABC",
-                        OperationName = "DEF",
-                        Variables = new Dictionary<string, object>
-                        {
                             { "a" , "b"},
                             { "b" , new Dictionary<string, object>
                                 {
@@ -373,9 +373,9 @@ namespace HotChocolate.Language
                                         { "a" , "b"},
                                     }
                                 }},
-                        },
-                        Extensions = new Dictionary<string, object>
-                        {
+                    },
+                    Extensions = new Dictionary<string, object>
+                    {
                             { "aa" , "bb"},
                             { "bb" , new Dictionary<string, object>
                                 {
@@ -393,45 +393,45 @@ namespace HotChocolate.Language
                                         { "ac" , false},
                                     }
                                 }},
-                        }
-                    }).NormalizeLineBreaks());
+                    }
+                }).NormalizeLineBreaks());
 
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source, parserOptions);
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source, parserOptions);
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
-            // assert
-            Assert.Collection(batch,
-                r =>
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Equal("ABC", r.QueryId);
+                Assert.Equal("DEF", r.OperationName);
+
+                r.Variables.MatchSnapshot(
+                    new SnapshotNameExtension("Variables"));
+                r.Extensions.MatchSnapshot(
+                    new SnapshotNameExtension("Extensions"));
+                r.Query!.ToString(true).MatchSnapshot(
+                    new SnapshotNameExtension("Query"));
+            });
+    }
+
+    [Fact]
+    public void Parse_Json()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new GraphQLRequestDto
                 {
-                    Assert.Equal("ABC", r.QueryId);
-                    Assert.Equal("DEF", r.OperationName);
-
-                    r.Variables.MatchSnapshot(
-                        new SnapshotNameExtension("Variables"));
-                    r.Extensions.MatchSnapshot(
-                        new SnapshotNameExtension("Extensions"));
-                    r.Query!.ToString(true).MatchSnapshot(
-                        new SnapshotNameExtension("Query"));
-                });
-        }
-
-        [Fact]
-        public void Parse_Json()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks(),
+                    Id = "ABC",
+                    OperationName = "DEF",
+                    Variables = new Dictionary<string, object>
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks(),
-                        Id = "ABC",
-                        OperationName = "DEF",
-                        Variables = new Dictionary<string, object>
-                        {
                             { "a" , "b"},
                             { "b" , new Dictionary<string, object>
                                 {
@@ -447,9 +447,9 @@ namespace HotChocolate.Language
                                         { "a" , "b"},
                                     }
                                 }},
-                        },
-                        Extensions = new Dictionary<string, object>
-                        {
+                    },
+                    Extensions = new Dictionary<string, object>
+                    {
                             { "aa" , "bb"},
                             { "bb" , new Dictionary<string, object>
                                 {
@@ -465,24 +465,24 @@ namespace HotChocolate.Language
                                         { "aa" , "bb"},
                                     }
                                 }},
-                        }
-                    }).NormalizeLineBreaks());
+                    }
+                }).NormalizeLineBreaks());
 
-            // act
-            var parsed = Utf8GraphQLRequestParser.ParseJson(source);
+        // act
+        var parsed = Utf8GraphQLRequestParser.ParseJson(source);
 
-            // assert
-            parsed.MatchSnapshot();
-        }
+        // assert
+        parsed.MatchSnapshot();
+    }
 
-        [Fact]
-        public void Parse_Socket_Message()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new Dictionary<string, object>
-                    {
+    [Fact]
+    public void Parse_Socket_Message()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            JsonConvert.SerializeObject(
+                new Dictionary<string, object>
+                {
                         {
                             "payload",
                             new Dictionary<string, object>
@@ -514,274 +514,273 @@ namespace HotChocolate.Language
                             "id",
                             "bar"
                         }
-                    }).NormalizeLineBreaks());
+                }).NormalizeLineBreaks());
 
-            // act
-            GraphQLSocketMessage message =
-                Utf8GraphQLRequestParser.ParseMessage(source);
+        // act
+        GraphQLSocketMessage message =
+            Utf8GraphQLRequestParser.ParseMessage(source);
 
-            // assert
-            Assert.Equal("foo", message.Type);
-            Assert.Equal("bar", message.Id);
+        // assert
+        Assert.Equal("foo", message.Type);
+        Assert.Equal("bar", message.Id);
 
-            File.WriteAllBytes("Foo.json", message.Payload.ToArray());
+        File.WriteAllBytes("Foo.json", message.Payload.ToArray());
 
-            Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
-        }
+        Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
+    }
 
-        [Fact]
-        public void Parse_Apollo_AQP_SignatureQuery()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                FileResource.Open("Apollo_AQP_QuerySignature_1.json")
-                    .NormalizeLineBreaks());
-
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                parserOptions,
-                new DocumentCache(),
-                new Sha256DocumentHashProvider());
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
-
-            // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Equal("MyQuery", r.OperationName);
-                    Assert.Equal("hashOfQuery", r.QueryId);
-                    Assert.Null(r.Variables);
-                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                    Assert.Null(r.Query);
-                    Assert.Null(r.QueryHash);
-                });
-        }
-
-        [Fact]
-        public void Parse_Apollo_AQP_SignatureQuery_Variables_Without_Values()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                FileResource.Open("Apollo_AQP_QuerySignature_2.json")
-                    .NormalizeLineBreaks());
-
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                parserOptions,
-                new DocumentCache(),
-                new Sha256DocumentHashProvider());
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
-
-            // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Null(r.OperationName);
-                    Assert.Equal("hashOfQuery", r.QueryId);
-                    Assert.Empty(r.Variables!);
-                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                    Assert.Null(r.Query);
-                    Assert.Null(r.QueryHash);
-                });
-        }
-
-        [Fact]
-        public void Parse_Apollo_AQP_FullRequest_And_Verify_Hash()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                FileResource.Open("Apollo_AQP_FullRequest.json")
-                    .NormalizeLineBreaks());
-
-            // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source,
-                parserOptions,
-                new DocumentCache(),
-                new Sha256DocumentHashProvider(HashFormat.Hex));
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
-
-            // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Null(r.OperationName);
-                    Assert.Empty(r.Variables!);
-                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
-                    Assert.NotNull(r.Query);
-
-                    if (r.Extensions.TryGetValue("persistedQuery", out var o)
-                        && o is IReadOnlyDictionary<string, object> persistedQuery
-                        && persistedQuery.TryGetValue("sha256Hash", out o)
-                        && o is string hash)
-                    {
-                        Assert.Equal(hash, r.QueryHash);
-                    }
-                });
-        }
-
-        [Fact]
-        public void Parse_Float_Exponent_Format()
-        {
-            // arrange
-            var source = Encoding.UTF8.GetBytes(
-                FileResource.Open("Float.json")
+    [Fact]
+    public void Parse_Apollo_AQP_SignatureQuery()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            FileResource.Open("Apollo_AQP_QuerySignature_1.json")
                 .NormalizeLineBreaks());
 
-            // act
-            var obj = Utf8GraphQLRequestParser.ParseJson(source);
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider());
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
-            // assert
-            obj.MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Equal("MyQuery", r.OperationName);
+                Assert.Equal("hashOfQuery", r.QueryId);
+                Assert.Null(r.Variables);
+                Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
+                Assert.Null(r.Query);
+                Assert.Null(r.QueryHash);
+            });
+    }
 
-        [Fact]
-        public void Parse_Invalid_Query()
-        {
-            // assert
-            Assert.Throws<SyntaxException>(
-                () =>
+    [Fact]
+    public void Parse_Apollo_AQP_SignatureQuery_Variables_Without_Values()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            FileResource.Open("Apollo_AQP_QuerySignature_2.json")
+                .NormalizeLineBreaks());
+
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider());
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Equal("hashOfQuery", r.QueryId);
+                Assert.Empty(r.Variables!);
+                Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
+                Assert.Null(r.Query);
+                Assert.Null(r.QueryHash);
+            });
+    }
+
+    [Fact]
+    public void Parse_Apollo_AQP_FullRequest_And_Verify_Hash()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            FileResource.Open("Apollo_AQP_FullRequest.json")
+                .NormalizeLineBreaks());
+
+        // act
+        var parserOptions = new ParserOptions();
+        var requestParser = new Utf8GraphQLRequestParser(
+            source,
+            parserOptions,
+            new DocumentCache(),
+            new Sha256DocumentHashProvider(HashFormat.Hex));
+        IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+        // assert
+        Assert.Collection(batch,
+            r =>
+            {
+                Assert.Null(r.OperationName);
+                Assert.Empty(r.Variables!);
+                Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
+                Assert.NotNull(r.Query);
+
+                if (r.Extensions.TryGetValue("persistedQuery", out var o)
+                    && o is IReadOnlyDictionary<string, object> persistedQuery
+                    && persistedQuery.TryGetValue("sha256Hash", out o)
+                    && o is string hash)
                 {
+                    Assert.Equal(hash, r.QueryHash);
+                }
+            });
+    }
+
+    [Fact]
+    public void Parse_Float_Exponent_Format()
+    {
+        // arrange
+        var source = Encoding.UTF8.GetBytes(
+            FileResource.Open("Float.json")
+            .NormalizeLineBreaks());
+
+        // act
+        var obj = Utf8GraphQLRequestParser.ParseJson(source);
+
+        // assert
+        obj.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_Invalid_Query()
+    {
+        // assert
+        Assert.Throws<SyntaxException>(
+            () =>
+            {
                     // arrange
                     var source = Encoding.UTF8.GetBytes("{\"query\":\"\"}"
-                        .NormalizeLineBreaks());
-                    var parserOptions = new ParserOptions();
-                    var requestParser = new Utf8GraphQLRequestParser(
-                        source,
-                        parserOptions,
-                        new DocumentCache(),
-                        new Sha256DocumentHashProvider());
+                    .NormalizeLineBreaks());
+                var parserOptions = new ParserOptions();
+                var requestParser = new Utf8GraphQLRequestParser(
+                    source,
+                    parserOptions,
+                    new DocumentCache(),
+                    new Sha256DocumentHashProvider());
 
                     // act
                     requestParser.Parse();
-                });
-        }
+            });
+    }
 
-        [Fact]
-        public void Parse_Empty_Json()
-        {
-            // assert
-            Assert.Throws<SyntaxException>(
-                () =>
-                {
+    [Fact]
+    public void Parse_Empty_Json()
+    {
+        // assert
+        Assert.Throws<SyntaxException>(
+            () =>
+            {
                     // arrange
                     var source = Encoding.UTF8.GetBytes("{ }"
-                        .NormalizeLineBreaks());
-                    var parserOptions = new ParserOptions();
-                    var requestParser = new Utf8GraphQLRequestParser(
-                        source,
-                        parserOptions,
-                        new DocumentCache(),
-                        new Sha256DocumentHashProvider());
+                    .NormalizeLineBreaks());
+                var parserOptions = new ParserOptions();
+                var requestParser = new Utf8GraphQLRequestParser(
+                    source,
+                    parserOptions,
+                    new DocumentCache(),
+                    new Sha256DocumentHashProvider());
 
                     // act
                     requestParser.Parse();
-                });
-        }
+            });
+    }
 
-        [Fact]
-        public void Parse_Empty_String()
-        {
-            // assert
-            Assert.Throws<ArgumentException>(
-                () =>
-                {
+    [Fact]
+    public void Parse_Empty_String()
+    {
+        // assert
+        Assert.Throws<ArgumentException>(
+            () =>
+            {
                     // arrange
                     var source = Encoding.UTF8.GetBytes(string.Empty);
-                    var parserOptions = new ParserOptions();
-                    var requestParser = new Utf8GraphQLRequestParser(
-                        source,
-                        parserOptions,
-                        new DocumentCache(),
-                        new Sha256DocumentHashProvider());
+                var parserOptions = new ParserOptions();
+                var requestParser = new Utf8GraphQLRequestParser(
+                    source,
+                    parserOptions,
+                    new DocumentCache(),
+                    new Sha256DocumentHashProvider());
 
                     // act
                     requestParser.Parse();
-                });
-        }
+            });
+    }
 
-        [Fact]
-        public void Parse_Space_String()
-        {
-            // assert
-            Assert.Throws<SyntaxException>(
-                () =>
-                {
+    [Fact]
+    public void Parse_Space_String()
+    {
+        // assert
+        Assert.Throws<SyntaxException>(
+            () =>
+            {
                     // arrange
                     var source = Encoding.UTF8.GetBytes(" ");
-                    var parserOptions = new ParserOptions();
-                    var requestParser = new Utf8GraphQLRequestParser(
-                        source,
-                        parserOptions,
-                        new DocumentCache(),
-                        new Sha256DocumentHashProvider());
+                var parserOptions = new ParserOptions();
+                var requestParser = new Utf8GraphQLRequestParser(
+                    source,
+                    parserOptions,
+                    new DocumentCache(),
+                    new Sha256DocumentHashProvider());
 
                     // act
                     requestParser.Parse();
-                });
-        }
+            });
+    }
 
-        private class GraphQLRequestDto
+    private class GraphQLRequestDto
+    {
+        [JsonProperty("operationName")]
+        public string OperationName { get; set; }
+
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("query")]
+        public string Query { get; set; }
+
+        [JsonProperty("variables")]
+        public IReadOnlyDictionary<string, object> Variables { get; set; }
+
+        [JsonProperty("extensions")]
+        public IReadOnlyDictionary<string, object> Extensions { get; set; }
+    }
+
+    private class CustomGraphQLRequestDto
+        : GraphQLRequestDto
+    {
+        public string CustomProperty { get; set; }
+    }
+
+    private class RelayGraphQLRequestDto
+        : GraphQLRequestDto
+    {
+        [JsonProperty("id")]
+        public new string Id { get; set; }
+    }
+
+    private class DocumentCache : IDocumentCache
+    {
+        private readonly Dictionary<string, DocumentNode> _cache = new();
+
+        public int Capacity => int.MaxValue;
+
+        public int Count => _cache.Count;
+
+        public void TryAddDocument(string documentId, DocumentNode document)
         {
-            [JsonProperty("operationName")]
-            public string OperationName { get; set; }
-
-            [JsonProperty("id")]
-            public string Id { get; set; }
-
-            [JsonProperty("query")]
-            public string Query { get; set; }
-
-            [JsonProperty("variables")]
-            public IReadOnlyDictionary<string, object> Variables { get; set; }
-
-            [JsonProperty("extensions")]
-            public IReadOnlyDictionary<string, object> Extensions { get; set; }
-        }
-
-        private class CustomGraphQLRequestDto
-            : GraphQLRequestDto
-        {
-            public string CustomProperty { get; set; }
-        }
-
-        private class RelayGraphQLRequestDto
-            : GraphQLRequestDto
-        {
-            [JsonProperty("id")]
-            public new string Id { get; set; }
-        }
-
-        private class DocumentCache : IDocumentCache
-        {
-            private readonly Dictionary<string, DocumentNode> _cache = new();
-
-            public int Capacity => int.MaxValue;
-
-            public int Count => _cache.Count;
-
-            public void TryAddDocument(string documentId, DocumentNode document)
+            if (!_cache.ContainsKey(documentId))
             {
-                if (!_cache.ContainsKey(documentId))
-                {
-                    _cache.Add(documentId, document);
-                }
+                _cache.Add(documentId, document);
             }
+        }
 
-            public bool TryGetDocument(
-                string documentId,
-                out DocumentNode document) =>
-                _cache.TryGetValue(documentId, out document);
+        public bool TryGetDocument(
+            string documentId,
+            out DocumentNode document) =>
+            _cache.TryGetValue(documentId, out document);
 
-            public void Clear()
-            {
-                _cache.Clear();
-            }
+        public void Clear()
+        {
+            _cache.Clear();
         }
     }
 }

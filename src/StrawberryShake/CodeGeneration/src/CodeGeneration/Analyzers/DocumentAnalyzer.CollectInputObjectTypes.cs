@@ -54,9 +54,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 GetClassName(rename?.Name ?? inputObjectType.Name));
 
             context.RegisterModel(
-                typeName,
+                inputObjectType.Name,
                 new InputObjectTypeModel(
-                    GetClassName(rename?.Name ?? inputObjectType.Name),
+                    typeName,
                     inputObjectType.Description,
                     inputObjectType,
                     fields));
