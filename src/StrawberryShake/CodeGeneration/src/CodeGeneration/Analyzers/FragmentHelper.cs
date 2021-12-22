@@ -74,8 +74,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 Fragment? objectFragment =
                     list
                         .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())
-                        ?
-                        .Fragment;
+                        ?.Fragment;
 
                 if (objectFragment is not null)
                 {
