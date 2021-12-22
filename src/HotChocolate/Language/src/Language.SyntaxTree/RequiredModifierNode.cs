@@ -16,7 +16,7 @@ public sealed class RequiredModifierNode : INullabilityModifierNode
     }
 
     /// <inheritdoc />
-    public SyntaxKind Kind => SyntaxKind.RequiredDesignator;
+    public SyntaxKind Kind => SyntaxKind.RequiredModifier;
 
     /// <inheritdoc />
     public Location? Location { get; }

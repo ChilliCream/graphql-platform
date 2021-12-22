@@ -47,7 +47,7 @@ public enum SyntaxKind
     FloatValue,
     PublicKeyword,
     ListNullability,
-    RequiredDesignator,
-    OptionalDesignator,
+    RequiredModifier,
+    OptionalModifier,
     SchemaCoordinate,
 }
