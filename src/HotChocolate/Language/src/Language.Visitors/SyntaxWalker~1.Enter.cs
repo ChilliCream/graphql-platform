@@ -91,6 +91,8 @@ public partial class SyntaxWalker<TContext>
                 return Enter((EnumTypeExtensionNode)node, context);
             case SyntaxKind.InputObjectTypeExtension:
                 return Enter((InputObjectTypeExtensionNode)node, context);
+            case SyntaxKind.SchemaCoordinate:
+                return Enter((SchemaCoordinateNode)node, context);
             default:
                 throw new NotSupportedException(node.GetType().FullName);
         }
@@ -284,5 +286,10 @@ public partial class SyntaxWalker<TContext>
     protected virtual ISyntaxVisitorAction Enter(
        InputObjectTypeExtensionNode node,
        TContext context) =>
+       DefaultAction;
+
+    protected virtual ISyntaxVisitorAction Enter(
+       SchemaCoordinateNode node,
+       ISyntaxVisitorContext context) =>
        DefaultAction;
 }

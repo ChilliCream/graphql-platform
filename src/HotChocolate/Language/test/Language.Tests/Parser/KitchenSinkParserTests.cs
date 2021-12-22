@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8KitchenSinkParserTests
+public class KitchenSinkParserTests
 {
     [Fact]
     public void ParseFacebookKitchenSinkSchema()

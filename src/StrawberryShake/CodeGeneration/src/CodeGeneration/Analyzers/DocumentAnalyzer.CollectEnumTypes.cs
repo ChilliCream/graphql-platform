@@ -43,7 +43,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                     rename?.Name ?? GetClassName(enumType.Name));
 
                 context.RegisterModel(
-                    enumType.Name,
+                    typeName,
                     new EnumTypeModel(
                         typeName,
                         enumType.Description,

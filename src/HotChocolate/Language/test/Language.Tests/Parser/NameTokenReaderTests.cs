@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8NameTokenReaderTests
+public class NameTokenReaderTests
 {
     [InlineData("    \nhelloWorld_123")]
     [InlineData("    \nhelloWorld_123\n     ")]
