@@ -270,13 +270,7 @@ public static class SchemaExtensions
                         return enumValue;
                     }
 
-                    throw new InvalidSchemaCoordinateException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Enum value `{0}` was not found on type `{1}`.",
-                            coordinate.MemberName.Value,
-                            coordinate.Name),
-                        coordinate);
+                    throw TypeThrowHelper.Schema_GetMember_EnumValueNotFound(coordinate);
                 }
 
                 if (type.Kind is TypeKind.InputObject)
@@ -287,25 +281,13 @@ public static class SchemaExtensions
                         return input;
                     }
 
-                    throw new InvalidSchemaCoordinateException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Input field `{0}` was not found on type `{1}`.",
-                            coordinate.MemberName.Value,
-                            coordinate.Name),
-                        coordinate);
+                    throw TypeThrowHelper.Schema_GetMember_InputFieldNotFound(coordinate);
                 }
             }
 
             if (type.Kind is not TypeKind.Object and not TypeKind.Interface)
             {
-                throw new InvalidSchemaCoordinateException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "The coordinate `{0}` is invalid for the type `{1}`.",
-                        coordinate.ToString(),
-                        type.Name.Value),
-                    coordinate);
+                throw TypeThrowHelper.Schema_GetMember_InvalidCoordinate(coordinate, type);
             }
 
             var complexType = (IComplexOutputType)type;
@@ -321,30 +303,12 @@ public static class SchemaExtensions
                     return fieldArg;
                 }
 
-                throw new InvalidSchemaCoordinateException(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Argument `{0}` was not found on field `{1}.{2}`.",
-                        coordinate.ArgumentName.Value,
-                        coordinate.Name.Value,
-                        coordinate.MemberName.Value),
-                    coordinate);
+                throw TypeThrowHelper.Schema_GetMember_FieldArgNotFound(coordinate);
             }
 
-            throw new InvalidSchemaCoordinateException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Field `{0}` was not found on type `{1}`.",
-                    coordinate.MemberName.Value,
-                    coordinate.Name.Value),
-                coordinate);
+            throw TypeThrowHelper.Schema_GetMember_FieldNotFound(coordinate);
         }
 
-        throw new InvalidSchemaCoordinateException(
-            string.Format(
-                CultureInfo.InvariantCulture,
-                "A type with the name `{0}` was not found.",
-                coordinate.Name.Value),
-            coordinate);
+        throw TypeThrowHelper.Schema_GetMember_TypeNotFound(coordinate);
     }
 }
