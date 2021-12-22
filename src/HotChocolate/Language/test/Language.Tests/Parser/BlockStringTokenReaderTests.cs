@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8BlockStringTokenReaderTests
+public class BlockStringTokenReaderTests
 {
     [Fact]
     private void ReadToken()

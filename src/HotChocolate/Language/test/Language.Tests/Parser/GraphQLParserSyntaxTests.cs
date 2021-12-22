@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8GraphQLParserSyntaxTests
+public class GraphQLParserSyntaxTests
 {
     [Fact]
     public void Parse_FieldNode_From_String() =>

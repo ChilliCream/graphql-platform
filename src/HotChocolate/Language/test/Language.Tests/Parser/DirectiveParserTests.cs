@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8DirectiveParserTests
+public class DirectiveParserTests
 {
     [Fact]
     public void ParseUniqueDirective()

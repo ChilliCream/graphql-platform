@@ -50,5 +50,17 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("DirectiveLocation_Value_CannotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
     }
 }

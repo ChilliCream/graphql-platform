@@ -48,5 +48,6 @@ public enum SyntaxKind
     PublicKeyword,
     ListNullability,
     RequiredDesignator,
-    OptionalDesignator
+    OptionalDesignator,
+    SchemaCoordinate,
 }

@@ -90,6 +90,8 @@ public partial class SyntaxVisitor<TContext>
                 return VisitChildren((EnumTypeExtensionNode)node, context);
             case SyntaxKind.InputObjectTypeExtension:
                 return VisitChildren((InputObjectTypeExtensionNode)node, context);
+            case SyntaxKind.SchemaCoordinate:
+                return VisitChildren((SchemaCoordinateNode)node, context);
 
             default:
                 throw new NotSupportedException(node.GetType().FullName);
@@ -1123,6 +1125,32 @@ public partial class SyntaxVisitor<TContext>
             {
                 return Break;
             }
+        }
+
+        return DefaultAction;
+    }
+
+    protected virtual ISyntaxVisitorAction VisitChildren(
+        SchemaCoordinateNode node,
+        TContext context)
+    {
+        if (_options.VisitNames && Visit(node.Name, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if(_options.VisitNames && 
+            node.MemberName is not null && 
+            Visit(node.MemberName, node, context).IsBreak())
+        {
+            return Break;
+        }
+
+        if(_options.VisitNames && 
+            node.ArgumentName is not null && 
+            Visit(node.ArgumentName, node, context).IsBreak())
+        {
+            return Break;
         }
 
         return DefaultAction;
