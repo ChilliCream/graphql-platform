@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using static HotChocolate.Properties.AbstractionResources;
 
 namespace HotChocolate;
 
@@ -46,14 +47,14 @@ public readonly struct SchemaCoordinate
         if (ofDirective && memberName is not null)
         {
             throw new ArgumentException(
-                "A directive cannot contain a member name.",
+                ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate,
                 nameof(memberName));
         }
 
         if (!ofDirective && memberName is null && argumentName is not null)
         {
             throw new ArgumentException(
-                "A argument name without a member name is only allowed on directive coordinates.", 
+                ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName, 
                 nameof(argumentName));
         }
 
