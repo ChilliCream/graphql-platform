@@ -44,6 +44,9 @@ public readonly struct SchemaCoordinate
         NameString? argumentName = null,
         bool ofDirective = false)
     {
+        memberName?.EnsureNotEmpty(nameof(memberName));
+        argumentName?.EnsureNotEmpty(nameof(argumentName));
+
         if (ofDirective && memberName is not null)
         {
             throw new ArgumentException(
