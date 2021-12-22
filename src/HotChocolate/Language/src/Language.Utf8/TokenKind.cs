@@ -118,5 +118,10 @@ public enum TokenKind : byte
     /// <summary>
     /// A comment token.
     /// </summary>
-    Comment
+    Comment,
+
+    /// <summary>
+    /// .
+    /// </summary>
+    Dot,
 }

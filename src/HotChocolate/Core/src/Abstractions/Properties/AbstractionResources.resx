@@ -198,4 +198,10 @@
   <data name="ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure" xml:space="preserve">
     <value>The nullability modifier does not match the field type structure.</value>
   </data>
+  <data name="ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName" xml:space="preserve">
+    <value>A argument name without a member name is only allowed on directive coordinates.</value>
+  </data>
+  <data name="ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate" xml:space="preserve">
+    <value>A directive cannot contain a member name.</value>
+  </data>
 </root>

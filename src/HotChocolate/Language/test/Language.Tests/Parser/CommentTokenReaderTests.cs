@@ -3,7 +3,7 @@ using Xunit;
 
 namespace HotChocolate.Language;
 
-public class Utf8CommentTokenReaderTests
+public class CommentTokenReaderTests
 {
     [InlineData("# my comment foo bar")]
     [InlineData("#my comment foo bar")]
