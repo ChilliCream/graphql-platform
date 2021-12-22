@@ -201,7 +201,7 @@ ReadNameToken_Next:
     /// <summary>
     /// Reads punctuator tokens as specified in
     /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
-    /// one of ! $ ( ) ... . : = @ [ ] { | }
+    /// one of ! ? $ ( ) ... . : = @ [ ] { | }
     /// additionally the reader will tokenize ampersands.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
