@@ -37,12 +37,12 @@ namespace HotChocolate.Validation.Rules;
 /// chapter.
 ///
 /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
-/// 
+///
 /// AND
-/// 
+///
 /// Oneof Input Objects require that exactly one field must be supplied and that
 /// field must not be {null}.
-/// 
+///
 /// DRAFT: https://github.com/graphql/graphql-spec/pull/825
 /// </summary>
 internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
@@ -199,23 +199,29 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         {
             if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
             {
-                if (inputObjectType.Fields.Count == 0 || inputObjectType.Fields.Count > 1)
+                if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
                     context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
                 }
                 else
                 {
-                    IInputField field = inputObjectType.Fields[0];
-                    IValueNode value = node.Fields[0].Value;
+                    ObjectFieldNode value = node.Fields[0];
 
-                    if (value.IsNull())
+                    if (inputObjectType.Fields.TryGetField(value.Name.Value, out InputField? field))
                     {
-                        context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
-                    }
-                    else if (value.Kind is SyntaxKind.Variable &&
-                        !IsInstanceOfType(context, new NonNullType(field.Type), value))
-                    {
-                        context.Errors.Add(context.OneOfVariablesMustBeNonNull(node));
+                        if (value.Value.IsNull())
+                        {
+                            context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
+                        }
+                        else if (value.Value.Kind is SyntaxKind.Variable &&
+                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                        {
+                            context.Errors.Add(
+                                context.OneOfVariablesMustBeNonNull(
+                                    node,
+                                    field.Coordinate,
+                                    ((VariableNode)value.Value).Name.Value));
+                        }
                     }
                 }
             }

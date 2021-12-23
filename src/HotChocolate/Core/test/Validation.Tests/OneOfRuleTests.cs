@@ -1,11 +1,9 @@
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
-    public class OneOfRuleTests
-        : DocumentValidatorVisitorTestBase
+    public class OneOfRuleTests : DocumentValidatorVisitorTestBase
     {
         public OneOfRuleTests()
             : base(builder => builder.AddValueRules())
@@ -28,7 +26,7 @@ namespace HotChocolate.Validation
         public void MultipleFieldsAreNotAllowed_1()
         {
             ExpectErrors(@"
-                query addPet($cat: CatInput, $dog: DogInput) {
+                mutation addPet($cat: CatInput, $dog: DogInput) {
                     addPet(pet: {cat: $cat, dog: $dog}) {
                         name
                     }
@@ -39,7 +37,7 @@ namespace HotChocolate.Validation
         public void MultipleFieldsAreNotAllowed_2()
         {
             ExpectErrors(@"
-                query addPet($dog: DogInput) {
+                mutation addPet($dog: DogInput) {
                     addPet(pet: { cat: { name: ""Brontie"" }, dog: $dog }) {
                         name
                     }
@@ -50,8 +48,52 @@ namespace HotChocolate.Validation
         public void MultipleFieldsAreNotAllowed_3()
         {
             ExpectErrors(@"
-                query addPet($cat: CatInput, $dog: DogInput) {
+                mutation addPet($cat: CatInput, $dog: DogInput) {
                     addPet(pet: {cat: $cat, dog: $dog}) {
+                        name
+                    }
+                }");
+        }
+
+        [Fact]
+        public void VariablesUsedForOneofInputObjectFieldsMustBeNonNullable_Valid()
+        {
+            ExpectValid(@"
+                mutation addPet($cat: CatInput!) {
+                    addPet(pet: { cat: $cat }) {
+                        name
+                    }
+                }");
+        }
+
+        [Fact]
+        public void VariablesUsedForOneofInputObjectFieldsMustBeNonNullable_Error()
+        {
+            ExpectErrors(@"
+                mutation addPet($cat: CatInput) {
+                    addPet(pet: { cat: $cat }) {
+                        name
+                    }
+                }");
+        }
+
+        [Fact]
+        public void IfFieldWithLiteralValueIsPresentThenTheValueMustNotBeNull_Valid()
+        {
+            ExpectValid(@"
+                mutation addPet {
+                    addPet(pet: { cat: { name: ""Brontie"" } }) {
+                        name
+                    }
+                }");
+        }
+
+        [Fact]
+        public void IfFieldWithLiteralValueIsPresentThenTheValueMustNotBeNull_Error()
+        {
+            ExpectErrors(@"
+                mutation addPet {
+                    addPet(pet: { cat: null }) {
                         name
                     }
                 }");
