@@ -252,6 +252,50 @@ internal static class ThrowHelper
             path);
     }
 
+    public static SerializationException OneOfNoFieldSet(
+        IType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                @"No field of the Oneof Input Object is set. Oneof Input Objects are a special variant of Input Objects where the type
+ system asserts that exactly one of the fields must be set and non-null.")
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfMoreThanOneFieldSet(
+        IType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                @"More than one field of the Oneof Input Object is set. Oneof Input Objects are a special variant of Input Objects where the type
+ system asserts that exactly one of the fields must be set and non-null.")
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfFieldIsNull(
+        IType type,
+        Path? path,
+        InputField field)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                @"`null` was set to a one of field. Oneof Input Objects are a special variant of Input Objects where the type
+ system asserts that exactly one of the fields must be set and non-null.")
+            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetPath(path)
+            .SetExtension(nameof(field), field.Coordinate.ToString());
+
+        return new(builder.Build(), type, path);
+    }
+
     public static SerializationException NonNullInputViolation(
         IType type,
         Path? path,

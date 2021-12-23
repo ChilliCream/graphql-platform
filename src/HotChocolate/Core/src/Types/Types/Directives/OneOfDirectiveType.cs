@@ -4,10 +4,7 @@ namespace HotChocolate.Types;
 
 /// <summary>
 /// The `@oneOf` directive is used within the type system definition language
-/// to indicate:
-///
-/// - an Input Object is a Oneof Input Object, or
-/// - an Object Type's Field is a Oneof Field.
+/// to indicate an Input Object is a Oneof Input Object.
 /// </summary>
 public sealed class OneOfDirectiveType : DirectiveType
 {

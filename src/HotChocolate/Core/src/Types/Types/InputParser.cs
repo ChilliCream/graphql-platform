@@ -199,6 +199,17 @@ public class InputParser
             try
             {
                 IReadOnlyList<ObjectFieldNode> fields = ((ObjectValueNode)resultValue).Fields;
+                var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
+
+                if (oneOf && fields.Count is 0)
+                {
+                    throw OneOfNoFieldSet(type, path);
+                }
+
+                if (oneOf && fields.Count > 1)
+                {
+                    throw OneOfMoreThanOneFieldSet(type, path);
+                }
 
                 for (var i = 0; i < fields.Count; i++)
                 {
@@ -209,10 +220,16 @@ public class InputParser
                         IValueNode literal = fieldValue.Value;
                         Path fieldPath = path.Append(field.Name);
 
-                        if (literal.Kind == SyntaxKind.NullValue &&
-                            field.Type.Kind == TypeKind.NonNull)
+                        if (literal.Kind is SyntaxKind.NullValue)
                         {
-                            throw NonNullInputViolation(type, fieldPath, field);
+                            if (field.Type.Kind is TypeKind.NonNull)
+                            {
+                                throw NonNullInputViolation(type, fieldPath, field);
+                            }
+                            else if (oneOf)
+                            {
+                                throw OneOfFieldIsNull(type, fieldPath, field);
+                            }
                         }
 
                         var value = ParseLiteralInternal(
@@ -376,6 +393,17 @@ public class InputParser
     {
         if (resultValue is IReadOnlyDictionary<string, object?> map)
         {
+            var oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
+
+            if (oneOf && map.Count is 0)
+            {
+                throw OneOfNoFieldSet(type, path);
+            }
+
+            if (oneOf && map.Count > 1)
+            {
+                throw OneOfMoreThanOneFieldSet(type, path);
+            }
 
             var fieldValues = new object?[type.Fields.Count];
             var consumed = 0;
@@ -388,9 +416,17 @@ public class InputParser
                 {
                     Path fieldPath = path.Append(field.Name);
 
-                    if (fieldValue is null && field.Type.Kind == TypeKind.NonNull)
+                    if (fieldValue is null)
                     {
-                        throw NonNullInputViolation(type, fieldPath, field);
+                        if (field.Type.Kind is TypeKind.NonNull)
+                        {
+                            throw NonNullInputViolation(type, fieldPath, field);
+                        }
+
+                        if (oneOf)
+                        {
+                            throw OneOfFieldIsNull(type, fieldPath, field);
+                        }
                     }
 
                     var value = Deserialize(fieldValue, field.Type, fieldPath, field);
