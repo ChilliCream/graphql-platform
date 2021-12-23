@@ -187,7 +187,11 @@ public class InputParser
             Span<bool> processed = stack <= 256 && type.Fields.Count <= 32
                 ? stackalloc bool[type.Fields.Count]
                 : processedBuffer = ArrayPool<bool>.Shared.Rent(type.Fields.Count);
-            processed.Clear();
+            
+            if(processedBuffer is not null)
+            {
+                processed.Clear();
+            }
 
             if (processedBuffer is null)
             {
