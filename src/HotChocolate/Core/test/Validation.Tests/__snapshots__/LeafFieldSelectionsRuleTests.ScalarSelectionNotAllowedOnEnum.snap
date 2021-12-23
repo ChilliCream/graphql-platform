@@ -18,7 +18,7 @@
       "field": "furColor",
       "type": "FurColor",
       "responseName": "furColor",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Leaf-Field-Selections"
     },
     "Exception": null,
     "SyntaxNode": {

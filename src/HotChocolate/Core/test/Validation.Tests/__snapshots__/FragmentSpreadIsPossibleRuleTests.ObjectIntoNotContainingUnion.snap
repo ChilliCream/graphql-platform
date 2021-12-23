@@ -17,7 +17,7 @@
       "typeCondition": "Human",
       "selectionSetType": "CatOrDog",
       "fragment": "humanFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-is-possible"
     },
     "Exception": null,
     "SyntaxNode": {
