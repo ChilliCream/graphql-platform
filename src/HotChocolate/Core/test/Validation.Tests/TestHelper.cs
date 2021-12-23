@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Validation.Options;
-using System.Linq;
 
 namespace HotChocolate.Validation
 {
