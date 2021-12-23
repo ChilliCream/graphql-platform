@@ -228,7 +228,6 @@ public class DefaultNamingConventions
         Span<char> buffer = size <= 128
             ? stackalloc char[size]
             : rented = ArrayPool<char>.Shared.Rent(size);
-        buffer.Clear();
 
         try
         {
