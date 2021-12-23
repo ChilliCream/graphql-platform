@@ -347,6 +347,9 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                 if (nonRepeatable > 1)
                 {
                     var keys = ArrayPool<string>.Shared.Rent(nonRepeatable);
+
+                    // we clear the section of the array we need before we are using it.
+                    keys.AsSpan().Slice(0, nonRepeatable).Clear();
                     int i = 0, ki = 0;
 
                     do
@@ -374,12 +377,6 @@ public class ObjectFieldDefinition : OutputFieldDefinitionBase
                         }
 
                     } while (i < count);
-
-                    if (ki > 0)
-                    {
-                        // we clear the section of the array we used.
-                        keys.AsSpan().Slice(0, ki).Clear();
-                    }
 
                     ArrayPool<string>.Shared.Return(keys);
                 }

@@ -60,6 +60,7 @@ public abstract class DescriptorBase<T>
                 rented[i].Configure(Context);
             }
 
+            rented.AsSpan().Clear();
             ArrayPool<CreateConfiguration>.Shared.Return(rented, true);
         }
 
