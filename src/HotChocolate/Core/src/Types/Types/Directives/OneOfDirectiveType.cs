@@ -15,9 +15,5 @@ public sealed class OneOfDirectiveType : DirectiveType
         => descriptor
             .Name(WellKnownDirectives.OneOf)
             .Description(OneOfDirectiveType_Description)
-            .Location(
-                DirectiveLocation.InputObject |
-                DirectiveLocation.FieldDefinition);
-
-
+            .Location(DirectiveLocation.InputObject);
 }
