@@ -46,6 +46,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
         ValidatePipelineOrder = options.ValidatePipelineOrder;
         StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation;
         DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck;
+        EnableOneOf = options.EnableOneOf;
     }
 
     /// <summary>
@@ -141,4 +142,7 @@ public class ReadOnlySchemaOptions : IReadOnlySchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; }
+
+    /// <inheritdoc />
+    public bool EnableOneOf { get; }
 }

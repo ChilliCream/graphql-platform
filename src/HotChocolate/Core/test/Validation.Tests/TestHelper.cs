@@ -6,7 +6,6 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Validation.Options;
 using System.Linq;
-using HotChocolate.Execution;
 
 namespace HotChocolate.Validation
 {

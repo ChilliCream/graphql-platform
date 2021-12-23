@@ -645,4 +645,29 @@ internal static class ErrorHelper
             .SetCode(ErrorCodes.Validation.IntrospectionNotAllowed)
             .Build();
     }
+
+    public static IError OneOfMustHaveExactlyOneField(
+        this IDocumentValidatorContext context,
+        ISyntaxNode node)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(@"Oneof Input Objects require that exactly one field must be supplied and that
+field must not be `null`.")
+            .AddLocation(node)
+            .SetPath(context.CreateErrorPath())
+            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .Build();
+    }
+
+    public static IError OneOfVariablesMustBeNonNull(
+        this IDocumentValidatorContext context,
+        ISyntaxNode node)
+    {
+        return ErrorBuilder.New()
+            .SetMessage(@"Variables assigned to a field of a Oneof Input Object must be non-null.")
+            .AddLocation(node)
+            .SetPath(context.CreateErrorPath())
+            .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
+            .Build();
+    }
 }

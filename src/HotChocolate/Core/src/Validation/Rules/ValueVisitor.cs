@@ -37,6 +37,13 @@ namespace HotChocolate.Validation.Rules;
 /// chapter.
 ///
 /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+/// 
+/// AND
+/// 
+/// Oneof Input Objects require that exactly one field must be supplied and that
+/// field must not be {null}.
+/// 
+/// DRAFT: https://github.com/graphql/graphql-spec/pull/825
 /// </summary>
 internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 {
@@ -190,6 +197,29 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
+            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            {
+                if (inputObjectType.Fields.Count == 0 || inputObjectType.Fields.Count > 1)
+                {
+                    context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
+                }
+                else
+                {
+                    IInputField field = inputObjectType.Fields[0];
+                    IValueNode value = node.Fields[0].Value;
+
+                    if (value.IsNull())
+                    {
+                        context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
+                    }
+                    else if (value.Kind is SyntaxKind.Variable &&
+                        !IsInstanceOfType(context, new NonNullType(field.Type), value))
+                    {
+                        context.Errors.Add(context.OneOfVariablesMustBeNonNull(node));
+                    }
+                }
+            }
+
             if (context.Names.Count >= inputObjectType.Fields.Count)
             {
                 return Continue;

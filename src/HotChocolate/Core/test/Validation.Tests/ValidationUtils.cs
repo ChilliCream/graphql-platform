@@ -85,6 +85,7 @@ namespace HotChocolate.Validation
                     DirectiveLocation.Field |
                     DirectiveLocation.FragmentDefinition,
                     x => x.Repeatable())
+                .ModifyOptions(o => o.EnableOneOf = true)
                 .Create();
     }
 }

@@ -110,6 +110,9 @@ public class SchemaOptions : ISchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
+    
+    /// <inheritdoc />
+    public bool EnableOneOf { get; set; }
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -137,7 +140,8 @@ public class SchemaOptions : ISchemaOptions
             StrictRuntimeTypeValidation = options.StrictRuntimeTypeValidation,
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             SortFieldsByName = options.SortFieldsByName,
-            DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck
+            DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
+            EnableOneOf = options.EnableOneOf
         };
     }
 }

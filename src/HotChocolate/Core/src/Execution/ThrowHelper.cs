@@ -308,4 +308,12 @@ internal static class ThrowHelper
             .SetExtension(nameof(field), field.ToString())
             .SetCode(ErrorCodes.Execution.CannotCastParent)
             .Build());
+
+    public static GraphQLException OneOfFieldMustBeNonNull(
+        FieldCoordinate field)
+        => new(ErrorBuilder.New()
+            .SetMessage($"Value for member field {field.FieldName} must be non-null.")
+            .SetExtension(nameof(field), field.ToString())
+            .SetCode(ErrorCodes.Execution.CannotCastParent)
+            .Build());
 }
