@@ -90,5 +90,18 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 @  serializationType(name: ""global::System.String"")
                 @  runtimeType(name: ""global::System.IntPtr"", valueType: true)");
         }
+
+        [Fact]
+        public void NonNullableValueType_WithoutGlobal_Input()
+        {
+            AssertResult(
+                @"query GetSomething($bar: Bar){ foo(bar: $bar)}",
+                "type Query { foo(bar: Bar ): String }",
+                "scalar IntPtr",
+                "input Bar { nonNullablePtr: IntPtr! }",
+                @"extend scalar IntPtr
+                @  serializationType(name: ""global::System.String"")
+                @  runtimeType(name: ""System.IntPtr"", valueType: true)");
+        }
     }
 }
