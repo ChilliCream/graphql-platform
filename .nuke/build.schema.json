@@ -110,7 +110,6 @@
               "Pack",
               "PackLocal",
               "Publish",
-              "ReportCodecov",
               "ReportCoverage",
               "Reset",
               "Restore",
