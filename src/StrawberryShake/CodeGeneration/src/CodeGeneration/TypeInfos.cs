@@ -108,9 +108,16 @@ namespace StrawberryShake.CodeGeneration
                 ? typeInfo
                 : new(fullTypeName, valueType);
 
-        public RuntimeTypeInfo TryCreate(RuntimeTypeDirective runtimeType) =>
-            _infos.TryGetValue(runtimeType.Name, out RuntimeTypeInfo? typeInfo)
-                ? typeInfo
-                : new(runtimeType.Name, runtimeType.ValueType ?? false);
+        public RuntimeTypeInfo TryCreate(RuntimeTypeDirective runtimeType)
+        {
+            if (_infos.TryGetValue(runtimeType.Name, out RuntimeTypeInfo? typeInfo))
+            {
+                return typeInfo;
+            }
+
+            typeInfo = new(runtimeType.Name, runtimeType.ValueType ?? false);
+            _infos.Add(runtimeType.Name, typeInfo);
+            return typeInfo;
+        }
     }
 }
