@@ -152,7 +152,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISetPersonResult
+    public partial interface ISetPersonResult
     {
         public global::Foo.Bar.ISetPerson_Person? Person
         {
@@ -162,7 +162,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISetPerson_Person
+    public partial interface ISetPerson_Person
     {
         public global::System.Index SetEmail
         {
@@ -172,7 +172,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISetPerson_Person_Person : ISetPerson_Person
+    public partial interface ISetPerson_Person_Person : ISetPerson_Person
     {
     }
 
@@ -291,7 +291,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISetPersonQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ISetPersonQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISetPersonResult>> ExecuteAsync(global::System.Index email, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISetPersonResult>> Watch(global::System.Index email, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -319,7 +319,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.ISetPersonQuery SetPerson
         {
