@@ -648,11 +648,13 @@ internal static class ErrorHelper
 
     public static IError OneOfMustHaveExactlyOneField(
         this IDocumentValidatorContext context,
-        ISyntaxNode node)
+        ISyntaxNode node,
+        InputObjectType type)
         => ErrorBuilder.New()
-            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField)
+            .SetMessage(Resources.ErrorHelper_OneOfMustHaveExactlyOneField, type.Name.Value)
             .AddLocation(node)
             .SetPath(context.CreateErrorPath())
+            .SetExtension(nameof(type), type.Name)
             .SpecifiedBy("sec-Oneof–Input-Objects-Have-Exactly-One-Field", rfc: 825)
             .Build();
 

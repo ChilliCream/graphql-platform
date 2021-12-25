@@ -219,7 +219,7 @@
     <value>Introspection is not allowed for the current request.</value>
   </data>
   <data name="ErrorHelper_OneOfMustHaveExactlyOneField" xml:space="preserve">
-    <value>Oneof Input Objects require that exactly one field must be supplied and that
+    <value>The Oneof Input Object `{0}` requires that exactly one field must be supplied and that
 field must not be `null`.</value>
   </data>
   <data name="ErrorHelper_OneOfVariablesMustBeNonNull" xml:space="preserve">

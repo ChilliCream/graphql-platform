@@ -260,7 +260,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_OneOfNoFieldSet,
                 type.Name.Value)
-            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
             .SetPath(path);
 
         return new(builder.Build(), type, path);
@@ -274,7 +274,7 @@ internal static class ThrowHelper
             .SetMessage(
                 ThrowHelper_OneOfMoreThanOneFieldSet,
                 type.Name.Value)
-            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
             .SetPath(path);
 
         return new(builder.Build(), type, path);
@@ -290,7 +290,7 @@ internal static class ThrowHelper
                 ThrowHelper_OneOfFieldIsNull,
                 field.Name.Value,
                 type.Name.Value)
-            .SetCode(ErrorCodes.Execution.NonNullViolation)
+            .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
             .SetPath(path)
             .SetExtension(nameof(field), field.Coordinate.ToString());
 

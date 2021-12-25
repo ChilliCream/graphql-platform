@@ -201,17 +201,25 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             {
                 if (node.Fields.Count == 0 || node.Fields.Count > 1)
                 {
-                    context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
+                    context.Errors.Add(
+                        context.OneOfMustHaveExactlyOneField(
+                            node,
+                            inputObjectType));
                 }
                 else
                 {
                     ObjectFieldNode value = node.Fields[0];
 
-                    if (inputObjectType.Fields.TryGetField(value.Name.Value, out InputField? field))
+                    if (inputObjectType.Fields.TryGetField(
+                        value.Name.Value,
+                        out InputField? field))
                     {
                         if (value.Value.IsNull())
                         {
-                            context.Errors.Add(context.OneOfMustHaveExactlyOneField(node));
+                            context.Errors.Add(
+                                context.OneOfMustHaveExactlyOneField(
+                                    node,
+                                    inputObjectType));
                         }
                         else if (value.Value.Kind is SyntaxKind.Variable &&
                             !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
