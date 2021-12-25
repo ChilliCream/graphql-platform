@@ -829,16 +829,12 @@ Type: `{0}`</value>
  - an Object Type's Field is a Oneof Field.</value>
   </data>
   <data name="ThrowHelper_OneOfNoFieldSet" xml:space="preserve">
-    <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that
-field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>The Oneof Input Objects `{0}` require that exactly one field must be supplied and that field must not be `null`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
   <data name="ThrowHelper_OneOfMoreThanOneFieldSet" xml:space="preserve">
-    <value>More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>More than one field of the Oneof Input Object `{0}` is set. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
   <data name="ThrowHelper_OneOfFieldIsNull" xml:space="preserve">
-    <value>`null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.</value>
+    <value>`null` was set to the field `{0}`of the Oneof Input Object `{1}`. Oneof Input Objects are a special variant of Input Objects where the type system asserts that exactly one of the fields must be set and non-null.</value>
   </data>
 </root>
