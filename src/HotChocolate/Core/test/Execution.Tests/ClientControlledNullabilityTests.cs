@@ -71,7 +71,7 @@ public class ClientControlledNullabilityTests
 
     public class Person
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = default!;
 
         public string? Bio { get; set; }
     }
