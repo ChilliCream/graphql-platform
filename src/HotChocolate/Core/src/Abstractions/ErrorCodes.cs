@@ -78,6 +78,11 @@ public static class ErrorCodes
         /// one of the fields must be set and non-null.
         /// </summary>
         public const string OneOfFieldIsNull = "HC0056";
+
+        /// <summary>
+        /// Value for oneof field {field.FieldName} must be non-null.
+        /// </summary>
+        public const string OneOfFieldMustBeNonNull= "HC0057";
     }
 
     /// <summary>
