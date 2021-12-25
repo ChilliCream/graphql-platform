@@ -1,14 +1,14 @@
 import algoliasearch from "algoliasearch/lite";
 import React, {
   createRef,
+  FC,
   FocusEvent,
-  FunctionComponent,
   RefObject,
   useCallback,
   useEffect,
   useState,
 } from "react";
-import { SearchBoxProvided } from "react-instantsearch-core";
+import { Configure, SearchBoxProvided } from "react-instantsearch-core";
 import {
   connectSearchBox,
   connectStateResults,
@@ -24,11 +24,11 @@ import { State } from "../../state";
 import { changeSearchQuery } from "../../state/common";
 import { Link } from "./link";
 
-interface SearchProperties {
+interface SearchProps {
   siteUrl: string;
 }
 
-export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
+export const Search: FC<SearchProps> = ({ siteUrl }) => {
   const ref = createRef<HTMLDivElement>();
   const initialQuery = useStore<State>().getState().common.searchQuery;
   const query = useSelector<State, string>((state) => state.common.searchQuery);
@@ -53,6 +53,22 @@ export const Search: FunctionComponent<SearchProperties> = ({ siteUrl }) => {
         indexName="chillicream"
         onSearchStateChange={({ query }) => handleChangeQuery(query)}
       >
+        <Configure
+          attributesToRetrieve={["url", "anchor"]}
+          attributesToHighlight={[]}
+          attributesToSnippet={[
+            "content:10",
+            "hierarchy.lvl0:10",
+            "hierarchy.lvl1:10",
+            "hierarchy.lvl2:10",
+            "hierarchy.lvl3:10",
+            "hierarchy.lvl4:10",
+            "hierarchy.lvl5:10",
+          ]}
+          snippetEllipsisText="..."
+          distinct
+          analytics={false}
+        />
         <SearchBox onFocus={() => setFocus(true)} />
         <HitsWrapper show={query.length > 0 && focus}>
           <Index indexName="chillicream">
@@ -100,11 +116,11 @@ function useClickOutside(
   }, [detectClickOutside]);
 }
 
-interface SearchBoxProperties extends SearchBoxProvided {
+interface SearchBoxProps extends SearchBoxProvided {
   onFocus: (event: FocusEvent<HTMLInputElement>) => void;
 }
 
-const SearchBox = connectSearchBox<SearchBoxProperties>(
+const SearchBox = connectSearchBox<SearchBoxProps>(
   ({ currentRefinement, onFocus, refine }) => (
     <SearchField
       type="text"
@@ -134,12 +150,27 @@ const Stats = connectStateResults(
 
 const DocHit =
   (siteUrl: string, clickHandler: () => void) =>
-  ({ hit }: HitComponentProperties) => {
+  ({ hit }: HitComponentProps) => {
     const slug = (hit.url as string).replace(siteUrl, "");
+    const snippetResult = hit?._snippetResult ?? {};
+
+    let attribute = "content";
+
+    if (!snippetResult.content && !!snippetResult.hierarchy) {
+      const hierarchyKeys = Object.keys(snippetResult.hierarchy);
+
+      for (const key of hierarchyKeys) {
+        if (!snippetResult.hierarchy[key]) {
+          break;
+        }
+
+        attribute = "hierarchy." + key;
+      }
+    }
 
     return (
       <Link to={slug} onClick={clickHandler}>
-        <Snippet attribute="content" hit={hit} tagName="mark" />
+        <Snippet attribute={attribute} hit={hit} tagName="mark" />
       </Link>
     );
   };
@@ -160,14 +191,25 @@ const Container = styled.div`
 const SearchField = styled.input`
   border: 0;
   border-radius: var(--border-radius);
-  padding: 10px 15px;
   width: 100%;
+  padding: 10px 15px;
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
-  background-color: var(--text-color-contrast);
+  background-color: var(--secondary-color);
+  color: var(--text-color-contrast);
+  transition: background-color 0.2s ease-in-out;
+
+  ::placeholder {
+    color: var(--text-color-contrast);
+  }
+
+  :hover,
+  :focus {
+    background-color: var(--tertiary-color);
+  }
 `;
 
-interface HitComponentProperties {
+interface HitComponentProps {
   hit: any;
 }
 
@@ -181,7 +223,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   padding: 15px 20px;
   max-height: 80vh;
   overflow-y: initial;
-  background: white;
+  background: var(--text-color-contrast);
   box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
 
   > * + * {
@@ -195,7 +237,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
     line-height: 1.667em;
 
     > a {
-      color: var(--brand-color);
+      color: var(--primary-color);
 
       &:hover {
         color: var(--text-color);
@@ -220,7 +262,7 @@ const HitsWrapper = styled.div<{ show: boolean }>`
   mark {
     display: inline-block;
     padding: 3px 2px;
-    background: var(--brand-color);
+    background: var(--primary-color);
     color: var(--text-color-contrast);
   }
 

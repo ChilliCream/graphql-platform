@@ -8,15 +8,18 @@ namespace StrawberryShake.Tools
         public DownloadCommandArguments(
             CommandArgument uri,
             CommandOption fileName,
-            AuthArguments authArguments)
+            AuthArguments authArguments,
+            CommandOption customHeaders)
         {
             Uri = uri;
             FileName = fileName;
             AuthArguments = authArguments;
+            CustomHeaders = customHeaders;
         }
 
         public CommandArgument Uri { get; }
         public CommandOption FileName { get; }
         public AuthArguments AuthArguments { get; }
+        public CommandOption CustomHeaders { get; }
     }
 }

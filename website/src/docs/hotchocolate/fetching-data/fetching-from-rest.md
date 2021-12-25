@@ -15,7 +15,7 @@ You can automatically generate a dotnet client for this API and integrate it int
 
 If you do not have an OpenAPI specification for your REST endpoint yet, you can easily add it to your API.
 There are two major OpenAPI implementations in dotnet: [NSwag](http://nswag.org) and [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore).
-Head over to the [official ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/tutorials/web-api-help-pages-using-swagger?view=aspnetcore-5.0) documentation to see how it is done.
+Head over to the [official ASP.NET Core](https://docs.microsoft.com/aspnet/core/tutorials/web-api-help-pages-using-swagger) documentation to see how it is done.
 
 In this example, we will use [the official example of Swashbuckle](https://github.com/dotnet/AspNetCore.Docs/tree/main/aspnetcore/tutorials/web-api-help-pages-using-swagger/samples/3.0/TodoApi.Swashbuckle).
 When you start this project, you can navigate to the [Swagger UI](http://localhost:5000/swagger).
@@ -30,7 +30,7 @@ Again, you have several options on how you generate your client.
 You can generate your client from the OpenAPI specification of your endpoint, during build or even with external tools with GUI.
 Have a look here and see what fits your use case the best:
 
-- [NSwag Code Generation](https://docs.microsoft.com/en-us/aspnet/core/tutorials/getting-started-with-nswag?view=aspnetcore-5.0&tabs=visual-studio#code-generation)
+- [NSwag Code Generation](https://docs.microsoft.com/aspnet/core/tutorials/getting-started-with-nswag?tabs=visual-studio#code-generation)
 
 In this example, we will use the NSwag dotnet tool.
 First, we need to create a tool manifest.
@@ -152,7 +152,7 @@ public class QueryType : ObjectType<Query>
 // TodoType.cs
 public class TodoType : ObjectType<Todo>
 {
-    protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<Todo> descriptor)
     {
         descriptor
             .Field(f => f.Id)

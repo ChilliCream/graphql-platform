@@ -1,11 +1,6 @@
 import { graphql, Link } from "gatsby";
 import { MDXRenderer } from "gatsby-plugin-mdx";
-import React, {
-  FunctionComponent,
-  useCallback,
-  useEffect,
-  useRef,
-} from "react";
+import React, { FC, useCallback, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { DocPageFragment } from "../../../graphql-types";
@@ -37,17 +32,18 @@ import {
 import { Aside, DocPageAside } from "./doc-page-aside";
 import { DocPageCommunity } from "./doc-page-community";
 import { DocPageLegacy } from "./doc-page-legacy";
-import { DocPageNavigation, Navigation } from "./doc-page-navigation";
+import {
+  DocPageNavigation,
+  Navigation,
+  ScrollContainer,
+} from "./doc-page-navigation";
 
-interface DocPageProperties {
+interface DocPageProps {
   readonly data: DocPageFragment;
   readonly originPath: string;
 }
 
-export const DocPage: FunctionComponent<DocPageProperties> = ({
-  data,
-  originPath,
-}) => {
+export const DocPage: FC<DocPageProps> = ({ data, originPath }) => {
   const dispatch = useDispatch();
   const responsiveMenuRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +130,9 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         </ArticleWrapper>
         <DocPageAside>
           <DocPageCommunity data={data} originPath={originPath} />
-          <ArticleSections data={data.file!.childMdx!} />
+          <ScrollContainer>
+            <ArticleSections data={data.file!.childMdx!} />
+          </ScrollContainer>
         </DocPageAside>
       </Container>
     </TabGroupProvider>
@@ -359,13 +357,11 @@ const OutdatedDocumentationWarning = styled.div`
   }
 `;
 
-interface DocumentationNotesProperties {
+interface DocumentationNotesProps {
   readonly product: ProductInformation;
 }
 
-const DocumentationNotes: FunctionComponent<DocumentationNotesProperties> = ({
-  product,
-}) => {
+const DocumentationNotes: FC<DocumentationNotesProps> = ({ product }) => {
   if (product.version === "") {
     return null;
   }

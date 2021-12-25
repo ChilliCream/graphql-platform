@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Filters.Spatial.Tests
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver("bar"));
+                    .Resolve("bar"));
 
             configure(builder);
 

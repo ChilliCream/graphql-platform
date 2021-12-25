@@ -1,30 +1,29 @@
 using System;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
+namespace HotChocolate.AspNetCore.Subscriptions.Messages;
+
+public class OperationMessage
 {
-    public class OperationMessage
+    public OperationMessage(string type)
     {
-        public OperationMessage(string type)
+        if (string.IsNullOrEmpty(type))
         {
-            if (string.IsNullOrEmpty(type))
-            {
-                // TODO : resources
-                throw new ArgumentException(
-                    "The message type cannot be null or empty.",
-                    nameof(type));
-            }
-
-            Type = type;
+            // TODO : resources
+            throw new ArgumentException(
+                "The message type cannot be null or empty.",
+                nameof(type));
         }
 
-        public OperationMessage(string type, string id)
-            : this(type)
-        {
-            Id = id;
-        }
-
-        public virtual string? Id { get; }
-
-        public string Type { get; }
+        Type = type;
     }
+
+    public OperationMessage(string type, string id)
+        : this(type)
+    {
+        Id = id;
+    }
+
+    public virtual string? Id { get; }
+
+    public string Type { get; }
 }

@@ -1,14 +1,14 @@
 import { Link } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 
-interface PaginationProperties {
+interface PaginationProps {
   currentPage: number;
   linkPrefix: string;
   totalPages: number;
 }
 
-export const Pagination: FunctionComponent<PaginationProperties> = ({
+export const Pagination: FC<PaginationProps> = ({
   currentPage,
   linkPrefix,
   totalPages,
@@ -47,11 +47,11 @@ const Page = styled.li`
   margin: 0 5px;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
 
   &.active,
   &:hover {
-    background-color: var(--brand-color-hover);
+    background-color: var(--secondary-color);
   }
 `;
 

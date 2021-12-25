@@ -1,11 +1,10 @@
-namespace HotChocolate.Execution.Options
+namespace HotChocolate.Execution.Options;
+
+public enum TracingPreference
 {
-    public enum TracingPreference
-    {
-        Never = 0,
+    Never = 0,
 
-        OnDemand = 1,
+    OnDemand = 1,
 
-        Always = 2
-    }
+    Always = 2
 }

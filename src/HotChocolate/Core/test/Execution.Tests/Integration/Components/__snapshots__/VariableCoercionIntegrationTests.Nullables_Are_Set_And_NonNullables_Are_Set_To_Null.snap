@@ -1,16 +1,14 @@
 ﻿{
   "errors": [
     {
-      "message": "Variable \u0060user\u0060 got an invalid value.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 10
-        }
+      "message": "Cannot accept null for non-nullable input.",
+      "path": [
+        "user",
+        "name"
       ],
       "extensions": {
-        "code": "HC0016",
-        "variable": "user"
+        "code": "HC0018",
+        "field": "UserInput.name"
       }
     }
   ]

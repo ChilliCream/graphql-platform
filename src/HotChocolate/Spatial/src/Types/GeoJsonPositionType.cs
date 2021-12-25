@@ -22,75 +22,21 @@ namespace HotChocolate.Types.Spatial
         }
 
         public override bool IsInstanceOfType(IValueNode valueSyntax)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.IsInstanceOfType(valueSyntax);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonPositionSerializer.Default.IsInstanceOfType(this, valueSyntax);
 
-        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.ParseLiteral(valueSyntax, withDefaults);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+        public override object? ParseLiteral(IValueNode valueSyntax)
+            => GeoJsonPositionSerializer.Default.ParseLiteral(this, valueSyntax);
 
         public override IValueNode ParseValue(object? value)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.ParseValue(value);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonPositionSerializer.Default.ParseValue(this, value);
 
         public override IValueNode ParseResult(object? resultValue)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.ParseResult(resultValue);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonPositionSerializer.Default.ParseResult(this, resultValue);
 
         public override bool TryDeserialize(object? serialized, out object? value)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.TryDeserialize(serialized, out value);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonPositionSerializer.Default.TryDeserialize(this, serialized, out value);
 
         public override bool TrySerialize(object? value, out object? serialized)
-        {
-            try
-            {
-                return GeoJsonPositionSerializer.Default.TrySerialize(value, out serialized);
-            }
-            catch (GeoJsonSerializationException ex)
-            {
-                throw ex.ToSerializationException(this);
-            }
-        }
+            => GeoJsonPositionSerializer.Default.TrySerialize(this, value, out serialized);
     }
 }

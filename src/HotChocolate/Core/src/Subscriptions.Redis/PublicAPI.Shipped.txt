@@ -6,6 +6,7 @@
 ~HotChocolate.Subscriptions.Redis.RedisPubSub.RedisPubSub(StackExchange.Redis.IConnectionMultiplexer connection, HotChocolate.Subscriptions.Redis.IMessageSerializer messageSerializer) -> void
 ~HotChocolate.Subscriptions.Redis.RedisPubSub.SubscribeAsync<TTopic, TMessage>(TTopic topic, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask<HotChocolate.Execution.ISourceStream<TMessage>>
 ~static Microsoft.Extensions.DependencyInjection.RedisSubscriptionsServiceCollectionExtensions.AddRedisSubscriptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder, System.Func<System.IServiceProvider, StackExchange.Redis.IConnectionMultiplexer> connection) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder
+~static Microsoft.Extensions.DependencyInjection.RedisSubscriptionsServiceCollectionExtensions.AddRedisSubscriptions(this HotChocolate.Execution.Configuration.IRequestExecutorBuilder builder) -> HotChocolate.Execution.Configuration.IRequestExecutorBuilder
 ~static Microsoft.Extensions.DependencyInjection.RedisSubscriptionsServiceCollectionExtensions.AddRedisSubscriptions(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Func<System.IServiceProvider, StackExchange.Redis.IConnectionMultiplexer> connection) -> Microsoft.Extensions.DependencyInjection.IServiceCollection
 HotChocolate.Subscriptions.Redis.IMessageSerializer
 HotChocolate.Subscriptions.Redis.RedisEventStream<TMessage>

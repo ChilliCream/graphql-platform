@@ -32,6 +32,8 @@ namespace HotChocolate.Types.Spatial
 
         public const string PositionTypeName = "Position";
 
+        public const string CoordinatesTypeName = "Coordinates";
+
         public const string GeometryTypeName = "Geometry";
     }
 }

@@ -77,7 +77,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
             Dictionary<NameString, InputTypeDescriptorModel> typeDescriptors)
         {
             return typeDescriptors.Values
-                .First(t => t.Model.Name.Equals(fieldNamedType.Name))
+                .First(t => t.Model.Type.Name.Equals(fieldNamedType.Name))
                 .Descriptor;
         }
     }

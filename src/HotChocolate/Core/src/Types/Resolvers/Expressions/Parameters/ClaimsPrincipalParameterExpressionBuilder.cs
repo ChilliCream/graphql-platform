@@ -9,45 +9,46 @@ using static HotChocolate.Utilities.NullableHelper;
 
 #nullable enable
 
-namespace HotChocolate.Resolvers.Expressions.Parameters
+namespace HotChocolate.Resolvers.Expressions.Parameters;
+
+internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    internal sealed class ClaimsPrincipalParameterExpressionBuilder : IParameterExpressionBuilder
+    public ArgumentKind Kind => ArgumentKind.Custom;
+
+    public bool IsPure => true;
+
+    public bool IsDefaultHandler => false;
+
+    public bool CanHandle(ParameterInfo parameter)
+        => parameter.ParameterType == typeof(ClaimsPrincipal);
+
+    public Expression Build(ParameterInfo parameter, Expression context)
     {
-        public ArgumentKind Kind => ArgumentKind.Custom;
+        Expression nullableParameter = Constant(IsParameterNullable(parameter), typeof(bool));
 
-        public bool IsPure => true;
+        Expression<Func<IPureResolverContext, bool, ClaimsPrincipal?>> lambda =
+            (ctx, nullable) => GetClaimsPrincipal(ctx, nullable);
 
-        public bool CanHandle(ParameterInfo parameter)
-            => parameter.ParameterType == typeof(ClaimsPrincipal);
+        return Invoke(lambda, context, nullableParameter);
+    }
 
-        public Expression Build(ParameterInfo parameter, Expression context)
+    private static ClaimsPrincipal? GetClaimsPrincipal(
+        IPureResolverContext context,
+        bool nullable)
+    {
+        if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
+            value is ClaimsPrincipal user)
         {
-            Expression nullableParameter = Constant(IsParameterNullable(parameter), typeof(bool));
-
-            Expression<Func<IPureResolverContext, bool, ClaimsPrincipal?>> lambda =
-                (ctx, nullable) => GetClaimsPrincipal(ctx, nullable);
-
-            return Invoke(lambda, context, nullableParameter);
+            return user;
         }
 
-        private static ClaimsPrincipal? GetClaimsPrincipal(
-            IPureResolverContext context,
-            bool nullable)
+        if (nullable)
         {
-            if (context.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value) &&
-                value is ClaimsPrincipal user)
-            {
-                return user;
-            }
-
-            if (nullable)
-            {
-                return null;
-            }
-
-            throw new ArgumentException(
-                TypeResources.ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound,
-                nameof(context));
+            return null;
         }
+
+        throw new ArgumentException(
+            TypeResources.ClaimsPrincipalParameterExpressionBuilder_NoClaimsFound,
+            nameof(context));
     }
 }

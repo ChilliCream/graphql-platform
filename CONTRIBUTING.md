@@ -4,7 +4,7 @@ One of the easiest ways to contribute is to participate in discussions on GitHub
 
 ## General feedback and discussions?
 
-Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/hotchocolate/issues) or [join us on slack](https://bit.ly/joinchilli).
+Start a discussion on the [repository issue tracker](https://github.com/ChilliCream/hotchocolate/issues) or [join us on slack](http://slack.chillicream.com/).
 
 ## Bugs and feature requests?
 
@@ -32,6 +32,8 @@ Before you spend time writing code, make sure of the following things:
 
 After this you can fork our repository to implement your changes. If you are unfamiliar with forking, be sure to read [this guide](https://guides.github.com/activities/forking/) first.
 
+To get started with the codebase, see [How to launch and build the solution](#how-to-launch-and-build-the-solution).
+
 ### Before submitting a pull request
 
 Before submitting a pull request containing your changes, make sure that it checks the following requirements:
@@ -55,6 +57,21 @@ Follow [this guide](https://docs.github.com/en/github/collaborating-with-issues-
 ### During pull request review
 
 Core contributors will review your pull request and provide feedback.
+
+## How to launch and build the solution
+
+We use [Nuke](https://nuke.build/) for build automation. 
+
+To work on Hot Chocolate, you will need .NET 6, Node 14, and Yarn 1.x.
+
+After cloning the repository, run `init.sh` or `init.cmd`, which are located in the repository's root. The script files will create the `src/All.sln`, which can be used to develop in Visual Studio 2022 and higher or Rider 2021.3 EAP or higher.  It will also restore the packages for the documentation.
+
+Other more focused solution files exist if you want to narrow in on a particular part of the platform.
+The smaller solution files are great when working with VSCode.
+
+The documentation is located in the `website` directory and can be started with `yarn start`.
+
+There are other available commands too. As set up in the [.build](./.build/) directory.
 
 ## Code of conduct
 

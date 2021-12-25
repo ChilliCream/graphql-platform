@@ -38,7 +38,9 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             VariableDefinitionNode node,
             object? context)
         {
-            if (_schema.TryGetType(node.Type.NamedType().Name.Value, out INamedType type)
+            if (_schema.TryGetType<INamedType>(
+                node.Type.NamedType().Name.Value,
+                out INamedType? type)
                 && type is IInputType inputType)
             {
                 VisitInputType(inputType);

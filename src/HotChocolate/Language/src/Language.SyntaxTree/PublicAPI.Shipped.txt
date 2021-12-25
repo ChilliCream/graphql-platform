@@ -7,6 +7,7 @@ HotChocolate.Language.ArgumentNode
 HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.Location? location, HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(HotChocolate.Language.NameNode! name, HotChocolate.Language.IValueNode! value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, HotChocolate.Language.IValueNode! value) -> void
+HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, int value) -> void
 HotChocolate.Language.ArgumentNode.ArgumentNode(string! name, string! value) -> void
 HotChocolate.Language.ArgumentNode.GetNodes() -> System.Collections.Generic.IEnumerable<HotChocolate.Language.ISyntaxNode!>!
 HotChocolate.Language.ArgumentNode.Kind.get -> HotChocolate.Language.SyntaxKind
@@ -201,6 +202,7 @@ HotChocolate.Language.IIntValueLiteral.ToByte() -> byte
 HotChocolate.Language.IIntValueLiteral.ToInt16() -> short
 HotChocolate.Language.IIntValueLiteral.ToInt32() -> int
 HotChocolate.Language.IIntValueLiteral.ToInt64() -> long
+HotChocolate.Language.IIntValueLiteral.ToSByte() -> sbyte
 HotChocolate.Language.IIntValueLiteral.ToUInt16() -> ushort
 HotChocolate.Language.IIntValueLiteral.ToUInt32() -> uint
 HotChocolate.Language.IIntValueLiteral.ToUInt64() -> ulong
@@ -273,6 +275,7 @@ HotChocolate.Language.IntValueNode.IntValueNode(byte value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, byte value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, int value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, long value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, sbyte value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, short value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, System.ReadOnlyMemory<byte> value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, uint value) -> void
@@ -280,6 +283,7 @@ HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? 
 HotChocolate.Language.IntValueNode.IntValueNode(HotChocolate.Language.Location? location, ushort value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(int value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(long value) -> void
+HotChocolate.Language.IntValueNode.IntValueNode(sbyte value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(short value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(System.ReadOnlyMemory<byte> value) -> void
 HotChocolate.Language.IntValueNode.IntValueNode(uint value) -> void
@@ -293,6 +297,7 @@ HotChocolate.Language.IntValueNode.ToDouble() -> double
 HotChocolate.Language.IntValueNode.ToInt16() -> short
 HotChocolate.Language.IntValueNode.ToInt32() -> int
 HotChocolate.Language.IntValueNode.ToInt64() -> long
+HotChocolate.Language.IntValueNode.ToSByte() -> sbyte
 HotChocolate.Language.IntValueNode.ToSingle() -> float
 HotChocolate.Language.IntValueNode.ToString(bool indented) -> string!
 HotChocolate.Language.IntValueNode.ToUInt16() -> ushort
@@ -303,6 +308,7 @@ HotChocolate.Language.IntValueNode.WithLocation(HotChocolate.Language.Location? 
 HotChocolate.Language.IntValueNode.WithValue(byte value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.IntValueNode.WithValue(int value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.IntValueNode.WithValue(long value) -> HotChocolate.Language.IntValueNode!
+HotChocolate.Language.IntValueNode.WithValue(sbyte value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.IntValueNode.WithValue(short value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.IntValueNode.WithValue(System.ReadOnlyMemory<byte> value) -> HotChocolate.Language.IntValueNode!
 HotChocolate.Language.INullableTypeNode
@@ -836,6 +842,7 @@ static HotChocolate.Language.DirectiveLocation.Union.get -> HotChocolate.Languag
 static HotChocolate.Language.DirectiveLocation.VariableDefinition.get -> HotChocolate.Language.DirectiveLocation!
 static HotChocolate.Language.DocumentNode.Empty.get -> HotChocolate.Language.DocumentNode!
 static HotChocolate.Language.NullValueNode.Default.get -> HotChocolate.Language.NullValueNode!
+static HotChocolate.Language.TypeNodeExtensions.ElementType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
 static HotChocolate.Language.TypeNodeExtensions.InnerType(this HotChocolate.Language.ITypeNode! type) -> HotChocolate.Language.ITypeNode!
 static HotChocolate.Language.TypeNodeExtensions.IsEqualTo(this HotChocolate.Language.ITypeNode! x, HotChocolate.Language.ITypeNode! y) -> bool
 static HotChocolate.Language.TypeNodeExtensions.IsListType(this HotChocolate.Language.ITypeNode! type) -> bool

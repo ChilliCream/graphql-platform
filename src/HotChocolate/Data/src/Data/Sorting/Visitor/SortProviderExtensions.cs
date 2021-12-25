@@ -2,72 +2,71 @@ using System;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+public abstract class SortProviderExtensions<TContext>
+    : ConventionExtension<SortProviderDefinition>,
+      ISortProviderExtension,
+      ISortProviderConvention
+    where TContext : ISortVisitorContext
 {
-    public abstract class SortProviderExtensions<TContext>
-        : ConventionExtension<SortProviderDefinition>,
-          ISortProviderExtension,
-          ISortProviderConvention
-        where TContext : ISortVisitorContext
+    private Action<ISortProviderDescriptor<TContext>>? _configure;
+
+    protected SortProviderExtensions()
     {
-        private Action<ISortProviderDescriptor<TContext>>? _configure;
+        _configure = Configure;
+    }
 
-        protected SortProviderExtensions()
+    public SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
+    {
+        _configure = configure ??
+            throw new ArgumentNullException(nameof(configure));
+    }
+
+    void ISortProviderConvention.Initialize(IConventionContext context)
+    {
+        base.Initialize(context);
+    }
+
+    void ISortProviderConvention.Complete(IConventionContext context)
+    {
+        Complete(context);
+    }
+
+    protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    {
+        if (_configure is null)
         {
-            _configure = Configure;
+            throw new InvalidOperationException(SortProvider_NoConfigurationSpecified);
         }
 
-        public SortProviderExtensions(Action<ISortProviderDescriptor<TContext>> configure)
-        {
-            _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
-        }
+        var descriptor = SortProviderDescriptor<TContext>.New();
 
-        void ISortProviderConvention.Initialize(IConventionContext context)
-        {
-            base.Initialize(context);
-        }
+        _configure(descriptor);
+        _configure = null;
 
-        void ISortProviderConvention.Complete(IConventionContext context)
-        {
-            Complete(context);
-        }
+        return descriptor.CreateDefinition();
+    }
 
-        protected override SortProviderDefinition CreateDefinition(IConventionContext context)
+    protected virtual void Configure(ISortProviderDescriptor<TContext> descriptor) { }
+
+    public override void Merge(IConventionContext context, Convention convention)
+    {
+        if (Definition is { } &&
+            convention is SortProvider<TContext> conv &&
+            conv.Definition is { } target)
         {
-            if (_configure is null)
+            // Provider extensions should be applied by default before the default handlers, as
+            // the interceptor picks up the first handler. A provider extension should adds more
+            // specific handlers than the default providers
+            for (var i = Definition.Handlers.Count - 1; i >= 0; i--)
             {
-                throw new InvalidOperationException(SortProvider_NoConfigurationSpecified);
+                target.Handlers.Insert(0, Definition.Handlers[i]);
             }
 
-            var descriptor = SortProviderDescriptor<TContext>.New();
-
-            _configure(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(ISortProviderDescriptor<TContext> descriptor) { }
-
-        public override void Merge(IConventionContext context, Convention convention)
-        {
-            if (Definition is {} &&
-                convention is SortProvider<TContext> conv &&
-                conv.Definition is {} target)
+            for (var i = Definition.OperationHandlers.Count - 1; i >= 0; i--)
             {
-                // Provider extensions should be applied by default before the default handlers, as
-                // the interceptor picks up the first handler. A provider extension should adds more
-                // specific handlers than the default providers
-                for (var i = Definition.Handlers.Count - 1; i >= 0 ; i--)
-                {
-                    target.Handlers.Insert(0, Definition.Handlers[i]);
-                }
-
-                for (var i = Definition.OperationHandlers.Count - 1; i >= 0 ; i--)
-                {
-                    target.OperationHandlers.Insert(0, Definition.OperationHandlers[i]);
-                }
+                target.OperationHandlers.Insert(0, Definition.OperationHandlers[i]);
             }
         }
     }

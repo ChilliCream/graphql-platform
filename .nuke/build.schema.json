@@ -9,6 +9,9 @@
         "Breaking": {
           "type": "boolean"
         },
+        "CodeCovToken": {
+          "type": "string"
+        },
         "Configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)"
@@ -50,10 +53,13 @@
             "GitHubActions",
             "GitLab",
             "Jenkins",
+            "Rider",
             "SpaceAutomation",
             "TeamCity",
             "Terminal",
-            "TravisCI"
+            "TravisCI",
+            "VisualStudio",
+            "VSCode"
           ]
         },
         "NoLogo": {
@@ -67,6 +73,10 @@
         "NuGetSource": {
           "type": "string",
           "description": "NuGet Source for Packages"
+        },
+        "Partition": {
+          "type": "string",
+          "description": "Partition to use on CI"
         },
         "Plan": {
           "type": "boolean",
@@ -100,6 +110,7 @@
               "Pack",
               "PackLocal",
               "Publish",
+              "ReportCodecov",
               "ReportCoverage",
               "Reset",
               "Restore",
@@ -132,6 +143,7 @@
               "Pack",
               "PackLocal",
               "Publish",
+              "ReportCodecov",
               "ReportCoverage",
               "Reset",
               "Restore",

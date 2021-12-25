@@ -20,7 +20,7 @@ Here is a full configuration with all possibilities:
       // The namespace of all the generated files of the client
       "namespace": "Demo",
       // The URL of the GraphQL api you want to consume with the client
-      "url": "https://workshop.chillicream.cloud/graphql/",
+      "url": "https://workshop.chillicream.com/graphql/",
       // Shall your client be based on dependency injection? If yes, all needed setup code
       // will be generated for you, so that you only have to add the client to your DI container.
       "dependencyInjection": true

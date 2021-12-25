@@ -24,11 +24,21 @@ namespace StrawberryShake.Tools
                 "Console output as JSON.",
                 CommandOptionType.NoValue);
 
+            CommandOption headersArg = update.Option(
+                "-x|--headers",
+                "Custom headers used in request to Graph QL server. " +
+                "Can be used mulitple times. Example: --headers key1=value1 --headers key2=value2",
+                CommandOptionType.MultipleValue);
+
             AuthArguments authArguments = update.AddAuthArguments();
 
             update.OnExecuteAsync(cancellationToken =>
             {
-                var arguments = new UpdateCommandArguments(urlArg, pathArg, authArguments);
+                var arguments = new UpdateCommandArguments(
+                    urlArg,
+                    pathArg,
+                    authArguments,
+                    headersArg);
                 UpdateCommandHandler handler = CommandTools.CreateHandler<UpdateCommandHandler>(jsonArg);
                 return handler.ExecuteAsync(arguments, cancellationToken);
             });

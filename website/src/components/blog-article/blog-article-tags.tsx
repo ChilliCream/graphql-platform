@@ -1,15 +1,13 @@
 import { graphql } from "gatsby";
-import React, { FunctionComponent } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
 import { Link } from "../misc/link";
 
-interface BlogArticleTagsProperties {
+interface BlogArticleTagsProps {
   tags: string[];
 }
 
-export const BlogArticleTags: FunctionComponent<BlogArticleTagsProperties> = ({
-  tags,
-}) => {
+export const BlogArticleTags: FC<BlogArticleTagsProps> = ({ tags }) => {
   return (
     <>
       {tags.length > 0 && (
@@ -45,7 +43,7 @@ const Tag = styled.li`
   margin: 0 5px 5px 0;
   border-radius: var(--border-radius);
   padding: 0;
-  background-color: var(--brand-color);
+  background-color: var(--primary-color);
   font-size: 0.722em;
   letter-spacing: 0.05em;
   color: var(--text-color-contrast);

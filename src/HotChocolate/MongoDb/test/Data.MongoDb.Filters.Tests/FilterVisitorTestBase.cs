@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Squadron;
 
@@ -37,12 +38,13 @@ namespace HotChocolate.Data.MongoDb.Filters
 
             return new ServiceCollection()
                 .AddGraphQL()
+                .AddObjectIdConverters()
                 .AddFiltering(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        .Resolve(resolver)
                         .Use(
                             next => async context =>
                             {

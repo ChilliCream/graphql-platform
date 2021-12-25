@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using StrawberryShake.Tools.Configuration;
 
 namespace StrawberryShake.Tools
@@ -10,7 +11,8 @@ namespace StrawberryShake.Tools
             string path,
             Uri uri,
             string? token,
-            string? scheme)
+            string? scheme,
+            Dictionary<string, IEnumerable<string>> customHeaders)
         {
             SchemaName = "Schema";
             SchemaFileName = FileNames.SchemaFile;
@@ -20,6 +22,7 @@ namespace StrawberryShake.Tools
             Uri = uri;
             Token = token;
             Scheme = scheme;
+            CustomHeaders = customHeaders;
         }
 
         public string SchemaName { get; }
@@ -31,6 +34,7 @@ namespace StrawberryShake.Tools
         public Uri? Uri { get; }
         public string? Token { get; }
         public string? Scheme { get; }
+        public Dictionary<string, IEnumerable<string>> CustomHeaders { get; }
         public string? CustomNamespace { get; set; }
         public bool UseDependencyInjection { get; set; } = true;
     }

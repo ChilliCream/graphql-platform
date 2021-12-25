@@ -7,21 +7,22 @@ namespace HotChocolate.Types.Filters
 {
     [Obsolete("Use HotChocolate.Data.")]
     public class QueryableFilterVisitorContext
-        : FilterVisitorContextBase, IQueryableFilterVisitorContext
+        : FilterVisitorContextBase
+        , IQueryableFilterVisitorContext
     {
-
         public QueryableFilterVisitorContext(
             InputObjectType initialType,
             Type source,
             ITypeConverter converter,
-            bool inMemory)
+            bool inMemory,
+            InputParser inputParser)
             : this(
                 initialType,
                 source,
                 ExpressionOperationHandlers.All,
                 ExpressionFieldHandlers.All,
                 converter,
-                inMemory)
+                inMemory, inputParser)
         {
         }
 
@@ -31,7 +32,8 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<IExpressionOperationHandler> operationHandlers,
             IReadOnlyList<IExpressionFieldHandler> fieldHandlers,
             ITypeConverter typeConverter,
-            bool inMemory)
+            bool inMemory,
+            InputParser inputParser)
             : base(initialType)
         {
             if (source is null)
@@ -45,6 +47,8 @@ namespace HotChocolate.Types.Filters
             TypeConverter = typeConverter ??
                 throw new ArgumentNullException(nameof(typeConverter));
             InMemory = inMemory;
+            InputParser = inputParser ??
+                throw new ArgumentNullException(nameof(inputParser));
             Closures = new Stack<QueryableClosure>();
             Closures.Push(new QueryableClosure(source, "r", inMemory));
         }
@@ -58,5 +62,7 @@ namespace HotChocolate.Types.Filters
         public bool InMemory { get; }
 
         public Stack<QueryableClosure> Closures { get; }
+
+        public InputParser InputParser { get; }
     }
 }

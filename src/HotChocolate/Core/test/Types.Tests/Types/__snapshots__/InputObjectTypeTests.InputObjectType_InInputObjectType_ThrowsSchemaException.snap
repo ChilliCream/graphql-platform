@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. The type InputObjectTypeOfFooInput is invalid because the runtime type is a HotChocolate.Types.InputObjectType`1[[HotChocolate.Types.InputObjectTypeTests+Foo, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]. It is not supported to have type system members as runtime types. (HotChocolate.Types.InputObjectType<HotChocolate.Types.InputObjectType<HotChocolate.Types.InputObjectTypeTests.Foo>>)

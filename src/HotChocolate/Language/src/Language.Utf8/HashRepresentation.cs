@@ -1,8 +1,7 @@
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public enum HashFormat
 {
-    public enum HashFormat
-    {
-        Base64,
-        Hex
-    }
+    Base64,
+    Hex
 }

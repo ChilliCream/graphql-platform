@@ -1,161 +1,198 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
-using HotChocolate.Execution;
+using static System.Threading.Interlocked;
 
-namespace HotChocolate.Fetching
+namespace HotChocolate.Fetching;
+
+/// <summary>
+/// The execution engine batch dispatcher.
+/// </summary>
+public class BatchScheduler
+    : IBatchScheduler
+    , IBatchDispatcher
 {
-    /// <summary>
-    /// The execution engine batch dispatcher.
-    /// </summary>
-    public class BatchScheduler
-        : IBatchScheduler
-        , IBatchDispatcher
+    private static List<Func<ValueTask>>? _localTasks;
+    private static List<Task<Exception?>>? _localProcessing;
+
+    private const int _waitTimeout = 30_000;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly object _sync = new();
+    private readonly List<Func<ValueTask>> _tasks = new();
+    private bool _dispatchOnSchedule;
+
+    /// <inheritdoc />
+    public event EventHandler? TaskEnqueued;
+
+    /// <inheritdoc />
+    public bool DispatchOnSchedule
     {
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
-        private readonly object _sync = new();
-        private readonly List<Func<ValueTask>> _tasks = new();
-        private IExecutionTaskContext? _context;
-        private bool _dispatchOnSchedule;
-
-        /// <inheritdoc />
-        public event EventHandler? TaskEnqueued;
-
-        /// <inheritdoc />
-        public bool HasTasks => _tasks.Count > 0;
-
-        /// <inheritdoc />
-        public bool DispatchOnSchedule
+        get => _dispatchOnSchedule;
+        set
         {
-            get => _dispatchOnSchedule;
-            set
+            lock (_sync)
             {
-                lock (_sync)
-                {
-                    _dispatchOnSchedule = value;
-                }
+                _dispatchOnSchedule = value;
+            }
+        }
+    }
+
+    public void Schedule(Func<ValueTask> dispatch)
+    {
+        bool dispatchOnSchedule;
+
+        lock (_sync)
+        {
+            if (_dispatchOnSchedule)
+            {
+                dispatchOnSchedule = true;
+            }
+            else
+            {
+                dispatchOnSchedule = false;
+                _tasks.Add(dispatch);
             }
         }
 
-        /// <inheritdoc />
-        public void Initialize(IExecutionTaskContext context)
+        if (dispatchOnSchedule)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            BeginDispatchOnEnqueue(dispatch);
         }
-
-        /// <inheritdoc />
-        public void Dispatch()
+        else
         {
-            // TODO : resources
-            IExecutionTaskContext context = _context ??
-                throw new InvalidOperationException("The scheduler is not initialized.");
+            TaskEnqueued?.Invoke(this, EventArgs.Empty);
+        }
+    }
 
-            lock (_sync)
+    /// <inheritdoc />
+    public void BeginDispatch(CancellationToken cancellationToken = default)
+    {
+        List<Func<ValueTask>>? tasks = null;
+        Func<ValueTask>? task = null;
+
+        lock (_sync)
+        {
+            switch (_tasks.Count)
             {
-                if (_tasks.Count > 0)
-                {
-                    var task = new BatchExecutionTask(context, _tasks.ToList());
+                case 0:
+                    return;
+
+                case 1:
+                    task = _tasks[0];
                     _tasks.Clear();
-                    context.Register(task);
-                }
+                    break;
+
+                default:
+                    // we will try to reuse the pooled list.
+                    tasks = Exchange(ref _localTasks, null) ?? new();
+                    tasks.AddRange(_tasks);
+                    _tasks.Clear();
+                    break;
             }
         }
 
-        public void Schedule(Func<ValueTask> dispatch)
+        if (task is not null)
         {
-            bool dispatchOnSchedule;
-
-            lock (_sync)
-            {
-                if (_dispatchOnSchedule)
-                {
-                    dispatchOnSchedule = true;
-                }
-                else
-                {
-                    dispatchOnSchedule = false;
-                    _tasks.Add(dispatch);
-                    TaskEnqueued?.Invoke(this, EventArgs.Empty);
-                }
-            }
-
-            if (dispatchOnSchedule)
-            {
-                BeginDispatchOnEnqueue(dispatch);
-            }
+            BeginProcessTask(task, cancellationToken);
         }
+        else if (tasks is not null)
+        {
+            BeginProcessTasks(tasks, cancellationToken);
+        }
+    }
 
 #pragma warning disable 4014
-        private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch) =>
-            DispatchOnEnqueue(dispatch);
+    private void BeginProcessTask(
+        Func<ValueTask> task,
+        CancellationToken cancellationToken = default)
+        => ProcessTaskAsync(task, cancellationToken);
 #pragma warning restore 4014
 
-        private async Task DispatchOnEnqueue(Func<ValueTask> dispatch)
-        {
-            await _semaphore.WaitAsync().ConfigureAwait(false);
+    private async Task ProcessTaskAsync(
+        Func<ValueTask> task,
+        CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+        await ExecuteBatchAsync(task, cancellationToken).ConfigureAwait(false);
+    }
 
-            try
-            {
-                await dispatch().ConfigureAwait(false);
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+#pragma warning disable 4014
+    private void BeginProcessTasks(
+        List<Func<ValueTask>> tasks,
+        CancellationToken cancellationToken = default)
+        => ProcessTasksAsync(tasks, cancellationToken);
+#pragma warning restore 4014
+
+    private async Task ProcessTasksAsync(
+        List<Func<ValueTask>> tasks,
+        CancellationToken cancellationToken = default)
+    {
+        await Task.Yield();
+
+        // First we will get a list to hold on to the tasks.
+        List<Task<Exception?>> processing = Exchange(ref _localProcessing, null) ?? new();
+
+        foreach (Func<ValueTask> task in tasks)
+        {
+            processing.Add(ExecuteBatchAsync(task, cancellationToken));
         }
 
-        private class BatchExecutionTask : ParallelExecutionTask
+        await Task.WhenAll(processing).ConfigureAwait(false);
+
+        processing.Clear();
+        tasks.Clear();
+
+        // if there is no new instance for processing we will return our processing instances.
+        CompareExchange(ref _localProcessing, processing, null);
+        CompareExchange(ref _localTasks, tasks, null);
+    }
+
+    private static async Task<Exception?> ExecuteBatchAsync(
+        Func<ValueTask> executeBatchAsync,
+        CancellationToken cancellationToken)
+    {
+        try
         {
-            private readonly IReadOnlyList<Func<ValueTask>> _tasks;
-
-            public BatchExecutionTask(
-                IExecutionTaskContext context,
-                IReadOnlyList<Func<ValueTask>> tasks)
+            await executeBatchAsync().ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // If we run into this exception the request was aborted.
+            // In this case we do nothing and just return.
+        }
+        catch (Exception ex)
+        {
+            if (cancellationToken.IsCancellationRequested)
             {
-                Context = context;
-                _tasks = tasks;
+                // if cancellation is request we do no longer report errors to the
+                // operation context.
+                return null;
             }
 
-            protected override IExecutionTaskContext Context { get; }
+            return ex;
+        }
 
-            protected override async ValueTask ExecuteAsync(CancellationToken cancellationToken)
-            {
-                var running = new Task[_tasks.Count];
+        return null;
+    }
 
-                for (var i = 0; i < _tasks.Count; i++)
-                {
-                    running[i] = ExecuteBatchAsync(_tasks[i]);
-                }
+#pragma warning disable 4014
+    private void BeginDispatchOnEnqueue(Func<ValueTask> dispatch)
+        => DispatchOnEnqueue(dispatch);
+#pragma warning restore 4014
 
-                await Task.WhenAll(running);
+    private async Task DispatchOnEnqueue(Func<ValueTask> dispatch)
+    {
+        await _semaphore.WaitAsync(_waitTimeout).ConfigureAwait(false);
 
-                async Task ExecuteBatchAsync(Func<ValueTask> executeBatchAsync)
-                {
-                    try
-                    {
-                        await executeBatchAsync.Invoke().ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        // If we run into this exception the request was aborted.
-                        // In this case we do nothing and just return.
-                    }
-                    catch (Exception ex)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
-                        {
-                            // if cancellation is request we do no longer report errors to the
-                            // operation context.
-                            return;
-                        }
-
-                        Context.ReportError(this, ex);
-                    }
-                }
-            }
+        try
+        {
+            await dispatch().ConfigureAwait(false);
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 }

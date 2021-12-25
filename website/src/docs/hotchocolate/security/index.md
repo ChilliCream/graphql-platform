@@ -24,11 +24,11 @@ Depending on our setup and requirements, the simplest way to make our server sec
 
 [Learn more about persisted queries](/docs/hotchocolate/performance/persisted-queries)
 
-<!-- # Introspection
+# Introspection
 
-The introspection is one of the GraphQL core features and powers many of the GraphQL IDEs and tools. But introspection also can produce large results, which can degrade the server performance. Apart from the performance aspect, you are also exposing the exact structure of your graph to anyone. In some cases, we might want to limit the access to introspection. Hot Chocolate allows you to control who can access introspection fields by using query validation rules.
+Introspection is one of the GraphQL's core features and powers many GraphQL IDEs and developer tools. But introspection can also produce large results, which can degrade the performance of our server. Apart from the performance aspect, we might want to limit who can introspect our GraphQL server. Hot Chocolate allows us to control who can access introspection fields by using query validation rules.
 
-[Learn more about restricting introspection](/docs/hotchocolate/security/introspection). -->
+[Learn more about restricting introspection](/docs/hotchocolate/server/introspection#disabling-introspection).
 
 # Pagination
 
@@ -46,8 +46,23 @@ With GraphQL, we give the consumer of our API the ability to drill into our data
 
 [Learn more about query depth validation rules](/docs/hotchocolate/security/query-depth). -->
 
-# Operation Complexity
+# Operation complexity
 
 With technologies like REST, it was easy to scale servers and measure the impact of a single request on our server infrastructure. With GraphQL, we need to do a bit more to enforce that requests have a consistent impact on our servers. Hot Chocolate can track the cost of fields and deny the execution of requests that exceed the allowed impact on our system.
 
 [Learn more about the operation complexity analyzer](/docs/hotchocolate/security/operation-complexity).
+
+# FIPS compliance
+
+Per default Hot Chocolate uses MD5 to create a unique document hash. Since MD5 is not FIPS compliant, this might lead to issues, if you are trying to run Hot Chocolate on a device that is in FIPS compliance mode.
+
+Fortunately, we offer the option to use the FIPS compliant SHA256 hashing algorithm to create document hashes.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddSha256DocumentHashProvider();
+}
+```
+
+[Learn more about document hashing providers](/docs/hotchocolate/performance/persisted-queries#hashing-algorithms)

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -11,7 +12,7 @@ namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPolygonInputTests
     {
-        private readonly ListValueNode _polygon = new ListValueNode(
+        private readonly ListValueNode _polygon = new(new ListValueNode(
             new ListValueNode(
                 new IntValueNode(30),
                 new IntValueNode(10)),
@@ -26,21 +27,23 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(20)),
             new ListValueNode(
                 new IntValueNode(30),
-                new IntValueNode(10)));
+                new IntValueNode(10))));
 
         [Fact]
         public void ParseLiteral_Polygon_With_Single_Ring()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(
+            var result = inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
                         new EnumValueNode(nameof(GeoJsonGeometryType.Polygon))),
-                    new ObjectFieldNode("coordinates", _polygon)));
+                    new ObjectFieldNode("coordinates", _polygon)),
+                type);
 
             // assert
             Assert.Equal(5, Assert.IsType<Polygon>(result).NumPoints);
@@ -59,16 +62,18 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Polygon_With_CRS()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(
+            var result = inputParser.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
                         new EnumValueNode(nameof(GeoJsonGeometryType.Polygon))),
                     new ObjectFieldNode("coordinates", _polygon),
-                    new ObjectFieldNode("crs", 26912)));
+                    new ObjectFieldNode("crs", 26912)),
+                type);
 
             // assert
             Assert.Equal(5, Assert.IsType<Polygon>(result).NumPoints);
@@ -88,10 +93,11 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Polygon_Is_Null()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
-            object? result = type.ParseLiteral(NullValueNode.Default);
+            var result = inputParser.ParseLiteral(NullValueNode.Default, type);
 
             // assert
             Assert.Null(result);
@@ -101,57 +107,64 @@ namespace HotChocolate.Types.Spatial
         public void ParseLiteral_Polygon_Is_Not_ObjectType_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(
-                () => type.ParseLiteral(new ListValueNode()));
+            Assert.Throws<SerializationException>(
+                () => inputParser.ParseLiteral(new ListValueNode(), type));
         }
 
         [Fact]
         public void ParseLiteral_Polygon_With_Missing_Fields_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode("coordinates", _polygon),
-                        new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored"))),
+                    type));
         }
 
         [Fact]
         public void ParseLiteral_Polygon_With_Empty_Coordinates_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
-                        new ObjectFieldNode("coordinates", new ListValueNode()))));
+                        new ObjectFieldNode("coordinates", new ListValueNode())),
+                    type));
         }
 
         [Fact]
         public void ParseLiteral_Polygon_With_Wrong_Geometry_Type_Throws()
         {
             // arrange
+            var inputParser = new InputParser(new DefaultTypeConverter());
             InputObjectType type = CreateInputType();
 
             // act
             // assert
             Assert.Throws<SerializationException>(
-                () => type.ParseLiteral(
+                () => inputParser.ParseLiteral(
                     new ObjectValueNode(
                         new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
-                        new ObjectFieldNode("coordinates", _polygon))));
+                        new ObjectFieldNode("coordinates", _polygon)),
+                    type));
         }
 
         [Fact]
@@ -164,7 +177,7 @@ namespace HotChocolate.Types.Spatial
                         .Name("Query")
                         .Field("test")
                         .Argument("arg", a => a.Type<GeoJsonPolygonInputType>())
-                        .Resolver(ctx => ctx.ArgumentValue<Polygon>("arg").ToString()))
+                        .Resolve(ctx => ctx.ArgumentValue<Polygon>("arg").ToString()))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -195,7 +208,7 @@ namespace HotChocolate.Types.Spatial
                     .Name("Query")
                     .Field("test")
                     .Argument("arg", a => a.Type<GeoJsonPolygonInputType>())
-                    .Resolver("ghi"))
+                    .Resolve("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()

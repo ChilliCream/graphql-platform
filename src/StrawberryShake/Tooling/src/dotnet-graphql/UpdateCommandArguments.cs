@@ -8,11 +8,13 @@ namespace StrawberryShake.Tools
         public UpdateCommandArguments(
             CommandOption uri,
             CommandOption path,
-            AuthArguments authArguments)
+            AuthArguments authArguments,
+            CommandOption customHeaders)
         {
             Uri = uri;
             Path = path;
             AuthArguments = authArguments;
+            CustomHeaders = customHeaders;
         }
 
         public CommandOption Uri { get; }
@@ -20,5 +22,7 @@ namespace StrawberryShake.Tools
         public CommandOption Path { get; }
 
         public AuthArguments AuthArguments { get; }
+
+        public CommandOption CustomHeaders { get; }
     }
 }

@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
-using Xunit;
 
 namespace HotChocolate.Tests
 {
@@ -19,7 +18,7 @@ namespace HotChocolate.Tests
             this Task<IExecutionResult> task)
         {
             IExecutionResult result = await task;
-            string json = await task.ToJsonAsync();
+            var json = await task.ToJsonAsync();
             json.MatchSnapshot();
             return result;
         }
@@ -35,7 +34,7 @@ namespace HotChocolate.Tests
         public static async Task<string> MatchSnapshotAsync(
             this Task<string> task)
         {
-            string result = await task;
+            var result = await task;
             result.MatchSnapshot();
             return result;
         }
@@ -43,7 +42,7 @@ namespace HotChocolate.Tests
         public static async ValueTask<string> MatchSnapshotAsync(
             this ValueTask<string> task)
         {
-            string result = await task;
+            var result = await task;
             result.MatchSnapshot();
             return result;
         }
@@ -85,7 +84,7 @@ namespace HotChocolate.Tests
             string snapshotNameExtension)
         {
             IExecutionResult result = await task;
-            string json = await task.ToJsonAsync();
+            var json = await task.ToJsonAsync();
             json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtension));
             return result;
         }
@@ -95,7 +94,7 @@ namespace HotChocolate.Tests
             params string[] snapshotNameExtensions)
         {
             IExecutionResult result = await task;
-            string json = await task.ToJsonAsync();
+            var json = await task.ToJsonAsync();
             json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
         }
@@ -105,7 +104,7 @@ namespace HotChocolate.Tests
             params object[] snapshotNameExtensions)
         {
             IExecutionResult result = await task;
-            string json = await task.ToJsonAsync();
+            var json = await task.ToJsonAsync();
             json.MatchSnapshot(SnapshotNameExtension.Create(snapshotNameExtensions));
             return result;
         }
@@ -114,6 +113,11 @@ namespace HotChocolate.Tests
         {
             IExecutionResult result = await task;
             return await result.ToJsonAsync();
+        }
+
+        public static void MatchSnapshot(this GraphQLException ex)
+        {
+            QueryResultBuilder.CreateError(ex.Errors).ToJson().MatchSnapshot();
         }
     }
 }

@@ -3,43 +3,44 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters;
+
+/// <inheritdoc />
+public abstract class FilterVisitorContext<T>
+    : IFilterVisitorContext<T>
 {
-    /// <inheritdoc />
-    public abstract class FilterVisitorContext<T>
-        : IFilterVisitorContext<T>
+    protected FilterVisitorContext(
+        IFilterInputType initialType,
+        FilterScope<T>? filterScope = null)
     {
-        protected FilterVisitorContext(
-            IFilterInputType initialType,
-            FilterScope<T>? filterScope = null)
+        if (initialType is null)
         {
-            if (initialType is null)
-            {
-                throw new ArgumentNullException(nameof(initialType));
-            }
-
-            Types.Push(initialType);
-            Scopes = new Stack<FilterScope<T>>();
-            Scopes.Push(filterScope ?? CreateScope());
+            throw new ArgumentNullException(nameof(initialType));
         }
 
-        /// <inheritdoc />
-        public Stack<FilterScope<T>> Scopes { get; }
+        Types.Push(initialType);
+        Scopes = new Stack<FilterScope<T>>();
+#pragma warning disable CA2214
+        Scopes.Push(filterScope ?? CreateScope());
+#pragma warning restore CA2214
+    }
 
-        /// <inheritdoc />
-        public Stack<IType> Types { get; } = new Stack<IType>();
+    /// <inheritdoc />
+    public Stack<FilterScope<T>> Scopes { get; }
 
-        /// <inheritdoc />
+    /// <inheritdoc />
+    public Stack<IType> Types { get; } = new Stack<IType>();
 
-        public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
+    /// <inheritdoc />
 
-        /// <inheritdoc />
-        public IList<IError> Errors { get; } = new List<IError>();
+    public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
 
-        /// <inheritdoc />
-        public virtual FilterScope<T> CreateScope()
-        {
-            return new FilterScope<T>();
-        }
+    /// <inheritdoc />
+    public IList<IError> Errors { get; } = new List<IError>();
+
+    /// <inheritdoc />
+    public virtual FilterScope<T> CreateScope()
+    {
+        return new FilterScope<T>();
     }
 }

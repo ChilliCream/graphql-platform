@@ -1,21 +1,26 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
+using Nuke.Common.Tools.Codecov;
 using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
+using static Nuke.Common.Tools.Codecov.CodecovTasks;
 using static Helpers;
+using System;
+using System.Diagnostics;
 
-partial class Build : NukeBuild
+partial class Build
 {
     readonly HashSet<string> ExcludedTests = new()
     {
@@ -26,21 +31,29 @@ partial class Build : NukeBuild
     {
         "HotChocolate.Types.Selections.PostgreSql.Tests",
         "HotChocolate.Configuration.Analyzers.Tests",
-        "HotChocolate.Data.Neo4J.Integration.Tests"
+        "HotChocolate.Data.Neo4J.Integration.Tests",
+        "HotChocolate.CodeGeneration.Neo4J.Tests",
+        "HotChocolate.Analyzers.Tests",
+        "dotnet-graphql",
+        "CodeGeneration.CSharp.Analyzers",
+        "CodeGeneration.CSharp.Analyzers.Tests"
     };
 
-    [Partition(3)] readonly Partition TestPartition;
+    const int TestPartitionCount = 4;
+
+    [Partition(TestPartitionCount)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
-                .Where((t => !ExcludedTests.Contains(t.Name))));
+                .Where(t => !ExcludedTests.Contains(t.Name)));
 
     IEnumerable<Project> CoverProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
-                .Where((t => !ExcludedCover.Contains(t.Name))));
+                .Where(t => !ExcludedCover.Contains(t.Name)));
 
     Target Test => _ => _
         .Produces(TestResultDirectory / "*.trx")
+        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
@@ -59,18 +72,14 @@ partial class Build : NukeBuild
             }
             finally
             {
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
+                UploadTestsAndMismatches();
             }
         });
 
     Target Cover => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
-        .Partition(() => TestPartition)
+        .Partition(TestPartitionCount)
         .Executes(() =>
         {
             try
@@ -89,11 +98,7 @@ partial class Build : NukeBuild
             }
             finally
             {
-                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                    DevOpsPipeLine?.PublishTestResults(
-                        type: AzurePipelinesTestResultsType.VSTest,
-                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                        files: new string[] { x }));
+                UploadTestsAndMismatches();
             }
         });
 
@@ -108,7 +113,7 @@ partial class Build : NukeBuild
                 .SetTargetDirectory(CoverageReportDirectory)
                 .SetAssemblyFilters("-*Tests"));
 
-            if (DevOpsPipeLine is { })
+            if (DevOpsPipeLine is not null)
             {
                 CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
                     DevOpsPipeLine.PublishCodeCoverage(
@@ -123,20 +128,20 @@ partial class Build : NukeBuild
         TestBaseSettings(settings)
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx"));
+                .SetLoggers($"trx;LogFileName={v.Name}.trx"));
 
-    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(
-        DotNetTestSettings settings, 
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnlyNet60(
+        DotNetTestSettings settings,
         IEnumerable<Project> projects) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetProcessArgumentConfigurator(a => a.Add("--collect:\"XPlat Code Coverage\""))
             .SetExcludeByFile("*.Generated.cs")
-            .SetFramework(Net50)
+            .SetFramework(Net60)
             .CombineWith(projects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
@@ -147,7 +152,7 @@ partial class Build : NukeBuild
             .SetExcludeByFile("*.Generated.cs")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
-                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetLoggers($"trx;LogFileName={v.Name}.trx")
                 .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>
@@ -157,4 +162,35 @@ partial class Build : NukeBuild
             .SetNoBuild(true)
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
+
+    void UploadTestsAndMismatches()
+    {
+        if (DevOpsPipeLine is not null)
+        {
+            TestResultDirectory.GlobFiles("*.trx")
+                .ForEach(x =>
+                    DevOpsPipeLine.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+
+            string uploadDir = Path.Combine(RootDirectory, "mismatch");
+
+            if (!Directory.Exists(uploadDir))
+            {
+                Directory.CreateDirectory(uploadDir);
+            }
+
+            foreach (string mismatchDir in Directory.GetDirectories(
+                RootDirectory, "__mismatch__", SearchOption.AllDirectories))
+            {
+                foreach (string snapshot in Directory.GetFiles(mismatchDir, "*.*"))
+                {
+                    File.Copy(snapshot, Path.Combine(uploadDir, Path.GetFileName(snapshot)));
+                }
+            }
+
+            DevOpsPipeLine.UploadArtifacts("foo", "__mismatch__", uploadDir);
+        }
+    }
 }

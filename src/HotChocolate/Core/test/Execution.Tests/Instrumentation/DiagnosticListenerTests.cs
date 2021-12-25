@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,11 +24,30 @@ namespace HotChocolate.Execution.Instrumentation
                .AddStarWarsRepositories());
 
             // act
-            var result = await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(result.Errors);
             Assert.Collection(listener.Results, r => Assert.IsType<Droid>(r));
+        }
+
+        [Fact]
+        public async Task Intercept_Resolver_Result_With_Listener_2()
+        {
+            // arrange
+            ServiceProvider services = new ServiceCollection()
+                .AddSingleton<Touched>()
+                .AddGraphQL()
+                .AddDiagnosticEventListener<TouchedListener>()
+                .AddStarWars()
+                .Services
+                .BuildServiceProvider();
+
+            // act
+            await services.ExecuteRequestAsync("{ hero { name } }");
+
+            // assert
+            Assert.True(services.GetRequiredService<Touched>().Signal);
         }
 
         [Fact]
@@ -44,7 +64,7 @@ namespace HotChocolate.Execution.Instrumentation
                .AddStarWarsRepositories());
 
             // act
-            var result = await executor.ExecuteAsync("{ hero { name } }");
+            IExecutionResult result = await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Null(result.Errors);
@@ -52,19 +72,39 @@ namespace HotChocolate.Execution.Instrumentation
             Assert.Collection(listenerB.Results, r => Assert.IsType<Droid>(r));
         }
 
+        public class Touched
+        {
+            public bool Signal = false;
+        }
 
-        private class TestListener : DiagnosticEventListener
+        public class TouchedListener : ExecutionDiagnosticEventListener
+        {
+            private readonly Touched _touched;
+
+            public TouchedListener(Touched touched)
+            {
+                _touched = touched;
+            }
+
+            public override IDisposable ExecuteRequest(IRequestContext context)
+            {
+                _touched.Signal = true;
+                return EmptyScope;
+            }
+        }
+
+        private class TestListener : ExecutionDiagnosticEventListener
         {
             public List<object> Results { get; } = new();
 
             public override bool EnableResolveFieldValue => true;
 
-            public override IActivityScope ResolveFieldValue(IMiddlewareContext context)
+            public override IDisposable ResolveFieldValue(IMiddlewareContext context)
             {
                 return new ResolverActivityScope(context, Results);
             }
 
-            private class ResolverActivityScope : IActivityScope
+            private class ResolverActivityScope : IDisposable
             {
                 public ResolverActivityScope(IMiddlewareContext context, List<object> results)
                 {

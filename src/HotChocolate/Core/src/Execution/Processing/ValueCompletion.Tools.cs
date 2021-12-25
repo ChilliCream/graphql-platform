@@ -1,49 +1,78 @@
 using System;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal static partial class ValueCompletion
 {
-    internal static partial class ValueCompletion
+    public static void ReportError(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        IError error)
     {
-        public static void ReportError(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            IError error)
+        if (error is AggregateError aggregateError)
         {
-            error = operationContext.ErrorHandler.Handle(error);
-            operationContext.Result.AddError(error, selection.SyntaxNode);
-            operationContext.DiagnosticEvents.ResolverError(resolverContext, error);
+            foreach (IError? innerError in aggregateError.Errors)
+            {
+                ReportSingle(innerError);
+            }
+        }
+        else
+        {
+            ReportSingle(error);
         }
 
-        public static void ReportError(
-            IOperationContext operationContext,
-            MiddlewareContext resolverContext,
-            ISelection selection,
-            Path path,
-            Exception exception)
+        void ReportSingle(IError singleError)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
+            AddProcessedError(operationContext.ErrorHandler.Handle(singleError));
+        }
 
-            if (exception is GraphQLException graphQLException)
+        void AddProcessedError(IError processed)
+        {
+            if (processed is AggregateError ar)
             {
-                foreach (IError error in graphQLException.Errors)
+                foreach (IError? ie in ar.Errors)
                 {
-                    ReportError(operationContext, resolverContext, selection, error);
+                    operationContext.Result.AddError(ie, selection.SyntaxNode);
+                    operationContext.DiagnosticEvents.ResolverError(resolverContext, ie);
                 }
             }
             else
             {
-                IError error = operationContext.ErrorHandler
-                    .CreateUnexpectedError(exception)
-                    .SetPath(path)
-                    .AddLocation(selection.SyntaxNode)
-                    .Build();
+                operationContext.Result.AddError(processed, selection.SyntaxNode);
+                operationContext.DiagnosticEvents.ResolverError(resolverContext, processed);
+            }
+        }
+    }
 
+    public static void ReportError(
+        IOperationContext operationContext,
+        MiddlewareContext resolverContext,
+        ISelection selection,
+        Path path,
+        Exception exception)
+    {
+        if (exception is null)
+        {
+            throw new ArgumentNullException(nameof(exception));
+        }
+
+        if (exception is GraphQLException graphQLException)
+        {
+            foreach (IError error in graphQLException.Errors)
+            {
                 ReportError(operationContext, resolverContext, selection, error);
             }
+        }
+        else
+        {
+            IError error = operationContext.ErrorHandler
+                .CreateUnexpectedError(exception)
+                .SetPath(path)
+                .AddLocation(selection.SyntaxNode)
+                .Build();
+
+            ReportError(operationContext, resolverContext, selection, error);
         }
     }
 }

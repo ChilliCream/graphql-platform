@@ -162,7 +162,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface INodesResult
+    public partial interface INodesResult
     {
         public global::Foo.Bar.INodes_Node? Node
         {
@@ -172,7 +172,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface INodes_Node
+    public partial interface INodes_Node
     {
         public global::System.String __typename
         {
@@ -187,7 +187,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface INodes_Node_Workspace : INodes_Node
+    public partial interface INodes_Node_Workspace : INodes_Node
     {
     }
 
@@ -320,7 +320,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface INodesQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface INodesQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<INodesResult>> ExecuteAsync(global::System.String id, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<INodesResult>> Watch(global::System.String id, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -348,7 +348,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.INodesQuery Nodes
         {

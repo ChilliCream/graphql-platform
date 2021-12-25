@@ -86,5 +86,11 @@ namespace HotChocolate.Fetching.Properties {
                 return ResourceManager.GetString("ThrowHelper_DataLoader_InvalidType", resourceCulture);
             }
         }
+        
+        internal static string BatchDispatcherResult_NoExceptions {
+            get {
+                return ResourceManager.GetString("BatchDispatcherResult_NoExceptions", resourceCulture);
+            }
+        }
     }
 }

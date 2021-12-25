@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      },
+      {
+        "foo": {
+          "objectArray": []
+        }
+      }
+    ]
+  }
+}

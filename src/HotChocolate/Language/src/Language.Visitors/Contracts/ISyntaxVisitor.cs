@@ -1,9 +1,8 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+public interface ISyntaxVisitor
 {
-    public interface ISyntaxVisitor
-    {
-        ISyntaxVisitorAction Visit(
-            ISyntaxNode node,
-            ISyntaxVisitorContext context);
-    }
+    ISyntaxVisitorAction Visit(
+        ISyntaxNode node,
+        ISyntaxVisitorContext context);
 }

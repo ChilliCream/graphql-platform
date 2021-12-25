@@ -1,0 +1,17 @@
+﻿---
+Content-Type: application/json; charset=utf-8
+
+{"data":{"hero":{"name":"R2-D2","friends":{"nodes":[{"name":"Luke Skywalker"}]}}},"hasNext":true}
+---
+Content-Type: application/json; charset=utf-8
+
+{"label":"foo","path":["hero","friends","nodes",1],"data":{"name":"Han Solo"},"hasNext":true}
+---
+Content-Type: application/json; charset=utf-8
+
+{"label":"foo","path":["hero","friends","nodes",2],"data":{"name":"Leia Organa"},"hasNext":true}
+---
+Content-Type: application/json; charset=utf-8
+
+{"hasNext":false}
+-----

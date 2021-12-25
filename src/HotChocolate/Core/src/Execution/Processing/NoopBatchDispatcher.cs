@@ -1,20 +1,19 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution.Processing;
+
+internal class NoopBatchDispatcher : IBatchDispatcher
 {
-    internal class NoopBatchDispatcher : IBatchDispatcher
-    {
-        public event EventHandler? TaskEnqueued;
+    public event EventHandler? TaskEnqueued;
 
-        public bool HasTasks => false;
+    public bool HasTasks => false;
 
-        public bool DispatchOnSchedule { get; set; } = false;
+    public bool DispatchOnSchedule { get; set; } = false;
 
-        public void Initialize(IExecutionTaskContext context) { }
+    public void BeginDispatch(CancellationToken cancellationToken) { }
 
-        public void Dispatch() { }
-
-        public static NoopBatchDispatcher Default { get; } = new();
-    }
+    public static NoopBatchDispatcher Default { get; } = new();
 }

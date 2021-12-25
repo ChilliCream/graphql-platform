@@ -10,27 +10,37 @@ namespace HotChocolate.Types.Spatial.Serialization
             Serializers =
                 new Dictionary<GeoJsonGeometryType, IGeoJsonSerializer>
                 {
-                    { GeoJsonGeometryType.Point, GeoJsonPointSerializer.Default },
-                    { GeoJsonGeometryType.MultiPoint, GeoJsonMultiPointSerializer.Default },
-                    { GeoJsonGeometryType.LineString, GeoJsonLineStringSerializer.Default },
-                    {
-                        GeoJsonGeometryType.MultiLineString,
-                        GeoJsonMultiLineStringSerializer.Default
-                    },
-                    { GeoJsonGeometryType.Polygon, GeoJsonPolygonSerializer.Default },
-                    { GeoJsonGeometryType.MultiPolygon, GeoJsonMultiPolygonSerializer.Default }
+                    [GeoJsonGeometryType.Point] = GeoJsonPointSerializer.Default,
+                    [GeoJsonGeometryType.MultiPoint] = GeoJsonMultiPointSerializer.Default,
+                    [GeoJsonGeometryType.LineString] = GeoJsonLineStringSerializer.Default,
+                    [GeoJsonGeometryType.MultiLineString] =
+                        GeoJsonMultiLineStringSerializer.Default,
+                    [GeoJsonGeometryType.Polygon] = GeoJsonPolygonSerializer.Default,
+                    [GeoJsonGeometryType.MultiPolygon] = GeoJsonMultiPolygonSerializer.Default
+                };
+
+        public static readonly IReadOnlyDictionary<string, IGeoJsonSerializer>
+            SerializersByTypeName =
+                new Dictionary<string, IGeoJsonSerializer>
+                {
+                    ["Point"] = GeoJsonPointSerializer.Default,
+                    ["MultiPoint"] = GeoJsonMultiPointSerializer.Default,
+                    ["LineString"] = GeoJsonLineStringSerializer.Default,
+                    ["MultiLineString"] = GeoJsonMultiLineStringSerializer.Default,
+                    ["Polygon"] = GeoJsonPolygonSerializer.Default,
+                    ["MultiPolygon"] = GeoJsonMultiPolygonSerializer.Default
                 };
 
         public static readonly IReadOnlyDictionary<Type, IGeoJsonSerializer>
             SerializersByType =
                 new Dictionary<Type, IGeoJsonSerializer>
                 {
-                    { typeof(Point), GeoJsonPointSerializer.Default },
-                    { typeof(MultiPoint), GeoJsonMultiPointSerializer.Default },
-                    { typeof(LineString), GeoJsonLineStringSerializer.Default },
-                    { typeof(MultiLineString), GeoJsonMultiLineStringSerializer.Default },
-                    { typeof(Polygon), GeoJsonPolygonSerializer.Default },
-                    { typeof(MultiPolygon), GeoJsonMultiPolygonSerializer.Default }
+                    [typeof(Point)] = GeoJsonPointSerializer.Default,
+                    [typeof(MultiPoint)] = GeoJsonMultiPointSerializer.Default,
+                    [typeof(LineString)] = GeoJsonLineStringSerializer.Default,
+                    [typeof(MultiLineString)] = GeoJsonMultiLineStringSerializer.Default,
+                    [typeof(Polygon)] = GeoJsonPolygonSerializer.Default,
+                    [typeof(MultiPolygon)] = GeoJsonMultiPolygonSerializer.Default,
                 };
     }
 }

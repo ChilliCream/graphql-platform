@@ -5,7 +5,8 @@
     <AssemblyName>HotChocolate.Data.EntityFramework</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IsMacOsArm)' != 'true'">net6.0; net5.0; netstandard2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(IsMacOsArm)' == 'true'">net6.0</TargetFrameworks>
     <Description>Contains extensions for seamless integration of Entity Framework Core into HotChocolate</Description>
   </PropertyGroup>
 
@@ -14,8 +15,12 @@
     <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'netstandard2.1'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +36,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>EntityFrameworkResources.resx</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.props" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.props" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)..\MSBuild\HotChocolate.Data.targets" Pack="true" PackagePath="build/HotChocolate.Data.EntityFramework.targets" Visible="false" />
   </ItemGroup>
 
 </Project>

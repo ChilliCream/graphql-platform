@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "Subscription",
   "StrictValidation": true,
   "UseXmlDocumentation": true,
+  "ResolveXmlDocumentationFileName": null,
   "SortFieldsByName": false,
   "PreserveSyntaxNodes": false,
   "RemoveUnreachableTypes": false,
@@ -12,5 +13,8 @@
   "EnableDirectiveIntrospection": false,
   "DefaultDirectiveVisibility": "Public",
   "AllowInlining": true,
-  "DefaultResolverStrategy": "Parallel"
+  "DefaultResolverStrategy": "Parallel",
+  "ValidatePipelineOrder": true,
+  "StrictRuntimeTypeValidation": false,
+  "DefaultIsOfTypeCheck": null
 }

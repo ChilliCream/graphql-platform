@@ -1,8 +1,7 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IReadOnlyQueryRequest : IQueryRequest
 {
-    public interface IReadOnlyQueryRequest : IQueryRequest
-    {
-    }
 }

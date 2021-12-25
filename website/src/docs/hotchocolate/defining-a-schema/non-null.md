@@ -101,9 +101,49 @@ public class BookType : ObjectType<Book>
 <ExampleTabs.Schema>
 
 ```sdl
-type User {
-  name: String!
-  nullableName: String
+type Book {
+  title: String!
+  nullableTitle: String
+}
+```
+
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+The inner type of a list can be made non-null like the following.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
+
+```csharp
+public class Book
+{
+    [GraphQLType(typeof(ListType<NonNullType<StringType>>))]
+    public List<string> Genres { get; set; }
+}
+```
+
+</ExampleTabs.Annotation>
+<ExampleTabs.Code>
+
+```csharp
+public class BookType : ObjectType<Book>
+{
+    protected override void Configure(IObjectTypeDescriptor<Book> descriptor)
+    {
+        descriptor
+            .Field(f => f.Genres)
+            .Type<ListType<NonNullType<StringType>>>();
+    }
+}
+```
+
+</ExampleTabs.Code>
+<ExampleTabs.Schema>
+
+```sdl
+type Book {
+  genres: [String!]
 }
 ```
 

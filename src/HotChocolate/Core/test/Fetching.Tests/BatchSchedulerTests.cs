@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Fetching;
@@ -16,20 +15,22 @@ namespace HotChocolate
             // arrange
             var context = new Mock<IExecutionTaskContext>();
             context.Setup(t => t.Register(It.IsAny<IExecutionTask>()));
+            var hasTask = false;
 
             var scheduler = new BatchScheduler();
-            scheduler.Initialize(context.Object);
+            scheduler.TaskEnqueued += (_, _) => hasTask = true;
 
             ValueTask Dispatch() => default;
 
             scheduler.Schedule(Dispatch);
-            Assert.True(scheduler.HasTasks);
+            Assert.True(hasTask);
+            hasTask = false;
 
             // act
-            scheduler.Dispatch();
+            scheduler.BeginDispatch();
 
             // assert
-            Assert.False(scheduler.HasTasks);
+            Assert.False(hasTask);
         }
 
         [Fact]
@@ -46,14 +47,16 @@ namespace HotChocolate
         public void Schedule_OneAction_HasTasksShouldReturnTrue()
         {
             // arrange
+            var hasTask = false;
             var scheduler = new BatchScheduler();
+            scheduler.TaskEnqueued += (_, _) => hasTask = true;
             ValueTask Dispatch() => default;
 
             // act
             scheduler.Schedule(Dispatch);
 
             // assert
-            Assert.True(scheduler.HasTasks);
+            Assert.True(hasTask);
         }
 
         [Fact]

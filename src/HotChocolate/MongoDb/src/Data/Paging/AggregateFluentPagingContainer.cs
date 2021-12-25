@@ -8,7 +8,7 @@ namespace HotChocolate.Data.MongoDb.Paging
 {
     internal class AggregateFluentPagingContainer<TEntity> : IMongoPagingContainer<TEntity>
     {
-        public readonly IAggregateFluent<TEntity> _source;
+        private readonly IAggregateFluent<TEntity> _source;
         private readonly IAggregateFluent<AggregateCountResult> _countSource;
 
         public AggregateFluentPagingContainer(IAggregateFluent<TEntity> source)
@@ -26,7 +26,7 @@ namespace HotChocolate.Data.MongoDb.Paging
             return (int)(result?.Count ?? 0L);
         }
 
-        public async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ToIndexEdgesAsync(
+        public async ValueTask<IReadOnlyList<Edge<TEntity>>> ExecuteQueryAsync(
             int offset,
             CancellationToken cancellationToken)
         {

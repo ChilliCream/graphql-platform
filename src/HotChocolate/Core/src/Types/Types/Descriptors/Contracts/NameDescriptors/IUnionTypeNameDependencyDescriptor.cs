@@ -1,12 +1,11 @@
 using System;
 
-namespace HotChocolate.Types
-{
-    public interface IUnionTypeNameDependencyDescriptor
-    {
-        IUnionTypeDescriptor DependsOn<TDependency>()
-            where TDependency : IType;
+namespace HotChocolate.Types;
 
-        IUnionTypeDescriptor DependsOn(Type schemaType);
-    }
+public interface IUnionTypeNameDependencyDescriptor
+{
+    IUnionTypeDescriptor DependsOn<TDependency>()
+        where TDependency : IType;
+
+    IUnionTypeDescriptor DependsOn(Type schemaType);
 }

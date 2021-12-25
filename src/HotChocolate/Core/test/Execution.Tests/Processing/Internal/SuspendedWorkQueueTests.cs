@@ -1,8 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Castle.Components.DictionaryAdapter;
 using HotChocolate.Execution.Processing.Plan;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Moq;
 using Xunit;
 
@@ -40,9 +38,9 @@ namespace HotChocolate.Execution.Processing.Internal
             // assert
             var work = new WorkQueue();
             var plan = new QueryPlan(new MockQueryPlanStep());
-            var operationContext = new Mock<IOperationContext>();
+            var state = new Mock<IQueryPlanState>();
             var stateMachine = new QueryPlanStateMachine();
-            stateMachine.Initialize(operationContext.Object, plan);
+            stateMachine.Initialize(state.Object, plan);
             queue.CopyTo(work, work, stateMachine);
 
             Assert.True(work.TryTake(out IExecutionTask task));
@@ -51,20 +49,19 @@ namespace HotChocolate.Execution.Processing.Internal
             Assert.Same(task2, task);
         }
 
-        internal class MockQueryPlanStep : QueryPlanStep
+        internal class MockQueryPlanStep : ExecutionStep
         {
-            public override bool IsPartOf(IExecutionTask task) => true;
         }
 
         public class MockExecutionTask : IExecutionTask
         {
             public ExecutionTaskKind Kind { get; }
-            public bool IsCompleted { get; }
-            public IExecutionTask Parent { get; set; }
+            public ExecutionTaskStatus Status { get; }
             public IExecutionTask Next { get; set; }
             public IExecutionTask Previous { get; set; }
             public object State { get; set; }
             public bool IsSerial { get; set; }
+            public bool IsRegistered { get; set; }
 
             public void BeginExecute(CancellationToken cancellationToken)
             {

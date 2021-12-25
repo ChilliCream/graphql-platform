@@ -1,4 +1,3 @@
-using System.IO;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.AzurePipelines;
@@ -84,12 +83,4 @@ partial class Build : NukeBuild
             DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
-
-    private static void TryDelete(string fileName) 
-    {
-        if(File.Exists(fileName))
-        {
-            File.Delete(fileName);
-        }
-    }
 }

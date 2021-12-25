@@ -13,9 +13,8 @@ namespace HotChocolate.Types.Filters
     {
         private const string _name = "OR";
 
-        internal OrField(
-            IDescriptorContext context)
-            : base(CreateDefinition(context), default)
+        internal OrField(IDescriptorContext context, int index)
+            : base(CreateDefinition(context), index)
         {
         }
 
@@ -27,10 +26,9 @@ namespace HotChocolate.Types.Filters
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
+            ITypeSystemMember declaringMember,
             InputFieldDefinition definition)
         {
-            Coordinate = Coordinate.With(typeName: context.Type.Name);
-
             definition.Type = TypeReference.Create(
                 new ListTypeNode(
                     new NonNullTypeNode(
@@ -38,7 +36,7 @@ namespace HotChocolate.Types.Filters
                 TypeContext.Input,
                 context.Type.Scope);
 
-            base.OnCompleteField(context, definition);
+            base.OnCompleteField(context, declaringMember, definition);
         }
     }
 }

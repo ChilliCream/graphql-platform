@@ -191,6 +191,40 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumTypeT_Ignore_Fields()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnoredType>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumTypeT_Ignore_Fields_With_Extension()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnoredTypeWithExtension>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void ImplicitEnumType_OnlyBar1HasCustomName()
         {
             // act
@@ -498,6 +532,23 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Ignore_Fields_With_GraphQLIgnoreAttribute()
+        {
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("bar"))
+                .AddType<FooIgnore>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void EnumType_That_Is_Bound_To_String_Should_Not_Interfere_With_Scalar()
         {
             SchemaBuilder.New()
@@ -512,6 +563,17 @@ namespace HotChocolate.Types
         {
             SchemaBuilder.New()
                .AddEnumType<FooName>()
+               .ModifyOptions(o => o.StrictValidation = false)
+               .Create()
+               .ToString()
+               .MatchSnapshot();
+        }
+
+        [Fact]
+        public void ValueContainingUnderline_Should_NotResultInDoubleUnderline()
+        {
+            SchemaBuilder.New()
+               .AddEnumType<FooUnderline>()
                .ModifyOptions(o => o.StrictValidation = false)
                .Create()
                .ToString()
@@ -534,6 +596,29 @@ namespace HotChocolate.Types
             Bar2
         }
 
+        public enum FooIgnore
+        {
+            Bar1,
+            [GraphQLIgnore]
+            Bar2
+        }
+
+        public class FooIgnoredType : EnumType<Foo>
+        {
+            protected override void Configure(IEnumTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Value(Foo.Bar2).Ignore();
+            }
+        }
+
+        public class FooIgnoredTypeWithExtension : EnumType<Foo>
+        {
+            protected override void Configure(IEnumTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Ignore(Foo.Bar2);
+            }
+        }
+
         public enum FooDeprecated
         {
             Bar1,
@@ -547,6 +632,11 @@ namespace HotChocolate.Types
             Bar1,
             [GraphQLName("BAR_2")]
             Bar2
+        }
+
+        public enum FooUnderline
+        {
+            Creating_Instance = 1
         }
 
         public class SomeQueryType : ObjectType

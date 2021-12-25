@@ -24,8 +24,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 directive.Arguments.Count == 1 &&
                 directive.Arguments[0] is
                 {
-                    Name: {Value: "fragment"},
-                    Value: StringValueNode {Value: {Length: > 0}} sv
+                    Name: { Value: "fragment" },
+                    Value: StringValueNode { Value: { Length: > 0 } } sv
                 })
             {
                 return sv.Value;
@@ -73,8 +73,8 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             {
                 Fragment? objectFragment =
                     list
-                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())?
-                        .Fragment;
+                        .FirstOrDefault(t => t.Fragment.TypeCondition.IsObjectType())
+                        ?.Fragment;
 
                 if (objectFragment is not null)
                 {
@@ -127,7 +127,10 @@ namespace StrawberryShake.CodeGeneration.Analyzers
                 fragmentNode.Fragment.TypeCondition,
                 fragmentNode.Fragment.SelectionSet,
                 fields,
-                new[] {@interface});
+                new[]
+                {
+                    @interface
+                });
             context.RegisterModel(name, typeModel);
 
             return typeModel;
@@ -237,7 +240,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path)
         {
             // the fragment type is a complex type we will generate a interface with fields.
-            if (fragmentNode.Fragment.TypeCondition is INamedOutputType type && 
+            if (fragmentNode.Fragment.TypeCondition is INamedOutputType type &&
                 type.IsCompositeType())
             {
                 var fieldMap = new OrderedDictionary<string, FieldSelection>();
@@ -279,14 +282,14 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             Path path)
         {
             foreach (var inlineFragment in fragmentNode.Nodes.Where(
-                t => t.Fragment.Kind == FragmentKind.Inline &&
-                     t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
+                         t => t.Fragment.Kind == FragmentKind.Inline &&
+                             t.Fragment.TypeCondition.IsAssignableFrom(outputType)))
             {
                 CollectFields(inlineFragment, outputType, fields, path);
             }
 
             foreach (FieldNode selection in
-                fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
+                     fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
             {
                 FieldCollector.ResolveFieldSelection(selection, outputType, path, fields);
             }
@@ -361,7 +364,7 @@ namespace StrawberryShake.CodeGeneration.Analyzers
             var implements = new List<OutputTypeModel>();
 
             foreach (FragmentNode child in parentFragmentNode.Nodes.Where(
-                t => t.Fragment.Kind == FragmentKind.Named))
+                         t => t.Fragment.Kind == FragmentKind.Named))
             {
                 // we create a new field level with the fields that are implemented by this level.
                 var fields = new HashSet<string>();
