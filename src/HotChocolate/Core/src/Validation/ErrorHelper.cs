@@ -623,9 +623,9 @@ internal static class ErrorHelper
         this IDocumentValidatorContext context,
         FieldNode field)
     {
-        string message = Resources.ErrorHelper_IntrospectionNotAllowed;
+        var message = Resources.ErrorHelper_IntrospectionNotAllowed;
 
-        if (context.ContextData.TryGetValue(IntrospectionMessage, out object? value))
+        if (context.ContextData.TryGetValue(IntrospectionMessage, out var value))
         {
             if (value is Func<string> messageFactory)
             {

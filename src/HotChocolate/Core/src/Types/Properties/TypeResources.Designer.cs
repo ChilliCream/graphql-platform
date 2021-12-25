@@ -1436,5 +1436,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("OneOfDirectiveType_Description", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_OneOfNoFieldSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfNoFieldSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfMoreThanOneFieldSet {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfMoreThanOneFieldSet", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_OneOfFieldIsNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_OneOfFieldIsNull", resourceCulture);
+            }
+        }
     }
 }

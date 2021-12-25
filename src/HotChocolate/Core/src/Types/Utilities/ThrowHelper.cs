@@ -253,13 +253,13 @@ internal static class ThrowHelper
     }
 
     public static SerializationException OneOfNoFieldSet(
-        IType type,
+        InputObjectType type,
         Path? path)
     {
         IErrorBuilder builder = ErrorBuilder.New()
             .SetMessage(
-                @"No field of the Oneof Input Object is set. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.")
+                ThrowHelper_OneOfNoFieldSet,
+                type.Name.Value)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path);
 
@@ -267,13 +267,13 @@ internal static class ThrowHelper
     }
 
     public static SerializationException OneOfMoreThanOneFieldSet(
-        IType type,
+        InputObjectType type,
         Path? path)
     {
         IErrorBuilder builder = ErrorBuilder.New()
             .SetMessage(
-                @"More than one field of the Oneof Input Object is set. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.")
+                ThrowHelper_OneOfMoreThanOneFieldSet,
+                type.Name.Value)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path);
 
@@ -281,14 +281,15 @@ internal static class ThrowHelper
     }
 
     public static SerializationException OneOfFieldIsNull(
-        IType type,
+        InputObjectType type,
         Path? path,
         InputField field)
     {
         IErrorBuilder builder = ErrorBuilder.New()
             .SetMessage(
-                @"`null` was set to a one of field. Oneof Input Objects are a special variant of Input Objects where the type
- system asserts that exactly one of the fields must be set and non-null.")
+                ThrowHelper_OneOfFieldIsNull,
+                field.Name.Value,
+                type.Name.Value)
             .SetCode(ErrorCodes.Execution.NonNullViolation)
             .SetPath(path)
             .SetExtension(nameof(field), field.Coordinate.ToString());
