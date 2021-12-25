@@ -625,7 +625,7 @@
                         "Alias": null,
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 326,
                             "End": 349,
@@ -667,7 +667,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 357,
                             "End": 372,
@@ -700,7 +700,7 @@
                         "Alias": null,
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 372,
                             "End": 395,
@@ -742,7 +742,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 403,
                             "End": 438,
@@ -784,7 +784,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 451,
                             "End": 486,
@@ -843,7 +843,7 @@
                             "Column": 45
                           },
                           "Element": {
-                            "Kind": "RequiredDesignator",
+                            "Kind": "RequiredModifier",
                             "Location": {
                               "Start": 498,
                               "End": 500,
@@ -886,7 +886,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 551,
                             "End": 586,
@@ -902,7 +902,7 @@
                               "Column": 48
                             },
                             "Element": {
-                              "Kind": "RequiredDesignator",
+                              "Kind": "RequiredModifier",
                               "Location": {
                                 "Start": 549,
                                 "End": 551,
@@ -946,7 +946,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 599,
                             "End": 634,
@@ -1005,7 +1005,7 @@
                             "Column": 45
                           },
                           "Element": {
-                            "Kind": "OptionalDesignator",
+                            "Kind": "OptionalModifier",
                             "Location": {
                               "Start": 646,
                               "End": 648,
@@ -1048,7 +1048,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 699,
                             "End": 728,
@@ -1064,7 +1064,7 @@
                               "Column": 48
                             },
                             "Element": {
-                              "Kind": "OptionalDesignator",
+                              "Kind": "OptionalModifier",
                               "Location": {
                                 "Start": 697,
                                 "End": 699,
@@ -1108,7 +1108,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 748,
                             "End": 763,
@@ -1124,7 +1124,7 @@
                               "Column": 39
                             },
                             "Element": {
-                              "Kind": "RequiredDesignator",
+                              "Kind": "RequiredModifier",
                               "Location": {
                                 "Start": 746,
                                 "End": 748,
@@ -1140,7 +1140,7 @@
                                   "Column": 40
                                 },
                                 "Element": {
-                                  "Kind": "RequiredDesignator",
+                                  "Kind": "RequiredModifier",
                                   "Location": {
                                     "Start": 744,
                                     "End": 746,
@@ -1156,7 +1156,7 @@
                                       "Column": 41
                                     },
                                     "Element": {
-                                      "Kind": "RequiredDesignator",
+                                      "Kind": "RequiredModifier",
                                       "Location": {
                                         "Start": 742,
                                         "End": 744,
@@ -1195,7 +1195,7 @@
                         "Alias": null,
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 763,
                             "End": 766,
@@ -1271,7 +1271,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 821,
                             "End": 824,
@@ -1338,7 +1338,7 @@
                         "Alias": null,
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 863,
                             "End": 866,
@@ -1414,7 +1414,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 922,
                             "End": 925,
@@ -1481,7 +1481,7 @@
                         "Alias": null,
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 968,
                             "End": 971,
@@ -1566,7 +1566,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 1031,
                             "End": 1034,
@@ -1651,7 +1651,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 1107,
                             "End": 1142,
@@ -1710,7 +1710,7 @@
                             "Column": 45
                           },
                           "Element": {
-                            "Kind": "RequiredDesignator",
+                            "Kind": "RequiredModifier",
                             "Location": {
                               "Start": 1154,
                               "End": 1156,
@@ -1753,7 +1753,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 1207,
                             "End": 1242,
@@ -1769,7 +1769,7 @@
                               "Column": 48
                             },
                             "Element": {
-                              "Kind": "RequiredDesignator",
+                              "Kind": "RequiredModifier",
                               "Location": {
                                 "Start": 1205,
                                 "End": 1207,
@@ -1813,7 +1813,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 1255,
                             "End": 1290,
@@ -1872,7 +1872,7 @@
                             "Column": 45
                           },
                           "Element": {
-                            "Kind": "OptionalDesignator",
+                            "Kind": "OptionalModifier",
                             "Location": {
                               "Start": 1302,
                               "End": 1304,
@@ -1915,7 +1915,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "OptionalDesignator",
+                          "Kind": "OptionalModifier",
                           "Location": {
                             "Start": 1355,
                             "End": 1384,
@@ -1931,7 +1931,7 @@
                               "Column": 48
                             },
                             "Element": {
-                              "Kind": "OptionalDesignator",
+                              "Kind": "OptionalModifier",
                               "Location": {
                                 "Start": 1353,
                                 "End": 1355,
@@ -1975,7 +1975,7 @@
                         },
                         "Arguments": [],
                         "Required": {
-                          "Kind": "RequiredDesignator",
+                          "Kind": "RequiredModifier",
                           "Location": {
                             "Start": 1404,
                             "End": 1412,
@@ -1991,7 +1991,7 @@
                               "Column": 39
                             },
                             "Element": {
-                              "Kind": "RequiredDesignator",
+                              "Kind": "RequiredModifier",
                               "Location": {
                                 "Start": 1402,
                                 "End": 1404,
@@ -2007,7 +2007,7 @@
                                   "Column": 40
                                 },
                                 "Element": {
-                                  "Kind": "RequiredDesignator",
+                                  "Kind": "RequiredModifier",
                                   "Location": {
                                     "Start": 1400,
                                     "End": 1402,
@@ -2023,7 +2023,7 @@
                                       "Column": 41
                                     },
                                     "Element": {
-                                      "Kind": "RequiredDesignator",
+                                      "Kind": "RequiredModifier",
                                       "Location": {
                                         "Start": 1398,
                                         "End": 1400,

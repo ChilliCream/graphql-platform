@@ -198,13 +198,13 @@ public sealed partial class SyntaxSerializer
             VisitNullability(node.Element, writer);
         }
 
-        if (node.Kind == SyntaxKind.OptionalDesignator)
+        if (node.Kind == SyntaxKind.OptionalModifier)
         {
             writer.Write('?');
             return;
         }
 
-        if (node.Kind == SyntaxKind.RequiredDesignator)
+        if (node.Kind == SyntaxKind.RequiredModifier)
         {
             writer.Write('!');
             return;
