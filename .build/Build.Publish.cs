@@ -63,10 +63,10 @@ partial class Build
 
             DotNetPack(c => c
                 .SetProject(PackSolutionFile)
-                .SetNoRestore(true)
-                .SetNoBuild(true)
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
+                .SetNoRestore(true)
+                .SetNoBuild(true)
                 .SetVersion(GitVersion.SemVer));
 
             NuGetPack(c => c
