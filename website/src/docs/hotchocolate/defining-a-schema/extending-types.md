@@ -48,6 +48,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookExtensions>();
@@ -71,6 +72,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<QueryBookResolvers>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<QueryBookResolvers>();
@@ -102,6 +104,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookTypeExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookTypeExtensions>();
@@ -130,6 +133,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<QueryTypeBookResolvers>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<QueryTypeBookResolvers>();
@@ -163,6 +167,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookExtensions>();
@@ -186,6 +191,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookTypeExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookTypeExtensions>();
@@ -225,6 +231,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookExtensions>();
@@ -259,6 +266,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddScoped<BookTypeExtensions>();
         services
             .AddGraphQLServer()
             .AddTypeExtension<BookTypeExtensions>();
