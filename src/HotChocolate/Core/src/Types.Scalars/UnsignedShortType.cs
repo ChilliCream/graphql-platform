@@ -21,7 +21,7 @@ public class UnsignedShortType : IntegerTypeBase<ushort>
     public UnsignedShortType(
         NameString name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, ushort.MinValue, ushort.MaxValue, bind)
     {
         Description = description;

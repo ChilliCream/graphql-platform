@@ -21,7 +21,7 @@ public class SignedByteType : IntegerTypeBase<sbyte>
     public SignedByteType(
         NameString name,
         string? description = null,
-        BindingBehavior bind = BindingBehavior.Explicit)
+        BindingBehavior bind = BindingBehavior.Implicit)
         : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
