@@ -24,7 +24,7 @@ public static class SchemaErrorBuilderExtensions
     public static ISchemaErrorBuilder SpecifiedBy(
         this ISchemaErrorBuilder errorBuilder,
         string section,
-        bool condition)
+        bool condition = true)
     {
         if (condition)
         {
