@@ -265,6 +265,18 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     }
 
     [Fact]
+    public void Oneof_Input_Objects_that_is_Valid()
+        => ExpectValid(
+            @"type Query {
+                foo(f: FooInput): String
+            }
+
+            input FooInput @oneOf {
+                a: String
+                b: Int
+            }");
+
+    [Fact]
     public void Oneof_Input_Objects_must_have_nullable_fields()
         => ExpectError(
             @"type Query {
