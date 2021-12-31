@@ -24,14 +24,15 @@ public static class SchemaErrorBuilderExtensions
     public static ISchemaErrorBuilder SpecifiedBy(
         this ISchemaErrorBuilder errorBuilder,
         string section,
-        bool condition = true)
+        bool condition)
     {
         if (condition)
         {
             errorBuilder.SetExtension(
-               "specifiedBy",
-               "http://spec.graphql.org/June2018/#" + section);
+                "specifiedBy",
+                "http://spec.graphql.org/October2021/#" + section);
         }
+
         return errorBuilder;
     }
 }

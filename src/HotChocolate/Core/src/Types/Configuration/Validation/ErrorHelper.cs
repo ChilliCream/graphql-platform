@@ -149,6 +149,20 @@ internal static class ErrorHelper
             .SetSpecifiedBy(field.DeclaringType.Kind)
             .Build();
 
+    public static ISchemaError OneofInputObjectMustHaveNullableFieldsWithoutDefaults(
+        InputObjectType type,
+        string[] fieldNames)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                "Oneof Input Object `{0}` must only have nullable fields without default values. " +
+                "Edit your type and make the field{1} `{2}` nullable and remove any defaults.",
+                type.Name,
+                fieldNames.Length is 1 ? string.Empty : "s",
+                string.Join(", ", fieldNames))
+            .SetType(type)
+            .SetSpecifiedBy(type.Kind, rfc: 825)
+            .Build();
+
     private static ISchemaErrorBuilder SetType(
         this ISchemaErrorBuilder errorBuilder,
         INamedType type)
@@ -188,9 +202,21 @@ internal static class ErrorHelper
 
     private static ISchemaErrorBuilder SetSpecifiedBy(
         this ISchemaErrorBuilder errorBuilder,
-        TypeKind kind)
-        => errorBuilder
+        TypeKind kind,
+        int? rfc = null)
+    {
+        errorBuilder
             .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface)
             .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object)
             .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject);
+
+        if (rfc.HasValue)
+        {
+            errorBuilder.SetExtension(
+                "rfc",
+                "https://github.com/graphql/graphql-spec/pull/" + rfc.Value);
+        }
+
+        return errorBuilder;
+    }
 }

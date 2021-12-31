@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using HotChocolate.Types;
 using static HotChocolate.Configuration.Validation.TypeValidationHelper;
+using static HotChocolate.Configuration.Validation.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
@@ -19,6 +19,7 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
             {
                 EnsureTypeHasFields(type, errors);
                 EnsureFieldNamesAreValid(type, errors);
+                EnsureOneOfFieldsAreValid(type, errors);
             }
         }
     }
@@ -31,7 +32,12 @@ public class InputObjectTypeValidationRule : ISchemaValidationRule
         {
             if (type.Fields.Any(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null))
             {
-                // error 
+                string[] fieldNames = type.Fields
+                    .Where(t => t.Type.Kind is TypeKind.NonNull || t.DefaultValue is not null)
+                    .Select(t => t.Name.Value)
+                    .ToArray();
+
+                errors.Add(OneofInputObjectMustHaveNullableFieldsWithoutDefaults(type, fieldNames));
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using HotChocolate.Configuration.Validation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -10,7 +11,7 @@ namespace HotChocolate.Types;
 
 #nullable enable
 
-public class OneOfIntegrationTests
+public class OneOfIntegrationTests : TypeValidationTestBase
 {
     [Fact]
     public async Task A_is_set_and_B_is_set_Error()
@@ -263,6 +264,54 @@ public class OneOfIntegrationTests
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public void Oneof_Input_Objects_must_have_nullable_fields()
+        => ExpectError(
+            @"type Query {
+                foo(f: FooInput): String
+            }
+
+            input FooInput @oneOf {
+                a: String!
+                b: Int
+            }");
+
+    [Fact]
+    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_non_null()
+        => ExpectError(
+            @"type Query {
+                foo(f: FooInput): String
+            }
+
+            input FooInput @oneOf {
+                a: String!
+                b: Int!
+            }");
+
+    [Fact]
+    public void Oneof_Input_Objects_must_have_nullable_fields_with_one_field_has_default()
+        => ExpectError(
+            @"type Query {
+                foo(f: FooInput): String
+            }
+
+            input FooInput @oneOf {
+                a: String = ""a""
+                b: Int
+            }");
+
+    [Fact]
+    public void Oneof_Input_Objects_must_have_nullable_fields_with_two_fields_that_have_default()
+        => ExpectError(
+            @"type Query {
+                foo(f: FooInput): String
+            }
+
+            input FooInput @oneOf {
+                a: String = ""a""
+                b: Int = 1
+            }");
+
     public class Query
     {
         public string Example(ExampleInput input)
@@ -277,7 +326,7 @@ public class OneOfIntegrationTests
     }
 
     [OneOf]
-    public class  ExampleInput
+    public class ExampleInput
     {
         public string? A { get; set; }
         public int? B { get; set; }
