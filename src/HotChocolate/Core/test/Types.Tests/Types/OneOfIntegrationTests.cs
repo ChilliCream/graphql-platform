@@ -333,6 +333,40 @@ public class OneOfIntegrationTests : TypeValidationTestBase
             .Print()
             .MatchSnapshot();
 
+
+    [Fact]
+    public async Task Oneof_introspection()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .ModifyOptions(o =>
+            {
+                o.EnableOneOf = true;
+                o.StrictValidation = true;
+            })
+            .ExecuteRequestAsync(
+                @"{ 
+                    oneof_input: __type(name: ""ExampleInput"") { 
+                        # should be true
+                        oneOf 
+                    }
+
+                    input: __type(name: ""StandardInput"") { 
+                        # should be false
+                        oneOf 
+                    }
+
+                    object: __type(name: ""Query"") { 
+                        # should be null
+                        oneOf 
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
     public class Query
     {
         public string Example(ExampleInput input)
@@ -344,6 +378,9 @@ public class OneOfIntegrationTests : TypeValidationTestBase
 
             return "b: " + input.B;
         }
+
+        public string Standard(StandardInput input) 
+            => "abc";
     }
 
     [OneOf]
@@ -351,6 +388,11 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     {
         public string? A { get; set; }
         public int? B { get; set; }
+    }
+
+    public class StandardInput
+    {
+        public string? Foo { get; set; }
     }
 
     public class QueryType : ObjectType
