@@ -324,6 +324,15 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 b: Int = 1
             }");
 
+    [Fact]
+    public void Oneof_generic_code_first_schema()
+        => SchemaBuilder.New()
+            .AddQueryType<QueryType>()
+            .ModifyOptions(o => o.EnableOneOf = true)
+            .Create()
+            .Print()
+            .MatchSnapshot();
+
     public class Query
     {
         public string Example(ExampleInput input)
@@ -339,6 +348,33 @@ public class OneOfIntegrationTests : TypeValidationTestBase
 
     [OneOf]
     public class ExampleInput
+    {
+        public string? A { get; set; }
+        public int? B { get; set; }
+    }
+
+    public class QueryType : ObjectType
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor
+                .Name("Query")
+                .Field("a")
+                .Argument("a", a => a.Type<Example2InputType>())
+                .Type<StringType>()
+                .Resolve("abc");
+        }
+    }
+
+    public class Example2InputType : InputObjectType<Example2Input>
+    {
+        protected override void Configure(IInputObjectTypeDescriptor<Example2Input> descriptor)
+        {
+            descriptor.OneOf();
+        }
+    }
+
+    public class Example2Input
     {
         public string? A { get; set; }
         public int? B { get; set; }
