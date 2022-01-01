@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,9 +35,12 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     /// white space between property names and values.
     /// By default, the JSON is written without any extra white space.
     /// </param>
-    public JsonQueryResultSerializer(bool indented = false)
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
+    public JsonQueryResultSerializer(bool indented = false, JavaScriptEncoder? encoder = null)
     {
-        _options = new JsonWriterOptions { Indented = indented };
+        _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
 
     public unsafe string Serialize(IQueryResult result)
