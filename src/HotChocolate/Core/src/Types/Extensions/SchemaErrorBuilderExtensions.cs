@@ -29,9 +29,10 @@ public static class SchemaErrorBuilderExtensions
         if (condition)
         {
             errorBuilder.SetExtension(
-               "specifiedBy",
-               "http://spec.graphql.org/June2018/#" + section);
+                "specifiedBy",
+                "http://spec.graphql.org/October2021/#" + section);
         }
+
         return errorBuilder;
     }
 }

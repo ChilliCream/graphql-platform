@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -19,6 +20,9 @@ public class TypeInterceptor
 
     internal virtual void InitializeContext(
         IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
     }
@@ -91,6 +95,15 @@ public class TypeInterceptor
         DefinitionBase? definition,
         IDictionary<string, object?> contextData)
     {
+    }
+
+    internal virtual void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition,
+        OperationType operationType,
+        IDictionary<string, object?> contextData)
+    {
+
     }
 
     public virtual void OnTypesCompletedName(

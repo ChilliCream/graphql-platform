@@ -268,6 +268,8 @@ public class AnyType : ScalarType
                     return true;
                 }
 
+            // TODO: this is only done for a bug in schema stitching and needs to be removed
+            // once we have release stitching 2.
             case IValueNode literal:
                 runtimeValue = ParseLiteral(literal);
                 return true;

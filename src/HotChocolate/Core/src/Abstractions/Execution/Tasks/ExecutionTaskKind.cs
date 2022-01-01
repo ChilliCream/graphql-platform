@@ -1,23 +1,22 @@
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+/// <summary>
+/// The execution task kind defines the task behavior during execution.
+/// </summary>
+public enum ExecutionTaskKind
 {
     /// <summary>
-    /// The execution task kind defines the task behavior during execution.
+    /// Tasks that can be executed in parallel.
     /// </summary>
-    public enum ExecutionTaskKind
-    {
-        /// <summary>
-        /// Tasks that can be executed in parallel.
-        /// </summary>
-        Parallel,
+    Parallel,
 
-        /// <summary>
-        /// Tasks that need to be executed serially.
-        /// </summary>
-        Serial,
+    /// <summary>
+    /// Tasks that need to be executed serially.
+    /// </summary>
+    Serial,
 
-        /// <summary>
-        /// Tasks that have no side-effects and are synchronous.
-        /// </summary>
-        Pure
-    }
+    /// <summary>
+    /// Tasks that have no side-effects and are synchronous.
+    /// </summary>
+    Pure
 }

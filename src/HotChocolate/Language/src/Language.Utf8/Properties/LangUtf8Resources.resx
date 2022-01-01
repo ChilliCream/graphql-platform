@@ -36,6 +36,9 @@
   <data name="Reader_InvalidToken" xml:space="preserve">
     <value>Expected a `{0}`-token.</value>
   </data>
+  <data name="Reader_UnexpectedDigitAfterDot" xml:space="preserve">
+    <value>Invalid number, expected digit before ".".</value>
+  </data>
   <data name="Reader_UnexpectedPunctuatorToken" xml:space="preserve">
     <value>Unexpected punctuator token `{0}`.</value>
   </data>

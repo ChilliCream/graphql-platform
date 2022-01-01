@@ -11,134 +11,133 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate.Data.Projections;
+
+public class QueryableProjectionExtensionsTests
 {
-    public class QueryableProjectionExtensionsTests
+    private static readonly Foo[] _fooEntities =
     {
-        private static readonly Foo[] _fooEntities =
-        {
             new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
         };
 
-        [Fact]
-        public async Task Extensions_Should_ProjectQuery()
+    [Fact]
+    public async Task Extensions_Should_ProjectQuery()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddProjections()
+            .BuildRequestExecutorAsync();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ shouldWork { bar baz }}")
+                .Create());
+
+        // assert
+        res1.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Extension_Should_BeTypeMissMatch()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddProjections()
+            .CreateExecptionExecutor();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ typeMissmatch { bar baz }}")
+                .Create());
+
+        // assert
+        res1.MatchException();
+    }
+
+    [Fact]
+    public async Task Extension_Should_BeMissingMiddleware()
+    {
+        // arrange
+        IRequestExecutor executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddProjections()
+            .CreateExecptionExecutor();
+
+        // act
+        IExecutionResult res1 = await executor.ExecuteAsync(
+            QueryRequestBuilder
+                .New()
+                .SetQuery("{ missingMiddleware { bar baz }}")
+                .Create());
+
+        // assert
+        res1.MatchException();
+    }
+
+    public class Query
+    {
+        [UseProjection]
+        public IEnumerable<Foo> ShouldWork(IResolverContext context)
         {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddProjections()
-                .BuildRequestExecutorAsync();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ shouldWork { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.ToJson().MatchSnapshot();
+            return _fooEntities.Project(context);
         }
 
-        [Fact]
-        public async Task Extension_Should_BeTypeMissMatch()
+        [CatchErrorMiddleware]
+        [UseProjection]
+        [AddTypeMissmatchMiddleware]
+        public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
         {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddProjections()
-                .CreateExecptionExecutor();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ typeMissmatch { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.MatchException();
+            return _fooEntities.Project(context);
         }
 
-        [Fact]
-        public async Task Extension_Should_BeMissingMiddleware()
+        [CatchErrorMiddleware]
+        public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
         {
-            // arrange
-            IRequestExecutor executor = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType<Query>()
-                .AddProjections()
-                .CreateExecptionExecutor();
-
-            // act
-            IExecutionResult res1 = await executor.ExecuteAsync(
-                QueryRequestBuilder
-                    .New()
-                    .SetQuery("{ missingMiddleware { bar baz }}")
-                    .Create());
-
-            // assert
-            res1.MatchException();
+            return _fooEntities.Project(context);
         }
+    }
 
-        public class Query
+    public class Foo
+    {
+        public int Id { get; set; }
+
+        public bool Bar { get; set; }
+
+        public string? Baz { get; set; }
+
+        public string Computed() => "Foo";
+
+        public string? NotSettable { get; }
+    }
+
+    public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
+    {
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
-            [UseProjection]
-            public IEnumerable<Foo> ShouldWork(IResolverContext context)
+            descriptor.Use(next => context =>
             {
-                return _fooEntities.Project(context);
-            }
+                context.LocalContextData =
+                    context.LocalContextData.SetItem(
+                        QueryableProjectionProvider.ContextApplyProjectionKey,
+                        CreateApplicatorAsync<Foo>());
 
-            [CatchErrorMiddleware]
-            [UseProjection]
-            [AddTypeMissmatchMiddleware]
-            public IEnumerable<Foo> TypeMissmatch(IResolverContext context)
-            {
-                return _fooEntities.Project(context);
-            }
-
-            [CatchErrorMiddleware]
-            public IEnumerable<Foo> MissingMiddleware(IResolverContext context)
-            {
-                return _fooEntities.Project(context);
-            }
+                return next(context);
+            });
         }
 
-        public class Foo
-        {
-            public int Id { get; set; }
-
-            public bool Bar { get; set; }
-
-            public string Baz { get; set; }
-
-            public string Computed() => "Foo";
-
-            public string? NotSettable { get; }
-        }
-
-        public class AddTypeMissmatchMiddlewareAttribute : ObjectFieldDescriptorAttribute
-        {
-            public override void OnConfigure(
-                IDescriptorContext context,
-                IObjectFieldDescriptor descriptor,
-                MemberInfo member)
-            {
-                descriptor.Use(next => context =>
-                {
-                    context.LocalContextData =
-                        context.LocalContextData.SetItem(
-                            QueryableProjectionProvider.ContextApplyProjectionKey,
-                            CreateApplicatorAsync<Foo>());
-
-                    return next(context);
-                });
-            }
-
-            private static ApplyProjection CreateApplicatorAsync<TEntityType>() =>
-                (context, input) => new object();
-        }
+        private static ApplyProjection CreateApplicatorAsync<TEntityType>() =>
+            (context, input) => new object();
     }
 }

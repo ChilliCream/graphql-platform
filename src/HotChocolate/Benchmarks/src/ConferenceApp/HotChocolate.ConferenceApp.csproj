@@ -2,24 +2,29 @@
 
   <PropertyGroup>
     <RootNamespace>HotChocolate.ConferencePlanner</RootNamespace>
+    <PackageVersion>12.2.1</PackageVersion>
+    <UsePackageVersion>false</UsePackageVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!--ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" /-->
-    <!--ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" /-->
-    <PackageReference Include="HotChocolate.AspNetCore" Version="12.0.0-rc.11" />
-    <PackageReference Include="HotChocolate.Data" Version="12.0.0-rc.11" />
+  <ItemGroup Condition="'$(UsePackageVersion)' != 'true'">
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UsePackageVersion)' == 'true'">
+    <PackageReference Include="HotChocolate.AspNetCore" Version="$(PackageVersion)" />
+    <PackageReference Include="HotChocolate.Data" Version="$(PackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0">
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />  
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />  
   </ItemGroup>
 
   <ItemGroup>

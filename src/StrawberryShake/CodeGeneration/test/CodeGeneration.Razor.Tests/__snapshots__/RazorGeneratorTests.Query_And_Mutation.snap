@@ -169,7 +169,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetBarsResult
+    public partial interface IGetBarsResult
     {
         public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.IGetBars_Bars?>? Bars
         {
@@ -179,7 +179,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetBars_Bars
+    public partial interface IGetBars_Bars
     {
         public global::System.String Id
         {
@@ -194,7 +194,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetBars_Bars_Bar : IGetBars_Bars
+    public partial interface IGetBars_Bars_Bar : IGetBars_Bars
     {
     }
 
@@ -345,7 +345,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISaveBarsResult
+    public partial interface ISaveBarsResult
     {
         public global::Foo.Bar.ISaveBars_SaveBar? SaveBar
         {
@@ -355,7 +355,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISaveBars_SaveBar
+    public partial interface ISaveBars_SaveBar
     {
         public global::System.String Id
         {
@@ -370,7 +370,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISaveBars_SaveBar_Bar : ISaveBars_SaveBar
+    public partial interface ISaveBars_SaveBar_Bar : ISaveBars_SaveBar
     {
     }
 
@@ -519,7 +519,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetBarsQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetBarsQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -670,7 +670,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface ISaveBarsMutation : global::StrawberryShake.IOperationRequestFactory
+    public partial interface ISaveBarsMutation : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<ISaveBarsResult>> ExecuteAsync(global::System.String a, global::System.String? b, global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<ISaveBarsResult>> Watch(global::System.String a, global::System.String? b, global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -701,7 +701,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetBarsQuery GetBars
         {

@@ -30,14 +30,9 @@ internal sealed partial class ResolverTask : IExecutionTask
     internal MiddlewareContext ResolverContext => _resolverContext;
 
     /// <summary>
-    /// Gets access to the operation context.
-    /// </summary>
-    private IOperationContext OperationContext => _operationContext;
-
-    /// <summary>
     /// Gets access to the diagnostic events.
     /// </summary>
-    private IExecutionDiagnosticEvents DiagnosticEvents => OperationContext.DiagnosticEvents;
+    private IExecutionDiagnosticEvents DiagnosticEvents => _operationContext.DiagnosticEvents;
 
     /// <summary>
     /// Gets the selection for which a resolver is executed.
@@ -128,25 +123,24 @@ internal sealed partial class ResolverTask : IExecutionTask
             // If we run into this exception the request was aborted.
             // In this case we do nothing and just return.
             _completionStatus = ExecutionTaskStatus.Faulted;
+            _resolverContext.Result = null;
             return;
         }
         catch (Exception ex)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                // if cancellation is request we do no longer report errors to the
-                // operation context.
-                return;
-            }
-
-            _resolverContext.ReportError(ex);
             _resolverContext.Result = null;
-            completedValue = null;
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                _resolverContext.ReportError(ex);
+                completedValue = null;
+            }
         }
 
         CompletedValue = completedValue;
+        var isNonNullType = _selection.Type.IsNonNullType();
 
-        if (completedValue is null && _selection.Type.IsNonNullType())
+        if (completedValue is null && isNonNullType)
         {
             // if we detect a non-null violation we will stash it for later.
             // the non-null propagation is delayed so that we can parallelize better.
@@ -163,7 +157,7 @@ internal sealed partial class ResolverTask : IExecutionTask
                 _resolverContext.ResponseIndex,
                 _resolverContext.ResponseName,
                 completedValue,
-                _resolverContext.Field.Type.IsNullableType());
+                !isNonNullType);
         }
     }
 

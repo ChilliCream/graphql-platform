@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
@@ -103,14 +104,27 @@ namespace StrawberryShake.CodeGeneration
             { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) }
         };
 
-        public RuntimeTypeInfo GetOrCreate(string fullTypeName, bool valueType = false) =>
-            _infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo)
-                ? typeInfo
-                : new(fullTypeName, valueType);
+        public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>
+            GetOrAdd(fullTypeName, () => new(fullTypeName, valueType));
 
-        public RuntimeTypeInfo TryCreate(RuntimeTypeDirective runtimeType) =>
-            _infos.TryGetValue(runtimeType.Name, out RuntimeTypeInfo? typeInfo)
-                ? typeInfo
-                : new(runtimeType.Name, runtimeType.ValueType ?? false);
+        public RuntimeTypeInfo GetOrAdd(RuntimeTypeDirective runtimeType) =>
+            GetOrAdd(runtimeType.Name, () => new(runtimeType.Name, runtimeType.ValueType ?? false));
+
+        private RuntimeTypeInfo GetOrAdd(string fullTypeName, System.Func<RuntimeTypeInfo> factory)
+        {
+            if (!fullTypeName.StartsWith("global::"))
+            {
+                fullTypeName = "global::" + fullTypeName;
+            }
+
+            if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
+            {
+                typeInfo = factory();
+                Debug.Assert(typeInfo.FullName == fullTypeName, $"Expected generated type '{typeInfo.FullName}' to equal '{fullTypeName}'.");
+                _infos.Add(fullTypeName, typeInfo);
+            }
+
+            return typeInfo;
+        }
     }
 }

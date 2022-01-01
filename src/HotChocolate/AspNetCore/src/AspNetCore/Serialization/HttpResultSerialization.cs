@@ -1,8 +1,7 @@
-namespace HotChocolate.AspNetCore.Serialization
+namespace HotChocolate.AspNetCore.Serialization;
+
+public enum HttpResultSerialization
 {
-    public enum HttpResultSerialization
-    {
-        JsonArray,
-        MultiPartChunked
-    }
+    JsonArray,
+    MultiPartChunked
 }

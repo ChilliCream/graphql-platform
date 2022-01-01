@@ -15,7 +15,7 @@ When using `services.AddDbContext<T>` to register a `DbContext` as a scoped serv
 - `A second operation started on this context before a previous operation completed.`
 - `Cannot access a disposed object.`
 
-Fortunatley there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
+Fortunately there are a couple of solutions that can be used to avoid the described issue. We will take a closer look at them in the below sections.
 
 # DbContextFactory
 
@@ -83,8 +83,10 @@ We can make this even simpler, by creating an attribute inheriting from the `Use
 ```csharp
 public class UseSomeDbContext : UseDbContextAttribute
 {
-    public UseSomeDbContext() : base(typeof(SomeDbContext))
+    public UseSomeDbContext([CallerLineNumber] int order = 0)
+        : base(typeof(SomeDbContext))
     {
+        Order = order;
     }
 }
 
@@ -95,6 +97,8 @@ public class Query
         => dbContext.Users;
 }
 ```
+
+> Note: Since the [order of attributes is not guaranteed by .NET](https://docs.microsoft.com/dotnet/csharp/language-reference/language-specification/attributes#attribute-specification), Hot Chocolate uses the line number to determine the correct order of the Data middleware. If you are using a custom attribute, you have to forward the line number using the `CallerLineNumberAttribute`.
 
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>

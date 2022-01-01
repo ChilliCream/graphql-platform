@@ -16,16 +16,17 @@ namespace HotChocolate.Data.Neo4J.Filtering
             FilterCombinator combinator,
             [NotNullWhen(true)] out Condition combined)
         {
-            if (operations.Count < 1)
+            if (operations.Count == 0)
             {
-                throw new InvalidOperationException();
+                throw ThrowHelper.Filtering_Neo4JFilterCombinator_QueueEmpty(this);
             }
 
             combined = combinator switch
             {
                 FilterCombinator.And => CombineWithAnd(operations),
                 FilterCombinator.Or => CombineWithOr(operations),
-                _ => throw new InvalidOperationException()
+                _ => throw ThrowHelper
+                    .Filtering_Neo4JFilterCombinator_InvalidCombinator(this, combinator)
             };
 
             return true;

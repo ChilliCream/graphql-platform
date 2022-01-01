@@ -1,26 +1,25 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Language
+namespace HotChocolate.Language;
+
+public abstract class ComplexTypeDefinitionNodeBase
+    : NamedSyntaxNode
 {
-    public abstract class ComplexTypeDefinitionNodeBase
-        : NamedSyntaxNode
+    protected ComplexTypeDefinitionNodeBase(
+        Location? location,
+        NameNode name,
+        IReadOnlyList<DirectiveNode> directives,
+        IReadOnlyList<NamedTypeNode> interfaces,
+        IReadOnlyList<FieldDefinitionNode> fields)
+        : base(location, name, directives)
     {
-        protected ComplexTypeDefinitionNodeBase(
-            Location? location,
-            NameNode name,
-            IReadOnlyList<DirectiveNode> directives,
-            IReadOnlyList<NamedTypeNode> interfaces,
-            IReadOnlyList<FieldDefinitionNode> fields)
-            : base(location, name, directives)
-        {
-            Interfaces = interfaces
-                ?? throw new ArgumentNullException(nameof(interfaces));
-            Fields = fields ?? throw new ArgumentNullException(nameof(fields));
-        }
-
-        public IReadOnlyList<NamedTypeNode> Interfaces { get; }
-
-        public IReadOnlyList<FieldDefinitionNode> Fields { get; }
+        Interfaces = interfaces
+            ?? throw new ArgumentNullException(nameof(interfaces));
+        Fields = fields ?? throw new ArgumentNullException(nameof(fields));
     }
+
+    public IReadOnlyList<NamedTypeNode> Interfaces { get; }
+
+    public IReadOnlyList<FieldDefinitionNode> Fields { get; }
 }

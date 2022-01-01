@@ -292,4 +292,28 @@ internal static class ThrowHelper
             .SetMessage("PersistedQueryNotFound")
             .SetCode(ErrorCodes.Execution.PersistedQueryNotFound)
             .Build());
+
+    public static GraphQLException ResolverContext_CannotCastParent(
+        FieldCoordinate field,
+        Path path,
+        Type requestType,
+        Type parentType)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_ResolverContext_CannotCastParent,
+                field,
+                parentType,
+                requestType)
+            .SetPath(path)
+            .SetExtension(nameof(field), field.ToString())
+            .SetCode(ErrorCodes.Execution.CannotCastParent)
+            .Build());
+
+    public static GraphQLException OneOfFieldMustBeNonNull(
+        FieldCoordinate field)
+        => new(ErrorBuilder.New()
+            .SetMessage($"Value for oneof field {field.FieldName} must be non-null.")
+            .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
+            .SetExtension(nameof(field), field.ToString())
+            .Build());
 }

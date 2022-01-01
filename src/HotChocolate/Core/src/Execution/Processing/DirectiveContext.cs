@@ -136,6 +136,10 @@ internal sealed class DirectiveContext : IDirectiveContext
     public void RegisterForCleanup(Action action) =>
         _middlewareContext.RegisterForCleanup(action);
 
+    public IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues) =>
+        _middlewareContext.ReplaceArguments(argumentValues);
+
     public ValueKind ArgumentKind(NameString name) =>
         _middlewareContext.ArgumentKind(name);
 

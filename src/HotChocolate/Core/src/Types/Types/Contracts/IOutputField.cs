@@ -5,7 +5,7 @@ namespace HotChocolate.Types;
 /// <summary>
 /// Represents an output field on a interface or object.
 /// </summary>
-public interface IOutputField : IField
+public interface IOutputField : IField, IOutputFieldInfo
 {
     /// <summary>
     /// Defines if this field is a introspection field.
@@ -21,16 +21,6 @@ public interface IOutputField : IField
     /// Gets the deprecation reason.
     /// </summary>
     string? DeprecationReason { get; }
-
-    /// <summary>
-    /// Gets the return type of this field.
-    /// </summary>
-    IOutputType Type { get; }
-
-    /// <summary>
-    /// Gets the field arguments.
-    /// </summary>
-    IFieldCollection<IInputField> Arguments { get; }
 
     /// <summary>
     /// Gets the type that declares this field.

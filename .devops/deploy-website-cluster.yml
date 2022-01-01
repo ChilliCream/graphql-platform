@@ -32,32 +32,32 @@ steps:
       versionSpec: "14.x"
       checkLatest: true
 
-  - task: YarnInstaller@3
-    displayName: "Install Yarn"
-    inputs:
-      versionSpec: "1.x"
-      checkLatest: true
+  # Can be uncommented as of Node 16.10
+  # - script: "corepack enable"
+  #   displayName: "Enable CorePack"
+  #   workingDirectory: $(projectDirectory)
 
-  - task: Yarn@3
+  # Can be removed as of Node 16.10
+  - script: "npm i -g corepack"
+    displayName: "Install CorePack"
+    workingDirectory: "website"
+
+  - script: "yarn --frozen-lockfile --network-timeout 100000"
     displayName: "Install Packages"
-    inputs:
-      projectDirectory: "website"
-      arguments: "--frozen-lockfile"
+    workingDirectory: "website"
 
-  - task: Yarn@3
-    displayName: "Run yarn build"
-    inputs:
-      projectDirectory: "website"
-      arguments: "build --prefix-paths"
+  - script: "yarn build --prefix-paths"
+    displayName: "Build Website"
+    workingDirectory: "website"
 
   - task: Docker@2
     displayName: "Build WebSite Container"
     inputs:
-      containerRegistry: '$(container-registry)'
-      repository: 'ccc-website-$(Build.SourceBranchName)'
-      command: 'buildAndPush'
-      Dockerfile: '.docker/website/dockerfile'
-      buildContext: '.'
+      containerRegistry: "$(container-registry)"
+      repository: "ccc-website-$(Build.SourceBranchName)"
+      command: "buildAndPush"
+      Dockerfile: ".docker/website/dockerfile"
+      buildContext: "."
 
   - task: Kubernetes@1
     displayName: "Deploy WebSite Service"
@@ -108,4 +108,3 @@ steps:
             app: ccc-website-$(Build.SourceBranchName)
       secretType: "dockerRegistry"
       containerRegistryType: "Azure Container Registry"
-

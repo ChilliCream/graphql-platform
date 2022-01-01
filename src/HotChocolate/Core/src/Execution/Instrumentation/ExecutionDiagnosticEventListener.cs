@@ -105,6 +105,13 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
     }
 
     /// <inheritdoc />
+    public void SubscriptionEventError(
+        ISubscription subscription,
+        Exception exception)
+    {
+    }
+
+    /// <inheritdoc />
     public virtual void SubscriptionTransportError(
         ISubscription subscription,
         Exception exception)

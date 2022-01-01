@@ -7,46 +7,45 @@ using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data;
+
+public class IdFilterTypeInterceptorTests
 {
-    public class IdFilterTypeInterceptorTests
+    [Fact]
+    public async Task Filtering_Should_UseIdType_When_Specified()
     {
-        [Fact]
-        public async Task Filtering_Should_UseIdType_When_Specified()
-        {
-            ISchema schema = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
-                .AddType(new FilterInputType<Foo>(x =>
-                    x.Field(y => y.Bar).Type<IdOperationFilterInputType>()))
-                .AddFiltering()
-                .BuildSchemaAsync();
+        ISchema schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
+            .AddType(new FilterInputType<Foo>(x =>
+                x.Field(y => y.Bar).Type<IdOperationFilterInputType>()))
+            .AddFiltering()
+            .BuildSchemaAsync();
 
-            schema.Print().MatchSnapshot();
-        }
+        schema.Print().MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task Filtering_Should_InfereType_When_Annotated()
-        {
-            ISchema schema = await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
-                .AddType(new FilterInputType<FooId>())
-                .AddFiltering()
-                .BuildSchemaAsync();
+    [Fact]
+    public async Task Filtering_Should_InfereType_When_Annotated()
+    {
+        ISchema schema = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(x => x.Name("Query").Field("test").Resolve("a"))
+            .AddType(new FilterInputType<FooId>())
+            .AddFiltering()
+            .BuildSchemaAsync();
 
-            schema.Print().MatchSnapshot();
-        }
+        schema.Print().MatchSnapshot();
+    }
 
-        public class Foo
-        {
-            public string Bar { get; }
-        }
+    public class Foo
+    {
+        public string? Bar { get; }
+    }
 
-        public class FooId
-        {
-            [ID]
-            public string Bar { get; }
-        }
+    public class FooId
+    {
+        [ID]
+        public string? Bar { get; }
     }
 }

@@ -34,6 +34,11 @@ namespace StrawberryShake.CodeGeneration
 
         public string Namespace { get; }
 
+        public string FullName =>
+            Namespace == "global::"
+                ? Namespace + Name
+                : Namespace + "." + Name;
+
         public string NamespaceWithoutGlobal =>
             Namespace.Replace("global::", string.Empty);
 

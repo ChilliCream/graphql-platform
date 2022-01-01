@@ -39,17 +39,17 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
 
         descriptor.Extend().OnBeforeCreate(definition =>
         {
-                // since we bind the id field late we need to hint to the type discovery
-                // that we will need the ID scalar.
-                definition.Dependencies.Add(
-                TypeDependency.FromSchemaType(
-                    context.TypeInspector.GetType(typeof(IdType))));
+            // since we bind the id field late we need to hint to the type discovery
+            // that we will need the ID scalar.
+            definition.Dependencies.Add(
+            TypeDependency.FromSchemaType(
+                context.TypeInspector.GetType(typeof(IdType))));
         });
 
         descriptor.Extend().OnBeforeCompletion((descriptorContext, definition) =>
         {
-                // first we try to resolve the id field.
-                if (IdField is not null)
+            // first we try to resolve the id field.
+            if (IdField is not null)
             {
                 MemberInfo? idField = type.GetMember(IdField).FirstOrDefault();
 
@@ -69,8 +69,8 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 nodeDescriptor.IdField(sid);
             }
 
-                // after that we look for the node resolver.
-                if (NodeResolverType is not null)
+            // after that we look for the node resolver.
+            if (NodeResolverType is not null)
             {
                 if (NodeResolver is not null)
                 {
@@ -130,16 +130,16 @@ public class NodeAttribute : ObjectTypeDescriptorAttribute
                 nodeDescriptor.ResolveNode(type);
             }
 
-                // we trigger a late id field configuration
-                var descriptor = ObjectTypeDescriptor.From(
-                descriptorContext.DescriptorContext,
-                definition);
+            // we trigger a late id field configuration
+            var descriptor = ObjectTypeDescriptor.From(
+            descriptorContext.DescriptorContext,
+            definition);
             nodeDescriptor.ConfigureNodeField(descriptor);
             descriptor.CreateDefinition();
 
-                // after that we complete the type definition
-                // to copy the node resolver to the context data.
-                nodeDescriptor.OnCompleteDefinition(definition);
+            // after that we complete the type definition
+            // to copy the node resolver to the context data.
+            nodeDescriptor.OnCompleteDefinition(definition);
         });
     }
 }

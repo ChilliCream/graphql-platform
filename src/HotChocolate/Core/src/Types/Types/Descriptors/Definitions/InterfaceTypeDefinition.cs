@@ -46,7 +46,7 @@ public class InterfaceTypeDefinition
     public IBindableList<InterfaceFieldDefinition> Fields { get; } =
         new BindableList<InterfaceFieldDefinition>();
 
-    internal override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
+    public override IEnumerable<ITypeSystemMemberConfiguration> GetConfigurations()
     {
         List<ITypeSystemMemberConfiguration>? configs = null;
 

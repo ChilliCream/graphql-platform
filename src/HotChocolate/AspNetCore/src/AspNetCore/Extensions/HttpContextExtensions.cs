@@ -2,47 +2,46 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+internal static class HttpContextExtensions
 {
-    internal static class HttpContextExtensions
+    public static GraphQLServerOptions? GetGraphQLServerOptions(this HttpContext context)
+        => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLServerOptions>() ??
+           (context.Items.TryGetValue(nameof(GraphQLServerOptions), out var o) &&
+            o is GraphQLServerOptions options
+                ? options
+                : null);
+
+    public static GraphQLToolOptions? GetGraphQLToolOptions(this HttpContext context)
+        => GetGraphQLServerOptions(context)?.Tool;
+
+    public static GraphQLEndpointOptions? GetGraphQLEndpointOptions(this HttpContext context)
+        => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLEndpointOptions>() ??
+           (context.Items.TryGetValue(nameof(GraphQLEndpointOptions), out var o) &&
+            o is GraphQLEndpointOptions options
+               ? options
+               : null);
+
+    public static bool IsTracingEnabled(this HttpContext context)
     {
-        public static GraphQLServerOptions? GetGraphQLServerOptions(this HttpContext context)
-            => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLServerOptions>() ??
-               (context.Items.TryGetValue(nameof(GraphQLServerOptions), out var o) &&
-                o is GraphQLServerOptions options
-                    ? options
-                    : null);
+        IHeaderDictionary headers = context.Request.Headers;
 
-        public static GraphQLToolOptions? GetGraphQLToolOptions(this HttpContext context)
-            => GetGraphQLServerOptions(context)?.Tool;
+        return (headers.TryGetValue(HttpHeaderKeys.Tracing, out StringValues values)
+                || headers.TryGetValue(HttpHeaderKeys.ApolloTracing, out values)) &&
+               values.Any(v => v == HttpHeaderValues.TracingEnabled);
+    }
 
-        public static GraphQLEndpointOptions? GetGraphQLEndpointOptions(this HttpContext context)
-            => context.GetEndpoint()?.Metadata.GetMetadata<GraphQLEndpointOptions>() ??
-               (context.Items.TryGetValue(nameof(GraphQLEndpointOptions), out var o) &&
-                o is GraphQLEndpointOptions options
-                   ? options
-                   : null);
+    public static bool IncludeQueryPlan(this HttpContext context)
+    {
+        IHeaderDictionary headers = context.Request.Headers;
 
-        public static bool IsTracingEnabled(this HttpContext context)
+        if (headers.TryGetValue(HttpHeaderKeys.QueryPlan, out StringValues values) &&
+            values.Any(v => v == HttpHeaderValues.IncludeQueryPlan))
         {
-            IHeaderDictionary headers = context.Request.Headers;
-
-            return (headers.TryGetValue(HttpHeaderKeys.Tracing, out StringValues values)
-                    || headers.TryGetValue(HttpHeaderKeys.ApolloTracing, out values)) &&
-                   values.Any(v => v == HttpHeaderValues.TracingEnabled);
+            return true;
         }
 
-        public static bool IncludeQueryPlan(this HttpContext context)
-        {
-            IHeaderDictionary headers = context.Request.Headers;
-
-            if (headers.TryGetValue(HttpHeaderKeys.QueryPlan, out StringValues values) &&
-                values.Any(v => v == HttpHeaderValues.IncludeQueryPlan))
-            {
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

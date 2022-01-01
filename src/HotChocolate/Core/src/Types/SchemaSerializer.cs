@@ -62,6 +62,38 @@ public static class SchemaSerializer
         await document.PrintToAsync(stream, indented, cancellationToken).ConfigureAwait(false);
     }
 
+    public static async ValueTask SerializeAsync(
+        IEnumerable<INamedType> namedTypes,
+        Stream stream,
+        bool indented = true,
+        CancellationToken cancellationToken = default)
+    {
+        if (namedTypes is null)
+        {
+            throw new ArgumentNullException(nameof(namedTypes));
+        }
+
+        if (stream is null)
+        {
+            throw new ArgumentNullException(nameof(stream));
+        }
+
+        var list = new List<IDefinitionNode>();
+
+        foreach (INamedType namedType in namedTypes)
+        {
+            ITypeDefinitionNode typeDefinition =
+                namedType is ScalarType scalarType
+                    ? SerializeScalarType(scalarType)
+                    : SerializeNonScalarTypeDefinition(namedType, false);
+            list.Add(typeDefinition);
+        }
+
+        await new DocumentNode(list)
+            .PrintToAsync(stream, indented, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public static DocumentNode SerializeSchema(
         ISchema schema,
         bool includeSpecScalars = false,
@@ -84,12 +116,7 @@ public static class SchemaSerializer
             typeDefinitions.Insert(0, SerializeSchemaTypeDefinition(schema));
         }
 
-        var builtInDirectives = new HashSet<NameString>
-            {
-                Skip,
-                Include,
-                Deprecated
-            };
+        var builtInDirectives = new HashSet<NameString> { Skip, Include, Deprecated };
 
         IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
             schema.DirectiveTypes

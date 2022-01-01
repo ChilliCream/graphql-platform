@@ -1,18 +1,17 @@
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+/// <summary>
+/// Represents the execution strategies.
+/// </summary>
+public enum ExecutionStrategy
 {
     /// <summary>
-    /// Represents the execution strategies.
+    /// Defines that a task or execution step has to be executed serial.
     /// </summary>
-    public enum ExecutionStrategy
-    {
-        /// <summary>
-        /// Defines that a task or execution step has to be executed serial.
-        /// </summary>
-        Serial,
+    Serial,
 
-        /// <summary>
-        /// Defines that a task or execution step can be executed in parallel.
-        /// </summary>
-        Parallel
-    }
+    /// <summary>
+    /// Defines that a task or execution step can be executed in parallel.
+    /// </summary>
+    Parallel
 }

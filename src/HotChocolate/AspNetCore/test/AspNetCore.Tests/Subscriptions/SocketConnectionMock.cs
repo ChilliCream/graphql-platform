@@ -5,59 +5,58 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions;
+
+public class SocketConnectionMock : ISocketConnection
 {
-    public class SocketConnectionMock : ISocketConnection
+    public SocketConnectionMock()
     {
-        public SocketConnectionMock()
-        {
-            Subscriptions = new SubscriptionManager(this);
-        }
+        Subscriptions = new SubscriptionManager(this);
+    }
 
-        public HttpContext HttpContext { get; }
+    public HttpContext HttpContext { get; }
 
-        public bool Closed { get; set; }
+    public bool Closed { get; set; }
 
-        public ISubscriptionManager Subscriptions { get; set; }
+    public ISubscriptionManager Subscriptions { get; set; }
 
-        public IServiceProvider RequestServices { get; set; }
+    public IServiceProvider RequestServices { get; set; }
 
-        public CancellationToken RequestAborted { get; }
+    public CancellationToken RequestAborted { get; }
 
-        public List<byte[]> SentMessages { get; } = new List<byte[]>();
+    public List<byte[]> SentMessages { get; } = new List<byte[]>();
 
-        public Task<bool> TryOpenAsync()
-        {
-            return Task.FromResult(true);
-        }
+    public Task<bool> TryOpenAsync()
+    {
+        return Task.FromResult(true);
+    }
 
-        public Task CloseAsync(
-            string message,
-            SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken)
-        {
-            Closed = true;
-            return Task.CompletedTask;
-        }
+    public Task CloseAsync(
+        string message,
+        SocketCloseStatus closeStatus,
+        CancellationToken cancellationToken)
+    {
+        Closed = true;
+        return Task.CompletedTask;
+    }
 
-        public Task SendAsync(
-            byte[] message,
-            CancellationToken cancellationToken)
-        {
-            SentMessages.Add(message);
-            return Task.CompletedTask;
-        }
+    public Task SendAsync(
+        byte[] message,
+        CancellationToken cancellationToken)
+    {
+        SentMessages.Add(message);
+        return Task.CompletedTask;
+    }
 
-        public Task ReceiveAsync(
-            PipeWriter writer,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+    public Task ReceiveAsync(
+        PipeWriter writer,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
 
-        public void Dispose()
-        {
+    public void Dispose()
+    {
 
-        }
     }
 }

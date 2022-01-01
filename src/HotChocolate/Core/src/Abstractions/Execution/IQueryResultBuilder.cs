@@ -1,38 +1,37 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 #nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+public interface IQueryResultBuilder
 {
-    public interface IQueryResultBuilder
-    {
-        IQueryResultBuilder SetData(
-            IReadOnlyDictionary<string, object?>? data,
-            IDisposable? disposable = null);
+    IQueryResultBuilder SetData(
+        IReadOnlyDictionary<string, object?>? data,
+        IDisposable? disposable = null);
 
-        IQueryResultBuilder AddError(IError error);
+    IQueryResultBuilder AddError(IError error);
 
-        IQueryResultBuilder AddErrors(IEnumerable<IError> errors);
+    IQueryResultBuilder AddErrors(IEnumerable<IError> errors);
 
-        IQueryResultBuilder AddExtension(string key, object? data);
+    IQueryResultBuilder AddExtension(string key, object? data);
 
-        IQueryResultBuilder SetExtension(string key, object? data);
+    IQueryResultBuilder SetExtension(string key, object? data);
 
-        IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions);
+    IQueryResultBuilder SetExtensions(IReadOnlyDictionary<string, object?>? extensions);
 
-        IQueryResultBuilder AddContextData(string key, object? data);
+    IQueryResultBuilder AddContextData(string key, object? data);
 
-        IQueryResultBuilder SetContextData(string key, object? data);
+    IQueryResultBuilder SetContextData(string key, object? data);
 
-        IQueryResultBuilder ClearContextData();
+    IQueryResultBuilder ClearContextData();
 
-        IQueryResultBuilder SetLabel(string? label);
+    IQueryResultBuilder SetLabel(string? label);
 
-        IQueryResultBuilder SetPath(Path? path);
+    IQueryResultBuilder SetPath(Path? path);
 
-        IQueryResultBuilder SetHasNext(bool? hasNext);
+    IQueryResultBuilder SetHasNext(bool? hasNext);
 
-        IQueryResult Create();
-    }
+    IQueryResult Create();
 }

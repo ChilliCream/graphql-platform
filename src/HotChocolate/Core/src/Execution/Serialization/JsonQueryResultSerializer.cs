@@ -4,24 +4,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Serialization.JsonConstants;
 
 namespace HotChocolate.Execution.Serialization;
 
 public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 {
-    private const string _data = "data";
-    private const string _errors = "errors";
-    private const string _extensions = "extensions";
-    private const string _message = "message";
-    private const string _locations = "locations";
-    private const string _path = "path";
-    private const string _line = "line";
-    private const string _column = "column";
-
     private readonly JsonWriterOptions _options;
 
     /// <summary>
@@ -34,9 +27,12 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     /// white space between property names and values.
     /// By default, the JSON is written without any extra white space.
     /// </param>
-    public JsonQueryResultSerializer(bool indented = false)
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
+    public JsonQueryResultSerializer(bool indented = false, JavaScriptEncoder? encoder = null)
     {
-        _options = new JsonWriterOptions { Indented = indented };
+        _options = new JsonWriterOptions { Indented = indented, Encoder = encoder };
     }
 
     public unsafe string Serialize(IQueryResult result)
@@ -51,13 +47,15 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         }
     }
 
-    internal void Serialize(IQueryResult result, IBufferWriter<byte> writer)
+    /// <inheritdoc />
+    public void Serialize(IQueryResult result, IBufferWriter<byte> writer)
     {
         using var jsonWriter = new Utf8JsonWriter(writer, _options);
         WriteResult(jsonWriter, result);
         jsonWriter.Flush();
     }
 
+    /// <inheritdoc />
     public async Task SerializeAsync(
         IQueryResult result,
         Stream stream,
@@ -122,9 +120,9 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? data)
     {
-        if (data is { } && data.Count > 0)
+        if (data is { Count: > 0 })
         {
-            writer.WritePropertyName(_data);
+            writer.WritePropertyName(Data);
 
             if (data is IResultMap resultMap)
             {
@@ -139,9 +137,9 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
     private void WriteErrors(Utf8JsonWriter writer, IReadOnlyList<IError>? errors)
     {
-        if (errors is { } && errors.Count > 0)
+        if (errors is { Count: > 0 })
         {
-            writer.WritePropertyName(_errors);
+            writer.WritePropertyName(JsonConstants.Errors);
 
             writer.WriteStartArray();
 
@@ -158,7 +156,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     {
         writer.WriteStartObject();
 
-        writer.WriteString(_message, error.Message);
+        writer.WriteString(Message, error.Message);
 
         WriteLocations(writer, error.Locations);
         WritePath(writer, error.Path);
@@ -169,9 +167,9 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
 
     private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
     {
-        if (locations is { } && locations.Count > 0)
+        if (locations is { Count: > 0 })
         {
-            writer.WritePropertyName(_locations);
+            writer.WritePropertyName(Locations);
 
             writer.WriteStartArray();
 
@@ -187,8 +185,8 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     private static void WriteLocation(Utf8JsonWriter writer, Location location)
     {
         writer.WriteStartObject();
-        writer.WriteNumber(_line, location.Line);
-        writer.WriteNumber(_column, location.Column);
+        writer.WriteNumber(Line, location.Line);
+        writer.WriteNumber(Column, location.Column);
         writer.WriteEndObject();
     }
 
@@ -196,7 +194,7 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
     {
         if (path is not null && path is not RootPathSegment)
         {
-            writer.WritePropertyName(_path);
+            writer.WritePropertyName(JsonConstants.Path);
             WritePathValue(writer, path);
         }
     }
@@ -251,9 +249,9 @@ public sealed class JsonQueryResultSerializer : IQueryResultSerializer
         Utf8JsonWriter writer,
         IReadOnlyDictionary<string, object?>? dict)
     {
-        if (dict is { } && dict.Count > 0)
+        if (dict is { Count: > 0 })
         {
-            writer.WritePropertyName(_extensions);
+            writer.WritePropertyName(Extensions);
             WriteDictionary(writer, dict);
         }
     }

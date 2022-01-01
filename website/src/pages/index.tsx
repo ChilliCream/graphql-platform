@@ -5,6 +5,7 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
+import { BlogPostBananaCakePopCloud } from "../components/images/blog-post-banana-cake-pop-cloud";
 import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
 import { BlogPostHotChocolate12 } from "../components/images/blog-post-hot-chocolate-12";
 import { Link } from "../components/misc/link";
@@ -34,15 +35,18 @@ import E2mLogoSvg from "../images/companies/e2m.svg";
 import ExlrtLogoSvg from "../images/companies/exlrt.svg";
 import EzeepLogoSvg from "../images/companies/ezeep.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import HiloLogoSvg from "../images/companies/hilo.svg";
 import IncloudLogoSvg from "../images/companies/incloud.svg";
 import InfoslipsLogoSvg from "../images/companies/infoslips.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import OrderinLogoSvg from "../images/companies/orderin.svg";
+import PoweredSoftLogoSvg from "../images/companies/powered-soft.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SolyticLogoSvg from "../images/companies/solytic.svg";
 import SonikaLogoSvg from "../images/companies/sonika.svg";
 import SpeedwayMotorsLogoSvg from "../images/companies/speedway-motors.svg";
+import SplashbackLogoSvg from "../images/companies/splashback.svg";
 import SweetGeeksLogoSvg from "../images/companies/sweetgeeks.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import SytadelleLogoSvg from "../images/companies/sytadelle.svg";
@@ -80,7 +84,7 @@ const IndexPage: FC = () => {
             frontmatter {
               featuredImage {
                 childImageSharp {
-                  gatsbyImageData(layout: CONSTRAINED, width: 800)
+                  gatsbyImageData(layout: CONSTRAINED, width: 800, quality: 100)
                 }
               }
               path
@@ -110,10 +114,15 @@ const IndexPage: FC = () => {
           showThumbs={false}
         >
           <Slide>
+            <Link to="/blog/2021/11/22/banana-cake-pop-cloud">
+              <BlogPostBananaCakePopCloud />
+            </Link>
+          </Slide>
+          <Slide>
             <Link to="https://bananacakepop.com">
               <BananaCakePop shadow />
               <SlideContent>
-                <SlideTitle>Try Banana Cake Pop Preview 14</SlideTitle>
+                <SlideTitle>Try Banana Cake Pop Preview 18</SlideTitle>
                 <SlideDescription>
                   Our GraphQL IDE to explore schemas, execute operations and get
                   deep performance insights.
@@ -275,12 +284,17 @@ const IndexPage: FC = () => {
                   <GiaLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={200}>
-                <Link to="https://www.incloud.de/">
-                  <IncloudLogoSvg />
+              <Logo width={70}>
+                <Link to="https://www.hiloenergie.com">
+                  <HiloLogoSvg />
                 </Link>
               </Logo>
               <Logo width={200}>
+                <Link to="https://www.incloud.de">
+                  <IncloudLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={130}>
                 <Link to="https://www.infoslips.com">
                   <InfoslipsLogoSvg />
                 </Link>
@@ -293,6 +307,11 @@ const IndexPage: FC = () => {
               <Logo width={160}>
                 <Link to="https://orderin.co.za">
                   <OrderinLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={110}>
+                <Link to="https://poweredsoft.com">
+                  <PoweredSoftLogoSvg />
                 </Link>
               </Logo>
               <Logo width={180}>
@@ -316,8 +335,13 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={120}>
-                <Link to="https://www.speedwaymotors.com/">
+                <Link to="https://www.speedwaymotors.com">
                   <SpeedwayMotorsLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://splashback.io">
+                  <SplashbackLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
@@ -336,11 +360,11 @@ const IndexPage: FC = () => {
                 </Link>
               </Logo>
               <Logo width={180}>
-                <Link to="https://travel-soft.com/">
+                <Link to="https://travel-soft.com">
                   <TravelSoftLogoSvg />
                 </Link>
               </Logo>
-              <Logo width={160}>
+              <Logo width={120}>
                 <Link to="https://xm.com">
                   <XMLogoSvg />
                 </Link>

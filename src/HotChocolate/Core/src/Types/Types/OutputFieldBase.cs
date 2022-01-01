@@ -35,7 +35,7 @@ public class OutputFieldBase<TDefinition>
     public FieldCollection<Argument> Arguments { get; private set; } =
         FieldCollection<Argument>.Empty;
 
-    IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
+    IFieldCollection<IInputField> IOutputFieldInfo.Arguments => Arguments;
 
     /// <summary>
     /// Defines if this field as a introspection field.

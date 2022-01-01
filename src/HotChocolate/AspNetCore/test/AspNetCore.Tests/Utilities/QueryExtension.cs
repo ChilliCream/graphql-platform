@@ -1,21 +1,20 @@
 using System;
-using HotChocolate.Types;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HotChocolate.AspNetCore.Utilities
+namespace HotChocolate.AspNetCore.Utilities;
+
+[ExtendObjectType("Query")]
+public class QueryExtension
 {
-    [ExtendObjectType("Query")]
-    public class QueryExtension
+    private readonly DateTime _time = DateTime.UtcNow;
+
+    public long Time() => _time.Ticks;
+
+    public bool Evict([FromServices] IRequestExecutorResolver executorResolver, ISchema schema)
     {
-        private readonly DateTime _time = DateTime.UtcNow;
-
-        public long Time() => _time.Ticks;
-
-        public bool Evict([FromServices]IRequestExecutorResolver executorResolver, ISchema schema)
-        {
-            executorResolver.EvictRequestExecutor(schema.Name);
-            return true;
-        }
+        executorResolver.EvictRequestExecutor(schema.Name);
+        return true;
     }
 }

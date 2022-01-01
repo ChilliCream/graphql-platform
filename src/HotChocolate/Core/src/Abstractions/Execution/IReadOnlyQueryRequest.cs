@@ -1,8 +1,8 @@
-﻿#nullable enable
+#nullable enable
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution;
+
+// TODO : remove with version 13.
+public interface IReadOnlyQueryRequest : IQueryRequest
 {
-    public interface IReadOnlyQueryRequest : IQueryRequest
-    {
-    }
 }

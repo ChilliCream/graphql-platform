@@ -1,15 +1,14 @@
-namespace HotChocolate.Types
+namespace HotChocolate.Types;
+
+public enum ValueKind
 {
-    public enum ValueKind
-    {
-        String,
-        Integer,
-        Float,
-        Boolean,
-        Enum,
-        Object,
-        List,
-        Null,
-        Unknown
-    }
+    String,
+    Integer,
+    Float,
+    Boolean,
+    Enum,
+    Object,
+    List,
+    Null,
+    Unknown
 }

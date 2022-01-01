@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/Benchmarks.Execution/bin/Debug/net5.0/HotChocolate.Benchmarks.Execution.dll",
+            "program": "${workspaceFolder}/src/Benchmarks.Execution/bin/Debug/net6.0/HotChocolate.Benchmarks.Execution.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Benchmarks.Execution",
             "console": "internalConsole",
@@ -18,8 +18,7 @@
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
+            "request": "attach"
         }
     ]
 }

@@ -349,6 +349,83 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
+        [Fact]
+        public void OneOf_A_and_B_Are_Set()
+        {
+            // arrange
+            ISchema schema =
+                SchemaBuilder.New()
+                    .AddInputObjectType<OneOfInput>()
+                    .AddDirectiveType<OneOfDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+            var parser = new InputParser();
+
+            var data = new ObjectValueNode(
+                new ObjectFieldNode("a", "abc"),
+                new ObjectFieldNode("b", 123));
+
+            // act
+            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+            // assert
+            Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        }
+
+        [Fact]
+        public void OneOf_A_is_Null_and_B_has_Value()
+        {
+            // arrange
+            ISchema schema =
+                SchemaBuilder.New()
+                    .AddInputObjectType<OneOfInput>()
+                    .AddDirectiveType<OneOfDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+            var parser = new InputParser();
+
+            var data = new ObjectValueNode(
+                new ObjectFieldNode("a", NullValueNode.Default),
+                new ObjectFieldNode("b", 123));
+
+            // act
+            void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+            // assert
+            Assert.Throws<SerializationException>(Fail).Errors.MatchSnapshot();
+        }
+
+        [Fact]
+        public void OneOf_only_B_has_Value()
+        {
+            // arrange
+            ISchema schema =
+                SchemaBuilder.New()
+                    .AddInputObjectType<OneOfInput>()
+                    .AddDirectiveType<OneOfDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false)
+                    .Create();
+
+            InputObjectType oneOfInput = schema.GetType<InputObjectType>(nameof(OneOfInput));
+
+            var parser = new InputParser();
+
+            var data = new ObjectValueNode(
+                new ObjectFieldNode("b", 123));
+
+            // act
+            var runtimeValue = parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+            // assert
+            runtimeValue.MatchSnapshot();
+        }
+
         public class TestInput
         {
             public string? Field1 { get; set; }
@@ -402,6 +479,16 @@ namespace HotChocolate.Types
         public enum Bar
         {
             Baz
+        }
+
+        [OneOf]
+        public class OneOfInput
+        {
+            public string? A { get; set; }
+
+            public int? B { get; set; }
+
+            public string? C { get; set; }
         }
     }
 }

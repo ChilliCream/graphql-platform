@@ -102,8 +102,8 @@ namespace HotChocolate.Execution
 
             // act
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
-            ObjectType teaType = fooBar.ResolveConcreteType(context.Object, "tea");
-            ObjectType barType = fooBar.ResolveConcreteType(context.Object, "bar");
+            ObjectType? teaType = fooBar.ResolveConcreteType(context.Object, "tea");
+            ObjectType? barType = fooBar.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.Null(teaType);
@@ -197,8 +197,8 @@ namespace HotChocolate.Execution
 
             // act
             InterfaceType drink = schema.GetType<InterfaceType>("Drink");
-            ObjectType teaType = drink.ResolveConcreteType(context.Object, "tea");
-            ObjectType barType = drink.ResolveConcreteType(context.Object, "bar");
+            ObjectType? teaType = drink.ResolveConcreteType(context.Object, "tea");
+            ObjectType? barType = drink.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.NotNull(teaType);
@@ -516,7 +516,7 @@ namespace HotChocolate.Execution
 
             public string Print()
             {
-                return _source.ToString();
+                return _source.ToString()!;
             }
         }
 
@@ -531,10 +531,10 @@ namespace HotChocolate.Execution
 
         public class QueryFieldCasing
         {
-            public string YourFieldName { get; set; }
+            public string YourFieldName { get; set; } = default!;
 
             [GraphQLDeprecated("This is deprecated")]
-            public string YourFieldname { get; set; }
+            public string YourFieldname { get; set; } = default!;
         }
 
         public class QueryWithDefaultValue

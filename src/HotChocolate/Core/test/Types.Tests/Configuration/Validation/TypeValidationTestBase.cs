@@ -12,7 +12,8 @@ namespace HotChocolate.Configuration.Validation
         {
             SchemaBuilder.New()
                 .AddDocumentFromString(schema)
-                .Use(next => context => default(ValueTask))
+                .Use(_ => _ => default)
+                .ModifyOptions(o => o.EnableOneOf = true)
                 .Create();
         }
 
@@ -22,7 +23,8 @@ namespace HotChocolate.Configuration.Validation
             {
                 SchemaBuilder.New()
                     .AddDocumentFromString(schema)
-                    .Use(next => context => default(ValueTask))
+                    .Use(_ => _ => default)
+                    .ModifyOptions(o => o.EnableOneOf = true)
                     .Create();
                 Assert.False(true, "Expected error!");
             }

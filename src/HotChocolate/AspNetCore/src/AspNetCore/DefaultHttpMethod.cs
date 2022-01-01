@@ -1,8 +1,7 @@
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore;
+
+public enum DefaultHttpMethod
 {
-    public enum DefaultHttpMethod
-    {
-        Get,
-        Post
-    }
+    Get,
+    Post
 }

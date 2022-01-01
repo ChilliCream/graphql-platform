@@ -1,6 +1,4 @@
-using Colorful;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
@@ -9,7 +7,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
 using static System.IO.Path;
 
-partial class Build : NukeBuild
+partial class Build
 {
     [Parameter] readonly string SonarToken;
     [Parameter] readonly string SonarServer = "https://sonarcloud.io";
@@ -36,10 +34,14 @@ partial class Build : NukeBuild
 
             SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetTest(
+                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+            }
+            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -58,10 +60,14 @@ partial class Build : NukeBuild
 
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);
-            DotNetTest(
-                c => CoverNoBuildSettingsOnly50(c, CoverProjects),
-                degreeOfParallelism: DegreeOfParallelism,
-                completeOnFailure: true);
+            try
+            {
+                DotNetTest(
+                    c => CoverNoBuildSettingsOnlyNet60(c, CoverProjects),
+                    degreeOfParallelism: DegreeOfParallelism,
+                    completeOnFailure: true);
+            }
+            catch { }
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -111,10 +117,9 @@ partial class Build : NukeBuild
             .SetProjectFile(SonarSolutionFile)
             .SetNoRestore(true)
             .SetConfiguration(Debug)
-            .SetProcessWorkingDirectory(RootDirectory);
+            .SetProcessWorkingDirectory(RootDirectory)
+            .SetFramework(Net60);
 
-    private bool IsRelevantForSonar(string fileName)
-    {
-        return !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
-    }
+    bool IsRelevantForSonar(string fileName)
+        => !ExcludedCover.Contains(GetFileNameWithoutExtension(fileName));
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
@@ -42,4 +43,17 @@ public interface IMiddlewareContext : IResolverContext
     /// Cleanup action.
     /// </param>
     void RegisterForCleanup(Action action);
+
+    /// <summary>
+    /// Replaces the argument values for the current field execution pipeline.
+    /// </summary>
+    /// <param name="argumentValues">
+    /// The new argument values that shall replace the current argument values.
+    /// </param>
+    /// <returns>
+    /// Returns the original argument values map so that a middleware is able to conserve them
+    /// and restore the initial state of the context after it finished to execute.
+    /// </returns>
+    IReadOnlyDictionary<NameString, ArgumentValue> ReplaceArguments(
+        IReadOnlyDictionary<NameString, ArgumentValue> argumentValues);
 }
