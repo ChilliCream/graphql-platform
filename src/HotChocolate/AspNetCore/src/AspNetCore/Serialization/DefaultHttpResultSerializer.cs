@@ -44,13 +44,13 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
         _deferSerialization = deferSerialization;
 
         _jsonSerializer = new(indented, encoder);
-        _jsonArraySerializer = new(indented, encoder);
-        _multiPartSerializer = new(indented, encoder);
+        _jsonArraySerializer = new(_jsonSerializer);
+        _multiPartSerializer = new(_jsonSerializer);
     }
 
     public virtual string GetContentType(IExecutionResult result)
     {
-        if (result == null)
+        if (result is null)
         {
             throw new ArgumentNullException(nameof(result));
         }
