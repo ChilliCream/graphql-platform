@@ -1,10 +1,6 @@
-using System;
-using System.IO;
 using System.Net;
+using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 using static HotChocolate.AspNetCore.ErrorHelper;
 
@@ -35,22 +31,26 @@ public class DefaultHttpResultSerializer : IHttpResultSerializer
     /// white space between property names and values.
     /// By default, the JSON is written without extra white spaces.
     /// </param>
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
     public DefaultHttpResultSerializer(
         HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
         HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked,
-        bool indented = false)
+        bool indented = false,
+        JavaScriptEncoder? encoder = null)
     {
         _batchSerialization = batchSerialization;
         _deferSerialization = deferSerialization;
 
-        _jsonSerializer = new(indented);
-        _jsonArraySerializer = new(indented);
-        _multiPartSerializer = new(indented);
+        _jsonSerializer = new(indented, encoder);
+        _jsonArraySerializer = new(_jsonSerializer);
+        _multiPartSerializer = new(_jsonSerializer);
     }
 
     public virtual string GetContentType(IExecutionResult result)
     {
-        if (result == null)
+        if (result is null)
         {
             throw new ArgumentNullException(nameof(result));
         }
