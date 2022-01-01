@@ -14,7 +14,7 @@ namespace HotChocolate.Data.MongoDb
                     .SetMessage(
                         MongoDbResources.Paging_SourceIsNotSupported,
                         type.FullName ?? type.Name)
-                    .SetCode(ErrorCodes.Data.NoPagingationProviderFound)
+                    .SetCode(ErrorCodes.Data.NoPaginationProviderFound)
                     .Build());
         }
 

@@ -82,7 +82,7 @@ public static class ErrorCodes
         /// <summary>
         /// Value for oneof field {field.FieldName} must be non-null.
         /// </summary>
-        public const string OneOfFieldMustBeNonNull= "HC0057";
+        public const string OneOfFieldMustBeNonNull = "HC0057";
     }
 
     /// <summary>
@@ -151,6 +151,21 @@ public static class ErrorCodes
         /// No `map` specified.
         /// </summary>
         public const string MultiPartMapNotSpecified = "HC0044";
+
+        /// <summary>
+        /// The type parameter is empty.
+        /// </summary>
+        public const string TypeParameterIsEmpty = "HC0058";
+
+        /// <summary>
+        /// Invalid type name when requesting the SDL.
+        /// </summary>
+        public const string InvalidTypeName = "HC0059";
+
+        /// <summary>
+        /// The requested type does not exist.
+        /// </summary>
+        public const string TypeDoesNotExist = "HC0060";
     }
 
     public static class Schema
@@ -231,7 +246,7 @@ public static class ErrorCodes
         public const string MoreThanOneElement = "HC0022";
         public const string FilteringProjectionFailed = "HC0023";
         public const string SortingProjectionFailed = "HC0024";
-        public const string NoPagingationProviderFound = "HC0025";
+        public const string NoPaginationProviderFound = "HC0025";
 
         /// <summary>
         /// Type does not contain a valid node field. Only `items` and `nodes` are supported
