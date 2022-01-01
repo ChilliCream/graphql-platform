@@ -1,0 +1,39 @@
+﻿{
+  "errors": [
+    {
+      "message": "The Oneof Input Object \u0060ExampleInput\u0060 requires that exactly one field must be supplied and that field must not be \u0060null\u0060.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 18
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "type": "ExampleInput",
+        "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof\u2013Input-Objects-Have-Exactly-One-Field",
+        "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+      }
+    },
+    {
+      "message": "The specified value type of field \u0060b\u0060 does not match the field type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "example"
+      ],
+      "extensions": {
+        "fieldName": "b",
+        "fieldType": "Int",
+        "locationType": "Int",
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
+}

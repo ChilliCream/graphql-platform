@@ -106,4 +106,9 @@ public interface ISchemaOptions : IReadOnlySchemaOptions
     /// is an instance of an <see cref="ObjectType{T}"/>.
     /// </summary>
     new IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
+
+    /// <summary>
+    /// Defines if the OneOf spec RFC is enabled. This feature is experimental.
+    /// </summary>
+    new bool EnableOneOf { get; set; }
 }

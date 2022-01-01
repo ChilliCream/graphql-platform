@@ -7,7 +7,7 @@ using static HotChocolate.Configuration.Validation.ErrorHelper;
 
 namespace HotChocolate.Configuration.Validation;
 
-internal static class ComplexOutputTypeValidationHelper
+internal static class TypeValidationHelper
 {
     private const string _twoUnderscores = "__";
 
@@ -17,6 +17,16 @@ internal static class ComplexOutputTypeValidationHelper
     {
         if (type.Fields.Count == 0 ||
             type.Fields.All(t => t.IsIntrospectionField))
+        {
+            errors.Add(NeedsOneAtLeastField(type));
+        }
+    }
+
+    public static void EnsureTypeHasFields(
+        InputObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        if (type.Fields.Count == 0)
         {
             errors.Add(NeedsOneAtLeastField(type));
         }
@@ -47,6 +57,21 @@ internal static class ComplexOutputTypeValidationHelper
                             type, field, argument));
                     }
                 }
+            }
+        }
+    }
+
+    public static void EnsureFieldNamesAreValid(
+        InputObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Fields.Count; i++)
+        {
+            InputField field = type.Fields[i];
+
+            if (field.Name.Value.StartsWith(_twoUnderscores))
+            {
+                errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
         }
     }

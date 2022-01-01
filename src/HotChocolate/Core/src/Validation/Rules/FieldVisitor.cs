@@ -52,7 +52,7 @@ internal sealed class FieldVisitor : TypeDocumentValidatorVisitor
         {
             context.Errors.Add(context.NoSelectionOnRootType(
                 node,
-                context.Schema.GetOperationType(node.Operation)));
+                context.Schema.GetOperationType(node.Operation)!));
         }
 
         return base.Leave(node, context);

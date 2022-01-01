@@ -252,6 +252,51 @@ internal static class ThrowHelper
             path);
     }
 
+    public static SerializationException OneOfNoFieldSet(
+        InputObjectType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfNoFieldSet,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfNoFieldSet)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfMoreThanOneFieldSet(
+        InputObjectType type,
+        Path? path)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfMoreThanOneFieldSet,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfMoreThanOneFieldSet)
+            .SetPath(path);
+
+        return new(builder.Build(), type, path);
+    }
+
+    public static SerializationException OneOfFieldIsNull(
+        InputObjectType type,
+        Path? path,
+        InputField field)
+    {
+        IErrorBuilder builder = ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_OneOfFieldIsNull,
+                field.Name.Value,
+                type.Name.Value)
+            .SetCode(ErrorCodes.Execution.OneOfFieldIsNull)
+            .SetPath(path)
+            .SetExtension(nameof(field), field.Coordinate.ToString());
+
+        return new(builder.Build(), type, path);
+    }
+
     public static SerializationException NonNullInputViolation(
         IType type,
         Path? path,

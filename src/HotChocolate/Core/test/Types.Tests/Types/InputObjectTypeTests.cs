@@ -4,9 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Language.Utilities;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 #if NETCOREAPP2_1
 using Snapshooter;
@@ -644,9 +642,24 @@ namespace HotChocolate.Types
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync();
 
-
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void OneOf_descriptor_is_null()
+        {
+            void Fail() => InputObjectTypeDescriptorExtensions.OneOf(null);
+
+            Assert.Throws<ArgumentNullException>(Fail);
+        }
+
+        [Fact]
+        public void OneOf_generic_descriptor_is_null()
+        {
+            void Fail() => InputObjectTypeDescriptorExtensions.OneOf<object>(null);
+
+            Assert.Throws<ArgumentNullException>(Fail);
         }
 
         public class FieldNameInput
@@ -654,7 +667,7 @@ namespace HotChocolate.Types
             public string YourFieldName { get; set; }
 
             [GraphQLDeprecated("This is deprecated")]
-            public string YourFieldname{ get; set; }
+            public string YourFieldname { get; set; }
         }
 
         public class QueryWithInterfaceInput
