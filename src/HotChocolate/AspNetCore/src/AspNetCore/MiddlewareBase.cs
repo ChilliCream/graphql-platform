@@ -1,16 +1,14 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
+/// <summary>
+/// The Hot Chocolate ASP.NET core middleware base class.
+/// </summary>
 public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
@@ -54,9 +52,38 @@ public class MiddlewareBase : IDisposable
     /// </param>
     protected Task NextAsync(HttpContext context) => _next(context);
 
-    public ValueTask<IRequestExecutor> GetExecutorAsync(
-        CancellationToken cancellationToken) =>
-        ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+    /// <summary>
+    /// Gets the request executor for this middleware.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor for this middleware.
+    /// </returns>
+    protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
+        => ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+
+    /// <summary>
+    /// Gets the schema for this middleware.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the schema for this middleware.
+    /// </returns>
+    protected async ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
+    {
+        IRequestExecutor requestExecutor = await GetExecutorAsync(cancellationToken);
+        return requestExecutor.Schema;
+    }
+
+    protected ValueTask WriteResultAsync(
+        HttpContext context,
+        IExecutionResult result,
+        HttpStatusCode? statusCode = null)
+        => WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
 
     protected async ValueTask WriteResultAsync(
         HttpResponse response,

@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -29,6 +29,91 @@ public class HttpGetSchemaMiddlewareTests : ServerTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=Query");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL_Character_and_Query()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=Character,Query");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL_Type_Not_Found()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=Xyz");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL_Types_Empty()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadAsStringAsync();
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL_Invalid_TypeName()
+    {
+        // arrange
+        TestServer server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=Xyz.Abc");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        HttpResponseMessage response = await server.CreateClient().SendAsync(request);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync();
         result.MatchSnapshot();
     }
