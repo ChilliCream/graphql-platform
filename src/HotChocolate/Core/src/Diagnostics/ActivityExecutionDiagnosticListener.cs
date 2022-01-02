@@ -1,27 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
 using static HotChocolate.Diagnostics.ContextKeys;
+using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics;
 
 public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
 {
-    private readonly ActivitySource _activitySource = new ActivitySource(GetName(), GetVersion());
-    private readonly IDiagnosticActivityEnricher _enricher;
+    private readonly ActivityEnricher _enricher;
 
-    public ActivityExecutionDiagnosticListener(IDiagnosticActivityEnricher enricher)
-    {
-        Console.WriteLine(GetName());
-        _enricher = enricher;
-    }
+    public ActivityExecutionDiagnosticListener(ActivityEnricher activityEnricher)
+        => _enricher = activityEnricher;
 
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
-        Activity? activity = _activitySource.StartActivity("GraphQL-Execute-Request");
+        Activity? activity = Source.StartActivity(ActivityNames.ExecuteRequest);
 
         if (activity is null)
         {
@@ -30,7 +28,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
         context.ContextData[RequestActivity] = activity;
 
-        return new RequestEvent(_enricher, context, activity);
+        return new ExecuteRequestScope(_enricher, context, activity);
     }
 
     public override void RetrievedDocumentFromCache(IRequestContext context)
@@ -67,7 +65,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ParseDocument(IRequestContext context)
     {
-        Activity? activity = _activitySource.StartActivity("GraphQL-Parse-Document");
+        Activity? activity = Source.StartActivity(ActivityNames.ParseDocument);
 
         if (activity is null)
         {
@@ -75,9 +73,8 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
         }
 
         context.ContextData[ParserActivity] = activity;
-        _enricher.EnrichParseDocument(context, activity);
 
-        return activity;
+        return new ParseDocumentScope(_enricher, context, activity);
     }
 
     public override void SyntaxError(IRequestContext context, IError error)
@@ -92,19 +89,34 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ValidateDocument(IRequestContext context)
     {
-        Activity? activity = _activitySource.StartActivity("GraphQL-Validate-Document");
+        Activity? activity = Source.StartActivity("GraphQL-Validate-Document");
 
         if (activity is null)
         {
             return EmptyScope;
         }
 
-        return new ValidateEvent(_enricher, context, activity);
+        context.ContextData[ValidateActivity] = activity;
+
+        return new ValidateDocumentScope(_enricher, context, activity);
+    }
+
+    public override void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
+    {
+        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        {
+            foreach (IError error in errors)
+            {
+                var tags = new List<KeyValuePair<string, object?>>();
+                _enricher.EnrichValidationErrors(context, error, tags);
+                ((Activity)activity!).AddEvent(new("ValidationError", tags: new(tags)));
+            }
+        }
     }
 
     public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        Activity? activity = _activitySource.StartActivity("GraphQL-Execute-Resolver");
+        Activity? activity = Source.StartActivity(ActivityNames.ResolveFieldValue);
 
         if (activity is null)
         {
@@ -112,139 +124,8 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
         }
 
         _enricher.EnrichResolver(context, activity);
-        context.SetLocalValue("Activity", activity);
+        context.SetLocalValue(ResolverActivity, activity);
 
         return activity!;
     }
-
-    private static string GetName()
-        => typeof(ActivityExecutionDiagnosticListener).Assembly.GetName().Name!;
-
-    private static string GetVersion()
-        => typeof(ActivityExecutionDiagnosticListener).Assembly.GetName().Version!.ToString();
-}
-
-internal sealed class RequestEvent : IDisposable
-{
-    private readonly IDiagnosticActivityEnricher _enricher;
-    private readonly IRequestContext _context;
-    private readonly Activity _activity;
-
-    public RequestEvent(IDiagnosticActivityEnricher enricher, IRequestContext context, Activity activity)
-    {
-        _enricher = enricher;
-        _context = context;
-        _activity = activity;
-    }
-
-    public void Dispose()
-    {
-        _enricher.EnrichRequest(_context, _activity);
-        _activity.Dispose();
-    }
-}
-
-internal sealed class ValidateEvent : IDisposable
-{
-    private readonly IDiagnosticActivityEnricher _enricher;
-    private readonly IRequestContext _context;
-    private readonly Activity _activity;
-
-    public ValidateEvent(IDiagnosticActivityEnricher enricher, IRequestContext context, Activity activity)
-    {
-        _enricher = enricher;
-        _context = context;
-        _activity = activity;
-    }
-
-    public void Dispose()
-    {
-        _enricher.EnrichValidateDocument(_context, _activity);
-        _activity.Dispose();
-    }
-}
-
-public interface IDiagnosticActivityEnricher
-{
-    void EnrichRequest(IRequestContext context, Activity activity);
-
-    void EnrichValidateDocument(IRequestContext context, Activity activity);
-
-    void EnrichParseDocument(IRequestContext context, Activity activity);
-
-    void EnrichSyntaxError(IRequestContext context, IError error, ICollection<KeyValuePair<string, object?>> tags);
-
-    void EnrichResolver(IMiddlewareContext context, Activity activity);
-}
-
-public class DefaultDiagnosticActivityEnricher : IDiagnosticActivityEnricher
-{
-    public virtual void EnrichRequest(IRequestContext context, Activity activity)
-    {
-        if (context.Operation is not null)
-        {
-            activity.SetTag("graphql.request.document.id", context.DocumentId);
-            activity.SetTag("graphql.request.document.hash", context.DocumentHash);
-            activity.SetTag("graphql.request.document.valid", context.IsValidDocument);
-
-            activity.SetTag("graphql.request.operation.id", context.OperationId);
-            activity.SetTag("graphql.request.operation.kind", context.Operation.Type);
-
-            if (context.Operation.Name is not null)
-            {
-                activity.DisplayName = context.Operation.Name;
-                activity.SetTag("graphql.request.operation.name", context.Operation.Name);
-            }
-        }
-
-        if (context.Result is IQueryResult result)
-        {
-            activity.SetTag("graphql.request.errors.count", result.Errors?.Count ?? 0);
-            activity.SetTag("graphql.request.status", (result.Errors?.Count ?? 0) == 0 ? "success" : "error");
-        }
-    }
-
-    public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Validate";
-        activity.SetTag("graphql.request.document.id", context.DocumentId);
-        activity.SetTag("graphql.request.document.hash", context.DocumentHash);
-        activity.SetTag("graphql.request.document.valid", context.IsValidDocument);
-    }
-
-    public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Parse";
-    }
-
-    public virtual void EnrichSyntaxError(IRequestContext context, IError error, ICollection<KeyValuePair<string, object?>> tags)
-    {
-        tags.Add(new("graphql.error.message", error.Message));
-        tags.Add(new("graphql.error.code", error.Code));
-
-        if (error.Locations is { Count: > 0 })
-        {
-            for (int i = 0; i < error.Locations.Count; i++)
-            {
-                tags.Add(new($"graphql.error.location.{i}.column", error.Locations[i].Column));
-                tags.Add(new($"graphql.error.location.{i}.line", error.Locations[i].Line));
-            }
-        }
-    }
-
-    public virtual void EnrichResolver(IMiddlewareContext context, Activity activity)
-    {
-        activity.DisplayName = $"{context.Path}";
-        activity.SetTag("graphql.selection.name", context.Selection.ResponseName);
-        activity.SetTag("graphql.selection.coordinate", context.Selection.Field.Coordinate.ToString());
-        activity.SetTag("graphql.selection.type", context.Selection.Field.Type.Print());
-        activity.SetTag("graphql.selection.path", context.Path.ToString());
-    }
-}
-
-internal static class ContextKeys
-{
-    public const string RequestActivity = "HotChocolate.Diagnostics.Request";
-    public const string ParserActivity = "HotChocolate.Diagnostics.Parser";
-    public const string ResolverActivity = "HotChocolate.Diagnostics.Resolver";
 }
