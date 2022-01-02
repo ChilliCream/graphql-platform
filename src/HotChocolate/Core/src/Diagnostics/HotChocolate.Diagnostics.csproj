@@ -13,6 +13,7 @@
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
   </ItemGroup>
 
 </Project>
