@@ -28,34 +28,51 @@ internal sealed class DocumentParserMiddleware
     {
         if (context.Document is null && context.Request.Query is not null)
         {
-            var success = true;
+            var success = false;
+            IQuery query = context.Request.Query;
 
-            try
+            // a parsed document was passed into the request.
+            if (query is QueryDocument parsed)
+            {
+                context.DocumentId = ComputeDocumentHash(
+                    context.DocumentHash,
+                    context.Request.QueryHash,
+                    context.Request.Query);
+                context.Document = parsed.Document;
+                success = true;
+            }
+            else if (query is QuerySourceText source)
             {
                 using (_diagnosticEvents.ParseDocument(context))
                 {
-                    context.DocumentId = ComputeDocumentHash(
-                        context.DocumentHash,
-                        context.Request.QueryHash,
-                        context.Request.Query);
-                    context.Document = ParseDocument(context.Request.Query);
+                    try
+                    {
+                        context.DocumentId = ComputeDocumentHash(
+                            context.DocumentHash,
+                            context.Request.QueryHash,
+                            context.Request.Query);
+                        context.Document = Utf8GraphQLParser.Parse(source.AsSpan());
+                        success = true;
+                    }
+                    catch (SyntaxException ex)
+                    {
+                        IError error = context.ErrorHandler.Handle(
+                            ErrorBuilder.New()
+                                .SetMessage(ex.Message)
+                                .SetCode(ErrorCodes.Execution.SyntaxError)
+                                .AddLocation(ex.Line, ex.Column)
+                                .Build());
+
+                        context.Exception = ex;
+                        context.Result = QueryResultBuilder.CreateError(error);
+
+                        _diagnosticEvents.SyntaxError(context, error);
+                    }
                 }
             }
-            catch (SyntaxException ex)
+            else
             {
-                success = false;
-
-                IError error = context.ErrorHandler.Handle(
-                    ErrorBuilder.New()
-                        .SetMessage(ex.Message)
-                        .SetCode(ErrorCodes.Execution.SyntaxError)
-                        .AddLocation(ex.Line, ex.Column)
-                        .Build());
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-
-                _diagnosticEvents.SyntaxError(context, error);
+                throw ThrowHelper.QueryTypeNotSupported();
             }
 
             if (success)
@@ -67,21 +84,6 @@ internal sealed class DocumentParserMiddleware
         {
             await _next(context).ConfigureAwait(false);
         }
-    }
-
-    private static DocumentNode ParseDocument(IQuery query)
-    {
-        if (query is QueryDocument parsed)
-        {
-            return parsed.Document;
-        }
-
-        if (query is QuerySourceText source)
-        {
-            return Utf8GraphQLParser.Parse(source.AsSpan());
-        }
-
-        throw ThrowHelper.QueryTypeNotSupported();
     }
 
     private string ComputeDocumentHash(string? documentHash, string? queryHash, IQuery query)
