@@ -14,6 +14,9 @@ public interface IServerDiagnosticEvents
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
     /// </param>
+    /// <param name="kind">
+    /// The HTTP request kind that is being executed.
+    /// </param>
     /// <returns>
     /// A scope that will be disposed when the execution has finished.
     /// </returns>
@@ -114,6 +117,9 @@ public interface IServerDiagnosticEvents
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
+    /// </param>
+    /// <param name="result">
+    /// The query result.
     /// </param>
     /// <returns>
     /// A scope that will be disposed when GraphQL query result is written to the response stream.

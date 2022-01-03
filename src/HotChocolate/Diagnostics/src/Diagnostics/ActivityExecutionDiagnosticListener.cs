@@ -4,13 +4,14 @@ using System.Diagnostics;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics;
 
-public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
+public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
 {
     private readonly ActivityEnricher _enricher;
 
@@ -19,7 +20,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
-        Activity? activity = Source.StartActivity(ActivityNames.ExecuteRequest);
+        Activity? activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -65,7 +66,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ParseDocument(IRequestContext context)
     {
-        Activity? activity = Source.StartActivity(ActivityNames.ParseDocument);
+        Activity? activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -89,7 +90,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ValidateDocument(IRequestContext context)
     {
-        Activity? activity = Source.StartActivity(ActivityNames.ValidateDocument);
+        Activity? activity = Source.StartActivity();
 
         if (activity is null)
         {
@@ -114,9 +115,130 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
         }
     }
 
+    public override IDisposable AnalyzeOperationComplexity(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        context.ContextData[ComplexityActivity] = activity;
+
+        return activity;
+    }
+
+    public override void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    {
+        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        {
+            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
+        }
+    }
+
+    public override void OperationComplexityResult(
+        IRequestContext context,
+        int complexity,
+        int allowedComplexity)
+    {
+        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        {
+            var tags = new List<KeyValuePair<string, object?>>();
+            tags.Add(new(nameof(complexity), complexity));
+            tags.Add(new(nameof(allowedComplexity), allowedComplexity));
+            tags.Add(new("allowed", allowedComplexity >= complexity));
+            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityResult)));
+        }
+    }
+
+    public override IDisposable CoerceVariables(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable CompileOperation(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable BuildQueryPlan(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable ExecuteOperation(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable ExecuteStream(IRequestContext context)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable ExecuteSubscription(ISubscription subscription)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
+    public override IDisposable OnSubscriptionEvent(SubscriptionEventContext subscription)
+    {
+        Activity? activity = Source.StartActivity();
+
+        if (activity is null)
+        {
+            return EmptyScope;
+        }
+
+        return activity;
+    }
+
     public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
-        Activity? activity = Source.StartActivity(ActivityNames.ResolveFieldValue);
+        Activity? activity = Source.StartActivity();
 
         if (activity is null)
         {

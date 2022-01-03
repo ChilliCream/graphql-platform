@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Diagnostics</PackageId>
     <AssemblyName>HotChocolate.Diagnostics</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <RootNamespace>HotChocolate.Diagnostics</RootNamespace>
     <Description>Provides Hot Chocolate Diagnostics.</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
