@@ -18,5 +18,6 @@ public static class TracerProviderBuilderExtensions
         }
 
         builder.AddSource(HotChocolateActivitySource.GetName());
+        return builder;
     }
 }

@@ -58,9 +58,17 @@ internal sealed class OperationExecutionMiddleware
         {
             if (IsOperationAllowed(context))
             {
-                await ExecuteOperationAsync(
-                    context, batchDispatcher, context.Operation)
-                    .ConfigureAwait(false);
+                QueryPlan queryPlan = GetQueryPlan(context);
+
+                using (context.DiagnosticEvents.ExecuteOperation(context))
+                {
+                    await ExecuteOperationAsync(
+                        context,
+                        batchDispatcher,
+                        context.Operation,
+                        queryPlan)
+                        .ConfigureAwait(false);
+                }
             }
             else
             {
@@ -76,14 +84,9 @@ internal sealed class OperationExecutionMiddleware
     private async Task ExecuteOperationAsync(
         IRequestContext context,
         IBatchDispatcher batchDispatcher,
-        IPreparedOperation operation)
+        IPreparedOperation operation,
+        QueryPlan queryPlan)
     {
-        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
-        {
-            queryPlan = QueryPlanBuilder.Build(operation);
-            _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
-        }
-
         if (operation.Definition.Operation == OperationType.Subscription)
         {
             // since the context is pooled we need to clone the context for
@@ -134,6 +137,15 @@ internal sealed class OperationExecutionMiddleware
                     var operationContextOwner = new OperationContextOwner(
                         operationContext, _operationContextPool);
 
+                    var streamSession = new StreamSession(
+                        new IDisposable[] 
+                        {
+                            operationContextOwner,
+
+                            // the diagnostic scope needs to be last to be disposed last.
+                            context.DiagnosticEvents.ExecuteStream(context)
+                        });
+
                     // since the context is pooled we need to clone the context for
                     // long running executions.
                     operationContext.RequestContext = context.Clone();
@@ -146,7 +158,7 @@ internal sealed class OperationExecutionMiddleware
                     (
                         result,
                         new DeferredTaskExecutor(operationContextOwner),
-                        session: operationContextOwner
+                        session: streamSession
                     );
                 }
 
@@ -212,6 +224,20 @@ internal sealed class OperationExecutionMiddleware
         }
     }
 
+    private QueryPlan GetQueryPlan(IRequestContext context)
+    {
+        if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
+        {
+            using (context.DiagnosticEvents.BuildQueryPlan(context))
+            {
+                queryPlan = QueryPlanBuilder.Build(context.Operation!);
+                _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
+            }
+        }
+
+        return queryPlan;
+    }
+
     private object? GetQueryRootValue(IRequestContext context) =>
         RootValueResolver.Resolve(
             context,
@@ -251,5 +277,28 @@ internal sealed class OperationExecutionMiddleware
         }
 
         return false;
+    }
+
+    private class StreamSession : IDisposable
+    {
+        private readonly IDisposable[] _disposables;
+        private bool _disposed;
+
+        public StreamSession(IDisposable[] disposables)
+        {
+            _disposables = disposables;
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                foreach (IDisposable disposable in _disposables)
+                {
+                    disposable.Dispose();
+                }
+                _disposed = true;
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ using static System.Net.HttpStatusCode;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpGetSchemaMiddleware : MiddlewareBase
+public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
     private readonly MiddlewareRoutingType _routing;
 

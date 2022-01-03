@@ -1,16 +1,13 @@
-using System;
 using System.Diagnostics;
 using System.Net;
-using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpGetMiddleware : MiddlewareBase
+public sealed class HttpGetMiddleware : MiddlewareBase
 {
     private static readonly OperationType[] _onlyQueries = { OperationType.Query };
 

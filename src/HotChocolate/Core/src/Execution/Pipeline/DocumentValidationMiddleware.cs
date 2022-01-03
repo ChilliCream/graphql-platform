@@ -41,25 +41,27 @@ internal sealed class DocumentValidationMiddleware
                     context.Document,
                     context.ContextData,
                     context.ValidationResult is not null);
-            }
 
-            if (context.IsValidDocument)
-            {
-                await _next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                DocumentValidatorResult validationResult = context.ValidationResult;
+                if (!context.IsValidDocument)
+                {
+                    // if the validation failed we will report errors within the validation
+                    // span and we will complete the pipeline since we do not have a valid
+                    // GraphQL request.
+                    DocumentValidatorResult validationResult = context.ValidationResult;
 
-                context.Result = QueryResultBuilder.CreateError(
-                    validationResult.Errors,
-                    new Dictionary<string, object?>
-                    {
+                    context.Result = QueryResultBuilder.CreateError(
+                        validationResult.Errors,
+                        new Dictionary<string, object?>
+                        {
                             { WellKnownContextData.ValidationErrors, true }
-                    });
+                        });
 
-                _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
+                    _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
+                    return;
+                }
             }
+
+            await _next(context).ConfigureAwait(false);
         }
     }
 }

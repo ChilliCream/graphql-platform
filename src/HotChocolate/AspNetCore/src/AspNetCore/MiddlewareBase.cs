@@ -1,5 +1,6 @@
 using System.Net;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -43,6 +44,11 @@ public class MiddlewareBase : IDisposable
     /// Gets the request executor proxy.
     /// </summary>
     protected RequestExecutorProxy ExecutorProxy { get; }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    protected IServerDiagnosticEvents DiagnosticEvents { get; }
 
     /// <summary>
     /// Invokes the next middleware in line.

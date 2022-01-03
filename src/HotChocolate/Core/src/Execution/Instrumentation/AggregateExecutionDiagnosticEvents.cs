@@ -77,6 +77,109 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         }
     }
 
+    public IDisposable AnalyzeOperationComplexity(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].AnalyzeOperationComplexity(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void OperationComplexityAnalyzerCompiled(IRequestContext context)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].OperationComplexityAnalyzerCompiled(context);
+        }
+    }
+
+    public void OperationComplexityResult(
+        IRequestContext context,
+        int complexity,
+        int allowedComplexity)
+    {
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            _listeners[i].OperationComplexityResult(context, complexity, allowedComplexity);
+        }
+    }
+
+    public IDisposable CoerceVariables(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].CoerceVariables(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable CompileOperation(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].CompileOperation(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable BuildQueryPlan(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].BuildQueryPlan(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteOperation(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteOperation(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteStream(IRequestContext context)
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteStream(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteDeferredTask()
+    {
+        var scopes = new IDisposable[_listeners.Length];
+
+        for (var i = 0; i < _listeners.Length; i++)
+        {
+            scopes[i] = _listeners[i].ExecuteDeferredTask();
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
         if (_listeners.Length == 0)

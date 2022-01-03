@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Instrumentation;
 public interface IExecutionDiagnosticEvents
 {
     /// <summary>
-    /// Called when starting to execute a request.
+    /// Called when starting to execute a GraphQL request with the <see cref="IRequestExecutor"/>.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an
@@ -84,6 +84,118 @@ public interface IExecutionDiagnosticEvents
     /// The GraphQL validation errors.
     /// </param>
     void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors);
+
+    /// <summary>
+    /// Called when starting to analyze the operation complexity.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable AnalyzeOperationComplexity(IRequestContext context);
+
+    /// <summary>
+    /// Called within <seealso cref="AnalyzeOperationComplexity"/> scope and
+    /// reports that an analyzer was compiled.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    void OperationComplexityAnalyzerCompiled(IRequestContext context);
+
+    /// <summary>
+    /// Called within <seealso cref="AnalyzeOperationComplexity"/> scope and
+    /// reports the outcome of the analyzer.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <param name="complexity">
+    /// The current operation complexity.
+    /// </param>
+    /// <param name="allowedComplexity">
+    /// The maximum allowed operation complexity.
+    /// </param>
+    void OperationComplexityResult(IRequestContext context, int complexity, int allowedComplexity);
+
+    /// <summary>
+    /// Called when starting to coerce variables for a request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable CoerceVariables(IRequestContext context);
+
+    /// <summary>
+    /// Called when starting to compile the GraphQL operation from the syntax tree.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable CompileOperation(IRequestContext context);
+
+    /// <summary>
+    /// Called when starting to build a query plan based on the compiled operation.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable BuildQueryPlan(IRequestContext context);
+
+    /// <summary>
+    /// Called when starting to execute the GraphQL operation.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable ExecuteOperation(IRequestContext context);
+
+    /// <summary>
+    /// Called within the execute operation scope if the result is a streamed result.
+    /// The ExecuteStream scope will run longer then the ExecuteOperation scope.
+    /// The ExecuteOperation scope is completed once the initial operation is executed.
+    /// All deferred elements will be executed and delivered within the ExecuteStream scope.
+    /// The passed in context is polled and can only be used at the initialization of the scope.
+    /// </summary>
+    /// <param name="context">
+    /// The request context encapsulates all GraphQL-specific information about an
+    /// individual GraphQL request.
+    /// </param>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable ExecuteStream(IRequestContext context);
+
+    /// <summary>
+    /// Called when starting to execute a deferred part an operation
+    /// within the ExecuteStream scope or within the
+    /// ExecuteSubscription scope.
+    /// </summary>
+    /// <returns>
+    /// A scope that will be disposed when the execution has finished.
+    /// </returns>
+    IDisposable ExecuteDeferredTask();
 
     /// <summary>
     /// Called when starting to resolve a field value.

@@ -56,6 +56,8 @@ internal sealed class DocumentParserMiddleware
                     }
                     catch (SyntaxException ex)
                     {
+                        // if we have syntax errors we will report them within the
+                        // parse document diagnostic span.
                         IError error = context.ErrorHandler.Handle(
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
