@@ -9,10 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
-    <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
-    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <PackageReference Include="OpenTelemetry.Api" Version="1.1.0" />
   </ItemGroup>
 
