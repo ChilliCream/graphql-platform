@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
+using HotChocolate.Execution.Instrumentation;
 
 namespace HotChocolate.AspNetCore;
 
@@ -22,9 +23,16 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
+        IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName,
         IOptions<FormOptions> formOptions)
-        : base(next, executorResolver, resultSerializer, requestParser, schemaName)
+        : base(
+            next,
+            executorResolver,
+            resultSerializer,
+            requestParser,
+            diagnosticEvents,
+            schemaName)
     {
         _formOptions = formOptions.Value;
     }
@@ -35,7 +43,10 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
             ParseContentType(context) == AllowedContentType.Form)
         {
-            await HandleRequestAsync(context, AllowedContentType.Form);
+            using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
+            {
+                await HandleRequestAsync(context, AllowedContentType.Form);
+            }
         }
         else
         {

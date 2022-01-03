@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
@@ -12,17 +13,21 @@ public sealed class HttpGetMiddleware : MiddlewareBase
     private static readonly OperationType[] _onlyQueries = { OperationType.Query };
 
     private readonly IHttpRequestParser _requestParser;
+    private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public HttpGetMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
         IHttpRequestParser requestParser,
+        IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
         _requestParser = requestParser ??
             throw new ArgumentNullException(nameof(requestParser));
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -30,7 +35,10 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         if (HttpMethods.IsGet(context.Request.Method) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
-            await HandleRequestAsync(context);
+            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
+            {
+                await HandleRequestAsync(context);
+            }
         }
         else
         {
@@ -50,27 +58,48 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;
 
+        // next we parse the GraphQL request.
+        GraphQLRequest request;
+        using (_diagnosticEvents.ParseHttpRequest(context))
+        {
+            try
+            {
+                request = _requestParser.ReadParamsRequest(context.Request.Query);
+            }
+            catch (GraphQLRequestException ex)
+            {
+                // A GraphQL request exception is thrown if the HTTP request body couldn't be
+                // parsed. In this case we will return HTTP status code 400 and return a
+                // GraphQL error result.
+                statusCode = HttpStatusCode.BadRequest;
+                IReadOnlyList<IError> errors = errorHandler.Handle(ex.Errors);
+                result = QueryResultBuilder.CreateError(errors);
+                _diagnosticEvents.ParserErrors(context, errors);
+                goto HANDLE_RESULT;
+            }
+            catch (Exception ex)
+            {
+                statusCode = HttpStatusCode.InternalServerError;
+                IError error = errorHandler.CreateUnexpectedError(ex).Build();
+                result = QueryResultBuilder.CreateError(error);
+                _diagnosticEvents.HttpRequestError(context, error);
+                goto HANDLE_RESULT;
+            }
+        }
+
+        // after successfully parsing the request we now will attempt to execute the request.
         try
         {
-            // next we parse the GraphQL request.
-            GraphQLRequest request = _requestParser.ReadParamsRequest(context.Request.Query);
             GraphQLServerOptions? options = context.GetGraphQLServerOptions();
             result = await ExecuteSingleAsync(
                 context,
                 requestExecutor,
                 requestInterceptor,
+                _diagnosticEvents,
                 request,
                 options is null or { AllowedGetOperations: AllowedGetOperations.Query }
                     ? _onlyQueries
                     : null);
-        }
-        catch (GraphQLRequestException ex)
-        {
-            // A GraphQL request exception is thrown if the HTTP request body couldn't be
-            // parsed. In this case we will return HTTP status code 400 and return a
-            // GraphQL error result.
-            statusCode = HttpStatusCode.BadRequest;
-            result = QueryResultBuilder.CreateError(errorHandler.Handle(ex.Errors));
         }
         catch (GraphQLException ex)
         {
@@ -85,15 +114,34 @@ public sealed class HttpGetMiddleware : MiddlewareBase
             result = QueryResultBuilder.CreateError(error);
         }
 
+HANDLE_RESULT:
+        IDisposable? formatScope = null;
+
         try
         {
+            // if cancellation is requested we will not try to attempt to write the result to the 
+            // response stream.
+            if (context.RequestAborted.IsCancellationRequested)
+            {
+                return;
+            }
+
             // in any case we will have a valid GraphQL result at this point that can be written
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
+
+            if (result is IQueryResult queryResult)
+            {
+                formatScope = _diagnosticEvents.FormatHttpResponse(context, queryResult);
+            }
+
             await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
         }
         finally
         {
+            // we must dispose the diagnostic scope first.
+            formatScope?.Dispose();
+
             // query results use pooled memory an need to be disposed after we have
             // used them.
             if (result is IAsyncDisposable asyncDisposable)

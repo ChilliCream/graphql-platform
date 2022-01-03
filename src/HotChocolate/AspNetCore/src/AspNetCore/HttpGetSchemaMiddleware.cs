@@ -1,24 +1,29 @@
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution.Instrumentation;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using static System.Net.HttpStatusCode;
 using static HotChocolate.SchemaSerializer;
 using static HotChocolate.AspNetCore.ErrorHelper;
-using static System.Net.HttpStatusCode;
 
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
     private readonly MiddlewareRoutingType _routing;
+    private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
+        IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName,
         MiddlewareRoutingType routing)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _routing = routing;
     }
 
@@ -33,7 +38,10 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         if (handle)
         {
-            await HandleRequestAsync(context);
+            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+            {
+                await HandleRequestAsync(context);
+            }
         }
         else
         {

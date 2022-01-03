@@ -72,7 +72,7 @@ public static class EndpointRouteBuilderExtensions
         IFileProvider fileProvider = CreateFileProvider();
 
         requestPipeline
-            .UseInstrumentation()
+            .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
@@ -155,7 +155,7 @@ public static class EndpointRouteBuilderExtensions
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
         requestPipeline
-            .UseInstrumentation()
+            .UseCancellation()
             .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpMultipartMiddleware>(schemaNameOrDefault)
             .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
@@ -231,7 +231,7 @@ public static class EndpointRouteBuilderExtensions
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
         requestPipeline
-            .UseInstrumentation()
+            .UseCancellation()
             .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
             .Use(_ => context =>
             {
@@ -305,7 +305,7 @@ public static class EndpointRouteBuilderExtensions
         NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
         requestPipeline
-            .UseInstrumentation()
+            .UseCancellation()
             .UseMiddleware<HttpGetSchemaMiddleware>(
                 schemaNameOrDefault,
                 MiddlewareRoutingType.Explicit)
@@ -355,7 +355,7 @@ public static class EndpointRouteBuilderExtensions
         IFileProvider fileProvider = CreateFileProvider();
 
         requestPipeline
-            .UseInstrumentation()
+            .UseCancellation()
             .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, toolPath)
             .UseMiddleware<ToolOptionsFileMiddleware>(toolPath)
             .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, toolPath)
@@ -439,7 +439,7 @@ public static class EndpointRouteBuilderExtensions
         return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
     }
 
-    private static IApplicationBuilder UseInstrumentation(this IApplicationBuilder builder)
+    private static IApplicationBuilder UseCancellation(this IApplicationBuilder builder)
         => builder.Use(next => async context =>
         {
             try

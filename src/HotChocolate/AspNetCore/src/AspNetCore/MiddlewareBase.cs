@@ -46,11 +46,6 @@ public class MiddlewareBase : IDisposable
     protected RequestExecutorProxy ExecutorProxy { get; }
 
     /// <summary>
-    /// 
-    /// </summary>
-    protected IServerDiagnosticEvents DiagnosticEvents { get; }
-
-    /// <summary>
     /// Invokes the next middleware in line.
     /// </summary>
     /// <param name="context">
@@ -102,13 +97,16 @@ public class MiddlewareBase : IDisposable
         await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
     }
 
-    protected async Task<IExecutionResult> ExecuteSingleAsync(
+    protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
         OperationType[]? allowedOperations = null)
     {
+        diagnosticEvents.StartSingleRequest(context, request);
+
         var requestBuilder = QueryRequestBuilder.From(request);
         requestBuilder.SetAllowedOperations(allowedOperations);
 
@@ -119,13 +117,16 @@ public class MiddlewareBase : IDisposable
             requestBuilder.Create(), context.RequestAborted);
     }
 
-    protected async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
+    protected static async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
         IReadOnlyList<string> operationNames)
     {
+        diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
+
         var requestBatch = new IReadOnlyQueryRequest[operationNames.Count];
 
         for (var i = 0; i < operationNames.Count; i++)
@@ -143,12 +144,15 @@ public class MiddlewareBase : IDisposable
             requestBatch, cancellationToken: context.RequestAborted);
     }
 
-    protected async Task<IBatchQueryResult> ExecuteBatchAsync(
+    protected static async Task<IBatchQueryResult> ExecuteBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         IReadOnlyList<GraphQLRequest> requests)
     {
+        diagnosticEvents.StartBatchRequest(context, requests);
+
         var requestBatch = new IReadOnlyQueryRequest[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
