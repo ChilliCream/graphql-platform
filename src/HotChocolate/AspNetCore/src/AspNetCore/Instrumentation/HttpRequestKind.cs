@@ -1,4 +1,4 @@
-namespace HotChocolate.Execution.Instrumentation;
+namespace HotChocolate.AspNetCore.Instrumentation;
 
 /// <summary>
 /// Specifies the HTTP request kind that is being executed.

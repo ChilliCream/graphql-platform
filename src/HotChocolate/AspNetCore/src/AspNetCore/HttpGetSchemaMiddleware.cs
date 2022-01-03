@@ -1,3 +1,4 @@
+using HotChocolate.AspNetCore.Instrumentation;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Instrumentation;

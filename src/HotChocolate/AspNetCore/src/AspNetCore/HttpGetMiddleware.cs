@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;

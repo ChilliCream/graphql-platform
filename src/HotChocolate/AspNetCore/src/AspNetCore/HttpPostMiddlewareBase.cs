@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using HotChocolate.AspNetCore.Instrumentation;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Instrumentation;

@@ -1,8 +1,7 @@
-using System;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.Execution.Instrumentation;
+namespace HotChocolate.AspNetCore.Instrumentation;
 
 /// <summary>
 /// The diagnostic events of the GraphQL transport layer.
@@ -21,7 +20,7 @@ public interface IServerDiagnosticEvents
     IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind);
 
     /// <summary>
-    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals 
+    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
     /// that a single GraphQL request will be executed.
     /// </summary>
     /// <param name="context">
@@ -33,7 +32,7 @@ public interface IServerDiagnosticEvents
     void StartSingleRequest(HttpContext context, GraphQLRequest request);
 
     /// <summary>
-    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals 
+    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
     /// that a GraphQL batch request will be executed.
     /// </summary>
     /// <param name="context">
@@ -45,7 +44,7 @@ public interface IServerDiagnosticEvents
     void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch);
 
     /// <summary>
-    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals 
+    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
     /// that a GraphQL batch request will be executed.
     /// </summary>
     /// <param name="context">
@@ -55,7 +54,7 @@ public interface IServerDiagnosticEvents
     /// A GraphQL request with multiple operations in a single GraphQL document.
     /// </param>
     /// <param name="operations">
-    /// A list of operation names that represents the execution order of the 
+    /// A list of operation names that represents the execution order of the
     /// operations within the GraphQL document.
     /// </param>
     void StartOperationBatchRequest(
@@ -64,8 +63,8 @@ public interface IServerDiagnosticEvents
         IReadOnlyList<string> operations);
 
     /// <summary>
-    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals 
-    /// that a error occurred while processing the GraphQL over HTTP request. 
+    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
+    /// that a error occurred while processing the GraphQL over HTTP request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -76,19 +75,19 @@ public interface IServerDiagnosticEvents
     void HttpRequestError(HttpContext context, IError error);
 
     /// <summary>
-    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals 
-    /// that a error occurred while processing the GraphQL over HTTP request. 
+    /// Called within the <see cref="ExecuteHttpRequest"/> scope and signals
+    /// that a error occurred while processing the GraphQL over HTTP request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
     /// </param>
-    /// <param name="error">
+    /// <param name="exception">
     /// The <see cref="Exception"/>.
     /// </param>
     void HttpRequestError(HttpContext context, Exception exception);
 
     /// <summary>
-    /// Called when starting to parse a GraphQL HTTP request. 
+    /// Called when starting to parse a GraphQL HTTP request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -99,8 +98,8 @@ public interface IServerDiagnosticEvents
     IDisposable ParseHttpRequest(HttpContext context);
 
     /// <summary>
-    /// Called within the <see cref="ParseHttpRequest"/> scope and signals 
-    /// that a error occurred while parsing the GraphQL request. 
+    /// Called within the <see cref="ParseHttpRequest"/> scope and signals
+    /// that a error occurred while parsing the GraphQL request.
     /// </summary>
     /// <param name="context">
     /// The <see cref="HttpContext"/>.
@@ -134,7 +133,7 @@ public interface IServerDiagnosticEvents
     IDisposable WebSocketSession(HttpContext context);
 
     /// <summary>
-    /// Called within the <see cref="WebSocketSession"/> scope and signals 
+    /// Called within the <see cref="WebSocketSession"/> scope and signals
     /// that a error occurred that terminated the session.
     /// </summary>
     /// <param name="context">
