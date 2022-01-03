@@ -89,7 +89,7 @@ public class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListe
 
     public override IDisposable ValidateDocument(IRequestContext context)
     {
-        Activity? activity = Source.StartActivity("GraphQL-Validate-Document");
+        Activity? activity = Source.StartActivity(ActivityNames.ValidateDocument);
 
         if (activity is null)
         {
