@@ -1,0 +1,145 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GRAPHQL HTTP POST",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "EnTNrU/qlue0XYlwvGskqA=="
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "EnTNrU/qlue0XYlwvGskqA=="
+        },
+        {
+          "Key": "graphql.http.request.query.body",
+          "Value": "query($episode: Episode!) {\n  hero(episode: $episode) {\n    name\n  }\n}"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "ParseHttpRequest",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "ExecuteRequest",
+          "DisplayName": "Execute Request",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+            },
+            {
+              "Key": "graphql.operation.id",
+              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationToCache",
+              "Tags": {}
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": {}
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "ValidateDocument",
+              "DisplayName": "Validate Document",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.id",
+                  "Value": "EnTNrU/qlue0XYlwvGskqA=="
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "CompileOperation",
+              "DisplayName": "Compile Operation",
+              "Status": "Unset",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "CoerceVariables",
+              "DisplayName": "Coerce Variable",
+              "Status": "Unset",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "BuildQueryPlan",
+              "DisplayName": "Build Query Plan",
+              "Status": "Unset",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperation",
+              "DisplayName": "ExecuteOperation",
+              "Status": "Unset",
+              "tags": [],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "Character"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": ""
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": ""
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "FormatHttpResponse",
+          "DisplayName": "FormatHttpResponse",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

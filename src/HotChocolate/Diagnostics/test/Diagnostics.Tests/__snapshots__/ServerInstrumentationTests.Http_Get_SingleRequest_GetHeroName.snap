@@ -1,0 +1,130 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GRAPHQL HTTP GET",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "AdvcXfbJzXmP8zpjN8NpFA=="
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "ParseHttpRequest",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "ExecuteRequest",
+          "DisplayName": "Execute Request",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "AdvcXfbJzXmP8zpjN8NpFA=="
+            },
+            {
+              "Key": "graphql.operation.id",
+              "Value": "AdvcXfbJzXmP8zpjN8NpFA=="
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationToCache",
+              "Tags": {}
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": {}
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "ValidateDocument",
+              "DisplayName": "Validate Document",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.id",
+                  "Value": "AdvcXfbJzXmP8zpjN8NpFA=="
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "CompileOperation",
+              "DisplayName": "Compile Operation",
+              "Status": "Unset",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "BuildQueryPlan",
+              "DisplayName": "Build Query Plan",
+              "Status": "Unset",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperation",
+              "DisplayName": "ExecuteOperation",
+              "Status": "Unset",
+              "tags": [],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "Character"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": ""
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": ""
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "FormatHttpResponse",
+          "DisplayName": "FormatHttpResponse",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}
