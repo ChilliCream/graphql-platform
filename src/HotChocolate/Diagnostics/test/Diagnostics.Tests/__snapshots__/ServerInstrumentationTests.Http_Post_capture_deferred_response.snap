@@ -15,15 +15,11 @@
         },
         {
           "Key": "graphql.http.request.query.id",
-          "Value": "EnTNrU/qlue0XYlwvGskqA=="
+          "Value": "fl68heDUcuJdOASBM1aoHw=="
         },
         {
           "Key": "graphql.http.request.query.hash",
-          "Value": "EnTNrU/qlue0XYlwvGskqA=="
-        },
-        {
-          "Key": "graphql.http.request.variables",
-          "Value": "{ episode: \"NEW_HOPE\" }"
+          "Value": "fl68heDUcuJdOASBM1aoHw=="
         }
       ],
       "event": [],
@@ -38,15 +34,15 @@
         {
           "OperationName": "ExecuteRequest",
           "DisplayName": "Execute Request",
-          "Status": "Ok",
+          "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+              "Value": "fl68heDUcuJdOASBM1aoHw=="
             },
             {
               "Key": "graphql.operation.id",
-              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+              "Value": "fl68heDUcuJdOASBM1aoHw=="
             }
           ],
           "event": [
@@ -67,7 +63,7 @@
               "tags": [
                 {
                   "Key": "graphql.document.id",
-                  "Value": "EnTNrU/qlue0XYlwvGskqA=="
+                  "Value": "fl68heDUcuJdOASBM1aoHw=="
                 }
               ],
               "event": []
@@ -75,13 +71,6 @@
             {
               "OperationName": "CompileOperation",
               "DisplayName": "Compile Operation",
-              "Status": "Unset",
-              "tags": [],
-              "event": []
-            },
-            {
-              "OperationName": "CoerceVariables",
-              "DisplayName": "Coerce Variable",
               "Status": "Unset",
               "tags": [],
               "event": []
@@ -131,16 +120,48 @@
                     }
                   ],
                   "event": []
+                },
+                {
+                  "OperationName": "ExecuteStream",
+                  "DisplayName": "ExecuteStream",
+                  "Status": "Unset",
+                  "tags": [],
+                  "event": []
                 }
               ]
             }
           ]
         },
         {
-          "OperationName": "FormatHttpResponse",
-          "DisplayName": "FormatHttpResponse",
-          "Status": "Unset",
-          "tags": [],
+          "OperationName": "ResolveFieldValue",
+          "DisplayName": "/hero/id",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.selection.name",
+              "Value": "id"
+            },
+            {
+              "Key": "graphql.selection.parentType",
+              "Value": "Droid"
+            },
+            {
+              "Key": "graphql.selection.coordinate",
+              "Value": "Droid.id"
+            },
+            {
+              "Key": "graphql.selection.type",
+              "Value": "ID!"
+            },
+            {
+              "Key": "graphql.selection.path",
+              "Value": "/hero/id"
+            },
+            {
+              "Key": "graphql.selection.hierarchy",
+              "Value": "/hero/id"
+            }
+          ],
           "event": []
         }
       ]

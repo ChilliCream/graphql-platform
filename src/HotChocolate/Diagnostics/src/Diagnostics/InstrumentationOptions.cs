@@ -10,6 +10,8 @@ public sealed class InstrumentationOptions
 
     public bool IncludeDocument { get; set; }
 
+    public bool SkipParseRequest { get; set; }
+
     public bool SkipParseDocument { get; set; }
 
     public bool SkipValidateDocument { get; set; }

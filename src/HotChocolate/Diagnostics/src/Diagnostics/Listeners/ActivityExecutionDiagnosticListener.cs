@@ -288,7 +288,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        _enricher.EnrichResolver(context, activity);
+        _enricher.EnrichResolveFieldValue(context, activity);
         context.SetLocalValue(ResolverActivity, activity);
 
         return activity!;
@@ -299,7 +299,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(ResolverActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            _enricher.EnrichResolverError(context, (Activity)activity, error);
+            _enricher.EnrichResolverError(context, error, (Activity)activity);
         }
     }
 }

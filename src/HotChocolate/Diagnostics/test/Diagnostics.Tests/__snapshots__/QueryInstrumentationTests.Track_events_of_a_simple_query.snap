@@ -75,7 +75,7 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "",
+              "DisplayName": "/sayHello",
               "Status": "Ok",
               "tags": [
                 {
@@ -96,11 +96,11 @@
                 },
                 {
                   "Key": "graphql.selection.path",
-                  "Value": ""
+                  "Value": "/sayHello"
                 },
                 {
                   "Key": "graphql.selection.hierarchy",
-                  "Value": ""
+                  "Value": "/sayHello"
                 }
               ],
               "event": []

@@ -2,26 +2,9 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GRAPHQL HTTP POST",
+      "DisplayName": "ExecuteHttpRequest",
       "Status": "Unset",
-      "tags": [
-        {
-          "Key": "graphql.schema.name",
-          "Value": "_Default"
-        },
-        {
-          "Key": "graphql.http.request.query.id",
-          "Value": "EnTNrU/qlue0XYlwvGskqA=="
-        },
-        {
-          "Key": "graphql.http.request.query.hash",
-          "Value": "EnTNrU/qlue0XYlwvGskqA=="
-        },
-        {
-          "Key": "graphql.http.request.query.body",
-          "Value": "query($episode: Episode!) {\n  hero(episode: $episode) {\n    name\n  }\n}"
-        }
-      ],
+      "tags": [],
       "event": [],
       "activities": [
         {
@@ -33,58 +16,35 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "Execute Request",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "graphql.document.id",
-              "Value": "EnTNrU/qlue0XYlwvGskqA=="
-            },
-            {
-              "Key": "graphql.operation.id",
-              "Value": "EnTNrU/qlue0XYlwvGskqA=="
-            }
-          ],
-          "event": [
-            {
-              "Name": "AddedOperationToCache",
-              "Tags": {}
-            },
-            {
-              "Name": "AddedDocumentToCache",
-              "Tags": {}
-            }
-          ],
+          "DisplayName": "ExecuteRequest",
+          "Status": "Unset",
+          "tags": [],
+          "event": [],
           "activities": [
             {
               "OperationName": "ValidateDocument",
-              "DisplayName": "Validate Document",
-              "Status": "Ok",
-              "tags": [
-                {
-                  "Key": "graphql.document.id",
-                  "Value": "EnTNrU/qlue0XYlwvGskqA=="
-                }
-              ],
+              "DisplayName": "ValidateDocument",
+              "Status": "Unset",
+              "tags": [],
               "event": []
             },
             {
               "OperationName": "CompileOperation",
-              "DisplayName": "Compile Operation",
+              "DisplayName": "CompileOperation",
               "Status": "Unset",
               "tags": [],
               "event": []
             },
             {
               "OperationName": "CoerceVariables",
-              "DisplayName": "Coerce Variable",
+              "DisplayName": "CoerceVariables",
               "Status": "Unset",
               "tags": [],
               "event": []
             },
             {
               "OperationName": "BuildQueryPlan",
-              "DisplayName": "Build Query Plan",
+              "DisplayName": "BuildQueryPlan",
               "Status": "Unset",
               "tags": [],
               "event": []
@@ -98,7 +58,7 @@
               "activities": [
                 {
                   "OperationName": "ResolveFieldValue",
-                  "DisplayName": "",
+                  "DisplayName": "/hero",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -119,11 +79,11 @@
                     },
                     {
                       "Key": "graphql.selection.path",
-                      "Value": ""
+                      "Value": "/hero"
                     },
                     {
                       "Key": "graphql.selection.hierarchy",
-                      "Value": ""
+                      "Value": "/hero"
                     }
                   ],
                   "event": []

@@ -71,6 +71,11 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override IDisposable ParseHttpRequest(HttpContext context)
     {
+        if (_options.SkipParseRequest)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
@@ -85,7 +90,17 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void ParserErrors(HttpContext context, IReadOnlyList<IError> errors)
     {
+        if (context.Items.TryGetValue(ParseHttpRequestActivity, out var value))
+        {
+            var activity = (Activity)value!;
 
+            foreach (IError error in errors)
+            {
+                _enricher.EnrichParserErrors(context, error, activity);
+            }
+
+            activity.SetStatus(ActivityStatusCode.Error);
+        }
     }
 
     public override IDisposable FormatHttpResponse(HttpContext context, IQueryResult result)

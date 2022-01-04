@@ -190,7 +190,107 @@ public class ServerInstrumentationTests : ServerTestBase
 
             // assert
             await response.Content.ReadAsStringAsync();
-         
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_capture_deferred_response()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            ... on Droid @defer(label: ""my_id"")
+                            {
+                                id
+                            }
+                        }
+                    }"
+                });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_ensure_list_path_is_correctly_built()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            friends {
+                                nodes {
+                                    name
+                                    friends {
+                                        nodes {
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }"});
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_parser_error()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero(episode: NEW_HOPE)
+                        {
+                            name
+                            friends {
+                                nodes {
+                                    name
+                                    friends {
+                                        1nodes {
+                                            name
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }"});
+
             // assert
             activities.MatchSnapshot();
         }

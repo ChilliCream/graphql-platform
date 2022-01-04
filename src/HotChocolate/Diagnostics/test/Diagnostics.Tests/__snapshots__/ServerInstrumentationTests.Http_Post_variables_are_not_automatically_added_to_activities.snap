@@ -10,6 +10,10 @@
           "Value": "_Default"
         },
         {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        },
+        {
           "Key": "graphql.http.request.query.id",
           "Value": "EnTNrU/qlue0XYlwvGskqA=="
         },
@@ -94,7 +98,7 @@
               "activities": [
                 {
                   "OperationName": "ResolveFieldValue",
-                  "DisplayName": "",
+                  "DisplayName": "/hero",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -115,11 +119,11 @@
                     },
                     {
                       "Key": "graphql.selection.path",
-                      "Value": ""
+                      "Value": "/hero"
                     },
                     {
                       "Key": "graphql.selection.hierarchy",
-                      "Value": ""
+                      "Value": "/hero"
                     }
                   ],
                   "event": []
