@@ -1,8 +1,8 @@
 using System.Net;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -32,6 +32,7 @@ public class MiddlewareBase : IDisposable
         _resultSerializer = resultSerializer ??
             throw new ArgumentNullException(nameof(resultSerializer));
         SchemaName = schemaName;
+        IsDefaultSchema = SchemaName.Equals(Schema.DefaultName);
         ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
@@ -39,6 +40,11 @@ public class MiddlewareBase : IDisposable
     /// Gets the name of the schema that this middleware serves up.
     /// </summary>
     protected NameString SchemaName { get; }
+
+    /// <summary>
+    /// Specifies if this middleware handles the default schema.
+    /// </summary>
+    protected bool IsDefaultSchema { get; }
 
     /// <summary>
     /// Gets the request executor proxy.

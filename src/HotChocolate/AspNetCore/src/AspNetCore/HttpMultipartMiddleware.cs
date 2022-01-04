@@ -1,13 +1,12 @@
 using System.Text.Json;
-using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -44,6 +43,11 @@ public sealed class HttpMultipartMiddleware : HttpPostMiddlewareBase
             (context.GetGraphQLServerOptions()?.EnableMultipartRequests ?? true) &&
             ParseContentType(context) == AllowedContentType.Form)
         {
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpMultiPart))
             {
                 await HandleRequestAsync(context, AllowedContentType.Form);

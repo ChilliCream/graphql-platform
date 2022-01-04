@@ -2,10 +2,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -38,6 +38,11 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         if (HttpMethods.IsPost(context.Request.Method) &&
             ParseContentType(context) is AllowedContentType.Json)
         {
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
             using (DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
             {
                 await HandleRequestAsync(context, AllowedContentType.Json);
@@ -59,6 +64,7 @@ public class HttpPostMiddlewareBase : MiddlewareBase
         IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
         IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
         IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
+        context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;

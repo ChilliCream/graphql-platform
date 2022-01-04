@@ -1,12 +1,10 @@
+using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Instrumentation;
-using Microsoft.AspNetCore.Http;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.SchemaSerializer;
-using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase
@@ -39,6 +37,11 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         if (handle)
         {
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
             using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
             {
                 await HandleRequestAsync(context);
@@ -55,6 +58,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     private async Task HandleRequestAsync(HttpContext context)
     {
         ISchema schema = await GetSchemaAsync(context.RequestAborted);
+        context.Items[WellKnownContextData.Schema] = schema;
 
         bool indent =
             !(context.Request.Query.ContainsKey("indentation") &&

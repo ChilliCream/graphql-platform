@@ -36,13 +36,22 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
 
     private async Task HandleWebSocketSessionAsync(HttpContext context)
     {
+        if (!IsDefaultSchema)
+        {
+            context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+        }
+
         using (_diagnosticEvents.WebSocketSession(context))
         {
             try
             {
-                IRequestExecutor executor = await GetExecutorAsync(context.RequestAborted);
-                IMessagePipeline? messagePipeline = executor.GetRequiredService<IMessagePipeline>();
-                ISocketSessionInterceptor? socketSessionInterceptor = executor.GetRequiredService<ISocketSessionInterceptor>();
+                IRequestExecutor requestExecutor = 
+                    await GetExecutorAsync(context.RequestAborted);
+                IMessagePipeline? messagePipeline = 
+                    requestExecutor.GetRequiredService<IMessagePipeline>();
+                ISocketSessionInterceptor? socketSessionInterceptor = 
+                    requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
+                context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
                 await WebSocketSession
                     .New(context, messagePipeline, socketSessionInterceptor)

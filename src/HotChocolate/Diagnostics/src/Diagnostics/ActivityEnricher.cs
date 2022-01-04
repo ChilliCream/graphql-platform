@@ -1,8 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -53,7 +57,128 @@ public class ActivityEnricher
         }
 
         activity.SetTag("graphql.http.kind", kind);
-        
+
+        if (!(context.Items.TryGetValue(WellKnownContextData.SchemaName, out var value) &&
+            value is string schemaName))
+        {
+            schemaName = Schema.DefaultName.Value;
+            activity.SetTag("graphql.schema.default", true);
+        }
+
+        activity.SetTag("graphql.schema.name", schemaName);
+    }
+
+    public virtual void EnrichSingleRequest(
+        HttpContext context,
+        GraphQLRequest request,
+        Activity activity)
+    {
+
+        if (request.QueryId is not null &&
+            (_options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
+        {
+            activity.SetTag("graphql.http.request.query.id", request.QueryId);
+        }
+
+        if (request.QueryHash is not null &&
+            (_options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
+        {
+            activity.SetTag("graphql.http.request.query.hash", request.QueryHash);
+        }
+
+        if (request.Query is not null &&
+            (_options.RequestDetails & RequestDetails.Query) == RequestDetails.Query)
+        {
+            activity.SetTag("graphql.http.request.query.body", request.Query.Print());
+        }
+
+        if (request.OperationName is not null &&
+            (_options.RequestDetails & RequestDetails.Operation) == RequestDetails.Operation)
+        {
+            activity.SetTag("graphql.http.request.operation", request.OperationName);
+        }
+
+        if (request.Variables is not null &&
+            (_options.RequestDetails & RequestDetails.Variables) == RequestDetails.Variables)
+        {
+            var variables = new ObjectValueNode(
+                request.Variables.Select(
+                    t => new ObjectFieldNode(
+                        null, 
+                        new NameNode(t.Key), 
+                        t.Value is null 
+                            ? NullValueNode.Default 
+                            : (IValueNode)t.Value))
+                    .ToArray());
+
+            EnrichRequestVariables(context, request, variables, activity);
+        }
+
+        if (request.Extensions is not null &&
+            (_options.RequestDetails & RequestDetails.Extensions) == RequestDetails.Extensions)
+        {
+            EnrichRequestExtensions(context, request, request.Extensions, activity);
+        }
+    }
+
+    public virtual void EnrichBatchRequest(
+        HttpContext context,
+        IReadOnlyList<GraphQLRequest> batch,
+        Activity activity)
+    {
+
+    }
+
+    public virtual void EnrichOperationBatchRequest(
+        HttpContext context,
+        GraphQLRequest request,
+        IReadOnlyList<string> operations,
+        Activity activity)
+    {
+
+    }
+
+    protected virtual void EnrichRequestVariables(
+        HttpContext context,
+        GraphQLRequest request,
+        ObjectValueNode variables,
+        Activity activity)
+    {
+        activity.SetTag("graphql.http.request.variables", variables.Print());
+    }
+
+    protected virtual void EnrichRequestExtensions(
+        HttpContext context,
+        GraphQLRequest request,
+        IReadOnlyDictionary<string, object?> extensions,
+        Activity activity)
+    {
+        try
+        {
+            activity.SetTag(
+                "graphql.http.request.extensions",
+                JsonSerializer.Serialize(extensions));
+        }
+        catch
+        {
+            // Ignore any errors
+        }
+    }
+
+    public virtual void HttpRequestError(
+        HttpContext context,
+        IError error,
+        Activity activity)
+    {
+
+    }
+
+    public virtual void HttpRequestError(
+        HttpContext context,
+        Exception exception,
+        Activity activity)
+    {
+
     }
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)

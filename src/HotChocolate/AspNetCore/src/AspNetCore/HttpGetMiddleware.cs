@@ -1,10 +1,9 @@
 using System.Diagnostics;
 using System.Net;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -36,6 +35,11 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         if (HttpMethods.IsGet(context.Request.Method) &&
             (context.GetGraphQLServerOptions()?.EnableGetRequests ?? true))
         {
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
             using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
             {
                 await HandleRequestAsync(context);
@@ -55,6 +59,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
         IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
         IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
         IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
+        context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 
         HttpStatusCode? statusCode = null;
         IExecutionResult? result;

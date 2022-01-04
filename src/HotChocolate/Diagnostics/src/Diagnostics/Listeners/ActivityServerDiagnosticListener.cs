@@ -32,12 +32,20 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         }
 
         context.Items[HttpRequestActivity] = activity;
+        _enricher.EnrichExecuteHttpRequest(context, kind, activity);
 
         return activity;
     }
 
     public override void StartSingleRequest(HttpContext context, GraphQLRequest request)
     {
+        if (_options.IncludeRequestDetails)
+        {
+            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            {
+                _enricher.EnrichSingleRequest(context, request, (Activity)activity!);
+            }
+        }
     }
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)

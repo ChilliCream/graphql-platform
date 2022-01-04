@@ -1,8 +1,12 @@
+using System;
+
 namespace HotChocolate.Diagnostics;
 
 public sealed class InstrumentationOptions
 {
-    public bool IncludeRequest { get; set; }
+    public bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
+    
+    public RequestDetails RequestDetails { get; set; } = RequestDetails.Default;
 
     public bool IncludeDocument { get; set; }
 
@@ -19,4 +23,18 @@ public sealed class InstrumentationOptions
     public bool SkipBuildQueryPlan { get; set; }
 
     public bool SkipExecuteOperation { get; set; }
+}
+
+[Flags]
+public enum RequestDetails
+{
+    None = 0,
+    Id = 1,
+    Hash = 2,
+    Operation = 4,
+    Variables = 8,
+    Extensions = 16,
+    Query = 32,
+    Default = Id | Hash | Operation | Extensions,
+    Full = Id | Hash | Operation | Variables | Extensions | Query,
 }
