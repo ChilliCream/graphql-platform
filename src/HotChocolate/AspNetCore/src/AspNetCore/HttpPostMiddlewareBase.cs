@@ -3,10 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text;
 using HotChocolate.AspNetCore.Instrumentation;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;

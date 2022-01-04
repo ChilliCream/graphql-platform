@@ -15,11 +15,11 @@ public sealed class HttpPostMiddleware : HttpPostMiddlewareBase
         IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName)
         : base(
-            next, 
-            executorResolver, 
-            resultSerializer, 
-            requestParser, 
-            diagnosticEvents, 
+            next,
+            executorResolver,
+            resultSerializer,
+            requestParser,
+            diagnosticEvents,
             schemaName)
     {
     }

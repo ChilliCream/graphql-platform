@@ -1,7 +1,9 @@
 using System;
+using System.Text;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -53,7 +55,10 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
 
     private sealed class InternalActivityEnricher : ActivityEnricher
     {
-        public InternalActivityEnricher(InstrumentationOptions options) : base(options)
+        public InternalActivityEnricher(
+            ObjectPool<StringBuilder> stringBuilderPoolPool,
+            InstrumentationOptions options)
+            : base(stringBuilderPoolPool, options)
         {
         }
     }

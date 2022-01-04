@@ -1,5 +1,5 @@
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.Language;
 using static HotChocolate.AspNetCore.Instrumentation.ServerDiagnosticEventListener;
 
 namespace HotChocolate.AspNetCore.Instrumentation;

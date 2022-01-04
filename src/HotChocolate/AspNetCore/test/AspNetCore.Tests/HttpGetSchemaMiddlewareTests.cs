@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 

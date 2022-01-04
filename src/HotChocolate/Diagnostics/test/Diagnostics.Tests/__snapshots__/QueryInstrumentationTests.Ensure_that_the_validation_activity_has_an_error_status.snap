@@ -46,8 +46,8 @@
               "Name": "Error",
               "Tags": {
                 "graphql.error.message": "The field `sayHello_` does not exist on the type `SimpleQuery`.",
-                "graphql.error.location.0.column": 27,
-                "graphql.error.location.0.line": 1
+                "graphql.error.location.column": 27,
+                "graphql.error.location.line": 1
               }
             }
           ]

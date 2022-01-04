@@ -1,7 +1,6 @@
 using System.Net;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;

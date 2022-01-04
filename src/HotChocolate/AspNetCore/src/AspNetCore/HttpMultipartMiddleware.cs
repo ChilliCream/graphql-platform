@@ -1,15 +1,15 @@
 using System.Text.Json;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
-using HotChocolate.Execution.Instrumentation;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 

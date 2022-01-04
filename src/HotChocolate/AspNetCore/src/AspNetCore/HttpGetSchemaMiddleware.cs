@@ -1,11 +1,11 @@
 using HotChocolate.AspNetCore.Instrumentation;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Execution.Instrumentation;
-using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
-using static HotChocolate.SchemaSerializer;
 using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.SchemaSerializer;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
@@ -63,7 +63,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                     "none",
                     StringComparison.OrdinalIgnoreCase));
 
-        if (context.Request.Query.TryGetValue("types", out var typesValue))
+        if (context.Request.Query.TryGetValue("types", out Microsoft.Extensions.Primitives.StringValues typesValue))
         {
             if (string.IsNullOrEmpty(typesValue))
             {
@@ -89,7 +89,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 
         foreach (string typeName in typeNames.Split(','))
         {
-            if (!SchemaCoordinate.TryParse(typeName, out var coordinate) ||
+            if (!SchemaCoordinate.TryParse(typeName, out SchemaCoordinate? coordinate) ||
                 coordinate.Value.MemberName is not null ||
                 coordinate.Value.ArgumentName is not null)
             {
@@ -97,7 +97,7 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
+            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out INamedType? type))
             {
                 await WriteResultAsync(context, TypeNotFound(typeName), NotFound);
                 return;

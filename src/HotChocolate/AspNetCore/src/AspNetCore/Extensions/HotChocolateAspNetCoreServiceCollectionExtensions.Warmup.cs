@@ -1,4 +1,3 @@
-using System;
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
 

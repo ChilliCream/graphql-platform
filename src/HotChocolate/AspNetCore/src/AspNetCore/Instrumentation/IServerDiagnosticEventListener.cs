@@ -1,5 +1,3 @@
-using HotChocolate.Execution.Instrumentation;
-
 namespace HotChocolate.AspNetCore.Instrumentation;
 
 /// <summary>

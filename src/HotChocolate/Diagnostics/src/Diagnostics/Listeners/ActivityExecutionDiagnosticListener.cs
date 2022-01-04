@@ -32,7 +32,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         {
             return EmptyScope;
         }
-
+        
         context.ContextData[RequestActivity] = activity;
 
         return new ExecuteRequestScope(_enricher, context, activity);

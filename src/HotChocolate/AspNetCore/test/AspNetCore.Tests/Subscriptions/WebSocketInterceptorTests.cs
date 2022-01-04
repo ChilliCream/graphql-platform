@@ -168,8 +168,8 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
             await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
             var cts = new CancellationTokenSource();
-            
-            void BeginClose() 
+
+            void BeginClose()
                 => Task.Factory.StartNew(
                     () => webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cts.Token),
                     default,
