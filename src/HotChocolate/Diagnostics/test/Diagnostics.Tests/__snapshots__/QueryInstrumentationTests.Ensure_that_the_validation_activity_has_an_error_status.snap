@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteRequest",
       "DisplayName": "Execute Request",
-      "Status": "Error",
+      "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
@@ -16,6 +16,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello_\n}"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "ERROR"
         }
       ],
       "event": [],
@@ -23,8 +27,13 @@
         {
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
-          "Status": "Ok",
-          "tags": [],
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": []
         },
         {

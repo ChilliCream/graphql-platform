@@ -26,11 +26,14 @@ internal class RequestScopeBase : IDisposable
 
     protected virtual void EnrichActivity() { }
 
+    protected virtual void SetStatus() { }
+
     public void Dispose()
     {
         if (!_disposed)
         {
             EnrichActivity();
+            SetStatus();
             Activity.Dispose();
             _disposed = true;
         }

@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteRequest",
       "DisplayName": "Execute Request",
-      "Status": "Ok",
+      "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
@@ -32,8 +32,13 @@
         {
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
-          "Status": "Ok",
-          "tags": [],
+          "Status": "Unset",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": []
         },
         {

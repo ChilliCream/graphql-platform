@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Diagnostics;
@@ -61,12 +62,22 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void HttpRequestError(HttpContext context, IError error)
     {
-
+        if (context.Items.TryGetValue(HttpRequestActivity, out var value))
+        {
+            var activity = (Activity)value!;
+            _enricher.EnrichHttpRequestError(context, error, activity);
+            activity.SetStatus(Status.Error);
+        }
     }
 
     public override void HttpRequestError(HttpContext context, Exception exception)
     {
-
+        if (context.Items.TryGetValue(HttpRequestActivity, out var value))
+        {
+            var activity = (Activity)value!;
+            _enricher.EnrichHttpRequestError(context, exception, activity);
+            activity.SetStatus(Status.Error);
+        }
     }
 
     public override IDisposable ParseHttpRequest(HttpContext context)

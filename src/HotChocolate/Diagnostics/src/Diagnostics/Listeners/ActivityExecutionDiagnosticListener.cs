@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
+using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
@@ -32,7 +33,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         {
             return EmptyScope;
         }
-        
+
         context.ContextData[RequestActivity] = activity;
 
         return new ExecuteRequestScope(_enricher, context, activity);
@@ -91,10 +92,13 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override void SyntaxError(IRequestContext context, IError error)
     {
-        if (context.ContextData.TryGetValue(ParserActivity, out var activity))
+        if (context.ContextData.TryGetValue(ParserActivity, out var value))
         {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            _enricher.EnrichSyntaxError(context, (Activity)activity, error);
+            var activity = (Activity)value!;
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+            _enricher.EnrichSyntaxError(context, activity, error);
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 
@@ -128,6 +132,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             {
                 _enricher.EnrichValidationError(context, activity, error);
             }
+
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 

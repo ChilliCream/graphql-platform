@@ -34,7 +34,7 @@
         {
           "OperationName": "ExecuteRequest",
           "DisplayName": "Execute Request",
-          "Status": "Ok",
+          "Status": "Unset",
           "tags": [
             {
               "Key": "graphql.document.id",

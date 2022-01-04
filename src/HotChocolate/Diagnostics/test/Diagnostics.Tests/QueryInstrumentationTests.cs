@@ -7,6 +7,7 @@ using static HotChocolate.Diagnostics.ActivityTestHelper;
 
 namespace HotChocolate.Diagnostics;
 
+[Collection("Instrumentation")]
 public class QueryInstrumentationTests
 {
     [Fact]

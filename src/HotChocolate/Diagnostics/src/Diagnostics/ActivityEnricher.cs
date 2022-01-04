@@ -13,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
+using OpenTelemetry.Trace;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
@@ -292,16 +293,13 @@ public class ActivityEnricher
         }
     }
 
-    public virtual void HttpRequestError(
+    public virtual void EnrichHttpRequestError(
         HttpContext context,
         IError error,
         Activity activity)
-    {
-        EnrichError(error, activity);
-        activity.SetStatus(ActivityStatusCode.Error);
-    }
+        => EnrichError(error, activity);
 
-    public virtual void HttpRequestError(
+    public virtual void EnrichHttpRequestError(
         HttpContext context,
         Exception exception,
         Activity activity)
@@ -336,18 +334,12 @@ public class ActivityEnricher
         {
             var errorCount = result.Errors?.Count ?? 0;
             activity.SetTag("graphql.errors.count", errorCount);
-            activity.SetStatus(result.Data is not null
-                ? ActivityStatusCode.Ok
-                : ActivityStatusCode.Error);
         }
     }
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Parse Document";
-        activity.SetStatus(context.Document is null
-            ? ActivityStatusCode.Error
-            : ActivityStatusCode.Ok);
     }
 
     public virtual void EnrichSyntaxError(
@@ -375,9 +367,7 @@ public class ActivityEnricher
 
     public virtual void EnrichAnalyzeOperationComplexity(IRequestContext context, Activity activity)
     {
-        var allowed = context.ContextData.ContainsKey(OperationComplexityAllowed);
         activity.DisplayName = "Analyze Operation Complexity";
-        activity.SetStatus(allowed ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
     }
 
     public virtual void EnrichCoerceVariables(IRequestContext context, Activity activity)

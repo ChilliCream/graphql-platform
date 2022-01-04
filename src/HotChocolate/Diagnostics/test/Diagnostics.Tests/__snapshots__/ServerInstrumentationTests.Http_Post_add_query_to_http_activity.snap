@@ -2,9 +2,30 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "ExecuteHttpRequest",
+      "DisplayName": "GRAPHQL HTTP POST",
       "Status": "Unset",
-      "tags": [],
+      "tags": [
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "EnTNrU/qlue0XYlwvGskqA=="
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "EnTNrU/qlue0XYlwvGskqA=="
+        },
+        {
+          "Key": "graphql.http.request.query.body",
+          "Value": "query($episode: Episode!) {\n  hero(episode: $episode) {\n    name\n  }\n}"
+        }
+      ],
       "event": [],
       "activities": [
         {
@@ -16,35 +37,58 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "ExecuteRequest",
+          "DisplayName": "Execute Request",
           "Status": "Unset",
-          "tags": [],
-          "event": [],
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+            },
+            {
+              "Key": "graphql.operation.id",
+              "Value": "EnTNrU/qlue0XYlwvGskqA=="
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationToCache",
+              "Tags": {}
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": {}
+            }
+          ],
           "activities": [
             {
               "OperationName": "ValidateDocument",
-              "DisplayName": "ValidateDocument",
-              "Status": "Unset",
-              "tags": [],
+              "DisplayName": "Validate Document",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.id",
+                  "Value": "EnTNrU/qlue0XYlwvGskqA=="
+                }
+              ],
               "event": []
             },
             {
               "OperationName": "CompileOperation",
-              "DisplayName": "CompileOperation",
+              "DisplayName": "Compile Operation",
               "Status": "Unset",
               "tags": [],
               "event": []
             },
             {
               "OperationName": "CoerceVariables",
-              "DisplayName": "CoerceVariables",
+              "DisplayName": "Coerce Variable",
               "Status": "Unset",
               "tags": [],
               "event": []
             },
             {
               "OperationName": "BuildQueryPlan",
-              "DisplayName": "BuildQueryPlan",
+              "DisplayName": "Build Query Plan",
               "Status": "Unset",
               "tags": [],
               "event": []

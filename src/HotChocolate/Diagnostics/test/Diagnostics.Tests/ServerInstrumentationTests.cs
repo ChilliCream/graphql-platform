@@ -11,6 +11,8 @@ using System.Net.Http;
 
 namespace HotChocolate.Diagnostics;
 
+
+[Collection("Instrumentation")]
 public class ServerInstrumentationTests : ServerTestBase
 {
     public ServerInstrumentationTests(TestServerFactory serverFactory)
