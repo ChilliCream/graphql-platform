@@ -15,14 +15,24 @@ public static class ActivityTestHelper
         var listener = new ActivityListener();
         var root = new OrderedDictionary();
         var lookup = new Dictionary<Activity, OrderedDictionary>();
+        Activity rootActivity = default!;
 
         listener.ShouldListenTo = source => source.Name.EqualsOrdinal("HotChocolate.Diagnostics");
         listener.ActivityStarted = a =>
         {
             lock (sync)
             {
+
+                if (a.Parent is null && 
+                    a.OperationName.EqualsOrdinal("ExecuteHttpRequest") && 
+                    lookup.TryGetValue(rootActivity, out OrderedDictionary? parentData))
+                {
+                    RegisterActivity(a, parentData);
+                    lookup[a] = (OrderedDictionary)a.GetCustomProperty("test.data")!;
+                }
+
                 if (a.Parent is not null &&
-                    lookup.TryGetValue(a.Parent, out OrderedDictionary? parentData))
+                    lookup.TryGetValue(a.Parent, out parentData))
                 {
                     RegisterActivity(a, parentData);
                     lookup[a] = (OrderedDictionary)a.GetCustomProperty("test.data")!;
@@ -33,7 +43,7 @@ public static class ActivityTestHelper
         listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData;
         ActivitySource.AddActivityListener(listener);
 
-        Activity rootActivity = HotChocolateActivitySource.Source.StartActivity()!;
+        rootActivity = HotChocolateActivitySource.Source.StartActivity()!;
         rootActivity.SetCustomProperty("test.data", root);
         lookup[rootActivity] = root;
 
@@ -58,11 +68,17 @@ public static class ActivityTestHelper
     private static void SerializeActivity(Activity activity)
     {
         var data = (OrderedDictionary)activity.GetCustomProperty("test.data")!;
+
+        if (data is null)
+        {
+            return;
+        }
+
         data["OperationName"] = activity.OperationName;
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
         data["tags"] = activity.Tags;
-        data["event"] = activity.Events.Select(t => new {t.Name, t.Tags});
+        data["event"] = activity.Events.Select(t => new { t.Name, t.Tags });
     }
 
     private class Session : IDisposable
