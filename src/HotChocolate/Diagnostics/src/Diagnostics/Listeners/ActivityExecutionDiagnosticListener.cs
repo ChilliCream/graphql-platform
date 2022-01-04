@@ -183,14 +183,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
             var activity = (Activity)value!;
 
-            var tags = new List<KeyValuePair<string, object?>>
-            {
-                new(nameof(complexity), complexity),
-                new(nameof(allowedComplexity), allowedComplexity),
-                new("allowed", allowedComplexity >= complexity)
-            };
-
-            activity.AddEvent(new(nameof(OperationComplexityResult), tags: new(tags)));
+            activity.SetTag("graphql.document.id", context.DocumentId);
+            activity.SetTag("graphql.document.complexity", complexity);
+            activity.SetTag("graphql.executor.allowedComplexity", allowedComplexity);
 
             if(complexity <= allowedComplexity)
             {
@@ -329,7 +324,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override void ResolverError(IMiddlewareContext context, IError error)
     {
-        if (context.ContextData.TryGetValue(ResolverActivity, out var value))
+        if (context.LocalContextData.TryGetValue(ResolverActivity, out var value))
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
