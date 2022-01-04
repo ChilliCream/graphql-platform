@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using OpenTelemetry.Trace;
 
-namespace HotChocolate.Diagnostics;
+namespace HotChocolate.Diagnostics.Scopes;
 
 internal sealed class ParseDocumentScope : RequestScopeBase
 {

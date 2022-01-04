@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GRAPHQL HTTP POST",
+      "DisplayName": "GraphQL HTTP POST",
       "Status": "Unset",
       "tags": [
         {

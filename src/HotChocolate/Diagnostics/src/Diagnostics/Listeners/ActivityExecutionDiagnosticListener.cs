@@ -10,7 +10,7 @@ using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
-namespace HotChocolate.Diagnostics;
+namespace HotChocolate.Diagnostics.Listeners;
 
 internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
 {
@@ -43,6 +43,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
             ((Activity)activity!).AddEvent(new(nameof(RetrievedDocumentFromCache)));
         }
     }
@@ -51,6 +52,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
             ((Activity)activity!).AddEvent(new(nameof(RetrievedDocumentFromStorage)));
         }
     }
@@ -59,6 +61,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
             ((Activity)activity!).AddEvent(new(nameof(AddedDocumentToCache)));
         }
     }
@@ -67,6 +70,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
             ((Activity)activity!).AddEvent(new(nameof(AddedOperationToCache)));
         }
     }
@@ -94,8 +98,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(ParserActivity, out var value))
         {
-            var activity = (Activity)value!;
             Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value!;
             _enricher.EnrichSyntaxError(context, activity, error);
             activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
@@ -126,6 +131,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(ValidateActivity, out var value))
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
+
             var activity = (Activity)value;
 
             foreach (IError error in errors)
@@ -161,6 +167,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
     {
         if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
         {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
             ((Activity)activity!).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
         }
     }
@@ -170,15 +177,31 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         int complexity,
         int allowedComplexity)
     {
-        if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
+        if (context.ContextData.TryGetValue(ComplexityActivity, out var value))
         {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value!;
+
             var tags = new List<KeyValuePair<string, object?>>
             {
                 new(nameof(complexity), complexity),
                 new(nameof(allowedComplexity), allowedComplexity),
                 new("allowed", allowedComplexity >= complexity)
             };
-            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityResult), tags: new(tags)));
+
+            activity.AddEvent(new(nameof(OperationComplexityResult), tags: new(tags)));
+
+            if(complexity <= allowedComplexity)
+            {
+                activity.SetStatus(Status.Ok);
+                activity.SetStatus(ActivityStatusCode.Ok);
+            }
+            else
+            {
+                activity.SetStatus(Status.Error);
+                activity.SetStatus(ActivityStatusCode.Error);
+            }
         }
     }
 
@@ -247,7 +270,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             return EmptyScope;
         }
 
-        return activity;
+        return new ExecuteOperationScope(_enricher, context, activity);
     }
 
     public override IDisposable ExecuteStream(IRequestContext context)
@@ -296,6 +319,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         }
 
         _enricher.EnrichResolveFieldValue(context, activity);
+        activity.SetStatus(Status.Ok);
+        activity.SetStatus(ActivityStatusCode.Ok);
+
         context.SetLocalValue(ResolverActivity, activity);
 
         return activity!;
@@ -303,10 +329,14 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override void ResolverError(IMiddlewareContext context, IError error)
     {
-        if (context.ContextData.TryGetValue(ResolverActivity, out var activity))
+        if (context.ContextData.TryGetValue(ResolverActivity, out var value))
         {
-            Debug.Assert(activity is not null, "The activity mustn't be null!");
-            _enricher.EnrichResolverError(context, error, (Activity)activity);
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+
+            var activity = (Activity)value;
+            _enricher.EnrichResolverError(context, error, activity);
+            activity.SetStatus(Status.Error);
+            activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 }

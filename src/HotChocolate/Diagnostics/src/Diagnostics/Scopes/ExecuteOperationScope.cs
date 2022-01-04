@@ -4,9 +4,9 @@ using OpenTelemetry.Trace;
 
 namespace HotChocolate.Diagnostics.Scopes;
 
-internal sealed class CompileOperationScope : RequestScopeBase
+internal sealed class ExecuteOperationScope : RequestScopeBase
 {
-    public CompileOperationScope(
+    public ExecuteOperationScope(
         ActivityEnricher enricher,
         IRequestContext context,
         Activity activity)
@@ -15,14 +15,19 @@ internal sealed class CompileOperationScope : RequestScopeBase
     }
 
     protected override void EnrichActivity()
-        => Enricher.EnrichCompileOperation(Context, Activity);
+        => Enricher.EnrichExecuteOperation(Context, Activity);
 
     protected override void SetStatus()
     {
-        if (Context.Operation is not null)
+        if (Context.Result is not null and not IQueryResult { Data: null })
         {
             Activity.SetStatus(Status.Ok);
             Activity.SetStatus(ActivityStatusCode.Ok);
+        }
+        else
+        {
+            Activity.SetStatus(Status.Error);
+            Activity.SetStatus(ActivityStatusCode.Error);
         }
     }
 }

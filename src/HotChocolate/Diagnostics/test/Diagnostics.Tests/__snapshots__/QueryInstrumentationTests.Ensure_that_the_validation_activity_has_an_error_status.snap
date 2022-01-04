@@ -3,7 +3,7 @@
     {
       "OperationName": "ExecuteRequest",
       "DisplayName": "Execute Request",
-      "Status": "Unset",
+      "Status": "Error",
       "tags": [
         {
           "Key": "graphql.document.id",
@@ -27,7 +27,7 @@
         {
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "otel.status_code",
@@ -41,6 +41,10 @@
           "DisplayName": "Validate Document",
           "Status": "Error",
           "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "ERROR"
+            },
             {
               "Key": "graphql.document.id",
               "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="

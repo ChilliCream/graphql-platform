@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GRAPHQL HTTP GET SDL",
+      "DisplayName": "GraphQL HTTP GET SDL",
       "Status": "Unset",
       "tags": [
         {

@@ -10,10 +10,8 @@ using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.ObjectPool;
-using OpenTelemetry.Trace;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
@@ -22,7 +20,7 @@ public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
 
-    public ActivityEnricher(
+    protected ActivityEnricher(
         ObjectPool<StringBuilder> stringBuilderPoolPool,
         InstrumentationOptions options)
     {
@@ -44,22 +42,22 @@ public class ActivityEnricher
         switch (kind)
         {
             case HttpRequestKind.HttpPost:
-                activity.DisplayName = "GRAPHQL HTTP POST";
+                activity.DisplayName = "GraphQL HTTP POST";
                 break;
             case HttpRequestKind.HttpMultiPart:
-                activity.DisplayName = "GRAPHQL HTTP POST MultiPart";
+                activity.DisplayName = "GraphQL HTTP POST MultiPart";
                 break;
             case HttpRequestKind.HttpGet:
-                activity.DisplayName = "GRAPHQL HTTP GET";
+                activity.DisplayName = "GraphQL HTTP GET";
                 break;
             case HttpRequestKind.HttpGetSchema:
-                activity.DisplayName = "GRAPHQL HTTP GET SDL";
+                activity.DisplayName = "GraphQL HTTP GET SDL";
                 break;
         }
 
         activity.SetTag("graphql.http.kind", kind);
 
-        if (!(context.Items.TryGetValue(WellKnownContextData.SchemaName, out var value) &&
+        if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
         {
             schemaName = Schema.DefaultName.Value;
@@ -130,7 +128,7 @@ public class ActivityEnricher
     {
         activity.SetTag("graphql.http.request.type", "batch");
 
-        for (int i = 0; i < batch.Count; i++)
+        for (var i = 0; i < batch.Count; i++)
         {
             GraphQLRequest request = batch[i];
 
@@ -353,10 +351,6 @@ public class ActivityEnricher
         activity.DisplayName = "Validate Document";
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
-        activity.SetStatus(
-            context.IsValidDocument
-                ? ActivityStatusCode.Ok
-                : ActivityStatusCode.Error);
     }
 
     public virtual void EnrichValidationError(
@@ -385,10 +379,18 @@ public class ActivityEnricher
         activity.DisplayName = "Build Query Plan";
     }
 
+    public virtual void EnrichExecuteOperation(IRequestContext context, Activity activity)
+    {
+        activity.DisplayName =
+            context.Operation?.Name?.Value is { } op
+                ? $"Execute Operation {op}"
+                : "Execute Operation";
+    }
+
     public virtual void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
     {
-        var path = string.Empty;
-        var hierarchy = string.Empty;
+        string path;
+        string hierarchy;
         BuildPath();
 
         FieldCoordinate coordinate = context.Selection.Field.Coordinate;
@@ -399,7 +401,6 @@ public class ActivityEnricher
         activity.SetTag("graphql.selection.type", context.Selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
         activity.SetTag("graphql.selection.hierarchy", hierarchy);
-        activity.SetStatus(ActivityStatusCode.Ok);
 
         void BuildPath()
         {
@@ -452,7 +453,6 @@ public class ActivityEnricher
         Activity activity)
     {
         EnrichError(error, activity);
-        activity.SetStatus(ActivityStatusCode.Error);
     }
 
     protected virtual void EnrichError(IError error, Activity activity)

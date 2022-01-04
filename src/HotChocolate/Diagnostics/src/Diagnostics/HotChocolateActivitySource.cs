@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using HotChocolate.Diagnostics.Listeners;
 
 namespace HotChocolate.Diagnostics;
 

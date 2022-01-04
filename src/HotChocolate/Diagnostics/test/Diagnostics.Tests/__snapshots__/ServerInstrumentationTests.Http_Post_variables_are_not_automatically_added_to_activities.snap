@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GRAPHQL HTTP POST",
+      "DisplayName": "GraphQL HTTP POST",
       "Status": "Unset",
       "tags": [
         {
@@ -64,6 +64,10 @@
                 {
                   "Key": "graphql.document.id",
                   "Value": "EnTNrU/qlue0XYlwvGskqA=="
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
                 }
               ],
               "event": []
@@ -71,15 +75,25 @@
             {
               "OperationName": "CompileOperation",
               "DisplayName": "Compile Operation",
-              "Status": "Unset",
-              "tags": [],
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
               "event": []
             },
             {
               "OperationName": "CoerceVariables",
               "DisplayName": "Coerce Variable",
-              "Status": "Unset",
-              "tags": [],
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
               "event": []
             },
             {
@@ -91,9 +105,14 @@
             },
             {
               "OperationName": "ExecuteOperation",
-              "DisplayName": "ExecuteOperation",
-              "Status": "Unset",
-              "tags": [],
+              "DisplayName": "Execute Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
               "event": [],
               "activities": [
                 {
@@ -124,6 +143,10 @@
                     {
                       "Key": "graphql.selection.hierarchy",
                       "Value": "/hero"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
                     }
                   ],
                   "event": []

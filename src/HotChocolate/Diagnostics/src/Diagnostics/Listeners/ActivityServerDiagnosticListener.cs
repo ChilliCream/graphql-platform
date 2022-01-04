@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 
-namespace HotChocolate.Diagnostics;
+namespace HotChocolate.Diagnostics.Listeners;
 
 internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventListener
 {

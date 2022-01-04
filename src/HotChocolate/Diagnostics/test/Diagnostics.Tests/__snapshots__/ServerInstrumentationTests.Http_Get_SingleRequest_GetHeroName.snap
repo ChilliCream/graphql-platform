@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GRAPHQL HTTP GET",
+      "DisplayName": "GraphQL HTTP GET",
       "Status": "Unset",
       "tags": [
         {
@@ -60,6 +60,10 @@
                 {
                   "Key": "graphql.document.id",
                   "Value": "AdvcXfbJzXmP8zpjN8NpFA=="
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
                 }
               ],
               "event": []
@@ -67,8 +71,13 @@
             {
               "OperationName": "CompileOperation",
               "DisplayName": "Compile Operation",
-              "Status": "Unset",
-              "tags": [],
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
               "event": []
             },
             {
@@ -80,9 +89,14 @@
             },
             {
               "OperationName": "ExecuteOperation",
-              "DisplayName": "ExecuteOperation",
-              "Status": "Unset",
-              "tags": [],
+              "DisplayName": "Execute Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
               "event": [],
               "activities": [
                 {
@@ -113,6 +127,10 @@
                     {
                       "Key": "graphql.selection.hierarchy",
                       "Value": "/hero"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
                     }
                   ],
                   "event": []

@@ -36,7 +36,7 @@
         {
           "OperationName": "ParseDocument",
           "DisplayName": "Parse Document",
-          "Status": "Unset",
+          "Status": "Ok",
           "tags": [
             {
               "Key": "otel.status_code",
@@ -57,6 +57,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "avGGGK4gwmb2/8NSt4y2mw=="
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
             }
           ],
           "event": []
@@ -64,8 +68,13 @@
         {
           "OperationName": "CompileOperation",
           "DisplayName": "Compile Operation",
-          "Status": "Unset",
-          "tags": [],
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": []
         },
         {
@@ -77,9 +86,14 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "ExecuteOperation",
-          "Status": "Unset",
-          "tags": [],
+          "DisplayName": "Execute Operation SayHelloOperation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
           "event": [],
           "activities": [
             {
@@ -110,6 +124,10 @@
                 {
                   "Key": "graphql.selection.hierarchy",
                   "Value": "/sayHello"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
                 }
               ],
               "event": []

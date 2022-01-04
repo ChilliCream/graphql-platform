@@ -84,7 +84,6 @@ internal sealed class OperationComplexityMiddleware
 
                     if (complexity <= allowedComplexity)
                     {
-                        context.ContextData[OperationComplexityAllowed] = true;
                         await _next(context).ConfigureAwait(false);
                     }
                     else
