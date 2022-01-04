@@ -20,22 +20,22 @@ public class ActivityEnricher
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
         activity.DisplayName = context.Operation?.Name?.Value ?? "Execute Request";
-        activity.SetTag("graphql.request.document.id", context.DocumentId);
-        activity.SetTag("graphql.request.document.hash", context.DocumentHash);
-        activity.SetTag("graphql.request.document.valid", context.IsValidDocument);
-        activity.SetTag("graphql.request.operation.id", context.OperationId);
-        activity.SetTag("graphql.request.operation.kind", context.Operation?.Type);
-        activity.SetTag("graphql.request.operation.name", context.Operation?.Name?.Value);
+        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.hash", context.DocumentHash);
+        activity.SetTag("graphql.document.valid", context.IsValidDocument);
+        activity.SetTag("graphql.operation.id", context.OperationId);
+        activity.SetTag("graphql.operation.kind", context.Operation?.Type);
+        activity.SetTag("graphql.operation.name", context.Operation?.Name?.Value);
 
         if (_options.IncludeDocument && context.Document is not null)
         {
-            activity.SetTag("graphql.request.document.source", context.Document.Print());
+            activity.SetTag("graphql.document.body", context.Document.Print());
         }
 
         if (context.Result is IQueryResult result)
         {
             var errorCount = result.Errors?.Count ?? 0;
-            activity.SetTag("graphql.request.errors.count", errorCount);
+            activity.SetTag("graphql.errors.count", errorCount);
             activity.SetStatus(errorCount is 0 ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
         }
     }
@@ -57,8 +57,8 @@ public class ActivityEnricher
     public virtual void EnrichValidateDocument(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Validate Document";
-        activity.SetTag("graphql.request.document.id", context.DocumentId);
-        activity.SetTag("graphql.request.document.hash", context.DocumentHash);
+        activity.SetTag("graphql.document.id", context.DocumentId);
+        activity.SetTag("graphql.document.hash", context.DocumentHash);
         activity.SetStatus(
             context.IsValidDocument
                 ? ActivityStatusCode.Ok

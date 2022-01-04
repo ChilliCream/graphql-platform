@@ -6,15 +6,15 @@
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.request.document.id",
+          "Key": "graphql.document.id",
           "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
         },
         {
-          "Key": "graphql.request.document.hash",
+          "Key": "graphql.document.hash",
           "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
         },
         {
-          "Key": "graphql.request.document.source",
+          "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello_\n}"
         }
       ],
@@ -33,11 +33,11 @@
           "Status": "Error",
           "tags": [
             {
-              "Key": "graphql.request.document.id",
+              "Key": "graphql.document.id",
               "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
             },
             {
-              "Key": "graphql.request.document.hash",
+              "Key": "graphql.document.hash",
               "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
             }
           ],

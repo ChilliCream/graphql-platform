@@ -6,23 +6,23 @@
       "Status": "Ok",
       "tags": [
         {
-          "Key": "graphql.request.document.id",
+          "Key": "graphql.document.id",
           "Value": "avGGGK4gwmb2/8NSt4y2mw=="
         },
         {
-          "Key": "graphql.request.document.hash",
+          "Key": "graphql.document.hash",
           "Value": "avGGGK4gwmb2/8NSt4y2mw=="
         },
         {
-          "Key": "graphql.request.operation.id",
+          "Key": "graphql.operation.id",
           "Value": "avGGGK4gwmb2/8NSt4y2mw=="
         },
         {
-          "Key": "graphql.request.operation.name",
+          "Key": "graphql.operation.name",
           "Value": "SayHelloOperation"
         },
         {
-          "Key": "graphql.request.document.source",
+          "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello\n}"
         }
       ],
@@ -50,11 +50,11 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.request.document.id",
+              "Key": "graphql.document.id",
               "Value": "avGGGK4gwmb2/8NSt4y2mw=="
             },
             {
-              "Key": "graphql.request.document.hash",
+              "Key": "graphql.document.hash",
               "Value": "avGGGK4gwmb2/8NSt4y2mw=="
             }
           ],

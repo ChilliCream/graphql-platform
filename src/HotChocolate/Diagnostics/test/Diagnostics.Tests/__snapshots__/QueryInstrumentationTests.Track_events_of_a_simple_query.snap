@@ -6,15 +6,15 @@
       "Status": "Ok",
       "tags": [
         {
-          "Key": "graphql.request.document.id",
+          "Key": "graphql.document.id",
           "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         },
         {
-          "Key": "graphql.request.document.hash",
+          "Key": "graphql.document.hash",
           "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         },
         {
-          "Key": "graphql.request.operation.id",
+          "Key": "graphql.operation.id",
           "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         }
       ],
@@ -42,11 +42,11 @@
           "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.request.document.id",
+              "Key": "graphql.document.id",
               "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
             },
             {
-              "Key": "graphql.request.document.hash",
+              "Key": "graphql.document.hash",
               "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
             }
           ],
