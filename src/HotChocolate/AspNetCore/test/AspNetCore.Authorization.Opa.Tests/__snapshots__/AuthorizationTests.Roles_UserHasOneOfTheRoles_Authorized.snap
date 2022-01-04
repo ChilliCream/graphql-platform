@@ -1,0 +1,9 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "roles_ab": "foo"
+  },
+  "Errors": null,
+  "Extensions": null
+}
