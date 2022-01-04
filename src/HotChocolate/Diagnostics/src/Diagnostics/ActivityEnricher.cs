@@ -19,21 +19,13 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
-        if (context.Operation is not null)
-        {
-            activity.SetTag("graphql.request.document.id", context.DocumentId);
-            activity.SetTag("graphql.request.document.hash", context.DocumentHash);
-            activity.SetTag("graphql.request.document.valid", context.IsValidDocument);
-
-            activity.SetTag("graphql.request.operation.id", context.OperationId);
-            activity.SetTag("graphql.request.operation.kind", context.Operation.Type);
-
-            if (context.Operation.Name is not null)
-            {
-                activity.DisplayName = context.Operation.Name;
-                activity.SetTag("graphql.request.operation.name", context.Operation.Name?.Value);
-            }
-        }
+        activity.DisplayName = context.Operation?.Name?.Value ?? "Execute Request";
+        activity.SetTag("graphql.request.document.id", context.DocumentId);
+        activity.SetTag("graphql.request.document.hash", context.DocumentHash);
+        activity.SetTag("graphql.request.document.valid", context.IsValidDocument);
+        activity.SetTag("graphql.request.operation.id", context.OperationId);
+        activity.SetTag("graphql.request.operation.kind", context.Operation?.Type);
+        activity.SetTag("graphql.request.operation.name", context.Operation?.Name?.Value);
 
         if (_options.IncludeDocument && context.Document is not null)
         {

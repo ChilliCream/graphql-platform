@@ -1,0 +1,58 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "Execute Request",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.request.document.id",
+          "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+        },
+        {
+          "Key": "graphql.request.document.hash",
+          "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+        },
+        {
+          "Key": "graphql.request.document.source",
+          "Value": "query SayHelloOperation {\n  sayHello_\n}"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Error",
+          "tags": [
+            {
+              "Key": "graphql.request.document.id",
+              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+            },
+            {
+              "Key": "graphql.request.document.hash",
+              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
+            }
+          ],
+          "event": [
+            {
+              "Name": "Error",
+              "Tags": {
+                "graphql.error.message": "The field `sayHello_` does not exist on the type `SimpleQuery`.",
+                "graphql.error.location.0.column": 27,
+                "graphql.error.location.0.line": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

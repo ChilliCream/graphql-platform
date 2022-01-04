@@ -63,6 +63,26 @@ public class QueryInstrumentationTests
         }
     }
 
+    [Fact]
+    public async Task Ensure_that_the_validation_activity_has_an_error_status()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.IncludeDocument = true;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("query SayHelloOperation { sayHello_ }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
     public class SimpleQuery
     {
         public string SayHello() => "hello";
