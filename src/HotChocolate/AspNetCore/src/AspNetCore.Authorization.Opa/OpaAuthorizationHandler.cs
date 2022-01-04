@@ -18,30 +18,13 @@ public sealed class QueryRequest
     public Input Input { get; set; } = Input.Empty;
 }
 
-internal static class OpaHttpExtensions
+public sealed class OriginalRequest
 {
-    internal static HttpContent ToJsonContent(this QueryRequest request, JsonSerializerOptions options)
-    {
-#if NET6_0
-        return JsonContent.Create(request, options: options);
-#else
-        var body = JsonSerializer.Serialize(request, options);
-        return new StringContent(body,  System.Text.Encoding.UTF8, "application/json");
-#endif
-    }
-
-    internal static async Task<QueryResponse?> QueryResponseFromJsonAsync(this HttpContent content, JsonSerializerOptions options, CancellationToken token)
-    {
-#if NET6_0
-        return await content.ReadFromJsonAsync<QueryResponse>(options, token);
-#else
-        return await JsonSerializer.DeserializeAsync<QueryResponse>(await content.ReadAsStreamAsync(), options, token);
-#endif
-    }
 }
 
 public sealed class Input
 {
+    public OriginalRequest Request { get; set; } = new();
     public static readonly Input Empty = new();
 }
 
@@ -52,31 +35,10 @@ public interface IOpaService
 
 public sealed class OpaOptions
 {
+    public Uri BaseAddress { get; set; } = new Uri("http://127.0.0.1:8181");
+    public TimeSpan ConnectionTimeout { get; set; } = TimeSpan.FromMilliseconds(250);
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = new JsonSerializerOptions();
 }
-
-public sealed class OpaService : IOpaService
-{
-    private readonly HttpClient _httpClient;
-    private readonly OpaOptions _options;
-
-    public OpaService(HttpClient httpClient, OpaOptions options)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
-    public async Task<QueryResponse?> QueryAsync(string policyPath, QueryRequest request, CancellationToken token)
-    {
-        if (policyPath is null) throw new ArgumentNullException(nameof(policyPath));
-        if (request is null) throw new ArgumentNullException(nameof(request));
-
-        HttpResponseMessage? response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token);
-    }
-}
-
 
 public interface IOpaDecision
 {
@@ -113,8 +75,9 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
         IMiddlewareContext context,
         AuthorizeDirective directive)
     {
-        IOpaService? opaService = context.Services.GetRequiredService<IOpaService>();
+        OpaService? opaService = context.Services.GetRequiredService<OpaService>();
         IOpaDecision? opaDecision = context.Services.GetRequiredService<IOpaDecision>();
+        
         var request = new QueryRequest { Input = new Input()};
         QueryResponse? response = await opaService.QueryAsync(directive.Policy ?? string.Empty, request, context.RequestAborted);
         return opaDecision.Map(response);

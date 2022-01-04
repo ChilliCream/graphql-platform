@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.Json;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,7 +35,13 @@ public class AuthorizationAttributeTestData : IEnumerable<object[]>
     private Action<IRequestExecutorBuilder> CreateSchema() =>
         builder => builder
             .AddQueryType<Query>()
-            .AddAuthorization();
+            .AddAuthorization()
+            .AddOpaAuthorizationHandler((c, o) =>
+            {
+                o.BaseAddress = new Uri("http://127.0.0.1:8181");
+                o.ConnectionTimeout = TimeSpan.FromSeconds(10);
+                o.JsonSerializerOptions = new JsonSerializerOptions();
+            });
 
     public IEnumerator<object[]> GetEnumerator()
     {
