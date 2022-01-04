@@ -60,7 +60,7 @@ internal sealed class OperationComplexityMiddleware
 
                 using (diagnostic.AnalyzeOperationComplexity(context))
                 {
-                    string cacheId = context.CreateCacheId(context.OperationId);
+                    var cacheId = context.CreateCacheId(context.OperationId);
                     DocumentNode document = context.Document;
                     OperationDefinitionNode operationDefinition =
                         context.Operation?.Definition ??
@@ -84,6 +84,7 @@ internal sealed class OperationComplexityMiddleware
 
                     if (complexity <= allowedComplexity)
                     {
+                        context.ContextData[OperationComplexityAllowed] = true;
                         await _next(context).ConfigureAwait(false);
                     }
                     else

@@ -7,6 +7,10 @@
     <Description>Provides Hot Chocolate Diagnostics.</Description>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Diagnostics.Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />

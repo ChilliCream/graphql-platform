@@ -9,12 +9,18 @@ using static HotChocolate.Diagnostics.ContextKeys;
 
 namespace HotChocolate.Diagnostics;
 
-public sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventListener
+internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventListener
 {
+    private readonly InstrumentationOptions _options;
     private readonly ActivityEnricher _enricher;
 
-    public ActivityServerDiagnosticListener(ActivityEnricher activityEnricher)
-        => _enricher = activityEnricher;
+    public ActivityServerDiagnosticListener(
+        ActivityEnricher enricher,
+        InstrumentationOptions options)
+    {
+        _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
 
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {

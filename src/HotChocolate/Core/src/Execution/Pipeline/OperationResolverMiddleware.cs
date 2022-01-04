@@ -60,9 +60,9 @@ internal sealed class OperationResolverMiddleware
                     _inputParser,
                     _optimizers);
                 context.OperationId = context.Operation.Id;
-
-                await _next(context).ConfigureAwait(false);
             }
+
+            await _next(context).ConfigureAwait(false);
         }
         else
         {

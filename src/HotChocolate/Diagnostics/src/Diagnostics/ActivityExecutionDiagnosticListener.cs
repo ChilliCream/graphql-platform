@@ -11,12 +11,18 @@ using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics;
 
-public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
+internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEventListener
 {
+    private readonly InstrumentationOptions _options;
     private readonly ActivityEnricher _enricher;
 
-    public ActivityExecutionDiagnosticListener(ActivityEnricher activityEnricher)
-        => _enricher = activityEnricher;
+    public ActivityExecutionDiagnosticListener(
+        ActivityEnricher enricher,
+        InstrumentationOptions options)
+    {
+        _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
+    }
 
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
@@ -66,6 +72,11 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
 
     public override IDisposable ParseDocument(IRequestContext context)
     {
+        if (_options.SkipParseDocument)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -82,14 +93,18 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
     {
         if (context.ContextData.TryGetValue(ParserActivity, out var activity))
         {
-            var tags = new List<KeyValuePair<string, object?>>();
-            _enricher.EnrichSyntaxError(context, error, tags);
-            ((Activity)activity!).AddEvent(new(nameof(SyntaxError), tags: new(tags)));
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
+            _enricher.EnrichSyntaxError(context, (Activity)activity, error);
         }
     }
 
     public override IDisposable ValidateDocument(IRequestContext context)
     {
+        if (_options.SkipValidateDocument)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -104,19 +119,25 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
 
     public override void ValidationErrors(IRequestContext context, IReadOnlyList<IError> errors)
     {
-        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        if (context.ContextData.TryGetValue(ValidateActivity, out var value))
         {
+            Debug.Assert(value is not null, "The activity mustn't be null!");
+            var activity = (Activity)value;
+
             foreach (IError error in errors)
             {
-                var tags = new List<KeyValuePair<string, object?>>();
-                _enricher.EnrichValidationErrors(context, error, tags);
-                ((Activity)activity!).AddEvent(new("ValidationError", tags: new(tags)));
+                _enricher.EnrichValidationError(context, activity, error);
             }
         }
     }
 
     public override IDisposable AnalyzeOperationComplexity(IRequestContext context)
     {
+        if (_options.SkipAnalyzeOperationComplexity)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -126,12 +147,12 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
 
         context.ContextData[ComplexityActivity] = activity;
 
-        return activity;
+        return new AnalyzeOperationComplexityScope(_enricher, context, activity);
     }
 
     public override void OperationComplexityAnalyzerCompiled(IRequestContext context)
     {
-        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
         {
             ((Activity)activity!).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
         }
@@ -142,18 +163,25 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
         int complexity,
         int allowedComplexity)
     {
-        if (context.ContextData.TryGetValue(ValidateActivity, out var activity))
+        if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
         {
-            var tags = new List<KeyValuePair<string, object?>>();
-            tags.Add(new(nameof(complexity), complexity));
-            tags.Add(new(nameof(allowedComplexity), allowedComplexity));
-            tags.Add(new("allowed", allowedComplexity >= complexity));
-            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityResult)));
+            var tags = new List<KeyValuePair<string, object?>>
+            {
+                new(nameof(complexity), complexity),
+                new(nameof(allowedComplexity), allowedComplexity),
+                new("allowed", allowedComplexity >= complexity)
+            };
+            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityResult), tags: new(tags)));
         }
     }
 
     public override IDisposable CoerceVariables(IRequestContext context)
     {
+        if (_options.SkipCoerceVariables)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -161,11 +189,16 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
             return EmptyScope;
         }
 
-        return activity;
+        return new CoerceVariablesScope(_enricher, context, activity);
     }
 
     public override IDisposable CompileOperation(IRequestContext context)
     {
+        if (_options.SkipCompileOperation)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -173,11 +206,16 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
             return EmptyScope;
         }
 
-        return activity;
+        return new CompileOperationScope(_enricher, context, activity);
     }
 
     public override IDisposable BuildQueryPlan(IRequestContext context)
     {
+        if (_options.SkipBuildQueryPlan)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -185,11 +223,16 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
             return EmptyScope;
         }
 
-        return activity;
+        return new BuildQueryPlanScope(_enricher, context, activity);
     }
 
     public override IDisposable ExecuteOperation(IRequestContext context)
     {
+        if (_options.SkipExecuteOperation)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -249,5 +292,14 @@ public sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticEve
         context.SetLocalValue(ResolverActivity, activity);
 
         return activity!;
+    }
+
+    public override void ResolverError(IMiddlewareContext context, IError error)
+    {
+        if (context.ContextData.TryGetValue(ResolverActivity, out var activity))
+        {
+            Debug.Assert(activity is not null, "The activity mustn't be null!");
+            _enricher.EnrichResolverError(context, (Activity)activity, error);
+        }
     }
 }

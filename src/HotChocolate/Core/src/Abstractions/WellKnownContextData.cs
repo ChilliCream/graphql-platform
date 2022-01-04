@@ -56,6 +56,12 @@ public static class WellKnownContextData
     public const string OperationComplexity = "HotChocolate.Execution.OperationComplexity";
 
     /// <summary>
+    /// The key for setting the operation complexity.
+    /// </summary>
+    public const string OperationComplexityAllowed =
+        "HotChocolate.Execution.OperationComplexityAllowed";
+
+    /// <summary>
     /// The key for setting the maximum operation complexity.
     /// </summary>
     public const string MaximumAllowedComplexity = "HotChocolate.Execution.AllowedComplexity";
