@@ -234,23 +234,6 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return new CompileOperationScope(_enricher, context, activity);
     }
 
-    public override IDisposable BuildQueryPlan(IRequestContext context)
-    {
-        if (_options.SkipBuildQueryPlan)
-        {
-            return EmptyScope;
-        }
-
-        Activity? activity = Source.StartActivity();
-
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        return new BuildQueryPlanScope(_enricher, context, activity);
-    }
-
     public override IDisposable ExecuteOperation(IRequestContext context)
     {
         if (_options.SkipExecuteOperation)
@@ -280,18 +263,9 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         return activity;
     }
 
-    public override IDisposable ExecuteSubscription(ISubscription subscription)
-    {
-        Activity? activity = Source.StartActivity();
-
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        return activity;
-    }
-
+    // Note: we removed public override IDisposable ExecuteSubscription(ISubscription subscription)
+    // for now.
+    
     public override IDisposable OnSubscriptionEvent(SubscriptionEventContext subscription)
     {
         Activity? activity = Source.StartActivity();

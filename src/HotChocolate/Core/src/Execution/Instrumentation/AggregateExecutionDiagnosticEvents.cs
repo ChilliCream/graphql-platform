@@ -132,18 +132,6 @@ internal sealed class AggregateExecutionDiagnosticEvents : IExecutionDiagnosticE
         return new AggregateActivityScope(scopes);
     }
 
-    public IDisposable BuildQueryPlan(IRequestContext context)
-    {
-        var scopes = new IDisposable[_listeners.Length];
-
-        for (var i = 0; i < _listeners.Length; i++)
-        {
-            scopes[i] = _listeners[i].BuildQueryPlan(context);
-        }
-
-        return new AggregateActivityScope(scopes);
-    }
-
     public IDisposable ExecuteOperation(IRequestContext context)
     {
         var scopes = new IDisposable[_listeners.Length];

@@ -228,11 +228,8 @@ internal sealed class OperationExecutionMiddleware
     {
         if (!_queryPlanCache.TryGetQueryPlan(context.OperationId!, out QueryPlan? queryPlan))
         {
-            using (context.DiagnosticEvents.BuildQueryPlan(context))
-            {
-                queryPlan = QueryPlanBuilder.Build(context.Operation!);
-                _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
-            }
+            queryPlan = QueryPlanBuilder.Build(context.Operation!);
+            _queryPlanCache.TryAddQueryPlan(context.OperationId!, queryPlan);
         }
 
         return queryPlan;

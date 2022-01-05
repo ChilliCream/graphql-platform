@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Mime;
 using System.Threading;
-using HotChocolate.Execution.Processing.Plan;
 
 namespace HotChocolate.Execution.Processing;
 

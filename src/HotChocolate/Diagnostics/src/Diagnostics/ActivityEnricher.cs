@@ -16,10 +16,18 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
 
+/// <summary>
+/// The activity enricher is used to add information to the activity spans. 
+/// </summary>
 public class ActivityEnricher
 {
     private readonly InstrumentationOptions _options;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ActivityEnricher"/>.
+    /// </summary>
+    /// <param name="stringBuilderPoolPool"></param>
+    /// <param name="options"></param>
     protected ActivityEnricher(
         ObjectPool<StringBuilder> stringBuilderPoolPool,
         InstrumentationOptions options)

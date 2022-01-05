@@ -78,10 +78,6 @@ public class ExecutionDiagnosticEventListener : IExecutionDiagnosticEventListene
         => EmptyScope;
 
     /// <inheritdoc />
-    public virtual IDisposable BuildQueryPlan(IRequestContext context)
-        => EmptyScope;
-
-    /// <inheritdoc />
     public virtual IDisposable ExecuteOperation(IRequestContext context)
         => EmptyScope;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation;
@@ -148,19 +147,7 @@ public interface IExecutionDiagnosticEvents
     IDisposable CompileOperation(IRequestContext context);
 
     /// <summary>
-    /// Called when starting to build a query plan based on the compiled operation.
-    /// </summary>
-    /// <param name="context">
-    /// The request context encapsulates all GraphQL-specific information about an
-    /// individual GraphQL request.
-    /// </param>
-    /// <returns>
-    /// A scope that will be disposed when the execution has finished.
-    /// </returns>
-    IDisposable BuildQueryPlan(IRequestContext context);
-
-    /// <summary>
-    /// Called when starting to execute the GraphQL operation.
+    /// Called when starting to execute the GraphQL operation and its resolvers.
     /// </summary>
     /// <param name="context">
     /// The request context encapsulates all GraphQL-specific information about an

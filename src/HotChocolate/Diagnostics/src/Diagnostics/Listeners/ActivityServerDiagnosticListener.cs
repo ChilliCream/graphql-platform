@@ -51,6 +51,13 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
+        if (_options.IncludeRequestDetails)
+        {
+            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            {
+                _enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
+            }
+        }
     }
 
     public override void StartOperationBatchRequest(
@@ -58,6 +65,17 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
+        if (_options.IncludeRequestDetails)
+        {
+            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
+            {
+                _enricher.EnrichOperationBatchRequest(
+                    context,
+                    request,
+                    operations,
+                    (Activity)activity!);
+            }
+        }
     }
 
     public override void HttpRequestError(HttpContext context, IError error)
@@ -128,22 +146,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         return activity;
     }
 
-    public override IDisposable WebSocketSession(HttpContext context)
-    {
-        Activity? activity = HotChocolateActivitySource.Source.StartActivity();
-
-        if (activity is null)
-        {
-            return EmptyScope;
-        }
-
-        context.Items[WebSocketSessionActivity] = activity;
-
-        return activity;
-    }
-
-    public override void WebSocketSessionError(HttpContext context, Exception exception)
-    {
-
-    }
+    // removed for 12.5 public override IDisposable WebSocketSession(HttpContext context)
+    // removed for 12.5public override void WebSocketSessionError(
+    // HttpContext context, Exception exception)
 }

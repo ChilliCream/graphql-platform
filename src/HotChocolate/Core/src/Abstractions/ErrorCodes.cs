@@ -12,6 +12,11 @@ public static class ErrorCodes
         public const string PolicyNotFound = "AUTH_POLICY_NOT_FOUND";
     }
 
+    public static class Types
+    {
+        public const string ReservedTypeName = "HC0061";
+    }
+
     public static class Execution
     {
         public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
