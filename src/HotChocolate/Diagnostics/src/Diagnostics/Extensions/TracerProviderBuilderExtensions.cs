@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Diagnostics;
 
 namespace OpenTelemetry.Trace;
@@ -19,6 +20,11 @@ public static class TracerProviderBuilderExtensions
     public static TracerProviderBuilder AddHotChocolateInstrumentation(
         this TracerProviderBuilder builder)
     {
+        if (builder is null)
+        {
+            throw new ArgumentNullException(nameof(builder));
+        }
+
         builder.AddSource(HotChocolateActivitySource.GetName());
         return builder;
     }
