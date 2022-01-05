@@ -25,6 +25,13 @@
       "event": [],
       "activities": [
         {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Unset",
+          "tags": [],
+          "event": []
+        },
+        {
           "OperationName": "ExecuteRequest",
           "DisplayName": "Execute Request",
           "Status": "Unset",
@@ -47,11 +54,235 @@
               "Name": "AddedDocumentToCache",
               "Tags": {}
             }
+          ],
+          "activities": [
+            {
+              "OperationName": "ValidateDocument",
+              "DisplayName": "Validate Document",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.id",
+                  "Value": "wFE7S28M90MPZN5Ko9zXxg=="
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "CompileOperation",
+              "DisplayName": "Compile Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperation",
+              "DisplayName": "Execute Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/hero",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "Character"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/hero"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/hero/friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Droid"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Droid.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "FriendsConnection"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/hero/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/hero/friends/nodes[2]/friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Human"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "FriendsConnection"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/hero/friends/nodes[2]/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/hero/friends/nodes[1]/friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Human"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "FriendsConnection"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/hero/friends/nodes[1]/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/hero/friends/nodes[0]/friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Human"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "FriendsConnection"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/hero/friends/nodes[0]/friends"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/hero/friends/nodes/friends"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
           ]
         },
         {
           "OperationName": "FormatHttpResponse",
-          "DisplayName": "FormatHttpResponse",
+          "DisplayName": "Format HTTP Response",
           "Status": "Unset",
           "tags": [],
           "event": []

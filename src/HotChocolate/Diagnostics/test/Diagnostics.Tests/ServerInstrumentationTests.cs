@@ -29,16 +29,15 @@ public class ServerInstrumentationTests : ServerTestBase
             using TestServer server = CreateInstrumentedServer();
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
-                    {
-                        hero {
-                            name
-                        }
-                    }"
-                });
+                    hero {
+                        name
+                    }
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -55,16 +54,15 @@ public class ServerInstrumentationTests : ServerTestBase
                 o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
-                    {
-                        hero {
-                            name
-                        }
-                    }"
-                });
+                    hero {
+                        name
+                    }
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -81,16 +79,15 @@ public class ServerInstrumentationTests : ServerTestBase
                 o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientQueryResult result =
-                await server.GetAsync(new ClientQueryRequest
+            await server.GetAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
-                    {
-                        hero {
-                            name
-                        }
-                    }"
-                });
+                    hero {
+                        name
+                    }
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -107,17 +104,16 @@ public class ServerInstrumentationTests : ServerTestBase
                 o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($episode: Episode!) {
-                        hero(episode: $episode) {
-                            name
-                        }
-                    }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
-                });
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query ($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -138,17 +134,16 @@ public class ServerInstrumentationTests : ServerTestBase
                 });
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($episode: Episode!) {
-                        hero(episode: $episode) {
-                            name
-                        }
-                    }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
-                });
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query ($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -169,17 +164,16 @@ public class ServerInstrumentationTests : ServerTestBase
                 });
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($episode: Episode!) {
-                        hero(episode: $episode) {
-                            name
-                        }
-                    }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
-                });
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query ($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } }
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -196,18 +190,17 @@ public class ServerInstrumentationTests : ServerTestBase
                 o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
-                {
-                    Query = @"
-                    query ($episode: Episode!) {
-                        hero(episode: $episode) {
-                            name
-                        }
-                    }",
-                    Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } },
-                    Extensions = new Dictionary<string, object> { { "test", "abc" } }
-                });
+            await server.PostAsync(new ClientQueryRequest
+            {
+                Query = @"
+                query ($episode: Episode!) {
+                    hero(episode: $episode) {
+                        name
+                    }
+                }",
+                Variables = new Dictionary<string, object> { { "episode", "NEW_HOPE" } },
+                Extensions = new Dictionary<string, object> { { "test", "abc" } }
+            });
 
             // assert
             activities.MatchSnapshot();
