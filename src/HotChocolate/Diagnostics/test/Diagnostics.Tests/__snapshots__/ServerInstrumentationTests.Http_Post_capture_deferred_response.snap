@@ -106,14 +106,6 @@
                       "Value": "hero"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Query"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Query.hero"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "Character"
                     },
@@ -122,8 +114,16 @@
                       "Value": "/hero"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Query"
                     },
                     {
                       "Key": "otel.status_code",
@@ -153,14 +153,6 @@
               "Value": "id"
             },
             {
-              "Key": "graphql.selection.parentType",
-              "Value": "Droid"
-            },
-            {
-              "Key": "graphql.selection.coordinate",
-              "Value": "Droid.id"
-            },
-            {
               "Key": "graphql.selection.type",
               "Value": "ID!"
             },
@@ -169,8 +161,16 @@
               "Value": "/hero/id"
             },
             {
-              "Key": "graphql.selection.hierarchy",
-              "Value": "/hero/id"
+              "Key": "graphql.selection.field.name",
+              "Value": "id"
+            },
+            {
+              "Key": "graphql.selection.field.coordinate",
+              "Value": "Droid.id"
+            },
+            {
+              "Key": "graphql.selection.field.declaringType",
+              "Value": "Droid"
             },
             {
               "Key": "otel.status_code",

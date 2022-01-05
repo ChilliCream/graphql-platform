@@ -120,14 +120,6 @@
                       "Value": "foo"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Query"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Query.foo"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "Foo"
                     },
@@ -136,8 +128,16 @@
                       "Value": "/foo"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/foo"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "foo"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Query.foo"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Query"
                     },
                     {
                       "Key": "otel.status_code",

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
                     }")
                 .Use(_ => context =>
                 {
-                    if (context.Field.Type.NamedType() is ObjectType type)
+                    if (context.Selection.Type.NamedType() is ObjectType type)
                     {
                         foreach (IFieldSelection selection in context.GetSelections(type))
                         {

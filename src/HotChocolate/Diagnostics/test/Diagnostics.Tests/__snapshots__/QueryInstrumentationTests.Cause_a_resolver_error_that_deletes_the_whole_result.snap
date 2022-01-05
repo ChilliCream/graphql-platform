@@ -107,14 +107,6 @@
                   "Value": "causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.parentType",
-                  "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "graphql.selection.coordinate",
-                  "Value": "SimpleQuery.causeFatalError"
-                },
-                {
                   "Key": "graphql.selection.type",
                   "Value": "String!"
                 },
@@ -123,8 +115,16 @@
                   "Value": "/causeFatalError"
                 },
                 {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/causeFatalError"
+                  "Key": "graphql.selection.field.name",
+                  "Value": "causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.causeFatalError"
+                },
+                {
+                  "Key": "graphql.selection.field.declaringType",
+                  "Value": "SimpleQuery"
                 },
                 {
                   "Key": "otel.status_code",
