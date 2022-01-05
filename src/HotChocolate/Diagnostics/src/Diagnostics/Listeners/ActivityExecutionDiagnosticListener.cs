@@ -5,6 +5,7 @@ using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Http;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -26,7 +27,25 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
-        Activity? activity = Source.StartActivity();
+        Activity? activity = null;
+
+        if (_options.SkipExecuteRequest)
+        {
+            if (!_options.SkipExecuteHttpRequest &&
+                context.ContextData.TryGetValue(nameof(HttpContext), out var value) &&
+                value is HttpContext httpContext &&
+                httpContext.Items.TryGetValue(HttpRequestActivity, out value) &&
+                value is not null)
+            {
+                activity = (Activity)value;
+            }
+            else
+            {
+                return EmptyScope;
+            }
+        }
+
+        activity ??= Source.StartActivity();
 
         if (activity is null)
         {
@@ -186,7 +205,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
             activity.SetTag("graphql.document.complexity", complexity);
             activity.SetTag("graphql.executor.allowedComplexity", allowedComplexity);
 
-            if(complexity <= allowedComplexity)
+            if (complexity <= allowedComplexity)
             {
                 activity.SetStatus(Status.Ok);
                 activity.SetStatus(ActivityStatusCode.Ok);

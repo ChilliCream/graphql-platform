@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "GraphQL HTTP POST",
+      "DisplayName": "Execute Request",
       "Status": "Unset",
       "tags": [
         {
@@ -20,34 +20,69 @@
         {
           "Key": "graphql.http.request.query.hash",
           "Value": "pXCmv/dItZFurfFTJh2cbQ=="
+        },
+        {
+          "Key": "graphql.document.id",
+          "Value": "pXCmv/dItZFurfFTJh2cbQ=="
+        },
+        {
+          "Key": "graphql.operation.id",
+          "Value": "pXCmv/dItZFurfFTJh2cbQ=="
         }
       ],
-      "event": [],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": {}
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": {}
+        }
+      ],
       "activities": [
         {
-          "OperationName": "ExecuteRequest",
-          "DisplayName": "Execute Request",
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
           "Status": "Unset",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "ResolveFieldValue",
+          "DisplayName": "/hero",
+          "Status": "Ok",
           "tags": [
             {
-              "Key": "graphql.document.id",
-              "Value": "pXCmv/dItZFurfFTJh2cbQ=="
+              "Key": "graphql.selection.name",
+              "Value": "hero"
             },
             {
-              "Key": "graphql.operation.id",
-              "Value": "pXCmv/dItZFurfFTJh2cbQ=="
+              "Key": "graphql.selection.parentType",
+              "Value": "Query"
+            },
+            {
+              "Key": "graphql.selection.coordinate",
+              "Value": "Query.hero"
+            },
+            {
+              "Key": "graphql.selection.type",
+              "Value": "Character"
+            },
+            {
+              "Key": "graphql.selection.path",
+              "Value": "/hero"
+            },
+            {
+              "Key": "graphql.selection.hierarchy",
+              "Value": "/hero"
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
             }
           ],
-          "event": [
-            {
-              "Name": "AddedOperationToCache",
-              "Tags": {}
-            },
-            {
-              "Name": "AddedDocumentToCache",
-              "Tags": {}
-            }
-          ]
+          "event": []
         },
         {
           "OperationName": "FormatHttpResponse",

@@ -6,20 +6,32 @@ namespace HotChocolate.Diagnostics;
 public enum ActivityScopes
 {
     None = 0,
-    ParseRequest = 1,
-    ParseDocument = 2,
-    ValidateDocument = 4,
-    AnalyzeComplexity = 8,
-    CoerceVariables = 16,
-    CompileOperation = 32,
-    ExecuteOperation = 64,
-    ResolveFieldValue = 128,
-    All = ParseRequest |
-          ParseDocument |
-          ValidateDocument |
-          AnalyzeComplexity |
-          CoerceVariables |
-          CompileOperation |
-          ExecuteOperation |
-          ResolveFieldValue
+    ExecuteHttpRequest= 1,
+    ParseHttpRequest = 2,
+    FormatHttpResponse = 4,
+    ExecuteRequest = 8,
+    ParseDocument = 16,
+    ValidateDocument = 32,
+    AnalyzeComplexity = 64,
+    CoerceVariables = 128,
+    CompileOperation = 256,
+    ExecuteOperation = 512,
+    ResolveFieldValue = 1024,
+    Default = 
+        ExecuteHttpRequest | 
+        ParseHttpRequest |
+        ResolveFieldValue |
+        FormatHttpResponse,
+    All = 
+        ExecuteHttpRequest |
+        ParseHttpRequest |
+        FormatHttpResponse |
+        ExecuteRequest |
+        ParseDocument |
+        ValidateDocument |
+        AnalyzeComplexity |
+        CoerceVariables |
+        CompileOperation |
+        ExecuteOperation |
+        ResolveFieldValue
 }

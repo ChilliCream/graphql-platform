@@ -25,6 +25,11 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override IDisposable ExecuteHttpRequest(HttpContext context, HttpRequestKind kind)
     {
+        if (_options.SkipExecuteHttpRequest)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
@@ -94,7 +99,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override IDisposable ParseHttpRequest(HttpContext context)
     {
-        if (_options.SkipParseRequest)
+        if (_options.SkipParseHttpRequest)
         {
             return EmptyScope;
         }
@@ -129,6 +134,11 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override IDisposable FormatHttpResponse(HttpContext context, IQueryResult result)
     {
+        if (_options.SkipFormatHttpResponse)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = HotChocolateActivitySource.Source.StartActivity();
 
         if (activity is null)
