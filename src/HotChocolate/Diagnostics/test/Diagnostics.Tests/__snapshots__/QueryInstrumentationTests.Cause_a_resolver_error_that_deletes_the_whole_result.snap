@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "SayHelloOperation",
+      "DisplayName": "query SayHelloOperation { causeFatalError }",
       "Status": "Error",
       "tags": [
         {

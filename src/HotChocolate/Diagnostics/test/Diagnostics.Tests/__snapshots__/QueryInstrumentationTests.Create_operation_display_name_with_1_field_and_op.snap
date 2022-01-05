@@ -2,20 +2,24 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query { sayHello }",
+      "DisplayName": "query GetA { a }",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "GetA"
         }
       ],
       "event": [
@@ -48,11 +52,11 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+              "Value": "zuDik57OctZQywMx9L5GaQ=="
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+              "Value": "zuDik57OctZQywMx9L5GaQ=="
             },
             {
               "Key": "otel.status_code",
@@ -75,7 +79,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation",
+          "DisplayName": "Execute Operation GetA",
           "Status": "Ok",
           "tags": [
             {
@@ -87,12 +91,12 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/sayHello",
+              "DisplayName": "/a",
               "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.selection.name",
-                  "Value": "sayHello"
+                  "Value": "a"
                 },
                 {
                   "Key": "graphql.selection.parentType",
@@ -108,11 +112,11 @@
                 },
                 {
                   "Key": "graphql.selection.path",
-                  "Value": "/sayHello"
+                  "Value": "/a"
                 },
                 {
                   "Key": "graphql.selection.hierarchy",
-                  "Value": "/sayHello"
+                  "Value": "/a"
                 },
                 {
                   "Key": "otel.status_code",

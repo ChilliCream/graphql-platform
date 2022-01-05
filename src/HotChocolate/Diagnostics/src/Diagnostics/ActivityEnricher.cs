@@ -17,8 +17,8 @@ using static HotChocolate.WellKnownContextData;
 namespace HotChocolate.Diagnostics;
 
 /// <summary>
-/// The activity enricher is used to add information to the activity spans. 
-/// You can inherit from this class and override the enricher methods to provide more or 
+/// The activity enricher is used to add information to the activity spans.
+/// You can inherit from this class and override the enricher methods to provide more or
 /// less information.
 /// </summary>
 public class ActivityEnricher
@@ -330,7 +330,14 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
-        activity.DisplayName = context.Operation?.Name?.Value ?? "Execute Request";
+        var operationDisplayName = CreateOperationDisplayName(context);
+
+        if (_options.RenameRootActivity && operationDisplayName is not null)
+        {
+            UpdateRootActivityName(activity, operationDisplayName);
+        }
+
+        activity.DisplayName = operationDisplayName ?? "Execute Request";
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
         activity.SetTag("graphql.document.valid", context.IsValidDocument);
@@ -349,6 +356,82 @@ public class ActivityEnricher
             activity.SetTag("graphql.errors.count", errorCount);
         }
     }
+
+    protected virtual string? CreateOperationDisplayName(IRequestContext context)
+    {
+        if (context.Operation is { } operation)
+        {
+            StringBuilder displayName = StringBuilderPool.Get();
+
+            try
+            {
+                var rootSelectionSet = operation.GetRootSelectionSet();
+
+                displayName.Append('{');
+                displayName.Append(' ');
+
+                foreach (var selection in rootSelectionSet.Selections.Take(3))
+                {
+                    if (displayName.Length > 2)
+                    {
+                        displayName.Append(',');
+                        displayName.Append(' ');
+                    }
+
+                    displayName.Append(selection.ResponseName);
+                }
+
+                if (rootSelectionSet.Selections.Count > 3)
+                {
+                    displayName.Append(' ');
+                    displayName.Append('.');
+                    displayName.Append('.');
+                    displayName.Append('.');
+                }
+
+                displayName.Append(' ');
+                displayName.Append('}');
+
+                if (operation.Name is { } name)
+                {
+                    displayName.Insert(0, ' ');
+                    displayName.Insert(0, name.Value);
+                }
+
+                displayName.Insert(0, ' ');
+                displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
+
+                return displayName.ToString();
+            }
+            finally
+            {
+                StringBuilderPool.Return(displayName);
+            }
+        }
+
+        return null;
+    }
+
+    private void UpdateRootActivityName(Activity activity, string operationDisplayName)
+    {
+        Activity current = activity;
+
+        while (current.Parent is not null)
+        {
+            current = current.Parent;
+        }
+
+        if (current != activity)
+        {
+            current.DisplayName = CreateRootActivityName(activity, current, operationDisplayName);
+        }
+    }
+
+    protected virtual string CreateRootActivityName(
+        Activity activity,
+        Activity root,
+        string operationDisplayName)
+        => $"{root.DisplayName}: {operationDisplayName}";
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {

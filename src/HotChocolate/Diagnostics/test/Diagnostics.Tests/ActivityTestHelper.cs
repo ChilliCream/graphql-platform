@@ -40,7 +40,8 @@ public static class ActivityTestHelper
             }
         };
         listener.ActivityStopped = SerializeActivity;
-        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData;
+        listener.Sample = (ref ActivityCreationOptions<ActivityContext> _) => 
+            ActivitySamplingResult.AllData;
         ActivitySource.AddActivityListener(listener);
 
         rootActivity = HotChocolateActivitySource.Source.StartActivity()!;

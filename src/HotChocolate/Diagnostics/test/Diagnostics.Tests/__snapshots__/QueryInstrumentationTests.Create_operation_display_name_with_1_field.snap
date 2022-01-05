@@ -2,20 +2,20 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query { sayHello }",
+      "DisplayName": "query { a }",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
         }
       ],
       "event": [
@@ -48,11 +48,11 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+              "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+              "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
             },
             {
               "Key": "otel.status_code",
@@ -87,12 +87,12 @@
           "activities": [
             {
               "OperationName": "ResolveFieldValue",
-              "DisplayName": "/sayHello",
+              "DisplayName": "/a",
               "Status": "Ok",
               "tags": [
                 {
                   "Key": "graphql.selection.name",
-                  "Value": "sayHello"
+                  "Value": "a"
                 },
                 {
                   "Key": "graphql.selection.parentType",
@@ -108,11 +108,11 @@
                 },
                 {
                   "Key": "graphql.selection.path",
-                  "Value": "/sayHello"
+                  "Value": "/a"
                 },
                 {
                   "Key": "graphql.selection.hierarchy",
-                  "Value": "/sayHello"
+                  "Value": "/a"
                 },
                 {
                   "Key": "otel.status_code",

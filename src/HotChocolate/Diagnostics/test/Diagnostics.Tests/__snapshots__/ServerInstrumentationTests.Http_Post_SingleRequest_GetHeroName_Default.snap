@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteHttpRequest",
-      "DisplayName": "Execute Request",
+      "DisplayName": "query { hero }",
       "Status": "Unset",
       "tags": [
         {
