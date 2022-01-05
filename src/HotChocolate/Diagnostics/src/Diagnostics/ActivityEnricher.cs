@@ -330,7 +330,14 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
-        activity.DisplayName = context.Operation?.Name?.Value ?? "Execute Request";
+        string? operationDisplayName = CreateOperationDisplayName(context);
+
+        if (_options.RenameRootActivity && operationDisplayName is not null)
+        {
+            UpdateRootActivityName(activity, operationDisplayName);
+        }
+
+        activity.DisplayName = operationDisplayName ?? "Execute Request";
         activity.SetTag("graphql.document.id", context.DocumentId);
         activity.SetTag("graphql.document.hash", context.DocumentHash);
         activity.SetTag("graphql.document.valid", context.IsValidDocument);
@@ -347,6 +354,73 @@ public class ActivityEnricher
         {
             var errorCount = result.Errors?.Count ?? 0;
             activity.SetTag("graphql.errors.count", errorCount);
+        }
+    }
+
+    protected virtual string? CreateOperationDisplayName(IRequestContext context)
+    {
+        if (context.Operation is { } operation)
+        {
+            StringBuilder displayName = StringBuilderPool.Get();
+
+            try
+            {
+                var rootSelectionSet = operation.GetRootSelectionSet();
+
+                displayName.Append('{');
+                displayName.Append(' ');
+
+                foreach (var selection in rootSelectionSet.Selections.Take(3))
+                {
+                    if (displayName.Length > 9)
+                    {
+                        displayName.Append(',');
+                        displayName.Append(' ');
+                    }
+
+                    displayName.Append(selection.ResponseName);
+                }
+
+                if (rootSelectionSet.Selections.Count > 3)
+                {
+                    displayName.Append(' ');
+                    displayName.Append('.');
+                    displayName.Append('.');
+                    displayName.Append('.');
+                }
+
+                displayName.Append(' ');
+                displayName.Append('}');
+
+                if (operation.Name is { } name)
+                {
+                    displayName.Insert(0, ' ');
+                    displayName.Insert(0, name.Value);
+                }
+
+                return displayName.ToString();
+            }
+            finally
+            {
+                StringBuilderPool.Return(displayName);
+            }
+        }
+
+        return null;
+    }
+
+    private void UpdateRootActivityName(Activity activity, string operationDisplayName)
+    {
+        Activity current = activity;
+
+        while (current.Parent is not null)
+        {
+            current = current.Parent;
+        }
+
+        if (current != activity)
+        {
+            current.DisplayName = $"{activity.DisplayName} {operationDisplayName}";
         }
     }
 

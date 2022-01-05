@@ -22,6 +22,11 @@ public sealed class InstrumentationOptions
     /// </summary>
     public bool IncludeDocument { get; set; }
 
+    /// <summary>
+    /// Defines if the operation display name shall be included in the root activity.
+    /// </summary>
+    public bool RenameRootActivity { get; set; }
+
     internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 
     internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;

@@ -37,7 +37,7 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "Execute Request",
+          "DisplayName": "{ hero }",
           "Status": "Unset",
           "tags": [
             {

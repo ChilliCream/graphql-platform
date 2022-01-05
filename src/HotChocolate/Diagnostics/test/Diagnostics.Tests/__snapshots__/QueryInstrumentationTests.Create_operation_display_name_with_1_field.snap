@@ -1,0 +1,40 @@
+﻿{
+  "activities": [
+    {
+      "OperationName": "ResolveFieldValue",
+      "DisplayName": "/a",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.selection.name",
+          "Value": "a"
+        },
+        {
+          "Key": "graphql.selection.parentType",
+          "Value": "SimpleQuery"
+        },
+        {
+          "Key": "graphql.selection.coordinate",
+          "Value": "SimpleQuery.sayHello"
+        },
+        {
+          "Key": "graphql.selection.type",
+          "Value": "String!"
+        },
+        {
+          "Key": "graphql.selection.path",
+          "Value": "/a"
+        },
+        {
+          "Key": "graphql.selection.hierarchy",
+          "Value": "/a"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "OK"
+        }
+      ],
+      "event": []
+    }
+  ]
+}
