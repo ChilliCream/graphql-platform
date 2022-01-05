@@ -4,7 +4,6 @@ using System.Diagnostics;
 using HotChocolate.Diagnostics.Scopes;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.ContextKeys;
@@ -44,7 +43,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity!).AddEvent(new(nameof(RetrievedDocumentFromCache)));
+            ((Activity)activity).AddEvent(new(nameof(RetrievedDocumentFromCache)));
         }
     }
 
@@ -53,7 +52,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity!).AddEvent(new(nameof(RetrievedDocumentFromStorage)));
+            ((Activity)activity).AddEvent(new(nameof(RetrievedDocumentFromStorage)));
         }
     }
 
@@ -62,7 +61,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity!).AddEvent(new(nameof(AddedDocumentToCache)));
+            ((Activity)activity).AddEvent(new(nameof(AddedDocumentToCache)));
         }
     }
 
@@ -71,7 +70,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(RequestActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity!).AddEvent(new(nameof(AddedOperationToCache)));
+            ((Activity)activity).AddEvent(new(nameof(AddedOperationToCache)));
         }
     }
 
@@ -100,7 +99,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
-            var activity = (Activity)value!;
+            var activity = (Activity)value;
             _enricher.EnrichSyntaxError(context, activity, error);
             activity.SetStatus(Status.Error);
             activity.SetStatus(ActivityStatusCode.Error);
@@ -168,7 +167,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         if (context.ContextData.TryGetValue(ComplexityActivity, out var activity))
         {
             Debug.Assert(activity is not null, "The activity mustn't be null!");
-            ((Activity)activity!).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
+            ((Activity)activity).AddEvent(new(nameof(OperationComplexityAnalyzerCompiled)));
         }
     }
 
@@ -181,7 +180,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
-            var activity = (Activity)value!;
+            var activity = (Activity)value;
 
             activity.SetTag("graphql.document.id", context.DocumentId);
             activity.SetTag("graphql.document.complexity", complexity);
@@ -265,7 +264,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     // Note: we removed public override IDisposable ExecuteSubscription(ISubscription subscription)
     // for now.
-    
+
     public override IDisposable OnSubscriptionEvent(SubscriptionEventContext subscription)
     {
         Activity? activity = Source.StartActivity();
@@ -280,6 +279,11 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override IDisposable ResolveFieldValue(IMiddlewareContext context)
     {
+        if (_options.SkipResolveFieldValue)
+        {
+            return EmptyScope;
+        }
+
         Activity? activity = Source.StartActivity();
 
         if (activity is null)
@@ -298,7 +302,8 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override void ResolverError(IMiddlewareContext context, IError error)
     {
-        if (context.LocalContextData.TryGetValue(ResolverActivity, out var value))
+        if (!_options.SkipResolveFieldValue &&
+            context.LocalContextData.TryGetValue(ResolverActivity, out var value))
         {
             Debug.Assert(value is not null, "The activity mustn't be null!");
 
