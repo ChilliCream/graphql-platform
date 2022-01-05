@@ -4,14 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.ObjectPool;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Diagnostics;
