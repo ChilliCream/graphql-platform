@@ -24,19 +24,19 @@ public sealed class InstrumentationOptions
 
     internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 
-    internal bool SkipParseRequest => (Scopes & ParseRequest) == ParseRequest;
+    internal bool SkipParseRequest => (Scopes & ParseRequest) != ParseRequest;
 
-    internal bool SkipParseDocument => (Scopes & ParseDocument) == ParseDocument;
+    internal bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
 
-    internal bool SkipValidateDocument => (Scopes & ValidateDocument) == ValidateDocument;
+    internal bool SkipValidateDocument => (Scopes & ValidateDocument) != ValidateDocument;
 
-    internal bool SkipAnalyzeComplexity => (Scopes & AnalyzeComplexity) == AnalyzeComplexity;
+    internal bool SkipAnalyzeComplexity => (Scopes & AnalyzeComplexity) != AnalyzeComplexity;
 
-    internal bool SkipCoerceVariables => (Scopes & CoerceVariables) == CoerceVariables;
+    internal bool SkipCoerceVariables => (Scopes & CoerceVariables) != CoerceVariables;
 
-    internal bool SkipCompileOperation => (Scopes & CompileOperation) == CompileOperation;
+    internal bool SkipCompileOperation => (Scopes & CompileOperation) != CompileOperation;
 
-    internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) == ExecuteOperation;
+    internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) != ExecuteOperation;
 
-    internal bool SkipResolveFieldValue => (Scopes & ResolveFieldValue) == ResolveFieldValue;
+    internal bool SkipResolveFieldValue => (Scopes & ResolveFieldValue) != ResolveFieldValue;
 }

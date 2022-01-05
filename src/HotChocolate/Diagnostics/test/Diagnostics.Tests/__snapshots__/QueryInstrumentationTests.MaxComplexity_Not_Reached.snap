@@ -31,6 +31,125 @@
           "Name": "AddedDocumentToCache",
           "Tags": {}
         }
+      ],
+      "activities": [
+        {
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "AnalyzeOperationComplexity",
+          "DisplayName": "Analyze Operation Complexity",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": [
+            {
+              "Name": "OperationComplexityAnalyzerCompiled",
+              "Tags": {}
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "CompileOperation",
+              "DisplayName": "Compile Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ExecuteOperation",
+              "DisplayName": "Execute Operation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "ResolveFieldValue",
+                  "DisplayName": "/foo",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "foo"
+                    },
+                    {
+                      "Key": "graphql.selection.parentType",
+                      "Value": "Query"
+                    },
+                    {
+                      "Key": "graphql.selection.coordinate",
+                      "Value": "Query.foo"
+                    },
+                    {
+                      "Key": "graphql.selection.type",
+                      "Value": "Foo"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "/foo"
+                    },
+                    {
+                      "Key": "graphql.selection.hierarchy",
+                      "Value": "/foo"
+                    },
+                    {
+                      "Key": "otel.status_code",
+                      "Value": "OK"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

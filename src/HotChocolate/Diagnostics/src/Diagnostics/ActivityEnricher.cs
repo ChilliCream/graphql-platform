@@ -323,6 +323,11 @@ public class ActivityEnricher
     public virtual void EnrichParserErrors(HttpContext context, IError error, Activity activity)
         => EnrichError(error, activity);
 
+    public virtual void EnrichFromatHttpResponse(HttpContext context, Activity activity)
+    {
+        activity.DisplayName = "Fromat HTTP Response";
+    }
+
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
         activity.DisplayName = context.Operation?.Name?.Value ?? "Execute Request";

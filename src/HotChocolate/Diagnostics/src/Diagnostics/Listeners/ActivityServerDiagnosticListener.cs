@@ -40,23 +40,19 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
 
     public override void StartSingleRequest(HttpContext context, GraphQLRequest request)
     {
-        if (_options.IncludeRequestDetails)
+        if (_options.IncludeRequestDetails &&
+            context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
-            {
-                _enricher.EnrichSingleRequest(context, request, (Activity)activity!);
-            }
+            _enricher.EnrichSingleRequest(context, request, (Activity)activity!);
         }
     }
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
-        if (_options.IncludeRequestDetails)
+        if (_options.IncludeRequestDetails &&
+            context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
-            {
-                _enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
-            }
+            _enricher.EnrichBatchRequest(context, batch, (Activity)activity!);
         }
     }
 
@@ -65,16 +61,14 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
-        if (_options.IncludeRequestDetails)
+        if (_options.IncludeRequestDetails &&
+            context.Items.TryGetValue(HttpRequestActivity, out var activity))
         {
-            if (context.Items.TryGetValue(HttpRequestActivity, out var activity))
-            {
-                _enricher.EnrichOperationBatchRequest(
-                    context,
-                    request,
-                    operations,
-                    (Activity)activity!);
-            }
+            _enricher.EnrichOperationBatchRequest(
+                context,
+                request,
+                operations,
+                (Activity)activity!);
         }
     }
 
@@ -112,6 +106,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
+        _enricher.EnrichParseHttpRequest(context, activity);
         context.Items[ParseHttpRequestActivity] = activity;
 
         return activity;
@@ -141,6 +136,7 @@ internal sealed class ActivityServerDiagnosticListener : ServerDiagnosticEventLi
             return EmptyScope;
         }
 
+        _enricher.EnrichFromatHttpResponse(context, activity);
         context.Items[FormatHttpResponseActivity] = activity;
 
         return activity;

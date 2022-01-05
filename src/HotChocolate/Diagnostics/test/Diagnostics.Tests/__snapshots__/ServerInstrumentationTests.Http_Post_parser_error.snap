@@ -13,6 +13,23 @@
       "event": [],
       "activities": [
         {
+          "OperationName": "ParseHttpRequest",
+          "DisplayName": "ParseHttpRequest",
+          "Status": "Error",
+          "tags": [],
+          "event": [
+            {
+              "Name": "Error",
+              "Tags": {
+                "graphql.error.message": "Expected a `Name`-token, but found a `Integer`-token.",
+                "graphql.error.code": "HC0011",
+                "graphql.error.location.column": 37,
+                "graphql.error.location.line": 10
+              }
+            }
+          ]
+        },
+        {
           "OperationName": "FormatHttpResponse",
           "DisplayName": "FormatHttpResponse",
           "Status": "Unset",
