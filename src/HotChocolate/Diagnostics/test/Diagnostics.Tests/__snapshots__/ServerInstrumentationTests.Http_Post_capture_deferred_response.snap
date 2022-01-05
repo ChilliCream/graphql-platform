@@ -26,7 +26,7 @@
       "activities": [
         {
           "OperationName": "ParseHttpRequest",
-          "DisplayName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
           "Status": "Unset",
           "tags": [],
           "event": []

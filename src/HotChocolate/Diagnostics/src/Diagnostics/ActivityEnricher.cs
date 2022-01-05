@@ -325,7 +325,7 @@ public class ActivityEnricher
 
     public virtual void EnrichFromatHttpResponse(HttpContext context, Activity activity)
     {
-        activity.DisplayName = "Fromat HTTP Response";
+        activity.DisplayName = "Format HTTP Response";
     }
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)

@@ -30,7 +30,7 @@
       "activities": [
         {
           "OperationName": "ParseHttpRequest",
-          "DisplayName": "ParseHttpRequest",
+          "DisplayName": "Parse HTTP Request",
           "Status": "Unset",
           "tags": [],
           "event": []
@@ -154,7 +154,7 @@
         },
         {
           "OperationName": "FormatHttpResponse",
-          "DisplayName": "FormatHttpResponse",
+          "DisplayName": "Fromat HTTP Response",
           "Status": "Unset",
           "tags": [],
           "event": []
