@@ -1,33 +1,40 @@
 ﻿{
   "activities": [
     {
-      "OperationName": "ExecuteRequest",
-      "DisplayName": "Execute Request",
-      "Status": "Unset",
+      "OperationName": "ResolveFieldValue",
+      "DisplayName": "/sayHello",
+      "Status": "Ok",
       "tags": [
         {
-          "Key": "graphql.document.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Key": "graphql.selection.name",
+          "Value": "sayHello"
         },
         {
-          "Key": "graphql.document.hash",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Key": "graphql.selection.parentType",
+          "Value": "SimpleQuery"
         },
         {
-          "Key": "graphql.operation.id",
-          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
+          "Key": "graphql.selection.coordinate",
+          "Value": "SimpleQuery.sayHello"
+        },
+        {
+          "Key": "graphql.selection.type",
+          "Value": "String!"
+        },
+        {
+          "Key": "graphql.selection.path",
+          "Value": "/sayHello"
+        },
+        {
+          "Key": "graphql.selection.hierarchy",
+          "Value": "/sayHello"
+        },
+        {
+          "Key": "otel.status_code",
+          "Value": "OK"
         }
       ],
-      "event": [
-        {
-          "Name": "AddedOperationToCache",
-          "Tags": {}
-        },
-        {
-          "Name": "AddedDocumentToCache",
-          "Tags": {}
-        }
-      ]
+      "event": []
     }
   ]
 }

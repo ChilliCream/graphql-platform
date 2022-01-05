@@ -15,7 +15,7 @@ public sealed class InstrumentationOptions
     /// <summary>
     /// Specifies the activity scopes that shall be instrumented.
     /// </summary>
-    public ActivityScopes Scopes { get; set; }
+    public ActivityScopes Scopes { get; set; } = ActivityScopes.Default;
 
     /// <summary>
     /// Specifies if the parsed document shall be included into the tracing data.
@@ -24,7 +24,13 @@ public sealed class InstrumentationOptions
 
     internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 
-    internal bool SkipParseRequest => (Scopes & ParseRequest) != ParseRequest;
+    internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
+
+    internal bool SkipParseHttpRequest => (Scopes & ParseHttpRequest) != ParseHttpRequest;
+
+    internal bool SkipFormatHttpResponse => (Scopes & FormatHttpResponse) != FormatHttpResponse;
+
+    internal bool SkipExecuteRequest => (Scopes & ExecuteRequest) != ExecuteRequest;
 
     internal bool SkipParseDocument => (Scopes & ParseDocument) != ParseDocument;
 
