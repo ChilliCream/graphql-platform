@@ -17,8 +17,8 @@ using static HotChocolate.WellKnownContextData;
 namespace HotChocolate.Diagnostics;
 
 /// <summary>
-/// The activity enricher is used to add information to the activity spans. 
-/// You can inherit from this class and override the enricher methods to provide more or 
+/// The activity enricher is used to add information to the activity spans.
+/// You can inherit from this class and override the enricher methods to provide more or
 /// less information.
 /// </summary>
 public class ActivityEnricher
@@ -330,7 +330,7 @@ public class ActivityEnricher
 
     public virtual void EnrichExecuteRequest(IRequestContext context, Activity activity)
     {
-        string? operationDisplayName = CreateOperationDisplayName(context);
+        var operationDisplayName = CreateOperationDisplayName(context);
 
         if (_options.RenameRootActivity && operationDisplayName is not null)
         {
@@ -423,9 +423,15 @@ public class ActivityEnricher
 
         if (current != activity)
         {
-            current.DisplayName = $"{activity.DisplayName} {operationDisplayName}";
+            current.DisplayName = CreateRootActivityName(activity, current, operationDisplayName);
         }
     }
+
+    protected virtual string CreateRootActivityName(
+        Activity activity,
+        Activity root,
+        string operationDisplayName)
+        => $"{root.DisplayName}: {operationDisplayName}";
 
     public virtual void EnrichParseDocument(IRequestContext context, Activity activity)
     {

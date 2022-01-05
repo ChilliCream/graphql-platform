@@ -46,7 +46,7 @@ public class QueryInstrumentationTests
                 .ExecuteRequestAsync("{ sayHello }");
 
             // assert
-            Assert.Equal("ExecuteRequest { sayHello }", Activity.Current!.DisplayName);
+            Assert.Equal("CaptureActivities: query { sayHello }", Activity.Current!.DisplayName);
         }
     }
 
