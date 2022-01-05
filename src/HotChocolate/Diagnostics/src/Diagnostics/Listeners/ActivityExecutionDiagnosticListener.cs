@@ -145,7 +145,7 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
 
     public override IDisposable AnalyzeOperationComplexity(IRequestContext context)
     {
-        if (_options.SkipAnalyzeOperationComplexity)
+        if (_options.SkipAnalyzeComplexity)
         {
             return EmptyScope;
         }

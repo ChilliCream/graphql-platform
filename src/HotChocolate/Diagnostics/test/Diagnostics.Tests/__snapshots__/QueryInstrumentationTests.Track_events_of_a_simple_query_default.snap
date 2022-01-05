@@ -74,13 +74,6 @@
           "event": []
         },
         {
-          "OperationName": "BuildQueryPlan",
-          "DisplayName": "Build Query Plan",
-          "Status": "Unset",
-          "tags": [],
-          "event": []
-        },
-        {
           "OperationName": "ExecuteOperation",
           "DisplayName": "Execute Operation",
           "Status": "Ok",

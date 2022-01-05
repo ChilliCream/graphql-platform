@@ -531,16 +531,4 @@ internal static class ThrowHelper
                 "A type with the name `{0}` was not found.",
                 coordinate.Name.Value),
             coordinate);
-
-    public static SchemaException CompleteTypeName_Reserved_TypeName(
-        string typeName) =>
-        new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    "The type name `{0}` is a reserved Hot Chocolate built in type " + 
-                    "and cannot be specified.",
-                    typeName)
-                .SetExtension(nameof(typeName), typeName)
-                .SetCode(ErrorCodes.Types.ReservedTypeName)
-                .Build());
 }

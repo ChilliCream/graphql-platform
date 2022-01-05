@@ -31,61 +31,6 @@
           "Name": "AddedDocumentToCache",
           "Tags": {}
         }
-      ],
-      "activities": [
-        {
-          "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
-          "event": []
-        },
-        {
-          "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "graphql.document.id",
-              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
-            },
-            {
-              "Key": "graphql.document.hash",
-              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
-          "event": []
-        },
-        {
-          "OperationName": "AnalyzeOperationComplexity",
-          "DisplayName": "Analyze Operation Complexity",
-          "Status": "Error",
-          "tags": [
-            {
-              "Key": "graphql.document.id",
-              "Value": "eezy4V+XsGooMNhzDkB8kQ=="
-            },
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            }
-          ],
-          "event": [
-            {
-              "Name": "OperationComplexityAnalyzerCompiled",
-              "Tags": {}
-            }
-          ]
-        }
       ]
     }
   ]

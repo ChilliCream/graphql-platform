@@ -22,50 +22,7 @@
           "Value": "ERROR"
         }
       ],
-      "event": [],
-      "activities": [
-        {
-          "OperationName": "ParseDocument",
-          "DisplayName": "Parse Document",
-          "Status": "Ok",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "OK"
-            }
-          ],
-          "event": []
-        },
-        {
-          "OperationName": "ValidateDocument",
-          "DisplayName": "Validate Document",
-          "Status": "Error",
-          "tags": [
-            {
-              "Key": "otel.status_code",
-              "Value": "ERROR"
-            },
-            {
-              "Key": "graphql.document.id",
-              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
-            },
-            {
-              "Key": "graphql.document.hash",
-              "Value": "ux0kZGU0Gpe9xyfWzY6tXA=="
-            }
-          ],
-          "event": [
-            {
-              "Name": "Error",
-              "Tags": {
-                "graphql.error.message": "The field `sayHello_` does not exist on the type `SimpleQuery`.",
-                "graphql.error.location.column": 27,
-                "graphql.error.location.line": 1
-              }
-            }
-          ]
-        }
-      ]
+      "event": []
     }
   ]
 }

@@ -1,3 +1,5 @@
+using static HotChocolate.Diagnostics.ActivityScopes;
+
 namespace HotChocolate.Diagnostics;
 
 /// <summary>
@@ -5,55 +7,36 @@ namespace HotChocolate.Diagnostics;
 /// </summary>
 public sealed class InstrumentationOptions
 {
-    internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
-
     /// <summary>
     /// Specifies the request detail that shall be included into the tracing activities.
     /// </summary>
     public RequestDetails RequestDetails { get; set; } = RequestDetails.Default;
 
     /// <summary>
+    /// Specifies the activity scopes that shall be instrumented.
+    /// </summary>
+    public ActivityScopes Scopes { get; set; }
+
+    /// <summary>
     /// Specifies if the parsed document shall be included into the tracing data.
     /// </summary>
     public bool IncludeDocument { get; set; }
 
-    /// <summary>
-    /// Specifies if the request parser shall be instrumented.
-    /// </summary>
-    public bool SkipParseRequest { get; set; }
+    internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 
-    /// <summary>
-    /// Specifies if the document parser shall be instrumented.
-    /// </summary>
-    public bool SkipParseDocument { get; set; }
+    internal bool SkipParseRequest => (Scopes & ParseRequest) == ParseRequest;
 
-    /// <summary>
-    /// Specifies if the validation shall be instrumented.
-    /// </summary>
-    public bool SkipValidateDocument { get; set; }
+    internal bool SkipParseDocument => (Scopes & ParseDocument) == ParseDocument;
 
-    /// <summary>
-    /// Specifies if the complexity analysis shall be instrumented.
-    /// </summary>
-    public bool SkipAnalyzeOperationComplexity { get; set; }
+    internal bool SkipValidateDocument => (Scopes & ValidateDocument) == ValidateDocument;
 
-    /// <summary>
-    /// Specifies if the variable coercion shall be instrumented.
-    /// </summary>
-    public bool SkipCoerceVariables { get; set; }
+    internal bool SkipAnalyzeComplexity => (Scopes & AnalyzeComplexity) == AnalyzeComplexity;
 
-    /// <summary>
-    /// Specifies if the operation compilation shall be instrumented.
-    /// </summary>
-    public bool SkipCompileOperation { get; set; }
+    internal bool SkipCoerceVariables => (Scopes & CoerceVariables) == CoerceVariables;
 
-    /// <summary>
-    /// Specifies if the operation execution shall be instrumented.
-    /// </summary>
-    public bool SkipExecuteOperation { get; set; }
+    internal bool SkipCompileOperation => (Scopes & CompileOperation) == CompileOperation;
 
-    /// <summary>
-    /// Specifies if the resolvers shall be instrumented.
-    /// </summary>
-    public bool SkipResolveFieldValue { get; set; }
+    internal bool SkipExecuteOperation => (Scopes & ExecuteOperation) == ExecuteOperation;
+
+    internal bool SkipResolveFieldValue => (Scopes & ResolveFieldValue) == ResolveFieldValue;
 }

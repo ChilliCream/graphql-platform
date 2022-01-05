@@ -21,7 +21,7 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
-    public async Task Http_Post_SingleRequest_GetHeroName()
+    public async Task Http_Post_SingleRequest_GetHeroName_Default()
     {
         using (CaptureActivities(out var activities))
         {
@@ -46,12 +46,39 @@ public class ServerInstrumentationTests : ServerTestBase
     }
 
     [Fact]
+    public async Task Http_Post_SingleRequest_GetHeroName()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using TestServer server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
+                });
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task Http_Get_SingleRequest_GetHeroName()
     {
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
 
             // act
             ClientQueryResult result =
@@ -76,7 +103,8 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
 
             // act
             ClientQueryResult result =
@@ -103,7 +131,11 @@ public class ServerInstrumentationTests : ServerTestBase
         {
             // arrange
             using TestServer server = CreateInstrumentedServer(
-                o => o.RequestDetails = RequestDetails.Default | RequestDetails.Variables);
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RequestDetails = RequestDetails.Default | RequestDetails.Variables;
+                });
 
             // act
             ClientQueryResult result =
@@ -130,7 +162,11 @@ public class ServerInstrumentationTests : ServerTestBase
         {
             // arrange
             using TestServer server = CreateInstrumentedServer(
-                o => o.RequestDetails = RequestDetails.Default | RequestDetails.Query);
+                o =>
+                {
+                    o.Scopes = ActivityScopes.All;
+                    o.RequestDetails = RequestDetails.Default | RequestDetails.Variables;
+                });
 
             // act
             ClientQueryResult result =
@@ -156,7 +192,8 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All);
 
             // act
             ClientQueryResult result =
@@ -183,7 +220,7 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
             var url = TestServerExtensions.CreateUrl("/graphql?sdl");
             var request = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -204,24 +241,23 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientRawResult result =
-                await server.PostRawAsync(new ClientQueryRequest
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
+                    hero(episode: NEW_HOPE)
                     {
-                        hero(episode: NEW_HOPE)
+                        name
+                        ... on Droid @defer(label: ""my_id"")
                         {
-                            name
-                            ... on Droid @defer(label: ""my_id"")
-                            {
-                                id
-                            }
+                            id
                         }
-                    }"
-                });
+                    }
+                }"
+            });
 
             // assert
             activities.MatchSnapshot();
@@ -234,29 +270,28 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientRawResult result =
-                await server.PostRawAsync(new ClientQueryRequest
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
+                    hero(episode: NEW_HOPE)
                     {
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            friends {
-                                nodes {
-                                    name
-                                    friends {
-                                        nodes {
-                                            name
-                                        }
+                        name
+                        friends {
+                            nodes {
+                                name
+                                friends {
+                                    nodes {
+                                        name
                                     }
                                 }
                             }
                         }
-                    }"});
+                    }
+                }"});
 
             // assert
             activities.MatchSnapshot();
@@ -269,29 +304,28 @@ public class ServerInstrumentationTests : ServerTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            using TestServer server = CreateInstrumentedServer();
+            using TestServer server = CreateInstrumentedServer(o => o.Scopes = ActivityScopes.All);
 
             // act
-            ClientRawResult result =
-                await server.PostRawAsync(new ClientQueryRequest
+            await server.PostRawAsync(new ClientQueryRequest
+            {
+                Query = @"
                 {
-                    Query = @"
+                    hero(episode: NEW_HOPE)
                     {
-                        hero(episode: NEW_HOPE)
-                        {
-                            name
-                            friends {
-                                nodes {
-                                    name
-                                    friends {
-                                        1nodes {
-                                            name
-                                        }
+                        name
+                        friends {
+                            nodes {
+                                name
+                                friends {
+                                    1nodes {
+                                        name
                                     }
                                 }
                             }
                         }
-                    }"});
+                    }
+                }"});
 
             // assert
             activities.MatchSnapshot();
