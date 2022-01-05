@@ -235,12 +235,6 @@ internal class TypeInitializer
 
         if (registeredType.IsNamedType || registeredType.IsDirectiveType)
         {
-            if (Scalars.IsReservedName(registeredType.Type.Name))
-            {
-                throw Utilities.ThrowHelper.CompleteTypeName_Reserved_TypeName(
-                    registeredType.Type.Name);
-            }
-
             _typeRegistry.Register(registeredType.Type.Name, registeredType);
         }
 
