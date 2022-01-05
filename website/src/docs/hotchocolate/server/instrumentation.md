@@ -2,20 +2,19 @@
 title: Instrumentation
 ---
 
-Hot Chocolate allows us to create custom diagnostic event listeners, giving us the ability to hook into internal instrumentation events and further process them.
-
-We can subscribe to these events and delegate them either to our logging provider or another tracing infrastructure. We are free to gather data only on one event or all of them, allowing us to craft tracing behavior that fits the need of our project.
+Hot Chocolate allows us to create custom diagnostic event listeners, tapping into internal instrumentation events and further processing them. This abstraction allows us to use the logging or tracing infrastructure that we want to use. Further, we provide a default implementation for open telemetry.
 
 # Diagnostic events
 
-Currently we can implement diagnostic event listeners for the following event types:
+Currently, we can implement diagnostic event listeners for the following event types:
 
+- [Server events](#server-events)
 - [Execution events](#execution-events)
 - [DataLoader events](#dataloader-events)
 
-We will learn more about how we can create diagnostic event listeners for these event types in their respective sections.
+We will learn more about creating diagnostic event listeners for these event types in their respective sections.
 
-After we have created a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly created diagnostic event listener as the generic type parameter.
+After creating a diagnostic event listener for any event type, we can register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`, specifying the newly developed diagnostic event listener as the generic type parameter.
 
 ```csharp
 public class Startup
@@ -29,7 +28,7 @@ public class Startup
 }
 ```
 
-If we need to access services from within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton, since the diagnostic event listener is only instantiated once.
+If we need to access services within our event handlers, we can inject them using the constructor. Please note that injected services are effectively singleton since the diagnostic event listener is instantiated once.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -47,13 +46,13 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 }
 ```
 
-> ⚠️ Note: Diagnostic event handlers are executed synchronously as part of the GraphQL request. Long running operations inside of a diagnostic event handler will negatively impact the query performance. Expensive operations should only be enqueued from within the handler and processed by a background service.
+> ⚠️ Note: Diagnostic event handlers are executed synchronously as part of the GraphQL request. Long-running operations inside a diagnostic event handler will negatively impact the query performance. Expensive operations should only be enqueued from within the handler and processed by a background service.
 
 ## Scopes
 
-Most diagnostic event handlers have a return type of `void`, but some return an `IDisposable`. These are event handlers that enclose a specific operation, sort of like a scope. This scope is instantiated at the start of the operation and disposed at the end of the operation.
+Most diagnostic event handlers have a return type of `void`, but some return an `IDisposable`. These event handlers enclose a specific operation, sort of like a scope. This scope is instantiated at the start of the operation and disposed of at the end of the operation.
 
-To create a scope we can simply create a class implementing `IDisposable`.
+We can simply create a class implementing `IDisposable` to create a scope.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -95,7 +94,7 @@ public class RequestScope : IDisposable
 }
 ```
 
-If we are not interested in the scope of a specific diagnostic event handler, we can simply return an `EmptyScope`.
+If we are not interested in the scope of a specific diagnostic event handler, we can return an `EmptyScope`. Returning an empty scope where we do not need to track a span will reduce the performance impact of triggering your event.
 
 ```csharp
 public override IDisposable ExecuteRequest(IRequestContext context)
@@ -149,7 +148,7 @@ The following methods can be overriden.
 | ExecutorCreated              | Called once a request executor has been created. Executors are created once for a schema (includes stitched schemas) during the first request. |
 | ExecutorEvicted              | Called once a request executor is evicted. This can happen if the schema or the configuration of the executor changes.                         |
 
-(\*): The `ResolveFieldValue` event is not invoked per default, as it would be too much overhead to execute the event for each resolver used within a query. We have to override the `EnableResolveFieldValue` property in order for the execution engine to start invoking the event handler.
+(\*): The `ResolveFieldValue` event is not invoked per default, as it would be too much overhead to execute the event for each resolver used within a query. We have to override the `EnableResolveFieldValue` property for the execution engine to invoke the event handler.
 
 ```csharp
 public class MyExecutionEventListener : ExecutionDiagnosticEventListener
@@ -160,26 +159,6 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
     {
         // Omitted code for brevity
     }
-}
-```
-
-### Caching
-
-It's important to note that some diagnostic events are executed differently based on whether caching is involved or not.
-
-The `ParseDocument` event for example is only executed once for the same document. For subsequent requests using the same document the document is no longer parsed, i.e. the diagnostic event is not invoked.
-
-While the `ValidateDocument` event is raised for each request, it only makes sense to measure the first validation. For subsequent requests the validation result might have been cached, as indicated by the `IRequestContext.IsCachedDocument` property.
-
-```csharp
-public override IDisposable ValidateDocument(IRequestContext context)
-{
-    if (!context.IsCachedDocument)
-    {
-        // only profile the validation if the result has not been cached
-    }
-
-    return EmptyScope;
 }
 ```
 
@@ -208,9 +187,162 @@ The following methods can be overriden.
 | BatchItemError        | Called for a specific item that contained an error within a batch operation.                                    |
 | ResolvedTaskFromCache | Called once a task to resolve an item by its key has been added or retrieved from the `TaskCache`.              |
 
+# OpenTelemetry
+
+OpenTelemetry is an open-source project and unified standard for service instrumentation or a way of measuring performance. Sponsored by the Cloud Native Computing Foundation (CNCF), it replaces OpenTracing and OpenCensus. The goal is to standardize how you collect and send telemetry data to a backend platform.
+
+Hot Chocolate has implemented an OpenTelemetry integration, and you can easily opt into it instead of building a custom tracing integration.
+
+## Setup
+
+To get started, add the HotChocolate.Diagnostics package to your project.
+
+```bash
+dotnet add package HotChocolate.Diagnostics
+```
+
+Next, head over to your `Program.cs` and add `AddInstrumentation` to your GraphQL configuration.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddInstrumentation();
+```
+
+Now, we need to add OpenTelemetry to our project, and in the example here, we will use it with a _Jaeger_ exporter.
+
+Let's first add the needed packages:
+
+```bash
+dotnet add package OpenTelemetry.Extensions.Hosting --version 1.0.0-rc8
+dotnet add package OpenTelemetry.Instrumentation.AspNetCore --version 1.0.0-rc8
+dotnet add package OpenTelemetry.Instrumentation.Http --version 1.0.0-rc8
+dotnet add package OpenTelemetry.Exporter.Jaeger --version 1.1.0
+```
+
+Now add the OpenTelemetry setup code to the `Program.cs`:
+
+```csharp
+builder.Logging.AddOpenTelemetry(
+    b =>
+    {
+        b.IncludeFormattedMessage = true;
+        b.IncludeScopes = true;
+        b.ParseStateValues = true;
+        b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo"));
+    });
+
+builder.Services.AddOpenTelemetryTracing(
+    b =>
+    {
+        b.AddHttpClientInstrumentation();
+        b.AddAspNetCoreInstrumentation();
+        b.AddHotChocolateInstrumentation();
+        b.AddJaegerExporter();
+    });
+```
+
+`AddHotChocolateInstrumentation` will register the Hot Chocolate instrumentation events with OpenTelemetry.
+
+Your `Program.cs` should look like the following:
+
+```csharp
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddInstrumentation();
+
+builder.Logging.AddOpenTelemetry(
+    b => b.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Demo")));
+
+builder.Services.AddOpenTelemetryTracing(
+    b =>
+    {
+        b.AddHttpClientInstrumentation();
+        b.AddAspNetCoreInstrumentation();
+        b.AddHotChocolateInstrumentation();
+        b.AddJaegerExporter();
+    });
+
+var app = builder.Build();
+app.MapGraphQL();
+app.Run();
+```
+
+When running GraphQL requests, you can now inspect in _Jaeger_ how the request performed and look into the various parts of the execution telemetry.
+
+IMAGES
+
+## Options
+
+By default, we have not instrumented all of our execution events. You can drill deeper into the execution telemetry by adding more instrumentation scopes.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddInstrumentation(o =>
+    {
+        o.Scopes = ActivityScopes.All;
+    });
+```
+
+> Beware, adding more instrumentation scopes is not free and will add more performance overhead.
+
+IMAGE
+
+Further, if you work with elastic and you want to give your root activity a name that is associated with the executed operation, you can quickly just tell the instrumentation to do just that for you.
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddInstrumentation(o =>
+    {
+        o.RenameRootActivity = true;
+    });
+```
+
+## Enriching Activities
+
+You can inherit from `ActivityEnricher` and override the enrich method for an Activity to add custom data or remove default data.
+
+```csharp
+public class CustomActivityEnricher : ActivityEnricher
+{
+    protected CustomActivityEnricher(
+        ObjectPool<StringBuilder> stringBuilderPoolPool,
+        InstrumentationOptions options)
+        : base(stringBuilderPoolPool, options)
+    {
+    }
+
+    public override void EnrichResolveFieldValue(IMiddlewareContext context, Activity activity)
+    {
+        base.EnrichResolveFieldValue(context, activity);
+
+        activity.SetTag("custom", "data");
+    }
+}
+```
+
+Register the custom activity enricher as a singleton:
+
+```csharp
+builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
+```
+
+IMAGE
+
 # Apollo Tracing
 
-_Apollo Tracing_ is a [performance tracing specification](https://github.com/apollographql/apollo-tracing) for GraphQL servers. It works by returning tracing information about the current request alongside the computed data. While it is not part of the GraphQL specification itself, there is a common agreement in the GraphQL community that it should be supported by all GraphQL servers.
+_Apollo Tracing_ is a [performance tracing specification](https://github.com/apollographql/apollo-tracing) for GraphQL servers. It works by returning tracing information about the current request alongside the computed data. While it is not part of the GraphQL specification itself, there is a common agreement in the GraphQL community that all GraphQL servers should support it.
 
 **Example**
 
@@ -223,7 +355,7 @@ _Apollo Tracing_ is a [performance tracing specification](https://github.com/apo
 }
 ```
 
-The above request would result in the below response, if _Apollo Tracing_ is enabled.
+The above request would result in the below response if _Apollo Tracing_ is enabled.
 
 ```json
 {
@@ -268,7 +400,7 @@ The above request would result in the below response, if _Apollo Tracing_ is ena
 
 ## Enabling Apollo Tracing
 
-_Apollo Tracing_ needs to be expicitly enabled by caling `AddApolloTracing` on the `IRequestExecutorBuilder`.
+_Apollo Tracing_ needs to be explicitly enabled by calling `AddApolloTracing` on the `IRequestExecutorBuilder`.
 
 ```csharp
 public class Startup
@@ -282,7 +414,7 @@ public class Startup
 }
 ```
 
-Further we can specify a `TracingPreference`. Per default it is `TracingPreference.OnDemand`.
+Further, we can specify a `TracingPreference`. Per default, it is `TracingPreference.OnDemand`.
 
 ```csharp
 services
@@ -292,11 +424,11 @@ services
 
 There are three possible options for the `TracingPreference`.
 
-| Option     | Description                                                                                   |
-| ---------- | --------------------------------------------------------------------------------------------- |
-| `Never`    | _Apollo Tracing_ is disabled. Useful if we want to conditionally disable _Apollo Tracing_.    |
-| `OnDemand` | _Apollo Tracing_ only traces requests, if a specific header is passed with the query request. |
-| `Always`   | _Apollo Tracing_ is always enabled and all query requests are traced automatically.           |
+| Option     | Description                                                                                  |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| `Never`    | _Apollo Tracing_ is disabled. Useful if we want to conditionally disable _Apollo Tracing_.   |
+| `OnDemand` | _Apollo Tracing_ only traces requests if a specific header is passed with the query request. |
+| `Always`   | _Apollo Tracing_ is always enabled, and all query requests are traced automatically.         |
 
 ## On Demand
 
