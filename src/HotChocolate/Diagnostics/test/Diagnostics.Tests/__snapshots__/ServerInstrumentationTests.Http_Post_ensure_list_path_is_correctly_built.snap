@@ -106,14 +106,6 @@
                       "Value": "hero"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Query"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Query.hero"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "Character"
                     },
@@ -122,8 +114,16 @@
                       "Value": "/hero"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Query"
                     },
                     {
                       "Key": "otel.status_code",
@@ -142,14 +142,6 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Droid"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Droid.friends"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "FriendsConnection"
                     },
@@ -158,8 +150,16 @@
                       "Value": "/hero/friends"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero/friends"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Droid.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Droid"
                     },
                     {
                       "Key": "otel.status_code",
@@ -178,14 +178,6 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Human"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Human.friends"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "FriendsConnection"
                     },
@@ -194,8 +186,16 @@
                       "Value": "/hero/friends/nodes[2]/friends"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero/friends/nodes/friends"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Human"
                     },
                     {
                       "Key": "otel.status_code",
@@ -214,14 +214,6 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Human"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Human.friends"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "FriendsConnection"
                     },
@@ -230,8 +222,16 @@
                       "Value": "/hero/friends/nodes[1]/friends"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero/friends/nodes/friends"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Human"
                     },
                     {
                       "Key": "otel.status_code",
@@ -250,14 +250,6 @@
                       "Value": "friends"
                     },
                     {
-                      "Key": "graphql.selection.parentType",
-                      "Value": "Human"
-                    },
-                    {
-                      "Key": "graphql.selection.coordinate",
-                      "Value": "Human.friends"
-                    },
-                    {
                       "Key": "graphql.selection.type",
                       "Value": "FriendsConnection"
                     },
@@ -266,8 +258,16 @@
                       "Value": "/hero/friends/nodes[0]/friends"
                     },
                     {
-                      "Key": "graphql.selection.hierarchy",
-                      "Value": "/hero/friends/nodes/friends"
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.declaringType",
+                      "Value": "Human"
                     },
                     {
                       "Key": "otel.status_code",

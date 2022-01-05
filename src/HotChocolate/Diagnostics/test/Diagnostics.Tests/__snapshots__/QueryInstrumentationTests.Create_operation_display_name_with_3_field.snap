@@ -95,14 +95,6 @@
                   "Value": "a"
                 },
                 {
-                  "Key": "graphql.selection.parentType",
-                  "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "graphql.selection.coordinate",
-                  "Value": "SimpleQuery.sayHello"
-                },
-                {
                   "Key": "graphql.selection.type",
                   "Value": "String!"
                 },
@@ -111,8 +103,16 @@
                   "Value": "/a"
                 },
                 {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/a"
+                  "Key": "graphql.selection.field.name",
+                  "Value": "sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.declaringType",
+                  "Value": "SimpleQuery"
                 },
                 {
                   "Key": "otel.status_code",
@@ -131,14 +131,6 @@
                   "Value": "b"
                 },
                 {
-                  "Key": "graphql.selection.parentType",
-                  "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "graphql.selection.coordinate",
-                  "Value": "SimpleQuery.sayHello"
-                },
-                {
                   "Key": "graphql.selection.type",
                   "Value": "String!"
                 },
@@ -147,8 +139,16 @@
                   "Value": "/b"
                 },
                 {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/b"
+                  "Key": "graphql.selection.field.name",
+                  "Value": "sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.declaringType",
+                  "Value": "SimpleQuery"
                 },
                 {
                   "Key": "otel.status_code",
@@ -167,14 +167,6 @@
                   "Value": "c"
                 },
                 {
-                  "Key": "graphql.selection.parentType",
-                  "Value": "SimpleQuery"
-                },
-                {
-                  "Key": "graphql.selection.coordinate",
-                  "Value": "SimpleQuery.sayHello"
-                },
-                {
                   "Key": "graphql.selection.type",
                   "Value": "String!"
                 },
@@ -183,8 +175,16 @@
                   "Value": "/c"
                 },
                 {
-                  "Key": "graphql.selection.hierarchy",
-                  "Value": "/c"
+                  "Key": "graphql.selection.field.name",
+                  "Value": "sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.field.declaringType",
+                  "Value": "SimpleQuery"
                 },
                 {
                   "Key": "otel.status_code",
