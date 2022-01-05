@@ -2,20 +2,24 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "query { a }",
+      "DisplayName": "query GetA { a }",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
+          "Value": "zuDik57OctZQywMx9L5GaQ=="
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "GetA"
         }
       ],
       "event": [
@@ -48,11 +52,11 @@
           "tags": [
             {
               "Key": "graphql.document.id",
-              "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
+              "Value": "zuDik57OctZQywMx9L5GaQ=="
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "RS6oAsTRvyqBp0EbCzYdnw=="
+              "Value": "zuDik57OctZQywMx9L5GaQ=="
             },
             {
               "Key": "otel.status_code",
@@ -75,7 +79,7 @@
         },
         {
           "OperationName": "ExecuteOperation",
-          "DisplayName": "Execute Operation",
+          "DisplayName": "Execute Operation GetA",
           "Status": "Ok",
           "tags": [
             {

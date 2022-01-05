@@ -2,7 +2,7 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "{ sayHello }",
+      "DisplayName": "query { sayHello }",
       "Status": "Unset",
       "tags": [
         {

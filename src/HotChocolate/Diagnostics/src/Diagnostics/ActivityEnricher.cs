@@ -372,7 +372,7 @@ public class ActivityEnricher
 
                 foreach (var selection in rootSelectionSet.Selections.Take(3))
                 {
-                    if (displayName.Length > 9)
+                    if (displayName.Length > 2)
                     {
                         displayName.Append(',');
                         displayName.Append(' ');
@@ -397,6 +397,9 @@ public class ActivityEnricher
                     displayName.Insert(0, ' ');
                     displayName.Insert(0, name.Value);
                 }
+
+                displayName.Insert(0, ' ');
+                displayName.Insert(0, operation.Definition.Operation.ToString().ToLowerInvariant());
 
                 return displayName.ToString();
             }

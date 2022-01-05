@@ -1,112 +1,201 @@
 ﻿{
   "activities": [
     {
-      "OperationName": "ResolveFieldValue",
-      "DisplayName": "/a",
-      "Status": "Ok",
+      "OperationName": "ExecuteRequest",
+      "DisplayName": "query { a, b, c }",
+      "Status": "Unset",
       "tags": [
         {
-          "Key": "graphql.selection.name",
-          "Value": "a"
+          "Key": "graphql.document.id",
+          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
         },
         {
-          "Key": "graphql.selection.parentType",
-          "Value": "SimpleQuery"
+          "Key": "graphql.document.hash",
+          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
         },
         {
-          "Key": "graphql.selection.coordinate",
-          "Value": "SimpleQuery.sayHello"
-        },
-        {
-          "Key": "graphql.selection.type",
-          "Value": "String!"
-        },
-        {
-          "Key": "graphql.selection.path",
-          "Value": "/a"
-        },
-        {
-          "Key": "graphql.selection.hierarchy",
-          "Value": "/a"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
+          "Key": "graphql.operation.id",
+          "Value": "LlX74QqePd8mk1qPjRXsiQ=="
         }
       ],
-      "event": []
-    },
-    {
-      "OperationName": "ResolveFieldValue",
-      "DisplayName": "/b",
-      "Status": "Ok",
-      "tags": [
+      "event": [
         {
-          "Key": "graphql.selection.name",
-          "Value": "b"
+          "Name": "AddedOperationToCache",
+          "Tags": {}
         },
         {
-          "Key": "graphql.selection.parentType",
-          "Value": "SimpleQuery"
-        },
-        {
-          "Key": "graphql.selection.coordinate",
-          "Value": "SimpleQuery.sayHello"
-        },
-        {
-          "Key": "graphql.selection.type",
-          "Value": "String!"
-        },
-        {
-          "Key": "graphql.selection.path",
-          "Value": "/b"
-        },
-        {
-          "Key": "graphql.selection.hierarchy",
-          "Value": "/b"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
+          "Name": "AddedDocumentToCache",
+          "Tags": {}
         }
       ],
-      "event": []
-    },
-    {
-      "OperationName": "ResolveFieldValue",
-      "DisplayName": "/c",
-      "Status": "Ok",
-      "tags": [
+      "activities": [
         {
-          "Key": "graphql.selection.name",
-          "Value": "c"
+          "OperationName": "ParseDocument",
+          "DisplayName": "Parse Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
         },
         {
-          "Key": "graphql.selection.parentType",
-          "Value": "SimpleQuery"
+          "OperationName": "ValidateDocument",
+          "DisplayName": "Validate Document",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.id",
+              "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "LlX74QqePd8mk1qPjRXsiQ=="
+            },
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
         },
         {
-          "Key": "graphql.selection.coordinate",
-          "Value": "SimpleQuery.sayHello"
+          "OperationName": "CompileOperation",
+          "DisplayName": "Compile Operation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": []
         },
         {
-          "Key": "graphql.selection.type",
-          "Value": "String!"
-        },
-        {
-          "Key": "graphql.selection.path",
-          "Value": "/c"
-        },
-        {
-          "Key": "graphql.selection.hierarchy",
-          "Value": "/c"
-        },
-        {
-          "Key": "otel.status_code",
-          "Value": "OK"
+          "OperationName": "ExecuteOperation",
+          "DisplayName": "Execute Operation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "otel.status_code",
+              "Value": "OK"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "ResolveFieldValue",
+              "DisplayName": "/a",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.selection.name",
+                  "Value": "a"
+                },
+                {
+                  "Key": "graphql.selection.parentType",
+                  "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "graphql.selection.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.type",
+                  "Value": "String!"
+                },
+                {
+                  "Key": "graphql.selection.path",
+                  "Value": "/a"
+                },
+                {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/a"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ResolveFieldValue",
+              "DisplayName": "/b",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.selection.name",
+                  "Value": "b"
+                },
+                {
+                  "Key": "graphql.selection.parentType",
+                  "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "graphql.selection.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.type",
+                  "Value": "String!"
+                },
+                {
+                  "Key": "graphql.selection.path",
+                  "Value": "/b"
+                },
+                {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/b"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "ResolveFieldValue",
+              "DisplayName": "/c",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.selection.name",
+                  "Value": "c"
+                },
+                {
+                  "Key": "graphql.selection.parentType",
+                  "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "graphql.selection.coordinate",
+                  "Value": "SimpleQuery.sayHello"
+                },
+                {
+                  "Key": "graphql.selection.type",
+                  "Value": "String!"
+                },
+                {
+                  "Key": "graphql.selection.path",
+                  "Value": "/c"
+                },
+                {
+                  "Key": "graphql.selection.hierarchy",
+                  "Value": "/c"
+                },
+                {
+                  "Key": "otel.status_code",
+                  "Value": "OK"
+                }
+              ],
+              "event": []
+            }
+          ]
         }
-      ],
-      "event": []
+      ]
     }
   ]
 }

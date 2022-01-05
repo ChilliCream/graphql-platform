@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,8 +8,6 @@ using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
-using System;
-using System.Net.Http;
 
 namespace HotChocolate.Diagnostics;
 

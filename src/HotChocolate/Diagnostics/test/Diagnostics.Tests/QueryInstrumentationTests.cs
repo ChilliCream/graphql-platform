@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -58,9 +58,34 @@ public class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o => o.RenameRootActivity = true)
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
+    public async Task Create_operation_display_name_with_1_field_and_op()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("query GetA { a: sayHello }");
 
             // assert
             activities.MatchSnapshot();
@@ -75,7 +100,11 @@ public class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o => o.RenameRootActivity = true)
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello }");
 
@@ -92,7 +121,11 @@ public class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation(o => o.RenameRootActivity = true)
+                .AddInstrumentation(o =>
+                {
+                    o.RenameRootActivity = true;
+                    o.Scopes = ActivityScopes.All;
+                })
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("{ a: sayHello b: sayHello c: sayHello d: sayHello }");
 

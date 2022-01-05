@@ -33,7 +33,7 @@
         },
         {
           "OperationName": "ExecuteRequest",
-          "DisplayName": "{ hero }",
+          "DisplayName": "query { hero }",
           "Status": "Unset",
           "tags": [
             {
