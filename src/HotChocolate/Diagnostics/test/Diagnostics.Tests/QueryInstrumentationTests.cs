@@ -12,7 +12,7 @@ namespace HotChocolate.Diagnostics;
 public class QueryInstrumentationTests
 {
     [Fact]
-    public async Task Track_events_of_a_simple_query()
+    public async Task Track_events_of_a_simple_query_default()
     {
         using (CaptureActivities(out var activities))
         {
@@ -29,6 +29,23 @@ public class QueryInstrumentationTests
     }
 
     [Fact]
+    public async Task Track_events_of_a_simple_query_detailed()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync("{ sayHello }");
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task Ensure_operation_name_is_used_as_request_name()
     {
         using (CaptureActivities(out var activities))
@@ -36,7 +53,7 @@ public class QueryInstrumentationTests
             // arrange & act
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddInstrumentation()
+                .AddInstrumentation(o => o.Scopes = ActivityScopes.All)
                 .AddQueryType<SimpleQuery>()
                 .ExecuteRequestAsync("query SayHelloOperation { sayHello }");
 
@@ -55,6 +72,7 @@ public class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                 {
+                    o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
@@ -75,6 +93,7 @@ public class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                 {
+                    o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
@@ -95,6 +114,7 @@ public class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                 {
+                    o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
                 .AddQueryType<SimpleQuery>()
@@ -115,6 +135,7 @@ public class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                 {
+                    o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))
@@ -158,6 +179,7 @@ public class QueryInstrumentationTests
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                 {
+                    o.Scopes = ActivityScopes.All;
                     o.IncludeDocument = true;
                 })
                 .AddDocumentFromString(FileResource.Open("CostSchema.graphql"))

@@ -2,28 +2,20 @@
   "activities": [
     {
       "OperationName": "ExecuteRequest",
-      "DisplayName": "SayHelloOperation",
+      "DisplayName": "Execute Request",
       "Status": "Unset",
       "tags": [
         {
           "Key": "graphql.document.id",
-          "Value": "avGGGK4gwmb2/8NSt4y2mw=="
+          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "avGGGK4gwmb2/8NSt4y2mw=="
+          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         },
         {
           "Key": "graphql.operation.id",
-          "Value": "avGGGK4gwmb2/8NSt4y2mw=="
-        },
-        {
-          "Key": "graphql.operation.name",
-          "Value": "SayHelloOperation"
-        },
-        {
-          "Key": "graphql.document.body",
-          "Value": "query SayHelloOperation {\n  sayHello\n}"
+          "Value": "9+mYn7tnr3+nR6mYMxPJ5Q=="
         }
       ],
       "event": [
