@@ -36,9 +36,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
             .AddAuthorization()
             .AddOpaAuthorizationHandler((c, o) =>
             {
-                o.BaseAddress = new Uri("http://127.0.0.1:8181");
-                o.ConnectionTimeout = TimeSpan.FromSeconds(10);
-                o.JsonSerializerOptions = new JsonSerializerOptions();
+                o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
             .UseField(_schemaMiddleware);
 
@@ -48,9 +46,7 @@ public class AuthorizationTestData : IEnumerable<object[]>
             .AddAuthorization()
             .AddOpaAuthorizationHandler((c, o) =>
             {
-                o.BaseAddress = new Uri("http://127.0.0.1:8181");
-                o.ConnectionTimeout = TimeSpan.FromSeconds(10);
-                o.JsonSerializerOptions = new JsonSerializerOptions();
+                o.ConnectionTimeout = TimeSpan.FromSeconds(60);
             })
             .UseField(_schemaMiddleware);
 
