@@ -66,15 +66,17 @@ public class ActivityEnricher
         }
 
         activity.SetTag("graphql.http.kind", kind);
-
+        
+        var isDefault = false;
         if (!(context.Items.TryGetValue(SchemaName, out var value) &&
             value is string schemaName))
         {
             schemaName = Schema.DefaultName.Value;
-            activity.SetTag("graphql.schema.default", true);
+            isDefault = true;
         }
 
         activity.SetTag("graphql.schema.name", schemaName);
+        activity.SetTag("graphql.schema.isDefault", isDefault);
     }
 
     public virtual void EnrichSingleRequest(
@@ -374,7 +376,6 @@ public class ActivityEnricher
                 {
                     if (displayName.Length > 2)
                     {
-                        displayName.Append(',');
                         displayName.Append(' ');
                     }
 
@@ -486,14 +487,16 @@ public class ActivityEnricher
         string hierarchy;
         BuildPath();
 
-        FieldCoordinate coordinate = context.Selection.Field.Coordinate;
+        IFieldSelection selection = context.Selection;
+        FieldCoordinate coordinate = selection.Field.Coordinate;
         activity.DisplayName = path;
-        activity.SetTag("graphql.selection.name", context.Selection.ResponseName.Value);
-        activity.SetTag("graphql.selection.parentType", coordinate.TypeName.Value);
-        activity.SetTag("graphql.selection.coordinate", coordinate.ToString());
-        activity.SetTag("graphql.selection.type", context.Selection.Field.Type.Print());
+        activity.SetTag("graphql.selection.name", selection.ResponseName.Value);
+        activity.SetTag("graphql.selection.type", selection.Field.Type.Print());
         activity.SetTag("graphql.selection.path", path);
-        activity.SetTag("graphql.selection.hierarchy", hierarchy);
+        activity.SetTag("graphql.selection.field.name", coordinate.FieldName.Value);
+        activity.SetTag("graphql.selection.field.coordinate", coordinate.ToString());
+        activity.SetTag("graphql.selection.field.declaringType", coordinate.TypeName.Value);
+        activity.SetTag("graphql.selection.field.isDeprecated", selection.Field.IsDeprecated);
 
         void BuildPath()
         {

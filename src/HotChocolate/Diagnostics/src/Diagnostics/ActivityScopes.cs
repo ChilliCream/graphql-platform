@@ -6,7 +6,7 @@ namespace HotChocolate.Diagnostics;
 public enum ActivityScopes
 {
     None = 0,
-    ExecuteHttpRequest= 1,
+    ExecuteHttpRequest = 1,
     ParseHttpRequest = 2,
     FormatHttpResponse = 4,
     ExecuteRequest = 8,
@@ -17,12 +17,14 @@ public enum ActivityScopes
     CompileOperation = 256,
     ExecuteOperation = 512,
     ResolveFieldValue = 1024,
-    Default = 
-        ExecuteHttpRequest | 
+    Default =
+        ExecuteHttpRequest |
         ParseHttpRequest |
+        ValidateDocument |
+        CompileOperation |
         ResolveFieldValue |
         FormatHttpResponse,
-    All = 
+    All =
         ExecuteHttpRequest |
         ParseHttpRequest |
         FormatHttpResponse |
