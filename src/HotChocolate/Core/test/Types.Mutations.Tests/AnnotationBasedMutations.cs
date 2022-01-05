@@ -372,9 +372,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingPayload
     {
-        public string MyResult1 { get; set; }
+        public string MyResult1 { get; set; } = default!;
 
-        public string MyResult2 { get; set; }
+        public string MyResult2 { get; set; } = default!;
     }
 
     public class SimpleMutationInputOverride
@@ -387,9 +387,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingInput
     {
-        public string MyInput1 { get; set; }
+        public string MyInput1 { get; set; } = default!;
 
-        public string MyInput2 { get; set; }
+        public string MyInput2 { get; set; } = default!;
     }
 
     public class MultipleArgumentMutation

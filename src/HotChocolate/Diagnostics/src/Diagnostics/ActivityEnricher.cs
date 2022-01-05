@@ -376,7 +376,6 @@ public class ActivityEnricher
                 {
                     if (displayName.Length > 2)
                     {
-                        displayName.Append(',');
                         displayName.Append(' ');
                     }
 
