@@ -1,24 +1,28 @@
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-using static HotChocolate.SchemaSerializer;
-using static HotChocolate.AspNetCore.ErrorHelper;
 using static System.Net.HttpStatusCode;
-
+using static HotChocolate.AspNetCore.ErrorHelper;
+using static HotChocolate.SchemaSerializer;
 namespace HotChocolate.AspNetCore;
 
-public class HttpGetSchemaMiddleware : MiddlewareBase
+public sealed class HttpGetSchemaMiddleware : MiddlewareBase
 {
     private readonly MiddlewareRoutingType _routing;
+    private readonly IServerDiagnosticEvents _diagnosticEvents;
 
     public HttpGetSchemaMiddleware(
         HttpRequestDelegate next,
         IRequestExecutorResolver executorResolver,
         IHttpResultSerializer resultSerializer,
+        IServerDiagnosticEvents diagnosticEvents,
         NameString schemaName,
         MiddlewareRoutingType routing)
         : base(next, executorResolver, resultSerializer, schemaName)
     {
+        _diagnosticEvents = diagnosticEvents ??
+            throw new ArgumentNullException(nameof(diagnosticEvents));
         _routing = routing;
     }
 
@@ -33,7 +37,15 @@ public class HttpGetSchemaMiddleware : MiddlewareBase
 
         if (handle)
         {
-            await HandleRequestAsync(context);
+            if (!IsDefaultSchema)
+            {
+                context.Items[WellKnownContextData.SchemaName] = SchemaName.Value;
+            }
+
+            using (_diagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+            {
+                await HandleRequestAsync(context);
+            }
         }
         else
         {
@@ -46,6 +58,7 @@ public class HttpGetSchemaMiddleware : MiddlewareBase
     private async Task HandleRequestAsync(HttpContext context)
     {
         ISchema schema = await GetSchemaAsync(context.RequestAborted);
+        context.Items[WellKnownContextData.Schema] = schema;
 
         bool indent =
             !(context.Request.Query.ContainsKey("indentation") &&
@@ -54,7 +67,7 @@ public class HttpGetSchemaMiddleware : MiddlewareBase
                     "none",
                     StringComparison.OrdinalIgnoreCase));
 
-        if (context.Request.Query.TryGetValue("types", out var typesValue))
+        if (context.Request.Query.TryGetValue("types", out Microsoft.Extensions.Primitives.StringValues typesValue))
         {
             if (string.IsNullOrEmpty(typesValue))
             {
@@ -80,7 +93,7 @@ public class HttpGetSchemaMiddleware : MiddlewareBase
 
         foreach (string typeName in typeNames.Split(','))
         {
-            if (!SchemaCoordinate.TryParse(typeName, out var coordinate) ||
+            if (!SchemaCoordinate.TryParse(typeName, out SchemaCoordinate? coordinate) ||
                 coordinate.Value.MemberName is not null ||
                 coordinate.Value.ArgumentName is not null)
             {
@@ -88,7 +101,7 @@ public class HttpGetSchemaMiddleware : MiddlewareBase
                 return;
             }
 
-            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out var type))
+            if (!schema.TryGetType<INamedType>(coordinate.Value.Name, out INamedType? type))
             {
                 await WriteResultAsync(context, TypeNotFound(typeName), NotFound);
                 return;

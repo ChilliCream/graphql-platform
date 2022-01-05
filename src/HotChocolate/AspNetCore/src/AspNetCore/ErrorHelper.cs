@@ -7,19 +7,19 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 internal static class ErrorHelper
 {
-    public static IError InvalidRequest() 
+    public static IError InvalidRequest()
         => ErrorBuilder.New()
             .SetMessage(AspNetCoreResources.ErrorHelper_InvalidRequest)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
-    public static IError RequestHasNoElements() 
+    public static IError RequestHasNoElements()
         => ErrorBuilder.New()
             .SetMessage(AspNetCoreResources.ErrorHelper_RequestHasNoElements)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 
-    public static IQueryResult ResponseTypeNotSupported() 
+    public static IQueryResult ResponseTypeNotSupported()
         => QueryResultBuilder.CreateError(
             ErrorBuilder.New()
                 .SetMessage(AspNetCoreResources.ErrorHelper_ResponseTypeNotSupported)
@@ -45,9 +45,9 @@ internal static class ErrorHelper
             new Error(
                 "The type name is invalid.",
                 code: ErrorCodes.Server.InvalidTypeName,
-                extensions: new Dictionary<string, object?> 
+                extensions: new Dictionary<string, object?>
                 {
-                    { "typeName", typeName } 
+                    { "typeName", typeName }
                 }));
 
     public static IQueryResult TypeNotFound(string typeName)
@@ -55,8 +55,8 @@ internal static class ErrorHelper
             new Error(
                 $"The type `{typeName}` does not exist.",
                 code: ErrorCodes.Server.TypeDoesNotExist,
-                extensions: new Dictionary<string, object?> 
+                extensions: new Dictionary<string, object?>
                 {
-                    { "typeName", typeName } 
+                    { "typeName", typeName }
                 }));
 }

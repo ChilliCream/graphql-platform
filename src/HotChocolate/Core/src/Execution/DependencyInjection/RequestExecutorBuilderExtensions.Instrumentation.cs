@@ -1,5 +1,6 @@
 using System;
 using GreenDonut;
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
@@ -39,18 +40,28 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
-        {
-            builder.Services.TryAddSingleton<T>();
-            builder.Services.AddSingleton(
-                s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
-        }
-        else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+        if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.Services.TryAddSingleton<T>();
             builder.ConfigureSchemaServices(
                 s => s.AddSingleton(
                     sp => (IExecutionDiagnosticEventListener)sp.GetApplicationService<T>()));
+        }
+        else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+        {
+            builder.Services.TryAddSingleton<T>();
+            builder.Services.AddSingleton(s => (IDataLoaderDiagnosticEventListener)s.GetService<T>());
+        }
+        else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
+        {
+            builder.Services.TryAddSingleton<T>();
+
+            foreach (var attribute in
+                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            {
+                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                builder.Services.AddSingleton(listener, s => s.GetService<T>());
+            }
         }
         else
         {
@@ -75,17 +86,26 @@ public static partial class RequestExecutorBuilderExtensions
             throw new ArgumentNullException(nameof(diagnosticEventListener));
         }
 
-        if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
-        {
-            builder.Services.AddSingleton(
-                s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
-        }
-        else if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+        if (typeof(IExecutionDiagnosticEventListener).IsAssignableFrom(typeof(T)))
         {
             builder.ConfigureSchemaServices(
                 s => s.AddSingleton(
                     sp => (IExecutionDiagnosticEventListener)diagnosticEventListener(
                         sp.GetCombinedServices())));
+        }
+        else if (typeof(IDataLoaderDiagnosticEventListener).IsAssignableFrom(typeof(T)))
+        {
+            builder.Services.AddSingleton(
+                s => (IDataLoaderDiagnosticEventListener)diagnosticEventListener(s));
+        }
+        else if (typeof(T).IsDefined(typeof(DiagnosticEventSourceAttribute), true))
+        {
+            foreach (var attribute in
+                typeof(T).GetCustomAttributes(typeof(DiagnosticEventSourceAttribute), true))
+            {
+                Type listener = ((DiagnosticEventSourceAttribute)attribute).Listener;
+                builder.Services.AddSingleton(listener, diagnosticEventListener);
+            }
         }
         else
         {

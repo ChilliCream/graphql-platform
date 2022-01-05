@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline.Complexity;
 using HotChocolate.Execution.Processing;
@@ -55,33 +56,40 @@ internal sealed class OperationComplexityMiddleware
                 context.OperationId is not null &&
                 context.Document is not null)
             {
-                string cacheId = context.CreateCacheId(context.OperationId);
-                DocumentNode document = context.Document;
-                OperationDefinitionNode operationDefinition =
-                    context.Operation?.Definition ??
-                    document.GetOperation(context.Request.OperationName);
+                IExecutionDiagnosticEvents diagnostic = context.DiagnosticEvents;
 
-                if (!_cache.TryGetOperation(cacheId, out ComplexityAnalyzerDelegate? analyzer))
+                using (diagnostic.AnalyzeOperationComplexity(context))
                 {
-                    analyzer = CompileAnalyzer(context, document, operationDefinition);
-                }
+                    var cacheId = context.CreateCacheId(context.OperationId);
+                    DocumentNode document = context.Document;
+                    OperationDefinitionNode operationDefinition =
+                        context.Operation?.Definition ??
+                        document.GetOperation(context.Request.OperationName);
 
-                CoerceVariables(
-                    context,
-                    _coercionHelper,
-                    operationDefinition.VariableDefinitions);
+                    if (!_cache.TryGetAnalyzer(cacheId, out ComplexityAnalyzerDelegate? analyzer))
+                    {
+                        analyzer = CompileAnalyzer(context, document, operationDefinition);
+                        diagnostic.OperationComplexityAnalyzerCompiled(context);
+                    }
 
-                var complexity = analyzer(context.Services, context.Variables!);
-                var maximumAllowedComplexity = GetMaximumAllowedComplexity(context);
-                context.ContextData[_settings.ContextDataKey] = complexity;
+                    CoerceVariables(
+                        context,
+                        _coercionHelper,
+                        operationDefinition.VariableDefinitions);
 
-                if (complexity <= maximumAllowedComplexity)
-                {
-                    await _next(context).ConfigureAwait(false);
-                }
-                else
-                {
-                    context.Result = MaxComplexityReached(complexity, _settings.MaximumAllowed);
+                    var complexity = analyzer(context.Services, context.Variables!);
+                    var allowedComplexity = GetMaximumAllowedComplexity(context);
+                    context.ContextData[_settings.ContextDataKey] = complexity;
+                    diagnostic.OperationComplexityResult(context, complexity, allowedComplexity);
+
+                    if (complexity <= allowedComplexity)
+                    {
+                        await _next(context).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        context.Result = MaxComplexityReached(complexity, _settings.MaximumAllowed);
+                    }
                 }
             }
             else
@@ -113,7 +121,7 @@ internal sealed class OperationComplexityMiddleware
                     operationAnalyzer = analyzer.Analyzer;
                 }
 
-                _cache.TryAddOperation(
+                _cache.TryAddAnalyzer(
                     requestContext.CreateCacheId(
                         CreateOperationId(
                             requestContext.DocumentId!,

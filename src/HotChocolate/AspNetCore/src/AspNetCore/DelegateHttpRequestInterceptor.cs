@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;

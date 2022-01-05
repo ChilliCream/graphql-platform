@@ -1,7 +1,3 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
 internal sealed class TerminateConnectionMessageHandler
