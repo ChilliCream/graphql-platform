@@ -51,7 +51,7 @@
         },
         {
           "OperationName": "FormatHttpResponse",
-          "DisplayName": "Fromat HTTP Response",
+          "DisplayName": "Format HTTP Response",
           "Status": "Unset",
           "tags": [],
           "event": []
