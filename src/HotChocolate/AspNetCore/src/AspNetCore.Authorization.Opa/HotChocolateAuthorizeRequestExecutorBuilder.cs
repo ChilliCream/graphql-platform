@@ -1,6 +1,8 @@
 using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -24,10 +26,9 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
     public static IRequestExecutorBuilder AddOpaAuthorizationHandler(
         this IRequestExecutorBuilder builder, Action<IConfiguration, OpaOptions>? configure = null)
     {
-        builder.AddAuthorization();
         builder.AddAuthorizationHandler<OpaAuthorizationHandler>();
         builder.Services.AddSingleton<IOpaDecision, OpaDecision>();
-        builder.Services.AddHttpClient<OpaService>((f, c) =>
+        builder.Services.AddHttpClient<IOpaService, OpaService>((f, c) =>
         {
             OpaOptions? options = f.GetRequiredService<OpaOptions>();
             c.BaseAddress = options.BaseAddress;
@@ -36,6 +37,17 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         builder.Services.AddSingleton(f =>
         {
             var options = new OpaOptions();
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+#if NET5_0_OR_GREATER
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+#else
+                IgnoreNullValues = true
+#endif
+            };
+            jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
+            options.JsonSerializerOptions = jsonOptions;
             configure?.Invoke(f.GetRequiredService<IConfiguration>(), options);
             return options;
         });
