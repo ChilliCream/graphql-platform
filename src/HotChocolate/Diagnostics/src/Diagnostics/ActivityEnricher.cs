@@ -18,6 +18,8 @@ namespace HotChocolate.Diagnostics;
 
 /// <summary>
 /// The activity enricher is used to add information to the activity spans. 
+/// You can inherit from this class and override the enricher methods to provide more or 
+/// less information.
 /// </summary>
 public class ActivityEnricher
 {
@@ -380,11 +382,6 @@ public class ActivityEnricher
     public virtual void EnrichCompileOperation(IRequestContext context, Activity activity)
     {
         activity.DisplayName = "Compile Operation";
-    }
-
-    public virtual void EnrichBuildQueryPlan(IRequestContext context, Activity activity)
-    {
-        activity.DisplayName = "Build Query Plan";
     }
 
     public virtual void EnrichExecuteOperation(IRequestContext context, Activity activity)

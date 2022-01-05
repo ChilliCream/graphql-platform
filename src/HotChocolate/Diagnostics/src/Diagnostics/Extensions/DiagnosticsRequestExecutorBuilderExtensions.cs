@@ -8,13 +8,40 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// Provides instrumentation extensions to the <see cref="IRequestExecutorBuilder"/>.
+/// </summary>
 public static class DiagnosticsRequestExecutorBuilderExtensions
 {
+    /// <summary>
+    /// Adds instrumentation to a schema that can be used for open-telemetry.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="options">
+    /// A delegate to modify the instrumentation options.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder.
+    /// </returns>
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
         Action<InstrumentationOptions>? options = default)
         => AddInstrumentation(builder, (_, opt) => options?.Invoke(opt));
 
+    /// <summary>
+    /// Adds instrumentation to a schema that can be used for open-telemetry.
+    /// </summary>
+    /// <param name="builder">
+    /// The GraphQL configuration builder.
+    /// </param>
+    /// <param name="options">
+    /// A delegate to modify the instrumentation options.
+    /// </param>
+    /// <returns>
+    /// Returns the GraphQL configuration builder.
+    /// </returns>
     public static IRequestExecutorBuilder AddInstrumentation(
         this IRequestExecutorBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
