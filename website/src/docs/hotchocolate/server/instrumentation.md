@@ -105,6 +105,20 @@ public override IDisposable ExecuteRequest(IRequestContext context)
 }
 ```
 
+## Server Events
+
+We can instrument server events of the Hot Chocolate transport layer by creating a class inheriting from `ServerDiagnosticEventListener`.
+
+```csharp
+public class MyServerEventListener : ServerDiagnosticEventListener
+{
+    public override IDisposable ExecuteHttpRequest(IRequestContext context)
+    {
+        // Omitted code for brevity
+    }
+}
+```
+
 ## Execution Events
 
 We can hook into execution events of the Hot Chocolate execution engine by creating a class inheriting from `ExecutionDiagnosticEventListener`.
@@ -277,7 +291,7 @@ app.Run();
 
 When running GraphQL requests, you can now inspect in _Jaeger_ how the request performed and look into the various parts of the execution telemetry.
 
-IMAGES
+![Jaeger](../../shared/jaeger1.png)
 
 ## Options
 
@@ -295,7 +309,7 @@ builder.Services
 
 > Beware, adding more instrumentation scopes is not free and will add more performance overhead.
 
-IMAGE
+![Jaeger](../../shared/jaeger2.png)
 
 Further, if you work with elastic and you want to give your root activity a name that is associated with the executed operation, you can quickly just tell the instrumentation to do just that for you.
 
@@ -309,6 +323,8 @@ builder.Services
     });
 ```
 
+![Jaeger](../../shared/jaeger3.png)
+
 ## Enriching Activities
 
 You can inherit from `ActivityEnricher` and override the enrich method for an Activity to add custom data or remove default data.
@@ -316,7 +332,7 @@ You can inherit from `ActivityEnricher` and override the enrich method for an Ac
 ```csharp
 public class CustomActivityEnricher : ActivityEnricher
 {
-    protected CustomActivityEnricher(
+    public CustomActivityEnricher(
         ObjectPool<StringBuilder> stringBuilderPoolPool,
         InstrumentationOptions options)
         : base(stringBuilderPoolPool, options)
@@ -338,7 +354,7 @@ Register the custom activity enricher as a singleton:
 builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
 ```
 
-IMAGE
+![Jaeger](../../shared/jaeger4.png)
 
 # Apollo Tracing
 
