@@ -129,7 +129,7 @@ public class Startup
                     author: String
                 }
                 ")
-            .BindComplexType<Mutation>();
+            .BindRuntimeType<Mutation>();
     }
 }
 ```

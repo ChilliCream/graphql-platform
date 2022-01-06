@@ -116,7 +116,7 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Subscription>();
+            .BindRuntimeType<Subscription>();
     }
 
     // Omitted code for brevity
