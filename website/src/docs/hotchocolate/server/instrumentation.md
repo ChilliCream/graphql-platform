@@ -119,6 +119,19 @@ public class MyServerEventListener : ServerDiagnosticEventListener
 }
 ```
 
+| Method name                  | Description  |
+| ---------------------------- | ----------- |
+| ExecuteHttpRequest | Called when starting to execute a GraphQL over HTTP request in the transport layer. |
+| StartSingleRequest | Called within the ExecuteHttpRequest scope and signals that a single GraphQL request will be executed. |
+| StartBatchRequest | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed. |
+| StartOperationBatchRequest | Called within the ExecuteHttpRequest scope and signals that a GraphQL batch request will be executed. |
+| HttpRequestError | Called within the ExecuteHttpRequest scope and signals that a error occurred while processing the GraphQL over HTTP request. |
+| ParseHttpRequest | Called when starting to parse a GraphQL HTTP request. |
+| ParserErrors | Called within the ParseHttpRequest scope and signals that a error occurred while parsing the GraphQL request. |
+| FormatHttpResponse | Called when starting to format a GraphQL query result. |
+| WebSocketSession | Called when starting to establish a GraphQL WebSocket session. |
+| WebSocketSessionError | Called within the WebSocketSession scope and signals that a error occurred that terminated the session. |
+
 ## Execution Events
 
 We can hook into execution events of the Hot Chocolate execution engine by creating a class inheriting from `ExecutionDiagnosticEventListener`.
@@ -144,6 +157,14 @@ The following methods can be overriden.
 | SyntaxError                  | Called if a document could not be parsed due to a syntax error.                                                                                |
 | ValidateDocument             | Scope that encloses the validation of a document.                                                                                              |
 | ValidationErrors             | Called if errors occured during the validation of the document.                                                                                |
+| AnalyzeOperationComplexity             | Called when starting to analyze the operation complexity. |
+| OperationComplexityAnalyzerCompiled             | Called within AnalyzeOperationComplexity scope and reports that an analyzer was compiled. |
+| OperationComplexityResult             | Called within AnalyzeOperationComplexity scope and reports the outcome of the analyzer. |
+| CoerceVariables             | Called when starting to coerce variables for a request. |
+| CompileOperation             | Called when starting to compile the GraphQL operation from the syntax tree. |
+| ExecuteOperation             | Called when starting to execute the GraphQL operation and its resolvers. |
+| ExecuteStream             | Called within the execute operation scope if the result is a streamed result. |
+| ExecuteDeferredTask             | Called when starting to execute a deferred part an operation within the ExecuteStream scope or within the ExecuteSubscription scope. |
 | StartProcessing              | Scope that encloses the scheduling of some work, e.g. invoking a DataLoader or starting execution tasks.                                       |
 | StopProcessing               | Called if the execution engine has to wait for resolvers to complete or whenever the execution has completed.                                  |
 | RunTask                      | Scope that encloses the execution of an execution task. A `ResolverExecutionTask` uses the `ResolveFieldValue` event instead.                  |
