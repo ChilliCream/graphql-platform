@@ -205,15 +205,15 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class People_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class people_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Arr_Rel_Insert_InputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
-        public global::System.String TypeName => "People_insert_input";
+        public global::System.String TypeName => "people_insert_input";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _cars_Arr_Rel_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("Cars_arr_rel_insert_input");
+            _cars_Arr_Rel_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("cars_arr_rel_insert_input");
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
             _uuidFormatter = serializerResolver.GetInputValueFormatter("uuid");
         }
@@ -225,7 +225,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.People_insert_input;
+            var input = runtimeValue as global::Foo.Bar.people_insert_input;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IPeople_insert_inputInfo;
             if (input is null || inputInfo is null)
             {
@@ -256,7 +256,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? FormatCars(global::Foo.Bar.Cars_arr_rel_insert_input? input)
+        private global::System.Object? FormatCars(global::Foo.Bar.cars_arr_rel_insert_input? input)
         {
             if (input is null)
             {
@@ -308,7 +308,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting data into table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class People_insert_input : global::Foo.Bar.State.IPeople_insert_inputInfo, global::System.IEquatable<People_insert_input>
+    public partial class people_insert_input : global::Foo.Bar.State.IPeople_insert_inputInfo, global::System.IEquatable<people_insert_input>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -327,10 +327,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((People_insert_input)obj);
+            return Equals((people_insert_input)obj);
         }
 
-        public virtual global::System.Boolean Equals(People_insert_input? other)
+        public virtual global::System.Boolean Equals(people_insert_input? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -379,7 +379,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::Foo.Bar.Cars_arr_rel_insert_input? _value_cars;
+        private global::Foo.Bar.cars_arr_rel_insert_input? _value_cars;
         private global::System.Boolean _set_cars;
         private global::System.String? _value_firstName;
         private global::System.Boolean _set_firstName;
@@ -387,7 +387,7 @@ namespace Foo.Bar
         private global::System.Boolean _set_id;
         private global::System.String? _value_lastName;
         private global::System.Boolean _set_lastName;
-        public global::Foo.Bar.Cars_arr_rel_insert_input? Cars
+        public global::Foo.Bar.cars_arr_rel_insert_input? Cars
         {
             get => _value_cars;
             set
@@ -435,15 +435,15 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Cars_arr_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class cars_arr_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Insert_InputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_On_ConflictFormatter = default !;
-        public global::System.String TypeName => "Cars_arr_rel_insert_input";
+        public global::System.String TypeName => "cars_arr_rel_insert_input";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _cars_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("Cars_insert_input");
-            _cars_On_ConflictFormatter = serializerResolver.GetInputValueFormatter("Cars_on_conflict");
+            _cars_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("cars_insert_input");
+            _cars_On_ConflictFormatter = serializerResolver.GetInputValueFormatter("cars_on_conflict");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -453,7 +453,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Cars_arr_rel_insert_input;
+            var input = runtimeValue as global::Foo.Bar.cars_arr_rel_insert_input;
             var inputInfo = runtimeValue as global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo;
             if (input is null || inputInfo is null)
             {
@@ -474,7 +474,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? FormatData(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_insert_input> input)
+        private global::System.Object? FormatData(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_insert_input> input)
         {
             if (input is null)
             {
@@ -495,7 +495,7 @@ namespace Foo.Bar
             return input_list;
         }
 
-        private global::System.Object? FormatOn_conflict(global::Foo.Bar.Cars_on_conflict? input)
+        private global::System.Object? FormatOn_conflict(global::Foo.Bar.cars_on_conflict? input)
         {
             if (input is null)
             {
@@ -511,7 +511,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting array relation for remote table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Cars_arr_rel_insert_input : global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo, global::System.IEquatable<Cars_arr_rel_insert_input>
+    public partial class cars_arr_rel_insert_input : global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo, global::System.IEquatable<cars_arr_rel_insert_input>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -530,10 +530,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Cars_arr_rel_insert_input)obj);
+            return Equals((cars_arr_rel_insert_input)obj);
         }
 
-        public virtual global::System.Boolean Equals(Cars_arr_rel_insert_input? other)
+        public virtual global::System.Boolean Equals(cars_arr_rel_insert_input? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -572,11 +572,11 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_insert_input> _value_data = default !;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_insert_input> _value_data = default !;
         private global::System.Boolean _set_data;
-        private global::Foo.Bar.Cars_on_conflict? _value_on_Conflict;
+        private global::Foo.Bar.cars_on_conflict? _value_on_Conflict;
         private global::System.Boolean _set_on_Conflict;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_insert_input> Data
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_insert_input> Data
         {
             get => _value_data;
             set
@@ -588,7 +588,7 @@ namespace Foo.Bar
 
         global::System.Boolean global::Foo.Bar.State.ICars_arr_rel_insert_inputInfo.IsDataSet => _set_data;
         ///<summary>on conflict condition</summary>
-        public global::Foo.Bar.Cars_on_conflict? On_conflict
+        public global::Foo.Bar.cars_on_conflict? On_conflict
         {
             get => _value_on_Conflict;
             set
@@ -603,17 +603,17 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Cars_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class cars_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _stringFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Obj_Rel_Insert_InputFormatter = default !;
-        public global::System.String TypeName => "Cars_insert_input";
+        public global::System.String TypeName => "cars_insert_input";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _stringFormatter = serializerResolver.GetInputValueFormatter("String");
             _uuidFormatter = serializerResolver.GetInputValueFormatter("uuid");
-            _people_Obj_Rel_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("People_obj_rel_insert_input");
+            _people_Obj_Rel_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_obj_rel_insert_input");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -623,7 +623,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Cars_insert_input;
+            var input = runtimeValue as global::Foo.Bar.cars_insert_input;
             var inputInfo = runtimeValue as global::Foo.Bar.State.ICars_insert_inputInfo;
             if (input is null || inputInfo is null)
             {
@@ -690,7 +690,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatPerson(global::Foo.Bar.People_obj_rel_insert_input? input)
+        private global::System.Object? FormatPerson(global::Foo.Bar.people_obj_rel_insert_input? input)
         {
             if (input is null)
             {
@@ -706,7 +706,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting data into table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Cars_insert_input : global::Foo.Bar.State.ICars_insert_inputInfo, global::System.IEquatable<Cars_insert_input>
+    public partial class cars_insert_input : global::Foo.Bar.State.ICars_insert_inputInfo, global::System.IEquatable<cars_insert_input>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -725,10 +725,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Cars_insert_input)obj);
+            return Equals((cars_insert_input)obj);
         }
 
-        public virtual global::System.Boolean Equals(Cars_insert_input? other)
+        public virtual global::System.Boolean Equals(cars_insert_input? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -783,7 +783,7 @@ namespace Foo.Bar
         private global::System.Boolean _set_id;
         private global::System.String? _value_ownerId;
         private global::System.Boolean _set_ownerId;
-        private global::Foo.Bar.People_obj_rel_insert_input? _value_person;
+        private global::Foo.Bar.people_obj_rel_insert_input? _value_person;
         private global::System.Boolean _set_person;
         public global::System.String? CarName
         {
@@ -818,7 +818,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_insert_inputInfo.IsOwnerIdSet => _set_ownerId;
-        public global::Foo.Bar.People_obj_rel_insert_input? Person
+        public global::Foo.Bar.people_obj_rel_insert_input? Person
         {
             get => _value_person;
             set
@@ -833,15 +833,15 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class People_obj_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class people_obj_rel_insert_inputInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Insert_InputFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_On_ConflictFormatter = default !;
-        public global::System.String TypeName => "People_obj_rel_insert_input";
+        public global::System.String TypeName => "people_obj_rel_insert_input";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("People_insert_input");
-            _people_On_ConflictFormatter = serializerResolver.GetInputValueFormatter("People_on_conflict");
+            _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_insert_input");
+            _people_On_ConflictFormatter = serializerResolver.GetInputValueFormatter("people_on_conflict");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -851,7 +851,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.People_obj_rel_insert_input;
+            var input = runtimeValue as global::Foo.Bar.people_obj_rel_insert_input;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo;
             if (input is null || inputInfo is null)
             {
@@ -872,7 +872,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? FormatData(global::Foo.Bar.People_insert_input input)
+        private global::System.Object? FormatData(global::Foo.Bar.people_insert_input input)
         {
             if (input is null)
             {
@@ -882,7 +882,7 @@ namespace Foo.Bar
             return _people_Insert_InputFormatter.Format(input);
         }
 
-        private global::System.Object? FormatOn_conflict(global::Foo.Bar.People_on_conflict? input)
+        private global::System.Object? FormatOn_conflict(global::Foo.Bar.people_on_conflict? input)
         {
             if (input is null)
             {
@@ -898,7 +898,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>input type for inserting object relation for remote table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class People_obj_rel_insert_input : global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo, global::System.IEquatable<People_obj_rel_insert_input>
+    public partial class people_obj_rel_insert_input : global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo, global::System.IEquatable<people_obj_rel_insert_input>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -917,10 +917,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((People_obj_rel_insert_input)obj);
+            return Equals((people_obj_rel_insert_input)obj);
         }
 
-        public virtual global::System.Boolean Equals(People_obj_rel_insert_input? other)
+        public virtual global::System.Boolean Equals(people_obj_rel_insert_input? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -955,11 +955,11 @@ namespace Foo.Bar
             }
         }
 
-        private global::Foo.Bar.People_insert_input _value_data = default !;
+        private global::Foo.Bar.people_insert_input _value_data = default !;
         private global::System.Boolean _set_data;
-        private global::Foo.Bar.People_on_conflict? _value_on_Conflict;
+        private global::Foo.Bar.people_on_conflict? _value_on_Conflict;
         private global::System.Boolean _set_on_Conflict;
-        public global::Foo.Bar.People_insert_input Data
+        public global::Foo.Bar.people_insert_input Data
         {
             get => _value_data;
             set
@@ -971,7 +971,7 @@ namespace Foo.Bar
 
         global::System.Boolean global::Foo.Bar.State.IPeople_obj_rel_insert_inputInfo.IsDataSet => _set_data;
         ///<summary>on conflict condition</summary>
-        public global::Foo.Bar.People_on_conflict? On_conflict
+        public global::Foo.Bar.people_on_conflict? On_conflict
         {
             get => _value_on_Conflict;
             set
@@ -986,17 +986,17 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class People_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class people_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_ConstraintFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Update_ColumnFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
-        public global::System.String TypeName => "People_on_conflict";
+        public global::System.String TypeName => "people_on_conflict";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _people_ConstraintFormatter = serializerResolver.GetInputValueFormatter("People_constraint");
             _people_Update_ColumnFormatter = serializerResolver.GetInputValueFormatter("People_update_column");
-            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("People_bool_exp");
+            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("people_bool_exp");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -1006,7 +1006,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.People_on_conflict;
+            var input = runtimeValue as global::Foo.Bar.people_on_conflict;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IPeople_on_conflictInfo;
             if (input is null || inputInfo is null)
             {
@@ -1055,7 +1055,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatWhere(global::Foo.Bar.People_bool_exp? input)
+        private global::System.Object? FormatWhere(global::Foo.Bar.people_bool_exp? input)
         {
             if (input is null)
             {
@@ -1071,7 +1071,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>on conflict condition type for table "people"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class People_on_conflict : global::Foo.Bar.State.IPeople_on_conflictInfo, global::System.IEquatable<People_on_conflict>
+    public partial class people_on_conflict : global::Foo.Bar.State.IPeople_on_conflictInfo, global::System.IEquatable<people_on_conflict>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1090,10 +1090,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((People_on_conflict)obj);
+            return Equals((people_on_conflict)obj);
         }
 
-        public virtual global::System.Boolean Equals(People_on_conflict? other)
+        public virtual global::System.Boolean Equals(people_on_conflict? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1140,7 +1140,7 @@ namespace Foo.Bar
         private global::System.Boolean _set_constraint;
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_update_column>? _value_update_Columns;
         private global::System.Boolean _set_update_Columns;
-        private global::Foo.Bar.People_bool_exp? _value_where;
+        private global::Foo.Bar.people_bool_exp? _value_where;
         private global::System.Boolean _set_where;
         public global::Foo.Bar.People_constraint Constraint
         {
@@ -1164,7 +1164,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_on_conflictInfo.IsUpdate_columnsSet => _set_update_Columns;
-        public global::Foo.Bar.People_bool_exp? Where
+        public global::Foo.Bar.people_bool_exp? Where
         {
             get => _value_where;
             set
@@ -1179,19 +1179,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class People_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class people_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Bool_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _string_Comparison_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuid_Comparison_ExpFormatter = default !;
-        public global::System.String TypeName => "People_bool_exp";
+        public global::System.String TypeName => "people_bool_exp";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("People_bool_exp");
-            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("Cars_bool_exp");
+            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("people_bool_exp");
+            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("cars_bool_exp");
             _string_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("String_comparison_exp");
-            _uuid_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("Uuid_comparison_exp");
+            _uuid_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("uuid_comparison_exp");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -1201,7 +1201,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.People_bool_exp;
+            var input = runtimeValue as global::Foo.Bar.people_bool_exp;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IPeople_bool_expInfo;
             if (input is null || inputInfo is null)
             {
@@ -1247,7 +1247,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? Format_and(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? input)
+        private global::System.Object? Format_and(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? input)
         {
             if (input is null)
             {
@@ -1270,7 +1270,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? Format_not(global::Foo.Bar.People_bool_exp? input)
+        private global::System.Object? Format_not(global::Foo.Bar.people_bool_exp? input)
         {
             if (input is null)
             {
@@ -1282,7 +1282,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? Format_or(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? input)
+        private global::System.Object? Format_or(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? input)
         {
             if (input is null)
             {
@@ -1305,7 +1305,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatCars(global::Foo.Bar.Cars_bool_exp? input)
+        private global::System.Object? FormatCars(global::Foo.Bar.cars_bool_exp? input)
         {
             if (input is null)
             {
@@ -1329,7 +1329,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.Uuid_comparison_exp? input)
+        private global::System.Object? FormatId(global::Foo.Bar.uuid_comparison_exp? input)
         {
             if (input is null)
             {
@@ -1357,7 +1357,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to filter rows from the table "people". All fields are combined with a logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class People_bool_exp : global::Foo.Bar.State.IPeople_bool_expInfo, global::System.IEquatable<People_bool_exp>
+    public partial class people_bool_exp : global::Foo.Bar.State.IPeople_bool_expInfo, global::System.IEquatable<people_bool_exp>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1376,10 +1376,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((People_bool_exp)obj);
+            return Equals((people_bool_exp)obj);
         }
 
-        public virtual global::System.Boolean Equals(People_bool_exp? other)
+        public virtual global::System.Boolean Equals(people_bool_exp? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1449,21 +1449,21 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? _value__and;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? _value__and;
         private global::System.Boolean _set__and;
-        private global::Foo.Bar.People_bool_exp? _value__not;
+        private global::Foo.Bar.people_bool_exp? _value__not;
         private global::System.Boolean _set__not;
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? _value__or;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? _value__or;
         private global::System.Boolean _set__or;
-        private global::Foo.Bar.Cars_bool_exp? _value_cars;
+        private global::Foo.Bar.cars_bool_exp? _value_cars;
         private global::System.Boolean _set_cars;
         private global::Foo.Bar.String_comparison_exp? _value_firstName;
         private global::System.Boolean _set_firstName;
-        private global::Foo.Bar.Uuid_comparison_exp? _value_id;
+        private global::Foo.Bar.uuid_comparison_exp? _value_id;
         private global::System.Boolean _set_id;
         private global::Foo.Bar.String_comparison_exp? _value_lastName;
         private global::System.Boolean _set_lastName;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? _and
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? _and
         {
             get => _value__and;
             set
@@ -1474,7 +1474,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_andSet => _set__and;
-        public global::Foo.Bar.People_bool_exp? _not
+        public global::Foo.Bar.people_bool_exp? _not
         {
             get => _value__not;
             set
@@ -1485,7 +1485,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_notSet => _set__not;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_bool_exp>? _or
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_bool_exp>? _or
         {
             get => _value__or;
             set
@@ -1496,7 +1496,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.Is_orSet => _set__or;
-        public global::Foo.Bar.Cars_bool_exp? Cars
+        public global::Foo.Bar.cars_bool_exp? Cars
         {
             get => _value_cars;
             set
@@ -1518,7 +1518,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.IPeople_bool_expInfo.IsFirstNameSet => _set_firstName;
-        public global::Foo.Bar.Uuid_comparison_exp? Id
+        public global::Foo.Bar.uuid_comparison_exp? Id
         {
             get => _value_id;
             set
@@ -1544,19 +1544,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Cars_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class cars_bool_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Bool_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _string_Comparison_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuid_Comparison_ExpFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _people_Bool_ExpFormatter = default !;
-        public global::System.String TypeName => "Cars_bool_exp";
+        public global::System.String TypeName => "cars_bool_exp";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
-            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("Cars_bool_exp");
+            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("cars_bool_exp");
             _string_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("String_comparison_exp");
-            _uuid_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("Uuid_comparison_exp");
-            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("People_bool_exp");
+            _uuid_Comparison_ExpFormatter = serializerResolver.GetInputValueFormatter("uuid_comparison_exp");
+            _people_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("people_bool_exp");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -1566,7 +1566,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Cars_bool_exp;
+            var input = runtimeValue as global::Foo.Bar.cars_bool_exp;
             var inputInfo = runtimeValue as global::Foo.Bar.State.ICars_bool_expInfo;
             if (input is null || inputInfo is null)
             {
@@ -1612,7 +1612,7 @@ namespace Foo.Bar
             return fields;
         }
 
-        private global::System.Object? Format_and(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? input)
+        private global::System.Object? Format_and(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? input)
         {
             if (input is null)
             {
@@ -1635,7 +1635,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? Format_not(global::Foo.Bar.Cars_bool_exp? input)
+        private global::System.Object? Format_not(global::Foo.Bar.cars_bool_exp? input)
         {
             if (input is null)
             {
@@ -1647,7 +1647,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? Format_or(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? input)
+        private global::System.Object? Format_or(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? input)
         {
             if (input is null)
             {
@@ -1682,7 +1682,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatId(global::Foo.Bar.Uuid_comparison_exp? input)
+        private global::System.Object? FormatId(global::Foo.Bar.uuid_comparison_exp? input)
         {
             if (input is null)
             {
@@ -1694,7 +1694,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatOwnerId(global::Foo.Bar.Uuid_comparison_exp? input)
+        private global::System.Object? FormatOwnerId(global::Foo.Bar.uuid_comparison_exp? input)
         {
             if (input is null)
             {
@@ -1706,7 +1706,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatPerson(global::Foo.Bar.People_bool_exp? input)
+        private global::System.Object? FormatPerson(global::Foo.Bar.people_bool_exp? input)
         {
             if (input is null)
             {
@@ -1722,7 +1722,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to filter rows from the table "cars". All fields are combined with a logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Cars_bool_exp : global::Foo.Bar.State.ICars_bool_expInfo, global::System.IEquatable<Cars_bool_exp>
+    public partial class cars_bool_exp : global::Foo.Bar.State.ICars_bool_expInfo, global::System.IEquatable<cars_bool_exp>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -1741,10 +1741,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Cars_bool_exp)obj);
+            return Equals((cars_bool_exp)obj);
         }
 
-        public virtual global::System.Boolean Equals(Cars_bool_exp? other)
+        public virtual global::System.Boolean Equals(cars_bool_exp? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -1814,21 +1814,21 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? _value__and;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? _value__and;
         private global::System.Boolean _set__and;
-        private global::Foo.Bar.Cars_bool_exp? _value__not;
+        private global::Foo.Bar.cars_bool_exp? _value__not;
         private global::System.Boolean _set__not;
-        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? _value__or;
+        private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? _value__or;
         private global::System.Boolean _set__or;
         private global::Foo.Bar.String_comparison_exp? _value_carName;
         private global::System.Boolean _set_carName;
-        private global::Foo.Bar.Uuid_comparison_exp? _value_id;
+        private global::Foo.Bar.uuid_comparison_exp? _value_id;
         private global::System.Boolean _set_id;
-        private global::Foo.Bar.Uuid_comparison_exp? _value_ownerId;
+        private global::Foo.Bar.uuid_comparison_exp? _value_ownerId;
         private global::System.Boolean _set_ownerId;
-        private global::Foo.Bar.People_bool_exp? _value_person;
+        private global::Foo.Bar.people_bool_exp? _value_person;
         private global::System.Boolean _set_person;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? _and
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? _and
         {
             get => _value__and;
             set
@@ -1839,7 +1839,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.Is_andSet => _set__and;
-        public global::Foo.Bar.Cars_bool_exp? _not
+        public global::Foo.Bar.cars_bool_exp? _not
         {
             get => _value__not;
             set
@@ -1850,7 +1850,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.Is_notSet => _set__not;
-        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_bool_exp>? _or
+        public global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.cars_bool_exp>? _or
         {
             get => _value__or;
             set
@@ -1872,7 +1872,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsCarNameSet => _set_carName;
-        public global::Foo.Bar.Uuid_comparison_exp? Id
+        public global::Foo.Bar.uuid_comparison_exp? Id
         {
             get => _value_id;
             set
@@ -1883,7 +1883,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsIdSet => _set_id;
-        public global::Foo.Bar.Uuid_comparison_exp? OwnerId
+        public global::Foo.Bar.uuid_comparison_exp? OwnerId
         {
             get => _value_ownerId;
             set
@@ -1894,7 +1894,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_bool_expInfo.IsOwnerIdSet => _set_ownerId;
-        public global::Foo.Bar.People_bool_exp? Person
+        public global::Foo.Bar.people_bool_exp? Person
         {
             get => _value_person;
             set
@@ -2700,11 +2700,11 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Uuid_comparison_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class uuid_comparison_expInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _uuidFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _booleanFormatter = default !;
-        public global::System.String TypeName => "Uuid_comparison_exp";
+        public global::System.String TypeName => "uuid_comparison_exp";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _uuidFormatter = serializerResolver.GetInputValueFormatter("uuid");
@@ -2718,7 +2718,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Uuid_comparison_exp;
+            var input = runtimeValue as global::Foo.Bar.uuid_comparison_exp;
             var inputInfo = runtimeValue as global::Foo.Bar.State.IUuid_comparison_expInfo;
             if (input is null || inputInfo is null)
             {
@@ -2908,7 +2908,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Uuid_comparison_exp : global::Foo.Bar.State.IUuid_comparison_expInfo, global::System.IEquatable<Uuid_comparison_exp>
+    public partial class uuid_comparison_exp : global::Foo.Bar.State.IUuid_comparison_expInfo, global::System.IEquatable<uuid_comparison_exp>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -2927,10 +2927,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Uuid_comparison_exp)obj);
+            return Equals((uuid_comparison_exp)obj);
         }
 
-        public virtual global::System.Boolean Equals(Uuid_comparison_exp? other)
+        public virtual global::System.Boolean Equals(uuid_comparison_exp? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -3131,17 +3131,17 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputValueFormatterGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public partial class Cars_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
+    public partial class cars_on_conflictInputValueFormatter : global::StrawberryShake.Serialization.IInputObjectFormatter
     {
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_ConstraintFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Update_ColumnFormatter = default !;
         private global::StrawberryShake.Serialization.IInputValueFormatter _cars_Bool_ExpFormatter = default !;
-        public global::System.String TypeName => "Cars_on_conflict";
+        public global::System.String TypeName => "cars_on_conflict";
         public void Initialize(global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _cars_ConstraintFormatter = serializerResolver.GetInputValueFormatter("Cars_constraint");
             _cars_Update_ColumnFormatter = serializerResolver.GetInputValueFormatter("Cars_update_column");
-            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("Cars_bool_exp");
+            _cars_Bool_ExpFormatter = serializerResolver.GetInputValueFormatter("cars_bool_exp");
         }
 
         public global::System.Object? Format(global::System.Object? runtimeValue)
@@ -3151,7 +3151,7 @@ namespace Foo.Bar
                 return null;
             }
 
-            var input = runtimeValue as global::Foo.Bar.Cars_on_conflict;
+            var input = runtimeValue as global::Foo.Bar.cars_on_conflict;
             var inputInfo = runtimeValue as global::Foo.Bar.State.ICars_on_conflictInfo;
             if (input is null || inputInfo is null)
             {
@@ -3200,7 +3200,7 @@ namespace Foo.Bar
             }
         }
 
-        private global::System.Object? FormatWhere(global::Foo.Bar.Cars_bool_exp? input)
+        private global::System.Object? FormatWhere(global::Foo.Bar.cars_bool_exp? input)
         {
             if (input is null)
             {
@@ -3216,7 +3216,7 @@ namespace Foo.Bar
     // StrawberryShake.CodeGeneration.CSharp.Generators.InputTypeGenerator
     ///<summary>on conflict condition type for table "cars"</summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "0.0.0.0")]
-    public partial class Cars_on_conflict : global::Foo.Bar.State.ICars_on_conflictInfo, global::System.IEquatable<Cars_on_conflict>
+    public partial class cars_on_conflict : global::Foo.Bar.State.ICars_on_conflictInfo, global::System.IEquatable<cars_on_conflict>
     {
         public override global::System.Boolean Equals(global::System.Object? obj)
         {
@@ -3235,10 +3235,10 @@ namespace Foo.Bar
                 return false;
             }
 
-            return Equals((Cars_on_conflict)obj);
+            return Equals((cars_on_conflict)obj);
         }
 
-        public virtual global::System.Boolean Equals(Cars_on_conflict? other)
+        public virtual global::System.Boolean Equals(cars_on_conflict? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -3285,7 +3285,7 @@ namespace Foo.Bar
         private global::System.Boolean _set_constraint;
         private global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.Cars_update_column>? _value_update_Columns;
         private global::System.Boolean _set_update_Columns;
-        private global::Foo.Bar.Cars_bool_exp? _value_where;
+        private global::Foo.Bar.cars_bool_exp? _value_where;
         private global::System.Boolean _set_where;
         public global::Foo.Bar.Cars_constraint Constraint
         {
@@ -3309,7 +3309,7 @@ namespace Foo.Bar
         }
 
         global::System.Boolean global::Foo.Bar.State.ICars_on_conflictInfo.IsUpdate_columnsSet => _set_update_Columns;
-        public global::Foo.Bar.Cars_bool_exp? Where
+        public global::Foo.Bar.cars_bool_exp? Where
         {
             get => _value_where;
             set
@@ -3537,23 +3537,23 @@ namespace Foo.Bar
         public InsertPeopleMutation(global::StrawberryShake.IOperationExecutor<IInsertPeopleResult> operationExecutor, global::StrawberryShake.Serialization.ISerializerResolver serializerResolver)
         {
             _operationExecutor = operationExecutor ?? throw new global::System.ArgumentNullException(nameof(operationExecutor));
-            _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("People_insert_input");
+            _people_Insert_InputFormatter = serializerResolver.GetInputValueFormatter("people_insert_input");
         }
 
         global::System.Type global::StrawberryShake.IOperationRequestFactory.ResultType => typeof(IInsertPeopleResult);
-        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
+        public async global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default)
         {
             var request = CreateRequest(people);
             return await _operationExecutor.ExecuteAsync(request, cancellationToken).ConfigureAwait(false);
         }
 
-        public global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null)
+        public global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null)
         {
             var request = CreateRequest(people);
             return _operationExecutor.Watch(request, strategy);
         }
 
-        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> people)
+        private global::StrawberryShake.OperationRequest CreateRequest(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people)
         {
             var variables = new global::System.Collections.Generic.Dictionary<global::System.String, global::System.Object?>();
             variables.Add("people", FormatPeople(people));
@@ -3565,7 +3565,7 @@ namespace Foo.Bar
             return new global::StrawberryShake.OperationRequest(id: InsertPeopleMutationDocument.Instance.Hash.Value, name: "InsertPeople", document: InsertPeopleMutationDocument.Instance, strategy: global::StrawberryShake.RequestStrategy.Default, variables: variables);
         }
 
-        private global::System.Object? FormatPeople(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> value)
+        private global::System.Object? FormatPeople(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> value)
         {
             if (value is null)
             {
@@ -3607,8 +3607,8 @@ namespace Foo.Bar
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
     public partial interface IInsertPeopleMutation : global::StrawberryShake.IOperationRequestFactory
     {
-        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
-        global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.People_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
+        global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> ExecuteAsync(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::System.Threading.CancellationToken cancellationToken = default);
+        global::System.IObservable<global::StrawberryShake.IOperationResult<IInsertPeopleResult>> Watch(global::System.Collections.Generic.IReadOnlyList<global::Foo.Bar.people_insert_input> people, global::StrawberryShake.ExecutionStrategy? strategy = null);
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ClientGenerator
@@ -4288,16 +4288,16 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer>(services, new global::StrawberryShake.Serialization.StringSerializer("uuid"));
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.People_insert_inputInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Cars_arr_rel_insert_inputInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Cars_insert_inputInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.People_obj_rel_insert_inputInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.People_on_conflictInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.People_bool_expInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Cars_bool_expInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.people_insert_inputInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.cars_arr_rel_insert_inputInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.cars_insert_inputInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.people_obj_rel_insert_inputInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.people_on_conflictInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.people_bool_expInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.cars_bool_expInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.String_comparison_expInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Uuid_comparison_expInputValueFormatter>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.Cars_on_conflictInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.uuid_comparison_expInputValueFormatter>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::Foo.Bar.cars_on_conflictInputValueFormatter>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializerResolver>(services, sp => new global::StrawberryShake.Serialization.SerializerResolver(global::System.Linq.Enumerable.Concat(global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(parentServices), global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::System.Collections.Generic.IEnumerable<global::StrawberryShake.Serialization.ISerializer>>(sp))));
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IInsertPeopleResult>, global::Foo.Bar.State.InsertPeopleResultFactory>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IOperationResultDataFactory>(services, sp => global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<global::StrawberryShake.IOperationResultDataFactory<global::Foo.Bar.IInsertPeopleResult>>(sp));

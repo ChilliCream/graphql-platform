@@ -31,13 +31,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string infoInterfaceType)
         {
             RecordDeclarationSyntax recordDeclaration =
-                RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.Value)
+                RecordDeclaration(Token(SyntaxKind.RecordKeyword), descriptor.Name.ToEscapedName())
                     .AddImplements(infoInterfaceType)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
-                    .AddEquality(descriptor.Name, descriptor.Properties, true)
+                    .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties, true)
                     .AddSummary(descriptor.Documentation)
                     .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken));
 
@@ -58,13 +58,13 @@ namespace StrawberryShake.CodeGeneration.CSharp.Generators
             string infoInterfaceType)
         {
             ClassDeclarationSyntax classDeclaration =
-                ClassDeclaration(descriptor.Name.Value)
+                ClassDeclaration(descriptor.Name.ToEscapedName())
                     .AddImplements(infoInterfaceType)
                     .AddModifiers(
                         Token(SyntaxKind.PublicKeyword),
                         Token(SyntaxKind.PartialKeyword))
                     .AddGeneratedAttribute()
-                    .AddEquality(descriptor.Name, descriptor.Properties)
+                    .AddEquality(descriptor.Name.ToEscapedName(), descriptor.Properties)
                     .AddSummary(descriptor.Documentation);
 
             classDeclaration = GenerateProperties(

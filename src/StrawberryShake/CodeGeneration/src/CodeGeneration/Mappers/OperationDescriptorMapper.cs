@@ -22,8 +22,7 @@ namespace StrawberryShake.CodeGeneration.Mappers
                             NameString typeName = arg.Type.TypeName();
 
                             INamedTypeDescriptor namedTypeDescriptor =
-                                context.Types.Single(type =>
-                                    type.Name.Equals(Utilities.NameUtils.GetClassName(typeName)));
+                                context.Types.Single(type => type.Name.Equals(typeName));
 
                             return new PropertyDescriptor(
                                 arg.Name,
