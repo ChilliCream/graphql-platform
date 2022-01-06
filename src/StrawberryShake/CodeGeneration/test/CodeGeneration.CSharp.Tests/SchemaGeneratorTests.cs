@@ -513,5 +513,22 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "extend schema @key(fields: \"id\")",
                 FileResource.Open("HasuraSchema.graphql"));
         }
+
+        [Fact]
+        public void LowerCaseScalarArgument()
+        {
+            AssertResult(
+                @"
+                    query GetPeopleByPk($id: uuid!) {
+                        people_by_pk(id: $id) {
+                            id
+                            firstName
+                            lastName
+                        }
+                    }
+                ",
+                "extend schema @key(fields: \"id\")",
+                FileResource.Open("HasuraSchema.graphql"));
+        }
     }
 }
