@@ -197,8 +197,8 @@ namespace HotChocolate.ApolloFederation
     public class UserWithClassAttribute
     {
         public int Id { get; set; }
-        public string IdCode { get; set; }
-        public Review[] Reviews { get; set; }
+        public string IdCode { get; set; } = default!;
+        public Review[] Reviews { get; set; } = default!;
     }
 
     public class UserWithPropertyAttributes
@@ -206,19 +206,19 @@ namespace HotChocolate.ApolloFederation
         [Key]
         public int Id { get; set; }
         [Key]
-        public string IdCode { get; set; }
+        public string IdCode { get; set; } = default!;
     }
 
     [Key("id address { matchCode }")]
     public class UserWithNestesKeyClassAttribute
     {
         public int Id { get; set; }
-        public Address Address { get; set; }
+        public Address Address { get; set; } = default!;
     }
 
     public class Address
     {
-        public string MatchCode { get; set; }
+        public string MatchCode { get; set; } = default!;
     }
 
     [Key("id")]

@@ -8,12 +8,14 @@ namespace HotChocolate.ApolloFederation
     {
         protected ISchema CreateSchema(Action<ISchemaBuilder> configure)
         {
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("bar"));
+            ISchemaBuilder builder =
+                SchemaBuilder.New()
+                    .AddQueryType(
+                        c =>
+                        {
+                            c.Name("Query");
+                            c.Field("foo").Type<StringType>().Resolve("bar");
+                        });
 
             configure(builder);
 

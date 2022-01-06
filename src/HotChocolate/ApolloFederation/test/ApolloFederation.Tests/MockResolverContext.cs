@@ -22,14 +22,22 @@ namespace HotChocolate.ApolloFederation
         public FieldNode FieldSelection { get; }
         public NameString ResponseName { get; }
         public Path Path { get; }
-        public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = new Dictionary<string, object?>().ToImmutableDictionary();
-        public IImmutableDictionary<string, object?> LocalContextData { get; set; } = new Dictionary<string, object?>().ToImmutableDictionary();
+        public IImmutableDictionary<string, object?> ScopedContextData { get; set; } =
+            new Dictionary<string, object?>().ToImmutableDictionary();
+        public IImmutableDictionary<string, object?> LocalContextData { get; set; } =
+            new Dictionary<string, object?>().ToImmutableDictionary();
         public IVariableValueCollection Variables { get; }
         public CancellationToken RequestAborted { get; }
 
         public IFieldSelection Selection => throw new NotImplementedException();
 
         public bool HasErrors => throw new NotImplementedException();
+
+        IServiceProvider IResolverContext.Services
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
+        }
 
         public MockResolverContext(ISchema schema)
         {
@@ -100,6 +108,11 @@ namespace HotChocolate.ApolloFederation
         }
 
         public T GetQueryRoot<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ReportError(Exception exception, Action<IErrorBuilder>? configure = null)
         {
             throw new NotImplementedException();
         }

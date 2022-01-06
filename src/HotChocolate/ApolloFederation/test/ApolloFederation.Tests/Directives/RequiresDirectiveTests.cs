@@ -12,10 +12,7 @@ namespace HotChocolate.ApolloFederation.Directives
         public void AddRequiresDirective_EnsureAvailableInSchema()
         {
             // arrange
-            ISchema schema = CreateSchema(b =>
-            {
-                b.AddDirectiveType<RequiresDirectiveType>();
-            });
+            ISchema schema = CreateSchema(b => b.AddDirectiveType<RequiresDirectiveType>());
 
             // act
             DirectiveType? directive =
@@ -28,7 +25,8 @@ namespace HotChocolate.ApolloFederation.Directives
             Assert.Equal(WellKnownTypeNames.Requires, directive!.Name);
             Assert.Single(directive.Arguments);
             this.AssertDirectiveHasFieldsArgument(directive);
-            Assert.Collection(directive.Locations,
+            Assert.Collection(
+                directive.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
 
         }
@@ -41,8 +39,7 @@ namespace HotChocolate.ApolloFederation.Directives
 
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
-                    @"
-                    type Review @key(fields: ""id"") {
+                    @"type Review @key(fields: ""id"") {
                         id: Int!
                         product: Product! @requires(fields: ""id"")
                     }
@@ -53,8 +50,7 @@ namespace HotChocolate.ApolloFederation.Directives
 
                     type Query {
                         someField(a: Int): Review
-                    }
-                ")
+                    }")
                 .AddDirectiveType<KeyDirectiveType>()
                 .AddDirectiveType<RequiresDirectiveType>()
                 .AddType<FieldSetType>()
@@ -65,17 +61,21 @@ namespace HotChocolate.ApolloFederation.Directives
             ObjectType testType = schema.GetType<ObjectType>("Review");
 
             // assert
-            Assert.Collection(testType.Fields.Single(field => field.Name.Value == "product").Directives,
+            Assert.Collection(
+                testType.Fields.Single(field => field.Name.Value == "product").Directives,
                 providesDirective =>
                 {
                     Assert.Equal(
                         WellKnownTypeNames.Requires,
-                        providesDirective.Name
-                    );
-                    Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id\"", providesDirective.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                        providesDirective.Name);
+                    Assert.Equal(
+                        "fields",
+                        providesDirective.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal(
+                        "\"id\"",
+                        providesDirective.ToNode().Arguments[0].Value.ToString());
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
@@ -85,43 +85,35 @@ namespace HotChocolate.ApolloFederation.Directives
             // arrange
             Snapshot.FullName();
 
-            var schema = Schema.Create(
-                t =>
+            var productType = new ObjectType(
+                o =>
                 {
-                    var productType = new ObjectType(
-                        o =>
-                        {
-                            o.Name("Product");
-                            o.Field("name")
-                                .Type<StringType>();
-                        }
-                    );
-
-                    var reviewType = new ObjectType(
-                        o =>
-                        {
-                            o.Name("Review")
-                                .Key("id");
-                            o.Field("id")
-                                .Type<IntType>();
-                            o.Field("product")
-                                .Requires("id")
-                                .Type(productType);
-                        }
-                    );
-                    t.RegisterType(reviewType);
-                    t.RegisterQueryType(new ObjectType(
-                        o => o.Name("Query")
-                            .Field("someField")
-                            .Argument("a", a => a.Type<IntType>())
-                            .Type(reviewType)
-                    ));
-
-                    t.RegisterDirective<KeyDirectiveType>();
-                    t.RegisterDirective<RequiresDirectiveType>();
-                    t.RegisterType<FieldSetType>();
-                    t.Use(next => context => default);
+                    o.Name("Product");
+                    o.Field("name").Type<StringType>();
                 });
+
+            var reviewType = new ObjectType(
+                o =>
+                {
+                    o.Name("Review").Key("id");
+                    o.Field("id").Type<IntType>();
+                    o.Field("product").Requires("id").Type(productType);
+                });
+
+            var queryType = new ObjectType(
+                o =>
+                {
+                    o.Name("Query");
+                    o.Field("someField").Argument("a", a => a.Type<IntType>()).Type(reviewType);
+                });
+
+            var schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType<FieldSetType>()
+                .AddDirectiveType<KeyDirectiveType>()
+                .AddDirectiveType<RequiresDirectiveType>()
+                .Use(next => context => default)
+                .Create();
 
             // act
             ObjectType testType = schema.GetType<ObjectType>("Review");
@@ -172,20 +164,21 @@ namespace HotChocolate.ApolloFederation.Directives
 
         public class Query
         {
-            public Review someField(int id) => default;
+            public Review someField(int id) => default!;
         }
 
         public class Review
         {
             [Key]
             public int Id { get; set; }
+
             [Requires("id")]
-            public Product Product { get; set; }
+            public Product Product { get; set; } = default!;
         }
 
         public class Product
         {
-            public string Name { get; set; }
+            public string Name { get; set; } = default!;
         }
     }
 }

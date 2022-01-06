@@ -118,12 +118,12 @@ namespace HotChocolate.ApolloFederation
 
         public class Query_InClass_Invalid
         {
-            public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; }
+            public InvalidInClassRefResolver InvalidInClassRefResolver { get; set; } = default!;
         }
 
         public class Query_ExternalClass_Invalid
         {
-            public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; }
+            public ExternalRefResolver_Invalid ExternalRefResolver_Invalid { get; set; } = default!;
         }
 
         [ReferenceResolver(EntityResolver = "non-existing-method")]
@@ -151,9 +151,9 @@ namespace HotChocolate.ApolloFederation
 
         public class Query
         {
-            public InClassRefResolver InClassRefResolver { get; set; }
-            public ExternalRefResolver ExternalRefResolver { get; set; }
-            public ExternalRefResolverRenamedMethod ExternalRefResolverRenamedMethod { get; set; }
+            public InClassRefResolver InClassRefResolver { get; set; } = default!;
+            public ExternalRefResolver ExternalRefResolver { get; set; } = default!;
+            public ExternalRefResolverRenamedMethod ExternalRefResolverRenamedMethod { get; set; } = default!;
         }
 
         [ReferenceResolver(EntityResolver = nameof(GetAsync))]
@@ -162,9 +162,13 @@ namespace HotChocolate.ApolloFederation
             [Key]
             public string Id { get; set; }
 
-            public async Task<InClassRefResolver> GetAsync([LocalState] ObjectValueNode data)
+            public Task<InClassRefResolver> GetAsync([LocalState] ObjectValueNode data)
             {
-                return new InClassRefResolver(){Id = nameof(InClassRefResolver)};
+                return Task.FromResult(
+                    new InClassRefResolver()
+                    {
+                        Id = nameof(InClassRefResolver)
+                    });
             }
         }
 
@@ -172,7 +176,7 @@ namespace HotChocolate.ApolloFederation
         public class ExternalRefResolver
         {
             [Key]
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         [ReferenceResolver(
@@ -181,24 +185,32 @@ namespace HotChocolate.ApolloFederation
         public class ExternalRefResolverRenamedMethod
         {
             [Key]
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         public static class ExternalReferenceResolverRenamedMethod
         {
-            public static async Task<ExternalRefResolver> SomeRenamedMethod(
+            public static Task<ExternalRefResolver> SomeRenamedMethod(
                 [LocalState] ObjectValueNode data)
             {
-                return new ExternalRefResolver(){Id = nameof(ExternalRefResolverRenamedMethod)};
+                return Task.FromResult(
+                    new ExternalRefResolver()
+                    {
+                        Id = nameof(ExternalRefResolverRenamedMethod)
+                    });
             }
         }
 
         public static class ExternalReferenceResolver
         {
-            public static async Task<ExternalRefResolver> GetExternalReferenceResolverAsync(
+            public static Task<ExternalRefResolver> GetExternalReferenceResolverAsync(
                 [LocalState] ObjectValueNode data)
             {
-                return new ExternalRefResolver(){Id = nameof(ExternalRefResolver)};
+                return Task.FromResult(
+                    new ExternalRefResolver()
+                    {
+                        Id = nameof(ExternalRefResolver)
+                    });
             }
         }
 

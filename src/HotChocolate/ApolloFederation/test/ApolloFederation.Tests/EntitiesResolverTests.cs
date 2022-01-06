@@ -128,22 +128,22 @@ namespace HotChocolate.ApolloFederation
 
         public class Query
         {
-            public ForeignType ForeignType { get; set; }
-            public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; }
-            public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; }
-            public MixedFieldTypes MixedFieldTypes { get; set; }
+            public ForeignType ForeignType { get; set; } = default!;
+            public TypeWithReferenceResolver TypeWithReferenceResolver { get; set; } = default!;
+            public TypeWithoutRefResolver TypeWithoutRefResolver { get; set; } = default!;
+            public MixedFieldTypes MixedFieldTypes { get; set; } = default!;
         }
 
         public class TypeWithoutRefResolver
         {
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
         }
 
         [ReferenceResolver(EntityResolver = nameof(Get))]
         public class TypeWithReferenceResolver
         {
-            public string Id { get; set; }
-            public string SomeField { get; set; }
+            public string Id { get; set; } = default!;
+            public string SomeField { get; set; } = default!;
 
             public static TypeWithReferenceResolver Get([LocalState] ObjectValueNode data)
             {
@@ -155,10 +155,10 @@ namespace HotChocolate.ApolloFederation
         public class ForeignType
         {
             [Key][External]
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
 
             [External]
-            public string SomeExternalField { get; set; }
+            public string SomeExternalField { get; set; } = default!;
 
             public string InternalField { get; set; } = "IntenalValue";
         }
@@ -167,7 +167,7 @@ namespace HotChocolate.ApolloFederation
         public class MixedFieldTypes
         {
             [Key][External]
-            public string Id { get; set; }
+            public string Id { get; set; } = default!;
 
             [External]
             public int IntField { get; set; }

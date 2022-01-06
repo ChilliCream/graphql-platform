@@ -28,7 +28,8 @@ namespace HotChocolate.ApolloFederation
             ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
             // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver(new MockResolverContext(schema));
+            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+                new MockResolverContext(schema));
             value.MatchSnapshot();
         }
 
@@ -54,7 +55,8 @@ namespace HotChocolate.ApolloFederation
             ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
             // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver(new MockResolverContext(schema));
+            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+                new MockResolverContext(schema));
             value.MatchSnapshot();
         }
 
@@ -73,7 +75,8 @@ namespace HotChocolate.ApolloFederation
             ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
             // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver(new MockResolverContext(schema));
+            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+                new MockResolverContext(schema));
             value.MatchSnapshot();
         }
 
@@ -90,7 +93,8 @@ namespace HotChocolate.ApolloFederation
             ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
             // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver(new MockResolverContext(schema));
+            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+                new MockResolverContext(schema));
             value.MatchSnapshot();
         }
 

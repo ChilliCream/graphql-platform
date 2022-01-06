@@ -11,7 +11,7 @@ namespace HotChocolate.ApolloFederation
         {
             // arrange
             ISchema? schema = null;
-            void action() => FederationSchemaPrinter.Print(schema);
+            void action() => FederationSchemaPrinter.Print(schema!);
 
             // act
             // assert
@@ -151,7 +151,7 @@ namespace HotChocolate.ApolloFederation
 
         public class QueryRoot<T>
         {
-            public T GetEntity(int id) => default;
+            public T GetEntity(int id) => default!;
         }
 
         public class User
@@ -159,24 +159,24 @@ namespace HotChocolate.ApolloFederation
             [Key]
             public int Id { get; set; }
             [External]
-            public string IdCode { get; set; }
+            public string IdCode { get; set; } = default!;
             [Requires("idCode")]
-            public string IdCodeShort { get; set; }
+            public string IdCodeShort { get; set; } = default!;
             [Provides("zipcode")]
-            public Address Address { get; set; }
+            public Address Address { get; set; } = default!;
         }
 
         public class Address
         {
             [External]
-            public string Zipcode { get; set; }
+            public string Zipcode { get; set; } = default!;
         }
 
         [ForeignServiceTypeExtension]
         public class Product
         {
             [Key]
-            public string Upc { get; set; }
+            public string Upc { get; set; } = default!;
         }
     }
 }
