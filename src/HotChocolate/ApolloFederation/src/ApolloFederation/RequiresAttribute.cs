@@ -49,7 +49,7 @@ namespace HotChocolate.ApolloFederation
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            if (FieldSet is null!)
+            if (FieldSet is null)
             {
                 throw Requires_FieldSet_CannotBeEmpty(member);
             }
