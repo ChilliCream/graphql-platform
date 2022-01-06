@@ -11,8 +11,8 @@ namespace Products.Models
     public class Product
     {
         [Key]
-        public string Upc { get; set; }
-        public string Name { get; set; }
+        public string Upc { get; set; } = default!;
+        public string Name { get; set; } = default!;
         public int Price { get; set; }
         public int Weight { get; set; }
 

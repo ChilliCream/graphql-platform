@@ -9,7 +9,7 @@ namespace Reviews.Models
     public class Product
     {
         [Key][External]
-        public string Upc { get; set; }
+        public string Upc { get; set; } = default!;
 
         public IEnumerable<Review> GetReviews([Service] ReviewRepository reviewRepository)
         {

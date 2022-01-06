@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Accounts.Data;
 using HotChocolate;
@@ -12,19 +11,20 @@ namespace Accounts.Models
     public class User
     {
         [Key]
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Username { get; set; }
+        public string Id { get; set; } = default!;
+        public string Name { get; set; } = default!;
+        public string Username { get; set; } = default!;
     }
 
     public static class UserReferenceResolver
     {
-        public static async Task<User> GetUserReferenceResolverAsync(
+        public static Task<User> GetUserReferenceResolverAsync(
             [LocalState] ObjectValueNode data,
             [Service] UserRepository userRepository)
         {
             // some code ....
-            return userRepository.GetUserById((string)data.Fields.First(field => field.Name.Value.Equals("id")).Value.Value);
+            return Task.FromResult(userRepository.GetUserById(
+                (string)data.Fields.First(field => field.Name.Value.Equals("id")).Value.Value!));
         }
     }
 }

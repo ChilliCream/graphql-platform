@@ -7,7 +7,7 @@ namespace Inventory.Models
     public class Product
     {
         [Key][External]
-        public string Upc { get; set; }
+        public string Upc { get; set; } = default!;
 
         [External]
         public int Weight { get; set; }
