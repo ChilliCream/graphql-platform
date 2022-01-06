@@ -17,7 +17,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "req2",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -68,7 +68,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "x",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -144,7 +144,7 @@
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "y",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
     },
     "Exception": null,
     "SyntaxNode": {

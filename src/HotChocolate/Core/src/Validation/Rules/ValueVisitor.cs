@@ -37,6 +37,13 @@ namespace HotChocolate.Validation.Rules;
 /// chapter.
 ///
 /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+///
+/// AND
+///
+/// Oneof Input Objects require that exactly one field must be supplied and that
+/// field must not be {null}.
+///
+/// DRAFT: https://github.com/graphql/graphql-spec/pull/825
 /// </summary>
 internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 {
@@ -190,6 +197,43 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
+            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            {
+                if (node.Fields.Count == 0 || node.Fields.Count > 1)
+                {
+                    context.Errors.Add(
+                        context.OneOfMustHaveExactlyOneField(
+                            node,
+                            inputObjectType));
+                }
+                else
+                {
+                    ObjectFieldNode value = node.Fields[0];
+
+                    if (inputObjectType.Fields.TryGetField(
+                        value.Name.Value,
+                        out InputField? field))
+                    {
+                        if (value.Value.IsNull())
+                        {
+                            context.Errors.Add(
+                                context.OneOfMustHaveExactlyOneField(
+                                    node,
+                                    inputObjectType));
+                        }
+                        else if (value.Value.Kind is SyntaxKind.Variable &&
+                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                        {
+                            context.Errors.Add(
+                                context.OneOfVariablesMustBeNonNull(
+                                    node,
+                                    field.Coordinate,
+                                    ((VariableNode)value.Value).Name.Value));
+                        }
+                    }
+                }
+            }
+
             if (context.Names.Count >= inputObjectType.Fields.Count)
             {
                 return Continue;

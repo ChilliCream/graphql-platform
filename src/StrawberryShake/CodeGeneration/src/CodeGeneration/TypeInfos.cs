@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using StrawberryShake.CodeGeneration.Analyzers.Types;
 using static StrawberryShake.CodeGeneration.TypeNames;
 
@@ -41,7 +42,10 @@ namespace StrawberryShake.CodeGeneration
             { HttpConnection, new RuntimeTypeInfo(HttpConnection) },
             { WebSocketConnection, new RuntimeTypeInfo(WebSocketConnection) },
             { ISessionPool, new RuntimeTypeInfo(ISessionPool) },
-            { GraphQLWebSocketProtocolFactory, new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory) },
+            {
+                GraphQLWebSocketProtocolFactory,
+                new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory)
+            },
             { JsonElement, new RuntimeTypeInfo(JsonElement, true) },
             { JsonDocument, new RuntimeTypeInfo(JsonDocument) },
             { String, new RuntimeTypeInfo(String) },
@@ -103,20 +107,26 @@ namespace StrawberryShake.CodeGeneration
             { TimeSpanSerializer, new RuntimeTypeInfo(TimeSpanSerializer) }
         };
 
-        public RuntimeTypeInfo GetOrCreate(string fullTypeName, bool valueType = false) =>
-            _infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo)
-                ? typeInfo
-                : new(fullTypeName, valueType);
+        public RuntimeTypeInfo GetOrAdd(string fullTypeName, bool valueType = false) =>
+            GetOrAdd(fullTypeName, () => new(fullTypeName, valueType));
 
-        public RuntimeTypeInfo TryCreate(RuntimeTypeDirective runtimeType)
+        public RuntimeTypeInfo GetOrAdd(RuntimeTypeDirective runtimeType) =>
+            GetOrAdd(runtimeType.Name, () => new(runtimeType.Name, runtimeType.ValueType ?? false));
+
+        private RuntimeTypeInfo GetOrAdd(string fullTypeName, System.Func<RuntimeTypeInfo> factory)
         {
-            if (_infos.TryGetValue(runtimeType.Name, out RuntimeTypeInfo? typeInfo))
+            if (!fullTypeName.StartsWith("global::"))
             {
-                return typeInfo;
+                fullTypeName = "global::" + fullTypeName;
             }
 
-            typeInfo = new(runtimeType.Name, runtimeType.ValueType ?? false);
-            _infos.Add(runtimeType.Name, typeInfo);
+            if (!_infos.TryGetValue(fullTypeName, out RuntimeTypeInfo? typeInfo))
+            {
+                typeInfo = factory();
+                Debug.Assert(typeInfo.FullName == fullTypeName, $"Expected generated type '{typeInfo.FullName}' to equal '{fullTypeName}'.");
+                _infos.Add(fullTypeName, typeInfo);
+            }
+
             return typeInfo;
         }
     }

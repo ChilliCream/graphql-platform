@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Http;
 using static HotChocolate.AspNetCore.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Serialization;
 
-internal class DefaultHttpRequestParser : IHttpRequestParser
+internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 {
     private const int _minRequestSize = 256;
     private const string _queryIdIdentifier = "id";

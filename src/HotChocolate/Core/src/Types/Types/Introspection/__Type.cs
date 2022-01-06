@@ -90,6 +90,13 @@ internal sealed class __Type : ObjectType
                 }
         };
 
+        if (context.DescriptorContext.Options.EnableOneOf)
+        {
+            def.Fields.Add(new(Names.OneOf,
+                type: booleanType,
+                pureResolver: Resolvers.OneOf));
+        }
+
         if (context.DescriptorContext.Options.EnableDirectiveIntrospection)
         {
             def.Fields.Add(new(Names.AppliedDirectives,
@@ -156,6 +163,11 @@ internal sealed class __Type : ObjectType
                 _ => null
             };
 
+        public static object? OneOf(IPureResolverContext context)
+            => context.Parent<IType>() is IInputObjectType iot 
+                ? iot.Directives.Contains(WellKnownDirectives.OneOf)
+                : null;
+
         public static object? SpecifiedBy(IPureResolverContext context)
             => context.Parent<IType>() is ScalarType scalar
                 ? scalar.SpecifiedBy?.ToString()
@@ -179,6 +191,7 @@ internal sealed class __Type : ObjectType
         public const string EnumValues = "enumValues";
         public const string InputFields = "inputFields";
         public const string OfType = "ofType";
+        public const string OneOf = "oneOf";
         public const string SpecifiedByUrl = "specifiedByURL";
         public const string IncludeDeprecated = "includeDeprecated";
         public const string AppliedDirectives = "appliedDirectives";

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
-using static HotChocolate.Configuration.Validation.ComplexOutputTypeValidationHelper;
+using static HotChocolate.Configuration.Validation.TypeValidationHelper;
 
 #nullable enable
 

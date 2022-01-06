@@ -16,5 +16,6 @@
   "DefaultResolverStrategy": "Parallel",
   "ValidatePipelineOrder": true,
   "StrictRuntimeTypeValidation": false,
-  "DefaultIsOfTypeCheck": null
+  "DefaultIsOfTypeCheck": null,
+  "EnableOneOf": false
 }

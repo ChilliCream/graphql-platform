@@ -135,7 +135,7 @@ public class SchemaCoordinateTests
     public void TryParse_Invalid_SchemaCoordinate(string? s)
     {
         // arrange & act
-        var success = SchemaCoordinate.TryParse(s, out var coordinate);
+        var success = SchemaCoordinate.TryParse(s!, out var coordinate);
 
         // assert
         Assert.False(success);

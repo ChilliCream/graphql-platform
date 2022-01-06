@@ -22,7 +22,7 @@
       "typeB": "String",
       "responseNameA": "someValue",
       "responseNameB": "someValue",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Field-Selection-Merging"
     },
     "Exception": null,
     "SyntaxNode": {
@@ -39,7 +39,7 @@
       },
       "Arguments": [],
       "Required": {
-        "Kind": "RequiredDesignator",
+        "Kind": "RequiredModifier",
         "Location": {
           "Start": 388,
           "End": 411,

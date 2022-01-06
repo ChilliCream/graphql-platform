@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Serialization;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Language;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
 
+/// <summary>
+/// The Hot Chocolate ASP.NET core middleware base class.
+/// </summary>
 public class MiddlewareBase : IDisposable
 {
     private readonly RequestDelegate _next;
@@ -33,6 +32,7 @@ public class MiddlewareBase : IDisposable
         _resultSerializer = resultSerializer ??
             throw new ArgumentNullException(nameof(resultSerializer));
         SchemaName = schemaName;
+        IsDefaultSchema = SchemaName.Equals(Schema.DefaultName);
         ExecutorProxy = new RequestExecutorProxy(executorResolver, schemaName);
     }
 
@@ -40,6 +40,11 @@ public class MiddlewareBase : IDisposable
     /// Gets the name of the schema that this middleware serves up.
     /// </summary>
     protected NameString SchemaName { get; }
+
+    /// <summary>
+    /// Specifies if this middleware handles the default schema.
+    /// </summary>
+    protected bool IsDefaultSchema { get; }
 
     /// <summary>
     /// Gets the request executor proxy.
@@ -54,9 +59,38 @@ public class MiddlewareBase : IDisposable
     /// </param>
     protected Task NextAsync(HttpContext context) => _next(context);
 
-    public ValueTask<IRequestExecutor> GetExecutorAsync(
-        CancellationToken cancellationToken) =>
-        ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+    /// <summary>
+    /// Gets the request executor for this middleware.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the request executor for this middleware.
+    /// </returns>
+    protected ValueTask<IRequestExecutor> GetExecutorAsync(CancellationToken cancellationToken)
+        => ExecutorProxy.GetRequestExecutorAsync(cancellationToken);
+
+    /// <summary>
+    /// Gets the schema for this middleware.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
+    /// <returns>
+    /// Returns the schema for this middleware.
+    /// </returns>
+    protected async ValueTask<ISchema> GetSchemaAsync(CancellationToken cancellationToken)
+    {
+        IRequestExecutor requestExecutor = await GetExecutorAsync(cancellationToken);
+        return requestExecutor.Schema;
+    }
+
+    protected ValueTask WriteResultAsync(
+        HttpContext context,
+        IExecutionResult result,
+        HttpStatusCode? statusCode = null)
+        => WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
 
     protected async ValueTask WriteResultAsync(
         HttpResponse response,
@@ -69,13 +103,16 @@ public class MiddlewareBase : IDisposable
         await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
     }
 
-    protected async Task<IExecutionResult> ExecuteSingleAsync(
+    protected static async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
         OperationType[]? allowedOperations = null)
     {
+        diagnosticEvents.StartSingleRequest(context, request);
+
         var requestBuilder = QueryRequestBuilder.From(request);
         requestBuilder.SetAllowedOperations(allowedOperations);
 
@@ -86,13 +123,16 @@ public class MiddlewareBase : IDisposable
             requestBuilder.Create(), context.RequestAborted);
     }
 
-    protected async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
+    protected static async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         GraphQLRequest request,
         IReadOnlyList<string> operationNames)
     {
+        diagnosticEvents.StartOperationBatchRequest(context, request, operationNames);
+
         var requestBatch = new IReadOnlyQueryRequest[operationNames.Count];
 
         for (var i = 0; i < operationNames.Count; i++)
@@ -110,12 +150,15 @@ public class MiddlewareBase : IDisposable
             requestBatch, cancellationToken: context.RequestAborted);
     }
 
-    protected async Task<IBatchQueryResult> ExecuteBatchAsync(
+    protected static async Task<IBatchQueryResult> ExecuteBatchAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         IHttpRequestInterceptor requestInterceptor,
+        IServerDiagnosticEvents diagnosticEvents,
         IReadOnlyList<GraphQLRequest> requests)
     {
+        diagnosticEvents.StartBatchRequest(context, requests);
+
         var requestBatch = new IReadOnlyQueryRequest[requests.Count];
 
         for (var i = 0; i < requests.Count; i++)
