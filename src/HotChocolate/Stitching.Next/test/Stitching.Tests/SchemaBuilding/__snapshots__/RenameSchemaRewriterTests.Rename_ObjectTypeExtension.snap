@@ -1,7 +1,0 @@
-﻿extend schema {
-
-}
-
-extend type Bar {
-  field: String
-}

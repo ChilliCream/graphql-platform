@@ -1,7 +1,0 @@
-﻿extend schema {
-
-}
-
-input Foo {
-  field2: String
-}

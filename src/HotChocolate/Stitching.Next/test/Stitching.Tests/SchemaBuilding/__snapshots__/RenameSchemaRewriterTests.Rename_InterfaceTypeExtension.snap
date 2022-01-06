@@ -1,7 +1,0 @@
-﻿extend schema {
-
-}
-
-extend interface Bar {
-  field: String
-}

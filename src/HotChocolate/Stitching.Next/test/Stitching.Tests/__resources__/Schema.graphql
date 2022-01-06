@@ -8,7 +8,8 @@ type Query {
   user(id: Int!): User!
 }
 
-type User {
+
+type User  {
   id: Int!
   name: String!
   birthdate: DateTime!

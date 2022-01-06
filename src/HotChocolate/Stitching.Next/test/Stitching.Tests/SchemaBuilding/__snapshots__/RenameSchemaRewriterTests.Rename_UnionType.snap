@@ -1,5 +1,0 @@
-﻿extend schema {
-
-}
-
-union Bar = Abc | Def

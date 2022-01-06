@@ -1,7 +1,0 @@
-﻿type Bar {
-  field1: String
-}
-
-extend type Bar {
-  field2: String
-}
