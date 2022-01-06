@@ -1,13 +1,15 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using static System.Globalization.CultureInfo;
+using static System.String;
 
 namespace HotChocolate.AspNetCore;
 
 internal static class HttpResponseExtensions
 {
+    private const string _contentDepositionHeader = "Content-Disposition";
+    private const string _contentDepositionValue = "attachment; filename=\"{0}\"";
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
 #if NETCOREAPP3_1
@@ -31,5 +33,14 @@ internal static class HttpResponseExtensions
             value,
             _serializerOptions,
             cancellationToken);
+    }
+
+    public static IHeaderDictionary SetContentDisposition(
+        this IHeaderDictionary headers,
+        string fileName)
+    {
+        headers[_contentDepositionHeader] =
+            Format(InvariantCulture, _contentDepositionValue, fileName);
+        return headers;
     }
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language;
 
-public class GraphQLRequest
+public sealed class GraphQLRequest
 {
     public GraphQLRequest(
         DocumentNode? query,
@@ -18,19 +18,19 @@ public class GraphQLRequest
             throw new ArgumentNullException(nameof(query));
         }
 
-        OperationName = operationName;
         QueryId = queryId;
         QueryHash = queryHash;
         Query = query;
+        OperationName = operationName;
         Variables = variables;
         Extensions = extensions;
     }
 
     public string? QueryId { get; }
 
-    public DocumentNode? Query { get; }
-
     public string? QueryHash { get; }
+    
+    public DocumentNode? Query { get; }
 
     public string? OperationName { get; }
 

@@ -38,26 +38,29 @@ internal sealed class OperationResolverMiddleware
         }
         else if (context.Document is not null && context.IsValidDocument)
         {
-            OperationDefinitionNode operation =
-                context.Document.GetOperation(context.Request.OperationName);
-
-            ObjectType? rootType = ResolveRootType(operation.Operation, context.Schema);
-
-            if (rootType is null)
+            using (context.DiagnosticEvents.CompileOperation(context))
             {
-                context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
-                return;
-            }
+                OperationDefinitionNode operation =
+                    context.Document.GetOperation(context.Request.OperationName);
 
-            context.Operation = Compile(
-                context.OperationId ?? Guid.NewGuid().ToString("N"),
-                context.Document,
-                operation,
-                context.Schema,
-                rootType,
-                _inputParser,
-                _optimizers);
-            context.OperationId = context.Operation.Id;
+                ObjectType? rootType = ResolveRootType(operation.Operation, context.Schema);
+
+                if (rootType is null)
+                {
+                    context.Result = ErrorHelper.RootTypeNotFound(operation.Operation);
+                    return;
+                }
+
+                context.Operation = Compile(
+                    context.OperationId ?? Guid.NewGuid().ToString("N"),
+                    context.Document,
+                    operation,
+                    context.Schema,
+                    rootType,
+                    _inputParser,
+                    _optimizers);
+                context.OperationId = context.Operation.Id;
+            }
 
             await _next(context).ConfigureAwait(false);
         }

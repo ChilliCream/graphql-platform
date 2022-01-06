@@ -1,10 +1,7 @@
 using System.Security.Claims;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore;
 

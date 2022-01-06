@@ -327,6 +327,25 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Allow_Payload_Result_Field_To_Be_Null()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithInputPayload>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: { userId: 1 }) {
+                        user { name }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -372,9 +391,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingPayload
     {
-        public string MyResult1 { get; set; }
+        public string MyResult1 { get; set; } = default!;
 
-        public string MyResult2 { get; set; }
+        public string MyResult2 { get; set; } = default!;
     }
 
     public class SimpleMutationInputOverride
@@ -387,9 +406,9 @@ public class AnnotationBasedMutations
 
     public class DoSomethingInput
     {
-        public string MyInput1 { get; set; }
+        public string MyInput1 { get; set; } = default!;
 
-        public string MyInput2 { get; set; }
+        public string MyInput2 { get; set; } = default!;
     }
 
     public class MultipleArgumentMutation
@@ -429,5 +448,18 @@ public class AnnotationBasedMutations
     {
         [UseMutationConvention]
         public string GetFoo() => "foo";
+    }
+
+    public class MutationWithInputPayload
+    {
+        public User? DoSomething(int userId)
+        {
+            return null;
+        }
+    }
+
+    public class User
+    {
+        public string? Name { get; set; }
     }
 }

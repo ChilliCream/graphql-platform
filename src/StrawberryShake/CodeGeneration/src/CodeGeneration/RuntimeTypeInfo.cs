@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using StrawberryShake.CodeGeneration.CSharp;
 
 namespace StrawberryShake.CodeGeneration
 {
@@ -33,6 +34,11 @@ namespace StrawberryShake.CodeGeneration
         public string Name { get; }
 
         public string Namespace { get; }
+
+        public string FullName =>
+            Namespace == "global::"
+                ? Namespace + Name.ToEscapedName()
+                : Namespace + "." + Name.ToEscapedName();
 
         public string NamespaceWithoutGlobal =>
             Namespace.Replace("global::", string.Empty);
@@ -89,7 +95,7 @@ namespace StrawberryShake.CodeGeneration
 
         public override string ToString()
         {
-            return $"{Namespace}.{Name}";
+            return $"{Namespace}.{Name.ToEscapedName()}";
         }
     }
 }

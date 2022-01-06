@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -11,6 +12,7 @@ namespace HotChocolate.Types
 {
     public class NodeResolverTests
     {
+        [Obsolete]
         [Fact]
         public async Task NodeResolver_ResolveNode()
         {
@@ -32,6 +34,7 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task NodeResolver_ResolveNode_DynamicField()
         {
@@ -59,6 +62,7 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task NodeResolver_ResolveNode_DynamicFieldObject()
         {
@@ -86,6 +90,7 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task NodeResolverObject_ResolveNode_DynamicField()
         {
@@ -123,6 +128,7 @@ namespace HotChocolate.Types
             result.ToJson().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task NodeResolverObject_ResolveNode_DynamicFieldObject()
         {
@@ -212,6 +218,7 @@ namespace HotChocolate.Types
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field()
         {
@@ -240,8 +247,9 @@ namespace HotChocolate.Types
             public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
         }
 
+        [Obsolete]
         public class EntityType
-            : ObjectType<Entity>
+                    : ObjectType<Entity>
         {
             protected override void Configure(
                 IObjectTypeDescriptor<Entity> descriptor)

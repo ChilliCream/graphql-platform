@@ -69,12 +69,23 @@ public static class VariableRewriter
 
         if (node.Fields.Count == 1)
         {
+            bool oneOf = type.Directives.Contains(WellKnownDirectives.OneOf);
             ObjectFieldNode value = node.Fields[0];
 
-            return type.Fields.TryGetField(value.Name.Value, out InputField? field) &&
-                TryRewriteField(value, field, variableValues, out ObjectFieldNode? rewritten)
-                ? node.WithFields(new[] { rewritten })
-                : node;
+            if (type.Fields.TryGetField(value.Name.Value, out InputField? field) &&
+                TryRewriteField(value, field, variableValues, out ObjectFieldNode? rewritten))
+            {
+                if (oneOf && rewritten.Value.Kind is SyntaxKind.NullValue)
+                {
+                    throw ThrowHelper.OneOfFieldMustBeNonNull(field.Coordinate);
+                }
+
+                return node.WithFields(new[] { rewritten });
+            }
+            else
+            {
+                return node;
+            }
         }
 
         ObjectFieldNode[]? rewrittenItems = null;

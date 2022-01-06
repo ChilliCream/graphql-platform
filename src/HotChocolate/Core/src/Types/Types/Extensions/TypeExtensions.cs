@@ -530,13 +530,13 @@ public static class TypeExtensions
 
         switch (nullability.Kind)
         {
-            case SyntaxKind.OptionalDesignator when type.Kind is TypeKind.NonNull:
+            case SyntaxKind.OptionalModifier when type.Kind is TypeKind.NonNull:
                 return RewriteNullability(type.InnerType(), nullability.Element);
 
-            case SyntaxKind.OptionalDesignator:
+            case SyntaxKind.OptionalModifier:
                 return RewriteNullability(type, nullability.Element);
 
-            case SyntaxKind.RequiredDesignator when type.Kind is TypeKind.NonNull:
+            case SyntaxKind.RequiredModifier when type.Kind is TypeKind.NonNull:
                 // we optimized this case to not allocate memory in the case that the type is
                 // already non-null and the inner type is either a named type or if the
                 // inner nullability modifier is null.
@@ -548,7 +548,7 @@ public static class TypeExtensions
                     // in any other case it is a list and we will rewrite the inner parts
                     : new NonNullType(RewriteNullability(innerType, nullability.Element));
 
-            case SyntaxKind.RequiredDesignator:
+            case SyntaxKind.RequiredModifier:
                 return new NonNullType(RewriteNullability(type, nullability.Element));
 
             case SyntaxKind.ListNullability when type.Kind is TypeKind.NonNull:

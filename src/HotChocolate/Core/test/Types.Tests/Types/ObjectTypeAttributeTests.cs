@@ -127,7 +127,7 @@ namespace HotChocolate.Types
 
         public class Object1
         {
-            public string GetField([ArgumentDefaultValue("abc")]string argument)
+            public string GetField([ArgumentDefaultValue("abc")] string argument)
             {
                 throw new NotImplementedException();
             }
@@ -191,7 +191,9 @@ namespace HotChocolate.Types
                 IObjectTypeDescriptor descriptor,
                 Type type)
             {
+#pragma warning disable CS0618
                 descriptor.Field("abc").Resolver<string>("def");
+#pragma warning restore CS0618
             }
         }
 

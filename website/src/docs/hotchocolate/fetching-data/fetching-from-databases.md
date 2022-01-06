@@ -154,7 +154,7 @@ public class Startup
                   author: String
                 }
             ")
-            .BindComplexType<Query>();
+            .BindRuntimeType<Query>();
     }
 
     // Omitted code for brevity

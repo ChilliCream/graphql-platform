@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Validation.Options;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.Validation.Options;
-using System.Linq;
-using HotChocolate.Execution;
 
 namespace HotChocolate.Validation
 {
@@ -39,8 +38,9 @@ namespace HotChocolate.Validation
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            var rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Schema.DefaultName).First();
+            IDocumentValidatorRule rule =
+                services.GetRequiredService<IValidationConfiguration>()
+                    .GetRules(Schema.DefaultName).First();
 
             DocumentValidatorContext context = ValidationUtils.CreateContext(schema);
             DocumentNode query = Utf8GraphQLParser.Parse(sourceText);
@@ -50,7 +50,7 @@ namespace HotChocolate.Validation
 
             if (contextData is not null)
             {
-                foreach ((var key, var value) in contextData)
+                foreach (var (key, value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }
@@ -105,7 +105,7 @@ namespace HotChocolate.Validation
 
             if (contextData is not null)
             {
-                foreach ((var key, var value) in contextData)
+                foreach (var (key, value) in contextData)
                 {
                     context.ContextData[key] = value;
                 }

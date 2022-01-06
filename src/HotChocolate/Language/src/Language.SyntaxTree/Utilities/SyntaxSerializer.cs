@@ -70,8 +70,8 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.ObjectField:
                 writer.WriteObjectField((ObjectFieldNode)node);
                 break;
-            case SyntaxKind.OptionalDesignator:
-            case SyntaxKind.RequiredDesignator:
+            case SyntaxKind.OptionalModifier:
+            case SyntaxKind.RequiredModifier:
             case SyntaxKind.ListNullability:
                 VisitNullability((INullabilityNode)node, writer);
                 break;
@@ -131,6 +131,9 @@ public sealed partial class SyntaxSerializer
                 break;
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
+                break;
+            case SyntaxKind.SchemaCoordinate:
+                VisitSchemaCoordinate((SchemaCoordinateNode)node, writer);
                 break;
             default:
                 ThrowHelper.NodeKindIsNotSupported(node.Kind);

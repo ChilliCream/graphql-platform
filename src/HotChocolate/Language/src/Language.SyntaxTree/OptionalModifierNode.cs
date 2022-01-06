@@ -16,7 +16,7 @@ public sealed class OptionalModifierNode : INullabilityModifierNode
     }
 
     /// <inheritdoc />
-    public SyntaxKind Kind => SyntaxKind.OptionalDesignator;
+    public SyntaxKind Kind => SyntaxKind.OptionalModifier;
 
     /// <inheritdoc />
     public Location? Location { get; }

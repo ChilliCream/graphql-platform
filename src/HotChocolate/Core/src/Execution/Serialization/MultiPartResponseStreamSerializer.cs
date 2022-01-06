@@ -1,7 +1,6 @@
 using System;
-using System.Buffers;
-using System.Buffers.Text;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ namespace HotChocolate.Execution.Serialization;
 // https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md
 public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamSerializer
 {
-    private readonly JsonQueryResultSerializer _payloadSerializer;
+    private readonly IQueryResultSerializer _payloadSerializer;
 
     /// <summary>
     /// Creates a new instance of <see cref="MultiPartResponseStreamSerializer" />.
@@ -24,9 +23,30 @@ public sealed partial class MultiPartResponseStreamSerializer : IResponseStreamS
     /// white space between property names and values.
     /// By default, the JSON is written without any extra white space.
     /// </param>
-    public MultiPartResponseStreamSerializer(bool indented = false)
+    /// <param name="encoder">
+    /// Gets or sets the encoder to use when escaping strings, or null to use the default encoder.
+    /// </param>
+    public MultiPartResponseStreamSerializer(
+        bool indented = false, 
+        JavaScriptEncoder? encoder = null)
     {
-        _payloadSerializer = new(indented);
+        _payloadSerializer = new JsonQueryResultSerializer(indented, encoder);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="MultiPartResponseStreamSerializer" />.
+    /// </summary>
+    /// <param name="queryResultSerializer">
+    /// The serializer that shall be used to serialize query results.
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="queryResultSerializer"/> is <c>null</c>.
+    /// </exception>
+    public MultiPartResponseStreamSerializer(
+        IQueryResultSerializer queryResultSerializer)
+    {
+        _payloadSerializer = queryResultSerializer ?? 
+            throw new ArgumentNullException(nameof(queryResultSerializer));
     }
 
     public Task SerializeAsync(

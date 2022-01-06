@@ -1,8 +1,7 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -32,15 +31,18 @@ internal static class PipelineTools
             }
             else
             {
-                var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
+                using (context.DiagnosticEvents.CoerceVariables(context))
+                {
+                    var coercedValues = new Dictionary<string, VariableValueOrLiteral>();
 
-                coercionHelper.CoerceVariableValues(
-                    context.Schema,
-                    variableDefinitions,
-                    context.Request.VariableValues ?? _empty,
-                    coercedValues);
+                    coercionHelper.CoerceVariableValues(
+                        context.Schema,
+                        variableDefinitions,
+                        context.Request.VariableValues ?? _empty,
+                        coercedValues);
 
-                context.Variables = new VariableValueCollection(coercedValues);
+                    context.Variables = new VariableValueCollection(coercedValues);
+                }
             }
         }
     }

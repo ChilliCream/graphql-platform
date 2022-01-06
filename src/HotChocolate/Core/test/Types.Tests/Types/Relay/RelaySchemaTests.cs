@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -10,6 +11,7 @@ namespace HotChocolate.Types.Relay
 {
     public class RelaySchemaTests
     {
+        [Obsolete]
         [Fact]
         public void EnableRelay_Node_Field_On_Query_Exists()
         {
@@ -24,6 +26,7 @@ namespace HotChocolate.Types.Relay
             schema.ToString().MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads()
         {
@@ -38,6 +41,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Extensions()
         {
@@ -53,6 +57,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_FieldName()
         {
@@ -71,6 +76,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_With_Different_PayloadPredicate()
         {
@@ -89,6 +95,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId()
         {
@@ -103,6 +110,7 @@ namespace HotChocolate.Types.Relay
                 .MatchSnapshotAsync();
         }
 
+        [Obsolete]
         [Fact]
         public async Task EnableRelay_AddQueryToMutationPayloads_Refetch_SomeId_With_Query_Inst()
         {

@@ -121,6 +121,31 @@ public ref partial struct Utf8GraphQLParser
             Utf8GraphQLReader reader) =>
             new Utf8GraphQLParser(reader).ParseTypeReference();
 
+        /// <summary>
+        /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
+        /// </summary>
+        public static SchemaCoordinateNode ParseSchemaCoordinate(
+            string sourceText) =>
+            Parse(
+                sourceText,
+                parser => parser.ParseSingleSchemaCoordinate());
+
+        /// <summary>
+        /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
+        /// </summary>
+        public static SchemaCoordinateNode ParseSchemaCoordinate(
+            ReadOnlySpan<byte> sourceText) =>
+            Parse(
+                sourceText,
+                parser => parser.ParseSingleSchemaCoordinate());
+
+        /// <summary>
+        /// Parses a GraphQL schema coordinate e.g. Query.userById(id:)
+        /// </summary>
+        public static SchemaCoordinateNode ParseSchemaCoordinate(
+            Utf8GraphQLReader reader) =>
+            new Utf8GraphQLParser(reader).ParseSchemaCoordinate();
+
         private static unsafe T Parse<T>(
             string sourceText,
             ParseSyntax<T> parse,
