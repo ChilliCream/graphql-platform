@@ -42,10 +42,7 @@ namespace StrawberryShake.CodeGeneration
             { HttpConnection, new RuntimeTypeInfo(HttpConnection) },
             { WebSocketConnection, new RuntimeTypeInfo(WebSocketConnection) },
             { ISessionPool, new RuntimeTypeInfo(ISessionPool) },
-            {
-                GraphQLWebSocketProtocolFactory,
-                new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory)
-            },
+            { GraphQLWebSocketProtocolFactory, new RuntimeTypeInfo(GraphQLWebSocketProtocolFactory) },
             { JsonElement, new RuntimeTypeInfo(JsonElement, true) },
             { JsonDocument, new RuntimeTypeInfo(JsonDocument) },
             { String, new RuntimeTypeInfo(String) },
