@@ -74,8 +74,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "scalar IntPtr",
                 "input Bar { nullablePtr: IntPtr }",
                 @"extend scalar IntPtr
-                @  serializationType(name: ""global::System.String"")
-                @  runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
         }
 
         [Fact]
@@ -87,8 +87,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "scalar IntPtr",
                 "input Bar { nonNullablePtr: IntPtr! }",
                 @"extend scalar IntPtr
-                @  serializationType(name: ""global::System.String"")
-                @  runtimeType(name: ""global::System.IntPtr"", valueType: true)");
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""global::System.IntPtr"", valueType: true)");
         }
 
         [Fact]
@@ -100,8 +100,8 @@ namespace StrawberryShake.CodeGeneration.CSharp
                 "scalar IntPtr",
                 "input Bar { nonNullablePtr: IntPtr! }",
                 @"extend scalar IntPtr
-                @  serializationType(name: ""global::System.String"")
-                @  runtimeType(name: ""System.IntPtr"", valueType: true)");
+                @serializationType(name: ""global::System.String"")
+                @runtimeType(name: ""System.IntPtr"", valueType: true)");
         }
     }
 }
