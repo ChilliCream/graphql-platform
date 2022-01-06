@@ -3,15 +3,14 @@ using HotChocolate;
 using Products.Data;
 using Products.Models;
 
-namespace Products
+namespace Products;
+
+public class Query
 {
-    public class Query
+    public IEnumerable<Product> GetTopProducts(
+        [Service] ProductRepository productRepository,
+        int? first)
     {
-        public IEnumerable<Product> GetTopProducts(
-            [Service] ProductRepository productRepository,
-            int? first)
-        {
-            return productRepository.GetTop(first ?? 5);
-        }
+        return productRepository.GetTop(first ?? 5);
     }
 }
