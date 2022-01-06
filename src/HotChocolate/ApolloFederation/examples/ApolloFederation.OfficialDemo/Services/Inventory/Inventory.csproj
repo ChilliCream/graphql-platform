@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\..\src\GreenDonut\test\DiagnosticSource.Tests\GreenDonut.DiagnosticSource.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\ApolloFederation\src\ApolloFederation\ApolloFederation.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\ApolloFederation\test\ApolloFederation.Tests\ApolloFederation.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\AspNetCore\sample\StarWars\StarWars.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\AspNetCore\src\AspNetCore.Authorization\HotChocolate.AspNetCore.Authorization.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\AspNetCore\test\AspNetCore.Authorization.Tests\HotChocolate.AspNetCore.Authorization.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\AspNetCore\test\AspNetCore.Tests\HotChocolate.AspNetCore.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\src\Subscriptions.Redis\HotChocolate.Subscriptions.Redis.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Abstractions.Tests\HotChocolate.Abstractions.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Execution.Tests\HotChocolate.Execution.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Fetching.Tests\HotChocolate.Fetching.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\StarWars\HotChocolate.StarWars.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Subscriptions.InMemory.Tests\HotChocolate.Subscriptions.InMemory.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Subscriptions.Redis.Tests\HotChocolate.Subscriptions.Redis.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Types.CursorPagination.Tests\HotChocolate.Types.CursorPagination.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Types.OffsetPagination.Tests\HotChocolate.Types.OffsetPagination.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Types.Records.Tests\HotChocolate.Types.Records.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Types.Tests.Documentation\HotChocolate.Types.Tests.Documentation.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Core\test\Validation.Tests\HotChocolate.Validation.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Data\src\Data\HotChocolate.Data.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Data\test\Data.Filters.InMemory.Tests\HotChocolate.Data.Filters.InMemory.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Data\test\Data.Filters.SqlServer.Tests\HotChocolate.Data.Filters.SqlServer.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Data\test\Data.Filters.Tests\HotChocolate.Data.Filters.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Data\test\Data.Sorting.Tests\HotChocolate.Data.Sorting.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\test\Types.Filters.Mongo.Tests\HotChocolate.Types.Filters.Mongo.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\test\Types.Filters.Tests\HotChocolate.Types.Filters.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\test\Types.Sorting.Mongo.Tests\HotChocolate.Types.Sorting.Mongo.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Filters\test\Types.Sorting.Tests\HotChocolate.Types.Sorting.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Language\test\Language.Tests\HotChocolate.Language.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\PersistedQueries\src\PersistedQueries.FileSystem\HotChocolate.PersistedQueries.FileSystem.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\PersistedQueries\src\PersistedQueries.Redis\HotChocolate.PersistedQueries.Redis.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\PersistedQueries\test\PersistedQueries.FileSystem.Tests\HotChocolate.PersistedQueries.FileSystem.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\PersistedQueries\test\PersistedQueries.Redis.Tests\HotChocolate.PersistedQueries.Redis.Tests.csproj" />
+      <ProjectReference Include="..\..\..\..\src\HotChocolate\Utilities\test\Utilities.Tests\HotChocolate.Utilities.Tests.csproj" />
+      <ProjectReference Include="..\Accounts\Accounts.csproj" />
+      <ProjectReference Include="..\Products\Products.csproj" />
+      <ProjectReference Include="..\Reviews\Reviews.csproj" />
+    </ItemGroup>
+
+</Project>
