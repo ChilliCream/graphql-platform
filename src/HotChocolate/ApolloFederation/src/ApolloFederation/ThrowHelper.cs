@@ -90,7 +90,7 @@ namespace HotChocolate.ApolloFederation
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_EntityType_NoEntities)
-                    .SetCode(ErrorCodes.Apollo.Federation.NoEntitiesDeclared)
+                    // .SetCode(ErrorCodes.ApolloFederation.NoEntitiesDeclared)
                     .Build());
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace HotChocolate.ApolloFederation
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_EntityResolver_NoEntityResolverFound)
-                    .SetCode(ErrorCodes.Apollo.Federation.NoEntityResolverFound)
+                    // .SetCode(ErrorCodes.ApolloFederation.NoEntityResolverFound)
                     .Build());
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace HotChocolate.ApolloFederation
                     .SetMessage(
                         ThrowHelper_Key_FieldSet_CannotBeEmpty,
                         type.FullName ?? type.Name)
-                    .SetCode(ErrorCodes.Apollo.Federation.KeyFieldSetNullOrEmpty)
+                    // .SetCode(ErrorCodes.ApolloFederation.KeyFieldSetNullOrEmpty)
                     .Build());
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace HotChocolate.ApolloFederation
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_Provides_FieldSet_CannotBeEmpty)
-                    .SetCode(ErrorCodes.Apollo.Federation.ProvidesFieldSetNullOrEmpty)
+                    // .SetCode(ErrorCodes.ApolloFederation.ProvidesFieldSetNullOrEmpty)
                     .SetExtension(nameof(member), member)
                     .Build());
 
@@ -140,7 +140,7 @@ namespace HotChocolate.ApolloFederation
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
-                    .SetCode(ErrorCodes.Apollo.Federation.RequiresFieldSetNullOrEmpty)
+                    // .SetCode(ErrorCodes.ApolloFederation.RequiresFieldSetNullOrEmpty)
                     .SetExtension(nameof(member), member)
                     .Build());
     }

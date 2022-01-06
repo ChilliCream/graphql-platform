@@ -5,17 +5,13 @@ using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives
 {
-    public class ExternalDirectiveTests
-        : FederationTypesTestBase
+    public class ExternalDirectiveTests : FederationTypesTestBase
     {
         [Fact]
         public void AddExternalDirective_EnsureAvailableInSchema()
         {
             // arrange
-            ISchema schema = CreateSchema(b =>
-            {
-                b.AddDirectiveType<ExternalDirectiveType>();
-            });
+            ISchema schema = CreateSchema(b => b.AddDirectiveType<ExternalDirectiveType>());
 
             // act
             DirectiveType? directive =
@@ -36,27 +32,17 @@ namespace HotChocolate.ApolloFederation.Directives
         {
             // arrange
             Snapshot.FullName();
-            
-            var schema = Schema.Create(
-                t =>
-                {
-                    t.RegisterQueryType(
-                        new ObjectType(
-                            o => o.Name("Query")
-                                .Field("field")
-                                .Argument(
-                                    "a",
-                                    a => a.Type<StringType>()
-                                )
-                                .Type<StringType>()
-                                .External()
-                        )
-                    );
 
-                    t.RegisterDirective<ExternalDirectiveType>();
-                    t.Use(next => context => default);
-                }
-            );
+            var schema = SchemaBuilder.New()
+                .AddQueryType(o => o
+                    .Name("Query")
+                    .Field("field")
+                    .Argument("a", a => a.Type<StringType>())
+                    .Type<StringType>()
+                    .External())
+                .AddDirectiveType<ExternalDirectiveType>()
+                .Use(next => next)
+                .Create();
 
             // act
             ObjectType query = schema.GetType<ObjectType>("Query");
@@ -134,7 +120,7 @@ namespace HotChocolate.ApolloFederation.Directives
 
     public class Query
     {
-        public User GetEntity(int id) => default;
+        public User GetEntity(int id) => default!;
     }
 
     public class User
@@ -142,6 +128,6 @@ namespace HotChocolate.ApolloFederation.Directives
         [Key]
         public int Id { get; set; }
         [External]
-        public string IdCode { get; set; }
+        public string IdCode { get; set; } = default!;
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -23,8 +24,8 @@ namespace HotChocolate.ApolloFederation
 
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             AddToUnionIfHasTypeLevelKeyDirective(
                 discoveryContext,
@@ -56,8 +57,8 @@ namespace HotChocolate.ApolloFederation
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             AddMemberTypesToTheEntityUnionType(
                 completionContext,
@@ -86,10 +87,13 @@ namespace HotChocolate.ApolloFederation
                 var assignExpressions = fields.Select(
                     field =>
                     {
-                        if (field.Member is PropertyInfo pi && field.Type.InnerType() is ScalarType st)
+                        if (field.Member is PropertyInfo pi &&
+                            field.Type.InnerType() is ScalarType st)
                         {
+                            var inputParser = completionContext.Services.GetService<InputParser>();
+
                             Expression<Func<IValueNode, object?>> valueConverter =
-                                    (valueNode) => st.ParseLiteral(valueNode, true);
+                                    (valueNode) => st.ParseLiteral(valueNode);
 
                             Expression<Func<Representation, bool>> assignConditionCheck =
                                 (representation) =>
@@ -116,8 +120,8 @@ namespace HotChocolate.ApolloFederation
                                             valueConverter,
                                             Expression.Invoke(
                                                 valueGetterFunc,
-                                                representationArgument
-                                            )), pi.PropertyType)));
+                                                representationArgument)),
+                                        pi.PropertyType)));
                         }
                         throw ExternalAttribute_InvalidTarget(rt, field.Member);
                     }
@@ -182,14 +186,14 @@ namespace HotChocolate.ApolloFederation
 
         private void AddToUnionIfHasTypeLevelKeyDirective(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            DefinitionBase? definition)
         {
             if (discoveryContext.Type is ObjectType objectType &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Directives.Any(
                         d => d.Reference is NameDirectiveReference
-                            { Name: { Value: WellKnownTypeNames.Key }}) ||
+                        { Name: { Value: WellKnownTypeNames.Key } }) ||
                     objectTypeDefinition.Fields.Any(
                         f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
                 {
@@ -200,7 +204,7 @@ namespace HotChocolate.ApolloFederation
 
         private void AggregatePropertyLevelKeyDirectives(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition)
+            DefinitionBase? definition)
         {
             if (discoveryContext.Type is ObjectType objectType &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
@@ -230,11 +234,15 @@ namespace HotChocolate.ApolloFederation
 
                     // register dependency to the key directive so that it is completed before
                     // we complete this type.
-                    discoveryContext.RegisterDependencyRange(
-                        objectTypeDefinition.Directives.Select(dir => dir.Reference));
-                    discoveryContext.RegisterDependencyRange(
-                        objectTypeDefinition.Directives.Select(dir => dir.TypeReference),
-                        TypeDependencyKind.Completed);
+                    foreach (var directiveDefinition in objectTypeDefinition.Directives)
+                    {
+                        discoveryContext.Dependencies.Add(
+                            new TypeDependency(
+                                directiveDefinition.TypeReference,
+                                TypeDependencyKind.Completed));
+
+                        discoveryContext.RegisterDependency(directiveDefinition.Reference);
+                    }
 
                     // since this type has now a key directive we also need to add this type to
                     // the _Entity union type.

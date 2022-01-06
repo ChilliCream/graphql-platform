@@ -5,8 +5,7 @@ using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives
 {
-    public class KeyDirectiveTests
-        : FederationTypesTestBase
+    public class KeyDirectiveTests : FederationTypesTestBase
     {
         [Fact]
         public void AddKeyDirective_EnsureAvailableInSchema()
@@ -40,48 +39,38 @@ namespace HotChocolate.ApolloFederation.Directives
             // arrange
             Snapshot.FullName();
 
-            var schema = Schema.Create(
-                t =>
-                {
-                    var testTypeDefinition = new ObjectType(
-                        o =>
-                        {
-                            o.Name("TestType")
-                                .Key("id");
-                            o.Field("id")
-                                .Type<IntType>();
-                            o.Field("name")
-                                .Type<StringType>();
-                        }
-                    );
-                    t.RegisterType(testTypeDefinition);
-                    t.RegisterQueryType(new ObjectType(
-                        o => o.Name("Query")
-                            .Field("someField")
-                            .Argument("a", a => a.Type<IntType>())
-                            .Type(testTypeDefinition)
-                    ));
-
-                    t.RegisterDirective<KeyDirectiveType>();
-                    t.RegisterType<FieldSetType>();
-                    t.Use(next => context => default);
-                });
+            var schema = SchemaBuilder.New()
+                .AddQueryType(o => o
+                    .Name("Query")
+                    .Field("someField")
+                    .Argument("a", a => a.Type<IntType>())
+                    .Type("TestType")
+                )
+                .AddObjectType(
+                    o =>
+                    {
+                        o.Name("TestType").Key("id");
+                        o.Field("id").Type<IntType>();
+                        o.Field("name").Type<StringType>();
+                    })
+                .AddDirectiveType<KeyDirectiveType>()
+                .AddType<FieldSetType>()
+                .Use(next => next)
+                .Create();
 
             // act
             ObjectType testType = schema.GetType<ObjectType>("TestType");
 
             // assert
-            Assert.Collection(testType.Directives,
+            Assert.Collection(
+                testType.Directives,
                 item =>
                 {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
+                    Assert.Equal(WellKnownTypeNames.Key, item.Name);
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
@@ -124,8 +113,8 @@ namespace HotChocolate.ApolloFederation.Directives
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
@@ -153,8 +142,8 @@ namespace HotChocolate.ApolloFederation.Directives
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
@@ -182,8 +171,8 @@ namespace HotChocolate.ApolloFederation.Directives
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
@@ -211,14 +200,14 @@ namespace HotChocolate.ApolloFederation.Directives
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
                     Assert.Equal("\"id name\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
+                });
+
             schema.ToString().MatchSnapshot();
         }
 
         public class Query<T>
         {
-            public T someField(int id) => default;
+            public T someField(int id) => default!;
         }
 
         [Key("id")]
@@ -238,7 +227,7 @@ namespace HotChocolate.ApolloFederation.Directives
             [Key]
             public int Id { get; set; }
             [Key]
-            public string Name { get; set; }
+            public string Name { get; set; } = default!;
         }
     }
 }

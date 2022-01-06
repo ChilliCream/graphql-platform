@@ -45,7 +45,6 @@ namespace HotChocolate.ApolloFederation
         {
             Definition.Resolver = fieldResolver ??
                 throw new ArgumentNullException(nameof(fieldResolver));
-
             return _typeDescriptor;
         }
 
@@ -61,13 +60,12 @@ namespace HotChocolate.ApolloFederation
 
             if (member is MethodInfo m)
             {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(TResolver),
-                            typeof(object),
-                            new FieldMember("_", "_", m)));
-                return ResolveEntity(resolver.Resolver);
+                FieldResolverDelegates resolver =
+                    Context.ResolverCompiler.CompileResolve(
+                        m,
+                        sourceType: typeof(object),
+                        resolverType:  typeof(TResolver));
+                return ResolveEntity(resolver.Resolver!);
             }
 
             throw new ArgumentException(
@@ -88,13 +86,12 @@ namespace HotChocolate.ApolloFederation
                 throw new ArgumentNullException(nameof(method));
             }
 
-            FieldResolver resolver =
-                ResolverCompiler.Resolve.Compile(
-                    new ResolverDescriptor(
-                        method.DeclaringType ?? typeof(object),
-                        typeof(object),
-                        new FieldMember("_", "_", method)));
-            return ResolveEntity(resolver.Resolver);
+            FieldResolverDelegates resolver =
+                Context.ResolverCompiler.CompileResolve(
+                    method,
+                    sourceType: typeof(object),
+                    resolverType:  method.DeclaringType ?? typeof(object));
+            return ResolveEntity(resolver.Resolver!);
         }
 
         public IObjectTypeDescriptor ResolveEntityWith(Type type) =>

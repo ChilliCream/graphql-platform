@@ -5,8 +5,7 @@ using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives
 {
-    public class ProvidesDirectiveTests
-        : FederationTypesTestBase
+    public class ProvidesDirectiveTests : FederationTypesTestBase
     {
         [Fact]
         public void AddProvidesDirective_EnsureAvailableInSchema()
