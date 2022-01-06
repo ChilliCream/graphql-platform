@@ -5,49 +5,31 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.ApolloFederation.ThrowHelper;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation;
+
+public class ReferenceResolverAttribute : ObjectTypeDescriptorAttribute
 {
-    public class ReferenceResolverAttribute: ObjectTypeDescriptorAttribute
+    public string? EntityResolver { get; set; }
+
+    public Type? EntityResolverType { get; set; }
+
+    public override void OnConfigure(
+        IDescriptorContext context,
+        IObjectTypeDescriptor descriptor,
+        Type type)
     {
-        public string? EntityResolver { get; set; }
+        var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
 
-        public Type? EntityResolverType { get; set; }
-
-        public override void OnConfigure(
-            IDescriptorContext context,
-            IObjectTypeDescriptor descriptor,
-            Type type)
+        if (EntityResolverType is not null)
         {
-            var entityResolverDescriptor = new EntityResolverDescriptor(descriptor);
-
-            if (EntityResolverType is not null)
+            if (EntityResolver is not null)
             {
-                if (EntityResolver is not null)
-                {
-                    MethodInfo? method = EntityResolverType.GetMethod(EntityResolver);
-
-                    if (method is null)
-                    {
-                        throw ReferenceResolverAttribute_EntityResolverNotFound(
-                            EntityResolverType,
-                            EntityResolver);
-                    }
-
-                    entityResolverDescriptor.ResolveEntityWith(method);
-                }
-                else
-                {
-                    entityResolverDescriptor.ResolveEntityWith(EntityResolverType);
-                }
-            }
-            else if (EntityResolver is not null)
-            {
-                MethodInfo? method = type.GetMethod(EntityResolver);
+                MethodInfo? method = EntityResolverType.GetMethod(EntityResolver);
 
                 if (method is null)
                 {
                     throw ReferenceResolverAttribute_EntityResolverNotFound(
-                        type,
+                        EntityResolverType,
                         EntityResolver);
                 }
 
@@ -55,8 +37,25 @@ namespace HotChocolate.ApolloFederation
             }
             else
             {
-                entityResolverDescriptor.ResolveEntityWith(type);
+                entityResolverDescriptor.ResolveEntityWith(EntityResolverType);
             }
+        }
+        else if (EntityResolver is not null)
+        {
+            MethodInfo? method = type.GetMethod(EntityResolver);
+
+            if (method is null)
+            {
+                throw ReferenceResolverAttribute_EntityResolverNotFound(
+                    type,
+                    EntityResolver);
+            }
+
+            entityResolverDescriptor.ResolveEntityWith(method);
+        }
+        else
+        {
+            entityResolverDescriptor.ResolveEntityWith(type);
         }
     }
 }

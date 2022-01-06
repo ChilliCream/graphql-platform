@@ -4,279 +4,278 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.ApolloFederation.WellKnownContextData;
+using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.ApolloFederation.ThrowHelper;
+using static HotChocolate.ApolloFederation.WellKnownContextData;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation;
+
+internal sealed class FederationTypeInterceptor : TypeInterceptor
 {
-    internal sealed class FederationTypeInterceptor : TypeInterceptor
+    private static readonly object _empty = new object();
+    private readonly List<ObjectType> _entityTypes = new();
+
+    public override bool TriggerAggregations => true;
+
+    public override void OnAfterInitialize(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
     {
-        private static readonly object _empty = new object();
-        private readonly List<ObjectType> _entityTypes = new();
+        AddToUnionIfHasTypeLevelKeyDirective(
+            discoveryContext,
+            definition);
 
-        public override bool TriggerAggregations => true;
+        AggregatePropertyLevelKeyDirectives(
+            discoveryContext,
+            definition);
+    }
 
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
+    public override void OnTypesInitialized(
+        IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    {
+        if (_entityTypes.Count == 0)
         {
-            AddToUnionIfHasTypeLevelKeyDirective(
-                discoveryContext,
-                definition);
-
-            AggregatePropertyLevelKeyDirectives(
-                discoveryContext,
-                definition);
+            throw EntityType_NoEntities();
         }
+    }
 
-        public override void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+    public override void OnAfterCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        AddFactoryMethodToContext(
+            completionContext,
+            contextData);
+    }
+
+    public override void OnBeforeCompleteType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition,
+        IDictionary<string, object?> contextData)
+    {
+        AddMemberTypesToTheEntityUnionType(
+            completionContext,
+            definition);
+
+        AddServiceTypeToQueryType(
+            completionContext,
+            definition);
+    }
+
+    private void AddFactoryMethodToContext(
+        ITypeCompletionContext completionContext,
+        IDictionary<string, object?> contextData)
+    {
+        if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
+            rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
         {
-            if (_entityTypes.Count == 0)
-            {
-                throw EntityType_NoEntities();
-            }
-        }
+            IEnumerable<ObjectField>? fields = ot.Fields.Where(
+                field => field.Member is not null &&
+                         field.Member.IsDefined(typeof(ExternalAttribute))
+            );
 
-        public override void OnAfterCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            AddFactoryMethodToContext(
-                completionContext,
-                contextData);
-        }
+            ParameterExpression? representationArgument = Expression.Parameter(typeof(Representation));
+            ParameterExpression? objectVariable = Expression.Variable(rt);
 
-        public override void OnBeforeCompleteType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition,
-            IDictionary<string, object?> contextData)
-        {
-            AddMemberTypesToTheEntityUnionType(
-                completionContext,
-                definition);
-
-            AddServiceTypeToQueryType(
-                completionContext,
-                definition);
-        }
-
-        private void AddFactoryMethodToContext(
-            ITypeCompletionContext completionContext,
-            IDictionary<string, object?> contextData)
-        {
-            if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
-                rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
-            {
-                var fields = ot.Fields.Where(
-                    field => field.Member is not null &&
-                             field.Member.IsDefined(typeof(ExternalAttribute))
-                );
-
-                var representationArgument = Expression.Parameter(typeof(Representation));
-                var objectVariable = Expression.Variable(rt);
-
-                var assignExpressions = fields.Select(
-                    field =>
+            IEnumerable<ConditionalExpression>? assignExpressions = fields.Select(
+                field =>
+                {
+                    if (field.Member is PropertyInfo pi &&
+                        field.Type.InnerType() is ScalarType st)
                     {
-                        if (field.Member is PropertyInfo pi &&
-                            field.Type.InnerType() is ScalarType st)
-                        {
-                            var inputParser = completionContext.Services.GetService<InputParser>();
+                        InputParser? inputParser = completionContext.Services.GetService<InputParser>();
 
-                            Expression<Func<IValueNode, object?>> valueConverter =
-                                    (valueNode) => st.ParseLiteral(valueNode);
+                        Expression<Func<IValueNode, object?>> valueConverter =
+                                (valueNode) => st.ParseLiteral(valueNode);
 
-                            Expression<Func<Representation, bool>> assignConditionCheck =
-                                (representation) =>
-                                    representation.Data.Fields.Any(
-                                        item =>
-                                            item.Name.Value.Equals(
-                                                pi.Name,
-                                                StringComparison.OrdinalIgnoreCase)
-                                    );
-
-                            Expression<Func<Representation, IValueNode>> valueGetterFunc =
-                                (representation) =>
-                                    representation.Data.Fields.Single(item =>
+                        Expression<Func<Representation, bool>> assignConditionCheck =
+                            (representation) =>
+                                representation.Data.Fields.Any(
+                                    item =>
                                         item.Name.Value.Equals(
                                             pi.Name,
-                                            StringComparison.OrdinalIgnoreCase)).Value;
+                                            StringComparison.OrdinalIgnoreCase)
+                                );
 
-                            return Expression.IfThen(
-                                Expression.Invoke(assignConditionCheck, representationArgument),
-                                Expression.Assign(
-                                    Expression.MakeMemberAccess(objectVariable, pi),
-                                    Expression.Convert(
+                        Expression<Func<Representation, IValueNode>> valueGetterFunc =
+                            (representation) =>
+                                representation.Data.Fields.Single(item =>
+                                    item.Name.Value.Equals(
+                                        pi.Name,
+                                        StringComparison.OrdinalIgnoreCase)).Value;
+
+                        return Expression.IfThen(
+                            Expression.Invoke(assignConditionCheck, representationArgument),
+                            Expression.Assign(
+                                Expression.MakeMemberAccess(objectVariable, pi),
+                                Expression.Convert(
+                                    Expression.Invoke(
+                                        valueConverter,
                                         Expression.Invoke(
-                                            valueConverter,
-                                            Expression.Invoke(
-                                                valueGetterFunc,
-                                                representationArgument)),
-                                        pi.PropertyType)));
-                        }
-                        throw ExternalAttribute_InvalidTarget(rt, field.Member);
+                                            valueGetterFunc,
+                                            representationArgument)),
+                                    pi.PropertyType)));
                     }
-                );
+                    throw ExternalAttribute_InvalidTarget(rt, field.Member);
+                }
+            );
 
-                LabelTarget returnTarget = Expression.Label(rt);
-                var expressions = new List<Expression>
+            LabelTarget returnTarget = Expression.Label(rt);
+            var expressions = new List<Expression>
                 {
                     Expression.Assign(
                         objectVariable,
                         Expression.New(rt)
                     ),
                 };
-                expressions.AddRange(assignExpressions);
-                expressions.Add(Expression.Label(returnTarget, objectVariable));
+            expressions.AddRange(assignExpressions);
+            expressions.Add(Expression.Label(returnTarget, objectVariable));
 
-                var objectFactoryMethodExpression = Expression.Lambda(
-                    Expression.Block(
-                        new[] { objectVariable },
-                        expressions
-                    ),
-                    representationArgument
-                );
+            LambdaExpression? objectFactoryMethodExpression = Expression.Lambda(
+                Expression.Block(
+                    new[] { objectVariable },
+                    expressions
+                ),
+                representationArgument
+            );
 
-                contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
+            contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
+        }
+    }
+
+    private void AddServiceTypeToQueryType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition)
+    {
+        if (completionContext.IsQueryType == true &&
+            definition is ObjectTypeDefinition objectTypeDefinition)
+        {
+            var serviceFieldDescriptor = ObjectFieldDescriptor.New(
+                completionContext.DescriptorContext,
+                WellKnownFieldNames.Service);
+            serviceFieldDescriptor
+                .Type<NonNullType<ServiceType>>()
+                .Resolve(_empty);
+            objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
+
+            var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
+                completionContext.DescriptorContext,
+                WellKnownFieldNames.Entities);
+            entitiesFieldDescriptor
+                .Type<NonNullType<ListType<EntityType>>>()
+                .Argument(
+                    WellKnownArgumentNames.Representations,
+                    descriptor =>
+                        descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>()
+                )
+                .Resolve(c => EntitiesResolver._Entities(
+                    c.Schema,
+                    c.ArgumentValue<IReadOnlyList<Representation>>(WellKnownArgumentNames.Representations),
+                    c
+                ));
+            objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
+        }
+    }
+
+    private void AddToUnionIfHasTypeLevelKeyDirective(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition)
+    {
+        if (discoveryContext.Type is ObjectType objectType &&
+            definition is ObjectTypeDefinition objectTypeDefinition)
+        {
+            if (objectTypeDefinition.Directives.Any(
+                    d => d.Reference is NameDirectiveReference
+                    { Name: { Value: WellKnownTypeNames.Key } }) ||
+                objectTypeDefinition.Fields.Any(
+                    f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
+            {
+                _entityTypes.Add(objectType);
             }
         }
+    }
 
-        private void AddServiceTypeToQueryType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition)
+    private void AggregatePropertyLevelKeyDirectives(
+        ITypeDiscoveryContext discoveryContext,
+        DefinitionBase? definition)
+    {
+        if (discoveryContext.Type is ObjectType objectType &&
+            definition is ObjectTypeDefinition objectTypeDefinition)
         {
-            if (completionContext.IsQueryType == true &&
-                definition is ObjectTypeDefinition objectTypeDefinition)
+            // if we find key markers on our fields, we need to construct the key directive
+            // from the annotated fields.
+            if (objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
             {
-                var serviceFieldDescriptor = ObjectFieldDescriptor.New(
-                    completionContext.DescriptorContext,
-                    WellKnownFieldNames.Service);
-                serviceFieldDescriptor
-                    .Type<NonNullType<ServiceType>>()
-                    .Resolve(_empty);
-                objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
+                IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
+                var fieldSet = new StringBuilder();
 
-                var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
-                    completionContext.DescriptorContext,
-                    WellKnownFieldNames.Entities);
-                entitiesFieldDescriptor
-                    .Type<NonNullType<ListType<EntityType>>>()
-                    .Argument(
-                        WellKnownArgumentNames.Representations,
-                        descriptor =>
-                            descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>()
-                    )
-                    .Resolve(c => EntitiesResolver._Entities(
-                        c.Schema,
-                        c.ArgumentValue<IReadOnlyList<Representation>>(WellKnownArgumentNames.Representations),
-                        c
-                    ));
-                objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
-            }
-        }
-
-        private void AddToUnionIfHasTypeLevelKeyDirective(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition)
-        {
-            if (discoveryContext.Type is ObjectType objectType &&
-                definition is ObjectTypeDefinition objectTypeDefinition)
-            {
-                if (objectTypeDefinition.Directives.Any(
-                        d => d.Reference is NameDirectiveReference
-                        { Name: { Value: WellKnownTypeNames.Key } }) ||
-                    objectTypeDefinition.Fields.Any(
-                        f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
+                foreach (ObjectFieldDefinition? fieldDefinition in fields)
                 {
-                    _entityTypes.Add(objectType);
-                }
-            }
-        }
-
-        private void AggregatePropertyLevelKeyDirectives(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase? definition)
-        {
-            if (discoveryContext.Type is ObjectType objectType &&
-                definition is ObjectTypeDefinition objectTypeDefinition)
-            {
-                // if we find key markers on our fields, we need to construct the key directive
-                // from the annotated fields.
-                if (objectTypeDefinition.Fields.Any(f => f.ContextData.ContainsKey(KeyMarker)))
-                {
-                    IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
-                    var fieldSet = new StringBuilder();
-
-                    foreach (var fieldDefinition in fields)
+                    if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
                     {
-                        if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
+                        if (fieldSet.Length > 0)
                         {
-                            if (fieldSet.Length > 0)
-                            {
-                                fieldSet.Append(' ');
-                            }
-
-                            fieldSet.Append(fieldDefinition.Name);
+                            fieldSet.Append(' ');
                         }
+
+                        fieldSet.Append(fieldDefinition.Name);
                     }
-
-                    // add the key directive with the dynamically generated field set.
-                    AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
-
-                    // register dependency to the key directive so that it is completed before
-                    // we complete this type.
-                    foreach (var directiveDefinition in objectTypeDefinition.Directives)
-                    {
-                        discoveryContext.Dependencies.Add(
-                            new TypeDependency(
-                                directiveDefinition.TypeReference,
-                                TypeDependencyKind.Completed));
-
-                        discoveryContext.RegisterDependency(directiveDefinition.Reference);
-                    }
-
-                    // since this type has now a key directive we also need to add this type to
-                    // the _Entity union type.
-                    _entityTypes.Add(objectType);
                 }
-            }
-        }
 
-        private void AddMemberTypesToTheEntityUnionType(
-            ITypeCompletionContext completionContext,
-            DefinitionBase? definition)
-        {
-            if (completionContext.Type is EntityType &&
-                definition is UnionTypeDefinition unionTypeDefinition)
-            {
-                foreach (ObjectType objectType in _entityTypes)
+                // add the key directive with the dynamically generated field set.
+                AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
+
+                // register dependency to the key directive so that it is completed before
+                // we complete this type.
+                foreach (DirectiveDefinition? directiveDefinition in objectTypeDefinition.Directives)
                 {
-                    unionTypeDefinition.Types.Add(TypeReference.Create(objectType));
+                    discoveryContext.Dependencies.Add(
+                        new TypeDependency(
+                            directiveDefinition.TypeReference,
+                            TypeDependencyKind.Completed));
+
+                    discoveryContext.RegisterDependency(directiveDefinition.Reference);
                 }
+
+                // since this type has now a key directive we also need to add this type to
+                // the _Entity union type.
+                _entityTypes.Add(objectType);
             }
         }
+    }
 
-        private static void AddKeyDirective(
-            ObjectTypeDefinition objectTypeDefinition,
-            string fieldSet)
+    private void AddMemberTypesToTheEntityUnionType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase? definition)
+    {
+        if (completionContext.Type is EntityType &&
+            definition is UnionTypeDefinition unionTypeDefinition)
         {
-            var directiveNode = new DirectiveNode(
-                WellKnownTypeNames.Key,
-                new ArgumentNode(
-                    WellKnownArgumentNames.Fields,
-                    fieldSet));
-
-            objectTypeDefinition.Directives.Add(
-                new DirectiveDefinition(directiveNode));
+            foreach (ObjectType objectType in _entityTypes)
+            {
+                unionTypeDefinition.Types.Add(TypeReference.Create(objectType));
+            }
         }
+    }
+
+    private static void AddKeyDirective(
+        ObjectTypeDefinition objectTypeDefinition,
+        string fieldSet)
+    {
+        var directiveNode = new DirectiveNode(
+            WellKnownTypeNames.Key,
+            new ArgumentNode(
+                WellKnownArgumentNames.Fields,
+                fieldSet));
+
+        objectTypeDefinition.Directives.Add(
+            new DirectiveDefinition(directiveNode));
     }
 }

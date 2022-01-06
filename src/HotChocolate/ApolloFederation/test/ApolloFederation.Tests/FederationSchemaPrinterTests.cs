@@ -2,29 +2,29 @@ using System;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation;
+
+public class FederationSchemaPrinterTests
 {
-    public class FederationSchemaPrinterTests
+    [Fact]
+    public void TestFederationPrinter_ShouldThrow()
     {
-        [Fact]
-        public void TestFederationPrinter_ShouldThrow()
-        {
-            // arrange
-            ISchema? schema = null;
-            void action() => FederationSchemaPrinter.Print(schema!);
+        // arrange
+        ISchema? schema = null;
+        void action() => FederationSchemaPrinter.Print(schema!);
 
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(action);
+    }
 
-        [Fact]
-        public void TestFederationPrinterApolloDirectivesSchemaFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void TestFederationPrinterApolloDirectivesSchemaFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(@"
                     type TestType @key(fields: ""id"") {
                         id: Int!
                         name: String!
@@ -34,21 +34,21 @@ namespace HotChocolate.ApolloFederation
                         someField(a: Int): TestType
                     }
                 ")
-                .Use(next => context => default)
-                .Create();
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            // assert
-            FederationSchemaPrinter.Print(schema).MatchSnapshot();
-        }
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
 
-        [Fact]
-        public void TestFederationPrinterSchemaFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddDocumentFromString(@"
+    [Fact]
+    public void TestFederationPrinterSchemaFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(@"
                     type TestType @key(fields: ""id"") {
                         id: Int!
                         name: String!
@@ -89,22 +89,22 @@ namespace HotChocolate.ApolloFederation
                         someField(a: Int): TestType
                     }
                 ")
-                .Use(next => context => default)
-                .Create();
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            // assert
-            FederationSchemaPrinter.Print(schema).MatchSnapshot();
-        }
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
 
-        [Fact(Skip = "Wait for SchemaFirstFixes!")]
-        public void TestFederationPrinterApolloTypeExtensionSchemaFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddDocumentFromString(
-                    @"
+    [Fact(Skip = "Wait for SchemaFirstFixes!")]
+    public void TestFederationPrinterApolloTypeExtensionSchemaFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(
+                @"
                 extend type TestType @key(fields: ""id"") {
                     id: Int!
                     name: String!
@@ -113,70 +113,69 @@ namespace HotChocolate.ApolloFederation
                 type Query {
                     someField(a: Int): TestType
                 }")
-                .Use(next => context => default)
-                .Create();
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            // assert
-            FederationSchemaPrinter.Print(schema).MatchSnapshot();
-        }
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
 
-        [Fact]
-        public void TestFederationPrinterApolloDirectivesPureCodeFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<QueryRoot<User>>()
-                .Create();
+    [Fact]
+    public void TestFederationPrinterApolloDirectivesPureCodeFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<QueryRoot<User>>()
+            .Create();
 
-            // act
-            // assert
-            FederationSchemaPrinter.Print(schema).MatchSnapshot();
-        }
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
 
-        [Fact]
-        public void TestFederationPrinterTypeExtensionPureCodeFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<QueryRoot<Product>>()
-                .Create();
+    [Fact]
+    public void TestFederationPrinterTypeExtensionPureCodeFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<QueryRoot<Product>>()
+            .Create();
 
-            // act
-            // assert
-            FederationSchemaPrinter.Print(schema).MatchSnapshot();
-        }
+        // act
+        // assert
+        FederationSchemaPrinter.Print(schema).MatchSnapshot();
+    }
 
-        public class QueryRoot<T>
-        {
-            public T GetEntity(int id) => default!;
-        }
+    public class QueryRoot<T>
+    {
+        public T GetEntity(int id) => default!;
+    }
 
-        public class User
-        {
-            [Key]
-            public int Id { get; set; }
-            [External]
-            public string IdCode { get; set; } = default!;
-            [Requires("idCode")]
-            public string IdCodeShort { get; set; } = default!;
-            [Provides("zipcode")]
-            public Address Address { get; set; } = default!;
-        }
+    public class User
+    {
+        [Key]
+        public int Id { get; set; }
+        [External]
+        public string IdCode { get; set; } = default!;
+        [Requires("idCode")]
+        public string IdCodeShort { get; set; } = default!;
+        [Provides("zipcode")]
+        public Address Address { get; set; } = default!;
+    }
 
-        public class Address
-        {
-            [External]
-            public string Zipcode { get; set; } = default!;
-        }
+    public class Address
+    {
+        [External]
+        public string Zipcode { get; set; } = default!;
+    }
 
-        [ForeignServiceTypeExtension]
-        public class Product
-        {
-            [Key]
-            public string Upc { get; set; } = default!;
-        }
+    [ForeignServiceTypeExtension]
+    public class Product
+    {
+        [Key]
+        public string Upc { get; set; } = default!;
     }
 }

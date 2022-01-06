@@ -2,17 +2,17 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation;
+
+public class ServiceTypeTests
 {
-    public class ServiceTypeTests
+    [Fact]
+    public async Task TestServiceTypeEmptyQueryTypeSchemaFirst()
     {
-        [Fact]
-        public async Task TestServiceTypeEmptyQueryTypeSchemaFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddDocumentFromString(@"
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(@"
                     type Query {
 
                     }
@@ -21,25 +21,25 @@ namespace HotChocolate.ApolloFederation
                         matchCode: String!
                     }
                 ")
-                .Use(next => context => default)
-                .Create();
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        // act
+        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
-            // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-                new MockResolverContext(schema));
-            value.MatchSnapshot();
-        }
+        // assert
+        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            new MockResolverContext(schema));
+        value.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task TestServiceTypeTypeSchemaFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddDocumentFromString(@"
+    [Fact]
+    public async Task TestServiceTypeTypeSchemaFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddDocumentFromString(@"
                     type Query {
                         address: Address!
                     }
@@ -48,69 +48,68 @@ namespace HotChocolate.ApolloFederation
                         matchCode: String!
                     }
                 ")
-                .Use(next => context => default)
-                .Create();
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        // act
+        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
-            // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-                new MockResolverContext(schema));
-            value.MatchSnapshot();
-        }
+        // assert
+        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            new MockResolverContext(schema));
+        value.MatchSnapshot();
+    }
 
 
-        [Fact]
-        public async Task TestServiceTypeEmptyQueryTypePureCodeFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddType<Address>()
-                .AddQueryType<EmptyQuery>()
-                .Create();
+    [Fact]
+    public async Task TestServiceTypeEmptyQueryTypePureCodeFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddType<Address>()
+            .AddQueryType<EmptyQuery>()
+            .Create();
 
-            // act
-            ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        // act
+        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
-            // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-                new MockResolverContext(schema));
-            value.MatchSnapshot();
-        }
+        // assert
+        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            new MockResolverContext(schema));
+        value.MatchSnapshot();
+    }
 
-        [Fact]
-        public async Task TestServiceTypeTypePureCodeFirst()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<Query>()
-                .Create();
+    [Fact]
+    public async Task TestServiceTypeTypePureCodeFirst()
+    {
+        // arrange
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .Create();
 
-            // act
-            ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
+        // act
+        ServiceType entityType = schema.GetType<ServiceType>(WellKnownTypeNames.Service);
 
-            // assert
-            object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
-                new MockResolverContext(schema));
-            value.MatchSnapshot();
-        }
+        // assert
+        object? value = await entityType.Fields[WellKnownFieldNames.Sdl].Resolver!(
+            new MockResolverContext(schema));
+        value.MatchSnapshot();
+    }
 
-        public class EmptyQuery
-        {
-        }
+    public class EmptyQuery
+    {
+    }
 
-        public class Query
-        {
-            public Address GetAddress(int id) => default!;
-        }
+    public class Query
+    {
+        public Address GetAddress(int id) => default!;
+    }
 
-        public class Address
-        {
-            [Key]
-            public string MatchCode { get; set; }
-        }
+    public class Address
+    {
+        [Key]
+        public string? MatchCode { get; set; }
     }
 }
