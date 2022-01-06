@@ -34,7 +34,7 @@ namespace HotChocolate.ApolloFederation
                         throw ThrowHelper.EntityResolver_NoResolverFound();
                     }
                 }
-                else if (schema.TryGetType(representation.Typename, out ObjectType type) &&
+                else if (schema.TryGetType<ObjectType>(representation.Typename, out var type) &&
                     type.ContextData.TryGetValue(EntityResolver, out object? o) &&
                     o is FieldResolverDelegate resolver)
                 {

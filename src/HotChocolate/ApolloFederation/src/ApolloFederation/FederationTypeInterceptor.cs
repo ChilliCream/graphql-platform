@@ -15,12 +15,12 @@ using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
-    internal class FederationTypeInterceptor : TypeInterceptor
+    internal sealed class FederationTypeInterceptor : TypeInterceptor
     {
-        private readonly List<ObjectType> _entityTypes = new List<ObjectType>();
         private static readonly object _empty = new object();
+        private readonly List<ObjectType> _entityTypes = new();
 
-        public override bool TriggerAggregations { get; } = true;
+        public override bool TriggerAggregations => true;
 
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
@@ -152,7 +152,7 @@ namespace HotChocolate.ApolloFederation
 
         private void AddServiceTypeToQueryType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            DefinitionBase? definition)
         {
             if (completionContext.IsQueryType == true &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
@@ -253,7 +253,7 @@ namespace HotChocolate.ApolloFederation
 
         private void AddMemberTypesToTheEntityUnionType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition)
+            DefinitionBase? definition)
         {
             if (completionContext.Type is EntityType &&
                 definition is UnionTypeDefinition unionTypeDefinition)
