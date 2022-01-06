@@ -17,6 +17,7 @@ type User  {
   foo: String!
 }
 
+
 type _SchemaDefinition {
   name: String!
   document: String!

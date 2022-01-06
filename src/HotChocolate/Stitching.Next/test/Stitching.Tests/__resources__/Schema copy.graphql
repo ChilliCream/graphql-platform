@@ -1,0 +1,51 @@
+type User {
+  id: ID!
+  name: String!
+}
+
+type Account {
+  id: ID!
+  accountName: String!
+}
+
+
+#user
+type Query {
+  reviewsByProduct(id: String! @is(a: "Product.id")) : [Review] @internal
+  # reviewsByUpcs(upcs: [String!]) : [Review]
+}
+
+type Review @key(fields: "id") {
+  id: ID!
+  body: String
+  author: User
+  product: Product
+  productId: ID! @is(a: "Product.id")
+}
+
+type Product {
+  id: ID!
+}
+
+
+extend type Product @key(fields: "upc") {
+  upc: String @external
+  reviews: [Review]
+}
+
+type Account {
+  id: ID
+  accountName: String!
+  user: User!
+}
+
+type User {
+  id: ID!
+  name: String!
+}
+
+
+// { id: ID! }
+function resolve() {
+
+}
