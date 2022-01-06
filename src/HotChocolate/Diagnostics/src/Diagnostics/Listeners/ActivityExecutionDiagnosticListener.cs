@@ -25,6 +25,8 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
+    public override bool EnableResolveFieldValue => true;
+
     public override IDisposable ExecuteRequest(IRequestContext context)
     {
         Activity? activity = null;
