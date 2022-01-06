@@ -1,0 +1,8 @@
+﻿extend schema {
+
+}
+
+extend enum Bar {
+  ABC
+  DEF
+}
