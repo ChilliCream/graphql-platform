@@ -1,0 +1,8 @@
+﻿type Query {
+  someField(a: Int = null): TestType
+}
+
+type TestType @key(fields: "id") {
+  id: Int!
+  name: String!
+}
