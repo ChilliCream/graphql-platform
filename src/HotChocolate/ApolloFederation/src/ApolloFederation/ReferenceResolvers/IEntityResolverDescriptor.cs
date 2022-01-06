@@ -4,20 +4,19 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation;
+
+public interface IEntityResolverDescriptor
 {
-    public interface IEntityResolverDescriptor
-    {
-        IObjectTypeDescriptor ResolveEntity(
-            FieldResolverDelegate fieldResolver);
+    IObjectTypeDescriptor ResolveEntity(
+        FieldResolverDelegate fieldResolver);
 
-        IObjectTypeDescriptor ResolveEntityWith<TResolver>(
-            Expression<Func<TResolver, object>> method);
+    IObjectTypeDescriptor ResolveEntityWith<TResolver>(
+        Expression<Func<TResolver, object>> method);
 
-        IObjectTypeDescriptor ResolveEntityWith<TResolver>();
+    IObjectTypeDescriptor ResolveEntityWith<TResolver>();
 
-        IObjectTypeDescriptor ResolveEntityWith(MethodInfo method);
+    IObjectTypeDescriptor ResolveEntityWith(MethodInfo method);
 
-        IObjectTypeDescriptor ResolveEntityWith(Type type);
-    }
+    IObjectTypeDescriptor ResolveEntityWith(Type type);
 }

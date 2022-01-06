@@ -1,7 +1,6 @@
-namespace Inventory
+namespace Inventory;
+
+public class Query
 {
-    public class Query
-    {
-        public string Ping() => "pong";
-    }
+    public string Ping() => "pong";
 }

@@ -3,97 +3,86 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation.Directives
+namespace HotChocolate.ApolloFederation.Directives;
+
+public class KeyDirectiveTests : FederationTypesTestBase
 {
-    public class KeyDirectiveTests
-        : FederationTypesTestBase
+    [Fact]
+    public void AddKeyDirective_EnsureAvailableInSchema()
     {
-        [Fact]
-        public void AddKeyDirective_EnsureAvailableInSchema()
+        // arrange
+        ISchema schema = CreateSchema(b =>
         {
-            // arrange
-            ISchema schema = CreateSchema(b =>
+            b.AddDirectiveType<KeyDirectiveType>();
+        });
+
+        // act
+        DirectiveType? directive =
+            schema.DirectiveTypes.FirstOrDefault(
+                t => t.Name.Equals(WellKnownTypeNames.Key));
+
+        // assert
+        Assert.NotNull(directive);
+        Assert.IsType<KeyDirectiveType>(directive);
+        Assert.Equal(WellKnownTypeNames.Key, directive!.Name);
+        Assert.Single(directive.Arguments);
+        AssertDirectiveHasFieldsArgument(directive);
+        Assert.Collection(directive.Locations,
+            t => Assert.Equal(DirectiveLocation.Object, t),
+            t => Assert.Equal(DirectiveLocation.Interface, t));
+
+    }
+
+    [Fact]
+    public void AnnotateKeyToObjectTypeCodeFirst()
+    {
+        // arrange
+        Snapshot.FullName();
+
+        ISchema? schema = SchemaBuilder.New()
+            .AddQueryType(o => o
+                .Name("Query")
+                .Field("someField")
+                .Argument("a", a => a.Type<IntType>())
+                .Type("TestType")
+            )
+            .AddObjectType(
+                o =>
+                {
+                    o.Name("TestType").Key("id");
+                    o.Field("id").Type<IntType>();
+                    o.Field("name").Type<StringType>();
+                })
+            .AddDirectiveType<KeyDirectiveType>()
+            .AddType<FieldSetType>()
+            .Use(next => next)
+            .Create();
+
+        // act
+        ObjectType testType = schema.GetType<ObjectType>("TestType");
+
+        // assert
+        Assert.Collection(
+            testType.Directives,
+            item =>
             {
-                b.AddDirectiveType<KeyDirectiveType>();
+                Assert.Equal(WellKnownTypeNames.Key, item.Name);
+                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
             });
 
-            // act
-            DirectiveType? directive =
-                schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals(WellKnownTypeNames.Key));
+        schema.ToString().MatchSnapshot();
+    }
 
-            // assert
-            Assert.NotNull(directive);
-            Assert.IsType<KeyDirectiveType>(directive);
-            Assert.Equal(WellKnownTypeNames.Key, directive!.Name);
-            Assert.Single(directive.Arguments);
-            AssertDirectiveHasFieldsArgument(directive);
-            Assert.Collection(directive.Locations,
-                t => Assert.Equal(DirectiveLocation.Object, t),
-                t => Assert.Equal(DirectiveLocation.Interface, t));
+    [Fact]
+    public void AnnotateKeyToObjectTypeSchemaFirst()
+    {
+        // arrange
+        Snapshot.FullName();
 
-        }
-
-        [Fact]
-        public void AnnotateKeyToObjectTypeCodeFirst()
-        {
-            // arrange
-            Snapshot.FullName();
-
-            var schema = Schema.Create(
-                t =>
-                {
-                    var testTypeDefinition = new ObjectType(
-                        o =>
-                        {
-                            o.Name("TestType")
-                                .Key("id");
-                            o.Field("id")
-                                .Type<IntType>();
-                            o.Field("name")
-                                .Type<StringType>();
-                        }
-                    );
-                    t.RegisterType(testTypeDefinition);
-                    t.RegisterQueryType(new ObjectType(
-                        o => o.Name("Query")
-                            .Field("someField")
-                            .Argument("a", a => a.Type<IntType>())
-                            .Type(testTypeDefinition)
-                    ));
-
-                    t.RegisterDirective<KeyDirectiveType>();
-                    t.RegisterType<FieldSetType>();
-                    t.Use(next => context => default);
-                });
-
-            // act
-            ObjectType testType = schema.GetType<ObjectType>("TestType");
-
-            // assert
-            Assert.Collection(testType.Directives,
-                item =>
-                {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
-                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void AnnotateKeyToObjectTypeSchemaFirst()
-        {
-            // arrange
-            Snapshot.FullName();
-
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(
-                    @"
+        ISchema schema = SchemaBuilder.New()
+            .AddDocumentFromString(
+                @"
                     type TestType @key(fields: ""id"") {
                         id: Int!
                         name: String!
@@ -106,139 +95,138 @@ namespace HotChocolate.ApolloFederation.Directives
                     interface IQuery {
                         someField(a: Int): TestType
                     }")
-                .AddDirectiveType<KeyDirectiveType>()
-                .AddType<FieldSetType>()
-                .Use(next => context => default)
-                .Create();
+            .AddDirectiveType<KeyDirectiveType>()
+            .AddType<FieldSetType>()
+            .Use(next => context => default)
+            .Create();
 
-            // act
-            ObjectType testType = schema.GetType<ObjectType>("TestType");
+        // act
+        ObjectType testType = schema.GetType<ObjectType>("TestType");
 
-            // assert
-            Assert.Collection(testType.Directives,
-                item =>
-                {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
-                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
-            schema.ToString().MatchSnapshot();
-        }
+        // assert
+        Assert.Collection(testType.Directives,
+            item =>
+            {
+                Assert.Equal(
+                    WellKnownTypeNames.Key,
+                    item.Name
+                );
+                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+            });
 
-        [Fact]
-        public void AnnotateKeyToObjectTypePureCodeFirst()
-        {
-            // arrange
-            Snapshot.FullName();
+        schema.ToString().MatchSnapshot();
+    }
 
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<Query<TestTypeClassDirective>>()
-                .Create();
+    [Fact]
+    public void AnnotateKeyToObjectTypePureCodeFirst()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            // act
-            ObjectType testType = schema.GetType<ObjectType>("TestTypeClassDirective");
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query<TestTypeClassDirective>>()
+            .Create();
 
-            // assert
-            Assert.Collection(testType.Directives,
-                item =>
-                {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
-                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
-            schema.ToString().MatchSnapshot();
-        }
+        // act
+        ObjectType testType = schema.GetType<ObjectType>("TestTypeClassDirective");
 
-        [Fact]
-        public void AnnotateKeyToClassAttributePureCodeFirst()
-        {
-            // arrange
-            Snapshot.FullName();
+        // assert
+        Assert.Collection(testType.Directives,
+            item =>
+            {
+                Assert.Equal(
+                    WellKnownTypeNames.Key,
+                    item.Name
+                );
+                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+            });
 
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<Query<TestTypePropertyDirective>>()
-                .Create();
+        schema.ToString().MatchSnapshot();
+    }
 
-            // act
-            ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
+    [Fact]
+    public void AnnotateKeyToClassAttributePureCodeFirst()
+    {
+        // arrange
+        Snapshot.FullName();
 
-            // assert
-            Assert.Collection(testType.Directives,
-                item =>
-                {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
-                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
-            schema.ToString().MatchSnapshot();
-        }
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query<TestTypePropertyDirective>>()
+            .Create();
 
-        [Fact]
-        public void AnnotateKeyToClassAttributesPureCodeFirst()
-        {
-            // arrange
-            Snapshot.FullName();
+        // act
+        ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
 
-            ISchema schema = SchemaBuilder.New()
-                .AddApolloFederation()
-                .AddQueryType<Query<TestTypePropertyDirectives>>()
-                .Create();
+        // assert
+        Assert.Collection(testType.Directives,
+            item =>
+            {
+                Assert.Equal(
+                    WellKnownTypeNames.Key,
+                    item.Name
+                );
+                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+            });
 
-            // act
-            ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
+        schema.ToString().MatchSnapshot();
+    }
 
-            // assert
-            Assert.Collection(testType.Directives,
-                item =>
-                {
-                    Assert.Equal(
-                        WellKnownTypeNames.Key,
-                        item.Name
-                    );
-                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
-                    Assert.Equal("\"id name\"", item.ToNode().Arguments[0].Value.ToString());
-                }
-            );
-            schema.ToString().MatchSnapshot();
-        }
+    [Fact]
+    public void AnnotateKeyToClassAttributesPureCodeFirst()
+    {
+        // arrange
+        Snapshot.FullName();
 
-        public class Query<T>
-        {
-            public T someField(int id) => default;
-        }
+        ISchema schema = SchemaBuilder.New()
+            .AddApolloFederation()
+            .AddQueryType<Query<TestTypePropertyDirectives>>()
+            .Create();
 
-        [Key("id")]
-        public class TestTypeClassDirective
-        {
-            public int Id { get; set; }
-        }
+        // act
+        ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
 
-        public class TestTypePropertyDirective
-        {
-            [Key]
-            public int Id { get; set; }
-        }
+        // assert
+        Assert.Collection(testType.Directives,
+            item =>
+            {
+                Assert.Equal(
+                    WellKnownTypeNames.Key,
+                    item.Name
+                );
+                Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                Assert.Equal("\"id name\"", item.ToNode().Arguments[0].Value.ToString());
+            });
 
-        public class TestTypePropertyDirectives
-        {
-            [Key]
-            public int Id { get; set; }
-            [Key]
-            public string Name { get; set; }
-        }
+        schema.ToString().MatchSnapshot();
+    }
+
+    public class Query<T>
+    {
+        public T someField(int id) => default!;
+    }
+
+    [Key("id")]
+    public class TestTypeClassDirective
+    {
+        public int Id { get; set; }
+    }
+
+    public class TestTypePropertyDirective
+    {
+        [Key]
+        public int Id { get; set; }
+    }
+
+    public class TestTypePropertyDirectives
+    {
+        [Key]
+        public int Id { get; set; }
+        [Key]
+        public string Name { get; set; } = default!;
     }
 }
