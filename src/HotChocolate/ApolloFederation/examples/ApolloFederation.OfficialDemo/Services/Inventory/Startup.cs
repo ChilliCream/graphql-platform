@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Playground;
 using Inventory.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,11 +39,6 @@ namespace Inventory
                     endpoints.MapGraphQL();
                 }
             );
-            app.UsePlayground(new PlaygroundOptions()
-            {
-                Path = "/playground",
-                QueryPath = "/graphql"
-            });
         }
     }
 }

@@ -1,6 +1,4 @@
 using Accounts.Data;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,11 +36,6 @@ namespace Accounts
                     endpoints.MapGraphQL();
                 }
             );
-            app.UsePlayground(new PlaygroundOptions()
-            {
-                Path = "/playground",
-                QueryPath = "/graphql"
-            });
         }
     }
 }
