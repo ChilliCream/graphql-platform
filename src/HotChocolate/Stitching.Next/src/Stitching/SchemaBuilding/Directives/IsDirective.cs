@@ -54,4 +54,24 @@ internal readonly struct IsDirective : ISchemaBuildingDirective
         directive = default;
         return false;
     }
+
+    public static bool IsOf(DirectiveNode directiveSyntax)
+    {
+        if (directiveSyntax is null)
+        {
+            throw new ArgumentNullException(nameof(directiveSyntax));
+        }
+
+        if (directiveSyntax.Name.Value.EqualsOrdinal("is") &&
+            directiveSyntax.Arguments.Count is 1)
+        {
+            ArgumentNode argument = directiveSyntax.Arguments[0];
+            if (argument.Name.Value.EqualsOrdinal("a"))
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
 }

@@ -38,4 +38,33 @@ internal readonly struct InternalDirective : ISchemaBuildingDirective
         directive = default;
         return false;
     }
+
+    public static bool HasOne(IHasDirectives syntaxNode)
+    {
+        foreach (DirectiveNode directiveSyntax in syntaxNode.Directives)
+        {
+            if (IsOf(directiveSyntax))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsOf(DirectiveNode directiveSyntax)
+    {
+        if (directiveSyntax is null)
+        {
+            throw new ArgumentNullException(nameof(directiveSyntax));
+        }
+
+        if (directiveSyntax.Name.Value.EqualsOrdinal("internal") &&
+            directiveSyntax.Arguments.Count is 0)
+        {
+            return true;
+        }
+        
+        return false;
+    }
 }

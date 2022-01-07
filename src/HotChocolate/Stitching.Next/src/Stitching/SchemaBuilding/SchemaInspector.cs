@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using static HotChocolate.Stitching.SchemaBuilding.SchemaDirectiveHelper;
-using static HotChocolate.Stitching.SchemaBuilding.DirectiveKind;
+
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-internal class DefaultSchemaInspector
+internal class SchemaInspector
 {
     public SchemaInfo Inspect(DocumentNode schemaDocument)
     {
@@ -52,7 +51,7 @@ internal class DefaultSchemaInspector
 
         foreach (OperationTypeDefinitionNode operation in schemaDefinition.OperationTypes)
         {
-            schemaInfo.Name = 
+            schemaInfo.Name =
                 SchemaDirective.TryParseFirst(schemaDefinition, out var schemaDirective)
                     ? schemaDirective.Name
                     : Schema.DefaultName;

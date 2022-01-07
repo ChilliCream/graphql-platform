@@ -1,0 +1,26 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  users: [User!]!
+  reviews: [Review!]!
+}
+
+type Review {
+  id: ID!
+  user: User!
+  product: Product!
+  body: String!
+}
+
+type User {
+  id: ID!
+  name: String!
+  username: String!
+  birthdate: DateTime!
+}
+
+type Product {
+  upc: ID!
+}

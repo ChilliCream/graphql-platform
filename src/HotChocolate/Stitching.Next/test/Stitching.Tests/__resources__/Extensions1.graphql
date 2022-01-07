@@ -1,7 +1,0 @@
-extend type Query {
-  userById(id: String): User! @delegate(path: "user(id: 1)")
-}
-
-extend type User @remove(name: "name") {
-    foo: String @foo @replace
-}
