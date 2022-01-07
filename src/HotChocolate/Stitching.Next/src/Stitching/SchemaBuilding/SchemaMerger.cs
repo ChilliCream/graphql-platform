@@ -35,6 +35,7 @@ internal class SchemaMerger
             Merge(next, root);
         }
 
+        root.Name = "Merged";
         return root;
     }
 
