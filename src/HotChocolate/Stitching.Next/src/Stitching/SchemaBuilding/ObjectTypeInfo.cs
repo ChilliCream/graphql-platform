@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -8,8 +9,8 @@ internal sealed class ObjectTypeInfo : ITypeInfo
 {
     public ObjectTypeInfo(ObjectTypeDefinitionNode definition)
     {
+        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         Name = definition.Name.Value;
-        Definition = definition;
     }
 
     public NameString Name { get; }
@@ -22,4 +23,7 @@ internal sealed class ObjectTypeInfo : ITypeInfo
 
     public IList<ObjectFetcherInfo> Fetchers { get; } =
         new List<ObjectFetcherInfo>();
+
+    public List<FieldSchemaBinding> Bindings { get; } =
+        new List<FieldSchemaBinding>();
 }

@@ -4,5 +4,6 @@ public enum DirectiveKind
 {
     Is,
     Internal,
-    Schema
+    Schema,
+    Source
 }

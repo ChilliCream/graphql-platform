@@ -1,6 +1,7 @@
 
 using System.Linq;
 using HotChocolate.Language;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -65,8 +66,6 @@ public class SchemaMergerTests
         var mergedSchemaInfo = merger.Merge(new[] { schemaInfoA, schemaInfoB });
 
         // assert
-        mergedSchemaInfo.ToSchemaDocument().ToString().MatchSnapshot();
-
         Assert.Equal("Merged", mergedSchemaInfo.Name);
         Assert.NotNull(mergedSchemaInfo.Query);
         Assert.Null(mergedSchemaInfo.Mutation);
@@ -118,5 +117,53 @@ public class SchemaMergerTests
                         Assert.Equal("User.id", f.Arguments.Single().Binding.ToString());
                     });
             });
+
+        Assert.Collection(
+            mergedSchemaInfo.Query.Bindings,
+            t =>
+            {
+                Assert.Equal("Accounts", t.Source);
+
+                Assert.Collection(
+                    t.Fields, 
+                    f => Assert.Equal("users", f), 
+                    f => Assert.Equal("userById", f));
+            },
+            t =>
+            {
+                Assert.Equal("Reviews", t.Source);
+
+                Assert.Collection(
+                    t.Fields, 
+                    f => Assert.Equal("reviews", f),
+                    f => Assert.Equal("reviewsByAuthor", f), 
+                    f => Assert.Equal("reviewsByProduct", f));
+            });
+
+        Assert.Collection(
+            ((ObjectTypeInfo)mergedSchemaInfo.Types["User"]).Bindings,
+            t =>
+            {
+                Assert.Equal("Accounts", t.Source);
+
+                Assert.Collection(
+                    t.Fields, 
+                    f => Assert.Equal("id", f), 
+                    f => Assert.Equal("name", f), 
+                    f => Assert.Equal("username", f), 
+                    f => Assert.Equal("birthdate", f));
+            },
+            t =>
+            {
+                Assert.Equal("Reviews", t.Source);
+
+                Assert.Collection(
+                    t.Fields, 
+                    f => Assert.Equal("id", f),
+                    f => Assert.Equal("name", f));
+            });
+
+        mergedSchemaInfo.ToSchemaDocument().ToString()
+            .MatchSnapshot(new SnapshotNameExtension("Merged"));
     }
 }

@@ -96,6 +96,11 @@ internal class SchemaMerger
             }
         }
 
+        foreach (FieldSchemaBinding binding in source.Bindings)
+        {
+            target.Bindings.Add(binding);
+        }
+
         target.Definition = target.Definition.WithFields(temp);
     }
 

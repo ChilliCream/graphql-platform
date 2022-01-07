@@ -23,11 +23,26 @@ internal class SchemaInspector
 
         var schemaInfo = new SchemaInfo();
 
+        SchemaDefinitionNode schemaDefinition = ParseSchema(schemaDocument.Definitions, schemaInfo);
         ParseTypes(schemaDocument.Definitions, schemaInfo);
-        ParseRootTypes(schemaDocument.Definitions, schemaInfo);
+        ParseRootTypes(schemaDefinition, schemaInfo);
         DiscoverFetcher(schemaInfo);
 
         return schemaInfo;
+    }
+
+    private SchemaDefinitionNode ParseSchema(
+        IReadOnlyList<IDefinitionNode> definition,
+        SchemaInfo schemaInfo)
+    {
+        SchemaDefinitionNode schemaDefinition = definition.OfType<SchemaDefinitionNode>().Single();
+
+        schemaInfo.Name =
+            SchemaDirective.TryParseFirst(schemaDefinition, out var schemaDirective)
+                ? schemaDirective.Name
+                : Schema.DefaultName;
+
+        return schemaDefinition;
     }
 
     private void ParseTypes(IReadOnlyList<IDefinitionNode> definition, SchemaInfo schemaInfo)
@@ -39,23 +54,20 @@ internal class SchemaInspector
                 case SyntaxKind.ObjectTypeDefinition:
                     var objectType = (ObjectTypeDefinitionNode)node;
                     var objectTypeInfo = new ObjectTypeInfo(objectType);
+                    objectTypeInfo.Bindings.Add(
+                        new FieldSchemaBinding(
+                            schemaInfo.Name,
+                            objectType.Fields.Select(t => t.Name.Value).ToArray()));
                     schemaInfo.Types[objectTypeInfo.Name] = objectTypeInfo;
                     break;
             }
         }
     }
 
-    private void ParseRootTypes(IReadOnlyList<IDefinitionNode> definition, SchemaInfo schemaInfo)
+    private void ParseRootTypes(SchemaDefinitionNode schemaDefinition, SchemaInfo schemaInfo)
     {
-        SchemaDefinitionNode schemaDefinition = definition.OfType<SchemaDefinitionNode>().Single();
-
         foreach (OperationTypeDefinitionNode operation in schemaDefinition.OperationTypes)
         {
-            schemaInfo.Name =
-                SchemaDirective.TryParseFirst(schemaDefinition, out var schemaDirective)
-                    ? schemaDirective.Name
-                    : Schema.DefaultName;
-
             if (schemaInfo.Types.TryGetValue(operation.Type.Name.Value, out ITypeInfo? typeInfo) &&
                 typeInfo is ObjectTypeInfo rootType)
             {
