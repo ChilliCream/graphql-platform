@@ -12,7 +12,7 @@ public class DefaultSchemaInspectorTests
     {
         // arrange
         var schema =
-            @"schema { query: Query }
+            @"schema @schema(name: ""Persons"") { query: Query }
 
             type Query {
                 personById(id: ID! @is(a: ""Person.id"")) : Person
@@ -28,6 +28,7 @@ public class DefaultSchemaInspectorTests
         var schemaInfo = inspector.Inspect(Utf8GraphQLParser.Parse(schema));
 
         // assert
+        Assert.Equal("Persons", schemaInfo.Name);
         Assert.NotNull(schemaInfo.Query);
         Assert.Null(schemaInfo.Mutation);
         Assert.Null(schemaInfo.Subscription);
@@ -53,7 +54,7 @@ public class DefaultSchemaInspectorTests
     {
         // arrange
         var schema =
-            @"schema { query: Query }
+            @"schema @schema(name: ""Persons"") { query: Query }
 
             type Query {
                 personById(id: ID! @is(a: ""Person.id"")) : Person
@@ -70,6 +71,7 @@ public class DefaultSchemaInspectorTests
         var schemaInfo = inspector.Inspect(Utf8GraphQLParser.Parse(schema));
 
         // assert
+        Assert.Equal("Persons", schemaInfo.Name);
         Assert.NotNull(schemaInfo.Query);
         Assert.Null(schemaInfo.Mutation);
         Assert.Null(schemaInfo.Subscription);

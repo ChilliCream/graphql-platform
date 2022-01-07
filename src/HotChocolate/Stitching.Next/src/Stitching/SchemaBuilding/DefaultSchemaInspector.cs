@@ -48,9 +48,15 @@ internal class DefaultSchemaInspector
 
     private void ParseRootTypes(IReadOnlyList<IDefinitionNode> definition, SchemaInfo schemaInfo)
     {
-        foreach (OperationTypeDefinitionNode operation in
-            definition.OfType<SchemaDefinitionNode>().Single().OperationTypes)
+        SchemaDefinitionNode schemaDefinition = definition.OfType<SchemaDefinitionNode>().Single();
+
+        foreach (OperationTypeDefinitionNode operation in schemaDefinition.OperationTypes)
         {
+            schemaInfo.Name = 
+                SchemaDirective.TryParseFirst(schemaDefinition, out var schemaDirective)
+                    ? schemaDirective.Name
+                    : Schema.DefaultName;
+
             if (schemaInfo.Types.TryGetValue(operation.Type.Name.Value, out ITypeInfo? typeInfo) &&
                 typeInfo is ObjectTypeInfo rootType)
             {

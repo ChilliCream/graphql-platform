@@ -3,5 +3,6 @@ namespace HotChocolate.Stitching.SchemaBuilding;
 public enum DirectiveKind
 {
     Is,
-    Internal
+    Internal,
+    Schema
 }

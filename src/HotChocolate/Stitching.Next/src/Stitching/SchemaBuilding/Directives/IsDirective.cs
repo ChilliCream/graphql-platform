@@ -3,6 +3,9 @@ using HotChocolate.Language;
 using HotChocolate.Utilities;
 namespace HotChocolate.Stitching.SchemaBuilding;
 
+/// <summary>
+/// directive @is(a: SchemaCoordinate!) on INPUT_DEFINITION | FIELD_DEFINITION
+/// </summary>
 internal readonly struct IsDirective : ISchemaBuildingDirective
 {
     public IsDirective(SchemaCoordinate coordinate)
