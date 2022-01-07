@@ -42,7 +42,7 @@ internal readonly struct IsDirective : ISchemaBuildingDirective
     {
         foreach (DirectiveNode directiveSyntax in syntaxNode.Directives)
         {
-            if (IsDirective.TryParse(directiveSyntax, out directive))
+            if (TryParse(directiveSyntax, out directive))
             {
                 return true;
             }
