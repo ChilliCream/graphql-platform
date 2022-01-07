@@ -15,7 +15,7 @@ type Query {
   # reviewsByUpcs(upcs: [String!]) : [Review]
 }
 
-type Review @key(fields: "id") {
+type Review {
   id: ID!
   body: String
   author: User

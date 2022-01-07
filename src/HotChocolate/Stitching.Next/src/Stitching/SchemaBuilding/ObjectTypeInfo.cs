@@ -1,71 +1,24 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.SchemaBuilding;
 
-
-public class SchemaInfo
+internal sealed class ObjectTypeInfo : ITypeInfo
 {
-    public IList<ObjectTypeInfo> Types { get; } =
-        new List<ObjectTypeInfo>();
-}
-
-public class ObjectTypeInfo
-{
-    public ObjectTypeInfo(NameString name, ObjectTypeDefinitionNode definition)
+    public ObjectTypeInfo(ObjectTypeDefinitionNode definition)
     {
-        Name = name;
+        Name = definition.Name.Value;
+        Kind = TypeKind.Object;
         Definition = definition;
     }
 
     public NameString Name { get; }
 
+    public TypeKind Kind { get; }
+
     public ObjectTypeDefinitionNode Definition { get; }
 
-    public IList<ObjectFetcher> Fetchers { get; } =
-        new List<ObjectFetcher>();
-}
-
-public readonly struct ObjectFetcher
-{
-    public string Source { get; }
-
-    public ISyntaxNode Selections { get; }
-
-    /// <summary>
-    /// T
-    /// </summary>
-    /// <value></value>
-    public IReadOnlyList<string> Fields { get; }
-
-    public object Aggregator { get; }
-}
-
-public readonly struct FieldOrSelection
-{
-    public FieldOrSelection(FieldNode field)
-    {
-        Kind = FieldOrSelectionKind.Field;
-        Field = field;
-        Selection = null;
-    }
-
-    public FieldOrSelection(SelectionSetNode selection)
-    {
-        Kind = FieldOrSelectionKind.Selection;
-        Field = null;
-        Selection = selection;
-    }
-
-    public FieldOrSelectionKind Kind { get; }
-
-    public FieldNode? Field { get; }
-
-    public SelectionSetNode? Selection { get; }
-}
-
-public enum FieldOrSelectionKind
-{
-    Field,
-    Selection
+    public IList<ObjectFetcherInfo> Fetchers { get; } =
+        new List<ObjectFetcherInfo>();
 }
