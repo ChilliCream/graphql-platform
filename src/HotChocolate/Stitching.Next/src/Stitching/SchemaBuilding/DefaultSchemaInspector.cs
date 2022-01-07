@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
-
+using static HotChocolate.Stitching.SchemaBuilding.SchemaDirectiveHelper;
+using static HotChocolate.Stitching.SchemaBuilding.DirectiveKind;
 namespace HotChocolate.Stitching.SchemaBuilding;
 
 internal class DefaultSchemaInspector
@@ -26,6 +26,7 @@ internal class DefaultSchemaInspector
 
         ParseTypes(schemaDocument.Definitions, schemaInfo);
         ParseRootTypes(schemaDocument.Definitions, schemaInfo);
+        DiscoverFetcher(schemaInfo);
 
         return schemaInfo;
     }
@@ -53,10 +54,11 @@ internal class DefaultSchemaInspector
             if (schemaInfo.Types.TryGetValue(operation.Type.Name.Value, out ITypeInfo? typeInfo) &&
                 typeInfo is ObjectTypeInfo rootType)
             {
+                schemaInfo.Types.Remove(typeInfo.Name);
+
                 switch (operation.Operation)
                 {
                     case OperationType.Query:
-
                         schemaInfo.Query = rootType;
                         break;
 
@@ -71,69 +73,41 @@ internal class DefaultSchemaInspector
             }
         }
     }
-}
 
-internal static class SchemaDirectiveHelper
-{
-    public static IList<ISchemaBuildingDirective> ParseDirectives(IHasDirectives syntaxNode)
+    private void DiscoverFetcher(SchemaInfo schemaInfo)
     {
-        var directives = new List<ISchemaBuildingDirective>();
-
-        foreach (DirectiveNode directive in syntaxNode.Directives)
+        if (schemaInfo.Query is not null)
         {
-            if (IsDirective.TryParse(directive, out var isDirective))
+            var fieldLookup = schemaInfo.Query.Definition.Fields.ToLookup(t => t.Type.NamedType().Name.Value);
+
+            foreach (ObjectTypeInfo objectType in schemaInfo.Types.Values.OfType<ObjectTypeInfo>())
             {
-                directives.Add(isDirective);
-                continue;
+                foreach (FieldDefinitionNode fetchField in fieldLookup[objectType.Name.Value])
+                {
+                    if (fetchField.Arguments.Count is not 0)
+                    {
+                        var arguments = new List<ArgumentInfo>();
+
+                        foreach (InputValueDefinitionNode argument in fetchField.Arguments)
+                        {
+                            if (!IsDirective.TryParseFirst(argument, out var directive))
+                            {
+                                break;
+                            }
+
+                            arguments.Add(new(
+                                argument.Name.Value,
+                                argument.Type,
+                                directive.Coordinate));
+                        }
+
+                        if (arguments.Count == fetchField.Arguments.Count)
+                        {
+                            objectType.Fetchers.Add(new(schemaInfo.Name, fetchField, arguments));
+                        }
+                    }
+                }
             }
         }
-
-        return directives;
-    }
-}
-
-internal interface ISchemaBuildingDirective
-{
-    DirectiveKind Kind { get; }
-}
-
-public enum DirectiveKind
-{
-    Is
-}
-
-internal readonly struct IsDirective : ISchemaBuildingDirective
-{
-    public IsDirective(SchemaCoordinate coordinate)
-    {
-        Coordinate = coordinate;
-    }
-
-    public DirectiveKind Kind => DirectiveKind.Is;
-
-    public SchemaCoordinate Coordinate { get; }
-
-    public static bool TryParse(DirectiveNode directiveSyntax, out IsDirective directive)
-    {
-        if (directiveSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(directiveSyntax));
-        }
-
-        if (directiveSyntax.Name.Value.EqualsOrdinal("is") &&
-            directiveSyntax.Arguments.Count is 1)
-        {
-            ArgumentNode argument = directiveSyntax.Arguments[0];
-            if (argument.Name.Value.EqualsOrdinal("a") &&
-                argument.Value.Kind is SyntaxKind.StringValue &&
-                SchemaCoordinate.TryParse((string)argument.Value.Value!, out var coordinate))
-            {
-                directive = new IsDirective(coordinate.Value);
-                return true;
-            }
-        }
-
-        directive = default;
-        return false;
     }
 }

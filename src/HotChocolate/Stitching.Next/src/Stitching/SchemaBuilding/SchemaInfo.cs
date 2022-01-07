@@ -4,7 +4,9 @@ namespace HotChocolate.Stitching.SchemaBuilding;
 
 internal class SchemaInfo
 {
-    public ObjectTypeInfo Query { get; set; }
+    public NameString Name { get; set; } = Schema.DefaultName;
+    
+    public ObjectTypeInfo? Query { get; set; }
 
     public ObjectTypeInfo? Mutation { get; set; }
 
