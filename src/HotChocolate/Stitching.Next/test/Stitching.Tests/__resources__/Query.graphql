@@ -1,0 +1,54 @@
+query {
+  reviews {
+    body
+    user {
+      name
+      username
+    }
+  }
+}
+
+query {
+  reviews {
+    body
+    user {
+      id
+      name
+    }
+  }
+}
+
+query ($id: ID!) {
+  userById(id: $id) {
+    username
+  }
+}
+
+query {
+  reviews {
+    body
+    ... @defer {
+      user {
+        name
+        username
+      }
+    }
+  }
+}
+
+query {
+  reviews {
+    body
+    user {
+      id
+    }
+  }
+}
+
+# deferred
+query ($id: ID!) {
+  userById(id: $id) {
+    name
+    username
+  }
+}
