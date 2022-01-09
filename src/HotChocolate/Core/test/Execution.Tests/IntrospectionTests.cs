@@ -383,6 +383,7 @@ namespace HotChocolate.Execution
         private static ISchema CreateSchema()
         {
             return SchemaBuilder.New()
+                .AddType<BarDirectiveType>()
                 .AddQueryType<Query>()
                 .ModifyOptions(o => o.RemoveUnreachableTypes = false)
                 .Create();
@@ -401,6 +402,39 @@ namespace HotChocolate.Execution
                 descriptor.Field("b")
                     .Type<Foo>()
                     .Resolve(() => new object());
+
+                descriptor.Field("c")
+                    .Type<StringType>()
+                    .Argument("c_arg", x => x.Type<StringType>().Deprecated("TEST"))
+                    .Resolve(() => "c");
+
+                descriptor.Field("d")
+                    .Type<StringType>()
+                    .Argument("d_arg", x => x.Type<FooInput>())
+                    .Resolve(() => "d");
+            }
+        }
+
+        private class BarDirectiveType : DirectiveType
+        {
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("Bar");
+                descriptor.Location(DirectiveLocation.Query | DirectiveLocation.Field);
+                descriptor.Argument("a").Type<StringType>();
+                descriptor.Argument("b").Type<StringType>().Deprecated("TEST 3");
+            }
+        }
+
+        private class FooInput : InputObjectType
+        {
+            protected override void Configure(IInputObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("FooInput");
+
+                descriptor.Field("a").Type<StringType>();
+
+                descriptor.Field("b").Type<StringType>().Deprecated("TEST 2");
             }
         }
 
@@ -423,16 +457,16 @@ namespace HotChocolate.Execution
                 descriptor.Name("Bar");
                 descriptor.Field("a")
                     .Type<StringType>()
-                    .Argument("b", a => a.Type<BazType>()
-                        .DefaultValue(new Baz { Qux = "fooBar" }))
+                    .Argument("b",
+                        a => a.Type<BazType>()
+                            .DefaultValue(new Baz { Qux = "fooBar" }))
                     .Resolve(() => "foo.a");
             }
         }
 
         public class BazType : InputObjectType<Baz>
         {
-            protected override void Configure(
-                IInputObjectTypeDescriptor<Baz> descriptor)
+            protected override void Configure(IInputObjectTypeDescriptor<Baz> descriptor)
             {
                 descriptor.Name("Baz");
                 descriptor.Field(t => t.Qux).DefaultValue("123456");
@@ -447,8 +481,7 @@ namespace HotChocolate.Execution
         private sealed class UpperDirectiveType
             : DirectiveType
         {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
+            protected override void Configure(IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field);

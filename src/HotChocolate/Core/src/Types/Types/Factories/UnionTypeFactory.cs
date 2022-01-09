@@ -12,9 +12,8 @@ internal sealed class UnionTypeFactory
     {
         var preserveSyntaxNodes = context.Options.PreserveSyntaxNodes;
 
-        var typeDefinition = new UnionTypeDefinition(
-            node.Name.Value,
-            node.Description?.Value);
+        var typeDefinition = new UnionTypeDefinition(node.Name.Value, node.Description?.Value);
+
         typeDefinition.BindTo = node.GetBindingValue();
 
         if (preserveSyntaxNodes)

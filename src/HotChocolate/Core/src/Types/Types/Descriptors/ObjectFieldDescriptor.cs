@@ -22,6 +22,9 @@ public class ObjectFieldDescriptor
     private bool _argumentsInitialized;
     private readonly ParameterInfo[] _parameterInfos = Array.Empty<ParameterInfo>();
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
         NameString fieldName)
@@ -33,6 +36,9 @@ public class ObjectFieldDescriptor
             context.Options.DefaultResolverStrategy is ExecutionStrategy.Parallel;
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
         MemberInfo member,
@@ -42,12 +48,9 @@ public class ObjectFieldDescriptor
     {
         Definition.Member = member ??
             throw new ArgumentNullException(nameof(member));
-        Definition.Name = context.Naming.GetMemberName(
-            member,
-            MemberKind.ObjectField);
-        Definition.Description = context.Naming.GetMemberDescription(
-            member,
-            MemberKind.ObjectField);
+        Definition.Name = context.Naming.GetMemberName(member, MemberKind.ObjectField);
+        Definition.Description =
+            context.Naming.GetMemberDescription(member, MemberKind.ObjectField);
         Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
         Definition.SourceType = sourceType;
         Definition.ResolverType = resolverType == sourceType ? null : resolverType;
@@ -71,6 +74,9 @@ public class ObjectFieldDescriptor
         }
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -118,6 +124,9 @@ public class ObjectFieldDescriptor
         }
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
     protected ObjectFieldDescriptor(
         IDescriptorContext context,
         ObjectFieldDefinition definition)
@@ -129,6 +138,7 @@ public class ObjectFieldDescriptor
     protected internal override ObjectFieldDefinition Definition { get; protected set; } =
         new();
 
+    /// <inheritdoc />
     protected override void OnCreateDefinition(ObjectFieldDefinition definition)
     {
         MemberInfo? member = definition.ResolverMember ?? definition.Member;
@@ -210,8 +220,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public new IObjectFieldDescriptor Type<TOutputType>(
-        TOutputType outputType)
+    public new IObjectFieldDescriptor Type<TOutputType>(TOutputType outputType)
         where TOutputType : class, IOutputType
     {
         base.Type(outputType);
@@ -249,8 +258,7 @@ public class ObjectFieldDescriptor
     }
 
     /// <inheritdoc />
-    public IObjectFieldDescriptor Resolver(
-        FieldResolverDelegate fieldResolver) =>
+    public IObjectFieldDescriptor Resolver(FieldResolverDelegate fieldResolver) =>
         Resolve(fieldResolver);
 
     /// <inheritdoc />
@@ -260,8 +268,7 @@ public class ObjectFieldDescriptor
         Resolve(fieldResolver, resultType);
 
     /// <inheritdoc />
-    public IObjectFieldDescriptor Resolve(
-        FieldResolverDelegate fieldResolver)
+    public IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver)
     {
         if (fieldResolver is null)
         {
@@ -320,8 +327,8 @@ public class ObjectFieldDescriptor
         return ResolveWith(propertyOrMethod.ExtractMember());
     }
 
-    public IObjectFieldDescriptor ResolveWith(
-        MemberInfo propertyOrMethod)
+    /// <inheritdoc />
+    public IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod)
     {
         if (propertyOrMethod is null)
         {
@@ -390,11 +397,25 @@ public class ObjectFieldDescriptor
         return this;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="fieldName">The name of the field</param>
+    /// <returns>An instance of <see cref="DirectiveArgumentDescriptor"/></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         NameString fieldName) =>
         new(context, fieldName);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="member">The member this field represents</param>
+    /// <param name="sourceType">The type of the member</param>
+    /// <param name="resolverType">The resolved type</param>
+    /// <returns></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         MemberInfo member,
@@ -402,6 +423,14 @@ public class ObjectFieldDescriptor
         Type? resolverType = null) =>
         new(context, member, sourceType, resolverType);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="expression">The expression this field is based on</param>
+    /// <param name="sourceType">The type of the member</param>
+    /// <param name="resolverType">The resolved type</param>
+    /// <returns></returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -409,6 +438,12 @@ public class ObjectFieldDescriptor
         Type? resolverType = null) =>
         new(context, expression, sourceType, resolverType);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="definition">The definition of the field</param>
+    /// <returns></returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
         ObjectFieldDefinition definition) =>

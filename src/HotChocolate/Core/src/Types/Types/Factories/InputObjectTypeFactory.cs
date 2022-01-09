@@ -68,6 +68,11 @@ internal sealed class InputObjectTypeFactory
                 inputFieldDefinition.SyntaxNode = inputField;
             }
 
+            if (inputField.DeprecationReason() is { Length: > 0 } reason)
+            {
+                inputFieldDefinition.DeprecationReason = reason;
+            }
+
             SdlToTypeSystemHelper.AddDirectives(inputFieldDefinition, inputField);
 
             parent.Fields.Add(inputFieldDefinition);

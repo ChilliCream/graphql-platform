@@ -106,6 +106,11 @@ internal sealed class ObjectTypeFactory
                 argumentDefinition.SyntaxNode = argument;
             }
 
+            if (argument.DeprecationReason() is { Length: > 0 } reason)
+            {
+                argumentDefinition.DeprecationReason = reason;
+            }
+
             SdlToTypeSystemHelper.AddDirectives(argumentDefinition, argument);
 
             parent.Arguments.Add(argumentDefinition);

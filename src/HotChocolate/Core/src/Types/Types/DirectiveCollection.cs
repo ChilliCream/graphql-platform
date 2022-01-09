@@ -39,10 +39,13 @@ public sealed class DirectiveCollection : IDirectiveCollection
         _location = DirectiveHelper.InferDirectiveLocation(source);
     }
 
+    /// <inheritdoc />
     public int Count => _directives.Length;
 
+    /// <inheritdoc />
     public IEnumerable<IDirective> this[NameString key] => _lookup[key];
 
+    /// <inheritdoc />
     public bool Contains(NameString key) => _lookup.Contains(key);
 
     public void CompleteCollection(ITypeCompletionContext context)
@@ -175,6 +178,7 @@ public sealed class DirectiveCollection : IDirectiveCollection
         }
     }
 
+    /// <inheritdoc />
     public IEnumerator<IDirective> GetEnumerator()
     {
         for (var i = 0; i < _directives.Length; i++)
@@ -183,8 +187,8 @@ public sealed class DirectiveCollection : IDirectiveCollection
         }
     }
 
-    IEnumerator IEnumerable.GetEnumerator() =>
-        GetEnumerator();
+    /// <inheritdoc />
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public static IDirectiveCollection CreateAndComplete(
         ITypeCompletionContext context,

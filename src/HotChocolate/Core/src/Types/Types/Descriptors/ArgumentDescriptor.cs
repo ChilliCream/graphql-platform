@@ -5,10 +5,16 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors;
 
+/// <summary>
+/// A fluent configuration API for GraphQL arguments.
+/// </summary>
 public class ArgumentDescriptor
     : ArgumentDescriptorBase<ArgumentDefinition>
     , IArgumentDescriptor
 {
+    /// <summary>
+    ///  Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
         NameString argumentName)
@@ -17,6 +23,9 @@ public class ArgumentDescriptor
         Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
         NameString argumentName,
@@ -32,6 +41,9 @@ public class ArgumentDescriptor
         Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
         ParameterInfo parameter)
@@ -46,8 +58,16 @@ public class ArgumentDescriptor
         {
             Definition.RuntimeDefaultValue = defaultValue;
         }
+
+        if (context.Naming.IsDeprecated(parameter, out var reason))
+        {
+            Deprecated(reason);
+        }
     }
 
+    /// <summary>
+    ///  Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
     protected internal ArgumentDescriptor(
         IDescriptorContext context,
         ArgumentDefinition definition)
@@ -56,6 +76,7 @@ public class ArgumentDescriptor
         Definition = definition ?? throw new ArgumentNullException(nameof(definition));
     }
 
+    /// <inheritdoc />
     protected override void OnCreateDefinition(ArgumentDefinition definition)
     {
         if (!Definition.AttributesAreApplied && Definition.Parameter is not null)
@@ -70,19 +91,35 @@ public class ArgumentDescriptor
         base.OnCreateDefinition(definition);
     }
 
-    public new IArgumentDescriptor SyntaxNode(
-        InputValueDefinitionNode inputValueDefinition)
+    /// <inheritdoc />
+    public new IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition)
     {
         base.SyntaxNode(inputValueDefinition);
         return this;
     }
 
+    /// <inheritdoc />
+    public new IArgumentDescriptor Deprecated(string reason)
+    {
+        base.Deprecated(reason);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IArgumentDescriptor Deprecated()
+    {
+        base.Deprecated();
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IArgumentDescriptor Description(string value)
     {
         base.Description(value);
         return this;
     }
 
+    /// <inheritdoc />
     public new IArgumentDescriptor Type<TInputType>()
         where TInputType : IInputType
     {
@@ -90,48 +127,51 @@ public class ArgumentDescriptor
         return this;
     }
 
-    public new IArgumentDescriptor Type<TInputType>(
-        TInputType inputType)
+    /// <inheritdoc />
+    public new IArgumentDescriptor Type<TInputType>(TInputType inputType)
         where TInputType : class, IInputType
     {
         base.Type(inputType);
         return this;
     }
 
-    public new IArgumentDescriptor Type(
-        ITypeNode typeNode)
+    /// <inheritdoc />
+    public new IArgumentDescriptor Type(ITypeNode typeNode)
     {
         base.Type(typeNode);
         return this;
     }
 
-    public new IArgumentDescriptor Type(
-        Type type)
+    /// <inheritdoc />
+    public new IArgumentDescriptor Type(Type type)
     {
         base.Type(type);
         return this;
     }
 
+    /// <inheritdoc />
     public new IArgumentDescriptor DefaultValue(IValueNode value)
     {
         base.DefaultValue(value);
         return this;
     }
 
+    /// <inheritdoc />
     public new IArgumentDescriptor DefaultValue(object value)
     {
         base.DefaultValue(value);
         return this;
     }
 
-    public new IArgumentDescriptor Directive<TDirective>(
-        TDirective directiveInstance)
+    /// <inheritdoc />
+    public new IArgumentDescriptor Directive<TDirective>(TDirective directiveInstance)
         where TDirective : class
     {
         base.Directive(directiveInstance);
         return this;
     }
 
+    /// <inheritdoc />
     public new IArgumentDescriptor Directive<TDirective>()
         where TDirective : class, new()
     {
@@ -139,6 +179,7 @@ public class ArgumentDescriptor
         return this;
     }
 
+    /// <inheritdoc />
     public new IArgumentDescriptor Directive(
         NameString name,
         params ArgumentNode[] arguments)
@@ -147,22 +188,47 @@ public class ArgumentDescriptor
         return this;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="argumentName">The name of the argument</param>
+    /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
         NameString argumentName) =>
         new(context, argumentName);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="argumentName">The name of the argument</param>
+    /// <param name="argumentType">The type of the argument</param>
+    /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
         NameString argumentName,
         Type argumentType) =>
         new(context, argumentName, argumentType);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="parameter">The parameter this argument is used for</param>
+    /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor New(
         IDescriptorContext context,
         ParameterInfo parameter) =>
         new(context, parameter);
 
+    /// <summary>
+    /// Creates a new instance of <see cref="ArgumentDescriptor"/>
+    /// </summary>
+    /// <param name="context">The descriptor context</param>
+    /// <param name="argumentDefinition">The definition of the argument</param>
+    /// <returns>An instance of <see cref="ArgumentDescriptor"/></returns>
     public static ArgumentDescriptor From(
         IDescriptorContext context,
         ArgumentDefinition argumentDefinition) =>

@@ -162,7 +162,9 @@ internal sealed class MutationConventionTypeInterceptor : TypeInterceptor
                 _completionContext.GetType<IInputType>(argument.Type!),
                 runtimeType,
                 argument.DefaultValue,
-                formatter));
+                formatter,
+                argument.IsDeprecated,
+                argument.DeprecationReason));
         }
 
         var argumentMiddleware =

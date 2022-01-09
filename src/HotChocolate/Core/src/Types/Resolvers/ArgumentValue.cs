@@ -104,6 +104,12 @@ public sealed class ArgumentValue : IInputFieldInfo
     /// </summary>
     public IInputValueFormatter? Formatter => _argument.Formatter;
 
+    /// <inheritdoc />
+    public bool IsDeprecated => _argument.IsDeprecated;
+
+    /// <inheritdoc />
+    public string? DeprecationReason => _argument.DeprecationReason;
+
     /// <summary>
     /// Specifies the value structure.
     /// </summary>

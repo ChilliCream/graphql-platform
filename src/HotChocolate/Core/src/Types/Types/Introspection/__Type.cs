@@ -33,61 +33,57 @@ internal sealed class __Type : ObjectType
             typeof(IType))
         {
             Fields =
+            {
+                new(Names.Kind, type: kindType, pureResolver: Resolvers.Kind),
+                new(Names.Name, type: stringType, pureResolver: Resolvers.Name),
+                new(Names.Description, type: stringType, pureResolver: Resolvers.Description),
+                new(Names.Fields, type: fieldListType, pureResolver: Resolvers.Fields)
                 {
-                    new(Names.Kind,
-                        type: kindType,
-                        pureResolver: Resolvers.Kind),
-                    new(Names.Name,
-                        type: stringType,
-                        pureResolver: Resolvers.Name),
-                    new(Names.Description,
-                        type: stringType,
-                        pureResolver: Resolvers.Description),
-                    new(Names.Fields,
-                        type: fieldListType,
-                        pureResolver: Resolvers.Fields)
+                    Arguments =
                     {
-                        Arguments =
+                        new(Names.IncludeDeprecated, type: booleanType)
                         {
-                            new(Names.IncludeDeprecated, type: booleanType)
-                            {
-                                DefaultValue = BooleanValueNode.False,
-                                RuntimeDefaultValue = false,
-                            }
+                            DefaultValue = BooleanValueNode.False,
+                            RuntimeDefaultValue = false,
                         }
-                    },
-                    new(Names.Interfaces,
-                        type: typeListType,
-                        pureResolver:Resolvers.Interfaces),
-                    new(Names.PossibleTypes,
-                        type: typeListType,
-                        pureResolver: Resolvers.PossibleTypes),
-                    new(Names.EnumValues,
-                        type: enumValueListType,
-                        pureResolver:  Resolvers.EnumValues)
+                    }
+                },
+                new(Names.Interfaces, type: typeListType, pureResolver: Resolvers.Interfaces),
+                new(Names.PossibleTypes, type: typeListType, pureResolver: Resolvers.PossibleTypes),
+                new(Names.EnumValues, type: enumValueListType, pureResolver: Resolvers.EnumValues)
+                {
+                    Arguments =
                     {
-                        Arguments =
+                        new()
                         {
-                            new()
-                            {
-                                Name = Names.IncludeDeprecated,
-                                Type = booleanType,
-                                DefaultValue = BooleanValueNode.False,
-                                RuntimeDefaultValue = false,
-                            }
+                            Name = Names.IncludeDeprecated,
+                            Type = booleanType,
+                            DefaultValue = BooleanValueNode.False,
+                            RuntimeDefaultValue = false,
                         }
-                    },
-                    new(Names.InputFields,
-                        type: inputValueListType,
-                        pureResolver: Resolvers.InputFields),
-                    new(Names.OfType,
-                        type: typeType,
-                        pureResolver: Resolvers.OfType),
-                    new(Names.SpecifiedByUrl,
-                        TypeResources.Type_SpecifiedByUrl_Description,
-                        stringType,
-                        pureResolver: Resolvers.SpecifiedBy)
-                }
+                    }
+                },
+                new(Names.InputFields,
+                    type: inputValueListType,
+                    pureResolver: Resolvers.InputFields)
+                {
+                    Arguments =
+                    {
+                        new()
+                        {
+                            Name = Names.IncludeDeprecated,
+                            Type = booleanType,
+                            DefaultValue = BooleanValueNode.False,
+                            RuntimeDefaultValue = false,
+                        }
+                    }
+                },
+                new(Names.OfType, type: typeType, pureResolver: Resolvers.OfType),
+                new(Names.SpecifiedByUrl,
+                    TypeResources.Type_SpecifiedByUrl_Description,
+                    stringType,
+                    pureResolver: Resolvers.SpecifiedBy)
+            }
         };
 
         if (context.DescriptorContext.Options.EnableOneOf)
@@ -153,7 +149,11 @@ internal sealed class __Type : ObjectType
                 : null;
 
         public static object? InputFields(IPureResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot ? iot.Fields : null;
+            => context.Parent<IType>() is IInputObjectType of
+                ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                    ? of.Fields
+                    : of.Fields.Where(t => !t.IsDeprecated)
+                : null;
 
         public static object? OfType(IPureResolverContext context)
             => context.Parent<IType>() switch
@@ -164,7 +164,7 @@ internal sealed class __Type : ObjectType
             };
 
         public static object? OneOf(IPureResolverContext context)
-            => context.Parent<IType>() is IInputObjectType iot 
+            => context.Parent<IType>() is IInputObjectType iot
                 ? iot.Directives.Contains(WellKnownDirectives.OneOf)
                 : null;
 

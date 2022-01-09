@@ -23,4 +23,14 @@ public interface IInputFieldInfo : IHasName, IHasFieldCoordinate, IHasRuntimeTyp
     /// Gets a formatter that shall intercept deserialized values and reformat them.
     /// </summary>
     IInputValueFormatter? Formatter { get; }
+
+     /// <summary>
+     /// Defines if this field is deprecated.
+     /// </summary>
+     bool IsDeprecated { get; }
+
+     /// <summary>
+     /// Gets the deprecation reason.
+     /// </summary>
+     string? DeprecationReason { get; }
 }
