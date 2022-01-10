@@ -15,7 +15,7 @@
     ],
     "Extensions": {
       "fragment": "undefinedFragment",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
+      "specifiedBy": "http://spec.graphql.org/October2021/#sec-Fragment-spread-target-defined"
     },
     "Exception": null,
     "SyntaxNode": {

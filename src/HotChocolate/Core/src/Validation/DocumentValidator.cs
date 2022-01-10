@@ -39,6 +39,9 @@ public sealed class DocumentValidator : IDocumentValidator
     }
 
     /// <inheritdoc />
+    public bool HasDynamicRules => _nonCacheableRules.Length > 0;
+
+    /// <inheritdoc />
     public DocumentValidatorResult Validate(
         ISchema schema,
         DocumentNode document) =>

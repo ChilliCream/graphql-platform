@@ -97,7 +97,7 @@ namespace HotChocolate.Utilities
 
                 do
                 {
-                    keys[index++] = current!.Key;
+                    keys[index++] = current.Key;
                     current = current.Next!;
 
                 } while (current != _head);

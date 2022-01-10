@@ -376,7 +376,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVINResult
+    public partial interface IDecodeVINResult
     {
         public global::Foo.Bar.IDecodeVIN_DecodeVIN DecodeVIN
         {
@@ -386,7 +386,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVINModel
+    public partial interface IDecodeVINModel
     {
         public global::System.Boolean IsValid
         {
@@ -406,19 +406,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN : IDecodeVINModel
+    public partial interface IDecodeVIN_DecodeVIN : IDecodeVINModel
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN_DecodeVIN : IDecodeVIN_DecodeVIN
+    public partial interface IDecodeVIN_DecodeVIN_DecodeVIN : IDecodeVIN_DecodeVIN
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IVehicleMakeModel
+    public partial interface IVehicleMakeModel
     {
         public global::System.Guid Id
         {
@@ -443,19 +443,19 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN_VehicleMake : IVehicleMakeModel
+    public partial interface IDecodeVIN_DecodeVIN_VehicleMake : IVehicleMakeModel
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN_VehicleMake_VehicleMake : IDecodeVIN_DecodeVIN_VehicleMake
+    public partial interface IDecodeVIN_DecodeVIN_VehicleMake_VehicleMake : IDecodeVIN_DecodeVIN_VehicleMake
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IVehicleModelModel
+    public partial interface IVehicleModelModel
     {
         public global::System.Guid Id
         {
@@ -490,13 +490,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN_VehicleModel : IVehicleModelModel
+    public partial interface IDecodeVIN_DecodeVIN_VehicleModel : IVehicleModelModel
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVIN_DecodeVIN_VehicleModel_VehicleModel : IDecodeVIN_DecodeVIN_VehicleModel
+    public partial interface IDecodeVIN_DecodeVIN_VehicleModel_VehicleModel : IDecodeVIN_DecodeVIN_VehicleModel
     {
     }
 
@@ -708,7 +708,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IDecodeVINQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IDecodeVINQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IDecodeVINResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IDecodeVINResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -736,7 +736,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IDecodeVINQuery DecodeVIN
         {

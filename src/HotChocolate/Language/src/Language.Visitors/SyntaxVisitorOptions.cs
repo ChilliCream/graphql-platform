@@ -1,13 +1,27 @@
-namespace HotChocolate.Language.Visitors
+namespace HotChocolate.Language.Visitors;
+
+/// <summary>
+/// Represents basic visitor options.
+/// </summary>
+public struct SyntaxVisitorOptions
 {
-    public struct SyntaxVisitorOptions
-    {
-        public bool VisitNames { get; set; }
+    /// <summary>
+    /// Specifies if the visitor shall traverse name nodes.
+    /// </summary>
+    public bool VisitNames { get; set; }
 
-        public bool VisitDescriptions { get; set; }
+    /// <summary>
+    /// Specifies if the visitor shall traverse description nodes.
+    /// </summary>
+    public bool VisitDescriptions { get; set; }
 
-        public bool VisitDirectives { get; set; }
+    /// <summary>
+    /// Specifies if the visitor shall traverse directives nodes.
+    /// </summary>
+    public bool VisitDirectives { get; set; }
 
-        public bool VisitArguments { get; set; }
-    }
+    /// <summary>
+    /// Specifies if the visitor shall traverse argument nodes.
+    /// </summary>
+    public bool VisitArguments { get; set; }
 }

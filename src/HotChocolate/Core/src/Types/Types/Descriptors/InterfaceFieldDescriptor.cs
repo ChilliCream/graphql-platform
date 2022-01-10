@@ -56,8 +56,7 @@ public class InterfaceFieldDescriptor
         }
     }
 
-    protected internal override InterfaceFieldDefinition Definition { get; protected set; } =
-        new InterfaceFieldDefinition();
+    protected internal override InterfaceFieldDefinition Definition { get; protected set; } = new();
 
     protected override void OnCreateDefinition(InterfaceFieldDefinition definition)
     {

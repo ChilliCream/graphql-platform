@@ -11,6 +11,7 @@ using HotChocolate;
 using HotChocolate.Benchmarks;
 using HotChocolate.ConferencePlanner;
 using HotChocolate.ConferencePlanner.DataLoader;
+using HotChocolate.Types.Descriptors.Definitions;
 
 public static class Program
 {
@@ -19,6 +20,10 @@ public static class Program
 
     private static async Task Run()
     {
+        var schemaBench = new SchemaBuildingBenchmarks();
+        await schemaBench.CreateSchema_SchemaFirst_Large();
+        Console.ReadLine();
+
         Console.WriteLine("Initialize");
         var queryBench = new QueryBenchmarks();
 

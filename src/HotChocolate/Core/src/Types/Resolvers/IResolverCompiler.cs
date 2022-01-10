@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
@@ -116,4 +117,15 @@ public interface IResolverCompiler : IDisposable
     IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
         IParameterExpressionBuilder[]? parameterExpressionBuilders = null);
+
+    /// <summary>
+    /// Applies filed configuration dependencies for the specified parameters.
+    /// </summary>
+    /// <param name="parameters">
+    /// The resolver method parameters.
+    /// </param>
+    /// <param name="descriptor">
+    /// The field descriptor.
+    /// </param>
+    void ApplyConfiguration(ParameterInfo[] parameters, ObjectFieldDescriptor descriptor);
 }

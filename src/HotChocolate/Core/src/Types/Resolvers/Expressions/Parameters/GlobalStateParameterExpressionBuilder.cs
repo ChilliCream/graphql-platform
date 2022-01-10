@@ -31,6 +31,8 @@ internal sealed class GlobalStateParameterExpressionBuilder : IParameterExpressi
 
     public bool IsPure => true;
 
+    public bool IsDefaultHandler => false;
+
     public bool CanHandle(ParameterInfo parameter)
         => parameter.IsDefined(typeof(GlobalStateAttribute));
 

@@ -1,9 +1,8 @@
-namespace HotChocolate.Data.Sorting
+namespace HotChocolate.Data.Sorting;
+
+/// <inheritdoc/>
+public interface ISortOperationHandler<in TContext, T>
+    : ISortOperationHandler<TContext>
+    where TContext : SortVisitorContext<T>
 {
-    /// <inheritdoc/>
-    public interface ISortOperationHandler<in TContext, T>
-        : ISortOperationHandler<TContext>
-        where TContext : SortVisitorContext<T>
-    {
-    }
 }

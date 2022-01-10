@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using HotChocolate.Types;
-
 namespace HotChocolate.AspNetCore;
 
 internal class HttpMultipartRequest

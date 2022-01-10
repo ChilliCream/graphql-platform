@@ -168,7 +168,14 @@ public class WebSocketInterceptorTests : SubscriptionTestBase
             await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
             var cts = new CancellationTokenSource();
-            webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cts.Token);
+
+            void BeginClose()
+                => Task.Factory.StartNew(
+                    () => webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", cts.Token),
+                    default,
+                    TaskCreationOptions.DenyChildAttach,
+                    TaskScheduler.Default);
+            BeginClose();
 
             // act
             await WaitForConditions(

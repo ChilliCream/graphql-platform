@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,7 +55,9 @@ namespace HotChocolate
         {
             // arrange
             // act
-            async Task Action() => await SchemaSerializer.SerializeAsync(null, new MemoryStream());
+            async Task Action() => await SchemaSerializer.SerializeAsync(
+                default(ISchema), 
+                new MemoryStream());
 
             // assert
             Assert.ThrowsAsync<ArgumentNullException>(Action);
@@ -144,6 +147,66 @@ namespace HotChocolate
 
             // assert
             serializedSchema.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SerializeTypes()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
+                .Use(next => next)
+                .Create();
+
+            // act
+            using var stream = new MemoryStream();
+            await SchemaSerializer.SerializeAsync(
+                new INamedType[] { schema.QueryType },
+                stream,
+                true);
+
+            // assert
+            Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SerializeTypes_Types_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
+                .Use(next => next)
+                .Create();
+
+            // act
+            using var stream = new MemoryStream();
+            async Task Fail() => await SchemaSerializer.SerializeAsync(
+                default(IEnumerable<INamedType>),
+                stream,
+                true);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(Fail);
+        }
+
+        [Fact]
+        public async Task SerializeTypes_Stream_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(FileResource.Open("serialize_schema_with_mutation.graphql"))
+                .Use(next => next)
+                .Create();
+
+            // act
+            using var stream = new MemoryStream();
+            async Task Fail() => await SchemaSerializer.SerializeAsync(
+                new INamedType[] { schema.QueryType },
+                null,
+                true);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(Fail);
         }
 
         public class Query

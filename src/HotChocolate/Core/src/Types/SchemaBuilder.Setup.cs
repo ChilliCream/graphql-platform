@@ -86,7 +86,7 @@ public partial class SchemaBuilder
             var schemaInterceptor = new AggregateSchemaInterceptor();
             var typeInterceptor = new AggregateTypeInterceptor();
 
-            DescriptorContext context = DescriptorContext.Create(
+            var context = DescriptorContext.Create(
                 builder._options,
                 services,
                 builder._conventions,
@@ -196,8 +196,8 @@ public partial class SchemaBuilder
         {
             var typeRegistry = new TypeRegistry(context.TypeInterceptor);
             TypeInitializer initializer =
-                CreateTypeInitializer(builder, context, types, typeRegistry);
-            initializer.Initialize(() => lazySchema.Schema, builder._options);
+                CreateTypeInitializer(builder, context, types, typeRegistry, lazySchema);
+            initializer.Initialize();
             return typeRegistry;
         }
 
@@ -205,9 +205,10 @@ public partial class SchemaBuilder
             SchemaBuilder builder,
             IDescriptorContext context,
             IReadOnlyList<ITypeReference> typeReferences,
-            TypeRegistry typeRegistry)
+            TypeRegistry typeRegistry,
+            LazySchema lazySchema)
         {
-            Dictionary<OperationType, ITypeReference> operations =
+            var operations =
                 builder._operations.ToDictionary(
                     t => t.Key,
                     t => t.Value(context.TypeInspector));
@@ -217,7 +218,9 @@ public partial class SchemaBuilder
                 typeRegistry,
                 typeReferences,
                 builder._isOfType,
-                type => GetOperationKind(type, context.TypeInspector, operations));
+                type => GetOperationKind(type, context.TypeInspector, operations),
+                () => lazySchema.Schema,
+                builder._options);
 
             foreach (FieldMiddleware component in builder._globalComponents)
             {
@@ -363,9 +366,7 @@ public partial class SchemaBuilder
                         .Build());
             }
 
-            Schema schema = typeRegistry.Types
-                .Select(t => t.Type).OfType<Schema>().First();
-
+            Schema schema = typeRegistry.Types.Select(t => t.Type).OfType<Schema>().First();
             schema.CompleteSchema(definition);
             lazySchema.Schema = schema;
             context.SchemaInterceptor.OnAfterCreate(context, schema);

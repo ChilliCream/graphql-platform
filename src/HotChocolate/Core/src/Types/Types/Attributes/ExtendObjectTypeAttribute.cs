@@ -6,6 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Annotate classes which represent extensions to other object types.
+/// </summary>
 public sealed class ExtendObjectTypeAttribute
     : ObjectTypeDescriptorAttribute
     , ITypeAttribute
@@ -89,7 +92,7 @@ public sealed class ExtendObjectTypeAttribute
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                foreach (string fieldName in IgnoreFields)
+                foreach (var fieldName in IgnoreFields)
                 {
                     d.FieldIgnores.Add(new ObjectFieldBinding(
                         fieldName,

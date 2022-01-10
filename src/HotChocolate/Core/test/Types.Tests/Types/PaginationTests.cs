@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                     await new ServiceCollection()
                         .AddGraphQL()
                         .AddQueryType<QueryType>()
-                        .SetPagingOptions(new PagingOptions {DefaultPageSize = 50})
+                        .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
                         .Services
                         .BuildServiceProvider()
                         .GetRequestExecutorAsync(cancellationToken: ct);
@@ -87,16 +87,16 @@ namespace HotChocolate.Types
         {
             public string? FirstName { get; set; }
 
-            public List<User> Parents { get; set; }
+            public List<User> Parents { get; set; } = default!;
 
-            public List<Group> Groups { get; set; }
+            public List<Group> Groups { get; set; } = default!;
         }
 
         public class Group
         {
             public string? FirstName { get; set; }
 
-            public List<User> Members { get; set; }
+            public List<User> Members { get; set; } = default!;
         }
 
         public class UserType : ObjectType<User>

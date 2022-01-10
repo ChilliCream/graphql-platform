@@ -95,7 +95,7 @@ public sealed class DocumentValidatorContext : IDocumentValidatorContext
 
     public int Max { get; set; }
 
-    public IDictionary<string, object?> ContextData { get; set; }
+    public IDictionary<string, object?> ContextData { get; set; } = default!;
 
     public IList<FieldInfo> RentFieldInfoList()
     {

@@ -11,17 +11,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters;
 
 internal sealed class SchemaParameterExpressionBuilder : IParameterExpressionBuilder
 {
-    private static readonly PropertyInfo _schema;
-
-    static SchemaParameterExpressionBuilder()
-    {
-        _schema = PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
-        Debug.Assert(_schema is not null, "Schema property is missing.");
-    }
+    private static readonly PropertyInfo _schema =
+        PureContextType.GetProperty(nameof(IPureResolverContext.Schema))!;
 
     public ArgumentKind Kind => ArgumentKind.Schema;
 
     public bool IsPure => true;
+
+    public bool IsDefaultHandler => false;
 
     public bool CanHandle(ParameterInfo parameter)
         => typeof(ISchema) == parameter.ParameterType ||

@@ -12,7 +12,7 @@
         "type": "Query",
         "field": "contracts",
         "argument": "id",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
       }
     },
     {
@@ -27,7 +27,7 @@
         "type": "Query",
         "field": "contracts",
         "argument": "customerId",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-Required-Arguments"
       }
     }
   ]

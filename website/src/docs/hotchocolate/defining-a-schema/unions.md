@@ -182,8 +182,8 @@ public class Startup
 
                 union PostContent = TextContent | ImageContent
             ")
-            .BindComplexType<TextContent>()
-            .BindComplexType<ImageContent>()
+            .BindRuntimeType<TextContent>()
+            .BindRuntimeType<ImageContent>()
             .AddResolver("Query", "content", (context) =>
             {
                 // Omitted code for brevity

@@ -284,5 +284,17 @@ namespace HotChocolate.Validation.Properties {
                 return ResourceManager.GetString("ErrorHelper_IntrospectionNotAllowed", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_OneOfMustHaveExactlyOneField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfMustHaveExactlyOneField", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_OneOfVariablesMustBeNonNull {
+            get {
+                return ResourceManager.GetString("ErrorHelper_OneOfVariablesMustBeNonNull", resourceCulture);
+            }
+        }
     }
 }

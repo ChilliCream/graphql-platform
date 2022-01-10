@@ -12,7 +12,7 @@
         }
       ],
       "extensions": {
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+        "specifiedBy": "http://spec.graphql.org/October2021/#sec-All-Variable-Uses-Defined"
       }
     }
   ],

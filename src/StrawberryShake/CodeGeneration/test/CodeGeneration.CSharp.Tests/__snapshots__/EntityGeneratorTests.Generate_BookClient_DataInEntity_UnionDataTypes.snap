@@ -378,7 +378,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2Result
+    public partial interface IGetStore2Result
     {
         public global::Foo.Bar.IGetStore2_SearchableStore SearchableStore
         {
@@ -388,7 +388,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore
+    public partial interface IGetStore2_SearchableStore
     {
         public global::System.String Id
         {
@@ -408,13 +408,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_SearchableStore : IGetStore2_SearchableStore
+    public partial interface IGetStore2_SearchableStore_SearchableStore : IGetStore2_SearchableStore
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Books
+    public partial interface IGetStore2_SearchableStore_Books
     {
         public global::System.String Isbn
         {
@@ -429,25 +429,25 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Books_Book : IGetStore2_SearchableStore_Books
+    public partial interface IGetStore2_SearchableStore_Books_Book : IGetStore2_SearchableStore_Books
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search
+    public partial interface IGetStore2_SearchableStore_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search_Author : IGetStore2_SearchableStore_Search
+    public partial interface IGetStore2_SearchableStore_Search_Author : IGetStore2_SearchableStore_Search
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2_SearchableStore_Search_Book : IGetStore2_SearchableStore_Search
+    public partial interface IGetStore2_SearchableStore_Search_Book : IGetStore2_SearchableStore_Search
     {
         public global::System.String Title
         {
@@ -611,7 +611,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetStore2Query : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetStore2Query : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetStore2Result>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetStore2Result>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -639,7 +639,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetStore2Query GetStore2
         {

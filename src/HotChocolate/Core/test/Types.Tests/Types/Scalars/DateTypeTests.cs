@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -15,10 +20,10 @@ namespace HotChocolate.Types
             var dateType = new DateType();
             var dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            string expectedValue = "2018-06-11";
+            var expectedValue = "2018-06-11";
 
             // act
-            string serializedValue = (string)dateType.Serialize(dateTime);
+            var serializedValue = (string)dateType.Serialize(dateTime);
 
             // assert
             Assert.Equal(expectedValue, serializedValue);
@@ -31,7 +36,7 @@ namespace HotChocolate.Types
             var dateType = new DateType();
 
             // act
-            object serializedValue = dateType.Serialize(null);
+            var serializedValue = dateType.Serialize(null);
 
             // assert
             Assert.Null(serializedValue);
@@ -44,10 +49,10 @@ namespace HotChocolate.Types
             var dateType = new DateType();
 
             // act
-            Action a = () => dateType.Serialize("foo");
+            void Action() => dateType.Serialize("foo");
 
             // assert
-            Assert.Throws<SerializationException>(a);
+            Assert.Throws<SerializationException>(Action);
         }
 
         [Fact]
@@ -58,7 +63,7 @@ namespace HotChocolate.Types
             var date = new DateTime(2018, 6, 11);
 
             // act
-            var result = (DateTime)dateType.Deserialize("2018-06-11");
+            var result = (DateTime)dateType.Deserialize("2018-06-11")!;
 
             // assert
             Assert.Equal(date, result);
@@ -71,7 +76,7 @@ namespace HotChocolate.Types
             var type = new DateType();
 
             // act
-            bool success = type.TryDeserialize("abc", out object deserialized);
+            var success = type.TryDeserialize("abc", out _);
 
             // assert
             Assert.False(success);
@@ -86,7 +91,7 @@ namespace HotChocolate.Types
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            var success = type.TryDeserialize(time, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -102,7 +107,7 @@ namespace HotChocolate.Types
             var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            var success = type.TryDeserialize(time, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -118,7 +123,7 @@ namespace HotChocolate.Types
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            var success = type.TryDeserialize(time, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -133,7 +138,7 @@ namespace HotChocolate.Types
             DateTime? time = null;
 
             // act
-            bool success = type.TryDeserialize(time, out object deserialized);
+            var success = type.TryDeserialize(time, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -147,7 +152,7 @@ namespace HotChocolate.Types
             var type = new DateType();
 
             // act
-            bool success = type.TryDeserialize(null, out object deserialized);
+            var success = type.TryDeserialize(null, out var deserialized);
 
             // assert
             Assert.True(success);
@@ -163,8 +168,7 @@ namespace HotChocolate.Types
             var expectedDateTime = new DateTime(2018, 6, 29);
 
             // act
-            var dateTime = (DateTime)dateType
-                .ParseLiteral(literal);
+            var dateTime = (DateTime)dateType.ParseLiteral(literal)!;
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
@@ -188,8 +192,7 @@ namespace HotChocolate.Types
             var expectedDateTime = new DateTime(2018, 6, 29);
 
             // act
-            var dateTime = (DateTime)dateType
-                .ParseLiteral(literal);
+            var dateTime = (DateTime)dateType.ParseLiteral(literal)!;
 
             // assert
             Assert.Equal(expectedDateTime, dateTime);
@@ -203,7 +206,7 @@ namespace HotChocolate.Types
             NullValueNode literal = NullValueNode.Default;
 
             // act
-            object value = dateType.ParseLiteral(literal);
+            var value = dateType.ParseLiteral(literal);
 
             // assert
             Assert.Null(value);
@@ -214,9 +217,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var dateType = new DateType();
-            var dateTime =
-                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            string expectedLiteralValue = "2018-06-11";
+            var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            var expectedLiteralValue = "2018-06-11";
 
             // act
             var stringLiteral =
@@ -231,9 +233,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var dateType = new DateType();
-            var dateTime =
-                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
-            string expectedLiteralValue = "2018-06-11";
+            var dateTime = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+            var expectedLiteralValue = "2018-06-11";
 
             // act
             var stringLiteral =
@@ -244,7 +245,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void EnsureDateTypeKindIsCorret()
+        public void EnsureDateTypeKindIsCorrect()
         {
             // arrange
             var type = new DateType();
@@ -253,7 +254,7 @@ namespace HotChocolate.Types
             TypeKind kind = type.Kind;
 
             // assert
-            Assert.Equal(TypeKind.Scalar, type.Kind);
+            Assert.Equal(TypeKind.Scalar, kind);
         }
 
         [Fact]
@@ -274,6 +275,70 @@ namespace HotChocolate.Types
             Assert.IsType<DateTimeType>(dateTimeType);
         }
 
+#if NET6_0_OR_GREATER
+        [Fact]
+        public async Task DateOnly_And_TimeOnly_As_Argument_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryDateTime1>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DateOnly_And_TimeOnly_As_Argument()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryDateTime1>()
+                .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+                .ExecuteRequestAsync(
+                    @"{
+                        foo {
+                            time(time: ""11:22"")
+                            date(date: ""2017-12-30"")
+                        }
+                    }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DateOnly_And_TimeOnly_As_ReturnValue_Schema()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryDateTime2>()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task DateOnly_And_TimeOnly_As_ReturnValue()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<QueryDateTime2>()
+                .AddType(() => new TimeSpanType(TimeSpanFormat.DotNet))
+                .ExecuteRequestAsync(
+                    @"{
+                        bar {
+                            time
+                            date
+                        }
+                    }")
+                .MatchSnapshotAsync();
+        }
+#endif
+
         public class Query
         {
             [GraphQLType(typeof(DateType))]
@@ -281,5 +346,31 @@ namespace HotChocolate.Types
 
             public DateTime? DateTimeField => DateTime.UtcNow;
         }
+
+#if NET6_0_OR_GREATER
+        public class QueryDateTime1
+        {
+            public Foo Foo => new();
+        }
+
+        public class Foo
+        {
+            public string GetTime(TimeOnly time) => time.ToString();
+
+            public string GetDate(DateOnly date) => date.ToString();
+        }
+
+        public class QueryDateTime2
+        {
+            public Bar Bar => new();
+        }
+
+        public class Bar
+        {
+            public TimeOnly GetTime() => TimeOnly.MaxValue;
+
+            public DateOnly GetDate() => DateOnly.MaxValue;
+        }
+#endif
     }
 }

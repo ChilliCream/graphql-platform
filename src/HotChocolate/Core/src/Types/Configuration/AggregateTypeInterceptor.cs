@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -54,11 +55,19 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
 
     internal override void InitializeContext(
         IDescriptorContext context,
+        TypeInitializer typeInitializer,
+        TypeRegistry typeRegistry,
+        TypeLookup typeLookup,
         TypeReferenceResolver typeReferenceResolver)
     {
         foreach (TypeInterceptor interceptor in _typeInterceptors)
         {
-            interceptor.InitializeContext(context, typeReferenceResolver);
+            interceptor.InitializeContext(
+                context,
+                typeInitializer,
+                typeRegistry,
+                typeLookup,
+                typeReferenceResolver);
         }
     }
 
@@ -234,6 +243,25 @@ internal sealed class AggregateTypeInterceptor : TypeInterceptor
             if (interceptor.CanHandle(completionContext))
             {
                 interceptor.OnAfterCompleteName(completionContext, definition, contextData);
+            }
+        }
+    }
+
+    internal override void OnAfterResolveRootType(
+        ITypeCompletionContext completionContext,
+        DefinitionBase definition,
+        OperationType operationType,
+        IDictionary<string, object?> contextData)
+    {
+        foreach (TypeInterceptor interceptor in _typeInterceptors)
+        {
+            if (interceptor.CanHandle(completionContext))
+            {
+                interceptor.OnAfterResolveRootType(
+                    completionContext,
+                    definition,
+                    operationType,
+                    contextData);
             }
         }
     }

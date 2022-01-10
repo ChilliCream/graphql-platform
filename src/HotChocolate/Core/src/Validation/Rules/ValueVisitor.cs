@@ -37,6 +37,13 @@ namespace HotChocolate.Validation.Rules;
 /// chapter.
 ///
 /// http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type
+///
+/// AND
+///
+/// Oneof Input Objects require that exactly one field must be supplied and that
+/// field must not be {null}.
+///
+/// DRAFT: https://github.com/graphql/graphql-spec/pull/825
 /// </summary>
 internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 {
@@ -58,7 +65,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is IComplexOutputType ot &&
             ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
         {
@@ -84,8 +91,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         VariableDefinitionNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Schema.TryGetType(
-            node.Type.NamedType().Name.Value, out INamedType variableType))
+        if (context.Schema.TryGetType<INamedType>(
+            node.Type.NamedType().Name.Value, out INamedType? variableType))
         {
             context.Types.Push(variableType);
             return base.Enter(node, context);
@@ -129,7 +136,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ArgumentNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Directives.TryPeek(out DirectiveType directive))
+        if (context.Directives.TryPeek(out DirectiveType? directive))
         {
             if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
             {
@@ -141,7 +148,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             return Skip;
         }
 
-        if (context.OutputFields.TryPeek(out IOutputField field))
+        if (context.OutputFields.TryPeek(out IOutputField? field))
         {
             if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
             {
@@ -190,6 +197,43 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
 
         if (namedType is InputObjectType inputObjectType)
         {
+            if (inputObjectType.Directives.Contains(WellKnownDirectives.OneOf))
+            {
+                if (node.Fields.Count == 0 || node.Fields.Count > 1)
+                {
+                    context.Errors.Add(
+                        context.OneOfMustHaveExactlyOneField(
+                            node,
+                            inputObjectType));
+                }
+                else
+                {
+                    ObjectFieldNode value = node.Fields[0];
+
+                    if (inputObjectType.Fields.TryGetField(
+                        value.Name.Value,
+                        out InputField? field))
+                    {
+                        if (value.Value.IsNull())
+                        {
+                            context.Errors.Add(
+                                context.OneOfMustHaveExactlyOneField(
+                                    node,
+                                    inputObjectType));
+                        }
+                        else if (value.Value.Kind is SyntaxKind.Variable &&
+                            !IsInstanceOfType(context, new NonNullType(field.Type), value.Value))
+                        {
+                            context.Errors.Add(
+                                context.OneOfVariablesMustBeNonNull(
+                                    node,
+                                    field.Coordinate,
+                                    ((VariableNode)value.Value).Name.Value));
+                        }
+                    }
+                }
+            }
+
             if (context.Names.Count >= inputObjectType.Fields.Count)
             {
                 return Continue;
@@ -219,7 +263,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         ObjectFieldNode node,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType type) &&
+        if (context.Types.TryPeek(out IType? type) &&
             type.NamedType() is InputObjectType it &&
             it.Fields.TryGetField(node.Name.Value, out InputField? field))
         {
@@ -284,7 +328,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         IValueNode valueNode,
         IDocumentValidatorContext context)
     {
-        if (context.Types.TryPeek(out IType currentType) &&
+        if (context.Types.TryPeek(out IType? currentType) &&
             currentType is IInputType locationType)
         {
             if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
@@ -313,7 +357,7 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
         error = node.Kind switch
         {
             SyntaxKind.ObjectField =>
-                context.InputFields.TryPeek(out IInputField field)
+                context.InputFields.TryPeek(out IInputField? field)
                     ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
                     : null,
             SyntaxKind.VariableDefinition =>
@@ -348,11 +392,11 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
     private bool IsInstanceOfType(
         IDocumentValidatorContext context,
         IInputType inputType,
-        IValueNode? value)
+        IValueNode value)
     {
         if (value is VariableNode v
             && context.Variables.TryGetValue(v.Name.Value, out VariableDefinitionNode? t)
-            && t?.Type is { } typeNode)
+            && t.Type is { } typeNode)
         {
             return IsTypeCompatible(inputType, typeNode);
         }
@@ -368,9 +412,8 @@ internal sealed class ValueVisitor : TypeDocumentValidatorVisitor
             }
         }
 
-        if (internalType is ListType listType
-            && listType.ElementType is IInputType elementType
-            && value is ListValueNode list)
+        if (internalType is ListType { ElementType: IInputType elementType } &&
+            value is ListValueNode list)
         {
             for (var i = 0; i < list.Items.Count; i++)
             {

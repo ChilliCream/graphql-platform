@@ -34,32 +34,37 @@ internal sealed class DocumentValidationMiddleware
         }
         else
         {
-            using (_diagnosticEvents.ValidateDocument(context))
+            if (context.ValidationResult is null || _documentValidator.HasDynamicRules)
             {
-                context.ValidationResult = _documentValidator.Validate(
-                    context.Schema,
-                    context.Document,
-                    context.ContextData,
-                    context.ValidationResult is not null);
-            }
+                using (_diagnosticEvents.ValidateDocument(context))
+                {
+                    context.ValidationResult = _documentValidator.Validate(
+                        context.Schema,
+                        context.Document,
+                        context.ContextData,
+                        context.ValidationResult is not null);
 
-            if (context.IsValidDocument)
-            {
-                await _next(context).ConfigureAwait(false);
-            }
-            else
-            {
-                DocumentValidatorResult validationResult = context.ValidationResult;
-
-                context.Result = QueryResultBuilder.CreateError(
-                    validationResult.Errors,
-                    new Dictionary<string, object?>
+                    if (!context.IsValidDocument)
                     {
-                            { WellKnownContextData.ValidationErrors, true }
-                    });
+                        // if the validation failed we will report errors within the validation
+                        // span and we will complete the pipeline since we do not have a valid
+                        // GraphQL request.
+                        DocumentValidatorResult validationResult = context.ValidationResult;
 
-                _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
+                        context.Result = QueryResultBuilder.CreateError(
+                            validationResult.Errors,
+                            new Dictionary<string, object?>
+                            {
+                            { WellKnownContextData.ValidationErrors, true }
+                            });
+
+                        _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
+                        return;
+                    }
+                }
             }
+
+            await _next(context).ConfigureAwait(false);
         }
     }
 }

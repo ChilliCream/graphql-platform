@@ -1,8 +1,11 @@
+using System;
+
 namespace HotChocolate.Execution.Configuration;
 
 /// <summary>
 /// The default <see cref="IResolverCompilerBuilder"/> implementation.
 /// </summary>
+[Obsolete("Implement IParameterExpressionBuilder")]
 internal sealed class DefaultResolverCompilerBuilder : IResolverCompilerBuilder
 {
     /// <summary>

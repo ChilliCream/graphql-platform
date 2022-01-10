@@ -25,6 +25,12 @@ namespace HotChocolate.Benchmarks
         public static string SessionMediumQuery => 
             _sessionMediumQuery ??= GetResourceString(nameof(SessionMediumQuery));
 
+        public static string SchemaMedium => 
+            _introspection ??= GetResourceString(nameof(SchemaMedium));
+
+        public static string SchemaLarge => 
+            _introspection ??= GetResourceString(nameof(SchemaLarge));
+
         public static string GetResourceString(string fileName)
         {
             Stream? stream = GetResourceStream(fileName + ".graphql");

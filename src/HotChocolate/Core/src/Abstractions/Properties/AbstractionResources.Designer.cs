@@ -200,5 +200,23 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("QueryResult_DataAndResultAreNull", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TryRewriteNullability_InvalidNullabilityStructure", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_ArgumentNameCannotBeSetWithoutMemberName", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate {
+            get {
+                return ResourceManager.GetString("ThrowHelper_SchemaCoordinate_MemberNameCannotBeSetOnADirectiveCoordinate", resourceCulture);
+            }
+        }
     }
 }

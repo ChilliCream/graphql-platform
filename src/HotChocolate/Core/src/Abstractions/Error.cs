@@ -13,7 +13,7 @@ namespace HotChocolate;
 /// </summary>
 public class Error : IError
 {
-    private const string _codePropertyName = "code";
+    private const string _code = "code";
 
     /// <summary>
     /// Initializes a new instance of <see cref="Error"/>.
@@ -42,24 +42,38 @@ public class Error : IError
         Exception = exception;
         SyntaxNode = syntaxNode;
 
-        if (code is not null && Extensions is null)
+        if (code is not null)
         {
-            Extensions = new OrderedDictionary<string, object?> { { _codePropertyName, code } };
+            if (Extensions is null)
+            {
+                Extensions = new OrderedDictionary<string, object?> { { _code, code } };
+            }
+            else if (!Extensions.TryGetValue(_code, out var value) || !ReferenceEquals(value, code))
+            {
+                Extensions = new OrderedDictionary<string, object?>(Extensions) { { _code, code } };
+            }
         }
     }
 
+    /// <inheritdoc />
     public string Message { get; }
 
+    /// <inheritdoc />
     public string? Code { get; }
 
+    /// <inheritdoc />
     public Path? Path { get; }
 
+    /// <inheritdoc />
     public IReadOnlyList<Location>? Locations { get; }
 
+    /// <inheritdoc />
     public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
+    /// <inheritdoc />
     public Exception? Exception { get; }
 
+    /// <inheritdoc />
     public ISyntaxNode? SyntaxNode { get; }
 
     /// <inheritdoc />
@@ -84,8 +98,8 @@ public class Error : IError
         }
 
         OrderedDictionary<string, object?> extensions = Extensions is null
-            ? new OrderedDictionary<string, object?> { [_codePropertyName] = code }
-            : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
+            ? new OrderedDictionary<string, object?> { [_code] = code }
+            : new OrderedDictionary<string, object?>(Extensions) { [_code] = code };
         return new Error(Message, code, Path, Locations, extensions, Exception);
     }
 
@@ -97,7 +111,7 @@ public class Error : IError
         if (Extensions is { })
         {
             var temp = new OrderedDictionary<string, object?>(Extensions);
-            temp.Remove(_codePropertyName);
+            temp.Remove(_code);
             extensions = temp;
         }
 
@@ -106,35 +120,27 @@ public class Error : IError
 
     /// <inheritdoc />
     public IError WithPath(Path? path)
-    {
-        return path is null
+        => path is null
             ? RemovePath()
             : new Error(Message, Code, path, Locations, Extensions, Exception);
-    }
 
     /// <inheritdoc />
-    public IError WithPath(IReadOnlyList<object>? path) =>
-        WithPath(path is null ? null : Path.FromList(path));
+    public IError WithPath(IReadOnlyList<object>? path)
+        => WithPath(path is null ? null : Path.FromList(path));
 
     /// <inheritdoc />
     public IError RemovePath()
-    {
-        return new Error(Message, Code, null, Locations, Extensions, Exception);
-    }
+        => new Error(Message, Code, null, Locations, Extensions, Exception);
 
     /// <inheritdoc />
     public IError WithLocations(IReadOnlyList<Location>? locations)
-    {
-        return locations is null
+        => locations is null
             ? RemoveLocations()
             : new Error(Message, Code, Path, locations, Extensions, Exception);
-    }
 
     /// <inheritdoc />
     public IError RemoveLocations()
-    {
-        return new Error(Message, Code, Path, null, Extensions, Exception);
-    }
+        => new Error(Message, Code, Path, null, Extensions, Exception);
 
     /// <inheritdoc />
     public IError WithExtensions(IReadOnlyDictionary<string, object?> extensions)
@@ -149,9 +155,7 @@ public class Error : IError
 
     /// <inheritdoc />
     public IError RemoveExtensions()
-    {
-        return new Error(Message, Code, Path, Locations, null, Exception);
-    }
+        => new Error(Message, Code, Path, Locations, null, Exception);
 
     /// <inheritdoc />
     public IError SetExtension(string key, object? value)
@@ -195,15 +199,11 @@ public class Error : IError
 
     /// <inheritdoc />
     public IError WithException(Exception? exception)
-    {
-        return exception is null
+        => exception is null
             ? RemoveException()
             : new Error(Message, Code, Path, Locations, Extensions, exception);
-    }
 
     /// <inheritdoc />
     public IError RemoveException()
-    {
-        return new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
-    }
+        => new Error(Message, Code, Path, Locations, Extensions, syntaxNode: SyntaxNode);
 }

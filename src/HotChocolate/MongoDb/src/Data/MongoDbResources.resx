@@ -27,5 +27,10 @@
     <data name="Paging_SourceIsNotSupported" xml:space="preserve">
     <value>The provided source {0} is not supported for mongo paging</value>
   </data>
-
+  <data name="Filtering_MongoDbCombinator_QueueEmpty" xml:space="preserve">
+    <value>MongoDbCombinator {0} could not combine expressions. There were no expressions to combine.</value>
+  </data>
+  <data name="Filtering_MongoDbCombinator_InvalidCombinator" xml:space="preserve">
+    <value>MongoDbCombinator {0} could not combine expression. {1} is a invalid combinator</value>
+  </data>
 </root>

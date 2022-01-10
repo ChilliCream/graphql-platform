@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Processing;
 

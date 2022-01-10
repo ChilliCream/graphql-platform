@@ -1,0 +1,13 @@
+﻿{
+  "data": {
+    "throw": {
+      "errors": [
+        {
+          "__typename": "CustomInterfaceError",
+          "message": "Did work",
+          "code": "CODE"
+        }
+      ]
+    }
+  }
+}
