@@ -136,6 +136,8 @@ query GetSessions {
 }
 ```
 
+> When working with Visual Studio set the `Build Action` to `GraphQL Compiler` so that the code generation mechanism is able to pick up the query document. 
+
 5. Compile your project.
 
 ```bash
