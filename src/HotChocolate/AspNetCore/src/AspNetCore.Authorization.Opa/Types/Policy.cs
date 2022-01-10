@@ -1,7 +1,7 @@
 namespace HotChocolate.AspNetCore.Authorization;
 
-public sealed class GraphQl
+public sealed class Policy
 {
-    public string Policy { get; set; } = string.Empty;
+    public string Path { get; set; } = string.Empty;
     public string[] Roles { get; set; } = Array.Empty<string>();
 }

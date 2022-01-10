@@ -4,9 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization;
 
-public static class QueryRequestMapper
+public class DefaultQueryRequestFactory : IOpaQueryRequestFactory
 {
-    public static QueryRequest MapFrom(IMiddlewareContext context, AuthorizeDirective directive)
+    public QueryRequest CreateRequest(IMiddlewareContext context, AuthorizeDirective directive)
     {
         IHttpContextAccessor? accessor = context.Services.GetService<IHttpContextAccessor>();
         HttpContext? http = accessor.HttpContext;
@@ -16,9 +16,9 @@ public static class QueryRequestMapper
         {
             Input = new Input
             {
-                GraphQL = new GraphQl
+                Policy = new Policy
                 {
-                    Policy = directive.Policy ?? string.Empty,
+                    Path = directive.Policy ?? string.Empty,
                     Roles = directive.Roles is null ? Array.Empty<string>() : directive.Roles.ToArray()
                 },
                 Request = new OriginalRequest
