@@ -27,7 +27,8 @@ public static class HotChocolateAuthorizeRequestExecutorBuilder
         this IRequestExecutorBuilder builder, Action<IConfiguration, OpaOptions>? configure = null)
     {
         builder.AddAuthorizationHandler<OpaAuthorizationHandler>();
-        builder.Services.AddSingleton<IOpaDecision, OpaDecision>();
+        builder.Services.AddSingleton<IOpaQueryRequestFactory, DefaultQueryRequestFactory>();
+        builder.Services.AddSingleton<IOpaDecision, DefaultOpaDecision>();
         builder.Services.AddHttpClient<IOpaService, OpaService>((f, c) =>
         {
             OpaOptions? options = f.GetRequiredService<OpaOptions>();

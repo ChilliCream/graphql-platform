@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace HotChocolate.AspNetCore.Authorization;
 
 public sealed class OpaService : IOpaService
@@ -11,13 +13,13 @@ public sealed class OpaService : IOpaService
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
-    public async Task<QueryResponse?> QueryAsync(string policyPath, QueryRequest request, CancellationToken token)
+    public async Task<ResponseBase?> QueryAsync(string policyPath, QueryRequest request, CancellationToken token)
     {
         if (policyPath is null) throw new ArgumentNullException(nameof(policyPath));
         if (request is null) throw new ArgumentNullException(nameof(request));
 
-        HttpResponseMessage? response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token);
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage response = await _httpClient.PostAsync(policyPath,  request.ToJsonContent(_options.JsonSerializerOptions), token);
+        if (policyPath.Equals(string.Empty) && response.StatusCode == HttpStatusCode.NotFound) return NoDefaultPolicy.Response;
         return await response.Content.QueryResponseFromJsonAsync(_options.JsonSerializerOptions, token);
     }
 }

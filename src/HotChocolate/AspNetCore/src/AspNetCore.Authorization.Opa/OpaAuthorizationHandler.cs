@@ -23,8 +23,9 @@ public class OpaAuthorizationHandler : IAuthorizationHandler
     {
         IOpaService? opaService = context.Services.GetRequiredService<IOpaService>();
         IOpaDecision? opaDecision = context.Services.GetRequiredService<IOpaDecision>();
+        IOpaQueryRequestFactory? factory = context.Services.GetRequiredService<IOpaQueryRequestFactory>();
       
-        QueryResponse? response = await opaService.QueryAsync(directive.Policy ?? string.Empty, QueryRequestMapper.MapFrom(context, directive), context.RequestAborted);
+        ResponseBase? response = await opaService.QueryAsync(directive.Policy ?? string.Empty, factory.CreateRequest(context, directive), context.RequestAborted);
         return opaDecision.Map(response);
     }
 }
