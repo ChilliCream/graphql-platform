@@ -9,6 +9,7 @@ internal static class ErrorHelper
     private const string _interfaceTypeValidation = "sec-Interfaces.Type-Validation";
     private const string _objectTypeValidation = "sec-Objects.Type-Validation";
     private const string _inputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
+    private const string _directiveValidation = "sec-Type-System.Directives.Validation";
 
     public static ISchemaError NeedsOneAtLeastField(INamedType type)
         => SchemaErrorBuilder.New()
@@ -45,6 +46,25 @@ internal static class ErrorHelper
             .SetField(field)
             .SetArgument(argument)
             .SetSpecifiedBy(type.Kind)
+            .Build();
+
+    public static ISchemaError TwoUnderscoresNotAllowedOnArgument(
+        DirectiveType type,
+        IInputField argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                "Argument names starting with `__` are reserved for " +
+                " the GraphQL specification.")
+            .SetDirective(type)
+            .SetArgument(argument)
+            .SetSpecifiedBy(TypeKind.Directive)
+            .Build();
+
+    public static ISchemaError TwoUnderscoresNotAllowedOnDirectiveName(DirectiveType type)
+        => SchemaErrorBuilder.New()
+            .SetMessage("Names starting with `__` are reserved for the GraphQL specification.")
+            .SetDirective(type)
+            .SetSpecifiedBy(TypeKind.Directive)
             .Build();
 
     public static ISchemaError NotTransitivelyImplemented(
@@ -163,12 +183,57 @@ internal static class ErrorHelper
             .SetSpecifiedBy(type.Kind, rfc: 825)
             .Build();
 
+    public static ISchemaError RequiredArgumentCannotBeDeprecated(
+        IComplexOutputType type,
+        IOutputField field,
+        IInputField argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                "Required argument {0} cannot be deprecated.",
+                argument.Coordinate.ToString())
+            .SetType(type)
+            .SetField(field)
+            .SetArgument(argument)
+            .SetSpecifiedBy(type.Kind, rfc: 805)
+            .Build();
+
+    public static ISchemaError RequiredArgumentCannotBeDeprecated(
+        DirectiveType directive,
+        IInputField argument)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                "Required argument {0} cannot be deprecated.",
+                argument.Coordinate.ToString())
+            .SetDirective(directive)
+            .SetArgument(argument)
+            .SetSpecifiedBy(TypeKind.Directive, rfc: 805)
+            .Build();
+
+    public static ISchemaError RequiredFieldCannotBeDeprecated(
+        IInputObjectType type,
+        IInputField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                "Required input field {0} cannot be deprecated.",
+                field.Coordinate.ToString())
+            .SetType(type)
+            .SetField(field)
+            .SetSpecifiedBy(TypeKind.InputObject, rfc: 805)
+            .Build();
+
     private static ISchemaErrorBuilder SetType(
         this ISchemaErrorBuilder errorBuilder,
         INamedType type)
         => errorBuilder
             .AddSyntaxNode(type.SyntaxNode)
             .SetTypeSystemObject((TypeSystemObjectBase)type);
+
+    private static ISchemaErrorBuilder SetDirective(
+        this ISchemaErrorBuilder errorBuilder,
+        DirectiveType type)
+        => errorBuilder
+            .AddSyntaxNode(type.SyntaxNode)
+            .SetTypeSystemObject(type);
 
     private static ISchemaErrorBuilder SetField(
         this ISchemaErrorBuilder errorBuilder,
@@ -208,7 +273,8 @@ internal static class ErrorHelper
         errorBuilder
             .SpecifiedBy(_interfaceTypeValidation, kind is TypeKind.Interface)
             .SpecifiedBy(_objectTypeValidation, kind is TypeKind.Object)
-            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject);
+            .SpecifiedBy(_inputObjectTypeValidation, kind is TypeKind.InputObject)
+            .SpecifiedBy(_directiveValidation, kind is TypeKind.Directive);
 
         if (rfc.HasValue)
         {

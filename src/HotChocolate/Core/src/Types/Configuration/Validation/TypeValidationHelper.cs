@@ -22,6 +22,52 @@ internal static class TypeValidationHelper
         }
     }
 
+    public static void EnsureFieldDeprecationIsValid(
+        IInputObjectType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Fields.Count; i++)
+        {
+            if (type.Fields[i].IsDeprecated && type.Fields[i].Type.IsNonNullType())
+            {
+                errors.Add(RequiredFieldCannotBeDeprecated(type, type.Fields[i]));
+            }
+        }
+    }
+
+    public static void EnsureArgumentDeprecationIsValid(
+        IComplexOutputType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Fields.Count; i++)
+        {
+            for (var j = 0; j < type.Fields[i].Arguments.Count; j++)
+            {
+                if (type.Fields[i].Arguments[j].IsDeprecated &&
+                    type.Fields[i].Arguments[j].Type.IsNonNullType())
+                {
+                    errors.Add(
+                        RequiredArgumentCannotBeDeprecated(type,
+                            type.Fields[i],
+                            type.Fields[i].Arguments[j]));
+                }
+            }
+        }
+    }
+
+    public static void EnsureArgumentDeprecationIsValid(
+        DirectiveType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Arguments.Count; i++)
+        {
+            if (type.Arguments[i].IsDeprecated && type.Arguments[i].Type.IsNonNullType())
+            {
+                errors.Add(RequiredArgumentCannotBeDeprecated(type, type.Arguments[i]));
+            }
+        }
+    }
+
     public static void EnsureTypeHasFields(
         InputObjectType type,
         ICollection<ISchemaError> errors)
@@ -54,7 +100,9 @@ internal static class TypeValidationHelper
                     if (argument.Name.Value.StartsWith(_twoUnderscores))
                     {
                         errors.Add(TwoUnderscoresNotAllowedOnArgument(
-                            type, field, argument));
+                            type,
+                            field,
+                            argument));
                     }
                 }
             }
@@ -73,6 +121,32 @@ internal static class TypeValidationHelper
             {
                 errors.Add(TwoUnderscoresNotAllowedField(type, field));
             }
+        }
+    }
+
+    public static void EnsureArgumentNamesAreValid(
+        DirectiveType type,
+        ICollection<ISchemaError> errors)
+    {
+        for (var i = 0; i < type.Arguments.Count; i++)
+        {
+            IInputField field = type.Arguments[i];
+
+            if (field.Name.Value.StartsWith(_twoUnderscores))
+            {
+                errors.Add(TwoUnderscoresNotAllowedOnArgument(type, field));
+            }
+        }
+    }
+
+    public static void EnsureDirectiveNameIsValid(
+        DirectiveType type,
+        ICollection<ISchemaError> errors)
+    {
+
+        if (type.Name.Value.StartsWith(_twoUnderscores))
+        {
+            errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
         }
     }
 
@@ -133,14 +207,17 @@ internal static class TypeValidationHelper
                 if (!argument.Type.IsEqualTo(implementedArgument.Type))
                 {
                     errors.Add(InvalidArgumentType(
-                        field, implementedField,
-                        argument, implementedArgument));
+                        field,
+                        implementedField,
+                        argument,
+                        implementedArgument));
                 }
             }
             else if (argument.Type.IsNonNullType())
             {
                 errors.Add(AdditionalArgumentNotNullable(
-                    field, implementedField,
+                    field,
+                    implementedField,
                     argument));
             }
         }
@@ -148,7 +225,9 @@ internal static class TypeValidationHelper
         foreach (IInputField? missingArgument in implArgs.Values)
         {
             errors.Add(ArgumentNotImplemented(
-                field, implementedField, missingArgument));
+                field,
+                implementedField,
+                missingArgument));
         }
     }
 
@@ -163,6 +242,7 @@ internal static class TypeValidationHelper
                 return false;
             }
         }
+
         return true;
     }
 
