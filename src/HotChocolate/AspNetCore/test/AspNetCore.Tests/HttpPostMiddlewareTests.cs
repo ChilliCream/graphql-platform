@@ -1,17 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.AspNetCore.Instrumentation;
-using System;
 
 namespace HotChocolate.AspNetCore;
 

@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
-using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+using Microsoft.AspNetCore.Http;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.ErrorHelper;
 using static HotChocolate.SchemaSerializer;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 namespace HotChocolate.AspNetCore;
 
 public sealed class HttpGetSchemaMiddleware : MiddlewareBase

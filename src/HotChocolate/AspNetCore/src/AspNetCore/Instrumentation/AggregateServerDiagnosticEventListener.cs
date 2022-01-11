@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Instrumentation;
 

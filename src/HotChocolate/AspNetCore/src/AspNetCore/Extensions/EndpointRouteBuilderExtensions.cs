@@ -1,9 +1,9 @@
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.Extensions.FileProviders;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Extensions;
 using static Microsoft.AspNetCore.Routing.Patterns.RoutePatternFactory;
 
 namespace Microsoft.AspNetCore.Builder;

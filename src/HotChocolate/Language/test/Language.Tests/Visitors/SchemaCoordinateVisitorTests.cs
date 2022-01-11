@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Xunit;
 using HotChocolate.Language.Visitors;
+using Xunit;
 
 namespace HotChocolate.Language;
 

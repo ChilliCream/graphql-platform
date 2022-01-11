@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Subscriptions;
+using Microsoft.AspNetCore.Http;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore;
@@ -45,11 +45,11 @@ public class WebSocketSubscriptionMiddleware : MiddlewareBase
         {
             try
             {
-                IRequestExecutor requestExecutor = 
+                IRequestExecutor requestExecutor =
                     await GetExecutorAsync(context.RequestAborted);
-                IMessagePipeline? messagePipeline = 
+                IMessagePipeline? messagePipeline =
                     requestExecutor.GetRequiredService<IMessagePipeline>();
-                ISocketSessionInterceptor? socketSessionInterceptor = 
+                ISocketSessionInterceptor? socketSessionInterceptor =
                     requestExecutor.GetRequiredService<ISocketSessionInterceptor>();
                 context.Items[WellKnownContextData.RequestExecutor] = requestExecutor;
 

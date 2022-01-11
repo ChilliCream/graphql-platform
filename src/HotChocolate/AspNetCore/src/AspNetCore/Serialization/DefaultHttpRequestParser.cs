@@ -1,7 +1,7 @@
 using System.Text;
-using Microsoft.AspNetCore.Http;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
 using static HotChocolate.AspNetCore.ThrowHelper;
 using static HotChocolate.Language.Utf8GraphQLRequestParser;
 

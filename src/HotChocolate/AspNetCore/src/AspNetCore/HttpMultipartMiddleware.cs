@@ -1,12 +1,12 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
