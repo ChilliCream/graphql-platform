@@ -81,7 +81,7 @@ internal sealed class StitchingMetadataDb
                     _sourceMetadata.Add(group.Key, metadata);
                 }
 
-                metadata.Fetchers.Add(group.Key, group.ToArray());
+                metadata.Fetchers.Add(objectTypeInfo.Name, group.ToArray());
             }
         }
     }

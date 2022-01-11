@@ -8,18 +8,11 @@ namespace HotChocolate.Stitching.Execution;
 
 internal sealed class RemoteQueryPlanerContext
 {
-    public RemoteQueryPlanerContext(IPreparedOperation operation, QueryNode root)
-    {
-        Operation = operation;
-        Plan = root;
-        CurrentNode = root;
-    }
+    public IPreparedOperation Operation { get; private set; } = default!;
 
-    public IPreparedOperation Operation { get; }
+    public QueryNode Plan { get; private set; } = default!;
 
-    public QueryNode Plan { get; }
-
-    public QueryNode CurrentNode { get; set; }
+    public QueryNode CurrentNode { get; set; } = default!;
 
     public Path Path { get; set; } = Path.Root;
 
@@ -44,5 +37,25 @@ internal sealed class RemoteQueryPlanerContext
         }
 
         fields.Add(requiredField);
+    }
+
+    public void Initialize(IPreparedOperation operation, QueryNode root)
+    {
+        Operation = operation;
+        Plan = root;
+        CurrentNode = root;
+        Source = root.Source;
+    }
+
+    public void Clear()
+    {
+        Operation = default!;
+        Plan = default!;
+        CurrentNode = default!;
+        Path = Path.Root;
+        Source = default;
+        Types.Clear();
+        SelectionSets.Clear();
+        RequiredFields.Clear();
     }
 }
