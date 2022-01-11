@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Stitching.SchemaBuilding;
 using HotChocolate.Types;
@@ -9,7 +10,81 @@ namespace HotChocolate.Stitching.Execution;
 internal sealed class StitchingMetadataDb
 {
     private readonly List<NameString> _sources;
-    private readonly Dictionary<NameString, SourceMetadata> _sourceMetadata;
+    private readonly Dictionary<NameString, SourceMetadata> _sourceMetadata = new();
+
+    public StitchingMetadataDb(IEnumerable<NameString> sources, ISchema schema, SchemaInfo schemaInfo)
+    {
+        if (sources is null)
+        {
+            throw new ArgumentNullException(nameof(sources));
+        }
+
+        if (schema is null)
+        {
+            throw new ArgumentNullException(nameof(schema));
+        }
+
+        if (schemaInfo is null)
+        {
+            throw new ArgumentNullException(nameof(schemaInfo));
+        }
+
+        _sources = sources.ToList();
+
+        if (schemaInfo.Query is not null)
+        {
+            RegisterObjectType(schema, schemaInfo.Query);
+        }
+
+        if (schemaInfo.Mutation is not null)
+        {
+            RegisterObjectType(schema, schemaInfo.Mutation);
+        }
+
+        if (schemaInfo.Subscription is not null)
+        {
+            RegisterObjectType(schema, schemaInfo.Subscription);
+        }
+
+        foreach (ObjectTypeInfo objectTypeInfo in schemaInfo.Types.Values.OfType<ObjectTypeInfo>())
+        {
+            RegisterObjectType(schema, objectTypeInfo);
+        }
+    }
+
+    private void RegisterObjectType(ISchema schema, ObjectTypeInfo objectTypeInfo)
+    {
+        if (schema.TryGetType<ObjectType>(objectTypeInfo.Name, out var objectType))
+        {
+            foreach (var binding in objectTypeInfo.Bindings)
+            {
+                if (!_sourceMetadata.TryGetValue(binding.Source, out SourceMetadata? metadata))
+                {
+                    metadata = new();
+                    _sourceMetadata.Add(binding.Source, metadata);
+                }
+
+                foreach (NameString fieldName in binding.Fields)
+                {
+                    if (objectType.Fields.TryGetField(fieldName, out IObjectField? field))
+                    {
+                        metadata.Provides.Add(field);
+                    }
+                }
+            }
+
+            foreach (var group in objectTypeInfo.Fetchers.GroupBy(t => t.Source))
+            {
+                if (!_sourceMetadata.TryGetValue(group.Key, out SourceMetadata? metadata))
+                {
+                    metadata = new();
+                    _sourceMetadata.Add(group.Key, metadata);
+                }
+
+                metadata.Fetchers.Add(group.Key, group.ToArray());
+            }
+        }
+    }
 
     public bool IsPartOfSource(NameString source, ISelection selection)
         => _sourceMetadata.TryGetValue(source, out SourceMetadata? metadata) &&
@@ -74,10 +149,25 @@ internal sealed class StitchingMetadataDb
         if (_sourceMetadata.TryGetValue(source, out SourceMetadata? metadata) &&
             metadata.Fetchers.TryGetValue(type.Name, out ObjectFetcherInfo[]? fetchers))
         {
-            // todo: ensure that we prefer batch fetcher with the least hierarchy dependencies.
             foreach (ObjectFetcherInfo fetcher in fetchers)
             {
-                //  foreach()
+                var matches = true;
+
+                foreach (ArgumentInfo argument in fetcher.Arguments)
+                {
+                    if (!argument.Binding.Name.Equals(type.Name) &&
+                        (typesInPath.Count <= 0 || !typesInPath[0].Name.Equals(type.Name)) &&
+                        (typesInPath.Count <= 1 || !typesInPath.Any(t => t.Name.Equals(type.Name))))
+                    {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches)
+                {
+                    return fetcher;
+                }
             }
         }
 
@@ -87,16 +177,8 @@ internal sealed class StitchingMetadataDb
 
     private sealed class SourceMetadata
     {
-        public SourceMetadata(
-            HashSet<IField> provides,
-            Dictionary<NameString, ObjectFetcherInfo[]> fetchers)
-        {
-            Provides = provides;
-            Fetchers = fetchers;
-        }
+        public HashSet<IField> Provides { get; } = new();
 
-        public HashSet<IField> Provides { get; }
-
-        public Dictionary<NameString, ObjectFetcherInfo[]> Fetchers { get; }
+        public Dictionary<NameString, ObjectFetcherInfo[]> Fetchers { get; } = new();
     }
 }

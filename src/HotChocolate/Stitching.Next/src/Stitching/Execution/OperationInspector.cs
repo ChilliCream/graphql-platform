@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Language;
 using HotChocolate.Stitching.SchemaBuilding;
 using HotChocolate.Types;
 
@@ -23,12 +23,21 @@ internal sealed class OperationInspector
         }
 
         ISelectionSet rootSelectionSet = context.Operation.GetRootSelectionSet();
+        context.Source = _metadataDb.GetSource(rootSelectionSet.Selections);
+        context.Types.Push(context.Operation.RootType);
+        context.SelectionSets.Push(rootSelectionSet);
+
         Visit(rootSelectionSet, context);
+
+        context.SelectionSets.Pop();
+        context.Types.Pop();
+        context.Path = Path.Root;
     }
 
     private void Visit(ISelectionSet selectionSet, RemoteQueryPlanerContext context)
     {
         var source = context.Source;
+        var declaringType = context.Types.Peek();
         var selections = context.SelectionList.Get();
         selections.AddRange(selectionSet.Selections);
 
@@ -52,15 +61,33 @@ internal sealed class OperationInspector
             if (selections.Count > 0)
             {
                 context.Source = _metadataDb.GetSource(selections);
-                
+
                 var fetcher = _metadataDb.GetObjectFetcher(
                     context.Source,
-                    selections[0].DeclaringType,
+                    declaringType,
                     context.Types);
-                
+
                 foreach (ArgumentInfo argument in fetcher.Arguments)
                 {
-                    
+                    if (argument.Binding.Name.Equals(declaringType.Name))
+                    {
+                        context.RegisterRequiredField(
+                            selectionSet,
+                            argument.Binding.MemberName!.Value);
+                    }
+                    else
+                    {
+                        for (var i = context.Types.Count - 2; i >= 0; i--)
+                        {
+                            if (argument.Binding.Name.Equals(context.Types[i].Name))
+                            {
+                                context.RegisterRequiredField(
+                                    context.SelectionSets[i],
+                                    argument.Binding.MemberName!.Value);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -71,15 +98,28 @@ internal sealed class OperationInspector
 
     private void Visit(ISelection selection, RemoteQueryPlanerContext context)
     {
+        Path parentPath = context.Path;
+        context.Path = context.Path.Append(selection.ResponseName);
+
         if (selection.SelectionSet is not null)
         {
-            foreach (IObjectType possibleType in
-                context.Operation.GetPossibleTypes(selection.SelectionSet))
+            SelectionSetNode selectionSetNode = selection.SelectionSet;
+            IPreparedOperation operation = context.Operation;
+
+            foreach (IObjectType type in operation.GetPossibleTypes(selectionSetNode))
             {
-                ISelectionSet selectionSet =
-                    context.Operation.GetSelectionSet(selection.SelectionSet, possibleType);
+                ISelectionSet selectionSet = operation.GetSelectionSet(selectionSetNode, type);
+
+                context.Types.Push(type);
+                context.SelectionSets.Push(selectionSet);
+
                 Visit(selectionSet, context);
+
+                context.SelectionSets.Pop();
+                context.Types.Pop();
             }
         }
+
+        context.Path = parentPath;
     }
 }

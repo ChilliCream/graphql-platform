@@ -25,13 +25,24 @@ internal sealed class RemoteQueryPlanerContext
 
     public NameString Source { get; set; }
 
-    public List<ObjectType> Types { get; } = new();
+    public List<IObjectType> Types { get; } = new();
 
-    public List<ISyntaxNode?> Syntax { get; } = new();
+    public List<ISelectionSet> SelectionSets { get; } = new();
 
-    public Dictionary<ISelection, NameString> Required { get; } = new();
+    // public List<ISyntaxNode?> Syntax { get; } = new();
 
-    public Dictionary<Path, NameString> Variables { get; } = new();
+    public Dictionary<ISelectionSet, HashSet<NameString>> RequiredFields { get; } = new();
 
     public ObjectPool<List<ISelection>> SelectionList { get; } = new SelectionListObjectPool();
+
+    public void RegisterRequiredField(ISelectionSet selectionSet, NameString requiredField)
+    {
+        if (!RequiredFields.TryGetValue(selectionSet, out HashSet<NameString>? fields))
+        {
+            fields = new HashSet<NameString>();
+            RequiredFields.Add(selectionSet, fields);
+        }
+
+        fields.Add(requiredField);
+    }
 }
