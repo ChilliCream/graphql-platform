@@ -74,11 +74,12 @@ internal sealed class __Field : ObjectType<IOutputField>
             => context.Parent<IOutputField>().Description;
 
         public static object? Arguments(IPureResolverContext context)
-            => context.Parent<IOutputField>() is { } of
-                ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
-                    ? of.Arguments
-                    : of.Arguments.Where(t => !t.IsDeprecated)
-                : null;
+        {
+            IOutputField field = context.Parent<IOutputField>();
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? field.Arguments
+                : field.Arguments.Where(t => !t.IsDeprecated);
+        }
 
         public static IType Type(IPureResolverContext context)
             => context.Parent<IOutputField>().Type;

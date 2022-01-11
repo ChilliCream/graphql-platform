@@ -10,9 +10,7 @@ internal sealed class ResolverArgument : IInputFieldInfo
         IInputType type,
         Type runtimeType,
         IValueNode? defaultValue,
-        IInputValueFormatter? formatter,
-        bool isDeprecated,
-        string deprecationReason)
+        IInputValueFormatter? formatter)
     {
         Name = name;
         Coordinate = coordinate;
@@ -20,8 +18,6 @@ internal sealed class ResolverArgument : IInputFieldInfo
         Type = type;
         DefaultValue = defaultValue;
         Formatter = formatter;
-        IsDeprecated = isDeprecated;
-        DeprecationReason = deprecationReason;
     }
 
     public NameString Name { get; }
@@ -35,9 +31,5 @@ internal sealed class ResolverArgument : IInputFieldInfo
     public IValueNode? DefaultValue { get; }
 
     public IInputValueFormatter? Formatter { get; }
-
-    public bool IsDeprecated { get; }
-
-    public string? DeprecationReason { get; }
 }
 
