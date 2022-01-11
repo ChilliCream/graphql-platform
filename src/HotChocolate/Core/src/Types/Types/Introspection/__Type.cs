@@ -149,10 +149,10 @@ internal sealed class __Type : ObjectType
                 : null;
 
         public static object? InputFields(IPureResolverContext context)
-            => context.Parent<IType>() is IInputObjectType of
+            => context.Parent<IType>() is IInputObjectType iot
                 ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
-                    ? of.Fields
-                    : of.Fields.Where(t => !t.IsDeprecated)
+                    ? iot.Fields
+                    : iot.Fields.Where(t => !t.IsDeprecated)
                 : null;
 
         public static object? OfType(IPureResolverContext context)
