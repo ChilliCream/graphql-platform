@@ -6,23 +6,30 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Execution;
 
-internal sealed class OperationInspector
+/// <summary>
+/// Analyzes operations to determin dependencies between the various remote queries.
+/// </summary>
+internal sealed class OperationDependencyInspector
 {
     private readonly StitchingMetadataDb _metadataDb;
 
-    public OperationInspector(StitchingMetadataDb metadataDb)
+    public OperationDependencyInspector(StitchingMetadataDb metadataDb)
     {
         _metadataDb = metadataDb ?? throw new ArgumentNullException(nameof(metadataDb));
     }
 
-    public void Inspect(RemoteQueryPlanerContext context)
+    public void Inspect(IPreparedOperation operation, RemoteQueryPlanerContext context)
     {
         if (context is null)
         {
             throw new ArgumentNullException(nameof(context));
         }
 
-        ISelectionSet rootSelectionSet = context.Operation.GetRootSelectionSet();
+        ISelectionSet rootSelectionSet = operation.GetRootSelectionSet();
+        NameString source = _metadataDb.GetSource(rootSelectionSet.Selections);
+        var plan = new QueryNode(source);
+
+        context.Initialize(operation, plan);
         context.Source = _metadataDb.GetSource(rootSelectionSet.Selections);
         context.Types.Push(context.Operation.RootType);
         context.SelectionSets.Push(rootSelectionSet);

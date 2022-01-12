@@ -90,10 +90,57 @@ internal sealed class StitchingMetadataDb
         => _sourceMetadata.TryGetValue(source, out SourceMetadata? metadata) &&
             metadata.Provides.Contains(selection.Field);
 
-    // public NameString GetSource(ISelection selection)
-    // {
-    //     return Schema.DefaultName;
-    // }
+    public bool IsPartOfSource(NameString source, IObjectType objectType, NameString fieldName)
+        => _sourceMetadata.TryGetValue(source, out SourceMetadata? metadata) &&
+            objectType.Fields.TryGetField(fieldName, out var field) &&
+            metadata.Provides.Contains(field);
+
+    public NameString GetSource(IObjectType objectType, IReadOnlyCollection<NameString> fieldNames)
+    {
+        var highestScore = 0;
+        NameString? bestMatchingSource = null;
+
+        foreach (NameString source in _sources)
+        {
+            if (_sourceMetadata.TryGetValue(source, out SourceMetadata? metadata))
+            {
+                var score = 0;
+
+                foreach (NameString fieldName in fieldNames)
+                {
+                    if (objectType.Fields.TryGetField(fieldName, out var field) && 
+                        metadata.Provides.Contains(field))
+                    {
+                        score++;
+                    }
+                }
+
+                // we will take the first source that matches all selections.
+                if (fieldNames.Count == score)
+                {
+                    return source;
+                }
+
+                // if we cannot match all selections against a single source
+                // we will score them and chose the one that resolves the most 
+                // of our selections.
+                if (highestScore < score)
+                {
+                    highestScore = score;
+                    bestMatchingSource = source;
+                }
+            }
+        }
+
+        // if we do not have a match the schema is inconsistent and we will just fail here.
+        if (bestMatchingSource is null)
+        {
+            throw new InvalidOperationException(
+                "We have an inconsistent schema that cannot resolve all possible queries.");
+        }
+
+        return bestMatchingSource.Value;
+    }
 
     public NameString GetSource(IReadOnlyCollection<ISelection> selections)
     {

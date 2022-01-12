@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Execution;
 
@@ -22,7 +22,7 @@ internal sealed class RemoteQueryPlanerContext
 
     public List<ISelectionSet> SelectionSets { get; } = new();
 
-    // public List<ISyntaxNode?> Syntax { get; } = new();
+    public List<ISyntaxNode?> Syntax { get; } = new();
 
     public Dictionary<ISelectionSet, HashSet<NameString>> RequiredFields { get; } = new();
 
@@ -54,6 +54,7 @@ internal sealed class RemoteQueryPlanerContext
         CurrentNode = default!;
         Path = Path.Root;
         Source = default;
+        Syntax.Clear();
         Types.Clear();
         SelectionSets.Clear();
         RequiredFields.Clear();

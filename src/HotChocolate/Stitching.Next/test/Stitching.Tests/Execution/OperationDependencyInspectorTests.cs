@@ -5,13 +5,12 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Moq;
 using Xunit;
 using static HotChocolate.Stitching.Execution.TestHelper;
 
 namespace HotChocolate.Stitching.Execution;
 
-public class OperationInspectorTests
+public class OperationDependencyInspectorTests
 {
     [Fact]
     public async Task Metadata_GetSource_UserId_UserName()
@@ -55,12 +54,14 @@ public class OperationInspectorTests
         NameString source = metadataDb.GetSource(operation.GetRootSelectionSet().Selections);
 
         // act
-        var context = new RemoteQueryPlanerContext(operation, new QueryNode(source));
-        var operationInspector = new OperationInspector(metadataDb);
-        operationInspector.Inspect(context);
+        var context = new RemoteQueryPlanerContext();
+        var operationInspector = new OperationDependencyInspector(metadataDb);
+        operationInspector.Inspect(operation, context);
 
         // assert
-    
+        Assert.Collection(
+            context.RequiredFields.First().Value,
+            t => Assert.Equal("id", t.Value));
 
     }
 }

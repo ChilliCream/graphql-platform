@@ -11,7 +11,6 @@ internal readonly struct ObjectFetcherInfo
         List<ArgumentInfo> arguments,
         bool batchFetcher = false)
     {
-
         Source = source ?? throw new System.ArgumentNullException(nameof(source));
         Selections = selections ?? throw new System.ArgumentNullException(nameof(selections));
         Arguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
