@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -346,6 +347,50 @@ public class AnnotationBasedMutations
             .MatchSnapshotAsync();
     }
 
+    [Fact]
+    public async Task Allow_Id_Middleware()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithIds>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        id: ""Rm9vCmdhYWY1ZjAzNjk0OGU0NDRkYWRhNTM2ZTY1MTNkNTJjZA==""
+                    }) {
+                        user { name id }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task Allow_InputObject_Middleware()
+    {
+        Snapshot.FullName();
+
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddMutationType<MutationWithInputObject>()
+            .AddMutationConventions(true)
+            .ModifyOptions(o => o.StrictValidation = false)
+            .ExecuteRequestAsync(
+                @"mutation {
+                    doSomething(input: {
+                        test: {
+                            name: ""foo""
+                        }
+                    }) {
+                        user { name }
+                    }
+                }")
+            .MatchSnapshotAsync();
+    }
+
     public class SimpleMutation
     {
         public string DoSomething(string something)
@@ -411,6 +456,28 @@ public class AnnotationBasedMutations
         public string MyInput2 { get; set; } = default!;
     }
 
+    public class MutationWithIds
+    {
+        public User? DoSomething([ID("Foo")]Guid  id)
+        {
+            return new User() {Name = "Foo", Id = id,};
+        }
+    }
+
+    public class MutationWithInputObject
+    {
+        public User? DoSomething(Test  test)
+        {
+            return new User() {Name = test.Name};
+        }
+    }
+
+    public class Test
+    {
+        public string Name { get; set; }
+
+    }
+
     public class MultipleArgumentMutation
     {
         public string DoSomething(string something1, string something2)
@@ -460,6 +527,8 @@ public class AnnotationBasedMutations
 
     public class User
     {
+        public Guid Id { get; set; }
+
         public string? Name { get; set; }
     }
 }
