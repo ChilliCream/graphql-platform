@@ -28,9 +28,11 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            if (type.Fields[i].IsDeprecated && type.Fields[i].Type.IsNonNullType())
+            IInputField field = type.Fields[i];
+
+            if (field.IsDeprecated && field.Type.IsNonNullType())
             {
-                errors.Add(RequiredFieldCannotBeDeprecated(type, type.Fields[i]));
+                errors.Add(RequiredFieldCannotBeDeprecated(type, field));
             }
         }
     }
