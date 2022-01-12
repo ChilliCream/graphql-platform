@@ -41,15 +41,14 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Fields.Count; i++)
         {
-            for (var j = 0; j < type.Fields[i].Arguments.Count; j++)
+            IOutputField field = type.Fields[i];
+            for (var j = 0; j < field.Arguments.Count; j++)
             {
-                if (type.Fields[i].Arguments[j].IsDeprecated &&
-                    type.Fields[i].Arguments[j].Type.IsNonNullType())
+                IInputField argument = field.Arguments[j];
+
+                if (argument.IsDeprecated && argument.Type.IsNonNullType())
                 {
-                    errors.Add(
-                        RequiredArgumentCannotBeDeprecated(type,
-                            type.Fields[i],
-                            type.Fields[i].Arguments[j]));
+                    errors.Add(RequiredArgumentCannotBeDeprecated(type, field, argument));
                 }
             }
         }
@@ -61,9 +60,10 @@ internal static class TypeValidationHelper
     {
         for (var i = 0; i < type.Arguments.Count; i++)
         {
-            if (type.Arguments[i].IsDeprecated && type.Arguments[i].Type.IsNonNullType())
+            Argument argument = type.Arguments[i];
+            if (argument.IsDeprecated && argument.Type.IsNonNullType())
             {
-                errors.Add(RequiredArgumentCannotBeDeprecated(type, type.Arguments[i]));
+                errors.Add(RequiredArgumentCannotBeDeprecated(type, argument));
             }
         }
     }
