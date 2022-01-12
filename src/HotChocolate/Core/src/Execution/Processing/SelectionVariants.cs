@@ -11,6 +11,7 @@ internal sealed class SelectionVariants : ISelectionVariants
     private IObjectType? _secondType;
     private ISelectionSet? _secondSelections;
     private Dictionary<IObjectType, ISelectionSet>? _map;
+    private IObjectType[]? _types;
 
     public SelectionVariants(SelectionSetNode selectionSet)
     {
@@ -19,24 +20,39 @@ internal sealed class SelectionVariants : ISelectionVariants
 
     public SelectionSetNode SelectionSet { get; }
 
-    public IEnumerable<IObjectType> GetPossibleTypes()
+    public IReadOnlyList<IObjectType> GetPossibleTypes()
     {
+        if (_types is not null)
+        {
+            return _types;
+        }
+
         if (_map is { })
         {
+            var types = new IObjectType[_map.Keys.Count];
+            int index = 0; 
             foreach (IObjectType possibleType in _map.Keys)
             {
-                yield return possibleType;
+                types[index++] = possibleType;
             }
+            _types = types;
         }
         else
         {
-            yield return _firstType!;
+            int count = _secondType is not null ? 2 : 1;
+            var types = new IObjectType[count];
 
-            if (_secondType is { })
+            types[0] = _firstType!;
+
+            if (_secondType is not null)
             {
-                yield return _secondType;
+                types[1] = _secondType;
             }
+
+            _types = types;
         }
+
+        return _types;
     }
 
     public ISelectionSet GetSelectionSet(IObjectType typeContext)

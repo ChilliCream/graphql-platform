@@ -39,9 +39,7 @@ public interface IPreparedOperation : IOperation
     /// Returns the prepared selections for the specified
     /// selection set under the specified type context.
     /// </returns>
-    ISelectionSet GetSelectionSet(
-        SelectionSetNode selectionSet,
-        IObjectType typeContext);
+    ISelectionSet GetSelectionSet(SelectionSetNode selectionSet, IObjectType typeContext);
 
     /// <summary>
     /// Gets the types that are possible for the specified <paramref name="selectionSet"/>.
@@ -52,8 +50,7 @@ public interface IPreparedOperation : IOperation
     /// <returns>
     /// Returns the types that are possible for the specified <paramref name="selectionSet"/>.
     /// </returns>
-    IEnumerable<IObjectType> GetPossibleTypes(
-        SelectionSetNode selectionSet);
+    IReadOnlyList<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet);
 
     /// <summary>
     /// Gets all selection variants of this operation.

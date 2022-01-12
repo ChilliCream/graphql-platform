@@ -80,11 +80,11 @@ internal sealed class Operation : IPreparedOperation
             : SelectionSet.Empty;
     }
 
-    public IEnumerable<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
+    public IReadOnlyList<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
     {
         return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
             ? variants.GetPossibleTypes()
-            : Enumerable.Empty<IObjectType>();
+            : Array.Empty<IObjectType>();
     }
 
     public string Print()

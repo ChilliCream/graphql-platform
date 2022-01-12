@@ -8,7 +8,7 @@ public interface ISelectionVariants
 {
     SelectionSetNode SelectionSet { get; }
 
-    IEnumerable<IObjectType> GetPossibleTypes();
+    IReadOnlyList<IObjectType> GetPossibleTypes();
 
     ISelectionSet GetSelectionSet(IObjectType typeContext);
 }
