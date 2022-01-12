@@ -6,7 +6,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Execution;
 
-internal sealed class RemoteQueryPlanerContext
+internal sealed class OperationPlanerContext
 {
     public IPreparedOperation Operation { get; private set; } = default!;
 
@@ -18,6 +18,8 @@ internal sealed class RemoteQueryPlanerContext
 
     public NameString Source { get; set; }
 
+    public bool NeedsInlineFragment { get; set; } = false;
+
     public List<IObjectType> Types { get; } = new();
 
     public List<ISelectionSet> SelectionSets { get; } = new();
@@ -27,6 +29,8 @@ internal sealed class RemoteQueryPlanerContext
     public Dictionary<ISelectionSet, HashSet<NameString>> RequiredFields { get; } = new();
 
     public ObjectPool<List<ISelection>> SelectionList { get; } = new SelectionListObjectPool();
+
+    public int Segments { get; set; }
 
     public void RegisterRequiredField(ISelectionSet selectionSet, NameString requiredField)
     {
@@ -54,6 +58,8 @@ internal sealed class RemoteQueryPlanerContext
         CurrentNode = default!;
         Path = Path.Root;
         Source = default;
+        NeedsInlineFragment = false;
+        Segments = default;
         Syntax.Clear();
         Types.Clear();
         SelectionSets.Clear();

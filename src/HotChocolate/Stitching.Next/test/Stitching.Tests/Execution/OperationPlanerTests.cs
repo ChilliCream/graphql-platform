@@ -7,13 +7,14 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Xunit;
 using static HotChocolate.Stitching.Execution.TestHelper;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching.Execution;
 
-public class OperationDependencyInspectorTests
+public class OperationPlanerTests
 {
     [Fact]
-    public async Task Metadata_GetSource_UserId_UserName()
+    public async Task Build_Remote_Queries()
     {
         // arrange
         MergedSchema mergedSchema = CreateSchemaInfo();
@@ -53,15 +54,15 @@ public class OperationDependencyInspectorTests
 
         NameString source = metadataDb.GetSource(operation.GetRootSelectionSet().Selections);
 
-        // act
-        var context = new RemoteQueryPlanerContext();
-        var operationInspector = new OperationDependencyInspector(metadataDb);
+        var context = new OperationPlanerContext();
+        var operationInspector = new OperationInspector(metadataDb);
         operationInspector.Inspect(operation, context);
 
-        // assert
-        Assert.Collection(
-            context.RequiredFields.First().Value,
-            t => Assert.Equal("id", t.Value));
+        // act
+        var operationPlaner = new OperationPlaner(metadataDb);
+        QueryNode plan = operationPlaner.Build(operation, context);
 
+        // assert
+        plan.ToString().MatchSnapshot();
     }
 }

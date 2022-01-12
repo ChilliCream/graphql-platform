@@ -9,16 +9,16 @@ namespace HotChocolate.Stitching.Execution;
 /// <summary>
 /// Analyzes operations to determin dependencies between the various remote queries.
 /// </summary>
-internal sealed class OperationDependencyInspector
+internal sealed class OperationInspector
 {
     private readonly StitchingMetadataDb _metadataDb;
 
-    public OperationDependencyInspector(StitchingMetadataDb metadataDb)
+    public OperationInspector(StitchingMetadataDb metadataDb)
     {
         _metadataDb = metadataDb ?? throw new ArgumentNullException(nameof(metadataDb));
     }
 
-    public void Inspect(IPreparedOperation operation, RemoteQueryPlanerContext context)
+    public void Inspect(IPreparedOperation operation, OperationPlanerContext context)
     {
         if (context is null)
         {
@@ -41,7 +41,7 @@ internal sealed class OperationDependencyInspector
         context.Path = Path.Root;
     }
 
-    private void Visit(ISelectionSet selectionSet, RemoteQueryPlanerContext context)
+    private void Visit(ISelectionSet selectionSet, OperationPlanerContext context)
     {
         var source = context.Source;
         var declaringType = context.Types.Peek();
@@ -103,7 +103,7 @@ internal sealed class OperationDependencyInspector
         context.SelectionList.Return(selections);
     }
 
-    private void Visit(ISelection selection, RemoteQueryPlanerContext context)
+    private void Visit(ISelection selection, OperationPlanerContext context)
     {
         Path parentPath = context.Path;
         context.Path = context.Path.Append(selection.ResponseName);

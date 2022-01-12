@@ -1,0 +1,25 @@
+﻿Reviews
+
+{
+  reviews {
+    body
+    user {
+      name
+      _export_User_id: id
+      username
+    }
+    product {
+      upc
+    }
+  }
+}
+-->
+Accounts
+
+{
+  name
+  _export_User_id: id
+  username
+}
+
+
