@@ -10,6 +10,12 @@ namespace HotChocolate.Language;
 /// </summary>
 public static class ListExtensions
 {
+    public static void Set<T>(this IList<T> list, T value)
+    {
+        var lastIndex = list.Count - 1;
+        list[lastIndex] = value;
+    }
+
     public static T Pop<T>(this IList<T> list)
     {
         var lastIndex = list.Count - 1;
