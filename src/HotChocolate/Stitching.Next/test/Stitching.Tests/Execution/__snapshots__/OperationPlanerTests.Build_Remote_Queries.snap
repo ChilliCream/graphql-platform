@@ -1,25 +1,25 @@
 ﻿Reviews
 
-{
+query Operation_616263_2 {
   reviews {
     body
     user {
       name
       _export_User_id: id
-      username
     }
     product {
       upc
     }
   }
 }
+
 -->
 Accounts
 
-{
-  name
-  _export_User_id: id
-  username
+query Operation_616263_1($_export_User_id: ID!) {
+  userById(id: $_export_User_id) {
+    username
+  }
 }
 
-
+<--

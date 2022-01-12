@@ -187,6 +187,19 @@ internal sealed class OperationPlaner
                 if (fetcher is not null && fetcher.Value.Selections is FieldNode field)
                 {
                     field = field.WithSelectionSet(selectionSetSyntax);
+
+                    if (fetcher.Value.Arguments.Count > 0 && variables is not null)
+                    {
+                        var arguments = new List<ArgumentNode>();
+                        for (int i = 0; i < fetcher.Value.Arguments.Count; i++)
+                        {
+                            ArgumentInfo argument = fetcher.Value.Arguments[i];
+                            VariableDefinitionNode variable = variables[i];
+                            arguments.Add(new ArgumentNode(argument.Name, variable.Variable));
+                        }
+                        field = field.WithArguments(arguments);
+                    }
+
                     selectionSetSyntax = new SelectionSetNode(new[] { field });
                 }
 
@@ -264,7 +277,9 @@ internal sealed class OperationPlaner
         {
             if (context.Operation.Definition.Name is null)
             {
-                string safeId = BitConverter.ToString(Encoding.UTF8.GetBytes(context.Operation.Id));
+                string safeId = BitConverter.ToString(
+                    Encoding.UTF8.GetBytes(context.Operation.Id))
+                    .Replace("-", string.Empty);
                 return new NameNode($"Operation_{safeId}_{context.Segments}");
             }
 

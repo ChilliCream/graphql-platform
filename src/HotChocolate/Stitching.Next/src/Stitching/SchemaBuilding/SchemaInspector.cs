@@ -120,7 +120,16 @@ internal class SchemaInspector
 
                         if (arguments.Count == fetchField.Arguments.Count)
                         {
-                            objectType.Fetchers.Add(new(schemaInfo.Name, fetchField, arguments));
+                            var fieldNode = new FieldNode(
+                                null, 
+                                fetchField.Name, 
+                                null, 
+                                null, 
+                                Array.Empty<DirectiveNode>(), 
+                                Array.Empty<ArgumentNode>(), 
+                                null);
+
+                            objectType.Fetchers.Add(new(schemaInfo.Name, fieldNode, arguments));
                         }
                     }
                 }
