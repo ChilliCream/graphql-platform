@@ -85,12 +85,13 @@ internal sealed class __Directive : ObjectType<DirectiveType>
         public static object Locations(IPureResolverContext context)
             => context.Parent<DirectiveType>().Locations;
 
-        public static object? Arguments(IPureResolverContext context)
-            => context.Parent<DirectiveType>() is { } of
-                ? context.ArgumentValue<bool>(Names.IncludeDeprecated)
-                    ? of.Arguments
-                    : of.Arguments.Where(t => !t.IsDeprecated)
-                : null;
+        public static object Arguments(IPureResolverContext context)
+        {
+            DirectiveType directive = context.Parent<DirectiveType>();
+            return context.ArgumentValue<bool>(Names.IncludeDeprecated)
+                ? directive.Arguments
+                : directive.Arguments.Where(t => !t.IsDeprecated);
+        }
 
         public static object OnOperation(IPureResolverContext context)
         {

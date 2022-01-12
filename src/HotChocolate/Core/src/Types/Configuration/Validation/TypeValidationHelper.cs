@@ -139,17 +139,6 @@ internal static class TypeValidationHelper
         }
     }
 
-    public static void EnsureDirectiveNameIsValid(
-        DirectiveType type,
-        ICollection<ISchemaError> errors)
-    {
-
-        if (type.Name.Value.StartsWith(_twoUnderscores))
-        {
-            errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
-        }
-    }
-
     public static void EnsureInterfacesAreCorrectlyImplemented(
         IComplexOutputType type,
         ICollection<ISchemaError> errors)
