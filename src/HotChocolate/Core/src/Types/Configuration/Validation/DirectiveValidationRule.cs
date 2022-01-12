@@ -34,7 +34,6 @@ internal class DirectiveValidationRule : ISchemaValidationRule
         DirectiveType type,
         ICollection<ISchemaError> errors)
     {
-
         if (type.Name.Value.StartsWith(_twoUnderscores))
         {
             errors.Add(TwoUnderscoresNotAllowedOnDirectiveName(type));
