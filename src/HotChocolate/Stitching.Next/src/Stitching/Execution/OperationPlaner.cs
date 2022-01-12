@@ -46,70 +46,44 @@ internal sealed class OperationPlaner
 
     private void Visit(ISelectionSet selectionSet, OperationPlanerContext context)
     {
-        var source = context.Source;
         var node = context.CurrentNode;
+        var source = context.Source;
         var declaringType = context.Types.Peek();
-        var selectionsToProcess = context.SelectionList.Get();
-        var selections = new List<ISelectionNode>();
+        var selections = context.SelectionList.Get();
+        var selectionSyntax = new List<ISelectionNode>();
         var export = new List<NameString>();
         List<VariableDefinitionNode>? variables = null;
         var needsInlineFragment = context.NeedsInlineFragment;
         ObjectFetcherInfo? fetcher = null;
         var needsOperation = false;
 
-        selectionsToProcess.AddRange(selectionSet.Selections);
+        selections.AddRange(selectionSet.Selections);
 
         if (context.RequiredFields.TryGetValue(selectionSet, out var fields))
         {
             export.AddRange(fields);
         }
 
-        while (selectionsToProcess.Count > 0 || export.Count > 0)
+        while (selections.Count > 0 || export.Count > 0)
         {
-            int index = 0;
-            while (index < selectionsToProcess.Count)
-            {
-                ISelection selection = selectionsToProcess[index];
-                if (_metadataDb.IsPartOfSource(context.Source, selection))
-                {
-                    context.Syntax.Push(null);
-                    Visit(selection, context);
-                    selections.Add((ISelectionNode)context.Syntax.Pop()!);
-                    selectionsToProcess.Remove(selection);
-                }
-                else
-                {
-                    index++;
-                }
-            }
+            ExtractSelectionsForSource(
+                context.Source,
+                selections,
+                selectionSyntax,
+                context);
 
-            index = 0;
-            while (index < export.Count)
-            {
-                NameString fieldName = export[index];
-                if (_metadataDb.IsPartOfSource(context.Source, context.Types.Peek(), fieldName))
-                {
-                    selections.Add(new FieldNode(
-                        null,
-                        new NameNode(fieldName),
-                        new NameNode($"_export_{context.Types.Peek().Name}_{fieldName}"),
-                        null,
-                        Array.Empty<DirectiveNode>(),
-                        Array.Empty<ArgumentNode>(),
-                        null));
-                    export.Remove(fieldName);
-                }
-                else
-                {
-                    index++;
-                }
-            }
+            ExtractExportsForSource(
+                context.Source, 
+                declaringType, 
+                export, 
+                selectionSyntax, 
+                context);
 
             BuildOperation();
 
-            if (selectionsToProcess.Count > 0)
+            if (selections.Count > 0)
             {
-                context.Source = _metadataDb.GetSource(selectionsToProcess);
+                context.Source = _metadataDb.GetSource(selections);
 
                 fetcher = _metadataDb.GetObjectFetcher(
                     context.Source,
@@ -133,7 +107,7 @@ internal sealed class OperationPlaner
 
         context.Source = source;
         context.CurrentNode = node;
-        context.SelectionList.Return(selectionsToProcess);
+        context.SelectionList.Return(selections);
 
         void PrepareOperation(ObjectFetcherInfo fetcher)
         {
@@ -144,7 +118,7 @@ internal sealed class OperationPlaner
                 variables = new List<VariableDefinitionNode>();
             }
 
-            selections = new List<ISelectionNode>();
+            selectionSyntax = new List<ISelectionNode>();
 
             var newNode = new QueryNode(context.Source);
             node.Nodes.Add(newNode);
@@ -168,7 +142,7 @@ internal sealed class OperationPlaner
 
         void BuildOperation()
         {
-            var selectionSetSyntax = new SelectionSetNode(selections);
+            var selectionSetSyntax = new SelectionSetNode(selectionSyntax);
 
             if (needsInlineFragment)
             {
@@ -250,6 +224,60 @@ internal sealed class OperationPlaner
         context.Path = parentPath;
     }
 
+    private void ExtractSelectionsForSource(
+        NameString source,
+        List<ISelection> selections,
+        List<ISelectionNode> selectionSyntax,
+        OperationPlanerContext context)
+    {
+        int index = 0;
+        while (index < selections.Count)
+        {
+            ISelection selection = selections[index];
+            if (_metadataDb.IsPartOfSource(source, selection))
+            {
+                context.Syntax.Push(null);
+                Visit(selection, context);
+                selectionSyntax.Add((ISelectionNode)context.Syntax.Pop()!);
+                selections.Remove(selection);
+            }
+            else
+            {
+                index++;
+            }
+        }
+    }
+
+    private void ExtractExportsForSource(
+        NameString source,
+        IObjectType declaringType,
+        List<NameString> exports,
+        List<ISelectionNode> selectionSyntax,
+        OperationPlanerContext context)
+    {
+        int index = 0;
+        while (index < exports.Count)
+        {
+            NameString fieldName = exports[index];
+            if (_metadataDb.IsPartOfSource(source, declaringType, fieldName))
+            {
+                selectionSyntax.Add(new FieldNode(
+                    null,
+                    new NameNode(fieldName),
+                    new NameNode($"_export_{declaringType.Name}_{fieldName}"),
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    Array.Empty<ArgumentNode>(),
+                    null));
+                exports.Remove(fieldName);
+            }
+            else
+            {
+                index++;
+            }
+        }
+    }
+
     private DocumentNode CreateDocument(
         OperationPlanerContext context,
         IReadOnlyList<VariableDefinitionNode>? variables = null)
@@ -286,4 +314,7 @@ internal sealed class OperationPlaner
             return new NameNode($"{context.Operation.Definition.Name.Value}_{context.Segments}");
         }
     }
+
+    private static string CreateExportName(SchemaCoordinate binding)
+        => $"_export_{binding.Name}_{binding.MemberName}";
 }
