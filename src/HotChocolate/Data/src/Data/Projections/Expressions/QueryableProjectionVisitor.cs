@@ -42,4 +42,6 @@ public class QueryableProjectionVisitor
 
         return base.VisitObjectType(field, objectType, selectionSet, context);
     }
+
+    public static readonly QueryableProjectionVisitor Default = new();
 }

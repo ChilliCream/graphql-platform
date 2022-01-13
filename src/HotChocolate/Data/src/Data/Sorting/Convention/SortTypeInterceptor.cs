@@ -72,7 +72,7 @@ public class SortTypeInterceptor : TypeInterceptor
 
         var descriptor = SortInputTypeDescriptor.New(
             discoveryContext.DescriptorContext,
-            definition.EntityType,
+            definition.EntityType!,
             definition.Scope);
 
         SchemaTypeReference typeReference = TypeReference.Create(
@@ -120,7 +120,7 @@ public class SortTypeInterceptor : TypeInterceptor
 
         var descriptor = SortInputTypeDescriptor.New(
             completionContext.DescriptorContext,
-            definition.EntityType,
+            definition.EntityType!,
             definition.Scope);
 
         SchemaTypeReference typeReference = TypeReference.Create(
@@ -187,11 +187,11 @@ public class SortTypeInterceptor : TypeInterceptor
             if (field is SortFieldDefinition sortFieldDefinition)
             {
                 if (completionContext.TryPredictTypeKind(
-                    sortFieldDefinition.Type,
+                    sortFieldDefinition.Type!,
                     out TypeKind kind) &&
                     kind != TypeKind.Enum)
                 {
-                    field.Type = field.Type.With(scope: completionContext.Scope);
+                    field.Type = field.Type!.With(scope: completionContext.Scope);
                 }
 
                 if (sortFieldDefinition.Handler is null)

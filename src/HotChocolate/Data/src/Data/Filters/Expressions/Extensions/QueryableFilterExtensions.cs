@@ -49,7 +49,6 @@ public static class QueryableFilterExtensions
         IResolverContext context) =>
         ExecuteFilter(enumerable, context, typeof(QueryableExecutable<T>));
 
-    [Obsolete]
     private static T ExecuteFilter<T>(
         this T input,
         IResolverContext context,

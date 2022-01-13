@@ -3,8 +3,15 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Validation;
 
+/// <summary>
+/// The validation field info provides access to the field node and the type
+/// information of the referenced field.
+/// </summary>
 public readonly struct FieldInfo
 {
+    /// <summary>
+    /// Initializes a new instance of <see cref="FieldInfo"/>
+    /// </summary>
     public FieldInfo(IType declaringType, IType type, FieldNode field)
     {
         DeclaringType = declaringType;

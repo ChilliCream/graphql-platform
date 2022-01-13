@@ -35,7 +35,7 @@ public sealed class SortEnumValue : ISortEnumValue
         SyntaxNode = enumValueDefinition.SyntaxNode;
         Name = enumValueDefinition.Name.HasValue
             ? enumValueDefinition.Name
-            : (NameString)enumValueDefinition.Value.ToString();
+            : (NameString)enumValueDefinition.Value.ToString()!;
         Description = enumValueDefinition.Description;
         DeprecationReason = enumValueDefinition.DeprecationReason;
         IsDeprecated = enumValueDefinition.IsDeprecated;

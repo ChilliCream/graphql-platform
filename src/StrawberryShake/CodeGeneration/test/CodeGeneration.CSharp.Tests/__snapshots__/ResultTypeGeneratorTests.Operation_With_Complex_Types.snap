@@ -415,7 +415,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFooResult
+    public partial interface IGetFooResult
     {
         public global::Foo.Bar.IGetFoo_Foo? Foo
         {
@@ -425,7 +425,7 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo
+    public partial interface IGetFoo_Foo
     {
         public global::System.String? Str
         {
@@ -455,29 +455,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Baz : IGetFoo_Foo
+    public partial interface IGetFoo_Foo_Baz : IGetFoo_Foo
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Nested
-    {
-        public global::System.String? Str
-        {
-            get;
-        }
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_Nested_Baz : IGetFoo_Foo_Nested
-    {
-    }
-
-    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
-    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_NestedList
+    public partial interface IGetFoo_Foo_Nested
     {
         public global::System.String? Str
         {
@@ -487,13 +471,13 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_NestedList_Baz : IGetFoo_Foo_NestedList
+    public partial interface IGetFoo_Foo_Nested_Baz : IGetFoo_Foo_Nested
     {
     }
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_NestedMatrix
+    public partial interface IGetFoo_Foo_NestedList
     {
         public global::System.String? Str
         {
@@ -503,7 +487,23 @@ namespace Foo.Bar
 
     // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFoo_Foo_NestedMatrix_Baz : IGetFoo_Foo_NestedMatrix
+    public partial interface IGetFoo_Foo_NestedList_Baz : IGetFoo_Foo_NestedList
+    {
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IGetFoo_Foo_NestedMatrix
+    {
+        public global::System.String? Str
+        {
+            get;
+        }
+    }
+
+    // StrawberryShake.CodeGeneration.CSharp.Generators.ResultInterfaceGenerator
+    [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
+    public partial interface IGetFoo_Foo_NestedMatrix_Baz : IGetFoo_Foo_NestedMatrix
     {
     }
 
@@ -652,7 +652,7 @@ namespace Foo.Bar
     /// </code>
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IGetFooQuery : global::StrawberryShake.IOperationRequestFactory
+    public partial interface IGetFooQuery : global::StrawberryShake.IOperationRequestFactory
     {
         global::System.Threading.Tasks.Task<global::StrawberryShake.IOperationResult<IGetFooResult>> ExecuteAsync(global::System.Threading.CancellationToken cancellationToken = default);
         global::System.IObservable<global::StrawberryShake.IOperationResult<IGetFooResult>> Watch(global::StrawberryShake.ExecutionStrategy? strategy = null);
@@ -680,7 +680,7 @@ namespace Foo.Bar
     /// Represents the FooClient GraphQL client
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCode("StrawberryShake", "11.0.0")]
-    public interface IFooClient
+    public partial interface IFooClient
     {
         global::Foo.Bar.IGetFooQuery GetFoo
         {

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
                     }")
                 .Use(_ => context =>
                 {
-                    if (context.Field.Type.NamedType() is ObjectType type)
+                    if (context.Selection.Type.NamedType() is ObjectType type)
                     {
                         foreach (IFieldSelection selection in context.GetSelections(type))
                         {
@@ -141,12 +141,12 @@ namespace HotChocolate.Execution
             IFieldSelection selection,
             ICollection<IFieldSelection> collected)
         {
-            if (selection.Field.Type.IsLeafType())
+            if (selection.Type.IsLeafType())
             {
                 collected.Add(selection);
             }
 
-            if (selection.Field.Type.NamedType() is ObjectType objectType)
+            if (selection.Type.NamedType() is ObjectType objectType)
             {
                 foreach (IFieldSelection child in context.GetSelections(
                     objectType, selection.SyntaxNode.SelectionSet))

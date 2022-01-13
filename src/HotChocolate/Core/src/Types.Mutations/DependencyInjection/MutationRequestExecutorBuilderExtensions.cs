@@ -26,7 +26,7 @@ public static class MutationRequestExecutorBuilderExtensions
     /// </exception>
     public static IRequestExecutorBuilder AddMutationConventions(
         this IRequestExecutorBuilder builder,
-        bool applyToAllMutations = false)
+        bool applyToAllMutations = true)
         => AddMutationConventions(
             builder,
             new MutationConventionOptions

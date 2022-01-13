@@ -49,7 +49,6 @@ public static class QueryableProjectExtensions
         IResolverContext context) =>
         ExecuteProject(enumerable, context, typeof(QueryableExecutable<T>));
 
-    [Obsolete]
     private static T ExecuteProject<T>(
         this T input,
         IResolverContext context,
@@ -66,7 +65,7 @@ public static class QueryableProjectExtensions
                 return result;
             }
 
-            throw ThrowHelper.Projection_TypeMissmatch(
+            throw ThrowHelper.Projection_TypeMismatch(
                 context,
                 expectedType,
                 resultObj!.GetType());

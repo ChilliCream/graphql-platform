@@ -225,7 +225,7 @@ public class Startup
                   isCompleted: Boolean
                 }
             ")
-            .BindComplexType<Query>();
+            .BindRuntimeType<Query>();
     }
 
     // Omitted code for brevity

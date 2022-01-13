@@ -1,0 +1,33 @@
+﻿[
+  {
+    "Message": "The Oneof Input Object `PetInput` requires that exactly one field must be supplied and that field must not be `null`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "addPet"
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 33
+      }
+    ],
+    "Extensions": {
+      "type": "PetInput",
+      "specifiedBy": "http://spec.graphql.org/draft/#sec-Oneof–Input-Objects-Have-Exactly-One-Field",
+      "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+    },
+    "Exception": null,
+    "SyntaxNode": {
+      "Kind": "ObjectValue",
+      "Location": {
+        "Start": 67,
+        "End": 71,
+        "Line": 3,
+        "Column": 33
+      },
+      "Fields": []
+    }
+  }
+]

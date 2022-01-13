@@ -54,7 +54,7 @@ public static class QueryableSortVisitorContextExtensions
     {
         private bool _orderingMethodFound = false;
 
-        public override Expression? Visit(Expression node)
+        public override Expression? Visit(Expression? node)
         {
             if (_orderingMethodFound)
             {

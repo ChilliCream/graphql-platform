@@ -129,7 +129,7 @@ public class Startup
                     author: String
                 }
                 ")
-            .BindComplexType<Mutation>();
+            .BindRuntimeType<Mutation>();
     }
 }
 ```
@@ -203,11 +203,10 @@ services
 
 # Conventions
 
-> ⚠️ Experimental Warning: This feature is not yet finished and only available in previews. The API is not finalized and will change until its release.
-
 In GraphQL, it is best practice to have a single argument on mutations called `input`, and each mutation should return a payload object.
+The payload object allows to read the changes of the mutation or to access the domain errors caused by a mutation.
 
-```graphql
+```sdl
 type Mutation {
   updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
@@ -224,24 +223,28 @@ type UpdateUserNamePayload {
 
 Following this pattern helps to keep the schema evolvable but requires a lot of boilerplate code to realize.
 
-HotChocolate has built-in conventions for inputs and payloads to minimize boilerplate code.
+## Input and Payload
+
+HotChocolate has built-in conventions for mutations to minimize boilerplate code.
 
 The HotChocolate mutation conventions are opt-in and can be enabled like the following:
 
 ```csharp
 service
     .AddGraphQLServer()
-    .EnableMutationConventions()
+    .AddMutationConventions()
     ...
 ```
 
-With the mutation conventions enabled, we can define the above with a single mutation class.
+With the mutation conventions enabled, we can define the described mutation pattern with minimal code by just annotating a field with `UseMutationConvention`.
+
+<ExampleTabs>
+<ExampleTabs.Annotation>
 
 ```csharp
 public class Mutation
 {
-    [Input]
-    [Payload]
+    [UseMutationConvention]
     public User? UpdateUserNameAsync([ID] Guid userId, string username)
     {
     //...
@@ -249,45 +252,16 @@ public class Mutation
 }
 ```
 
-## Defining payloads
-
-To define a payload, you can either annotate the resolver with `[Payload(...)]` or use `.Payload(..)` if you use the code-first approach.
-
-The `Payload` middleware is optimized for the use case of a single field on the payload.
-
-If you need more than one field, you should define your custom payload object.
-
-The field's name that holds the result can be configured with the `FieldName` parameter of the attribute/extension method.
-By default, the field name is the name of the returned runtime type. You can override the type name with the `TypeName` parameter.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-public class Mutation
-{
-    [Payload("customPayloadField", TypeName = "CustomTypeName")] // <-------------
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
-}
-```
-
 </ExampleTabs.Annotation>
 <ExampleTabs.Code>
 
 ```csharp
 public class Mutation
 {
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
+    public User UpdateUserNameAsync(
+        Guid userId,
+        string username)
+        => ...
 }
 
 public class MutationType : ObjectType<Mutation>
@@ -296,8 +270,9 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-            .Field(f => f.CreateUserAsync(default, default, default, default))
-            .Payload("customPayloadField", "CustomTypeName");
+            .Field(f => f.UpdateUserNameAsync(default, default))
+            .Argument("userId", a => a.ID())
+            .UseMutationConvention();
     }
 }
 ```
@@ -305,152 +280,25 @@ public class MutationType : ObjectType<Mutation>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-```csharp
-// Currently only supported in Code First and Annotation Based
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-The configuration above emits the following schema:
-
-```graphql
-type CustomTypeName {
-  customPayloadField: User
-}
-```
-
-## Defining inputs
-
-The `[Input]` annotation or the `.Input()` extension method can combine arguments in an input object.
-
-By default, all method parameters are combined into a single input object.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-public class Mutation
-{
-    [Input]
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public class Mutation
-{
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
-}
-
-public class MutationType : ObjectType<Mutation>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<Mutation> descriptor)
-    {
-        descriptor
-            .Field(f => f.CreateUserAsync(default, default, default, default))
-            .Input();
-    }
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-// Currently only supported in Code First and Annotation Based
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-The default name of the argument is `input`. You can configure this with the `name` parameter.
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
-
-```csharp
-public class Mutation
-{
-    [Input("custom")]
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
-}
-```
-
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
-
-```csharp
-public class Mutation
-{
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
-}
-
-public class MutationType : ObjectType<Mutation>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<Mutation> descriptor)
-    {
-        descriptor
-            .Field(f => f.CreateUserAsync(default, default, default, default))
-            .Input("custom");
-    }
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-// Currently only supported in Code First and Annotation Based
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-The configuration above emits the following schema:
-
-```graphql
+```sdl
 type Mutation {
-  createUser(custom: CreateUserCustomInput): CreateUserPayload
-}
-
-type CreateUserPayload {
-  user: User
-}
-
-input CreateUserCustomInput {
-  username: String!
-  name: String!
-  lastName: String!
+  updateUserName(userId: ID!, username: String!) : User @useMutationConvention
 }
 ```
 
-You can also define the `Input` annotation on arguments directly and define multiple inputs.
+</ExampleTabs.Schema>
+</ExampleTabs>
+
+We also can configure the mutation conventions to be applied to all mutations by default.
+
+```csharp
+service
+    .AddGraphQLServer()
+    .AddMutationConventions(applyToAllMutations: true)
+    ...
+```
+
+In the case that the conventions are applied by default we no longer need any annotation.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -458,12 +306,10 @@ You can also define the `Input` annotation on arguments directly and define mult
 ```csharp
 public class Mutation
 {
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        [Input("a")] string username,
-        [Input("a")] string name,
-        [Input("b")] string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
+    {
+    //...
+    }
 }
 ```
 
@@ -473,12 +319,10 @@ public class Mutation
 ```csharp
 public class Mutation
 {
-    public User CreateUserAsync(
-        [Service] IUserService service,
-        string username,
-        string name,
-        string lastName)
-        => userSerivce.CreateUser(username, name, lastName);
+    public User UpdateUserNameAsync(
+        Guid userId,
+        string username)
+        => ...
 }
 
 public class MutationType : ObjectType<Mutation>
@@ -487,11 +331,8 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-            .Field(f => f.CreateUserAsync(default, default, default, default))
-            .Argument("username", x => x.Input("a"))
-            .Argument("name", x => x.Input("a"))
-            .Argument("lastName", x => x.Input("b"))
-            .Input();
+            .Field(f => f.UpdateUserNameAsync(default, default))
+            .Argument("userId", a => a.ID());
     }
 }
 ```
@@ -499,41 +340,21 @@ public class MutationType : ObjectType<Mutation>
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-```csharp
-// Currently only supported in Code First and Annotation Based
+```sdl
+type Mutation {
+  updateUserName(userId: ID!, username: String!) : User
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The configuration above emits the following schema:
+## Errors
 
-```graphql
-type Mutation {
-  createUser(a: CreateUserAInput, b: CreateUserBInput): CreateUserPayload
-}
+The mutation conventions also allow you to create mutations that follow the error
+[stage 6a Pattern Marc-Andre Giroux layed out](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) with minimal effort.
 
-type CreateUserPayload {
-  user: User
-}
-
-input CreateUserAInput {
-  username: String!
-  name: String!
-}
-input CreateUserBInput {
-  lastName: String!
-}
-```
-
-## Defining errors
-
-The convetions also allow you to create mutations that follow the
-[Stage 6a Pattern of Marc-Andre Giroux](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85), without having to declare a lot of boilerplate.
-
-The basic concept of the error middleware is to keep the resolver clean of any error handling code and use exceptions to signal a error state. 
-The HotChocolate schema is automatically rewritten into the correct GraphQL pattern.
-A middleware will catch all the exceptions and rewrite the output to the correct types.
+The basic concept here is to keep the resolver clean of any error handling code and use exceptions to signal an error state. The field will simply expose which exceptions are domain errors that shall be exposed to the schema. All other exceptions will still cause runtime errors.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
@@ -541,17 +362,13 @@ A middleware will catch all the exceptions and rewrite the output to the correct
 ```csharp
 public class Mutation
 {
-    [Error(typeof(SomeSpecificDomainError))]
-    [Error(typeof(SomeOtherError))]
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    [Error(typeof(UserNameTakenException))]
+    [Error(typeof(InvalidUserNameException))]
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
     {
-       // ...
+        //...
     }
 }
-
-public record CreateUserInput(string UserName);
-
-public record CreateUserPayload(User User);
 ```
 
 </ExampleTabs.Annotation>
@@ -560,7 +377,7 @@ public record CreateUserPayload(User User);
 ```csharp
 public class Mutation
 {
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    public User? UpdateUserNameAsync(Guid userId, string username)
     {
        // ...
     }
@@ -572,41 +389,53 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUser(default))
-          .Error<SomeSpecificDomainError>()
-          .Error<SomeOtherError>();
+          .Field(f => f.UpdateUserNameAsync(default))
+          .Error<UserNameTakenException>()
+          .Error<InvalidUserNameException>();
     }
 }
-
-public record CreateUserInput(string UserName);
-
-public record CreateUserPayload(User User);
 ```
 
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
+```sdl
+type Mutation {
+  updateUserName(userId: ID!, username: String!): User
+}
+```
+
 ```csharp
-// Currently only supported in Code First and Annotation Based
+public class Mutation
+{
+    [Error(typeof(UserNameTakenException))]
+    [Error(typeof(InvalidUserNameException))]
+    public User? UpdateUserNameAsync(Guid userId, string username)
+    {
+        //...
+    }
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-The configuration above emits the following schema: 
+The HotChocolate schema is automatically rewritten, and an error middleware will catch all the exceptions that represent domain errors and rewrite them into the correct error object.
 
-```graphql
+The configuration above emits the following schema:
+
+```sdl
 type Mutation {
-  createUser(input: CreateUserInput!): CreateUserPayload!
+  updateUserName(input: UpdateUserNameInput!): UpdateUserNamePayload!
 }
 
-input CreateUserInput {
-  userName: String!
+input UpdateUserNameInput {
+  userId: ID!
+  username: String!
 }
 
-type CreateUserPayload {
+type UpdateUserNamePayload {
   user: User
-  # generated
   errors: [CreateUserError!]
 }
 
@@ -614,37 +443,33 @@ type User {
   username: String
 }
 
-# generated
 interface Error {
   message: String!
 }
 
-# generated
-type SomeSpecificDomainError implements Error {
+type UserNameTakenError implements Error {
   message: String!
 }
 
-# generated
-type SomeOtherDomainError implements Error {
+type InvalidUserNameError implements Error {
   message: String!
 }
 
-# generated
-union CreateUserError = SomeSpecificDomainError | SomeOtherDomainError
+union UpdateUserNameError = UserNameTakenError | InvalidUserNameError
 ```
 
-
-There are three ways to map an exception to a GraphQL error.
+There are three ways to map an exception to a user error.
 
 1. Map the exception directly
 2. Map with a factory method (`CreateErrorFrom`)
 3. Map with a constructor
 
-> TIPP: You can use AggregateExceptions to return multiple errors
+> Note: You can use AggregateExceptions to return multiple errors at once.
 
 ### Map exceptions directly
-The quickest way to define a GraphQL Error, is to map the exception directly into the graph. You can just annotate the exception directly on the resolver.
-If the exception is thrown and reaches the middleware, the middlware will catch the exception and rewrite it to the error payload.
+
+The quickest way to define a user error, is to map the exception directly into the graph. You can just annotate the exception directly on the resolver.
+If the exception is thrown and is caught in the error middleware, it will be rewritten into an user error that is exposed on the mutation payload.
 
 > The name of the exception will be rewritten. `Exception` is replaced with `Error` to follow the common GraphQL naming conventions.
 
@@ -652,19 +477,20 @@ If the exception is thrown and reaches the middleware, the middlware will catch 
 <ExampleTabs.Annotation>
 
 ```csharp
-public class MyCustomException : Exception
+public class UserNameTakenException : Exception
 {
-     public MyCustomException() : base("My custom message") 
-     {
-     }
+    public UserNameTakenException(string username)
+        : base($"The username {username} is already taken.")
+    {
+    }
 }
 
 public class Mutation
 {
-    [Error(typeof(MyCustomException))]
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    [Error(typeof(UserNameTakenException))]
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
     {
-       // ...
+        //...
     }
 }
 ```
@@ -673,16 +499,17 @@ public class Mutation
 <ExampleTabs.Code>
 
 ```csharp
-public class MyCustomException : Exception
+public class UserNameTakenException : Exception
 {
-     public MyCustomException() : base("My custom message") 
-     {
-     }
+    public UserNameTakenException(string username)
+        : base($"The username {username} is already taken.")
+    {
+    }
 }
 
 public class Mutation
 {
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    public User? UpdateUserNameAsync(Guid userId, string username)
     {
        // ...
     }
@@ -694,8 +521,8 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUser(default))
-          .Error<MyCustomException>();
+          .Field(f => f.UpdateUserNameAsync(default))
+          .Error<UserNameTakenException>();
     }
 }
 ```
@@ -704,44 +531,83 @@ public class MutationType : ObjectType<Mutation>
 <ExampleTabs.Schema>
 
 ```csharp
-// Currently only supported in Code First and Annotation Based
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+        : base($"The username {username} is already taken.")
+    {
+    }
+}
+```
+
+```sdl
+type Mutation {
+  updateUserName(userId: ID!, username: String!): User
+}
+```
+
+```csharp
+public class Mutation
+{
+    [Error(typeof(UserNameTakenException))]
+    public User? UpdateUserNameAsync(Guid userId, string username)
+    {
+        //...
+    }
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
+### Map with a factory method
 
-### Map with a factory method 
+Often there is a need to control the error shape and ensure that not too many details are exposed. In these cases, we can use a custom error class representing the user error in our schema.
 
-If there should be any translation between exception and error, you can defined a classwith factory methods. 
-These factory methods receive a exception and returnna object which will be used as the representation of the error
-You can either use the constructor or the `CreateErrorFrom` factory method.
+The error instance and the translation of the exception can be done by an error factory. The error factory method receives an exception and returns the error object.
+
+Add a `public` `static` method called `CreateErrorFrom` that takes an exception and returns the error object.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
-public class MyCustomError
+public class UserNameTakenError
 {
-    public static MyCustomError CreateErrorFrom(DomainExceptionA ex)
+    private UserNameTakenError(string username)
     {
-        return new MyCustomError();
+        Message = $"The username {username} is already taken.";
     }
 
-    public static MyCustomError CreateErrorFrom(DomainExceptionB ex)
+    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
     {
-        return new MyCustomError();
+        return new MyCustomError(ex.Username);
     }
 
-    public string Message => "My custom error Message";
+    public static MyCustomError CreateErrorFrom(OtherException ex)
+    {
+        return new MyCustomError(ex.Username);
+    }
+
+    public string Message { get; }
+}
+
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+    {
+        Username = username;
+    }
+
+    public string Username { get; }
 }
 
 public class Mutation
 {
-    [Error(typeof(MyCustomError))]
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    [Error(typeof(UserNameTakenError))]
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
     {
-       // ...
+        //...
     }
 }
 ```
@@ -750,24 +616,39 @@ public class Mutation
 <ExampleTabs.Code>
 
 ```csharp
-public class MyCustomError
+public class UserNameTakenError
 {
-    public static MyCustomError CreateErrorFrom(DomainExceptionA ex)
+    private UserNameTakenError(string username)
     {
-        return new MyCustomError();
+        Message = $"The username {username} is already taken.";
     }
 
-    public static MyCustomError CreateErrorFrom(DomainExceptionB ex)
+    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
     {
-        return new MyCustomError();
+        return new MyCustomError(ex.Username);
     }
 
-    public string Message => "My custom error Message";
+    public static MyCustomError CreateErrorFrom(OtherException ex)
+    {
+        return new MyCustomError(ex.Username);
+    }
+
+    public string Message { get; }
+}
+
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+    {
+        Username = username;
+    }
+
+    public string Username { get; }
 }
 
 public class Mutation
 {
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    public User? UpdateUserNameAsync(Guid userId, string username)
     {
        // ...
     }
@@ -779,8 +660,8 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUser(default))
-          .Error<MyCustomError>();
+          .Field(f => f.UpdateUserNameAsync(default))
+          .Error<UserNameTakenError>();
     }
 }
 ```
@@ -789,19 +670,51 @@ public class MutationType : ObjectType<Mutation>
 <ExampleTabs.Schema>
 
 ```csharp
-// Currently only supported in Code First and Annotation Based
+public class UserNameTakenError
+{
+    private UserNameTakenError(string username)
+    {
+        Message = $"The username {username} is already taken.";
+    }
+
+    public static MyCustomError CreateErrorFrom(UserNameTakenException ex)
+    {
+        return new MyCustomError(ex.Username);
+    }
+
+    public static MyCustomError CreateErrorFrom(OtherException ex)
+    {
+        return new MyCustomError(ex.Username);
+    }
+
+    public string Message { get; }
+}
+```
+
+```sdl
+type Mutation {
+  updateUserName(userId: ID!, username: String!): User
+}
+```
+
+```csharp
+public class Mutation
+{
+    [Error(typeof(UserNameTakenError))]
+    public User? UpdateUserNameAsync(Guid userId, string username)
+    {
+        //...
+    }
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-You can also define factories in a dedicated class. 
-
-<ExampleTabs>
-<ExampleTabs.Annotation>
+Error factories can also be located in a dedicated class.
 
 ```csharp
-public class CreateUserErrorFactory
+public static class CreateUserErrorFactory
 {
     public static MyCustomErrorA CreateErrorFrom(DomainExceptionA ex)
     {
@@ -824,58 +737,11 @@ public class Mutation
 }
 ```
 
-</ExampleTabs.Annotation>
-<ExampleTabs.Code>
+Further the error factory methods do not have to be static.
+You can also use the `IPayloadErrorFactory<TError, TException>` interface, to define instance error factory methods. This also enables you to use dependency injection with your factory class.
 
 ```csharp
 public class CreateUserErrorFactory
-{
-    public static MyCustomErrorA CreateErrorFrom(DomainExceptionA ex)
-    {
-        return new MyCustomError();
-    }
-
-    public static MyCustomErrorB CreateErrorFrom(DomainExceptionB ex)
-    {
-        return new MyCustomError();
-    }
-}
-
-public class Mutation
-{
-    public CreateUserPayload CreateUser(CreateUserInput input)
-    {
-       // ...
-    }
-}
-
-public class MutationType : ObjectType<Mutation>
-{
-    protected override void Configure(
-        IObjectTypeDescriptor<Mutation> descriptor)
-    {
-        descriptor
-          .Field(f => f.CreateUser(default))
-          .Error<CreateUserErrorFactory>();
-    }
-}
-```
-
-</ExampleTabs.Code>
-<ExampleTabs.Schema>
-
-```csharp
-// Currently only supported in Code First and Annotation Based
-```
-
-</ExampleTabs.Schema>
-</ExampleTabs>
-
-The factory methods do not have to be static. 
-You can also use the `IPayloadErrorFactory<TError, TException>` interface, to define factory methods.
-
-```csharp
-public class CreateUserErrorFactory 
     : IPayloadErrorFactory<MyCustomErrorA, DomainExceptionA>
     , IPayloadErrorFactory<MyCustomErrorB, DomainExceptionB>
 {
@@ -889,36 +755,51 @@ public class CreateUserErrorFactory
         return new MyCustomError();
     }
 }
+
+public class Mutation
+{
+    [Error(typeof(CreateUserErrorFactory))]
+    public CreateUserPayload CreateUser(CreateUserInput input)
+    {
+       // ...
+    }
+}
 ```
 
 ### Map with a constructor
-Instead of using factory methods, you can also use the constructor of the date transfer object directly.
+
+Lastly, we can also use the constructor of an error class to consume an exception. Essentially the constructor in this case represents the factory that we described earlier.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
-public class MyCustomError
+public class UserNameTakenError
 {
-    public MyCustomError(MyCustomDomainException exception)
+    private UserNameTakenError(UserNameTakenException ex)
     {
-        Message = exception.Message;
-    }
-
-    public MyCustomError(MyCustomDomainException2 exception)
-    {
-        Message = exception.Message;
+        Message = $"The username {ex.Username} is already taken.";
     }
 
     public string Message { get; }
 }
 
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+    {
+        Username = username;
+    }
+
+    public string Username { get; }
+}
+
 public class Mutation
 {
-    [Error(typeof(MyCustomError))]
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    [Error(typeof(UserNameTakenError))]
+    public User? UpdateUserNameAsync([ID] Guid userId, string username)
     {
-       // ...
+        //...
     }
 }
 ```
@@ -927,24 +808,29 @@ public class Mutation
 <ExampleTabs.Code>
 
 ```csharp
-public class MyCustomError
+public class UserNameTakenError
 {
-    public MyCustomError(MyCustomDomainException exception)
+    private UserNameTakenError(UserNameTakenException ex)
     {
-        Message = exception.Message;
-    }
-
-    public MyCustomError(MyCustomDomainException2 exception)
-    {
-        Message = exception.Message;
+        Message = $"The username {ex.Username} is already taken.";
     }
 
     public string Message { get; }
 }
 
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+    {
+        Username = username;
+    }
+
+    public string Username { get; }
+}
+
 public class Mutation
 {
-    public CreateUserPayload CreateUser(CreateUserInput input)
+    public User? UpdateUserNameAsync(Guid userId, string username)
     {
        // ...
     }
@@ -956,8 +842,8 @@ public class MutationType : ObjectType<Mutation>
         IObjectTypeDescriptor<Mutation> descriptor)
     {
         descriptor
-          .Field(f => f.CreateUser(default))
-          .Error<MyCustomError>();
+          .Field(f => f.UpdateUserNameAsync(default))
+          .Error<UserNameTakenError>();
     }
 }
 ```
@@ -966,32 +852,143 @@ public class MutationType : ObjectType<Mutation>
 <ExampleTabs.Schema>
 
 ```csharp
-// Currently only supported in Code First and Annotation Based
+public class UserNameTakenError
+{
+    private UserNameTakenError(UserNameTakenException ex)
+    {
+        Message = $"The username {ex.Username} is already taken.";
+    }
+
+    public string Message { get; }
+}
+
+public class UserNameTakenException : Exception
+{
+    public UserNameTakenException(string username)
+    {
+        Username = username;
+    }
+
+    public string Username { get; }
+}
+```
+
+```sdl
+type Mutation {
+  updateUserName(userId: ID!, username: String!): User
+}
+```
+
+```csharp
+public class Mutation
+{
+    [Error(typeof(UserNameTakenError))]
+    public User? UpdateUserNameAsync(Guid userId, string username)
+    {
+        //...
+    }
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-### Customize the error interface
-The error interface is shared across all errors that the schema defines.
-By default this interface type is called `Error` and defines a non nullable field `message`
+> Note: errors and error factories can be shared between multiple mutations.
 
-```graphql
+## Customization
+
+While the mutation conventions strictly follow the outlined mutation and error patterns they still can be customized.
+
+### Naming
+
+The naming patterns for inputs, payloads and errors can be adjusted globally as well as on a per mutation basis.
+
+In order to change the global mutation naming patterns you can pass in the `MutationConventionOptions` into the `AddMutationConventions` configuration method.
+
+```csharp
+services
+    .AddGraphQL()
+    .AddMutationConventions(
+        new MutationConventionOptions
+        {
+            InputArgumentName = "input",
+            InputTypeNamePattern = "{MutationName}Input",
+            PayloadTypeNamePattern = "{MutationName}Payload",
+            PayloadErrorTypeNamePattern = "{MutationName}Error",
+            PayloadErrorsFieldName = "errors",
+            ApplyToAllMutations = true
+        })
+    ...
+```
+
+To override the global mutation settings on a mutation use the `UseMutationConvention` annotation.
+
+```csharp
+[UseMutationConvention(
+    InputTypeName = "FooInput",
+    InputArgumentName = "foo",
+    PayloadTypeName = "FooPayload",
+    PayloadFieldName = "bar")]
+public User? UpdateUserNameAsync(Guid userId, string username)
+{
+    //...
+}
+```
+
+### Opting Out
+
+Often we want to infer everything and only opt-out for exceptional cases, and the mutation convention allows us to do that in an effortless way.
+
+The first way to opt out of the global conventions is to use the `UseMutationConvention` annotation. With `UseMutationConvention` we can tell the type system initialization to disable the convention on certain mutations.
+
+```csharp
+[UseMutationConvention(Disable = true)]
+public User? UpdateUserNameAsync(Guid userId, string username)
+{
+    //...
+}
+```
+
+In many cases, we do not want to entirely opt-out but rather override the global settings since we wish for a more complex payload or input. We can simply add our own payload or input type in these cases, and the schema initialization will recognize that. Essentially if we follow the naming pattern for either input or payload, the initialization will not rewrite that part that already follows the global convention.
+
+```csharp
+public UpdateUserNamePayload UpdateUserNameAsync(UpdateUserNameInput input)
+{
+    //...
+}
+```
+
+You can also partially opt-out:
+
+```csharp
+public User UpdateUserNameAsync(UpdateUserNameInput input)
+{
+    //...
+}
+```
+
+### Custom error interface
+
+Lastly, we can customize the error interface we want to use with our mutation convention. The error interface is shared across all error types that the schema defines and provides the minimum shape that all errors have to fulfill.
+
+By default, this error interface type is called `Error` and defines a non-nullable field `message`.
+
+```sdl
 interface Error {
   message: String!
 }
 ```
 
-This interface can be customized. 
-Keep in mind that all you error types, have to implement the contract that the interface declares!
-You errors/exceptions do not have to implement the common interface, but they have to declare all the members that the interface defines.
+Often we also want to provide an error code so that the GUI components can more easily implement error handling logic. In such a case, we could provide our own error interface.
+
+> Note: All you error types have to implement the contract that the interface declares! Your errors/exceptions do not have to implement the common interface, but they have to declare all the interface's members.
 
 <ExampleTabs>
 <ExampleTabs.Annotation>
 
 ```csharp
 [GraphQLName("UserError")]
-public interface IUserError 
+public interface IUserError
 {
   string Message { get; }
 
@@ -1039,14 +1036,17 @@ public class Startup
 </ExampleTabs.Code>
 <ExampleTabs.Schema>
 
-```csharp
-// Currently only supported in Code First and Annotation Based
+```sdl
+interface UserError @errorInterface {
+  message: String!
+  code: String!
+}
 ```
 
 </ExampleTabs.Schema>
 </ExampleTabs>
 
-```graphql
+```sdl
 interface UserError {
   message: String!
   code: String!

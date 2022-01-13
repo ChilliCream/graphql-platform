@@ -1,4 +1,3 @@
-using System;
 using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Serialization;

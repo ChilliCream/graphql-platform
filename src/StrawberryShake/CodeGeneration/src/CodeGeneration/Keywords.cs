@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate;
 
 namespace StrawberryShake.CodeGeneration.CSharp
 {
@@ -121,6 +122,26 @@ namespace StrawberryShake.CodeGeneration.CSharp
         };
 
         public static string ToSafeName(string name)
+        {
+            if (_keywords.Contains(name))
+            {
+                return $"@{name}";
+            }
+
+            return name;
+        }
+
+        public static string ToEscapedName(this NameString name)
+        {
+            if (_keywords.Contains(name.Value))
+            {
+                return $"@{name}";
+            }
+
+            return name;
+        }
+
+        public static string ToEscapedName(this string name)
         {
             if (_keywords.Contains(name))
             {

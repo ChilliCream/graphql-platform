@@ -215,7 +215,7 @@ public class QueryableFilterVisitorMethodTests : FilterVisitorTestBase
     {
         public string? Bar { get; set; }
 
-        public string Simple() => Bar;
+        public string Simple() => Bar ?? "Simple";
 
         public string Complex(string parameter) => parameter;
     }

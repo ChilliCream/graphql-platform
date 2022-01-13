@@ -99,7 +99,7 @@ public class TypeInterceptor
 
     internal virtual void OnAfterResolveRootType(
         ITypeCompletionContext completionContext,
-        DefinitionBase? definition,
+        DefinitionBase definition,
         OperationType operationType,
         IDictionary<string, object?> contextData)
     {

@@ -39,5 +39,8 @@ public interface IQueryResult : IExecutionResult
     /// <value></value>
     bool? HasNext { get; }
 
+    /// <summary>
+    /// Serializes this GraphQL result into a dictionary.
+    /// </summary>
     IReadOnlyDictionary<string, object?> ToDictionary();
 }

@@ -283,4 +283,10 @@
   <data name="ProjectionVisitor_CouldNotUnwrapType" xml:space="preserve">
     <value>Could not unwrap runtime type of type {0}.</value>
   </data>
+  <data name="GlobalIdInputValueFormatter_SpecifiedValueIsNotAValidId" xml:space="preserve">
+    <value>The specified value is not a valid ID value.</value>
+  </data>
+  <data name="GlobalIdInputValueFormatter_IdsHaveInvalidFormat" xml:space="preserve">
+    <value>The IDs `{0}` have an invalid format.</value>
+  </data>
 </root>

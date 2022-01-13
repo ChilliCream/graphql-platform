@@ -26,5 +26,5 @@ public class MockExecutable<T> : IExecutable<T>
     public async ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken) =>
         await _dbSet.SingleOrDefaultAsync(cancellationToken);
 
-    public string Print() => _dbSet.ToString();
+    public string Print() => _dbSet.ToString()!;
 }

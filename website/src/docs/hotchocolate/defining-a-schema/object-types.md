@@ -119,7 +119,7 @@ public class Startup
                   name: String
                 }
             ")
-            .BindComplexType<Author>();
+            .BindRuntimeType<Author>();
     }
 }
 ```
@@ -393,7 +393,7 @@ public class Startup
                   additionalField: DateTime!
                 }
             ")
-            .BindComplexType<Author>()
+            .BindRuntimeType<Author>()
             .AddResolver("Author", "additionalField", (context) =>
             {
                 // Omitted code for brevity

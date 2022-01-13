@@ -96,6 +96,10 @@ public static class FilterConventionDescriptorExtensions
             .BindComparableType<Guid>()
             .BindComparableType<DateTime>()
             .BindComparableType<DateTimeOffset>()
+#if NET6_0_OR_GREATER
+            .BindComparableType<DateOnly>()
+            .BindComparableType<TimeOnly>()
+#endif
             .BindComparableType<TimeSpan>();
     }
 

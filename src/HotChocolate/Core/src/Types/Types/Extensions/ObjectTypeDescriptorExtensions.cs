@@ -1,8 +1,12 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides extensions to <see cref="IObjectTypeDescriptor"/>.
+/// </summary>
 public static class ObjectTypeDescriptorExtensions
 {
     public static IObjectTypeDescriptor<T> Ignore<T>(
@@ -22,4 +26,26 @@ public static class ObjectTypeDescriptorExtensions
         descriptor.Field(propertyOrMethod).Ignore();
         return descriptor;
     }
+
+    /// <summary>
+    /// Specifies an interface that is implemented by this <see cref="ObjectType"/>.
+    /// </summary>
+    /// <param name="typeName">
+    /// The type name of the interface.
+    /// </param>
+    public static IObjectTypeDescriptor Implements(
+        this IObjectTypeDescriptor descriptor, 
+        NameString typeName)
+        => descriptor.Implements(new NamedTypeNode(typeName));
+
+    /// <summary>
+    /// Specifies an interface that is implemented by this <see cref="ObjectType"/>.
+    /// </summary>
+    /// <param name="typeName">
+    /// The type name of the interface.
+    /// </param>
+    public static IObjectTypeDescriptor<T> Implements<T>(
+        this IObjectTypeDescriptor<T> descriptor, 
+        NameString typeName)
+        => descriptor.Implements(new NamedTypeNode(typeName));
 }

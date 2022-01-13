@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HotChocolate.AspNetCore.Subscriptions.Messages;
 
 public sealed class RejectConnectionMessage

@@ -21,9 +21,15 @@ namespace HotChocolate.Validation
             configure(builder);
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
-            Rule = services.GetRequiredService<IValidationConfiguration>()
+            
+            Rule = services
+                .GetRequiredService<IValidationConfiguration>()
                 .GetRules(Schema.DefaultName).First();
-            StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
+            
+            StarWars = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .ModifyOptions(o => o.EnableOneOf = true)
+                .Create();
         }
 
         protected IDocumentValidatorRule Rule { get; }
@@ -73,8 +79,8 @@ namespace HotChocolate.Validation
             Assert.Empty(context.Errors);
         }
 
-        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) =>
-            ExpectErrors(null, sourceText, elementInspectors);
+        protected void ExpectErrors(string sourceText, params Action<IError>[] elementInspectors) 
+            => ExpectErrors(null, sourceText, elementInspectors);
 
         protected void ExpectErrors(
             ISchema schema,

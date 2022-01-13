@@ -83,7 +83,7 @@ public abstract class ProjectionProvider
 
     protected override void Complete(IConventionContext context)
     {
-        if (Definition.Handlers.Count == 0)
+        if (Definition!.Handlers.Count == 0)
         {
             throw ProjectionProvider_NoHandlersConfigured(this);
         }
