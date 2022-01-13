@@ -3,7 +3,7 @@ path: "/blog/2021/12/14/hot-chocolate-12-4"
 date: "2021-12-14"
 title: "A Holly Jolly Christmas with Hot Chocolate 12.4"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore"]
-featuredImage: "hot-chocolate-12-banner.png"
+featuredImage: "hot-chocolate-12-4-banner.png"
 author: Michael Staib
 authorUrl: https://github.com/michaelstaib
 authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
@@ -70,7 +70,7 @@ union RenameUserError = UserNameTakenError | InvalidUserNameError
 
 We can see that having this particular design of mutation is very beneficial for our schema over time and for the usage by our consumers.
 
-What was not so nice is that we needed so many types in C# to create a simple mutation.  
+What was not so nice is that we needed so many types in C# to create a simple mutation.
 
 ```csharp
 public class Mutation
@@ -80,7 +80,7 @@ public class Mutation
         IUserService userService,
         CancellationToken cancellationToken)
     {
-          try 
+          try
           {
               User updateUser = await userService.RenameUserAsync(input.UserId, input.Username, cancellationToken);
               return new RenameUserPayload(updatedUser);
@@ -89,7 +89,7 @@ public class Mutation
           {
               return new RenameUserPayload(new UserNameTakenError(ex));
           }
-          catch (ArgumentException ex) 
+          catch (ArgumentException ex)
           {
               return new RenameUserPayload(new InvalidUserNameError(ex));
           }
@@ -98,17 +98,17 @@ public class Mutation
 
 public record RenameUserInput([property: ID(nameof(User)))] Guid UserId, string Username);
 
-public class RenameUserPayload 
+public class RenameUserPayload
 {
    // code omitted for brevity
 }
 
-public class UserNameTakenError 
+public class UserNameTakenError
 {
    // code omitted for brevity
 }
 
-public class InvalidUserNameError 
+public class InvalidUserNameError
 {
    // code omitted for brevity
 }
@@ -174,7 +174,7 @@ public class MutationType : ObjectType
             .Field("renameUser")
             .Argument("userId", a => a.ID(nameof(User)))
             .Argument("username", a => a.Type<NonNullType<StringType>>())
-            .Resolve(async ctx => 
+            .Resolve(async ctx =>
             {
                 var userService = ctx.Service<IUserService>();
                 var userId = ctx.ArgumentValue<Guid>("userId");
@@ -261,7 +261,7 @@ services
 
 ## Errors
 
-The second part of this new mutation convention involves user errors. We did a lot of work investigating how we should enable errors or even what pattern we should follow. 
+The second part of this new mutation convention involves user errors. We did a lot of work investigating how we should enable errors or even what pattern we should follow.
 
 Marc-Andre Giroux wrote a great [blog post](https://xuorig.medium.com/a-guide-to-graphql-errors-bb9ba9f15f85) on the various error patterns in GraphQL and analyzed their pro and cons regarding evolvability and usability.
 
@@ -376,9 +376,9 @@ public class Mutation
         => userService.RenameUserAsync(userId, username, cancellationToken);
 }
 
-public class InvalidUserNameError 
+public class InvalidUserNameError
 {
-    public InvalidUserNameError(ArgumentException ex) 
+    public InvalidUserNameError(ArgumentException ex)
     {
         Message = ex.Message;
     }
@@ -513,7 +513,7 @@ builder.Services
     .RegisterDbContext<BookContext>(kind: DbContextKind.Pooled);
 ```
 
-The last way to use a well-known DBContext is as a resolver-level DBContext. In this case, we will treat it as a resolver-level service that is retrieved from a resolver service scope. With this, you essentially get a new DBContext per resolver without configuring anything special. 
+The last way to use a well-known DBContext is as a resolver-level DBContext. In this case, we will treat it as a resolver-level service that is retrieved from a resolver service scope. With this, you essentially get a new DBContext per resolver without configuring anything special.
 
 With the well-known DBContext, you now can switch the behavior of how resolvers interact with your DBContext with one line of code. With this, you essentially can start easy, and as traffic starts to grow and you get more pressure on your API, you can switch to DBContext pooling.
 
@@ -539,7 +539,7 @@ Work on 12.5 already is underway, and there are four notable things we are worki
 You can have a look at the milestone here:
 https://github.com/ChilliCream/hotchocolate/milestone/72
 
-We will also be working on the new stitching engine over Christmas and hope to have the first previews ready at the end of January. 
+We will also be working on the new stitching engine over Christmas and hope to have the first previews ready at the end of January.
 
 Things are moving together and becoming more and more connected.
 
@@ -547,4 +547,4 @@ We hope you all enjoy this new version of Hot Chocolate and have some great holi
 
 Join us on https://slack.chillicream.com and chime into the discussion around GraphQL on .NET!
 
-> If you like our project help us by [starring it on GitHub](https://github.com/ChilliCream/hotchocolate/stargazers). A GitHub star is the easiest contribution you can give to an OSS project. Star the open source projects you use or love! 
+> If you like our project help us by [starring it on GitHub](https://github.com/ChilliCream/hotchocolate/stargazers). A GitHub star is the easiest contribution you can give to an OSS project. Star the open source projects you use or love!
